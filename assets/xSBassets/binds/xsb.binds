@@ -1,0 +1,48 @@
+{
+  "xsb": {
+    "groups": {
+      "camera": { "name": "Camera" },
+      "voice": { "name": "Voice" },
+      "building": { "name": "Building" }
+    },
+    "name": "^#f22;xSB-2",
+    "binds": {
+      "zoomIn": {
+        "default": [{
+          "type": "key",
+          "value": "="
+        }],
+        "group": "camera",
+        "name": "Zoom In"
+      },
+      "zoomOut": {
+        "default": [{
+          "type": "key",
+          "value": "-"
+        }],
+        "group": "camera",
+        "name": "Zoom Out"
+      },
+      "pushToTalk": {
+        "default": [],
+        "group": "voice",
+        "name": "Push To Talk"
+      },
+      "materialCollisionCycle": {
+        "default": [],
+        "group": "building",
+        "name": "Cycle Material Collision"
+      },
+      "buildingRadiusGrow": {
+        "default": [],
+        "group": "building",
+        "name": "Increase Building Radius"
+      },
+      "buildingRadiusShrink": {
+        "default": [],
+        "group": "building",
+        "name": "Decrease Building Radius"
+      }
+    }
+  }
+}

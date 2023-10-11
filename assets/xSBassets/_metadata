@@ -1,0 +1,7 @@
+{
+  "author" : "Not Chucklefish",
+  "name" : "xSBassets",
+  "priority" : -9999,
+  "friendlyName" : "xSB-2 Assets",
+  "requires" : ["base"]
+}
