@@ -382,7 +382,7 @@ Attempts to place the specified material in the specified position and layer. If
 > - `+platform`: The tile is placed with platform collision. Entities can move through the tile regardless of whether collision is active in their movement controllers, but objects cannot be placed in front of or behind the tile. Entities with active collision can stand on the tile and objects can be anchored to it, provided there is enough space around the tile.
 > - `+block`: The tile is placed with block collision. Entities cannot move through the tile unless collision is disabled in their movement controllers, nor can objects be placed in front or behind the tile. Entities with active collision can stand on the tile and objects can be anchored to it, provided there is enough space around the tile.
 >
-> If the collision modifier of a foreground tile doesn't match that of the background tile behind it, the *lower* modifier on the list above is the one that applies (with minor caveats when one modifier is `+platform` and the other is `+block` and either or both collisions are diagonal). To see what kind of tile collision a given tile has, use `/boxes` and `/debug`.
+> Collision modifiers affect only foreground tiles; background tiles always have no collision. To see what kind of tile collision a given foreground tile has, use `/boxes` and `/debug`.
 >
 > Collision modifiers are currently supported on OpenStarbound and xServer servers. Note that legacy StarExtensions / pre-v2.0.0 xSB collision modifiers are *not* network-compatible with OpenStarbound servers or xServer v2.0.0+ (ordinary foreground or background tiles will be placed instead), although already placed "legacy collision" will still work on such servers.
 
