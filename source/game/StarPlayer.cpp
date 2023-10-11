@@ -2186,7 +2186,7 @@ void Player::teleportIn() {
   m_state = State::TeleportIn;
   if (!m_fastRespawn)
     m_effectsAnimator->setState("teleport", m_teleportAnimationType + "In");
-  if (m_fastRespawn)
+  if (!m_fastRespawn)
     m_teleportTimer = m_deployment->isDeployed() ? m_config->deployInTime : m_config->teleportInTime;
   else
     m_teleportTimer = 0.0f;
