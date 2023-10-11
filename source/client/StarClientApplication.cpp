@@ -134,7 +134,7 @@ void ClientApplication::startup(StringList const& cmdLineArgs) {
   RootLoader rootLoader({AdditionalAssetsSettings, AdditionalDefaultConfiguration, String("starbound.log"), LogLevel::Info, false, String("starbound.config")});
   m_root = rootLoader.initOrDie(cmdLineArgs).first;
 
-  Logger::info("Client Version {} ({}) Source ID: {} Protocol: {}", StarVersionString, StarArchitectureString, StarSourceIdentifierString, StarProtocolVersion);
+  Logger::info("xSB::xClient v{} [Starbound v{}] ({}) // Source ID: {} // Protocol: {}", xSbVersionString, StarVersionString, StarArchitectureString, StarSourceIdentifierString, StarProtocolVersion);
 }
 
 void ClientApplication::shutdown() {
@@ -335,6 +335,13 @@ void ClientApplication::processInput(InputEvent const& event) {
 
   auto config = m_root->configuration();
   int zoomOffset = 0;
+
+  if (auto presses = m_input->bindDown("xsb", "zoomIn"))
+    zoomOffset += *presses;
+  if (auto presses = m_input->bindDown("xsb", "zoomOut"))
+    zoomOffset -= *presses;
+
+  // Allow xSB to use OpenStarbound keybind configs.
 
   if (auto presses = m_input->bindDown("opensb", "zoomIn"))
     zoomOffset += *presses;
@@ -886,7 +893,7 @@ void ClientApplication::updateRunning(float dt) {
     if (checkDisconnection())
       return;
 
-    m_voice->setInput(m_input->bindHeld("opensb", "pushToTalk"));
+    m_voice->setInput(m_input->bindHeld("xsb", "pushToTalk"));
     DataStreamBuffer voiceData;
     voiceData.setByteOrder(ByteOrder::LittleEndian);
     //voiceData.writeBytes(VoiceBroadcastPrefix.utf8Bytes()); transmitting with SE compat for now

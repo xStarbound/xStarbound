@@ -355,7 +355,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       clientInfo->pendingSectors.addAll(clientInfo->activeSectors.difference(oldSectors));
 
     } else if (auto mtpacket = as<ModifyTileListPacket>(packet)) {
-      auto unappliedModifications = applyTileModifications(mtpacket->modifications, mtpacket->allowEntityOverlap);
+      auto unappliedModifications = applyTileModifications(mtpacket->modifications, mtpacket->allowEntityOverlap, true);
       if (!unappliedModifications.empty())
         clientInfo->outgoingPackets.append(make_shared<TileModificationFailurePacket>(unappliedModifications));
 
@@ -826,14 +826,14 @@ void WorldServer::setSpawningEnabled(bool spawningEnabled) {
   m_spawner.setActive(spawningEnabled);
 }
 
-TileModificationList WorldServer::validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap) const {
+TileModificationList WorldServer::validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected) const {
   return WorldImpl::splitTileModifications(m_entityMap, modificationList, allowEntityOverlap, m_tileGetterFunction, [this](Vec2I pos, TileModification) {
       return !isTileProtected(pos);
-    }).first;
+    }, allowDisconnected).first;
 }
 
-TileModificationList WorldServer::applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap) {
-  return doApplyTileModifications(modificationList, allowEntityOverlap);
+TileModificationList WorldServer::applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected) {
+  return doApplyTileModifications(modificationList, allowEntityOverlap, false);
 }
 
 bool WorldServer::forceModifyTile(Vec2I const& pos, TileModification const& modification, bool allowEntityOverlap) {
@@ -1354,7 +1354,8 @@ TileModificationList WorldServer::doApplyTileModifications(TileModificationList 
 
     if (auto placeMaterial = modification.ptr<PlaceMaterial>()) {
       bool allowTileOverlap = placeMaterial->collisionOverride != TileCollisionOverride::None && collisionKindFromOverride(placeMaterial->collisionOverride) < CollisionKind::Dynamic;
-      if (!WorldImpl::canPlaceMaterial(m_entityMap, pos, placeMaterial->layer, placeMaterial->material, allowEntityOverlap, allowTileOverlap, m_tileGetterFunction))
+      // Let the *client* handle whether mid-air placement is allowed (see last parameter of the call).
+      if (!WorldImpl::canPlaceMaterial(m_entityMap, pos, placeMaterial->layer, placeMaterial->material, allowEntityOverlap, allowTileOverlap, m_tileGetterFunction, true))
         continue;
 
       ServerTile* tile = m_tileArray->modifyTile(pos);

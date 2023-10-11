@@ -1,27 +1,37 @@
 #!/bin/sh
 
-cd "`dirname \"$0\"`/../.."
+cd "`dirname \"$0\"`/../..";
 
-mkdir -p dist
-cp scripts/linux/sbinit.config dist/
+rm -rI build/ dist/;
 
-mkdir -p build
-cd build
+mkdir -p dist;
+cp scripts/linux/sbinit.config dist/;
+
+mkdir -p build;
+cd build;
 
 if [ -d /usr/lib/ccache ]; then
-  export PATH=/usr/lib/ccache/:$PATH
+  export PATH=/usr/lib/ccache/:$PATH;
 fi
 
-LINUX_LIB_DIR=../lib/linux
+LINUX_LIB_DIR=../lib/linux;
 
 cmake \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
-  -DCMAKE_BUILD_TYPE=RelWithAsserts \
+  -DCMAKE_BUILD_TYPE=Release \
   -DSTAR_USE_JEMALLOC=ON \
   -DCMAKE_INCLUDE_PATH=$LINUX_LIB_DIR/include \
   -DCMAKE_LIBRARY_PATH=$LINUX_LIB_DIR/ \
-  ../source
+  -DSTAR_BUILD_QT_TOOLS=OFF \
+  -DSTAR_ENABLE_STEAM_INTEGRATION=ON \
+  -S ../source/ -B .;
 
-if [ $# -ne 0 ]; then 
-  make -j$*
+# RelWithAsserts
+
+if [ $# -ne 0 ]; then
+  make -j$*;
+else
+  make;
 fi
+
+cp -r ../dist/* ../test/linux/; # Will replace existing xSB test executables.

@@ -251,6 +251,8 @@ private:
   Map<WorldId, List<WorldServerThread::Message>> m_pendingWorldMessages;
 
   List<TimeoutBan> m_tempBans;
+
+  bool m_rememberReturnWarpsOnDeath;
 };
 
 }

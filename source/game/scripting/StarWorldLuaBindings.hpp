@@ -130,6 +130,7 @@ namespace LuaBindings {
     Json getObjectParameter(World* world, EntityId entityId, String const& parameterName, Maybe<Json> const& defaultValue);
     Json getNpcScriptParameter(World* world, EntityId entityId, String const& parameterName, Maybe<Json> const& defaultValue);
     List<Vec2I> objectSpaces(World* world, EntityId entityId);
+    Maybe<int> objectDirection(World *world, EntityId entityId);
     Maybe<int> farmableStage(World* world, EntityId entityId);
     Maybe<int> containerSize(World* world, EntityId entityId);
     bool containerClose(World* world, EntityId entityId);
@@ -159,6 +160,7 @@ namespace LuaBindings {
     Maybe<String> npcType(World* world, EntityId entityId);
     Maybe<String> stagehandType(World* world, EntityId entityId);
     bool isNpc(World* world, EntityId entityId, Maybe<int> const& damageTeam);
+    Maybe<Vec2F> playerAimPosition(World *world, EntityId entityId);
   }
 
   namespace WorldEnvironmentCallbacks {
@@ -174,7 +176,7 @@ namespace LuaBindings {
     void setMaterialColor(World* world, Vec2F const& position, String const& layerName, MaterialColorVariant color);
     bool damageTiles(World* world, List<Vec2I> const& arg1, String const& arg2, Vec2F const& arg3, String const& arg4, float arg5, Maybe<unsigned> const& arg6, Maybe<EntityId> sourceEntity);
     bool damageTileArea(World* world, Vec2F center, float radius, String layer, Vec2F sourcePosition, String damageType, float damage, Maybe<unsigned> const& harvestLevel, Maybe<EntityId> sourceEntity);
-    bool placeMaterial(World* world, Vec2I const& arg1, String const& arg2, String const& arg3, Maybe<int> const& arg4, bool arg5);
+    bool placeMaterial(World* world, Vec2I const& arg1, String const& arg2, String const& arg3, Maybe<int> const& arg4, bool arg5, bool arg6);
     bool placeMod(World* world, Vec2I const& arg1, String const& arg2, String const& arg3, Maybe<int> const& arg4, bool arg5);
   }
 }

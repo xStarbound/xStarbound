@@ -101,7 +101,11 @@ Voice::Speaker::Speaker(SpeakerId id)
   : decoderMono  (createDecoder(1), opus_decoder_destroy)
   , decoderStereo(createDecoder(2), opus_decoder_destroy) {
   speakerId = id;
+#ifdef STAR_COMPILER_CLANG
+	audioStream = std::shared_ptr<VoiceAudioStream>(new VoiceAudioStream());
+#else
   audioStream = make_shared<VoiceAudioStream>();
+#endif
 }
 
 Json Voice::Speaker::toJson() const {

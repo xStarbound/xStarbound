@@ -8,6 +8,7 @@ namespace Star {
 extern char const* const StarVersionString;
 extern char const* const StarSourceIdentifierString;
 extern char const* const StarArchitectureString;
+extern char const* const xSbVersionString;
 
 typedef uint32_t VersionNumber;
 

@@ -73,8 +73,13 @@ UniverseServer::UniverseServer(String const& storageDir)
   m_tcpState = TcpState::No;
   m_storageTriggerDeadline = 0;
   m_clearBrokenWorldsDeadline = 0;
-  
+
+  m_rememberReturnWarpsOnDeath = false;
+
   m_maxPlayers = configuration->get("maxPlayers").toUInt();
+
+  if (auto rememberReturnWarpsOnDeath = configuration->get("rememberReturnWarpsOnDeath").optBool())
+    m_rememberReturnWarpsOnDeath = rememberReturnWarpsOnDeath.get();
 
   for (auto const& pair : assets->json("/universe_server.config:speciesShips").iterateObject())
     m_speciesShips[pair.first] = jsonToStringList(pair.second);
@@ -111,7 +116,7 @@ void UniverseServer::setListeningTcp(bool listenTcp) {
 void UniverseServer::addClient(UniverseConnection remoteConnection) {
   RecursiveMutexLocker locker(m_mainLock);
   // Binding requires us to make the given lambda copy constructible, so the
-  // make_shared is requried here.
+  // make_shared is required here.
   m_connectionAcceptThreads.append(Thread::invoke("UniverseServer::acceptConnection", [this, conn = make_shared<UniverseConnection>(move(remoteConnection))]() {
       acceptConnection(move(*conn), {});
     }));
@@ -791,8 +796,10 @@ void UniverseServer::warpPlayers() {
       if (auto toWorld = maybeToWorld.value()) {
         if (toWorld->spawnTargetValid(warpToWorld.target)) {
           if (auto currentWorld = clientContext->playerWorld()) {
-            if (auto playerRevivePosition = currentWorld->playerRevivePosition(clientId))
-              clientContext->setPlayerReturnWarp(WarpToWorld{currentWorld->worldId(), SpawnTargetPosition(*playerRevivePosition)});
+            if (auto playerRevivePosition = currentWorld->playerRevivePosition(clientId)) {
+              if (!m_rememberReturnWarpsOnDeath)
+                clientContext->setPlayerReturnWarp(WarpToWorld{currentWorld->worldId(), SpawnTargetPosition(*playerRevivePosition)});
+            }
             clientContext->clearPlayerWorld();
             m_connectionServer->sendPackets(clientId, currentWorld->removeClient(clientId));
             m_chatProcessor->leaveChannel(clientId, printWorldId(currentWorld->worldId()));
@@ -1525,7 +1532,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   connection.setLegacy(legacyClient);
 
   auto protocolResponse = make_shared<ProtocolResponsePacket>();
-  protocolResponse->setCompressionMode(PacketCompressionMode::Enabled); // Signal that we're OpenStarbound
+  protocolResponse->setCompressionMode(PacketCompressionMode::Enabled); // Signal that we're xSB-2 or OpenStarbound.
   if (protocolRequest->requestProtocolVersion != StarProtocolVersion) {
     Logger::warn("UniverseServer: client connection aborted, unsupported protocol version {}, supported version {}",
         protocolRequest->requestProtocolVersion, StarProtocolVersion);
@@ -1542,7 +1549,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   connection.sendAll(clientWaitLimit);
 
   String remoteAddressString = remoteAddress ? toString(*remoteAddress) : "local";
-  Logger::info("UniverseServer: Awaiting connection info from {}, {} client", remoteAddressString, legacyClient ? "Starbound" : "OpenStarbound");
+  Logger::info("UniverseServer: Awaiting connection info from {}, {} client", remoteAddressString, legacyClient ? "Starbound" : "xSB-2/OpenSB");
 
   connection.receiveAny(clientWaitLimit);
   auto clientConnect = as<ClientConnectPacket>(connection.pullSingle());

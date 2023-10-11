@@ -19,6 +19,7 @@ public:
   PlantDrop(ByteArray const& netStore);
 
   ByteArray netStore();
+  Json diskStore() const;
 
   EntityType entityType() const override;
 

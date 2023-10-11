@@ -31,6 +31,9 @@
 #include "StarUtilityLuaBindings.hpp"
 #include "StarUniverseSettings.hpp"
 #include "StarBiome.hpp"
+#include "StarObject.hpp"
+#include "StarPlant.hpp"
+#include "StarPlantDrop.hpp"
 
 namespace Star {
 namespace LuaBindings {
@@ -58,6 +61,7 @@ namespace LuaBindings {
           includedTypes->add(EntityType::Monster);
           includedTypes->add(EntityType::Npc);
           includedTypes->add(EntityType::Projectile);
+          includedTypes->add(EntityType::PlantDrop); // FezzedOne: Plant drops are mobile too. Well, at least they fall.
           includedTypes->add(EntityType::ItemDrop);
           includedTypes->add(EntityType::Vehicle);
         } else if (type == "creature") {
@@ -498,6 +502,7 @@ namespace LuaBindings {
     callbacks.registerCallbackWithSignature<Json, EntityId, String, Maybe<Json>>("getObjectParameter", bind(WorldEntityCallbacks::getObjectParameter, world, _1, _2, _3));
     callbacks.registerCallbackWithSignature<Json, EntityId, String, Maybe<Json>>("getNpcScriptParameter", bind(WorldEntityCallbacks::getNpcScriptParameter, world, _1, _2, _3));
     callbacks.registerCallbackWithSignature<List<Vec2I>, EntityId>("objectSpaces", bind(WorldEntityCallbacks::objectSpaces, world, _1));
+    callbacks.registerCallbackWithSignature<Maybe<int>, EntityId>("objectDirection", bind(WorldEntityCallbacks::objectDirection, world, _1)); // FezzedOne: Huge CF and oSB oversight here.
     callbacks.registerCallbackWithSignature<Maybe<int>, EntityId>("farmableStage", bind(WorldEntityCallbacks::farmableStage, world, _1));
     callbacks.registerCallbackWithSignature<Maybe<int>, EntityId>("containerSize", bind(WorldEntityCallbacks::containerSize, world, _1));
     callbacks.registerCallbackWithSignature<bool, EntityId>("containerClose", bind(WorldEntityCallbacks::containerClose, world, _1));
@@ -582,7 +587,7 @@ namespace LuaBindings {
 
     callbacks.registerCallbackWithSignature<bool, List<Vec2I>, String, Vec2F, String, float, Maybe<unsigned>, Maybe<EntityId>>("damageTiles", bind(WorldEnvironmentCallbacks::damageTiles, world, _1, _2, _3, _4, _5, _6, _7));
     callbacks.registerCallbackWithSignature<bool, Vec2F, float, String, Vec2F, String, float, Maybe<unsigned>, Maybe<EntityId>>("damageTileArea", bind(WorldEnvironmentCallbacks::damageTileArea, world, _1, _2, _3, _4, _5, _6, _7, _8));
-    callbacks.registerCallbackWithSignature<bool, Vec2I, String, String, Maybe<int>, bool>("placeMaterial", bind(WorldEnvironmentCallbacks::placeMaterial, world, _1, _2, _3, _4, _5));
+    callbacks.registerCallbackWithSignature<bool, Vec2I, String, String, Maybe<int>, bool, bool>("placeMaterial", bind(WorldEnvironmentCallbacks::placeMaterial, world, _1, _2, _3, _4, _5, _6));
     callbacks.registerCallbackWithSignature<bool, Vec2I, String, String, Maybe<int>, bool>("placeMod", bind(WorldEnvironmentCallbacks::placeMod, world, _1, _2, _3, _4, _5));
 
     callbacks.registerCallback("radialTileQuery", [world](Vec2F center, float radius, String layerName) -> List<Vec2I> {
@@ -968,7 +973,7 @@ namespace LuaBindings {
       return stagehand->inWorld() ? stagehand->entityId() : Maybe<EntityId>();
     } catch (StarException const& exception) {
       Logger::warn(
-          "Could not spawn Stagehand of type '{}', exception caught: {}", typeName, outputException(exception, false));
+          "Could not spawn stagehand of type '{}', exception caught: {}", typeName, outputException(exception, false));
       return {};
     }
   }
@@ -991,7 +996,7 @@ namespace LuaBindings {
       return projectile->inWorld() ? projectile->entityId() : Maybe<EntityId>();
     } catch (StarException const& exception) {
       Logger::warn(
-          "Could not spawn Projectile of type '{}', exception caught: {}", projectileType, outputException(exception, false));
+          "Could not spawn projectile of type '{}', exception caught: {}", projectileType, outputException(exception, false));
       return {};
     }
   }
@@ -1080,7 +1085,6 @@ namespace LuaBindings {
   RectI ClientWorldCallbacks::clientWindow(WorldClient* world) {
     return world->clientWindow();	
   }
-
   bool ServerWorldCallbacks::breakObject(WorldServer* world, EntityId arg1, bool arg2) {
     if (auto entity = world->get<Object>(arg1)) {
       bool smash = arg2;
@@ -1499,6 +1503,24 @@ namespace LuaBindings {
   List<Vec2I> WorldEntityCallbacks::objectSpaces(World* world, EntityId entityId) {
     if (auto tileEntity = as<TileEntity>(world->entity(entityId)))
       return tileEntity->spaces();
+    return {};
+  }
+
+  Maybe<int> WorldEntityCallbacks::objectDirection(World *world, EntityId entityId)
+  {
+    if (auto objectEntity = as<Object>(world->entity(entityId)))
+    {
+      Direction objDir = objectEntity->direction();
+      if (objDir == Direction::Right)
+      {
+        return 1;
+      }
+      else
+      {
+        return -1;
+      }
+    }
+
     return {};
   }
 
@@ -1937,7 +1959,7 @@ namespace LuaBindings {
     return damageTiles(world, tiles, layer, sourcePosition, damageType, damage, harvestLevel, sourceEntity);
   }
 
-  bool WorldEnvironmentCallbacks::placeMaterial(World* world, Vec2I const& arg1, String const& arg2, String const& arg3, Maybe<int> const& arg4, bool arg5) {
+  bool WorldEnvironmentCallbacks::placeMaterial(World* world, Vec2I const& arg1, String const& arg2, String const& arg3, Maybe<int> const& arg4, bool arg5, bool arg6) {
     auto tilePosition = arg1;
 
     PlaceMaterial placeMaterial;
@@ -1975,7 +1997,9 @@ namespace LuaBindings {
 
     bool allowOverlap = arg5;
 
-    return world->modifyTile(tilePosition, placeMaterial, allowOverlap);
+    bool allowDisconnected = arg6;
+
+    return world->modifyTile(tilePosition, placeMaterial, allowOverlap, allowDisconnected);
   }
 
   bool WorldEnvironmentCallbacks::placeMod(World* world, Vec2I const& arg1, String const& arg2, String const& arg3, Maybe<int> const& arg4, bool arg5) {

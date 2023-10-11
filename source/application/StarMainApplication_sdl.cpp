@@ -193,12 +193,17 @@ ControllerButton controllerButtonFromSdlControllerButton(uint8_t button) {
     case SDL_CONTROLLER_BUTTON_DPAD_DOWN: return ControllerButton::DPadDown;
     case SDL_CONTROLLER_BUTTON_DPAD_LEFT: return ControllerButton::DPadLeft;
     case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: return ControllerButton::DPadRight;
+/* FezzedOne: This #if is here because the macOS SDL headers are outdated. */
+#if SDL_VERSION_ATLEAST(2, 0, 14)
     case SDL_CONTROLLER_BUTTON_MISC1: return ControllerButton::Misc1;
     case SDL_CONTROLLER_BUTTON_PADDLE1: return ControllerButton::Paddle1;
     case SDL_CONTROLLER_BUTTON_PADDLE2: return ControllerButton::Paddle2;
     case SDL_CONTROLLER_BUTTON_PADDLE3: return ControllerButton::Paddle3;
     case SDL_CONTROLLER_BUTTON_PADDLE4: return ControllerButton::Paddle4;
     case SDL_CONTROLLER_BUTTON_TOUCHPAD: return ControllerButton::Touchpad;
+#else
+    case SDL_CONTROLLER_BUTTON_MAX: return ControllerButton::Misc1;
+#endif
     default: return ControllerButton::Invalid;
   }
 }

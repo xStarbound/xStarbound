@@ -9,6 +9,8 @@
 #include "StarWorld.hpp"
 #include "StarRandom.hpp"
 #include "StarParticleDatabase.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarAssetPath.hpp"
 
 namespace Star {
 
@@ -111,6 +113,38 @@ PlantDrop::PlantDrop(ByteArray const& netStore) {
 
   m_firstTick = true;
   m_spawnedDropEffects = true;
+}
+
+Json PlantDrop::diskStore() const {
+  JsonArray plantDropPieces = JsonArray{};
+  for (PlantDropPiece const& piece : m_pieces) {
+    String pieceKind = "";
+    if (piece.kind == Plant::PlantPieceKind::Foliage) {
+      pieceKind = "foliage";
+    } else if (piece.kind == Plant::PlantPieceKind::Stem) {
+      pieceKind = "stem";
+    } else {
+      pieceKind = "none";
+    }
+    Json plantDropPiece = JsonObject{
+      {"image", Json(AssetPath::join(piece.image))},
+      {"offset", jsonFromVec2F(piece.offset)},
+      {"flipped", piece.flip},
+      {"kind", pieceKind}
+    };
+    plantDropPieces.append(plantDropPiece);
+  }
+  Json plantDropParameters = JsonObject{
+    {"description", m_description},
+    {"boundingBox", jsonFromRectF(m_boundingBox)},
+    {"collisionRect", jsonFromRectF(m_collisionRect)},
+    {"rotationRate", m_rotationRate},
+    {"pieces", plantDropPieces},
+    {"stemConfig", m_stemConfig},
+    {"foliageConfig", m_foliageConfig},
+    {"saplingConfig", m_saplingConfig}
+  };
+  return plantDropParameters;
 }
 
 ByteArray PlantDrop::netStore() {

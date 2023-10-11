@@ -92,6 +92,8 @@ Npc::Npc(NpcVariant const& npcVariant)
   setKeepAlive(m_npcVariant.keepAlive);
 
   setupNetStates();
+
+  m_overrideState = {};
 }
 
 Npc::Npc(NpcVariant const& npcVariant, Json const& diskStore) : Npc(npcVariant) {
@@ -378,7 +380,9 @@ void Npc::update(float dt, uint64_t) {
     if (inConflictingLoungeAnchor())
       m_movementController->resetAnchorState();
 
-    if (auto loungeAnchor = as<LoungeAnchor>(m_movementController->entityAnchor())) {
+    if (m_overrideState) {
+      m_humanoid.setState(*m_overrideState);
+    } else if (auto loungeAnchor = as<LoungeAnchor>(m_movementController->entityAnchor())) {
       if (loungeAnchor->emote)
         requestEmote(*loungeAnchor->emote);
       m_statusController->setPersistentEffects("lounging", loungeAnchor->statusEffects);
@@ -758,6 +762,19 @@ LuaCallbacks Npc::makeNpcCallbacks() {
 
   callbacks.registerCallback("setUniqueId", [this](Maybe<String> uniqueId) { setUniqueId(uniqueId); });
 
+  callbacks.registerCallback("setIdentity", [this](Json const& newIdentity) { setIdentity(newIdentity); });
+
+  callbacks.registerCallback("parameters", [this]() -> Json { return diskStore(); });
+
+  callbacks.registerCallback("setOverrideState", [this](Maybe<String> newState) {
+    if (newState) {
+      Humanoid::State newHumanoidState = Humanoid::StateNames.valueLeft(newState.get(), Humanoid::State::Idle);
+      m_overrideState.set(newHumanoidState);
+    } else {
+      m_overrideState = {};
+    }
+  });
+
   return callbacks;
 }
 
@@ -1125,6 +1142,48 @@ List<DamageSource> Npc::damageSources() const {
 
 List<PhysicsForceRegion> Npc::forceRegions() const {
   return m_tools->forceRegions();
+}
+
+bool Npc::checkSpecies(String const& species, Maybe<String> const& maybeCallbackName) { // Check whether a species exists in the loaded assets.
+  Star::Root &root = Root::singleton();
+  String callbackName = "setSpecies";
+  if (maybeCallbackName)
+    callbackName = maybeCallbackName.get();
+  bool speciesFound = false;
+
+  for (auto const &nameDefPair : root.speciesDatabase()->allSpecies()) {
+    String speciesName = nameDefPair.second->options().species;
+
+    if (species == speciesName) {
+      speciesFound = true;
+      break;
+    }
+  }
+
+  if (!speciesFound)
+    Logger::error("{}: Nonexistent species '{}'.", callbackName, species);
+  return speciesFound;
+}
+
+void Npc::setIdentity(Json const& newIdentity) {
+  Json oldIdentity = m_humanoid.identity().toJson();
+  Json mergedIdentity = oldIdentity;
+  if (newIdentity.type() == Json::Type::Object) {
+    mergedIdentity = jsonMerge(oldIdentity, newIdentity);
+    if (newIdentity.contains("imagePath")) {
+      // FezzedOne: Check if the "imagePath" is an explicit `null` (i.e., it's in the internal Lua "nils"
+      // table and thus `Json::contains` returns `true`). If so, set the new imagePath to `null`.
+      if (newIdentity.get("imagePath").type() == Json::Type::Null) {
+        mergedIdentity = mergedIdentity.set("imagePath", Json());
+      }
+    }
+    String speciesName = mergedIdentity.getString("species");
+    if (!checkSpecies(speciesName, String("npc.setIdentity"))) { // FezzedOne: If the new species doesn't exist, retain the old species.
+      mergedIdentity = mergedIdentity.set("species", oldIdentity.getString("species"));
+    }
+    HumanoidIdentity identity = HumanoidIdentity(mergedIdentity);
+    m_humanoid.setIdentity(identity);
+  }
 }
 
 }

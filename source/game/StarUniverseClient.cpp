@@ -44,10 +44,14 @@ void UniverseClient::setMainPlayer(PlayerPtr player) {
   if (isConnected())
     throw StarException("Cannot call UniverseClient::setMainPlayer while connected");
 
+  bool selectedFromTitleScreen = false;
+
   if (m_mainPlayer) {
     m_playerStorage->savePlayer(m_mainPlayer);
     m_mainPlayer->setClientContext({});
     m_mainPlayer->setStatistics({});
+  } else {
+    selectedFromTitleScreen = true;
   }
 
   m_mainPlayer = player;
@@ -59,6 +63,8 @@ void UniverseClient::setMainPlayer(PlayerPtr player) {
     m_playerStorage->backupCycle(m_mainPlayer->uuid());
     m_playerStorage->savePlayer(m_mainPlayer);
     m_playerStorage->moveToFront(m_mainPlayer->uuid());
+    if (selectedFromTitleScreen)
+      m_shouldUpdateMainPlayerShip = m_mainPlayer->shipUpdatesIgnored();
   }
 }
 
@@ -185,12 +191,17 @@ void UniverseClient::update(float dt) {
   if (!isConnected())
     return;
 
+  if (m_mainPlayer && playerIsOriginal())
+    m_shouldUpdateMainPlayerShip = !m_mainPlayer->shipUpdatesIgnored();
+
   if (!m_warping && !m_pendingWarp) {
     if (auto playerWarp = m_mainPlayer->pullPendingWarp())
       warpPlayer(parseWarpAction(playerWarp->action), (bool)playerWarp->animation, playerWarp->animation.value("default"), playerWarp->deploy);
   }
 
   if (m_pendingWarp) {
+    if (m_mainPlayer->fastRespawn())
+      m_warpDelay.setDone();
     if ((m_warping && !m_mainPlayer->isTeleportingOut()) || (!m_warping && m_warpDelay.tick(dt))) {
       m_connection->pushSingle(make_shared<PlayerWarpPacket>(take(m_pendingWarp), m_mainPlayer->isDeploying()));
       m_warpDelay.reset();
@@ -202,17 +213,22 @@ void UniverseClient::update(float dt) {
         String cinematicAssetPath = assets->json(cinematicJsonPath).toString()
         .replaceTags(StringMap<String>{{"species", m_mainPlayer->species()}});
 
-        Json cinematic = jsonMerge(assets->json(cinematicJsonPath + "Base"), assets->json(cinematicAssetPath));
-        m_mainPlayer->setPendingCinematic(cinematic);
+        if (assets->assetExists(cinematicAssetPath)) {
+          Json cinematic = jsonMerge(assets->json(cinematicJsonPath + "Base"), assets->json(cinematicAssetPath));
+          if (!(m_mainPlayer->alwaysRespawnInWorld() || m_mainPlayer->fastRespawn()))
+            m_mainPlayer->setPendingCinematic(cinematic);
+        }
       }
     }
   }
 
   // Don't cancel the warp cinema until at LEAST the
   // playerWarpCinemaMinimumTime has passed, even if warping is faster than
-  // that.
+  // that. Unless the player has fast respawn enabled, of course.
   if (m_warpCinemaCancelTimer) {
     m_warpCinemaCancelTimer->tick();
+    if (m_mainPlayer->fastRespawn())
+      m_warpCinemaCancelTimer->setDone();
     if (m_warpCinemaCancelTimer->ready() && !m_warping) {
       m_warpCinemaCancelTimer = {};
       m_mainPlayer->setPendingCinematic(Json());
@@ -264,7 +280,7 @@ void UniverseClient::update(float dt) {
 
   if (m_respawning) {
     if (m_respawnTimer.ready()) {
-      if ((playerOnOwnShip() || m_worldClient->respawnInWorld()) && m_worldClient->inWorld()) {
+      if ((playerOnOwnShip() || m_worldClient->respawnInWorld() || m_mainPlayer->alwaysRespawnInWorld()) && m_worldClient->inWorld()) {
         m_worldClient->reviveMainPlayer();
         m_respawning = false;
       }
@@ -275,9 +291,14 @@ void UniverseClient::update(float dt) {
             {"species", m_mainPlayer->species()},
             {"mode", PlayerModeNames.getRight(m_mainPlayer->modeType())}
           });
-        m_mainPlayer->setPendingCinematic(Json(move(cinematic)));
-        if (!m_worldClient->respawnInWorld())
+        if (assets->assetExists(cinematic) && !(m_mainPlayer->fastRespawn() || m_mainPlayer->externalCinematicsIgnored()))
+          // FezzedOne: If a respawn cinematic doesn't exist for the species, don't try to play a nonexistent cinematic.
+          // Also respect xSB player settings, of course.
+          m_mainPlayer->setPendingCinematic(Json(move(cinematic)));
+        if (!(m_worldClient->respawnInWorld() || m_mainPlayer->alwaysRespawnInWorld()))
           m_pendingWarp = WarpAlias::OwnShip;
+        if (m_mainPlayer->fastRespawn())
+          m_respawnTimer.setDone();
         m_warpDelay.reset();
       }
     }
@@ -307,8 +328,18 @@ void UniverseClient::update(float dt) {
 
 Maybe<BeamUpRule> UniverseClient::beamUpRule() const {
   if (auto worldTemplate = currentTemplate())
-    if (auto parameters = worldTemplate->worldParameters())
-      return parameters->beamUpRule;
+    if (auto parameters = worldTemplate->worldParameters()) {
+      BeamUpRule beamUpRule = parameters->beamUpRule;
+      if (m_mainPlayer->externalWarpsIgnored()) {
+        // FezzedOne: If the player is ignoring external warps, ignore all limitations on beaming up too.
+        return BeamUpRule::Anywhere;
+      } else if (beamUpRule == BeamUpRule::AnywhereWithWarning && m_mainPlayer->fastRespawn()) {
+        // FezzedOne: If the player has `"fastRespawn"`, skip that pesky "are you sure you want to beam out?" dialogue.
+        return BeamUpRule::Anywhere;
+      } else {
+        return beamUpRule;
+      }
+    }
 
   return {};
 }
@@ -318,7 +349,7 @@ bool UniverseClient::canBeamUp() const {
 
   if (playerWorldId.empty() || playerWorldId.is<ClientShipWorldId>())
     return false;
-  if (m_mainPlayer->isAdmin())
+  if (m_mainPlayer->isAdmin() || m_mainPlayer->externalWarpsIgnored())
     return true;
   if (m_mainPlayer->isDead() || m_mainPlayer->isTeleporting())
     return false;
@@ -336,14 +367,14 @@ bool UniverseClient::canBeamDown(bool deploy) const {
   if (!m_clientContext->orbitWarpAction() || flying())
     return false;
   if (auto warpAction = m_clientContext->orbitWarpAction()) {
-    if (!deploy && warpAction->second == WarpMode::DeployOnly)
+    if (!deploy && warpAction->second == WarpMode::DeployOnly && !m_mainPlayer->externalWarpsIgnored())
       return false;
-    else if (deploy && (warpAction->second == WarpMode::BeamOnly || !m_mainPlayer->canDeploy()))
+    else if (deploy && ((warpAction->second == WarpMode::BeamOnly && !m_mainPlayer->externalWarpsIgnored()) || !m_mainPlayer->canDeploy()))
       return false;
   }
-  if (m_mainPlayer->isAdmin())
+  if (m_mainPlayer->isAdmin() || m_mainPlayer->fastRespawn()) // FezzedOne: Players with `"fastRespawn"` have fewer restrictions on beaming down.
     return true;
-  if (m_mainPlayer->isDead() || m_mainPlayer->isTeleporting() || !m_clientContext->shipUpgrades().capabilities.contains("teleport"))
+  if (m_mainPlayer->isDead() || m_mainPlayer->isTeleporting() || (!m_clientContext->shipUpgrades().capabilities.contains("teleport") && !m_mainPlayer->externalWarpsIgnored()))
     return false;
   return true;
 }
@@ -353,24 +384,24 @@ bool UniverseClient::canBeamToTeamShip() const {
   if (playerWorldId.empty())
     return false;
 
-  if (m_mainPlayer->isAdmin())
+  if (m_mainPlayer->isAdmin() || m_mainPlayer->externalWarpsIgnored())
     return true;
 
   if (canBeamUp())
     return true;
 
-  if (playerWorldId.is<ClientShipWorldId>() && m_clientContext->shipUpgrades().capabilities.contains("teleport"))
+  if (playerWorldId.is<ClientShipWorldId>() && (m_clientContext->shipUpgrades().capabilities.contains("teleport") || m_mainPlayer->externalWarpsIgnored()))
     return true;
 
   return false;
 }
 
 bool UniverseClient::canTeleport() const {
-  if (m_mainPlayer->isAdmin())
+  if (m_mainPlayer->isAdmin() || m_mainPlayer->externalWarpsIgnored())
     return true;
 
   if (m_clientContext->playerWorldId().is<ClientShipWorldId>())
-    return !flying() && m_clientContext->shipUpgrades().capabilities.contains("teleport");
+    return (!flying() && m_clientContext->shipUpgrades().capabilities.contains("teleport")) || m_mainPlayer->externalWarpsIgnored();
 
   return m_mainPlayer->canUseTool();
 }
@@ -444,6 +475,15 @@ void UniverseClient::sendChat(String const& text, ChatSendMode sendMode) {
   m_connection->pushSingle(make_shared<ChatSendPacket>(text, sendMode));
 }
 
+void UniverseClient::sendChat(String const &text, String const &sendMode, bool suppressBubble) {
+  // Override for `player.sendChat`.
+  Maybe<ChatSendMode> sendModeEnumMaybe = ChatSendModeNames.maybeLeft(sendMode);
+  ChatSendMode sendModeEnum = sendModeEnumMaybe.value(ChatSendMode::Local);
+  if (!text.beginsWith("/") && !suppressBubble)
+    m_mainPlayer->addChatMessageCallback(text); // FezzedOne: Allow chat bubbles to inherit custom player settings.
+  m_connection->pushSingle(make_shared<ChatSendPacket>(text, sendModeEnum));
+}
+
 List<ChatReceivedMessage> UniverseClient::pullChatMessages() {
   return take(m_pendingMessages);
 }
@@ -505,7 +545,7 @@ bool UniverseClient::reloadPlayer(Json const& data, Uuid const& uuid, bool reset
       // EntityCreatePacket for player entities can be pretty big.
       // We can show a loading projectile to other players while the create packet uploads.
       auto projectileDb = Root::singleton().projectileDatabase();
-      auto config = projectileDb->projectileConfig("opensb:playerloading");
+      auto config = projectileDb->projectileConfig("xsb:playerloading");
       indicator = projectileDb->createProjectile("stationpartsound", config);
       indicator->setInitialPosition(player->position());
       indicator->setInitialDirection({ 1.0f, 0.0f });
@@ -577,6 +617,18 @@ bool UniverseClient::switchPlayer(String const& name) {
     return false;
 }
 
+bool UniverseClient::switchPlayerUuid(String const& uuidStr) {
+  // FezzedOne: Attempts to convert the passed string to a UUID, and if
+  // successful, attempts to load the player file with that UUID.
+  Uuid uuid = Uuid();
+  try {
+    uuid = Uuid(uuidStr);
+  } catch (std::exception const& e) {
+    return false;
+  }
+  return switchPlayer(uuid);
+}
+
 UniverseClient::ReloadPlayerCallback& UniverseClient::playerReloadPreCallback() {
   return m_playerReloadPreCallback;
 }
@@ -630,13 +682,16 @@ void UniverseClient::handlePackets(List<PacketPtr> const& packets) {
   for (auto const& packet : packets) {
     if (auto clientContextUpdate = as<ClientContextUpdatePacket>(packet)) {
       m_clientContext->readUpdate(clientContextUpdate->updateData);
-      m_playerStorage->applyShipUpdates(m_clientContext->playerUuid(), m_clientContext->newShipUpdates());
+      if (m_shouldUpdateMainPlayerShip)
+        m_playerStorage->applyShipUpdates(m_clientContext->playerUuid(), m_clientContext->newShipUpdates());
 
-      if (playerIsOriginal())
+      // FezzedOne: Don't apply ship upgrades on protected ships.
+      if (playerIsOriginal() && m_shouldUpdateMainPlayerShip)
         m_mainPlayer->setShipUpgrades(m_clientContext->shipUpgrades());
 
       m_mainPlayer->setAdmin(m_clientContext->isAdmin());
-      m_mainPlayer->setTeam(m_clientContext->team());
+      if (!m_mainPlayer->damageTeamOverridden())
+        m_mainPlayer->setTeam(m_clientContext->team());
 
     } else if (auto chatReceivePacket = as<ChatReceivePacket>(packet)) {
       m_pendingMessages.append(chatReceivePacket->receivedMessage);

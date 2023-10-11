@@ -142,7 +142,8 @@ bool WorldClient::respawnInWorld() const {
   return m_respawnInWorld;
 }
 
-void WorldClient::removeEntity(EntityId entityId, bool andDie) {
+void WorldClient::removeEntity(EntityId entityId, bool andDie)
+{
   auto entity = m_entityMap->entity(entityId);
   if (!entity)
     return;
@@ -151,7 +152,7 @@ void WorldClient::removeEntity(EntityId entityId, bool andDie) {
     ClientRenderCallback renderCallback;
     entity->destroy(&renderCallback);
 
-    const List<Directives>* directives = nullptr;
+    const List<Directives>* directives = nullptr; // Optimisations much, Kae?
     if (auto& worldTemplate = m_worldTemplate) {
       if (const auto& parameters = worldTemplate->worldParameters())
         if (auto& globalDirectives = m_worldTemplate->worldParameters()->globalDirectives)
@@ -321,16 +322,16 @@ LiquidLevel WorldClient::liquidLevel(RectF const& region) const {
   return WorldImpl::liquidLevel(m_tileArray, region);
 }
 
-TileModificationList WorldClient::validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap) const {
+TileModificationList WorldClient::validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected) const {
   if (!inWorld())
     return {};
 
   return WorldImpl::splitTileModifications(m_entityMap, modificationList, allowEntityOverlap, m_tileGetterFunction, [this](Vec2I pos, TileModification) {
       return !isTileProtected(pos);
-    }).first;
+    }, allowDisconnected).first;
 }
 
-TileModificationList WorldClient::applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap) {
+TileModificationList WorldClient::applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected) {
   if (!inWorld())
     return {};
   
@@ -344,7 +345,7 @@ TileModificationList WorldClient::applyTileModifications(TileModificationList co
     for (size_t i = 0; i != list->size(); ++i) {
       auto& pair = list->at(i);
       if (!isTileProtected(pair.first)) {
-        auto result = WorldImpl::validateTileModification(m_entityMap, pair.first, pair.second, allowEntityOverlap, m_tileGetterFunction);
+        auto result = WorldImpl::validateTileModification(m_entityMap, pair.first, pair.second, allowEntityOverlap, m_tileGetterFunction, allowDisconnected);
 
         if (result.first) {
           informTilePrediction(pair.first, pair.second);
@@ -524,7 +525,8 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
 
       if (m_interactiveHighlightMode || (!inspecting && entity->entityId() == playerAimInteractive)) {
         if (auto interactive = as<InteractiveEntity>(entity)) {
-          if (interactive->isInteractive()) {
+          if (interactive->isInteractive() || m_mainPlayer->canReachAll() || m_mainPlayer->isAdmin())
+          {
             ed.highlightEffect.type = EntityHighlightEffectType::Interactive;
             ed.highlightEffect.level = pulseLevel;
           }
@@ -1157,7 +1159,8 @@ void WorldClient::update(float dt) {
       auto distSquared = m_geometry.diff(itemDrop->position(), playerPos).magnitudeSquared();
 
       // If the drop is within DropDist and not owned, request it.
-      if (itemDrop->canTake() && !m_requestedDrops.contains(itemDrop->entityId()) && distSquared < square(DropDist)) {
+      if (itemDrop->canTake() && !m_mainPlayer->ignoreItemPickups() && !m_requestedDrops.contains(itemDrop->entityId()) && distSquared < square(DropDist))
+      {
         m_requestedDrops.add(itemDrop->entityId());
         if (m_mainPlayer->itemsCanHold(itemDrop->item()) != 0) {
           m_startupHiddenEntities.erase(itemDrop->entityId());
@@ -1581,7 +1584,8 @@ InteractiveEntityPtr WorldClient::getInteractiveInRange(Vec2F const& targetPosit
 bool WorldClient::canReachEntity(Vec2F const& position, float radius, EntityId targetEntity, bool preferInteractive) const {
   if (!inWorld())
     return false;
-  return WorldImpl::canReachEntity(m_geometry, m_tileArray, m_entityMap, position, radius, targetEntity, preferInteractive);
+  return WorldImpl::canReachEntity(m_geometry, m_tileArray, m_entityMap, position, radius, targetEntity, preferInteractive)
+  || m_mainPlayer->canReachAll();
 }
 
 RpcPromise<InteractAction> WorldClient::interact(InteractRequest const& request) {
@@ -1591,10 +1595,16 @@ RpcPromise<InteractAction> WorldClient::interact(InteractRequest const& request)
   if (auto targetEntity = m_entityMap->entity(request.targetId)) {
     if (targetEntity->isMaster()) {
       // client-side-master entities need to be handled here rather than over network
-      auto interactiveTarget = as<InteractiveEntity>(targetEntity);
-      starAssert(interactiveTarget);
-
-      return RpcPromise<InteractAction>::createFulfilled(interactiveTarget->interact(request));
+      if (auto interactiveTarget = as<InteractiveEntity>(targetEntity)) {
+        // starAssert(interactiveTarget); // FezzedOne: No need for this assertion now, since we actually check.
+        return RpcPromise<InteractAction>::createFulfilled(interactiveTarget->interact(request));
+      } else {
+        // FezzedOne: Client-side part of a fix for an entity interaction error.
+        EntityId targetEntityId = targetEntity->entityId();
+        EntityId sourceEntityId = request.sourceId;
+        Logger::info("[xSB] Attempted interaction from entity {} with non-interactive client-side entity {}.", sourceEntityId, targetEntityId);
+        return RpcPromise<InteractAction>::createFailed("entity type non-interactive");
+      }
     }
   }
 
@@ -1715,7 +1725,7 @@ void WorldClient::initWorld(WorldStartPacket const& startPacket) {
     m_entityMap->addEntity(m_mainPlayer);
   }
   m_mainPlayer->moveTo(startPacket.playerStart);
-  if (m_worldTemplate->worldParameters())
+  if (m_worldTemplate->worldParameters() && !(m_mainPlayer->ignoreAllTechOverrides() || m_mainPlayer->isAdmin()))
     m_mainPlayer->overrideTech(m_worldTemplate->worldParameters()->overrideTech);
   else
     m_mainPlayer->overrideTech({});

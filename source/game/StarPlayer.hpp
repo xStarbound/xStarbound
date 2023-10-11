@@ -110,6 +110,17 @@ public:
   void enableInterpolation(float extrapolationHint = 0.0f) override;
   void disableInterpolation() override;
 
+  // FezzedOne: A bunch of hacks related to the chat and indicators. Feel free to PR with a better implementation.
+  UniverseClient* getUniverseClient() const;
+  void passChatText(String const& chatText);
+  void passChatOpen(bool chatOpen);          
+  String chatText() const;
+  bool chatOpen() const;
+  void overrideChatIndicator(bool overridden);
+  bool chatIndicatorOverridden() const;
+  void overrideMenuIndicator(bool overridden);
+  bool menuIndicatorOverridden() const;
+
   virtual Maybe<HitType> queryHit(DamageSource const& source) const override;
   Maybe<PolyF> hitPoly() const override;
 
@@ -322,7 +333,8 @@ public:
   void setFacialMask(String const& group, String const& type, String const& directives);
 
   String species() const override;
-  void setSpecies(String const& species);
+  bool checkSpecies(String const &species, Maybe<String> const &maybeCallbackName = {});
+  void setSpecies(String const &species);
   Gender gender() const;
   void setGender(Gender const& gender);
   void setPersonality(Personality const& personality);
@@ -330,8 +342,11 @@ public:
 
   HumanoidPtr humanoid();
   HumanoidIdentity const& identity() const;
+  Json getIdentity() const;
 
   void setIdentity(HumanoidIdentity identity);
+  // FezzedOne: Need to overload this function to accept `Json` to avoid an unnecessary conversion, of course.
+  void setIdentity(Json const &newIdentity); 
 
   void setAdmin(bool isAdmin);
   bool isAdmin() const override;
@@ -383,6 +398,12 @@ public:
   void queueItemPickupMessage(ItemPtr const& item);
 
   void addChatMessage(String const& message);
+  // FezzedOne: Overloaded with a four-argument version for use behind a Lua callback.
+  void addChatMessage(String const &message, Maybe<String> const &portrait, Maybe<EntityId> const &sourceEntityId, Maybe<Json> const &bubbleConfig);
+  // FezzedOne: Need this for some functions elsewhere to correctly use the player's chat bubble settings.
+  void addChatMessageCallback(String const &message);
+  void setChatBubbleConfig(Maybe<Json> const &bubbleConfig);
+  Json getChatBubbleConfig();
   void addEmote(HumanoidEmote const& emote);
 
   List<ChatAction> pullPendingChatActions() override;
@@ -443,6 +464,38 @@ public:
   Maybe<PlayerWarpRequest> pullPendingWarp();
   void setPendingWarp(String const& action, Maybe<String> const& animation = {}, bool deploy = false);
 
+  // FezzedOne: Added the following "setter" functions for variables stored in the player file.
+  void setExternalWarpsIgnored(bool ignored = false);
+  void setExternalRadioMessagesIgnored(bool ignored = false);
+  void setExternalCinematicsIgnored(bool ignored = false);
+  void setPhysicsEntitiesIgnored(bool ignored = false);
+  void setForcedNudityIgnored(bool ignored = false);
+  void setTechOverridesIgnored(bool ignored = false);
+  void setCanReachAll(bool newSetting = false);
+  void setFastRespawn(bool newSetting = false);
+  void setAlwaysRespawnInWorld(bool newSetting = false);
+  void setIgnoreItemPickups(bool ignore = false);
+  void setIgnoreShipUpdates(bool ignore = false);
+
+  // FezzedOne: Added the following "getter" functions for variables stored in the player file.
+  bool externalWarpsIgnored() const;
+  bool shipUpdatesIgnored() const;
+  bool externalRadioMessagesIgnored() const;
+  bool externalCinematicsIgnored() const;
+  bool physicsEntitiesIgnored() const;
+  bool forcedNudityIgnored() const;
+  bool canReachAll() const;
+  bool ignoreAllTechOverrides() const;
+  bool ignoreItemPickups() const;
+  bool fastRespawn() const;
+  bool alwaysRespawnInWorld() const;
+
+  bool damageTeamOverridden() const;
+  void setDamageTeam(EntityDamageTeam newTeam);
+  void setDamageTeam(); // This overload exists so that damage team overrides can be cleared.
+
+  void setOverrideState(Maybe<Humanoid::State> overrideState);
+
   Maybe<pair<Json, RpcPromiseKeeper<Json>>> pullPendingConfirmation();
   void queueConfirmation(Json const& dialogConfig, RpcPromiseKeeper<Json> const& resultPromise);
 
@@ -474,6 +527,7 @@ public:
   //   Unfortunately values are Strings, so to work with Json we need to serialize/deserialize. Whatever.
   //   Additionally, this is compatible with vanilla networking.
   // I call this a 'secret property'.
+  // FezzedOne: [TODO] Add Lua callbacks to get and set secret properties.
   
   // If the secret property exists as a serialized Json string, returns a view to it without deserializing.
   Maybe<StringView> getSecretPropertyView(String const& name) const;
@@ -481,6 +535,8 @@ public:
   Json getSecretProperty(String const& name, Json defaultValue = Json()) const;
   // Sets a secret Json property. It will be serialized.
   void setSecretProperty(String const& name, Json const& value);
+
+  void overrideCameraPosition(Maybe<Vec2F> newPosition);
 
 private:
   enum class State {
@@ -543,6 +599,21 @@ private:
   StringMap<GenericScriptComponentPtr> m_genericScriptContexts;
   JsonObject m_genericProperties;
 
+  bool m_ignoreExternalWarps;         // FezzedOne: Whether to ignore external warp requests.
+  bool m_ignoreExternalRadioMessages; // FezzedOne: Whether to ignore external radio messages.
+  bool m_ignoreExternalCinematics;    // FezzedOne: Whether to ignore external cinematic messages.
+  bool m_ignoreAllPhysicsEntities;    // FezzedOne: Whether to ignore all physics entities.
+  bool m_ignoreAllTechOverrides;      // FezzedOne: Whether to ignore all tech overrides.
+  bool m_ignoreForcedNudity;          // FezzedOne: Whether to ignore forced nudity.
+  bool m_alwaysRespawnInWorld;        // FezzedOne: Whether to always respawn in the world the player died in.
+  bool m_fastRespawn;                 // FezzedOne: Whether to respawn immediately after death.
+  bool m_ignoreShipUpdates;           // FezzedOne: Whether to ignore player ship updates.
+  bool m_canReachAll;                 // FezzedOne: Whether the player can reach and interact with *any* visible entity.
+  bool m_ignoreItemPickups;           // FezzedOne: Whether to ignore picking up item drops.
+  bool m_damageTeamOverridden;        // FezzedOne: Used to check whether the player's damage team is overridden.
+  Json m_chatBubbleConfig;            // FezzedOne: Stores the chat bubble config.
+
+  Maybe<Humanoid::State> m_overrideState; // FezzedOne: Stores the player's overridden humanoid state.
   State m_state;
   HumanoidEmote m_emoteState;
 
@@ -652,6 +723,13 @@ private:
   NetElementString m_chatMessageNetState;
   NetElementEvent m_newChatMessageNetState;
   NetElementString m_emoteNetState;
+
+  Maybe<Vec2F> m_cameraOverridePosition;
+
+  String m_chatText;
+  bool m_chatOpen;
+  bool m_overrideChatIndicator;
+  bool m_overrideMenuIndicator;
 };
 
 }

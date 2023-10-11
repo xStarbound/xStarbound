@@ -57,6 +57,18 @@ ByteArray Projectile::netStore() const {
   return ds.data();
 }
 
+Json Projectile::diskStore() const {
+  Json projectileParameters = JsonObject{
+      {"type", m_config->typeName},
+      {"parameters", m_parameters},
+      {"sourceEntity", m_sourceEntity},
+      {"trackSourceEntity", m_trackSourceEntity},
+      {"initialSpeed", m_initialSpeed},
+      {"powerMultiplier", m_powerMultiplier},
+      {"damageTeam", getTeam().toJson()}};
+  return projectileParameters;
+}
+
 EntityType Projectile::entityType() const {
   return EntityType::Projectile;
 }

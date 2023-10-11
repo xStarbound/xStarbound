@@ -151,6 +151,7 @@ VersionedJson VersioningDatabase::updateVersionedJson(VersionedJson const& versi
         auto scriptContext = m_luaRoot.createContext();
         scriptContext.load(*root.assets()->bytes(updateScript.script), updateScript.script);
         scriptContext.setCallbacks("root", LuaBindings::makeRootCallbacks());
+        scriptContext.setCallbacks("xsb", LuaBindings::makeXsbCallbacks());
         scriptContext.setCallbacks("sb", LuaBindings::makeUtilityCallbacks());
         scriptContext.setCallbacks("celestial", celestialCallbacks);
         scriptContext.setCallbacks("versioning", makeVersioningCallbacks());
