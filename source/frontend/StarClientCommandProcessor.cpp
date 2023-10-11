@@ -52,6 +52,7 @@ ClientCommandProcessor::ClientCommandProcessor(UniverseClientPtr universeClient,
     {"enabletech", bind(&ClientCommandProcessor::enableTech, this, _1)},
     {"upgradeship", bind(&ClientCommandProcessor::upgradeShip, this, _1)},
     {"swap", bind(&ClientCommandProcessor::swap, this, _1)},
+    {"swapuuid", bind(&ClientCommandProcessor::swapUuid, this, _1)},
     {"timescale", bind(&ClientCommandProcessor::timeScale, this, _1)}
   };
 }
@@ -125,8 +126,8 @@ String ClientCommandProcessor::reload() {
 }
 
 String ClientCommandProcessor::whoami() {
-  return strf("Client: You are {}. You are {}an Admin.",
-      m_universeClient->mainPlayer()->name(), m_universeClient->mainPlayer()->isAdmin() ? "" : "not ");
+  return strf("[Client] You are {}^reset;. You are {}an admin.",
+    m_universeClient->mainPlayer()->name(), m_universeClient->mainPlayer()->isAdmin() ? "" : "not ");
 }
 
 String ClientCommandProcessor::gravity() {
@@ -417,6 +418,18 @@ String ClientCommandProcessor::swap(String const& argumentsString) {
     return "Not enouch arguments to /swap";
 
   if (m_universeClient->switchPlayer(arguments[0]))
+    return "Successfully swapped player";
+  else
+    return "Failed to swap player";
+}
+
+String ClientCommandProcessor::swapUuid(String const& argumentsString) {
+  auto arguments = m_parser.tokenizeToStringList(argumentsString);
+
+  if (arguments.size() == 0)
+    return "Not enouch arguments to /swapuuid";
+
+  if (m_universeClient->switchPlayerUuid(arguments[0]))
     return "Successfully swapped player";
   else
     return "Failed to swap player";

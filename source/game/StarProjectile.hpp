@@ -26,6 +26,7 @@ public:
   Projectile(ProjectileConfigPtr const& config, DataStreamBuffer& netState);
 
   ByteArray netStore() const;
+  Json diskStore() const;
 
   EntityType entityType() const override;
 

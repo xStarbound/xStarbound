@@ -175,6 +175,9 @@ public:
 
   using Entity::setUniqueId;
 
+  bool checkSpecies(String const &species, Maybe<String> const &maybeCallbackName);
+  void setIdentity(Json const &newIdentity);
+
 private:
   Vec2F getAbsolutePosition(Vec2F relativePosition) const;
 
@@ -205,6 +208,7 @@ private:
   ClientEntityMode m_clientEntityMode;
 
   Humanoid m_humanoid;
+  Maybe<Humanoid::State> m_overrideState;
   NetElementEnum<Humanoid::State> m_humanoidStateNetState;
   NetElementEnum<HumanoidEmote> m_humanoidEmoteStateNetState;
   NetElementData<Maybe<String>> m_humanoidDanceNetState;

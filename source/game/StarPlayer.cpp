@@ -59,6 +59,7 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
   m_client = nullptr;
 
   m_state = State::Idle;
+  m_overrideState = {};
   m_emoteState = HumanoidEmote::Idle;
 
   m_footstepTimer = 0.0f;
@@ -72,6 +73,11 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
   setUniqueId(uuid.hex());
   m_identity = m_config->defaultIdentity;
   m_identityUpdated = true;
+
+  m_chatText = "";
+  m_chatOpen = false;
+
+  m_cameraOverridePosition = {};
 
   m_questManager = make_shared<QuestManager>(this);
   m_tools = make_shared<ToolUser>();
@@ -183,6 +189,21 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
   m_netGroup.addNetElement(m_statusController.get());
   m_netGroup.addNetElement(m_techController.get());
 
+  // FezzedOne: Initialise per-player xClient settings.
+  m_ignoreExternalWarps = false;
+  m_ignoreExternalRadioMessages = false;
+  m_ignoreExternalCinematics = false;
+  m_ignoreAllPhysicsEntities = false;
+  m_ignoreAllTechOverrides = false;
+  m_ignoreForcedNudity = false;
+  m_ignoreShipUpdates = false;
+  m_alwaysRespawnInWorld = false;
+  m_fastRespawn = false;
+  m_ignoreItemPickups = false;
+  m_canReachAll = false;
+  m_damageTeamOverridden = false;
+  m_chatBubbleConfig = JsonObject{};
+
   m_netGroup.setNeedsLoadCallback(bind(&Player::getNetStates, this, _1));
   m_netGroup.setNeedsStoreCallback(bind(&Player::setNetStates, this));
 }
@@ -245,6 +266,40 @@ void Player::diskLoad(Json const& diskStore) {
 
   m_genericProperties = diskStore.getObject("genericProperties");
 
+  /* FezzedOne: Get the player's `"xSbProperties"`, or create one if it doesn't exist. */
+  Maybe<JsonObject> xSbProperties = diskStore.optObject("xSbProperties");
+  if (xSbProperties) {
+    Json xSbPropertyObject = *xSbProperties;
+    m_ignoreExternalWarps = xSbPropertyObject.getBool("ignoreExternalWarps", false);
+    m_ignoreExternalRadioMessages = xSbPropertyObject.getBool("ignoreExternalRadioMessages", false);
+    m_ignoreExternalCinematics = xSbPropertyObject.getBool("ignoreExternalCinematics", false);
+    m_ignoreAllPhysicsEntities = xSbPropertyObject.getBool("ignoreAllPhysicsEntities", false);
+    m_ignoreAllTechOverrides = xSbPropertyObject.getBool("ignoreTechOverrides", false);
+    m_ignoreForcedNudity = xSbPropertyObject.getBool("ignoreNudity", false);
+    m_ignoreShipUpdates = xSbPropertyObject.getBool("ignoreShipUpdates", false);
+    m_alwaysRespawnInWorld = xSbPropertyObject.getBool("inWorldRespawn", false);
+    m_fastRespawn = xSbPropertyObject.getBool("fastWarp", false);
+    m_ignoreItemPickups = xSbPropertyObject.getBool("ignoreItemPickups", false);
+    m_chatBubbleConfig = xSbPropertyObject.get("chatConfig", JsonObject{});
+    m_canReachAll = xSbPropertyObject.getBool("overreach", false);
+    m_damageTeamOverridden = xSbPropertyObject.getBool("damageTeamOverridden", false);
+  } else {
+    /* Support for reading legacy xSB properties. */
+    m_ignoreExternalWarps = diskStore.getBool("ignoreExternalWarps", false);
+    m_ignoreExternalRadioMessages = diskStore.getBool("ignoreExternalRadioMessages", false);
+    m_ignoreExternalCinematics = diskStore.getBool("ignoreExternalCinematics", false);
+    m_ignoreAllPhysicsEntities = diskStore.getBool("ignoreAllPhysicsEntities", false);
+    m_ignoreAllTechOverrides = diskStore.getBool("ignoreTechOverrides", false);
+    m_ignoreForcedNudity = diskStore.getBool("ignoreNudity", false);
+    m_ignoreShipUpdates = diskStore.getBool("ignoreShipUpdates", false);
+    m_alwaysRespawnInWorld = diskStore.getBool("inWorldRespawn", false);
+    m_fastRespawn = diskStore.getBool("fastWarp", false);
+    m_ignoreItemPickups = diskStore.getBool("ignoreItemPickups", false);
+    m_chatBubbleConfig = diskStore.get("chatConfig", JsonObject{});
+    m_canReachAll = diskStore.getBool("overreach", false);
+    m_damageTeamOverridden = diskStore.getBool("damageTeamOverridden", false);
+  }
+
   refreshArmor();
 
   m_codexes->learnInitialCodexes(species());
@@ -305,6 +360,7 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
 
   m_tools->init(this);
   m_movementController->init(world);
+  m_movementController->tickIgnorePhysicsEntities(m_ignoreAllPhysicsEntities);
   m_movementController->setIgnorePhysicsEntities({entityId});
   m_statusController->init(this, m_movementController.get());
   m_techController->init(this, m_movementController.get(), m_statusController.get());
@@ -662,8 +718,10 @@ void Player::revive(Vec2F const& footPosition) {
 
   m_techController->reloadTech();
 
-  float moneyCost = m_inventory->currency("money") * modeConfig().reviveCostPercentile;
-  m_inventory->consumeCurrency("money", min((uint64_t)round(moneyCost), m_inventory->currency("money")));
+  if (!(m_alwaysRespawnInWorld || m_fastRespawn)) {
+    float moneyCost = m_inventory->currency("money") * modeConfig().reviveCostPercentile;
+    m_inventory->consumeCurrency("money", min((uint64_t)round(moneyCost), m_inventory->currency("money")));
+  }
 }
 
 void Player::setShifting(bool shifting) {
@@ -731,68 +789,150 @@ void Player::dropItem() {
 Maybe<Json> Player::receiveMessage(ConnectionId fromConnection, String const& message, JsonArray const& args) {
   bool localMessage = fromConnection == world()->connection();
   if (message == "queueRadioMessage" && args.size() > 0) {
-    float delay = 0;
-    if (args.size() > 1 && args.get(1).canConvert(Json::Type::Float))
-      delay = args.get(1).toFloat();
+    if (localMessage || !m_ignoreExternalRadioMessages) {
+      float delay = 0;
+      if (args.size() > 1 && args.get(1).canConvert(Json::Type::Float))
+        delay = args.get(1).toFloat();
 
-    queueRadioMessage(args.get(0), delay);
-  } else if (message == "warp") {
-    Maybe<String> animation;
-    if (args.size() > 1)
-      animation = args.get(1).toString();
-
-    bool deploy = false;
-    if (args.size() > 2)
-      deploy = args.get(2).toBool();
-
-    setPendingWarp(args.get(0).toString(), animation, deploy);
-  } else if (message == "interruptRadioMessage") {
-    m_interruptRadioMessage = true;
-  } else if (message == "playCinematic" && args.size() > 0) {
-    bool unique = false;
-    if (args.size() > 1)
-      unique = args.get(1).toBool();
-    setPendingCinematic(args.get(0), unique);
-  } else if (message == "playAltMusic" && args.size() > 0) {
-    float fadeTime = 0;
-    if (args.size() > 1)
-      fadeTime = args.get(1).toFloat();
-    StringList trackList;
-    if (args.get(0).canConvert(Json::Type::Array))
-      trackList = jsonToStringList(args.get(0).toArray());
-    else
-      trackList = StringList();
-    m_pendingAltMusic = pair<Maybe<StringList>, float>(trackList, fadeTime);
-  } else if (message == "stopAltMusic") {
-    float fadeTime = 0;
-    if (args.size() > 0)
-      fadeTime = args.get(0).toFloat();
-    m_pendingAltMusic = pair<Maybe<StringList>, float>({}, fadeTime);
-  } else if (message == "recordEvent") {
-    statistics()->recordEvent(args.at(0).toString(), args.at(1));
-  } else if (message == "addCollectable") {
-    auto collection = args.get(0).toString();
-    auto collectable = args.get(1).toString();
-    if (Root::singleton().collectionDatabase()->hasCollectable(collection, collectable))
-      addCollectable(collection, collectable);
-  } else {
-    Maybe<Json> result = m_tools->receiveMessage(message, localMessage, args);
-    if (!result)
-      result = m_statusController->receiveMessage(message, localMessage, args);
-    if (!result)
-      result = m_companions->receiveMessage(message, localMessage, args);
-    if (!result)
-      result = m_deployment->receiveMessage(message, localMessage, args);
-    if (!result)
-      result = m_techController->receiveMessage(message, localMessage, args);
-    if (!result)
-      result = m_questManager->receiveMessage(message, localMessage, args);
-    for (auto& p : m_genericScriptContexts) {
-      if (result)
-        break;
-      result = p.second->handleMessage(message, localMessage, args);
+      queueRadioMessage(args.get(0), delay);
+    } else {
+      try {
+        Json jsonArgs = Json(args);
+        Logger::info("[xSB] Attempted 'queueRadioMessage' message from cID {}. Message arguments: {}", fromConnection, jsonArgs.printJson(0));
+      } catch (JsonException const& e) {
+        Logger::info("[xSB] Attempted 'queueRadioMessage' message from cID {}. Invalid message arguments.", fromConnection);
+      }
     }
-    return result;
+  } else if (message == "warp") {
+    if (localMessage || !m_ignoreExternalWarps) {
+      Maybe<String> animation;
+      if (args.size() > 1)
+        animation = args.get(1).toString();
+
+      bool deploy = false;
+      if (args.size() > 2)
+        deploy = args.get(2).toBool();
+
+      setPendingWarp(args.get(0).toString(), animation, deploy);
+    } else {
+      try {
+        Json jsonArgs = Json(args);
+        Logger::info("[xSB] Attempted 'warp' message from cID {}. Message arguments: {}", fromConnection, jsonArgs.printJson(0));
+      } catch (JsonException const& e) {
+        Logger::info("[xSB] Attempted 'warp' message from cID {}. Invalid message arguments.", fromConnection);
+      }
+    }
+  } else if (message == "interruptRadioMessage") {
+    if (localMessage || !m_ignoreExternalRadioMessages) {
+      m_interruptRadioMessage = true;
+    } else {
+      try {
+        Json jsonArgs = Json(args);
+        Logger::info("[xSB] Attempted 'interruptRadioMessage' message from cID {}. Message arguments: {}", fromConnection, jsonArgs.printJson(0));
+      } catch (JsonException const& e) {
+        Logger::info("[xSB] Attempted 'interruptRadioMessage' message from cID {}. Invalid message arguments.", fromConnection);
+      }
+    }
+  } else if (message == "playCinematic" && args.size() > 0) {
+    if (localMessage || !m_ignoreExternalCinematics) {
+      bool unique = false;
+      if (args.size() > 1)
+        unique = args.get(1).toBool();
+      setPendingCinematic(args.get(0), unique);
+    } else {
+      try {
+        Json jsonArgs = Json(args);
+        Logger::info("[xSB] Attempted 'playCinematic' message from cID {}. Message arguments: {}", fromConnection, jsonArgs.printJson(0));
+      } catch (JsonException const& e) {
+        Logger::info("[xSB] Attempted 'playCinematic' message from cID {}. Invalid message arguments.", fromConnection);
+      }
+    }
+  } else if (message == "playAltMusic" && args.size() > 0) {
+    if (localMessage || !m_ignoreExternalCinematics) {
+      float fadeTime = 0;
+      if (args.size() > 1)
+        fadeTime = args.get(1).toFloat();
+      StringList trackList;
+      if (args.get(0).canConvert(Json::Type::Array))
+        trackList = jsonToStringList(args.get(0).toArray());
+      else
+        trackList = StringList();
+      m_pendingAltMusic = pair<Maybe<StringList>, float>(trackList, fadeTime);
+    } else {
+      try {
+        Json jsonArgs = Json(args);
+        Logger::info("[xSB] Attempted 'playAltMusic' message from cID {}. Message arguments: {}", fromConnection, jsonArgs.printJson(0));
+      } catch (JsonException const& e) {
+        Logger::info("[xSB] Attempted 'playAltMusic' message from cID {}. Invalid message arguments.", fromConnection);
+      }
+    }
+  } else if (message == "stopAltMusic") {
+    if (localMessage || !m_ignoreExternalCinematics) {
+      float fadeTime = 0;
+      if (args.size() > 0)
+        fadeTime = args.get(0).toFloat();
+      m_pendingAltMusic = pair<Maybe<StringList>, float>({}, fadeTime);
+    } else {
+      try {
+        Json jsonArgs = Json(args);
+        Logger::info("[xSB] Attempted 'stopAltMusic' message from cID {}. Message arguments: {}", fromConnection, jsonArgs.printJson(0));
+      } catch (JsonException const& e) {
+        Logger::info("[xSB] Attempted 'stopAltMusic' message from cID {}. Invalid message arguments.", fromConnection);
+      }
+    }
+  } else if (message == "recordEvent") {
+    if (localMessage || !m_ignoreExternalRadioMessages) {
+      statistics()->recordEvent(args.at(0).toString(), args.at(1));
+    } else {
+      try {
+        Json jsonArgs = Json(args);
+        Logger::info("[xSB] Attempted 'recordEvent' message from cID {}. Message arguments: {}", fromConnection, jsonArgs.printJson(0));
+      } catch (JsonException const& e) {
+        Logger::info("[xSB] Attempted 'recordEvent' message from cID {}. Invalid message arguments.", fromConnection);
+      }
+    }
+  } else if (message == "addCollectable") {
+    if (localMessage || !m_ignoreExternalRadioMessages) {
+      auto collection = args.get(0).toString();
+      auto collectable = args.get(1).toString();
+      if (Root::singleton().collectionDatabase()->hasCollectable(collection, collectable))
+        addCollectable(collection, collectable);
+    } else {
+      try {
+        Json jsonArgs = Json(args);
+        Logger::info("[xSB] Attempted 'addCollectable' message from cID {}. Message arguments: {}", fromConnection, jsonArgs.printJson(0));
+      } catch (JsonException const& e) {
+        Logger::info("[xSB] Attempted 'addCollectable' message from cID {}. Invalid message arguments.", fromConnection);
+      }
+    }
+  } else {
+    if (localMessage || !m_ignoreExternalRadioMessages) {
+      // FezzedOne: If non-local "radio" messages are ignored, prevent receiving *all* non-local messages.
+      Maybe<Json> result = m_tools->receiveMessage(message, localMessage, args);
+      if (!result)
+        result = m_statusController->receiveMessage(message, localMessage, args);
+      if (!result)
+        result = m_companions->receiveMessage(message, localMessage, args);
+      if (!result)
+        result = m_deployment->receiveMessage(message, localMessage, args);
+      if (!result)
+        result = m_techController->receiveMessage(message, localMessage, args);
+      if (!result)
+        result = m_questManager->receiveMessage(message, localMessage, args);
+      for (auto& p : m_genericScriptContexts) {
+        if (result)
+          break;
+        result = p.second->handleMessage(message, localMessage, args);
+      }
+      return result;
+    } else {
+      try {
+        Json jsonArgs = Json(args);
+        Logger::info("[xSB] Attempted '{}' message from cID {}. Message arguments: {}", message, fromConnection, jsonArgs.printJson(0));
+      } catch (JsonException const& e) {
+        Logger::info("[xSB] Attempted '{}' message from cID {}. Invalid message arguments.", message, fromConnection);
+      }
+    }
   }
 
   return {};
@@ -802,6 +942,8 @@ void Player::update(float dt, uint64_t) {
   m_movementController->setTimestep(dt);
 
   if (isMaster()) {
+    m_cameraOverridePosition = {}; // FezzedOne: Reset this every tick.
+
     if (m_emoteCooldownTimer) {
       m_emoteCooldownTimer -= dt;
       if (m_emoteCooldownTimer <= 0) {
@@ -834,7 +976,8 @@ void Player::update(float dt, uint64_t) {
       m_teleportTimer -= dt;
       if (m_teleportTimer <= 0 && m_state == State::TeleportIn) {
         m_state = State::Idle;
-        m_effectsAnimator->burstParticleEmitter(m_teleportAnimationType + "Burst");
+        if (!m_fastRespawn)
+          m_effectsAnimator->burstParticleEmitter(m_teleportAnimationType + "Burst");
       }
     }
 
@@ -860,26 +1003,28 @@ void Player::update(float dt, uint64_t) {
           if (loungeAnchor->emote)
             requestEmote(*loungeAnchor->emote);
 
-          auto itemDatabase = Root::singleton().itemDatabase();
-          if (auto headOverride = loungeAnchor->armorCosmeticOverrides.maybe("head")) {
-            auto overrideItem = itemDatabase->item(ItemDescriptor(*headOverride));
-            if (m_inventory->itemAllowedAsEquipment(overrideItem, EquipmentSlot::HeadCosmetic))
-              m_armor->setHeadCosmeticItem(as<HeadArmor>(overrideItem));
-          }
-          if (auto chestOverride = loungeAnchor->armorCosmeticOverrides.maybe("chest")) {
-            auto overrideItem = itemDatabase->item(ItemDescriptor(*chestOverride));
-            if (m_inventory->itemAllowedAsEquipment(overrideItem, EquipmentSlot::ChestCosmetic))
-              m_armor->setChestCosmeticItem(as<ChestArmor>(overrideItem));
-          }
-          if (auto legsOverride = loungeAnchor->armorCosmeticOverrides.maybe("legs")) {
-            auto overrideItem = itemDatabase->item(ItemDescriptor(*legsOverride));
-            if (m_inventory->itemAllowedAsEquipment(overrideItem, EquipmentSlot::LegsCosmetic))
-              m_armor->setLegsCosmeticItem(as<LegsArmor>(overrideItem));
-          }
-          if (auto backOverride = loungeAnchor->armorCosmeticOverrides.maybe("back")) {
-            auto overrideItem = itemDatabase->item(ItemDescriptor(*backOverride));
-            if (m_inventory->itemAllowedAsEquipment(overrideItem, EquipmentSlot::BackCosmetic))
-              m_armor->setBackCosmeticItem(as<BackArmor>(overrideItem));
+          if (!m_ignoreForcedNudity) {
+            auto itemDatabase = Root::singleton().itemDatabase();
+            if (auto headOverride = loungeAnchor->armorCosmeticOverrides.maybe("head")) {
+              auto overrideItem = itemDatabase->item(ItemDescriptor(*headOverride));
+              if (m_inventory->itemAllowedAsEquipment(overrideItem, EquipmentSlot::HeadCosmetic))
+                m_armor->setHeadCosmeticItem(as<HeadArmor>(overrideItem));
+            }
+            if (auto chestOverride = loungeAnchor->armorCosmeticOverrides.maybe("chest")) {
+              auto overrideItem = itemDatabase->item(ItemDescriptor(*chestOverride));
+              if (m_inventory->itemAllowedAsEquipment(overrideItem, EquipmentSlot::ChestCosmetic))
+                m_armor->setChestCosmeticItem(as<ChestArmor>(overrideItem));
+            }
+            if (auto legsOverride = loungeAnchor->armorCosmeticOverrides.maybe("legs")) {
+              auto overrideItem = itemDatabase->item(ItemDescriptor(*legsOverride));
+              if (m_inventory->itemAllowedAsEquipment(overrideItem, EquipmentSlot::LegsCosmetic))
+                m_armor->setLegsCosmeticItem(as<LegsArmor>(overrideItem));
+            }
+            if (auto backOverride = loungeAnchor->armorCosmeticOverrides.maybe("back")) {
+              auto overrideItem = itemDatabase->item(ItemDescriptor(*backOverride));
+              if (m_inventory->itemAllowedAsEquipment(overrideItem, EquipmentSlot::BackCosmetic))
+                m_armor->setBackCosmeticItem(as<BackArmor>(overrideItem));
+            }
           }
         } else {
           m_state = State::Idle;
@@ -1568,7 +1713,7 @@ float Player::protection() const {
 }
 
 bool Player::forceNude() const {
-  return m_statusController->statPositive("nude");
+  return m_statusController->statPositive("nude") && !m_ignoreForcedNudity;
 }
 
 String Player::description() const {
@@ -1601,6 +1746,42 @@ void Player::enableInterpolation(float) {
 
 void Player::disableInterpolation() {
   m_netGroup.disableNetInterpolation();
+}
+
+UniverseClient* Player::getUniverseClient() const {
+  return m_client;
+}
+
+void Player::passChatText(String const& chatText) {
+  m_chatText = chatText;
+}
+
+void Player::passChatOpen(bool chatOpen) {
+  m_chatOpen = chatOpen;
+}
+
+bool Player::chatOpen() const {
+  return m_chatOpen;
+}
+
+String Player::chatText() const {
+  return m_chatText;
+}
+
+void Player::overrideChatIndicator(bool overridden) {
+  m_overrideChatIndicator = overridden;
+}
+
+bool Player::chatIndicatorOverridden() const {
+  return m_overrideChatIndicator;
+}
+
+void Player::overrideMenuIndicator(bool overridden) {
+  m_overrideMenuIndicator = overridden;
+}
+
+bool Player::menuIndicatorOverridden() const {
+  return m_overrideMenuIndicator;
 }
 
 void Player::processControls() {
@@ -1761,51 +1942,99 @@ void Player::processStateChanges(float dt) {
 
   m_humanoid->animate(dt);
 
-  if (auto techState = m_techController->parentState()) {
-    if (techState == TechController::ParentState::Stand) {
+  if (m_overrideState)
+  {
+    // FezzedOne: If a player humanoid state override is present, use it. Player state overrides take precedence over tech parent states.
+    m_humanoid->setState(*m_overrideState);
+  }
+  else if (auto techState = m_techController->parentState())
+  {
+    if (techState == TechController::ParentState::Stand)
+    {
       m_humanoid->setState(Humanoid::Idle);
-    } else if (techState == TechController::ParentState::Fly) {
+    }
+    else if (techState == TechController::ParentState::Fly)
+    {
       m_humanoid->setState(Humanoid::Jump);
-    } else if (techState == TechController::ParentState::Fall) {
+    }
+    else if (techState == TechController::ParentState::Fall)
+    {
       m_humanoid->setState(Humanoid::Fall);
-    } else if (techState == TechController::ParentState::Sit) {
+    }
+    else if (techState == TechController::ParentState::Sit)
+    {
       m_humanoid->setState(Humanoid::Sit);
-    } else if (techState == TechController::ParentState::Lay) {
+    }
+    else if (techState == TechController::ParentState::Lay)
+    {
       m_humanoid->setState(Humanoid::Lay);
-    } else if (techState == TechController::ParentState::Duck) {
+    }
+    else if (techState == TechController::ParentState::Duck)
+    {
       m_humanoid->setState(Humanoid::Duck);
-    } else if (techState == TechController::ParentState::Walk) {
+    }
+    else if (techState == TechController::ParentState::Walk)
+    {
       m_humanoid->setState(Humanoid::Walk);
-    } else if (techState == TechController::ParentState::Run) {
+    }
+    else if (techState == TechController::ParentState::Run)
+    {
       m_humanoid->setState(Humanoid::Run);
-    } else if (techState == TechController::ParentState::Swim) {
+    }
+    else if (techState == TechController::ParentState::Swim)
+    {
       m_humanoid->setState(Humanoid::Swim);
-    } else if (techState == TechController::ParentState::SwimIdle) {
+    }
+    else if (techState == TechController::ParentState::SwimIdle)
+    {
       m_humanoid->setState(Humanoid::SwimIdle);
     }
-  } else {
+  }
+  else
+  {
     auto loungeAnchor = as<LoungeAnchor>(m_movementController->entityAnchor());
-    if (m_state == State::Idle) {
+    if (m_state == State::Idle)
+    {
       m_humanoid->setState(Humanoid::Idle);
-    } else if (m_state == State::Walk) {
+    }
+    else if (m_state == State::Walk)
+    {
       m_humanoid->setState(Humanoid::Walk);
-    } else if (m_state == State::Run) {
+    }
+    else if (m_state == State::Run)
+    {
       m_humanoid->setState(Humanoid::Run);
-    } else if (m_state == State::Jump) {
+    }
+    else if (m_state == State::Jump)
+    {
       m_humanoid->setState(Humanoid::Jump);
-    } else if (m_state == State::Fall) {
+    }
+    else if (m_state == State::Fall)
+    {
       m_humanoid->setState(Humanoid::Fall);
-    } else if (m_state == State::Swim) {
+    }
+    else if (m_state == State::Swim)
+    {
       m_humanoid->setState(Humanoid::Swim);
-    } else if (m_state == State::SwimIdle) {
+    }
+    else if (m_state == State::SwimIdle)
+    {
       m_humanoid->setState(Humanoid::SwimIdle);
-    } else if (m_state == State::Crouch) {
+    }
+    else if (m_state == State::Crouch)
+    {
       m_humanoid->setState(Humanoid::Duck);
-    } else if (m_state == State::Lounge && loungeAnchor && loungeAnchor->orientation == LoungeOrientation::Sit) {
+    }
+    else if (m_state == State::Lounge && loungeAnchor && loungeAnchor->orientation == LoungeOrientation::Sit)
+    {
       m_humanoid->setState(Humanoid::Sit);
-    } else if (m_state == State::Lounge && loungeAnchor && loungeAnchor->orientation == LoungeOrientation::Lay) {
+    }
+    else if (m_state == State::Lounge && loungeAnchor && loungeAnchor->orientation == LoungeOrientation::Lay)
+    {
       m_humanoid->setState(Humanoid::Lay);
-    } else if (m_state == State::Lounge && loungeAnchor && loungeAnchor->orientation == LoungeOrientation::Stand) {
+    }
+    else if (m_state == State::Lounge && loungeAnchor && loungeAnchor->orientation == LoungeOrientation::Stand)
+    {
       m_humanoid->setState(Humanoid::Idle);
     }
   }
@@ -1857,7 +2086,8 @@ void Player::getNetStates(bool initial) {
     m_humanoid->setIdentity(m_identity);
   }
 
-  setTeam(m_teamNetState.get());
+  if (!m_damageTeamOverridden)
+    setTeam(m_teamNetState.get());
 
   if (m_landedNetState.pullOccurred() && !initial)
     m_landingNoisePending = true;
@@ -1942,16 +2172,24 @@ void Player::setBusyState(PlayerBusyState busyState) {
 void Player::teleportOut(String const& animationType, bool deploy) {
   m_state = State::TeleportOut;
   m_teleportAnimationType = animationType;
-  m_effectsAnimator->setState("teleport", m_teleportAnimationType + "Out");
+  if (!m_fastRespawn)
+    m_effectsAnimator->setState("teleport", m_teleportAnimationType + "Out");
   m_deployment->setDeploying(deploy);
   m_deployment->teleportOut();
-  m_teleportTimer = deploy ? m_config->deployOutTime : m_config->teleportOutTime;
+  if (m_fastRespawn)
+    m_teleportTimer = 0.0f;
+  else
+    m_teleportTimer = deploy ? m_config->deployOutTime : m_config->teleportOutTime;
 }
 
 void Player::teleportIn() {
   m_state = State::TeleportIn;
-  m_effectsAnimator->setState("teleport", m_teleportAnimationType + "In");
-  m_teleportTimer = m_deployment->isDeployed() ? m_config->deployInTime : m_config->teleportInTime;
+  if (!m_fastRespawn)
+    m_effectsAnimator->setState("teleport", m_teleportAnimationType + "In");
+  if (m_fastRespawn)
+    m_teleportTimer = m_deployment->isDeployed() ? m_config->deployInTime : m_config->teleportInTime;
+  else
+    m_teleportTimer = 0.0f;
 
   auto statusEffects = Root::singleton().assets()->json("/player.config:teleportInStatusEffects").toArray().transformed(jsonToEphemeralStatusEffect);
   m_statusController->addEphemeralEffects(statusEffects);
@@ -1959,9 +2197,10 @@ void Player::teleportIn() {
 
 void Player::teleportAbort() {
   m_state = State::TeleportIn;
-  m_effectsAnimator->setState("teleport", "abort");
+  if (!m_fastRespawn)
+    m_effectsAnimator->setState("teleport", "abort");
   m_deployment->setDeploying(m_deployment->isDeployed());
-  m_teleportTimer = m_config->teleportInTime;
+  m_teleportTimer = m_fastRespawn ? 0.0f : m_config->teleportInTime;
 }
 
 void Player::moveTo(Vec2F const& footPosition) {
@@ -2094,9 +2333,32 @@ void Player::setFacialMask(String const& group, String const& type, String const
   updateIdentity();
 }
 
+bool Player::checkSpecies(String const &species, Maybe<String> const& maybeCallbackName) { // FezzedOne: Check whether a species exists in the loaded assets.
+  Star::Root &root = Root::singleton();
+  String callbackName = "setSpecies";
+  if (maybeCallbackName)
+    callbackName = maybeCallbackName.get();
+  bool speciesFound = false;
+
+  for (auto const &nameDefPair : root.speciesDatabase()->allSpecies()) {
+    String speciesName = nameDefPair.second->options().species;
+
+    if (species == speciesName) {
+      speciesFound = true;
+      break;
+    }
+  }
+
+  if (!speciesFound)
+    Logger::error("{}: Nonexistent species '{}'.", callbackName, species);
+  return speciesFound;
+}
+
 void Player::setSpecies(String const& species) {
-  m_identity.species = species;
-  updateIdentity();
+  if (checkSpecies(species)) { // FezzedOne: Only sets the species if it actually exists. Prevents crashes.
+    m_identity.species = species;
+    updateIdentity();
+  }
 }
 
 Gender Player::gender() const {
@@ -2130,9 +2392,38 @@ HumanoidIdentity const& Player::identity() const {
   return m_identity;
 }
 
+// FezzedOne: Different function name to avoid issues with `auto` in the future.
+Json Player::getIdentity() const {
+  return m_identity.toJson();
+}
+
 void Player::setIdentity(HumanoidIdentity identity) {
   m_identity = move(identity);
   updateIdentity();
+}
+
+void Player::setIdentity(Json const &newIdentity)
+{
+  Json oldIdentity = m_identity.toJson();
+  Json mergedIdentity = oldIdentity;
+  if (newIdentity.type() == Json::Type::Object) {
+    mergedIdentity = jsonMerge(oldIdentity, newIdentity);
+    if (newIdentity.contains("imagePath")) {
+      // FezzedOne: Check if the "imagePath" is an explicit `null` (i.e., it's in the internal Lua "nils"
+      // table and thus `Json::contains` returns `true`). If so, set the new imagePath to `null`.
+      if (newIdentity.get("imagePath").type() == Json::Type::Null)
+      {
+        mergedIdentity = mergedIdentity.set("imagePath", Json());
+      }
+    }
+    String speciesName = mergedIdentity.getString("species");
+    if (!checkSpecies(speciesName, String("setIdentity")))
+    { // FezzedOne: If the new species doesn't exist, retain the old species.
+      mergedIdentity = mergedIdentity.set("species", oldIdentity.getString("species"));
+    }
+    m_identity = HumanoidIdentity(mergedIdentity);
+    updateIdentity();
+  }
 }
 
 List<String> Player::pullQueuedMessages() {
@@ -2159,6 +2450,67 @@ void Player::addChatMessage(String const& message) {
   m_chatMessageUpdated = true;
   m_chatMessageChanged = true;
   m_pendingChatActions.append(SayChatAction{entityId(), message, mouthPosition()});
+}
+
+// FezzedOne: Four-argument overload for use with a Lua callback. This actually deals with *chat bubbles*, by the way.
+void Player::addChatMessage(String const &message, Maybe<String> const &portrait, Maybe<EntityId> const &sourceEntityId, Maybe<Json> const &bubbleConfig) {
+  starAssert(!isSlave());
+  m_chatMessage = message;
+  m_chatMessageUpdated = true;
+  m_chatMessageChanged = true;
+  if (portrait) {
+    if (bubbleConfig) {
+      m_pendingChatActions.append(PortraitChatAction{sourceEntityId.value(entityId()), portrait.get(), message, mouthPosition(), bubbleConfig.get()});
+    } else {
+      m_pendingChatActions.append(PortraitChatAction{sourceEntityId.value(entityId()), portrait.get(), message, mouthPosition()});
+    }
+  } else {
+    if (bubbleConfig) {
+      m_pendingChatActions.append(SayChatAction{sourceEntityId.value(entityId()), message, mouthPosition(), bubbleConfig.get()});
+    } else {
+      m_pendingChatActions.append(SayChatAction{sourceEntityId.value(entityId()), message, mouthPosition()});
+    }
+  }
+}
+
+void Player::addChatMessageCallback(String const &message) {
+  starAssert(!isSlave());
+  m_chatMessage = message;
+  m_chatMessageUpdated = true;
+  m_chatMessageChanged = true;
+
+  Maybe<String> chatPortrait;
+  try {
+    chatPortrait = m_chatBubbleConfig.getString("chatPortrait");
+  } catch (JsonException) {
+    chatPortrait = {};
+  }
+
+  if (chatPortrait) {
+    m_pendingChatActions.append(PortraitChatAction{entityId(), chatPortrait.get(), message, mouthPosition(), m_chatBubbleConfig});
+  } else {
+    m_pendingChatActions.append(SayChatAction{entityId(), message, mouthPosition(), m_chatBubbleConfig});
+  }
+}
+
+// FezzedOne: Sets the chat config.
+void Player::setChatBubbleConfig(Maybe<Json> const &bubbleConfig) {
+  if (bubbleConfig) {
+    JsonObject newBubbleConfig;
+    bool isValid = true;
+    try {
+      newBubbleConfig = bubbleConfig.get().toObject();
+    } catch (JsonException const& e) {
+      Logger::error("setChatBubbleConfig: Invalid JSON: {}", e.what());
+      isValid = false;
+    }
+    if (isValid)
+      m_chatBubbleConfig = newBubbleConfig;
+  }
+}
+
+Json Player::getChatBubbleConfig() {
+  return m_chatBubbleConfig;
 }
 
 void Player::addEmote(HumanoidEmote const& emote) {
@@ -2255,8 +2607,26 @@ Json Player::diskStore() {
       genericScriptStorage[p.first] = move(scriptStorage);
   }
 
+/* FezzedOne: Save the player's `"xSbProperties"` to the file. */
+  Json xSbProperties = JsonObject{
+    {"ignoreExternalWarps", m_ignoreExternalWarps},
+    {"ignoreExternalRadioMessages", m_ignoreExternalRadioMessages},
+    {"ignoreExternalCinematics", m_ignoreExternalCinematics},
+    {"ignoreAllPhysicsEntities", m_ignoreAllPhysicsEntities},
+    {"ignoreTechOverrides", m_ignoreAllTechOverrides},
+    {"ignoreNudity", m_ignoreForcedNudity},
+    {"damageTeamOverridden", m_damageTeamOverridden},
+    {"overreach", m_canReachAll},
+    {"inWorldRespawn", m_alwaysRespawnInWorld},
+    {"fastWarp", m_fastRespawn},
+    {"ignoreShipUpdates", m_ignoreShipUpdates},
+    {"ignoreItemPickups", m_ignoreItemPickups},
+    {"chatConfig", m_chatBubbleConfig}
+  };
+
   return JsonObject{
     {"uuid", *uniqueId()},
+    {"xSbProperties", xSbProperties},
     {"description", m_description},
     {"modeType", PlayerModeNames.getRight(m_modeType)},
     {"shipUpgrades", m_shipUpgrades.toJson()},
@@ -2474,6 +2844,162 @@ void Player::setPendingWarp(String const& action, Maybe<String> const& animation
   m_pendingWarp = PlayerWarpRequest{action, animation, deploy};
 }
 
+// FezzedOne: Function to toggle ignoring external warp requests.
+void Player::setExternalWarpsIgnored(bool ignored)
+{
+  m_ignoreExternalWarps = ignored;
+}
+
+// FezzedOne: Function to toggle ignoring external radio messages.
+void Player::setExternalRadioMessagesIgnored(bool ignored)
+{
+  m_ignoreExternalRadioMessages = ignored;
+}
+
+// FezzedOne: Function to toggle ignoring external cinematics.
+void Player::setExternalCinematicsIgnored(bool ignored)
+{
+  m_ignoreExternalCinematics = ignored;
+}
+
+// FezzedOne: Function to toggle ignoring all physics entities.
+void Player::setPhysicsEntitiesIgnored(bool ignored)
+{
+  m_ignoreAllPhysicsEntities = ignored;
+  m_movementController->tickIgnorePhysicsEntities(m_ignoreAllPhysicsEntities);
+}
+
+// FezzedOne: Function to toggle ignoring `"nude"` stats.
+void Player::setForcedNudityIgnored(bool ignored)
+{
+  m_ignoreForcedNudity = ignored;
+}
+
+// FezzedOne: Function to toggle ignoring tech overrides.
+void Player::setTechOverridesIgnored(bool ignored)
+{
+  m_ignoreAllTechOverrides = ignored;
+}
+
+// FezzedOne: Function to toggle universal entity interaction.
+void Player::setCanReachAll(bool newSetting)
+{
+  m_canReachAll = newSetting;
+}
+
+// FezzedOne: Function to toggle fast respawning and warping.
+void Player::setFastRespawn(bool newSetting)
+{
+  m_fastRespawn = newSetting;
+}
+
+// FezzedOne: Function to toggle fast respawning and warping.
+void Player::setAlwaysRespawnInWorld(bool newSetting)
+{
+  m_alwaysRespawnInWorld = newSetting;
+}
+
+// FezzedOne: Function to toggle ship protection.
+void Player::setIgnoreShipUpdates(bool ignore)
+{
+  m_ignoreShipUpdates = ignore;
+}
+
+// FezzedOne: Function to toggle ship protection.
+void Player::setIgnoreItemPickups(bool ignore)
+{
+  m_ignoreItemPickups = ignore;
+}
+
+// FezzedOne: Function to get whether external warp requests are ignored.
+bool Player::externalWarpsIgnored() const
+{
+  return m_ignoreExternalWarps;
+}
+
+// FezzedOne: Function to get whether external radio messages are ignored.
+bool Player::externalRadioMessagesIgnored() const
+{
+  return m_ignoreExternalRadioMessages;
+}
+
+// FezzedOne: Function to get whether external cinematics are ignored.
+bool Player::externalCinematicsIgnored() const
+{
+  return m_ignoreExternalCinematics;
+}
+
+// FezzedOne: Function to get whether all physics entities are ignored.
+bool Player::physicsEntitiesIgnored() const
+{
+  return m_ignoreAllPhysicsEntities;
+}
+
+// FezzedOne: Function to get whether all physics entities are ignored.
+bool Player::forcedNudityIgnored() const
+{
+  return m_ignoreForcedNudity;
+}
+
+// FezzedOne: Function to get whether the player is set to respawn quickly and with no animation.
+bool Player::fastRespawn() const
+{
+  return m_fastRespawn;
+}
+
+// FezzedOne: Function to get whether the player is set to always respawn in the world he or she died in.
+bool Player::alwaysRespawnInWorld() const
+{
+  return m_alwaysRespawnInWorld;
+}
+
+// FezzedOne: Function to get whether the player's shipworld is ignoring updates.
+bool Player::shipUpdatesIgnored() const
+{
+  return m_ignoreShipUpdates;
+}
+
+// FezzedOne: Function to get whether the player is ignoring item pickups (like Terraria's Encumbering Stone).
+bool Player::ignoreItemPickups() const
+{
+  return m_ignoreItemPickups;
+}
+
+// FezzedOne: Function to get whether the player is ignoring world tech overrides.
+bool Player::ignoreAllTechOverrides() const
+{
+  return m_ignoreAllTechOverrides;
+}
+
+// FezzedOne: Function to get whether the player is ignoring world tech overrides.
+bool Player::canReachAll() const
+{
+  return m_canReachAll;
+}
+
+// FezzedOne: Interface to check whether the player's damage team was overridden.
+bool Player::damageTeamOverridden() const
+{
+  return m_damageTeamOverridden;
+}
+
+void Player::setDamageTeam(EntityDamageTeam newTeam)
+{
+  m_damageTeamOverridden = true;
+  setTeam(newTeam);
+}
+
+void Player::setDamageTeam()
+{
+  m_damageTeamOverridden = false;
+}
+
+// FezzedOne: Sets the player's humanoid override state. Resets every tick.
+void Player::setOverrideState(Maybe<Humanoid::State> overrideState)
+{
+  m_overrideState = overrideState;
+}
+
 Maybe<pair<Json, RpcPromiseKeeper<Json>>> Player::pullPendingConfirmation() {
   if (m_pendingConfirmations.count() > 0)
     return m_pendingConfirmations.takeFirst();
@@ -2521,8 +3047,16 @@ EntityHighlightEffect Player::inspectionHighlight(InspectableEntityPtr const& in
   return EntityHighlightEffect();
 }
 
+void Player::overrideCameraPosition(Maybe<Vec2F> newPosition) {
+  m_cameraOverridePosition = newPosition;
+}
+
 Vec2F Player::cameraPosition() {
   if (inWorld()) {
+    if (m_cameraOverridePosition) { // FezzedOne: If the camera position is overridden, return the overridden position.
+      return *m_cameraOverridePosition;
+    }
+
     if (auto loungeAnchor = as<LoungeAnchor>(m_movementController->entityAnchor())) {
       if (loungeAnchor->cameraFocus) {
         if (auto anchoredEntity = world()->entity(m_movementController->anchorState()->entityId))

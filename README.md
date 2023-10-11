@@ -1,31 +1,28 @@
-# OpenStarbound
+# xSB-2
 
-This is a fork of Starbound. Contributions are welcome!
-You **must** own a copy of Starbound to use it. Base game assets are not provided for obvious reasons.
+This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound). Contributions are welcomed. You **must** own a copy of Starbound to use xSB-2. Base game assets are not provided for obvious reasons.
 
-It is **work-in-progress**, so up-to-date compiled builds for all platforms are not yet available. GitHub Actions will likely be set up to provide compiled builds in the future.
+Compiled builds for Linux and Windows should be available in the usual place on this repository. xSB-2's (and OpenStarbound) `StarVoice.cpp` currently doesn't compile on macOS with Clang (I used Sonoma with Clang 15.0.0.x); feel free to PR any extra fixes to xSB-2 (and OpenStarbound), since mine aren't working.
 
-However, a manually compiled client build (5/09/2023) is available [here](https://files.catbox.moe/bpq211.7z). Extract it to a new `win_opensb` folder in your Starbound installation, adjacent to the win32 & win64 folders.
-
-If you do decide to compile it anyways, you must also make sure it loads the game assets in `/assets/opensb/`.
+If you're compiling xSB-2 anyways, make sure it loads the game assets in `/assets/xSBassets/`; you may use OpenStarbound's assets instead, since xSB-2 is fully asset-compatible with OpenStarbound.
 
 Changes:
-* You can now make .patch files that are just merged in. That's why the patch files in here are unusually simple.
-* Some Lua functions like getters and setters for player identity values, but not every function from [StarExtensions](https://github.com/StarExtensions/StarExtensions) has been ported yet.
-* Character swapping (rewrite from StarExtensions, currently command-only: `/swap name` case-insensitive, only substring required)
-* Custom user input support with a keybindings menu (rewrite from StarExtensions)
-* Positional Voice Chat that works on completely vanilla servers, uses Opus for crisp, HD audio (rewrite from StarExtensions)
-  * Both menus are made available in the options menu in this fork rather than as a chat command.
-* Multiple font support (switch fonts inline with `^font=name;`, .ttf assets are auto-detected)
-* World lightmap generation has been moved off the main thread
-* Experimental changes to the storage of directives in memory to greatly reduce their impact on frametimes
-  * Works well when extremely long directives are used for "vanilla multiplayer-compatible" creations, like [generated clothing](https://silverfeelin.github.io/Starbound-NgOutfitGenerator/).
 
-* Client-side tile placement prediction (rewrite from StarExtensions)
-  * You can also resize the placement area of tiles on the fly.
-* Support for placing foreground tiles with a custom collision type (rewrite from StarExtensions, requires OpenSB server)
-  * Additionally, objects can be placed under non-solid foreground tiles.
-
-* Some minor polish to UI
+- You can now make `.patch` files that are just merged in, early-beta-style (Kae). That's why the patch files in `assets/xSBassets` are unusually simple.
+- Almost all Lua callbacks from the original xSB (by FezzedOne), `input` callbacks (by Kae), plus some extra `player` callbacks for compatibility with OpenStarbound mods and some StarExtensions mods. The `setSpecies` and `setIdentity` callbacks will not let you switch to a nonexistent species. Documentation will be updated within the week.
+- Various crash fixes (Kae and FezzedOne).
+- Character swapping (rewrite by Kae from StarExtensions): `/swap <name>` (case-insensitive substring matching) and `/swapuuid <uuid>` (requires a UUID; use the one in the player file name).
+- Custom user input support with a keybindings menu (rewrite by Kae from StarExtensions).
+- Positional voice chat that works on completely vanilla servers; is compatible with StarExtensions. This uses Opus for crisp, HD audios. Rewrite by Kae from StarExtensions.
+  - Both menus are made available in the options menu rather than as a chat command.
+- Multiple font support (switch fonts inline with `^font=name;`, .ttf assets are auto-detected). By Kae.
+- World lightmap generation has been moved off the main thread (Kae).
+- Experimental changes to the storage of directives in memory to greatly reduce their impact on frametimes (Kae).
+  - Works well when extremely long directives are used for "vanilla multiplayer-compatible" creations, like [generated](https://silverfeelin.github.io/Starbound-NgOutfitGenerator/) [clothing](https://github.com/FezzedOne/FezzedOne-Drawable-Generator).
+- Client-side tile placement prediction (rewrite by Kae from StarExtensions).
+  - You can also resize the placement area of tiles on the fly.
+- Support for placing foreground tiles with a custom collision type (rewrite by Kae from StarExtensions; requires an OpenSB or xSB-2 server) and, via `world.placeMaterial()`, placing tiles not connected to existing ones (FezzedOne; requires an xSB-2 server). Tile placement with this feature is not network-compatible with servers that support the similar feature present in StarExtensions, although already-placed tiles work just fine. A fork of WEdit with support for these features will be on GitHub within the week.
+  - Additionally, objects can be placed under non-solid foreground tiles (Kae).
+- Some minor polish to UI (Kae).
 
 [Discord](https://discord.gg/D4QqtBNmAY)

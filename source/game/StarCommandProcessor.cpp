@@ -112,23 +112,23 @@ String CommandProcessor::pvp(ConnectionId connectionId, String const&) {
   if (!m_universe->isPvp(connectionId)) {
     m_universe->setPvp(connectionId, true);
     if (m_universe->isPvp(connectionId))
-      m_universe->adminBroadcast(strf("Player {} is now PVP", m_universe->clientNick(connectionId)));
+      m_universe->adminBroadcast(strf("Player {} is now in PvP", m_universe->clientNick(connectionId)));
   } else {
     m_universe->setPvp(connectionId, false);
     if (!m_universe->isPvp(connectionId))
-      m_universe->adminBroadcast(strf("Player {} is a big wimp and is no longer PVP", m_universe->clientNick(connectionId)));
+      m_universe->adminBroadcast(strf("Player {} is a big wimp and is no longer in PvP", m_universe->clientNick(connectionId)));
   }
 
   if (m_universe->isPvp(connectionId))
-    return "PVP active";
+    return "PvP active";
   else
-    return "PVP inactive";
+    return "PvP inactive";
 }
 
 String CommandProcessor::whoami(ConnectionId connectionId, String const&) {
-  return strf("Server: You are {}. You are {}an Admin",
-      m_universe->clientNick(connectionId),
-      m_universe->isAdmin(connectionId) ? "" : "not ");
+  return strf("[Server] You are {}^reset;. You are {}an admin.",
+              m_universe->clientNick(connectionId),
+              m_universe->isAdmin(connectionId) ? "" : "not ");
 }
 
 String CommandProcessor::warp(ConnectionId connectionId, String const& argumentString) {
@@ -137,7 +137,7 @@ String CommandProcessor::warp(ConnectionId connectionId, String const& argumentS
 
   try {
     m_universe->clientWarpPlayer(connectionId, parseWarpAction(argumentString));
-    return "Lets do the space warp again";
+    return "Let's do the space warp again!";
   } catch (StarException const& e) {
     Logger::warn("Could not parse warp target: {}", outputException(e, false));
     return strf("Could not parse the argument {} as a warp target", argumentString);
@@ -185,7 +185,7 @@ String CommandProcessor::warpRandom(ConnectionId connectionId, String const& typ
 		}
 			
 		if (size.magnitude() > 1024)
-			return "could not find a matching world";
+			return "Could not find matching world";
 		size *= 2;
 	}
 
@@ -200,10 +200,10 @@ String CommandProcessor::timewarp(ConnectionId connectionId, String const& argum
   try {
     auto time = lexicalCast<double>(argumentString);
     if (time < 0)
-      return "Great Scott! We can't go back in time!";
+      return "Great, Scott! We can't go back in time!";
 
     m_universe->universeClock()->adjustTime(time);
-    return "It's just a jump to the left...";
+    return strf("It's just a jump to the {}...", time <= 0 ? "left" : "right");
   } catch (BadLexicalCast const&) {
     return strf("Could not parse the argument {} as a time adjustment", argumentString);
   }
@@ -719,7 +719,7 @@ String CommandProcessor::entityEval(ConnectionId connectionId, String const& lua
           message = "Error evaluating script in entity context, check log";
       });
 
-  return done ? message : "failed to do entity eval";
+  return done ? message : "Failed to evaluate script";
 }
 
 String CommandProcessor::enableSpawning(ConnectionId connectionId, String const&) {
@@ -728,7 +728,7 @@ String CommandProcessor::enableSpawning(ConnectionId connectionId, String const&
 
   bool done = m_universe->executeForClient(
       connectionId, [](WorldServer* world, PlayerPtr const&) { world->setSpawningEnabled(true); });
-  return done ? "enabled monster spawning" : "enabling monster spawning failed";
+  return done ? "Enabled monster spawning" : "Enabling monster spawning failed";
 }
 
 String CommandProcessor::disableSpawning(ConnectionId connectionId, String const&) {
@@ -737,7 +737,7 @@ String CommandProcessor::disableSpawning(ConnectionId connectionId, String const
 
   bool done = m_universe->executeForClient(
       connectionId, [](WorldServer* world, PlayerPtr const&) { world->setSpawningEnabled(false); });
-  return done ? "disabled monster spawning" : "disabling monster spawning failed";
+  return done ? "Disabled monster spawning" : "Disabling monster spawning failed";
 }
 
 String CommandProcessor::placeDungeon(ConnectionId connectionId, String const& argumentString) {
@@ -769,7 +769,7 @@ String CommandProcessor::setUniverseFlag(ConnectionId connectionId, String const
   String flag = arguments.at(0);
   m_universe->universeSettings()->setFlag(flag);
 
-  return "set universe flag " + flag;
+  return "Set universe flag " + flag;
 }
 
 String CommandProcessor::resetUniverseFlags(ConnectionId connectionId, String const&) {
@@ -777,7 +777,7 @@ String CommandProcessor::resetUniverseFlags(ConnectionId connectionId, String co
     return *errorMsg;
 
   m_universe->universeSettings()->resetFlags();
-  return "universe flags reset!";
+  return "Universe flags reset!";
 }
 
 String CommandProcessor::addBiomeRegion(ConnectionId connectionId, String const& argumentString) {
@@ -798,7 +798,7 @@ String CommandProcessor::addBiomeRegion(ConnectionId connectionId, String const&
         world->addBiomeRegion(Vec2I::floor(player->aimPosition()), biomeName, subBlockSelector, width);
       });
 
-  return done ? strf("added region of biome {} with width {}", biomeName, width) : "failed to add biome region";
+  return done ? strf("Added region of biome {} with width {}", biomeName, width) : "Failed to add biome region";
 }
 
 String CommandProcessor::expandBiomeRegion(ConnectionId connectionId, String const& argumentString) {
@@ -814,7 +814,7 @@ String CommandProcessor::expandBiomeRegion(ConnectionId connectionId, String con
         world->expandBiomeRegion(Vec2I::floor(player->aimPosition()), newWidth);
       });
 
-  return done ? strf("expanded region to width {}", newWidth) : "failed to expand biome region";
+  return done ? strf("Expanded region to width {}", newWidth) : "Failed to expand biome region";
 }
 
 String CommandProcessor::updatePlanetType(ConnectionId connectionId, String const& argumentString) {
@@ -829,7 +829,7 @@ String CommandProcessor::updatePlanetType(ConnectionId connectionId, String cons
 
   bool done = m_universe->updatePlanetType(coordinate, newType, weatherBiome);
 
-  return done ? strf("set planet at {} to type {} weatherBiome {}", coordinate, newType, weatherBiome) : "failed to update planet type";
+  return done ? strf("Set planet at {} to type {}, weatherBiome {}", coordinate, newType, weatherBiome) : "Failed to update planet type";
 }
 
 String CommandProcessor::setEnvironmentBiome(ConnectionId connectionId, String const&) {
@@ -841,7 +841,7 @@ String CommandProcessor::setEnvironmentBiome(ConnectionId connectionId, String c
         world->setLayerEnvironmentBiome(Vec2I::floor(player->aimPosition()));
       });
 
-  return done ? "set environment biome for world layer" : "failed to set environment biome";
+  return done ? "Set environment biome for world layer" : "Failed to set environment biome";
 }
 
 Maybe<ConnectionId> CommandProcessor::playerCidFromCommand(String const& player, UniverseServer* universe) {

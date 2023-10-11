@@ -72,12 +72,12 @@ List<Vec2I> World::findEmptyTiles(Vec2I pos, unsigned maxDist, size_t maxAmount,
   return res;
 }
 
-bool World::canModifyTile(Vec2I const& pos, TileModification const& modification, bool allowEntityOverlap) const {
-  return !validTileModifications({{pos, modification}}, allowEntityOverlap).empty();
+bool World::canModifyTile(Vec2I const& pos, TileModification const& modification, bool allowEntityOverlap, bool allowDisconnected) const {
+  return !validTileModifications({{pos, modification}}, allowEntityOverlap, allowDisconnected).empty();
 }
 
-bool World::modifyTile(Vec2I const& pos, TileModification const& modification, bool allowEntityOverlap) {
-  return applyTileModifications({{pos, modification}}, allowEntityOverlap).empty();
+bool World::modifyTile(Vec2I const& pos, TileModification const& modification, bool allowEntityOverlap, bool allowDisconnected) {
+  return applyTileModifications({{pos, modification}}, allowEntityOverlap, allowDisconnected).empty();
 }
 
 TileDamageResult World::damageTile(Vec2I const& tilePosition, TileLayer layer, Vec2F const& sourcePosition, TileDamage const& tileDamage, Maybe<EntityId> sourceEntity) {

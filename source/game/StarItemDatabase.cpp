@@ -205,6 +205,7 @@ ItemDatabase::ItemConfig ItemDatabase::itemConfig(String const& itemName, Json p
     RecursiveMutexLocker locker(m_luaMutex);
     auto context = m_luaRoot->createContext(*builder);
     context.setCallbacks("root", LuaBindings::makeRootCallbacks());
+    context.setCallbacks("xsb", LuaBindings::makeXsbCallbacks());
     context.setCallbacks("sb", LuaBindings::makeUtilityCallbacks());
     luaTie(itemConfig.config, itemConfig.parameters) = context.invokePath<LuaTupleReturn<Json, Json>>(
         "build", itemConfig.directory, itemConfig.config, itemConfig.parameters, level, seed);

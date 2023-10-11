@@ -227,7 +227,7 @@ ENDIF ()
 # Set C/C++ compiler flags based on build environment...
 
 IF (STAR_COMPILER_GNU)
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -rdynamic -Wall -Wextra -Wno-unused -Wno-implicit-fallthrough -no-pie")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -rdynamic -Wall -Wextra -Wno-unused -Wno-unqualified-std-cast-call -Wno-implicit-fallthrough -no-pie")
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -rdynamic -Wall -Wextra -Wno-unused -Wno-implicit-fallthrough -no-pie")
 
   IF (STAR_SYSTEM_FAMILY_WINDOWS)
@@ -251,18 +251,22 @@ IF (STAR_COMPILER_GNU)
   SET (CMAKE_C_FLAGS_DEBUG "-g -Og")
   SET (CMAKE_CXX_FLAGS_DEBUG "-g -Og")
 
-  SET (CMAKE_C_FLAGS_RELWITHASSERTS "-g -Ofast")
-  SET (CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -Ofast")
+  # FezzedOne: Need to define `FLOAT_APPROX` for Opus whenever `-Ofast` is used.
 
-  SET (CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -Ofast")
-  SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -Ofast")
+  SET (CMAKE_C_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast")
+  SET (CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast")
 
-  SET (CMAKE_C_FLAGS_RELEASE "-DNDEBUG -Ofast")
-  SET (CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -Ofast")
+  SET (CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast")
+  SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast")
+
+  SET (CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast")
+  SET (CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast")
 
 ELSEIF (STAR_COMPILER_CLANG)
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-export_dynamic -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
+  # Stop Clang from bitching about all those thousands of `move` calls without an `std::` (or `Star::`, since there's an alias in that namespace).
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-export_dynamic -Wall -Wextra -Wuninitialized -Wno-unqualified-std-cast-call -Wno-parentheses-equality -Wno-deprecated-declarations") 
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wl,-export_dynamic -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
+
 
   IF (STAR_SYSTEM_MACOS)
     SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
@@ -316,6 +320,7 @@ ELSEIF (STAR_COMPILER_MSVC)
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP /EHsc /bigobj /wd4996 /wd4351 /wd4800 /wd4244 /wd4305 /wd4267 /wd4456 /wd4503 /wd4250 /wd4624")
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /MP /EHsc /bigobj /wd4996 /wd4351 /wd4800 /wd4244 /wd4305 /wd4267 /wd4456 /wd4503 /wd4250 /wd4624")
 
+
   IF (STAR_ENABLE_STATIC_MSVC_RUNTIME)
     SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MT")
     SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT")
@@ -363,7 +368,7 @@ ELSE ()
   SET (CMAKE_C_FLAGS_RELWITHDEBINFO "-DNDEBUG -g -O2")
   SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-DNDEBUG -g -O2")
 
-  SET (CMAKE_C_FLAGS_RELEASE "$-DNDEBUG -O2")
+  SET (CMAKE_C_FLAGS_RELEASE "-DNDEBUG -O2")
   SET (CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O2")
 
 ENDIF ()
@@ -508,37 +513,41 @@ SET (STAR_GAME_INCLUDES
   )
 ADD_SUBDIRECTORY (game)
 
-# Googletest based tests
-ENABLE_TESTING()
-ADD_SUBDIRECTORY (test)
+# Googletest based tests # Don't need to compile these.
+# ENABLE_TESTING()
+# ADD_SUBDIRECTORY (test)
+
+IF (NOT QT_GUIS_ONLY)
 
 # Starbound stand-alone server.
 ADD_SUBDIRECTORY (server)
 
 # cmdline utilities
 ADD_SUBDIRECTORY (utility)
+ENDIF()
 
 IF (STAR_BUILD_GUI)
-  # Handles creating windows, keyboard / mouse / joystick input, and the 2d
-  # rendering model.
-  SET (STAR_APPLICATION_INCLUDES ${PROJECT_SOURCE_DIR}/application)
-  ADD_SUBDIRECTORY (application)
+  IF (NOT QT_GUIS_ONLY)
+    # Handles creating windows, keyboard / mouse / joystick input, and the 2d
+    # rendering model.
+    SET (STAR_APPLICATION_INCLUDES ${PROJECT_SOURCE_DIR}/application)
+    ADD_SUBDIRECTORY (application)
 
-  # Rendering code not dependent on widget system
-  SET (STAR_RENDERING_INCLUDES ${PROJECT_SOURCE_DIR}/rendering)
-  ADD_SUBDIRECTORY (rendering)
+    # Rendering code not dependent on widget system
+    SET (STAR_RENDERING_INCLUDES ${PROJECT_SOURCE_DIR}/rendering)
+    ADD_SUBDIRECTORY (rendering)
 
-  # Panes and Widgets
-  SET (STAR_WINDOWING_INCLUDES ${PROJECT_SOURCE_DIR}/windowing)
-  ADD_SUBDIRECTORY (windowing)
+    # Panes and Widgets
+    SET (STAR_WINDOWING_INCLUDES ${PROJECT_SOURCE_DIR}/windowing)
+    ADD_SUBDIRECTORY (windowing)
 
-  # Client interface code
-  SET (STAR_FRONTEND_INCLUDES ${PROJECT_SOURCE_DIR}/frontend)
-  ADD_SUBDIRECTORY (frontend)
+    # Client interface code
+    SET (STAR_FRONTEND_INCLUDES ${PROJECT_SOURCE_DIR}/frontend)
+    ADD_SUBDIRECTORY (frontend)
 
-  # Starbound game / client
-  ADD_SUBDIRECTORY (client)
-
+    # Starbound game / client
+    ADD_SUBDIRECTORY (client)
+  ENDIF()
   # Qt GUI tools
   IF (STAR_BUILD_QT_TOOLS)
     ADD_SUBDIRECTORY (json_tool)

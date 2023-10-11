@@ -347,7 +347,10 @@ void ModUploader::uploadToSteam() {
   for (int i = 0; i < tagList.size(); ++i) {
     tagStrings[i] = tagList[i].utf8Ptr();
   }
-  SteamUGC()->SetItemTags(updateHandle, &SteamParamStringArray_t{tagStrings, (int32_t)tagList.size()});
+  // This Windows-specific idiocy - not properly assigning something to a
+  // variable before using it - is why there was no Steam Workshop uploader for Linux. Until now, that is.
+  SteamParamStringArray_t steamStringArray = SteamParamStringArray_t{tagStrings, (int32_t)tagList.size()};
+  SteamUGC()->SetItemTags(updateHandle, &steamStringArray);
 
   CCallResult<ModUploader, SubmitItemUpdateResult_t> callResultSubmit;
   callResultSubmit.Set(SteamUGC()->SubmitItemUpdate(updateHandle, nullptr),

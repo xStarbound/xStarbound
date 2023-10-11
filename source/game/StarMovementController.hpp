@@ -187,6 +187,7 @@ public:
   // Integrates the ActorMovementController one GlobalTimestep and applies all
   // forces.
   void tickMaster(float dt);
+  void tickIgnorePhysicsEntities(bool ignore);
 
   // Does not integrate, only tracks master state and updates non-networked
   // fields based on local data
@@ -259,6 +260,7 @@ private:
   World* m_world;
 
   Set<EntityId> m_ignorePhysicsEntities;
+  bool m_ignoreAllPhysicsEntities;
 
   NetElementData<PolyF> m_collisionPoly;
   NetElementFloat m_mass;

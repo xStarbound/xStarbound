@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
           lastReport = Time::monotonicTime();
           coutf("[{}] {}s | FPS: {} | Entities: {}\n", j, Time::monotonicTime() - start, fps, entityCount);
         }
-        worldServer.update();
+        worldServer.update(1.0f); // FezzedOne: Since all updates require a delta time, provide one.
       }
       double totalTime = Time::monotonicTime() - start;
       coutf("Finished run of running dungeon world '{}' with seed {} for {} steps in {} seconds, average FPS: {}\n",

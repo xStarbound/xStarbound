@@ -8,6 +8,8 @@
 #include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarConfigLuaBindings.hpp"
 #include "StarEntityLuaBindings.hpp"
+#include "StarPlayerLuaBindings.hpp"
+#include "StarPlayer.hpp"
 #include "StarStatusEffectDatabase.hpp"
 #include "StarStatusEffectEntity.hpp"
 #include "StarLiquidsDatabase.hpp"
@@ -724,6 +726,9 @@ void StatusController::removeUniqueEffect(UniqueStatusEffect const& effect) {
 void StatusController::initPrimaryScript() {
   m_primaryScript.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(this));
   m_primaryScript.addCallbacks("entity", LuaBindings::makeEntityCallbacks(m_parentEntity));
+  if (auto playerEntity = as<Player>(m_parentEntity)) { // FezzedOne: Add player callbacks if the entity is a player.
+    m_primaryScript.addCallbacks("player", LuaBindings::makePlayerCallbacks(playerEntity));
+  }
   if (m_primaryAnimatorId != EffectAnimatorGroup::NullElementId) {
     auto animator = m_effectAnimators.getNetElement(m_primaryAnimatorId);
     m_primaryScript.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&animator->animator));
@@ -736,6 +741,7 @@ void StatusController::uninitPrimaryScript() {
   m_primaryScript.uninit();
   m_primaryScript.removeCallbacks("status");
   m_primaryScript.removeCallbacks("entity");
+  m_primaryScript.removeCallbacks("player");
   m_primaryScript.removeCallbacks("animator");
   m_primaryScript.removeActorMovementCallbacks();
 }

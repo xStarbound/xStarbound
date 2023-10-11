@@ -11,6 +11,7 @@
 #include "StarStatistics.hpp"
 #include "StarPlayerUniverseMap.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarUniverseClient.hpp"
 
 namespace Star {
 
@@ -88,6 +89,9 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
   callbacks.registerCallback(   "name", [player]()                   { return player->name(); });
   callbacks.registerCallback("setName", [player](String const& name) { player->setName(name); });
 
+  callbacks.registerCallback(   "description", [player]()                          { return player->description(); });
+  callbacks.registerCallback("setDescription", [player](String const& description) { player->setDescription(description); });
+
   callbacks.registerCallback(   "species", [player]()                      { return player->species();    });
   callbacks.registerCallback("setSpecies", [player](String const& species) { player->setSpecies(species); });
 
@@ -104,10 +108,12 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
     player->setPersonality(parsePersonality(newPersonality, personalityConfig));
   });
 
+  callbacks.registerCallback(   "identity", [player]() -> Json { return player->getIdentity(); });
+  callbacks.registerCallback("getIdentity", [player]() -> Json { return player->getIdentity(); }); // Exists for mod compatibility reasons.
+  callbacks.registerCallback("setIdentity", [player](Json const &newIdentity) { player->setIdentity(newIdentity); });
+
   callbacks.registerCallback(   "interactRadius", [player]()         { return player->interactRadius();       });
   callbacks.registerCallback("setInteractRadius", [player](float radius) { player->setInteractRadius(radius); });
-
-  callbacks.registerCallback("aimPosition", [player]() { return player->aimPosition(); });
 
   callbacks.registerCallback("id",       [player]() { return player->entityId(); });
   callbacks.registerCallback("uniqueId", [player]() { return player->uniqueId(); });
@@ -526,6 +532,161 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
   callbacks.registerCallback("removeScannedObject", [player](String const& objectName) {
       player->log()->removeScannedObject(objectName);
     });
+
+  callbacks.registerCallback("sendChat", [player](String const &text, Maybe<String> const &sendMode, Maybe<bool> suppressBubble) {
+      String sendModeStr = sendMode.value("Local");
+      bool suppressBubbleBool = suppressBubble.value(false);
+      player->getUniverseClient()->sendChat(text, sendModeStr, suppressBubbleBool); });
+
+  callbacks.registerCallback("queueStatusMessage", [player](String const &newMessage) {
+      player->queueUIMessage(newMessage);
+    });
+
+  callbacks.registerCallback("addChatBubble", [player](String const &bubbleMessage, Maybe<String> const &portrait, Maybe<EntityId> const &sourceEntityId, Maybe<Json> const &bubbleConfig) {
+      player->addChatMessage(bubbleMessage, portrait, sourceEntityId, bubbleConfig);
+    });
+
+  callbacks.registerCallback("setChatBubbleConfig", [player](Maybe<Json> const &bubbleConfig) {
+      player->setChatBubbleConfig(bubbleConfig);
+    });
+
+  callbacks.registerCallback("getChatBubbleConfig", [player]() -> Json {
+      return player->getChatBubbleConfig();
+    });
+
+  callbacks.registerCallback("getPlayerJson", [player]() -> Json { return player->diskStore(); });
+
+  callbacks.registerCallback("dropEverything", [player]() { player->dropEverything(); });
+
+  callbacks.registerCallback("emote", [player](String const &emote, Maybe<bool> gentleRequest) {
+      bool isGentleRequest = gentleRequest.value(false);
+      if (isGentleRequest) {
+        player->requestEmote(emote);
+      } else {
+        HumanoidEmote emoteState = HumanoidEmoteNames.valueLeft(emote, HumanoidEmote::Idle);
+        player->addEmote(emoteState);
+      }
+    });
+
+  callbacks.registerCallback("addEffectEmitters", [player](Json const &effectEmitters) {
+      bool isValid = true;
+      StringSet effectEmitterSet;
+      try {
+        effectEmitterSet = jsonToStringSet(effectEmitters);
+      } catch (JsonException const& e) {
+        isValid = false;
+        Logger::error("addEffectEmitters: {}", e.what());
+      }
+      if (isValid)
+        player->addEffectEmitters(effectEmitterSet);
+    });
+
+  callbacks.registerCallback("setExternalWarpsIgnored", [player](bool ignored)
+                             { player->setExternalWarpsIgnored(ignored); });
+
+  callbacks.registerCallback("setExternalRadioMessagesIgnored", [player](bool ignored)
+                             { player->setExternalRadioMessagesIgnored(ignored); });
+
+  callbacks.registerCallback("setExternalCinematicsIgnored", [player](bool ignored)
+                             { player->setExternalCinematicsIgnored(ignored); });
+
+  callbacks.registerCallback("setPhysicsEntitiesIgnored", [player](bool ignored)
+                             { player->setPhysicsEntitiesIgnored(ignored); });
+
+  callbacks.registerCallback("setNudityIgnored", [player](bool ignored)
+                             { player->setForcedNudityIgnored(ignored); });
+
+  callbacks.registerCallback("setTechOverridesIgnored", [player](bool ignored)
+                             { player->setTechOverridesIgnored(ignored); });
+
+  callbacks.registerCallback("toggleOverreach", [player](bool toggle)
+                             { player->setCanReachAll(toggle); });
+
+  callbacks.registerCallback("toggleInWorldRespawn", [player](bool toggle)
+                             { player->setAlwaysRespawnInWorld(toggle); });
+
+  callbacks.registerCallback("setIgnoreItemPickups", [player](bool ignore)
+                             { player->setIgnoreItemPickups(ignore); });
+
+  callbacks.registerCallback("setIgnoreShipUpdates", [player](bool ignore)
+                             { player->setIgnoreShipUpdates(ignore); });
+
+  callbacks.registerCallback("toggleFastWarp", [player](bool ignore)
+                             { player->setFastRespawn(ignore); });
+
+  callbacks.registerCallback("externalWarpsIgnored", [player]() -> bool
+                             { return player->externalWarpsIgnored(); });
+
+  callbacks.registerCallback("externalRadioMessagesIgnored", [player]() -> bool
+                             { return player->externalRadioMessagesIgnored(); });
+
+  callbacks.registerCallback("externalCinematicsIgnored", [player]() -> bool
+                             { return player->externalCinematicsIgnored(); });
+
+  callbacks.registerCallback("physicsEntitiesIgnored", [player]() -> bool
+                             { return player->physicsEntitiesIgnored(); });
+
+  callbacks.registerCallback("nudityIgnored", [player]() -> bool
+                             { return player->forcedNudityIgnored(); });
+
+  callbacks.registerCallback("overreach", [player]() -> bool
+                             { return player->canReachAll(); });
+
+  callbacks.registerCallback("techOverridesIgnored", [player]() -> bool
+                             { return player->ignoreAllTechOverrides(); });
+
+  callbacks.registerCallback("itemPickupsIgnored", [player]() -> bool
+                             { return player->ignoreItemPickups(); });
+
+  callbacks.registerCallback("fastWarp", [player]() -> bool
+                             { return player->fastRespawn(); });
+
+  callbacks.registerCallback("inWorldRespawn", [player]() -> bool
+                             { return player->alwaysRespawnInWorld(); });
+
+  callbacks.registerCallback("shipUpdatesIgnored", [player]() -> bool
+                             { return player->shipUpdatesIgnored(); });
+
+  callbacks.registerCallback("getChatText", [player]() -> String
+                             { return player->chatText(); });
+
+  callbacks.registerCallback("chatHasFocus", [player]() -> bool
+                             { return player->chatOpen(); });
+
+  callbacks.registerCallback("overrideTypingIndicator", [player](bool overridden)
+                             { player->overrideChatIndicator(overridden); });
+
+  callbacks.registerCallback("overrideMenuIndicator", [player](bool overridden)
+                             { player->overrideMenuIndicator(overridden); });
+
+  callbacks.registerCallback("aimPosition", [player]() -> Vec2F
+                             { return player->aimPosition(); });
+
+  callbacks.registerCallback("setDamageTeam", [player](Maybe<String> teamType, Maybe<uint16_t> teamNumber) {
+      TeamType checkedTeamType = TeamType::Friendly;
+      if (teamType)
+        checkedTeamType = TeamTypeNames.valueLeft(teamType.get(), TeamType::Friendly);
+      TeamNumber checkedTeamNumber = 0;
+      if (teamNumber)
+        checkedTeamNumber = teamNumber.get();
+      if (teamType || teamNumber) {
+        player->setDamageTeam(EntityDamageTeam(checkedTeamType, checkedTeamNumber));
+      } else {
+        player->setDamageTeam();
+      }
+    });
+
+  callbacks.registerCallback("setOverrideState", [player](Maybe<String> newState) {
+    if (newState) {
+      Maybe<Humanoid::State> newHumanoidState = Humanoid::StateNames.valueLeft(*newState, Humanoid::State::Idle);
+      player->setOverrideState(newHumanoidState);
+    } else {
+      player->setOverrideState(Maybe<Humanoid::State>{});
+    }
+  });
+
+  callbacks.registerCallback("overrideCameraPosition", [player](Maybe<Vec2F> newCameraPosition)
+                             { player->overrideCameraPosition(newCameraPosition); });
 
   return callbacks;
 }

@@ -19,8 +19,8 @@ SET (star_server_SOURCES
     main.cpp
   )
 
-ADD_EXECUTABLE (starbound_server
+ADD_EXECUTABLE (xserver
   $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
   ${star_server_HEADERS} ${star_server_SOURCES})
-TARGET_PRECOMPILE_HEADERS (starbound_server REUSE_FROM star_core)
-TARGET_LINK_LIBRARIES (starbound_server ${STAR_EXT_LIBS})
+TARGET_PRECOMPILE_HEADERS (xserver REUSE_FROM star_core)
+TARGET_LINK_LIBRARIES (xserver ${STAR_EXT_LIBS})

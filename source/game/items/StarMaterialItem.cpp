@@ -88,6 +88,34 @@ void MaterialItem::update(float dt, FireMode fireMode, bool shifting, HashSet<Mo
   if (Player* player = as<Player>(owner())) {
     if (owner()->isMaster()) {
       Input& input = Input::singleton();
+      if (auto presses = input.bindDown("xsb", "materialCollisionCycle")) {
+        CollisionKind baseKind = Root::singleton().materialDatabase()->materialCollisionKind(m_material);
+        for (size_t i = 0; i != *presses; ++i) {
+          constexpr auto limit = (uint8_t)TileCollisionOverride::Block + 1;
+          while (true) {
+            m_collisionOverride = TileCollisionOverride(((uint8_t)m_collisionOverride + 1) % limit);
+            if (collisionKindFromOverride(m_collisionOverride) != baseKind)
+              break;
+          }
+          player->setSecretProperty(CollisionOverridePropertyKey, TileCollisionOverrideNames.getRight(m_collisionOverride));
+        }
+        owner()->addSound("/sfx/tools/cyclematcollision.ogg", 1.0f, Random::randf(0.9f, 1.1f));
+      }
+
+      if (auto presses = input.bindDown("xsb", "buildingRadiusGrow")) {
+        m_blockRadius = min(BlockRadiusLimit, int(m_blockRadius + *presses));
+        player->setSecretProperty(BlockRadiusPropertyKey, m_blockRadius);
+        owner()->addSound("/sfx/tools/buildradiusgrow.wav", 1.0f, 1.0f + m_blockRadius / BlockRadiusLimit);
+      }
+
+      if (auto presses = input.bindDown("xsb", "buildingRadiusShrink")) {
+        m_blockRadius = max(1, int(m_blockRadius - *presses));
+        player->setSecretProperty(BlockRadiusPropertyKey, m_blockRadius);
+        owner()->addSound("/sfx/tools/buildradiusshrink.wav", 1.0f, 1.0f + m_blockRadius / BlockRadiusLimit);
+      }
+
+      /* Allow xSB to use OpenStarbound keybind configs. */
+
       if (auto presses = input.bindDown("opensb", "materialCollisionCycle")) {
         CollisionKind baseKind = Root::singleton().materialDatabase()->materialCollisionKind(m_material);
         for (size_t i = 0; i != *presses; ++i) {

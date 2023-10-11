@@ -64,7 +64,13 @@ Chat::Chat(UniverseClientPtr client) : m_client(client) {
       m_historyOffset = 0;
     });
 
-  m_sendMode = ChatSendMode::Broadcast;
+  Maybe<String> defaultSendMode = assets->json("/interface/chat/chat.config").optString("defaultSendMode");
+  if (defaultSendMode) {
+    // FezzedOne: Allow setting the default chat send mode in `/interface/chat/chat.config`.
+    m_sendMode = ChatSendModeNames.valueLeft(*defaultSendMode, ChatSendMode::Broadcast);
+  } else {
+    m_sendMode = ChatSendMode::Broadcast;
+  }
 
   reader.construct(assets->json("/interface/chat/chat.config:gui"), this);
 

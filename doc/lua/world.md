@@ -370,9 +370,23 @@ Returns a list of existing tiles within `radius` of the given position, on the s
 
 ---
 
-#### `bool` world.placeMaterial(`Vec2I` position, `String` layerName, `String` materialName, [`int` hueShift], [`bool` allowOverlap])
+#### `bool` world.placeMaterial(`Vec2I` position, `String` layerName, `String` materialName, [`int` hueShift], [`bool` allowOverlap], [`bool` allowDisconnected])
 
-Attempts to place the specified material in the specified position and layer. If allowOverlap is `true` the material can be placed in a space occupied by mobile entities, otherwise such placement attempts will fail. Returns `true` if the placement succeeds and `false` otherwise.
+Attempts to place the specified material in the specified position and layer. If allowOverlap is `true`, the material can be placed in a space occupied by mobile entities, otherwise such placement attempts will fail. If allowDisconnected is `true`, the material does not need to be connected to any other tiles to be placed. Returns `true` if the placement succeeds and `false` otherwise.
+
+> **xSB note on allowDisconnected:** The use of allowDisconnected to ignore the requirement for newly placed tiles to be connected to existing tiles currently requires *both* xClient *and* xServer (although this may change), or only xClient if you're in single-player.
+
+> **OpenStarbound/xSB note on layerName:** The layerName may optionally include any one of the following collision modifiers (e.g. `"foreground+none"`, `"background+block"`):
+>
+> - `+none`: The tile is placed with no collision. Entities can move through the tile regardless of whether collision is active in their movement controllers, and objects can be placed in front of or behind the tile, depending on its layer. However, entities with active collision cannot stand on the tile, nor can objects be anchored to it.
+> - `+platform`: The tile is placed with platform collision. Entities can move through the tile regardless of whether collision is active in their movement controllers, but objects cannot be placed in front of or behind the tile. Entities with active collision can stand on the tile and objects can be anchored to it, provided there is enough space around the tile.
+> - `+block`: The tile is placed with block collision. Entities cannot move through the tile unless collision is disabled in their movement controllers, nor can objects be placed in front or behind the tile. Entities with active collision can stand on the tile and objects can be anchored to it, provided there is enough space around the tile.
+>
+> If the collision modifier of a foreground tile doesn't match that of the background tile behind it, the *lower* modifier on the list above is the one that applies (with minor caveats when one modifier is `+platform` and the other is `+block` and either or both collisions are diagonal). To see what kind of tile collision a given tile has, use `/boxes` and `/debug`.
+>
+> Collision modifiers are currently supported on OpenStarbound and xServer servers. Note that legacy StarExtensions / pre-v2.0.0 xSB collision modifiers are *not* network-compatible with OpenStarbound servers or xServer v2.0.0+ (ordinary foreground or background tiles will be placed instead), although already placed "legacy collision" will still work on such servers.
+
+Note that you will need xWEdit x2.0.0+ [link to Git repository] if you want WEdit support for all the new features of `placeMaterial`.
 
 ---
 

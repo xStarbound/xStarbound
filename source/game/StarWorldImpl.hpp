@@ -42,23 +42,23 @@ namespace WorldImpl {
 
   template <typename GetTileFunction>
   bool canPlaceMaterial(EntityMapPtr const& entityMap,
-      Vec2I const& pos, TileLayer layer, MaterialId material, bool allowEntityOverlap, bool allowTileOverlap, GetTileFunction& getTile);
+      Vec2I const& pos, TileLayer layer, MaterialId material, bool allowEntityOverlap, bool allowTileOverlap, GetTileFunction& getTile, bool allowDisconnected = false);
   // returns true if this material could be placed if in the same batch other
   // tiles can be placed
   // that connect to it
   template <typename GetTileFunction>
   bool perhapsCanPlaceMaterial(EntityMapPtr const& entityMap,
-      Vec2I const& pos, TileLayer layer, MaterialId material, bool allowEntityOverlap, bool allowTileOverlap, GetTileFunction& getTile);
+      Vec2I const& pos, TileLayer layer, MaterialId material, bool allowEntityOverlap, bool allowTileOverlap, GetTileFunction& getTile, bool allowDisconnected = false);
   template <typename GetTileFunction>
   bool canPlaceMaterialColorVariant(Vec2I const& pos, TileLayer layer, MaterialColorVariant color, GetTileFunction& getTile);
   template <typename GetTileFunction>
   bool canPlaceMod(Vec2I const& pos, TileLayer layer, ModId mod, GetTileFunction& getTile);
   template <typename GetTileFunction>
-  pair<bool, bool> validateTileModification(EntityMapPtr const& entityMap, Vec2I const& pos, TileModification const& modification, bool allowEntityOverlap, GetTileFunction& getTile);
+  pair<bool, bool> validateTileModification(EntityMapPtr const& entityMap, Vec2I const& pos, TileModification const& modification, bool allowEntityOverlap, GetTileFunction& getTile, bool allowDisconnected = false);
   // Split modification list into good and bad
   template <typename GetTileFunction>
   pair<TileModificationList, TileModificationList> splitTileModifications(EntityMapPtr const& entityMap, TileModificationList const& modificationList,
-    bool allowEntityOverlap, GetTileFunction& getTile, function<bool(Vec2I pos, TileModification modification)> extraCheck = {});
+    bool allowEntityOverlap, GetTileFunction& getTile, function<bool(Vec2I pos, TileModification modification)> extraCheck = {}, bool allowDisconnected = false);
 
   template <typename TileSectorArray>
   float windLevel(shared_ptr<TileSectorArray> const& tileSectorArray, Vec2F const& position, float weatherWindLevel);
@@ -221,7 +221,7 @@ namespace WorldImpl {
 
   template <typename GetTileFunction>
   bool canPlaceMaterial(EntityMapPtr const& entityMap,
-      Vec2I const& pos, TileLayer layer, MaterialId material, bool allowEntityOverlap, bool allowTileOverlap, GetTileFunction& getTile) {
+      Vec2I const& pos, TileLayer layer, MaterialId material, bool allowEntityOverlap, bool allowTileOverlap, GetTileFunction& getTile, bool allowDisconnected) {
     auto materialDatabase = Root::singleton().materialDatabase();
 
     if (!isRealMaterial(material))
@@ -255,6 +255,10 @@ namespace WorldImpl {
       if (tile.background != EmptyMaterialId && tile.background != ObjectPlatformMaterialId)
         return false;
 
+      // FezzedOne: Allowing overriding the tile connectivity check. This allows mid-air placement. Always `true` on xServer, deferring to the client.
+      if (allowDisconnected)
+        return true;
+
       // Can attach background blocks to other background blocks, *or* the
       // foreground block in front of it.
       if (!isAdjacentToConnectable(pos, 1, false) && !isConnectableMaterial(tile.foreground))
@@ -269,6 +273,10 @@ namespace WorldImpl {
       if (!allowEntityOverlap && entityMap->spaceIsOccupied(RectF::withSize(Vec2F(pos), Vec2F(0.999f, 0.999f))))
         return false;
 
+      // FezzedOne: Allow overriding the tile connectivity check. This allows mid-air placement. Always `true` on xServer, deferring to the client.
+      if (allowDisconnected)
+        return true;
+
       if (!isAdjacentToConnectable(pos, 1, true) && !isConnectableMaterial(tile.background))
         return false;
     }
@@ -278,7 +286,7 @@ namespace WorldImpl {
 
   template <typename GetTileFunction>
   bool perhapsCanPlaceMaterial(EntityMapPtr const& entityMap,
-      Vec2I const& pos, TileLayer layer, MaterialId material, bool allowEntityOverlap, bool allowTileOverlap, GetTileFunction& getTile) {
+      Vec2I const& pos, TileLayer layer, MaterialId material, bool allowEntityOverlap, bool allowTileOverlap, GetTileFunction& getTile, bool allowDisconnected) {
     auto materialDatabase = Root::singleton().materialDatabase();
 
     if (!isRealMaterial(material))
@@ -328,15 +336,15 @@ namespace WorldImpl {
   }
 
   template <typename GetTileFunction>
-  pair<bool, bool> validateTileModification(EntityMapPtr const& entityMap, Vec2I const& pos, TileModification const& modification, bool allowEntityOverlap, GetTileFunction& getTile) {
+  pair<bool, bool> validateTileModification(EntityMapPtr const& entityMap, Vec2I const& pos, TileModification const& modification, bool allowEntityOverlap, GetTileFunction& getTile, bool allowDisconnected) {
     bool good = false;
     bool perhaps = false;
     
     if (auto placeMaterial = modification.ptr<PlaceMaterial>()) {
       bool allowTileOverlap = placeMaterial->collisionOverride != TileCollisionOverride::None && collisionKindFromOverride(placeMaterial->collisionOverride) < CollisionKind::Dynamic;
-      perhaps = WorldImpl::perhapsCanPlaceMaterial(entityMap, pos, placeMaterial->layer, placeMaterial->material, allowEntityOverlap, allowTileOverlap, getTile);
+      perhaps = WorldImpl::perhapsCanPlaceMaterial(entityMap, pos, placeMaterial->layer, placeMaterial->material, allowEntityOverlap, allowTileOverlap, getTile, allowDisconnected);
       if (perhaps)
-        good = WorldImpl::canPlaceMaterial(entityMap, pos, placeMaterial->layer, placeMaterial->material, allowEntityOverlap, allowTileOverlap, getTile);
+        good = WorldImpl::canPlaceMaterial(entityMap, pos, placeMaterial->layer, placeMaterial->material, allowEntityOverlap, allowTileOverlap, getTile, allowDisconnected);
     } else if (auto placeMod = modification.ptr<PlaceMod>()) {
       good = WorldImpl::canPlaceMod(pos, placeMod->layer, placeMod->mod, getTile);
     } else if (auto placeMaterialColor = modification.ptr<PlaceMaterialColor>()) {
@@ -352,7 +360,7 @@ namespace WorldImpl {
 
   template <typename GetTileFunction>
   pair<TileModificationList, TileModificationList> splitTileModifications(EntityMapPtr const& entityMap, TileModificationList const& modificationList,
-    bool allowEntityOverlap, GetTileFunction& getTile, function<bool(Vec2I pos, TileModification modification)> extraCheck) {
+    bool allowEntityOverlap, GetTileFunction& getTile, function<bool(Vec2I pos, TileModification modification)> extraCheck, bool allowDisconnected) {
     TileModificationList success;
     TileModificationList unknown;
     TileModificationList failures;
@@ -360,7 +368,7 @@ namespace WorldImpl {
 
       bool good = false, perhaps = false;
       if (!extraCheck || extraCheck(pair.first, pair.second))
-        std::tie(good, perhaps) = validateTileModification(entityMap, pair.first, pair.second, allowEntityOverlap, getTile);
+        std::tie(good, perhaps) = validateTileModification(entityMap, pair.first, pair.second, allowEntityOverlap, getTile, allowDisconnected);
 
       if (good)
         success.append(pair);

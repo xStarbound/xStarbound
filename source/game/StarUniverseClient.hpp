@@ -82,6 +82,7 @@ public:
   bool flying() const;
 
   void sendChat(String const& text, ChatSendMode sendMode);
+  void sendChat(String const &text, String const &sendMode, bool suppressBubble);
   List<ChatReceivedMessage> pullChatMessages();
 
   uint16_t players();
@@ -95,6 +96,7 @@ public:
   bool switchPlayer(Uuid const& uuid);
   bool switchPlayer(size_t index);
   bool switchPlayer(String const& name);
+  bool switchPlayerUuid(String const& uuidStr);
 
   typedef std::function<void()> Callback;
   typedef std::function<void(bool)> ReloadPlayerCallback;
@@ -165,6 +167,8 @@ private:
 
   ReloadPlayerCallback m_playerReloadPreCallback;
   ReloadPlayerCallback m_playerReloadCallback;
+
+  bool m_shouldUpdateMainPlayerShip;
 };
 
 }

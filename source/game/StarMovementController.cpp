@@ -207,6 +207,8 @@ MovementController::MovementController(MovementParameters const& parameters) {
   addNetElement(&m_xRelativeSurfaceMovingCollisionPosition);
   addNetElement(&m_yRelativeSurfaceMovingCollisionPosition);
 
+  m_ignoreAllPhysicsEntities = false;
+
   m_world = nullptr;
 
   resetParameters(parameters);
@@ -709,26 +711,32 @@ void MovementController::tickSlave(float dt) {
   m_liquidId = cll.liquid;
 }
 
+void MovementController::tickIgnorePhysicsEntities(bool ignore) {
+  m_ignoreAllPhysicsEntities = ignore;
+}
+
 void MovementController::setIgnorePhysicsEntities(Set<EntityId> ignorePhysicsEntities) {
   m_ignorePhysicsEntities = ignorePhysicsEntities;
 }
 
 void MovementController::forEachMovingCollision(RectF const& region, function<bool(MovingCollisionId id, PhysicsMovingCollision, PolyF, RectF)> callback) {
   auto geometry = world()->geometry();
-  for (auto& physicsEntity : world()->query<PhysicsEntity>(region)) {
-    if (m_ignorePhysicsEntities.contains(physicsEntity->entityId()))
-      continue;
-    for (size_t i = 0; i < physicsEntity->movingCollisionCount(); ++i) {
-      if (auto mc = physicsEntity->movingCollision(i)) {
-        if (mc->categoryFilter.check(m_parameters.physicsEffectCategories.value())) {
-          PolyF poly = move(mc->collision);
-          poly.translate(geometry.nearestTo(region.min(), mc->position));
-          RectF polyBounds = poly.boundBox();
+  if (!m_ignoreAllPhysicsEntities) {
+    for (auto& physicsEntity : world()->query<PhysicsEntity>(region)) {
+      if (m_ignorePhysicsEntities.contains(physicsEntity->entityId()))
+        continue;
+      for (size_t i = 0; i < physicsEntity->movingCollisionCount(); ++i) {
+        if (auto mc = physicsEntity->movingCollision(i)) {
+          if (mc->categoryFilter.check(m_parameters.physicsEffectCategories.value())) {
+            PolyF poly = move(mc->collision);
+            poly.translate(geometry.nearestTo(region.min(), mc->position));
+            RectF polyBounds = poly.boundBox();
 
-          if (region.intersects(polyBounds)) {
-            // early exit if the callback returns false
-            if(callback({physicsEntity->entityId(), i}, *mc, poly, polyBounds) == false)
-              return;
+            if (region.intersects(polyBounds)) {
+              // early exit if the callback returns false
+              if(callback({physicsEntity->entityId(), i}, *mc, poly, polyBounds) == false)
+                return;
+            }
           }
         }
       }
@@ -793,11 +801,13 @@ void MovementController::updateForceRegions(float dt) {
       }
     };
 
-  for (auto& physicsEntity : world()->query<PhysicsEntity>(boundBox)) {
-    if (m_ignorePhysicsEntities.contains(physicsEntity->entityId()))
-      continue;
+  if (!m_ignoreAllPhysicsEntities) {
+    for (auto& physicsEntity : world()->query<PhysicsEntity>(boundBox)) {
+      if (m_ignorePhysicsEntities.contains(physicsEntity->entityId()))
+        continue;
 
-    handleForceRegions(physicsEntity->forceRegions());
+      handleForceRegions(physicsEntity->forceRegions());
+    }
   }
 
   handleForceRegions(world()->forceRegions());

@@ -527,6 +527,10 @@ void MainInterface::update(float dt) {
     m_paneManager.dismissRegisteredPane(MainInterfacePanes::WireInterface);
   }
 
+  // FezzedOne: Update chat text and whether the chat pane is open. Ugly, I know.
+  player->passChatText(m_chat->currentChat());
+  player->passChatOpen(m_chat->hasFocus());
+
   // update inventory pane items, to know if item slots changed
   m_inventoryWindow->updateItems();
 
@@ -784,9 +788,9 @@ void MainInterface::update(float dt) {
       m_containerInteractor->closeContainer();
   }
 
-  if (m_paneManager.topPane({PaneLayer::Window, PaneLayer::ModalWindow}))
+  if (m_paneManager.topPane({PaneLayer::Window, PaneLayer::ModalWindow}) && !m_client->mainPlayer()->menuIndicatorOverridden())
     m_client->mainPlayer()->setBusyState(PlayerBusyState::Menu);
-  else if (m_chat->hasFocus())
+  else if (m_chat->hasFocus() && !m_client->mainPlayer()->chatIndicatorOverridden())
     m_client->mainPlayer()->setBusyState(PlayerBusyState::Chatting);
   else
     m_client->mainPlayer()->setBusyState(PlayerBusyState::None);
@@ -997,7 +1001,9 @@ PanePtr MainInterface::createEscapeDialog() {
     });
 
   escapeDialogReader.construct(assets->json("/interface.config:escapeDialog"), escapeDialogPtr);
-  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(strf("Starbound - {} ({})", StarVersionString, StarArchitectureString));
+  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(strf("^#f22;xSB::xClient^reset; {} (sb {} / {})", xSbVersionString, StarVersionString, StarArchitectureString));
+  escapeDialog->fetchChild<LabelWidget>("lblcopyright")->setText("By xSB / OpenSB constributors and Chucklefish");
+
   return escapeDialog;
 }
 

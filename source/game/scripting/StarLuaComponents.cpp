@@ -5,6 +5,7 @@
 namespace Star {
 
 LuaBaseComponent::LuaBaseComponent() {
+  addCallbacks("xsb", LuaBindings::makeXsbCallbacks());
   addCallbacks("sb", LuaBindings::makeUtilityCallbacks());
   addCallbacks("root", LuaBindings::makeRootCallbacks());
   setAutoReInit(true);

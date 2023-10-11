@@ -75,3 +75,9 @@ ADD_EXECUTABLE (word_count
   $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
   word_count.cpp)
 TARGET_LINK_LIBRARIES (word_count ${STAR_EXT_LIBS})
+
+# Kae's `btree_repacker`.
+ADD_EXECUTABLE (btree_repacker
+  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base>
+  btree_repacker.cpp)
+TARGET_LINK_LIBRARIES (btree_repacker ${STAR_EXT_LIBS})

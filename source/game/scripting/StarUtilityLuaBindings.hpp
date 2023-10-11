@@ -7,6 +7,7 @@ namespace Star {
 
 namespace LuaBindings {
   LuaCallbacks makeUtilityCallbacks();
+  LuaCallbacks makeXsbCallbacks();
 
   String formatLua(String const& string, List<LuaValue> const& args);
 
