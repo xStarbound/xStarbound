@@ -74,6 +74,9 @@ public:
   // Returns a list of all the asset source paths used by Assets in load order.
   StringList assetSources() const;
 
+  // Returns a list of all the asset patch sources used by an asset.
+  StringList assetPatchSources(String const& path) const;
+
   // Return metadata for the given loaded asset source path
   JsonObject assetSourceMetadata(String const& sourcePath) const;
 

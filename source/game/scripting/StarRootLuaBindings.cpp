@@ -31,6 +31,11 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
   auto root = Root::singletonPtr();
 
   callbacks.registerCallbackWithSignature<StringList, String>("assetsByExtension", bind(RootCallbacks::assetsByExtension, root, _1));
+  callbacks.registerCallbackWithSignature<Maybe<String>, String>("assetSource", bind(RootCallbacks::assetSource, root, _1));
+  callbacks.registerCallbackWithSignature<Maybe<List<String>>, String>("assetPatchSources", bind(RootCallbacks::assetPatchSources, root, _1));
+  callbacks.registerCallbackWithSignature<List<String>>("assetSources", bind(RootCallbacks::assetSources, root));
+  callbacks.registerCallbackWithSignature<Maybe<List<String>>, String>("assetSourcePaths", bind(RootCallbacks::assetSourcePaths, root, _1));
+  callbacks.registerCallbackWithSignature<Json, String>("assetSourceMetadata", bind(RootCallbacks::assetSourceMetadata, root, _1));
   callbacks.registerCallbackWithSignature<String, String>("assetData", bind(RootCallbacks::assetData, root, _1));
   callbacks.registerCallbackWithSignature<Json, String>("assetJson", bind(RootCallbacks::assetJson, root, _1));
   callbacks.registerCallbackWithSignature<Json, String, Json>("makeCurrentVersionedJson", bind(RootCallbacks::makeCurrentVersionedJson, root, _1, _2));
@@ -183,6 +188,63 @@ String LuaBindings::RootCallbacks::assetData(Root* root, String const& path) {
 
 Json LuaBindings::RootCallbacks::assetJson(Root* root, String const& path) {
   return root->assets()->json(path);
+}
+
+Maybe<String> LuaBindings::RootCallbacks::assetSource(Root *root, String const &path) {
+  String sourceName;
+  bool sourceFound = false;
+  try {
+    sourceName = root->assets()->assetSource(path);
+    sourceFound = true;
+  }
+  catch (AssetException const &e)
+  {
+    return {};
+  }
+  if (sourceFound)
+    return sourceName;
+  return {};
+}
+
+Maybe<List<String>> LuaBindings::RootCallbacks::assetPatchSources(Root *root, String const &path)
+{
+  String sourceName;
+  bool sourceFound = false;
+  try
+  {
+    sourceName = root->assets()->assetSource(path);
+    sourceFound = true;
+  }
+  catch (AssetException const &e)
+  {
+    return {};
+  }
+  if (sourceFound)
+    return root->assets()->assetPatchSources(path);
+  return {};
+}
+
+List<String> LuaBindings::RootCallbacks::assetSources(Root *root) {
+  return root->assets()->assetSources();
+}
+
+Json LuaBindings::RootCallbacks::assetSourceMetadata(Root *root, String const &sourceName) {
+  try {
+    Json result = root->assets()->assetSourceMetadata(sourceName);
+    return result;
+  } catch (MapException const &e) {
+    return Json();
+  }
+  return Json();
+}
+
+Maybe<List<String>> LuaBindings::RootCallbacks::assetSourcePaths(Root *root, String const &sourceName) {
+  try {
+    return root->assets()->assetSourcePaths(sourceName);
+  } catch (MapException const &e) {
+    return {};
+  }
+  return {};
 }
 
 Json LuaBindings::RootCallbacks::makeCurrentVersionedJson(Root* root, String const& identifier, Json const& content) {
