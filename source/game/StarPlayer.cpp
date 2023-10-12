@@ -140,6 +140,9 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
   m_chatMessageChanged = false;
   m_chatMessageUpdated = false;
 
+  m_overrideMenuIndicator = false;
+  m_overrideChatIndicator = false;
+
   m_songbook = make_shared<Songbook>(species());
 
   m_lastDamagedOtherTimer = 0;
