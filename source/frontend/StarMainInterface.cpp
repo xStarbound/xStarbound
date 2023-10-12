@@ -881,7 +881,8 @@ void MainInterface::queueJoinRequest(pair<String, RpcPromiseKeeper<P2PJoinReques
 
 void MainInterface::setCursorText(Maybe<String> const& cursorText, Maybe<bool> overrideGameTooltips) {
   m_overrideTooltip = cursorText;
-  m_overrideDefaultTooltip = overrideGameTooltips ? *overrideGameTooltips : false;
+  if (overrideGameTooltips)
+    m_overrideDefaultTooltip = *overrideGameTooltips;
 }
 
 void MainInterface::queueItemPickupText(ItemPtr const& item) {
@@ -1332,7 +1333,9 @@ void MainInterface::renderMainBar() {
       assets->json("/interface.config:cursorTooltip.questsText").toString());
 
   if (m_overrideTooltip) {
-    m_cursorTooltip = m_overrideDefaultTooltip ? m_overrideTooltip : (m_cursorTooltip || m_overrideTooltip);
+    if (m_overrideDefaultTooltip || !m_cursorTooltip) {
+      m_cursorTooltip = m_overrideTooltip;
+    }
   }
 
   m_overrideTooltip = {};
