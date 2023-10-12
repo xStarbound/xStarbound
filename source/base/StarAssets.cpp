@@ -149,6 +149,21 @@ StringList Assets::assetSources() const {
   return m_assetSources;
 }
 
+// FezzedOne: Added this missing method.
+StringList Assets::assetPatchSources(String const &path) const
+{
+  MutexLocker assetsLocker(m_assetsMutex);
+  if (auto descriptor = m_files.ptr(path)) {
+    StringList patchSources = {};
+    for (auto const &pair : descriptor->patchSources) {
+      patchSources.append(m_assetSourcePaths.getLeft(pair.second));
+    }
+    return patchSources;
+  } else {
+    return StringList{};
+  }
+}
+
 JsonObject Assets::assetSourceMetadata(String const& sourceName) const {
   MutexLocker assetsLocker(m_assetsMutex);
   return m_assetSourcePaths.getRight(sourceName)->metadata();

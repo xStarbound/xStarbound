@@ -14,6 +14,11 @@ namespace LuaBindings {
 
   namespace RootCallbacks {
     StringList assetsByExtension(Root* root, String const& extension);
+    Maybe<String> assetSource(Root *root, String const &path); // FezzedOne: Makes debugging modpacks much less painful.
+    Maybe<List<String>> assetPatchSources(Root *root, String const &path); // FezzedOne: Makes debugging modpacks much less painful.
+    List<String> assetSources(Root *root); // FezzedOne: Lists all loaded mods. Useful.
+    Json assetSourceMetadata(Root *root, String const &sourceName); // FezzedOne: Returns metadata for a mod.
+    Maybe<List<String>> assetSourcePaths(Root *root, String const &sourceName); // FezzedOne: Returns all asset files a given mod has.
     String assetData(Root* root, String const& path);
     Json assetJson(Root* root, String const& path);
     Json makeCurrentVersionedJson(Root* root, String const& identifier, Json const& content);
