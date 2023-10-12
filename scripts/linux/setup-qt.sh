@@ -3,7 +3,7 @@
 
 cd "`dirname \"$0\"`/../..";
 
-rm -rI build/ dist/;
+rm -rI build-qt/ dist/mod_uploader dist/json_tool;
 
 mkdir -p dist;
 cp scripts/linux/sbinit.config dist/;
