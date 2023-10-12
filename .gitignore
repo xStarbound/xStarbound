@@ -1,4 +1,5 @@
 build/
+build-qt/
 dist/
 enc_temp_folder/
 .cache/
