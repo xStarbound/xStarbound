@@ -27,8 +27,8 @@ if exist %QT_PREFIX_PATH% (
   -DSTAR_BUILD_QT_TOOLS=ON ^
   -DSTAR_ENABLE_STEAM_INTEGRATION=ON ^
   -DSTAR_ENABLE_DISCORD_INTEGRATION=ON ^
-  -DCMAKE_INCLUDE_PATH="..\lib\windows64\include" ^
-  -DCMAKE_LIBRARY_PATH="..\lib\windows64"
+  -DCMAKE_INCLUDE_PATH="..\lib\windows\include" ^
+  -DCMAKE_LIBRARY_PATH="..\lib\windows"
 
 ) else (
 
@@ -38,8 +38,8 @@ if exist %QT_PREFIX_PATH% (
   -DSTAR_USE_JEMALLOC=OFF ^
   -DSTAR_ENABLE_STEAM_INTEGRATION=ON ^
   -DSTAR_ENABLE_DISCORD_INTEGRATION=ON ^
-  -DCMAKE_INCLUDE_PATH="..\lib\windows64\include" ^
-  -DCMAKE_LIBRARY_PATH="..\lib\windows64"
+  -DCMAKE_INCLUDE_PATH="..\lib\windows\include" ^
+  -DCMAKE_LIBRARY_PATH="..\lib\windows"
 
 )
 
