@@ -303,7 +303,7 @@ void ModUploader::uploadToSteam() {
     }
 
     if (m_steamItemCreateResult->first.m_eResult != k_EResultOK) {
-      QMessageBox::critical(this, "Error", strf("Error creating new Steam UGC Item ({})", m_steamItemCreateResult->first.m_eResult).c_str());
+      QMessageBox::critical(this, "Error", strf("Error creating new Steam UGC Item (%s)", m_steamItemCreateResult->first.m_eResult).c_str());
       return;
     }
 
@@ -381,7 +381,7 @@ void ModUploader::uploadToSteam() {
   }
 
   if (m_steamItemSubmitResult->first.m_eResult != k_EResultOK) {
-    QMessageBox::critical(this, "Error", strf("Error submitting changes to the Steam UGC item ({})", m_steamItemSubmitResult->first.m_eResult).c_str());
+    QMessageBox::critical(this, "Error", strf("Error submitting changes to the Steam UGC item (%s)", m_steamItemSubmitResult->first.m_eResult).c_str());
     return;
   }
 }
