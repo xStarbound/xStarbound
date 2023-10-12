@@ -77,6 +77,7 @@ MainInterface::MainInterface(UniverseClientPtr client, WorldPainterPtr painter, 
   m_disableHud = false;
 
   m_cursorScreenPos = Vec2I();
+  m_overrideDefaultTooltip = false;
   m_state = Running;
 
   m_config = MainInterfaceConfig::loadFromAssets();
@@ -878,6 +879,11 @@ void MainInterface::queueJoinRequest(pair<String, RpcPromiseKeeper<P2PJoinReques
   m_queuedJoinRequests.push_back(request);
 }
 
+void MainInterface::setCursorText(Maybe<String> const& cursorText, Maybe<bool> overrideGameTooltips) {
+  m_overrideTooltip = cursorText;
+  m_overrideDefaultTooltip = overrideGameTooltips ? *overrideGameTooltips : false;
+}
+
 void MainInterface::queueItemPickupText(ItemPtr const& item) {
   auto descriptor = item->descriptor();
   if (m_itemDropMessages.contains(descriptor.singular())) {
@@ -1324,6 +1330,13 @@ void MainInterface::renderMainBar() {
       m_config->questLogImageOpen,
       m_config->questLogImageHoverOpen,
       assets->json("/interface.config:cursorTooltip.questsText").toString());
+
+  if (m_overrideTooltip) {
+    m_cursorTooltip = m_overrideDefaultTooltip ? m_overrideTooltip : (m_cursorTooltip || m_overrideTooltip);
+  }
+
+  m_overrideTooltip = {};
+  m_overrideDefaultTooltip = false;
 }
 
 void MainInterface::renderWindows() {
