@@ -7,11 +7,11 @@ BEGIN
     BLOCK "040904E4"
     BEGIN
       VALUE "CompanyName", "OpenStarbound and xSB contributors / Chucklefish LTD"
-      VALUE "FileDescription", "Starbound"
+      VALUE "FileDescription", "xSB xClient"
       VALUE "FileVersion", "0.9beta"
       VALUE "InternalName", "xclient"
       VALUE "LegalCopyright", "OpenStarbound and xSB contributors / Chucklefish LTD"
-      VALUE "OriginalFilename", "starbound.exe"
+      VALUE "OriginalFilename", "xclient.exe"
       VALUE "ProductName", "xSB::xClient"
       VALUE "ProductVersion", "2.0.0"
     END
