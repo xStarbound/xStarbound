@@ -502,28 +502,28 @@ ADD_SUBDIRECTORY (base)
 SET (STAR_PLATFORM_INCLUDES ${PROJECT_SOURCE_DIR}/platform)
 ADD_SUBDIRECTORY (platform)
 
-# Core game logic used by both server and client.
-SET (STAR_GAME_INCLUDES
-    ${PROJECT_SOURCE_DIR}/game
-    ${PROJECT_SOURCE_DIR}/game/interfaces
-    ${PROJECT_SOURCE_DIR}/game/items
-    ${PROJECT_SOURCE_DIR}/game/objects
-    ${PROJECT_SOURCE_DIR}/game/scripting
-    ${PROJECT_SOURCE_DIR}/game/terrain
-  )
-ADD_SUBDIRECTORY (game)
-
-# Googletest based tests # Don't need to compile these.
-# ENABLE_TESTING()
-# ADD_SUBDIRECTORY (test)
-
 IF (NOT QT_GUIS_ONLY)
 
-# Starbound stand-alone server.
-ADD_SUBDIRECTORY (server)
+  # Core game logic used by both server and client.
+  SET (STAR_GAME_INCLUDES
+      ${PROJECT_SOURCE_DIR}/game
+      ${PROJECT_SOURCE_DIR}/game/interfaces
+      ${PROJECT_SOURCE_DIR}/game/items
+      ${PROJECT_SOURCE_DIR}/game/objects
+      ${PROJECT_SOURCE_DIR}/game/scripting
+      ${PROJECT_SOURCE_DIR}/game/terrain
+    )
+  ADD_SUBDIRECTORY (game)
 
-# cmdline utilities
-ADD_SUBDIRECTORY (utility)
+  # Googletest based tests # Don't need to compile these.
+  # ENABLE_TESTING()
+  # ADD_SUBDIRECTORY (test)
+
+  # Starbound stand-alone server.
+  ADD_SUBDIRECTORY (server)
+
+  # cmdline utilities
+  ADD_SUBDIRECTORY (utility)
 ENDIF()
 
 IF (STAR_BUILD_GUI)
