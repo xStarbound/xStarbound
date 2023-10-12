@@ -80,6 +80,9 @@ public:
   // Return metadata for the given loaded asset source path
   JsonObject assetSourceMetadata(String const& sourcePath) const;
 
+  // FezzedOne: Return asset paths for the given loaded asset source path.
+  StringList assetSourcePaths(String const &sourcePath) const;
+
   // An imperfect sha256 digest of the contents of all combined asset sources.
   // Useful for detecting if there are mismatched assets between a client and
   // server or if assets sources have changed from a previous load.
