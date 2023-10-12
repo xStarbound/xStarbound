@@ -360,6 +360,8 @@ ClientEntityMode Player::clientEntityMode() const {
 void Player::init(World* world, EntityId entityId, EntityMode mode) {
   Entity::init(world, entityId, mode);
 
+  m_overrideMenuIndicator = false;
+  m_overrideChatIndicator = false;
 
   m_tools->init(this);
   m_movementController->init(world);
