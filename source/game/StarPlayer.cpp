@@ -1114,7 +1114,7 @@ void Player::update(float dt, uint64_t) {
             m_log->addScannedObject(*ir.objectName);
           }
 
-          addChatMessage(ir.message);
+          addChatMessageCallback(ir.message);
         }
       }
     }

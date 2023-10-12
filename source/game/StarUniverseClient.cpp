@@ -471,7 +471,7 @@ bool UniverseClient::flying() const {
 
 void UniverseClient::sendChat(String const& text, ChatSendMode sendMode) {
   if (!text.beginsWith("/"))
-    m_mainPlayer->addChatMessage(text);
+    m_mainPlayer->addChatMessageCallback(text);
   m_connection->pushSingle(make_shared<ChatSendPacket>(text, sendMode));
 }
 
