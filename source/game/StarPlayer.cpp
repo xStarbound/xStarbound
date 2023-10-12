@@ -2466,13 +2466,27 @@ void Player::addChatMessage(String const &message, Maybe<String> const &portrait
   m_chatMessageChanged = true;
   if (portrait) {
     if (bubbleConfig) {
-      m_pendingChatActions.append(PortraitChatAction{sourceEntityId.value(entityId()), portrait.get(), message, mouthPosition(), bubbleConfig.get()});
+      String chatPrefix = "";
+      try { chatPrefix = bubbleConfig.get().getString("chatPrefix", ""); }
+      catch (JsonException) { chatPrefix = ""; }
+      String chatSuffix = "";
+      try { chatSuffix = bubbleConfig.get().getString("chatSuffix", ""); }
+      catch (JsonException) { chatSuffix = ""; }
+      String modifiedMessage = chatPrefix + message + chatSuffix;
+      m_pendingChatActions.append(PortraitChatAction{sourceEntityId.value(entityId()), portrait.get(), modifiedMessage, mouthPosition(), *bubbleConfig});
     } else {
       m_pendingChatActions.append(PortraitChatAction{sourceEntityId.value(entityId()), portrait.get(), message, mouthPosition()});
     }
   } else {
     if (bubbleConfig) {
-      m_pendingChatActions.append(SayChatAction{sourceEntityId.value(entityId()), message, mouthPosition(), bubbleConfig.get()});
+      String chatPrefix = "";
+      try { chatPrefix = bubbleConfig.get().getString("chatPrefix", ""); }
+      catch (JsonException) { chatPrefix = ""; }
+      String chatSuffix = "";
+      try { chatSuffix = bubbleConfig.get().getString("chatSuffix", ""); }
+      catch (JsonException) { chatSuffix = ""; }
+      String modifiedMessage = chatPrefix + message + chatSuffix;
+      m_pendingChatActions.append(SayChatAction{sourceEntityId.value(entityId()), modifiedMessage, mouthPosition(), *bubbleConfig});
     } else {
       m_pendingChatActions.append(SayChatAction{sourceEntityId.value(entityId()), message, mouthPosition()});
     }
@@ -2492,10 +2506,18 @@ void Player::addChatMessageCallback(String const &message) {
     chatPortrait = {};
   }
 
+  String chatPrefix = "";
+  try { chatPrefix = m_chatBubbleConfig.getString("chatPrefix", ""); }
+  catch (JsonException) { chatPrefix = ""; }
+  String chatSuffix = "";
+  try { chatSuffix = m_chatBubbleConfig.getString("chatSuffix", ""); }
+  catch (JsonException) { chatSuffix = ""; }
+  String modifiedMessage = chatPrefix + message + chatSuffix;
+
   if (chatPortrait) {
-    m_pendingChatActions.append(PortraitChatAction{entityId(), chatPortrait.get(), message, mouthPosition(), m_chatBubbleConfig});
+    m_pendingChatActions.append(PortraitChatAction{entityId(), chatPortrait.get(), modifiedMessage, mouthPosition(), m_chatBubbleConfig});
   } else {
-    m_pendingChatActions.append(SayChatAction{entityId(), message, mouthPosition(), m_chatBubbleConfig});
+    m_pendingChatActions.append(SayChatAction{entityId(), modifiedMessage, mouthPosition(), m_chatBubbleConfig});
   }
 }
 
