@@ -3,7 +3,7 @@ cd ..\..
 
 mkdir dist
 del dist\*.dll
-copy lib\windows64\*.dll dist\
+copy lib\windows\*.dll dist\
 copy scripts\windows\sbinit.config dist\
 
 mkdir build
