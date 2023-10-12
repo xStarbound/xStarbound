@@ -8,8 +8,8 @@ rm -rI build/ dist/;
 mkdir -p dist;
 cp scripts/linux/sbinit.config dist/;
 
-mkdir -p build;
-cd build;
+mkdir -p build-qt;
+cd build-qt;
 
 if [ -d /usr/lib/ccache ]; then
   export PATH=/usr/lib/ccache/:$PATH;
