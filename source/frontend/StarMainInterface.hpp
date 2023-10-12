@@ -111,6 +111,8 @@ public:
   void queueItemPickupText(ItemPtr const& item);
   void queueJoinRequest(pair<String, RpcPromiseKeeper<P2PJoinRequestReply>> request);
 
+  void setCursorText(Maybe<String> const& cursorText, Maybe<bool> overrideGameTooltips);
+
   bool fixedCamera() const;
 
   void warpToOrbitedWorld(bool deploy = false);
@@ -195,6 +197,9 @@ private:
   Vec2I m_cursorScreenPos;
   ItemSlotWidgetPtr m_cursorItem;
   Maybe<String> m_cursorTooltip;
+  // FezzedOne: Add tooltip stuff.
+  Maybe<String> m_overrideTooltip;
+  bool m_overrideDefaultTooltip;
 
   LabelWidgetPtr m_planetText;
   GameTimer m_planetNameTimer;
