@@ -169,6 +169,11 @@ JsonObject Assets::assetSourceMetadata(String const& sourceName) const {
   return m_assetSourcePaths.getRight(sourceName)->metadata();
 }
 
+StringList Assets::assetSourcePaths(String const &sourceName) const {
+  MutexLocker assetsLocker(m_assetsMutex);
+  return m_assetSourcePaths.getRight(sourceName)->assetPaths();
+}
+
 ByteArray Assets::digest() const {
   MutexLocker assetsLocker(m_assetsMutex);
   return m_digest;
