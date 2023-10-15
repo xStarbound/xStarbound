@@ -25,6 +25,6 @@ Changes:
   - Additionally, objects can be placed under non-solid foreground tiles (Kae).
 - Some minor polish to UI (Kae).
 
-## Discord links
+## Discord
  
 For support, suggestions or just plain old chit-chat, check out the [xSB-2 Discord server](https://discord.gg/GJ5RTkyFCX).
