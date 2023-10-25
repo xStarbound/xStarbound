@@ -40,3 +40,7 @@ _deps
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+# macOS stuff
+macos/*
+.DS_Store
