@@ -68,7 +68,7 @@ public:
   typedef ConnectionId SpeakerId;
 
 #ifdef STAR_COMPILER_CLANG
-  struct Speaker { // FezzedOne: Apparently *doesn't* fix the Clang error.
+  struct Speaker { // FezzedOne: Leaving this here for now.
 #else
   class Speaker {
 #endif
