@@ -269,7 +269,9 @@ ELSEIF (STAR_COMPILER_CLANG)
 
 
   IF (STAR_SYSTEM_MACOS)
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    # Should hopefully fix a linker error - there's no need to try to link against iOS libraries in a goddamn desktop game, SDL!
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -undefined suppress")
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -undefined suppress")
     SET (CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++17")
     SET (CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
   ELSEIF ()
