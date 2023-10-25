@@ -228,7 +228,7 @@ ENDIF ()
 
 IF (STAR_COMPILER_GNU)
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -rdynamic -Wall -Wextra -Wno-unused -Wno-unqualified-std-cast-call -Wno-implicit-fallthrough -no-pie")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -rdynamic -Wall -Wextra -Wno-unused -Wno-implicit-fallthrough -no-pie")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -rdynamic -Wall -Wextra -Wno-unused -Wno-unqualified-std-cast-call -Wno-implicit-fallthrough -no-pie")
 
   IF (STAR_SYSTEM_FAMILY_WINDOWS)
     SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mthreads")
@@ -264,8 +264,8 @@ IF (STAR_COMPILER_GNU)
 
 ELSEIF (STAR_COMPILER_CLANG)
   # Stop Clang from bitching about all those thousands of `move` calls without an `std::` (or `Star::`, since there's an alias in that namespace).
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-export_dynamic -Wall -Wextra -Wuninitialized -Wno-unqualified-std-cast-call -Wno-parentheses-equality -Wno-deprecated-declarations") 
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wl,-export_dynamic -Wall -Wextra -Wno-unqualified-std-cast-call -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-export_dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized  -Wno-parentheses-equality -Wno-deprecated-declarations") 
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wl,-export_dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
 
 
   IF (STAR_SYSTEM_MACOS)
