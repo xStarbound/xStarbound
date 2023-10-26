@@ -72,6 +72,7 @@ public:
   DirectivesGroup const& parentDirectives() const;
   Vec2F parentOffset() const;
   bool toolUsageSuppressed() const;
+  void setPlayerToolUsageSuppressed(bool suppressed);
 
   bool parentHidden() const;
 

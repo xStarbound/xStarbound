@@ -26,7 +26,7 @@ ArmorWearer::ArmorWearer() : m_lastNude(true) {
   addNetElement(&m_legsCosmeticItemDataNetState);
   addNetElement(&m_backCosmeticItemDataNetState);
 
-  m_headNeedsSync = m_chestNeedsSync = m_legsNeedsSync = m_backNeedsSync = true;
+  reset();
 }
 
 void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude) {
@@ -187,6 +187,19 @@ List<PersistentStatusEffect> ArmorWearer::statusEffects() const {
   addStatusFromItem(m_backItem);
 
   return statusEffects;
+}
+
+void ArmorWearer::reset() {
+  // FezzedOne: {NOTE] Kae's fix for some visual issues with armour.
+  m_headNeedsSync = m_chestNeedsSync = m_legsNeedsSync = m_backNeedsSync = true;
+  m_headItem .reset();
+  m_chestItem.reset();
+  m_legsItem .reset();
+  m_backItem .reset();
+  m_headCosmeticItem .reset();
+  m_chestCosmeticItem.reset();
+  m_legsCosmeticItem .reset();
+  m_backCosmeticItem .reset();
 }
 
 void ArmorWearer::setHeadItem(HeadArmorPtr headItem) {

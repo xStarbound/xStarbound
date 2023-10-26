@@ -18,8 +18,21 @@ namespace Star {
 LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallback(   "humanoidIdentity", [player]()         { return player->humanoid()->identity().toJson();  });
-  callbacks.registerCallback("setHumanoidIdentity", [player](Json const& id) { player->setIdentity(HumanoidIdentity(id)); });
+  // FezzedOne: `"save"` works identically to `"getPlayerJson"`, and is here for OpenSB compatibility.
+  callbacks.registerCallback("save", [player]() -> Json { return player->diskStore(); });
+  callbacks.registerCallback("load", [player](Json const& data) {
+    auto saved = player->diskStore();
+    try { player->diskLoad(data); }
+    catch (StarException const&) {
+      player->diskLoad(saved);
+      throw;
+    }
+  });
+
+  // FezzedOne: Make sure these callbacks work identically to `"getIdentity"`/`"identity"` and `"setIdentity"`, respectively.
+  // Don't need player file corruption. They're here for OpenSB compatibility, of course.
+  callbacks.registerCallback(   "humanoidIdentity", [player]()         { return player->getIdentity();  });
+  callbacks.registerCallback("setHumanoidIdentity", [player](Json const& id) {  player->setIdentity(id); });
 
   callbacks.registerCallback(   "bodyDirectives", [player]()   { return player->identity().bodyDirectives;      });
   callbacks.registerCallback("setBodyDirectives", [player](String const& str) { player->setBodyDirectives(str); });
@@ -558,15 +571,22 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
 
   callbacks.registerCallback("dropEverything", [player]() { player->dropEverything(); });
 
-  callbacks.registerCallback("emote", [player](String const &emote, Maybe<bool> gentleRequest) {
+  // FezzedOne: Minor compatibility break with xSB-2 v2.0.0 and v2.0.0a to ensure OpenSB compability.
+  callbacks.registerCallback("emote", [player](String const &emote, Maybe<float> cooldown, Maybe<bool> gentleRequest) {
       bool isGentleRequest = gentleRequest.value(false);
       if (isGentleRequest) {
-        player->requestEmote(emote);
+        player->requestEmote(emote, cooldown);
       } else {
         HumanoidEmote emoteState = HumanoidEmoteNames.valueLeft(emote, HumanoidEmote::Idle);
-        player->addEmote(emoteState);
+        player->addEmote(emoteState, cooldown);
       }
     });
+
+  // Kae: New OpenSB callback.
+  callbacks.registerCallback("currentEmote", [player]() {
+    auto currentEmote = player->currentEmote();
+    return luaTupleReturn(HumanoidEmoteNames.getRight(currentEmote.first), currentEmote.second);
+  });
 
   callbacks.registerCallback("addEffectEmitters", [player](Json const &effectEmitters) {
       bool isValid = true;
@@ -662,6 +682,50 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
   callbacks.registerCallback("aimPosition", [player]() -> Vec2F
                              { return player->aimPosition(); });
 
+  // Kae: OpenSB callbacks.
+  callbacks.registerCallback("actionBarGroup", [player]() {
+    return luaTupleReturn(player->inventory()->customBarGroup() + 1, player->inventory()->customBarGroups());
+  });
+
+  callbacks.registerCallback("setActionBarGroup", [player](int group) {
+    player->inventory()->setCustomBarGroup((group - 1) % (unsigned)player->inventory()->customBarGroups());
+  });
+
+  callbacks.registerCallback("selectedActionBarSlot", [player](LuaEngine& engine) -> Maybe<LuaValue> {
+    if (auto barLocation = player->inventory()->selectedActionBarLocation()) {
+      if (auto index = barLocation.ptr<CustomBarIndex>())
+        return engine.luaFrom<CustomBarIndex>(*index + 1);
+      else
+        return engine.luaFrom<String>(EssentialItemNames.getRight(barLocation.get<EssentialItem>()));
+    }
+    else {
+      return {};
+    }
+  });
+
+  callbacks.registerCallback("setSelectedActionBarSlot", [player](MVariant<int, String> const& slot) {
+    auto inventory = player->inventory();
+    if (!slot)
+      inventory->selectActionBarLocation(SelectedActionBarLocation());
+    else if (auto index = slot.ptr<int>()) { 
+      CustomBarIndex wrapped = (*index - 1) % (unsigned)inventory->customBarIndexes();
+      inventory->selectActionBarLocation(SelectedActionBarLocation(wrapped));
+    } else {
+      EssentialItem const& item = EssentialItemNames.getLeft(slot.get<String>());
+      inventory->selectActionBarLocation(SelectedActionBarLocation(item));
+    }
+  });
+  // [end]
+
+  // FezzedOne: Added `"say"`, functionally identical to `"addChatBubble"`, for OpenSB compability.
+  // Can be invoked with only a `bubbleMessage`, emulating OpenSB behaviour.
+  callbacks.registerCallback("say", [player](String const &bubbleMessage, Maybe<String> const &portrait, Maybe<EntityId> const &sourceEntityId, Maybe<Json> const &bubbleConfig) {
+      player->addChatMessage(bubbleMessage, portrait, sourceEntityId, bubbleConfig);
+    });
+
+  // FezzedOne: {NOTE] The OpenSB version needs to be called every tick, and even then, may not work anyway.
+  // The xSB-2 version here "sticks" and is saved to the player file. In any case, calling this version
+  // every tick should not cause issues - just make sure to reset it on `uninit`.
   callbacks.registerCallback("setDamageTeam", [player](Maybe<String> teamType, Maybe<uint16_t> teamNumber) {
       TeamType checkedTeamType = TeamType::Friendly;
       if (teamType)
@@ -687,6 +751,14 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
 
   callbacks.registerCallback("overrideCameraPosition", [player](Maybe<Vec2F> newCameraPosition)
                              { player->overrideCameraPosition(newCameraPosition); });
+
+  // FezzedOne: Addresses the inability of status effects to suppress tool usage.
+  // Note: Tool usage is suppressed if *either* this callback or `tech.setToolUsageSuppressed` is called
+  // with `true`, regardless of what's passed to the other callback. Make sure to clear suppression
+  // by calling this with `false`, `nil` or no argument on `uninit` in status effects, since it
+  // otherwise persists until the next `Player::init` call.
+  callbacks.registerCallback("setToolUsageSuppressed", [player](Maybe<bool> suppressed)
+                             { player->setToolUsageSuppressed(suppressed); });
 
   return callbacks;
 }

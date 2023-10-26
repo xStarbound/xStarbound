@@ -487,6 +487,14 @@ void TechController::updateAnimators(float dt) {
   }
 }
 
+// Need this function to make sure tool usage suppression is correctly synced over the network.
+void TechController::setPlayerToolUsageSuppressed(bool suppressed) {
+  bool anySuppressed = false;
+  for (auto& module : m_techModules)
+    anySuppressed = anySuppressed || module.toolUsageSuppressed || suppressed;
+  m_toolUsageSuppressed.set(anySuppressed);
+}
+
 LuaCallbacks TechController::makeTechCallbacks(TechModule& techModule) {
   LuaCallbacks callbacks;
 
@@ -532,8 +540,10 @@ LuaCallbacks TechController::makeTechCallbacks(TechModule& techModule) {
   callbacks.registerCallback("setToolUsageSuppressed", [this, &techModule](bool suppressed) {
       techModule.toolUsageSuppressed = suppressed;
       bool anySuppressed = false;
+      // No need to check since only players have a tech controller.
+      bool playerToolUsageSuppressed = as<Player>(m_parentEntity)->toolUsageSuppressed();
       for (auto& module : m_techModules)
-        anySuppressed = anySuppressed || module.toolUsageSuppressed;
+        anySuppressed = anySuppressed || module.toolUsageSuppressed || playerToolUsageSuppressed;
       m_toolUsageSuppressed.set(anySuppressed);
     });
 

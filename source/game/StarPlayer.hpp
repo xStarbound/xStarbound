@@ -272,6 +272,7 @@ public:
 
   void playEmote(HumanoidEmote emote) override;
 
+  bool toolUsageSuppressed() const;
   bool canUseTool() const;
 
   // "Fires" whatever is in the primary (left) item slot, or the primary fire
@@ -404,7 +405,8 @@ public:
   void addChatMessageCallback(String const &message);
   void setChatBubbleConfig(Maybe<Json> const &bubbleConfig);
   Json getChatBubbleConfig();
-  void addEmote(HumanoidEmote const& emote);
+  void addEmote(HumanoidEmote const& emote, Maybe<float> emoteCooldown = {});
+  pair<HumanoidEmote, float> currentEmote() const;
 
   List<ChatAction> pullPendingChatActions() override;
 
@@ -418,6 +420,7 @@ public:
   void interact(InteractAction const& action) override;
   void addEffectEmitters(StringSet const& emitters) override;
   void requestEmote(String const& emote) override;
+  void requestEmote(String const& emote, Maybe<float> cooldownTime);
 
   ActorMovementController* movementController() override;
   StatusController* statusController() override;
