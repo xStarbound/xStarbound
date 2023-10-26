@@ -497,6 +497,8 @@ public:
   void setDamageTeam(EntityDamageTeam newTeam);
   void setDamageTeam(); // This overload exists so that damage team overrides can be cleared.
 
+  void setToolUsageSuppressed(Maybe<bool> suppressed);
+
   void setOverrideState(Maybe<Humanoid::State> overrideState);
 
   Maybe<pair<Json, RpcPromiseKeeper<Json>>> pullPendingConfirmation();
@@ -619,6 +621,8 @@ private:
   Maybe<Humanoid::State> m_overrideState; // FezzedOne: Stores the player's overridden humanoid state.
   State m_state;
   HumanoidEmote m_emoteState;
+
+  bool m_toolUsageSuppressed;
 
   float m_footstepTimer;
   float m_teleportTimer;
