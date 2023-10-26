@@ -540,8 +540,9 @@ LuaCallbacks TechController::makeTechCallbacks(TechModule& techModule) {
   callbacks.registerCallback("setToolUsageSuppressed", [this, &techModule](bool suppressed) {
       techModule.toolUsageSuppressed = suppressed;
       bool anySuppressed = false;
-      // No need to check since only players have a tech controller.
-      bool playerToolUsageSuppressed = as<Player>(m_parentEntity)->toolUsageSuppressed();
+      bool playerToolUsageSuppressed = false;
+      if (auto parentPlayer = as<Player>(m_parentEntity))
+        playerToolUsageSuppressed = parentPlayer->toolUsageSuppressed();
       for (auto& module : m_techModules)
         anySuppressed = anySuppressed || module.toolUsageSuppressed || playerToolUsageSuppressed;
       m_toolUsageSuppressed.set(anySuppressed);
