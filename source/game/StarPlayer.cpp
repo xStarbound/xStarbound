@@ -207,6 +207,9 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
   m_damageTeamOverridden = false;
   m_chatBubbleConfig = JsonObject{};
 
+    // FezzedOne: For a `player` callback that suppresses tool usage.
+  m_toolUsageSuppressed = false;
+
   m_netGroup.setNeedsLoadCallback(bind(&Player::getNetStates, this, _1));
   m_netGroup.setNeedsStoreCallback(bind(&Player::setNetStates, this));
 }
@@ -360,6 +363,8 @@ ClientEntityMode Player::clientEntityMode() const {
 void Player::init(World* world, EntityId entityId, EntityMode mode) {
   Entity::init(world, entityId, mode);
 
+  m_toolUsageSuppressed = false;
+
   m_overrideMenuIndicator = false;
   m_overrideChatIndicator = false;
   m_overrideState = {};
@@ -373,6 +378,7 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
 
   if (mode == EntityMode::Master) {
     auto speciesDefinition = Root::singleton().speciesDatabase()->species(m_identity.species);
+    m_techController->setPlayerToolUsageSuppressed(false);
     m_movementController->setRotation(0);
     m_statusController->setStatusProperty("ouchNoise", speciesDefinition->ouchNoise(m_identity.gender));
     m_emoteState = HumanoidEmote::Idle;
@@ -1589,11 +1595,16 @@ void Player::playEmote(HumanoidEmote emote) {
   addEmote(emote);
 }
 
+bool Player::toolUsageSuppressed() const {
+  return m_toolUsageSuppressed;
+}
+
 bool Player::canUseTool() const {
-  bool canUse = !isDead() && !isTeleporting() && !m_techController->toolUsageSuppressed();
+  // FezzedOne: `TechController::toolUsageSuppressed` "reciprocally" calls `Player::toolUsageSuppressed` above.
+  bool canUse = !isDead() && !isTeleporting() && ((!m_techController->toolUsageSuppressed()) || m_ignoreAllTechOverrides);
   if (canUse) {
     if (auto loungeAnchor = as<LoungeAnchor>(m_movementController->entityAnchor()))
-      if (loungeAnchor->suppressTools.value(loungeAnchor->controllable))
+      if (loungeAnchor->suppressTools.value(loungeAnchor->controllable) && !m_ignoreAllTechOverrides)
         return false;
   }
   return canUse;
@@ -2543,10 +2554,14 @@ Json Player::getChatBubbleConfig() {
   return m_chatBubbleConfig;
 }
 
-void Player::addEmote(HumanoidEmote const& emote) {
+void Player::addEmote(HumanoidEmote const& emote, Maybe<float> emoteCooldown) {
   starAssert(!isSlave());
   m_emoteState = emote;
-  m_emoteCooldownTimer = m_emoteCooldown;
+  m_emoteCooldownTimer = emoteCooldown.value(m_emoteCooldown);
+}
+
+pair<HumanoidEmote, float> Player::currentEmote() const {
+  return make_pair(m_emoteState, m_emoteCooldownTimer);
 }
 
 List<ChatAction> Player::pullPendingChatActions() {
@@ -2594,6 +2609,13 @@ void Player::requestEmote(String const& emote) {
   if (state != HumanoidEmote::Idle
       && (m_emoteState == state || m_emoteState == HumanoidEmote::Idle || m_emoteState == HumanoidEmote::Blink))
     addEmote(state);
+}
+
+void Player::requestEmote(String const& emote, Maybe<float> cooldownTime) {
+  auto state = HumanoidEmoteNames.getLeft(emote);
+  if (state != HumanoidEmote::Idle
+      && (m_emoteState == state || m_emoteState == HumanoidEmote::Idle || m_emoteState == HumanoidEmote::Blink))
+    addEmote(state, cooldownTime);
 }
 
 ActorMovementController* Player::movementController() {
@@ -3024,6 +3046,16 @@ void Player::setDamageTeam()
   m_damageTeamOverridden = false;
 }
 
+// FezzedOne: Sets whether player tool usage is suppressed. Resets on `Player::init`.
+void Player::setToolUsageSuppressed(Maybe<bool> suppressed) {
+  if (suppressed)
+    m_toolUsageSuppressed = *suppressed;
+  else
+    m_toolUsageSuppressed = false;
+  // Make sure the tech controller's net state is properly synced.
+  m_techController->setPlayerToolUsageSuppressed(m_toolUsageSuppressed);
+}
+
 // FezzedOne: Sets the player's humanoid override state. Resets every tick.
 void Player::setOverrideState(Maybe<Humanoid::State> overrideState)
 {
@@ -3147,7 +3179,7 @@ void Player::setSecretProperty(String const& name, Json const& value) {
     ds.write(value);
     auto& data = ds.data();
     m_effectsAnimator->setGlobalTag(secretProprefix + name, String(data.ptr(), data.size()));
-  } 
+  }
   else
     m_effectsAnimator->removeGlobalTag(secretProprefix + name);
 }
