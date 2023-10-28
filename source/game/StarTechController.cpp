@@ -492,6 +492,7 @@ void TechController::setPlayerToolUsageSuppressed(bool suppressed) {
   bool anySuppressed = false;
   for (auto& module : m_techModules)
     anySuppressed = anySuppressed || module.toolUsageSuppressed || suppressed;
+  anySuppressed = anySuppressed || suppressed;
   m_toolUsageSuppressed.set(anySuppressed);
 }
 
