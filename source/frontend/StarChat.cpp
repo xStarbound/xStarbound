@@ -189,9 +189,12 @@ void Chat::addMessages(List<ChatReceivedMessage> const& messages, bool showPane)
     guiContext.setFontSize(m_fontSize);
     StringList lines;
     if (message.fromNick != "" && message.portrait == "")
-      lines = guiContext.wrapInterfaceText(strf("<{}> {}", message.fromNick, message.text), wrapWidth);
+      // FezzedOne: Since the chat renderer already wraps text, let's try *not* wrapping text twice.
+      lines = StringList{strf("<{}^reset;> {}", message.fromNick, message.text)};
+      // lines = guiContext.wrapInterfaceText(strf("<{}^reset;> {}", message.fromNick, message.text), wrapWidth);
     else
-      lines = guiContext.wrapInterfaceText(message.text, wrapWidth);
+      lines = StringList{message.text};
+      // lines = guiContext.wrapInterfaceText(message.text, wrapWidth);
 
     for (size_t i = 0; i < lines.size(); ++i) {
       m_receivedMessages.prepend({
