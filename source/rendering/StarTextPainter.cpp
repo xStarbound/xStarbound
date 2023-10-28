@@ -151,7 +151,6 @@ bool TextPainter::processWrapText(StringView text, unsigned* wrapWidth, WrapText
     if (Text::isEscapeCode(character))
       escIt = it;
     ++i;
-   
 
     if (escIt != end) {
       if (character == Text::EndEsc) {
@@ -216,7 +215,6 @@ bool TextPainter::processWrapText(StringView text, unsigned* wrapWidth, WrapText
 
             lineStart += lineCharSize - 1;
             lineStartIt = it; // include that character on the next line.
-            
 
             lineCharSize = 1;           // next line has that character in
             linePixelWidth = charWidth; // and is as wide as that character
