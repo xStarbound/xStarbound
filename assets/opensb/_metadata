@@ -1,7 +1,0 @@
-{
-  "author" : "Not Chucklefish",
-  "name" : "opensb_base",
-  "priority" : -9999,
-  "friendlyName" : "OpenStarbound Assets",
-  "requires" : ["base"]
-}
