@@ -97,12 +97,14 @@ int TextPainter::stringWidth(StringView s) {
 
   Text::CommandsCallback commandsCallback = [&](StringView commands) {
     commands.forEachSplitView(",", [&](StringView command, size_t, size_t) {
-      if (command == "reset")
+      if (command == "reset" || command == "^reset") // FezzedOne: Fixed text wrapping bug with `"^font="`.
         m_fontTextureGroup.switchFont(font = setFont);
-      else if (command == "set")
+      else if (command == "set" || command == "^set")
         setFont = font;
       else if (command.beginsWith("font="))
         m_fontTextureGroup.switchFont(font = command.substr(5));
+      else if (command.beginsWith("^font="))
+        m_fontTextureGroup.switchFont(font = command.substr(6));
     });
     return true;
   };
@@ -156,12 +158,14 @@ bool TextPainter::processWrapText(StringView text, unsigned* wrapWidth, WrapText
       if (character == Text::EndEsc) {
         StringView inner = slice(escIt, it);
         inner.forEachSplitView(",", [&](StringView command, size_t, size_t) {
-          if (command == "reset")
+          if (command == "reset" || command == "^reset") // FezzedOne: Fixed text wrapping bug with `"^font="`.
             m_fontTextureGroup.switchFont(font = setFont);
-          else if (command == "set")
+          else if (command == "set" || command == "^set")
             setFont = font;
           else if (command.beginsWith("font="))
             m_fontTextureGroup.switchFont(font = command.substr(5));
+          else if (command.beginsWith("^font="))
+            m_fontTextureGroup.switchFont(font = command.substr(6));
         });
         escIt = end;
       }
