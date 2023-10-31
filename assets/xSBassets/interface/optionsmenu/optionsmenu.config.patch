@@ -8,7 +8,7 @@
     },
     "showVoiceSettings" : {
       "type" : "button",
-      "position" : [30, 169],
+      "position" : [82, 169],
       "caption" : "Settings",
       "base" : "/interface/optionsmenu/duocontrolsbutton.png",
       "hover" : "/interface/optionsmenu/duocontrolsbuttonhover.png"
@@ -16,8 +16,8 @@
     "showVoicePlayers" : {
       "type" : "button",
       "disabled" : true,
-      "position" : [133, 169],
-      "caption" : "^#a0a000,font=iosevka-semiboldoblique;TODO^#aa7;:^reset; Players",
+      "position" : [82, 169],
+      "caption" : "Players",
       "base" : "/interface/optionsmenu/duocontrolsbutton.png",
       "hover" : "/interface/optionsmenu/duocontrolsbuttonhover.png"
     },
