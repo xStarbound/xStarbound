@@ -43,7 +43,7 @@ void TilePainter::adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> const
   if (lightMultiplier) {
     applyLightMultiplier = true;
     for (size_t i = 0; i <= 2; i++) {
-      int mulVal = (int)((*lightMultiplier)[i]);
+      int mulVal = (int)((*lightMultiplier)[i] * 255.0f);
       adjustedLightMultiplier[i] = std::max(mulVal, 0);
     }
   }
@@ -57,7 +57,7 @@ void TilePainter::adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> const
           auto lightValue = renderData.lightMap.get(lightIndex).vec3();
 
           for (size_t i = 0; i <= 2; i++) {
-            int mulVal = adjustedLightMultiplier[i] * ((int)(lightValue[i]));
+            int mulVal = adjustedLightMultiplier[i] * ((int)(lightValue[i])) / 255;
             mulVal = std::min(mulVal, 255);
             lightValue[i] = (uint8_t)mulVal;
           }
@@ -75,7 +75,7 @@ void TilePainter::adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> const
 
         if (applyLightMultiplier) {
           for (size_t i = 0; i <= 2; i++) {
-            int mulVal = adjustedLightMultiplier[i] * ((int)(lightValue[i]));
+            int mulVal = adjustedLightMultiplier[i] * ((int)(lightValue[i])) / 255;
             mulVal = std::min(mulVal, 255);
             lightValue[i] = (uint8_t)mulVal;
           }
