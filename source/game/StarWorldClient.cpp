@@ -92,6 +92,7 @@ WorldClient::WorldClient(PlayerPtr mainPlayer) {
   m_stopLightingThread = false;
   m_lightingThread = Thread::invoke("WorldClient::lightingMain", mem_fn(&WorldClient::lightingMain), this);
   m_renderData = nullptr;
+  m_globalLightingMultiplier = {};
 
   clearWorld();
 }
@@ -742,6 +743,14 @@ bool WorldClient::toggleCollisionDebug() {
   return m_collisionDebug;
 }
 
+void WorldClient::setLightMultiplier(Maybe<Vec3F> const& newMultiplier) {
+  m_globalLightingMultiplier = move(newMultiplier);
+}
+
+Maybe<Vec3F> WorldClient::getLightMultiplier() const {
+  return m_globalLightingMultiplier;
+}
+
 void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
   auto& root = Root::singleton();
   auto materialDatabase = root.materialDatabase();
@@ -1080,6 +1089,7 @@ void WorldClient::update(float dt) {
   auto assets = Root::singleton().assets();
 
   m_lightingCalculator.setMonochrome(Root::singleton().configuration()->get("monochromeLighting").toBool());
+  m_globalLightingMultiplier = {};
 
   float expireTime = min(float(m_latency + 800), 2000.f);
   auto now = Time::monotonicMilliseconds();

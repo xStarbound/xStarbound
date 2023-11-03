@@ -127,10 +127,13 @@ public:
   bool toggleAsyncLighting();
   // Spatial log generated collision geometry.
   bool toggleCollisionDebug();
+  // Get and set the global lightmap multiplier.
+  void setLightMultiplier(Maybe<Vec3F> const& newMultiplier);
+  Maybe<Vec3F> getLightMultiplier() const;
 
   void handleIncomingPackets(List<PacketPtr> const& packets);
   List<PacketPtr> getOutgoingPackets();
-  
+
   // Sets default callbacks in the LuaRoot.
   void setLuaCallbacks(String const& groupName, LuaCallbacks const& callbacks);
 
@@ -272,6 +275,7 @@ private:
   ConditionVariable m_lightingCond;
   atomic<WorldRenderData*> m_renderData;
   atomic<bool> m_stopLightingThread;
+  Maybe<Vec3F> m_globalLightingMultiplier;
 
   SkyPtr m_sky;
 

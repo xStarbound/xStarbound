@@ -71,6 +71,7 @@ namespace LuaBindings {
 
   namespace ClientWorldCallbacks {
     RectI clientWindow(WorldClient* world);
+    void setLightMultiplier(WorldClient* world, Maybe<Vec3F> const& newMultiplier);
   }
 
   namespace ServerWorldCallbacks {

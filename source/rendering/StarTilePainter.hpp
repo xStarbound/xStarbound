@@ -30,8 +30,8 @@ public:
 
   TilePainter(RendererPtr renderer);
 
-  // Adjusts lighting levels for liquids.
-  void adjustLighting(WorldRenderData& renderData) const;
+  // Adjusts lighting levels for liquids and/or any global lightmap value multiplier.
+  void adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> const& lightMultiplier = {}) const;
 
   // Sets up chunk data for every chunk that intersects the rendering region
   // and prepares it for rendering.  Do not call cleanup in between calling
