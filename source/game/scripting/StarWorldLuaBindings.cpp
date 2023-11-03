@@ -361,6 +361,7 @@ namespace LuaBindings {
     
     if (auto clientWorld = as<WorldClient>(world)) {
       callbacks.registerCallbackWithSignature<RectI>("clientWindow", bind(ClientWorldCallbacks::clientWindow, clientWorld));
+      callbacks.registerCallbackWithSignature<void, Maybe<Vec3F>>("setLightMultiplier", bind(ClientWorldCallbacks::setLightMultiplier, clientWorld, _1));
       callbacks.registerCallback("players", [clientWorld]() {
         List<EntityId> playerIds;
 
@@ -1083,8 +1084,13 @@ namespace LuaBindings {
   }
 
   RectI ClientWorldCallbacks::clientWindow(WorldClient* world) {
-    return world->clientWindow();	
+    return world->clientWindow();
   }
+
+  void ClientWorldCallbacks::setLightMultiplier(WorldClient *world, Maybe<Vec3F> const& newMultiplier) {
+    world->setLightMultiplier(newMultiplier);
+  }
+
   bool ServerWorldCallbacks::breakObject(WorldServer* world, EntityId arg1, bool arg2) {
     if (auto entity = world->get<Object>(arg1)) {
       bool smash = arg2;

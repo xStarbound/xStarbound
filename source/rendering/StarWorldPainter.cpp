@@ -49,7 +49,7 @@ void WorldPainter::update(float dt) {
   m_environmentPainter->update(dt);
 }
 
-void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWaiter) {
+void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWaiter, Maybe<Vec3F> const& lightMultiplier) {
   m_camera.setScreenSize(m_renderer->screenSize());
   m_camera.setTargetPixelRatio(Root::singleton().configuration()->get("zoomLevel").toFloat());
 
@@ -76,7 +76,7 @@ void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWai
   if (lightWaiter) {
     auto start = Time::monotonicMicroseconds();
     lightWaiter();
-    LogMap::set("client_render_world_async_light_wait", strf(u8"{:05d}\u00b5s", Time::monotonicMicroseconds() - start));
+    LogMap::set("async_light_wait", strf(u8"{:05d}\u00b5s", Time::monotonicMicroseconds() - start));
   }
 
   if (renderData.isFullbright) {
@@ -84,7 +84,7 @@ void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWai
     m_renderer->setEffectTexture("tileLightMap", Image::filled(Vec2U(1, 1), { 0, 0, 0, 0 }, PixelFormat::RGBA32));
     m_renderer->setEffectParameter("lightMapMultiplier", 1.0f);
   } else {
-    adjustLighting(renderData);
+    adjustLighting(renderData, lightMultiplier);
     m_renderer->setEffectParameter("lightMapMultiplier", m_assets->json("/rendering.config:lightMapMultiplier").toFloat());
     m_renderer->setEffectParameter("lightMapScale", Vec2F::filled(TilePixels * m_camera.pixelRatio()));
     m_renderer->setEffectParameter("lightMapOffset", m_camera.worldToScreen(Vec2F(renderData.lightMinPosition)));
@@ -162,8 +162,8 @@ void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWai
   m_tilePainter->cleanup();
 }
 
-void WorldPainter::adjustLighting(WorldRenderData& renderData) {
-  m_tilePainter->adjustLighting(renderData);
+void WorldPainter::adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> const& lightMultiplier) {
+  m_tilePainter->adjustLighting(renderData, lightMultiplier);
 }
 
 void WorldPainter::renderParticles(WorldRenderData& renderData, Particle::Layer layer) {

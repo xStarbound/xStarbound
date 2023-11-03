@@ -35,23 +35,54 @@ TilePainter::TilePainter(RendererPtr renderer) : TileDrawer() {
   }
 }
 
-void TilePainter::adjustLighting(WorldRenderData& renderData) const {
+void TilePainter::adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> const& lightMultiplier) const {
   RectI lightRange = RectI::withSize(renderData.lightMinPosition, Vec2I(renderData.lightMap.size()));
+
+  Vec3I adjustedLightMultiplier = Vec3I::filled(255);
+  bool applyLightMultiplier = false;
+  if (lightMultiplier) {
+    applyLightMultiplier = true;
+    for (size_t i = 0; i <= 2; i++) {
+      int mulVal = (int)((*lightMultiplier)[i]);
+      adjustedLightMultiplier[i] = std::max(mulVal, 0);
+    }
+  }
+
   forEachRenderTile(renderData, lightRange, [&](Vec2I const& pos, RenderTile const& tile) {
       // Only adjust lighting for full tiles
       float drawLevel = liquidDrawLevel(byteToFloat(tile.liquidLevel));
-      if (drawLevel == 0.0f)
-        return;
+      if (drawLevel == 0.0f) {
+        if (applyLightMultiplier) {
+          auto lightIndex = Vec2U(pos - renderData.lightMinPosition);
+          auto lightValue = renderData.lightMap.get(lightIndex).vec3();
 
-      auto lightIndex = Vec2U(pos - renderData.lightMinPosition);
-      auto lightValue = renderData.lightMap.get(lightIndex).vec3();
+          for (size_t i = 0; i <= 2; i++) {
+            int mulVal = adjustedLightMultiplier[i] * ((int)(lightValue[i]));
+            mulVal = std::min(mulVal, 255);
+            lightValue[i] = (uint8_t)mulVal;
+          }
 
-      auto const& liquid = m_liquids[tile.liquidId];
-      Vec3F tileLight = Vec3F(lightValue);
-      float darknessLevel = (1 - tileLight.sum() / (3.0f * 255.0f)) * drawLevel;
-      lightValue = Vec3B(tileLight.piecewiseMultiply(Vec3F::filled(1 - darknessLevel) + liquid.bottomLightMix * darknessLevel));
+          renderData.lightMap.set(lightIndex, lightValue);
+        }
+      } else {
+        auto lightIndex = Vec2U(pos - renderData.lightMinPosition);
+        auto lightValue = renderData.lightMap.get(lightIndex).vec3();
 
-      renderData.lightMap.set(lightIndex, lightValue);
+        auto const& liquid = m_liquids[tile.liquidId];
+        Vec3F tileLight = Vec3F(lightValue);
+        float darknessLevel = (1 - tileLight.sum() / (3.0f * 255.0f)) * drawLevel;
+        lightValue = Vec3B(tileLight.piecewiseMultiply(Vec3F::filled(1 - darknessLevel) + liquid.bottomLightMix * darknessLevel));
+
+        if (applyLightMultiplier) {
+          for (size_t i = 0; i <= 2; i++) {
+            int mulVal = adjustedLightMultiplier[i] * ((int)(lightValue[i]));
+            mulVal = std::min(mulVal, 255);
+            lightValue[i] = (uint8_t)mulVal;
+          }
+        }
+
+        renderData.lightMap.set(lightIndex, lightValue);
+      }
     });
 }
 
@@ -292,7 +323,10 @@ bool TilePainter::produceTerrainPrimitives(HashMap<QuadZLevel, List<RenderPrimit
         terrainLayer == TerrainLayer::Background ? TileLayer::Background : TileLayer::Foreground, false);
     for (auto const& piecePair : pieces) {
       TexturePtr texture = getPieceTexture(material, piecePair.first, materialHue, false);
-      RectF textureCoords = piecePair.first->variants.get(materialColorVariant).wrap(variance);
+      // Vanilla bugfix also added in OpenSB. This should stop a segfault in tile rendering.
+      auto variant = piecePair.first->variants.ptr(materialColorVariant);
+      if (!variant) continue;
+      RectF textureCoords = variant->wrap(variance);
       RectF worldCoords = RectF::withSize(piecePair.second / TilePixels + Vec2F(pos), textureCoords.size() / TilePixels);
       quadList.emplace_back(std::in_place_type_t<RenderQuad>(), move(texture),
           worldCoords  .min(),
@@ -317,7 +351,10 @@ bool TilePainter::produceTerrainPrimitives(HashMap<QuadZLevel, List<RenderPrimit
         terrainLayer == TerrainLayer::Background ? TileLayer::Background : TileLayer::Foreground, true);
     for (auto const& piecePair : pieces) {
       auto texture = getPieceTexture(mod, piecePair.first, modHue, true);
-      auto& textureCoords = piecePair.first->variants.get(modColorVariant).wrap(variance);
+      // Vanilla bugfix also added in OpenSB. This should stop a segfault in tile rendering.
+      auto variant = piecePair.first->variants.ptr(modColorVariant);
+      if (!variant) continue;
+      auto& textureCoords = variant->wrap(variance);
       RectF worldCoords = RectF::withSize(piecePair.second / TilePixels + Vec2F(pos), textureCoords.size() / TilePixels);
       quadList.emplace_back(std::in_place_type_t<RenderQuad>(), move(texture),
           worldCoords.min(), textureCoords.min(),

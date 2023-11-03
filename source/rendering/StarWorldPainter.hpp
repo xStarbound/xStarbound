@@ -24,8 +24,8 @@ public:
   WorldCamera& camera();
 
   void update(float dt);
-  void render(WorldRenderData& renderData, function<void()> lightWaiter);
-  void adjustLighting(WorldRenderData& renderData);
+  void render(WorldRenderData& renderData, function<void()> lightWaiter, Maybe<Vec3F> const& lightMultiplier = {});
+  void adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> const& lightMultiplier = {});
 
 private:
   void renderParticles(WorldRenderData& renderData, Particle::Layer layer);

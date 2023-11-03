@@ -76,8 +76,9 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
           inventory->setItem(slot, augmented);
       }
     }
-    else {
-      auto swapSlot = inventory->swapSlotItem();
+    // OpenSB fix for a segfault caused by right-clicking any empty inventory slot while not holding an item.
+    // The bug was inherited from OpenSB.
+    else if (auto swapSlot = inventory->swapSlotItem()) {
       if (auto es = slot.ptr<EquipmentSlot>()) {
         if (inventory->itemAllowedAsEquipment(swapSlot, *es))
           inventory->setItem(slot, swapSlot->take(1));
