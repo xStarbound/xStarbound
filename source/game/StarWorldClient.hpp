@@ -279,6 +279,7 @@ private:
   atomic<WorldRenderData*> m_renderData;
   atomic<bool> m_stopLightingThread;
   Maybe<Vec3F> m_globalLightingMultiplier;
+  Array<Vec3F, 6> m_shaderParameters;
 
   SkyPtr m_sky;
 
