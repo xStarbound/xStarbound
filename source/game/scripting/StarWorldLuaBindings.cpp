@@ -362,6 +362,8 @@ namespace LuaBindings {
     if (auto clientWorld = as<WorldClient>(world)) {
       callbacks.registerCallbackWithSignature<RectI>("clientWindow", bind(ClientWorldCallbacks::clientWindow, clientWorld));
       callbacks.registerCallbackWithSignature<void, Maybe<Vec3F>>("setLightMultiplier", bind(ClientWorldCallbacks::setLightMultiplier, clientWorld, _1));
+      callbacks.registerCallbackWithSignature<void, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>>("setShaderParameters", bind(ClientWorldCallbacks::setShaderParameters, clientWorld, _1, _2, _3, _4, _5, _6));
+      callbacks.registerCallbackWithSignature<void>("resetShaderParameters", bind(ClientWorldCallbacks::resetShaderParameters, clientWorld));
       callbacks.registerCallback("players", [clientWorld]() {
         List<EntityId> playerIds;
 
@@ -1089,6 +1091,27 @@ namespace LuaBindings {
 
   void ClientWorldCallbacks::setLightMultiplier(WorldClient *world, Maybe<Vec3F> const& newMultiplier) {
     world->setLightMultiplier(newMultiplier);
+  }
+
+  void ClientWorldCallbacks::setShaderParameters(WorldClient* world,
+                                                 Maybe<Vec3F> const& param1,
+                                                 Maybe<Vec3F> const& param2,
+                                                 Maybe<Vec3F> const& param3,
+                                                 Maybe<Vec3F> const& param4,
+                                                 Maybe<Vec3F> const& param5,
+                                                 Maybe<Vec3F> const& param6) {
+    Array<Vec3F, 6> newParameterArray = Array<Vec3F, 6>::filled(Vec3F::filled(0.0f));
+    if (param1) newParameterArray[0] = *param1;
+    if (param2) newParameterArray[1] = *param2;
+    if (param3) newParameterArray[2] = *param3;
+    if (param4) newParameterArray[3] = *param4;
+    if (param5) newParameterArray[4] = *param5;
+    if (param6) newParameterArray[5] = *param6;
+    world->setShaderParameters(newParameterArray);
+  }
+
+  void ClientWorldCallbacks::resetShaderParameters(WorldClient* world) {
+    world->setShaderParameters(Array<Vec3F, 6>::filled(Vec3F::filled(0.0f)));
   }
 
   bool ServerWorldCallbacks::breakObject(WorldServer* world, EntityId arg1, bool arg2) {

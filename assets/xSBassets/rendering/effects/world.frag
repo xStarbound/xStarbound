@@ -11,6 +11,14 @@ uniform sampler2D lightMap;
 uniform sampler2D tileLightMap;
 uniform float lightMapMultiplier;
 
+// xSB-2: Custom shader parameters.
+uniform vec3 param1;
+uniform vec3 param2;
+uniform vec3 param3;
+uniform vec3 param4;
+uniform vec3 param5;
+uniform vec3 param6;
+
 varying vec2 fragmentTextureCoordinate;
 varying float fragmentTextureIndex;
 varying vec4 fragmentColor;
@@ -65,6 +73,36 @@ vec3 sampleLightMap(vec2 texcoord, vec2 texscale) {
   return mix(a.rgb, b.rgb / b.z, b.z);
 }
 
+// FezzedOne: Sample scriptable colour adjustment function.
+vec4 applyColourAdjustments(vec4 inputColourRaw, vec3 tripleSettings, float rgbMultiply, vec3 rgbMultiplier) {
+  float brightness = tripleSettings[0];
+  float contrast = tripleSettings[1];
+  float saturation = tripleSettings[2];
+
+  vec3 inputColour = vec3(inputColourRaw);
+  float alpha = inputColourRaw.a;
+
+  // Adjust brightness.
+  inputColour = inputColour * (brightness + 1.0);
+
+  // Adjust contrast.
+  inputColour = mix(inputColour, vec3(0.5), contrast);
+
+  // Adjust saturation.
+  vec3 monochromeBalance = vec3(0.2126, 0.7152, 0.0722);
+  vec3 grey = vec3(dot(monochromeBalance, inputColour));
+  inputColour = mix(grey, inputColour, (saturation + 1.0) * 0.5);
+
+  // Multiply by the RGB multiplier if rgbMultiply is non-zero.
+  if (rgbMultiply != 0.0) {
+    inputColour *= rgbMultiplier;
+	}
+
+  vec4 outputColour = vec4(inputColour, alpha);
+
+  return outputColour;
+}
+
 void main() {
   vec4 texColor;
   if (fragmentTextureIndex > 2.9) {
@@ -85,5 +123,7 @@ void main() {
     finalColor.a = fragmentColor.a;
   else if (lightMapEnabled && finalLightMapMultiplier > 0.0)
     finalColor.rgb *= sampleLightMap(fragmentLightMapCoordinate, 1.0 / lightMapSize) * finalLightMapMultiplier;
+  if (lightMapEnabled)
+    finalColor = applyColourAdjustments(finalColor, param1, param3[0], param2);
   gl_FragColor = finalColor;
 }

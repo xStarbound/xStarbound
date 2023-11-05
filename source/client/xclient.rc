@@ -1,19 +1,19 @@
 1 VERSIONINFO
-FILEVERSION     2,1,2,0
-PRODUCTVERSION  2,1,2,0
+FILEVERSION     2,2,0,0
+PRODUCTVERSION  2,2,0,0
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
     BLOCK "040904E4"
     BEGIN
-      VALUE "CompanyName", "xSB and OpenSB contributors / Chucklefish LTD"
+      VALUE "CompanyName", "FezzedOne and OpenSB contributors / Chucklefish LTD"
       VALUE "FileDescription", "xSB xClient"
-      VALUE "FileVersion", "2.1.2"
+      VALUE "FileVersion", "2.2"
       VALUE "InternalName", "xclient"
-      VALUE "LegalCopyright", "xSB and OpenSB contributors / Chucklefish LTD"
+      VALUE "LegalCopyright", "FezzedOne and OpenSB contributors / Chucklefish LTD"
       VALUE "OriginalFilename", "xclient.exe"
       VALUE "ProductName", "xSB::xClient"
-      VALUE "ProductVersion", "2.1.2"
+      VALUE "ProductVersion", "2.2"
     END
   END
 

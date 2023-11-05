@@ -49,7 +49,7 @@ void WorldPainter::update(float dt) {
   m_environmentPainter->update(dt);
 }
 
-void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWaiter, Maybe<Vec3F> const& lightMultiplier) {
+void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWaiter, Maybe<Vec3F> const& lightMultiplier, Array<Vec3F, 6> const& shaderParameters) {
   m_camera.setScreenSize(m_renderer->screenSize());
   m_camera.setTargetPixelRatio(Root::singleton().configuration()->get("zoomLevel").toFloat());
 
@@ -77,6 +77,15 @@ void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWai
     auto start = Time::monotonicMicroseconds();
     lightWaiter();
     LogMap::set("async_light_wait", strf(u8"{:05d}\u00b5s", Time::monotonicMicroseconds() - start));
+  }
+
+  {
+    m_renderer->setEffectParameter("param1", shaderParameters[0]);
+    m_renderer->setEffectParameter("param2", shaderParameters[1]);
+    m_renderer->setEffectParameter("param3", shaderParameters[2]);
+    m_renderer->setEffectParameter("param4", shaderParameters[3]);
+    m_renderer->setEffectParameter("param5", shaderParameters[4]);
+    m_renderer->setEffectParameter("param6", shaderParameters[5]);
   }
 
   if (renderData.isFullbright) {
