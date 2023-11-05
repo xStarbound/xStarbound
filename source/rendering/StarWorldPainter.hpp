@@ -24,7 +24,8 @@ public:
   WorldCamera& camera();
 
   void update(float dt);
-  void render(WorldRenderData& renderData, function<void()> lightWaiter, Maybe<Vec3F> const& lightMultiplier = {});
+  void render(WorldRenderData& renderData, function<void()> lightWaiter, Maybe<Vec3F> const& lightMultiplier = {},
+    Array<Vec3F, 6> const& shaderParameters = Array<Vec3F, 6>::filled(Vec3F::filled(0.0f)));
   void adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> const& lightMultiplier = {});
 
 private:

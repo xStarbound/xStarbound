@@ -93,6 +93,7 @@ WorldClient::WorldClient(PlayerPtr mainPlayer) {
   m_lightingThread = Thread::invoke("WorldClient::lightingMain", mem_fn(&WorldClient::lightingMain), this);
   m_renderData = nullptr;
   m_globalLightingMultiplier = {};
+  m_shaderParameters = Array<Vec3F, 6>::filled(Vec3F::filled(0.0f));
 
   clearWorld();
 }
@@ -751,6 +752,14 @@ Maybe<Vec3F> WorldClient::getLightMultiplier() const {
   return m_globalLightingMultiplier;
 }
 
+void WorldClient::setShaderParameters(Array<Vec3F, 6> newParameters) {
+  m_shaderParameters = move(newParameters);
+}
+
+Array<Vec3F, 6> WorldClient::getShaderParameters() const {
+  return m_shaderParameters;
+}
+
 void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
   auto& root = Root::singleton();
   auto materialDatabase = root.materialDatabase();
@@ -1089,7 +1098,8 @@ void WorldClient::update(float dt) {
   auto assets = Root::singleton().assets();
 
   m_lightingCalculator.setMonochrome(Root::singleton().configuration()->get("monochromeLighting").toBool());
-  m_globalLightingMultiplier = {};
+  // m_globalLightingMultiplier = {};
+  // m_shaderParameters = Array<Vec3F, 6>::filled(Vec3F::filled(0.0f));
 
   float expireTime = min(float(m_latency + 800), 2000.f);
   auto now = Time::monotonicMilliseconds();

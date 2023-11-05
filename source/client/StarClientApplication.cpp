@@ -426,7 +426,7 @@ void ClientApplication::render() {
 
       auto paintStart = Time::monotonicMicroseconds();
       auto asyncLightingCallback = [&]() { worldClient->waitForLighting(); };
-      m_worldPainter->render(m_renderData, asyncLightingCallback, worldClient->getLightMultiplier());
+      m_worldPainter->render(m_renderData, asyncLightingCallback, worldClient->getLightMultiplier(), worldClient->getShaderParameters());
       LogMap::set("client_render_world_painter", strf(u8"{:05d}\u00b5s", Time::monotonicMicroseconds() - paintStart));
       LogMap::set("client_render_world_total", strf(u8"{:05d}\u00b5s", Time::monotonicMicroseconds() - totalStart));
     }
