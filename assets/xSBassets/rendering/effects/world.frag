@@ -77,7 +77,7 @@ vec3 sampleLightMap(vec2 texcoord, vec2 texscale) {
 vec4 applyColourAdjustments(vec4 inputColourRaw, vec3 tripleSettings, float rgbMultiply, vec3 rgbMultiplier) {
   float brightness = tripleSettings[0];
   float contrast = tripleSettings[1];
-  float saturation = tripleSettings[2];
+  float desaturation = tripleSettings[2];
 
   vec3 inputColour = vec3(inputColourRaw);
   float alpha = inputColourRaw.a;
@@ -91,7 +91,7 @@ vec4 applyColourAdjustments(vec4 inputColourRaw, vec3 tripleSettings, float rgbM
   // Adjust saturation.
   vec3 monochromeBalance = vec3(0.2126, 0.7152, 0.0722);
   vec3 grey = vec3(dot(monochromeBalance, inputColour));
-  inputColour = mix(grey, inputColour, (saturation + 1.0) * 0.5);
+  inputColour = mix(inputColour, grey, desaturation);
 
   // Multiply by the RGB multiplier if rgbMultiply is non-zero.
   if (rgbMultiply != 0.0) {
