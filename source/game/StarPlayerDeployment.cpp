@@ -4,6 +4,7 @@
 #include "StarJsonExtra.hpp"
 #include "StarPlayer.hpp"
 #include "StarPlayerLuaBindings.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarStatusControllerLuaBindings.hpp"
 #include "StarEntityRendering.hpp"
 
@@ -39,6 +40,7 @@ void PlayerDeployment::init(Entity* player, World* world) {
 
   m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(player));
   m_scriptComponent.addCallbacks("player", LuaBindings::makePlayerCallbacks(as<Player>(player)));
+  m_scriptComponent.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(as<Player>(player)->effectsAnimator().get()));
   m_scriptComponent.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(as<Player>(player)->statusController()));
   m_scriptComponent.addCallbacks("config",
       LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def) { return m_config.query(name, def); }));
@@ -67,6 +69,7 @@ void PlayerDeployment::uninit() {
   m_scriptComponent.uninit();
   m_scriptComponent.removeCallbacks("entity");
   m_scriptComponent.removeCallbacks("player");
+  m_scriptComponent.removeCallbacks("playerAnimator");
   m_scriptComponent.removeCallbacks("status");
   m_scriptComponent.removeCallbacks("config");
   m_world = nullptr;

@@ -144,6 +144,10 @@ public:
   void scaleTransformationGroup(String const& transformationGroup, float scale, Vec2F const& scaleCenter = Vec2F());
   void scaleTransformationGroup(String const& transformationGroup, Vec2F const& scale, Vec2F const& scaleCenter = Vec2F());
   void transformTransformationGroup(String const& transformationGroup, float a, float b, float c, float d, float tx, float ty);
+  void fullTransformTransformationGroup(
+    String const& transformationGroup, float a, float b, float c, float d, float e, float f, float tx, float ty, float tz);
+  void setTransformationGroupTransform(
+    String const& transformationGroup, float a, float b, float c, float d, float e, float f, float tx, float ty, float tz);
   void resetTransformationGroup(String const& transformationGroup);
 
   bool hasParticleEmitter(String const& emitterName) const;

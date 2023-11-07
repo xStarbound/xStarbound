@@ -4,6 +4,7 @@
 #include "StarJsonExtra.hpp"
 #include "StarPlayer.hpp"
 #include "StarPlayerLuaBindings.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarStatusControllerLuaBindings.hpp"
 
 namespace Star {
@@ -85,6 +86,7 @@ void PlayerCompanions::init(Entity* player, World* world) {
 
   m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(player));
   m_scriptComponent.addCallbacks("player", LuaBindings::makePlayerCallbacks(as<Player>(player)));
+  m_scriptComponent.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(as<Player>(player)->effectsAnimator().get()));
   m_scriptComponent.addCallbacks(
       "status", LuaBindings::makeStatusControllerCallbacks(as<Player>(player)->statusController()));
   m_scriptComponent.addCallbacks("playerCompanions", makeCompanionsCallbacks());
@@ -101,6 +103,7 @@ void PlayerCompanions::uninit() {
   m_scriptComponent.removeCallbacks("entity");
   m_scriptComponent.removeCallbacks("player");
   m_scriptComponent.removeCallbacks("status");
+  m_scriptComponent.removeCallbacks("playerAnimator");
   m_scriptComponent.removeCallbacks("playerCompanions");
   m_scriptComponent.removeCallbacks("config");
   m_world = nullptr;

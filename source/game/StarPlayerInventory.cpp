@@ -527,7 +527,7 @@ void PlayerInventory::shiftSwap(InventorySlot const& slot) {
   } else if (auto bs = slot.ptr<BagSlot>()) {
     if (itemAllowedInBag(m_swapSlot, bs->first)) {
       m_swapSlot = m_bags[bs->first]->swapItems(bs->second, m_swapSlot);
-            // OpenSB fix for an annoying vanilla bug where an item is removed from the hotbar if an identical item is stacked onto it.
+      // OpenSB fix for an annoying vanilla bug where an item is removed from the hotbar if an identical item is stacked onto it.
       if (m_swapSlot && !m_swapSlot->empty())
         swapCustomBarLinks(SwapSlot(), slot);
     }

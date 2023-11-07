@@ -473,6 +473,20 @@ void NetworkedAnimator::transformTransformationGroup(
   group.setAffineTransform(transform * group.affineTransform());
 }
 
+void NetworkedAnimator::fullTransformTransformationGroup(
+    String const& transformationGroup, float a, float b, float c, float d, float e, float f, float tx, float ty, float tz) {
+  auto& group = m_transformationGroups.get(transformationGroup);
+  Mat3F transform = Mat3F(a, b, tx, c, d, ty, e, f, tz);
+  group.setAffineTransform(transform * group.affineTransform());
+}
+
+void NetworkedAnimator::setTransformationGroupTransform(
+    String const& transformationGroup, float a, float b, float c, float d, float e, float f, float tx, float ty, float tz) {
+  auto& group = m_transformationGroups.get(transformationGroup);
+  Mat3F transform = Mat3F(a, b, tx, c, d, ty, e, f, tz);
+  group.setAffineTransform(transform);
+}
+
 void NetworkedAnimator::resetTransformationGroup(String const& transformationGroup) {
   m_transformationGroups.get(transformationGroup).setAffineTransform(Mat3F::identity());
 }

@@ -71,8 +71,10 @@ void ActiveItem::init(ToolUserEntity* owner, ToolHand hand) {
     m_script.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_itemAnimator));
     m_script.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(owner->statusController()));
     m_script.addActorMovementCallbacks(owner->movementController());
-    if (auto player = as<Player>(owner))
+    if (auto player = as<Player>(owner)) {
       m_script.addCallbacks("player", LuaBindings::makePlayerCallbacks(player));
+      m_script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(player->effectsAnimator().get()));
+    }
     m_script.addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(owner)));
     m_script.init(world());
     m_currentFireMode = FireMode::None;

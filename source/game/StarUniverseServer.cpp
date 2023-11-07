@@ -551,7 +551,7 @@ void UniverseServer::run() {
     RecursiveMutexLocker locker(m_mainLock);
     WriteLocker clientsLocker(m_clientsLock);
     for (auto clientId : m_clients.keys())
-      doDisconnection(clientId, "ServerShutdown");
+      doDisconnection(clientId, "Server is shutting down");
 
     saveSettings();
     saveTempWorldIndex();
@@ -760,7 +760,7 @@ void UniverseServer::reapConnections() {
       return pair.first.isOpen() && startTime - pair.second < timeout;
     });
   if (previousDeadConnections > m_deadConnections.size())
-    Logger::info("UniverseServer: Reaped {} dead connections", previousDeadConnections);
+    Logger::info(previousDeadConnections == 1 ? "UniverseServer: Reaped {} dead connection" : "UniverseServer: Reaped {} dead connections", previousDeadConnections);
 }
 
 void UniverseServer::processPlanetTypeChanges() {
@@ -1527,7 +1527,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
     Logger::warn("UniverseServer: client connection aborted, expected ProtocolRequestPacket");
     return;
   }
-  
+
   bool legacyClient = protocolRequest->compressionMode() != PacketCompressionMode::Enabled;
   connection.setLegacy(legacyClient);
 
@@ -1586,9 +1586,10 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
         return;
       }
     }
-    
+
     if (!m_speciesShips.contains(clientConnect->playerSpecies)) {
       connectionFail("Unknown player species");
+      Logger::warn("UniverseServer: Unknown species name is '{}'", clientConnect->playerSpecies);
       return;
     }
 
@@ -1641,7 +1642,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   WriteLocker clientsLocker(m_clientsLock);
   if (auto clashId = getClientForUuid(clientConnect->playerUuid)) {
     if (administrator) {
-      doDisconnection(*clashId, String("Duplicate Uuid joined and is Administrator so has priority."));
+      doDisconnection(*clashId, String("Duplicate player UUID; prioritised newly joined admin player"));
     } else {
       connectionFail("Duplicate player UUID");
       return;
@@ -1730,12 +1731,12 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
 
   clientFlyShip(clientId, clientContext->shipCoordinate().location(), clientContext->shipLocation());
   Logger::info("UniverseServer: Client {} connected", clientContext->descriptiveName());
-  
+
   auto players = static_cast<uint16_t>(m_clients.size());
   for (auto clientId : m_clients.keys()) {
     m_connectionServer->sendPackets(clientId, {
         make_shared<ServerInfoPacket>(players, static_cast<uint16_t>(m_maxPlayers))
-      });  
+      });
   }
 }
 
@@ -1831,12 +1832,12 @@ void UniverseServer::doDisconnection(ConnectionId clientId, String const& reason
     m_clients.remove(clientId);
     m_deadConnections.append({m_connectionServer->removeConnection(clientId), Time::monotonicMilliseconds()});
     Logger::info("UniverseServer: Client {} disconnected for reason: {}", clientContext->descriptiveName(), reason);
-    
+
     auto players = static_cast<uint16_t>(m_clients.size());
     for (auto clientId : m_clients.keys()) {
       m_connectionServer->sendPackets(clientId, {
           make_shared<ServerInfoPacket>(players, static_cast<uint16_t>(m_maxPlayers))
-        });  
+        });
     }
   }
 }

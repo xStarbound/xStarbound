@@ -67,11 +67,7 @@ public:
   // Individual speakers are represented by their connection ID.
   typedef ConnectionId SpeakerId;
 
-#ifdef STAR_COMPILER_CLANG
-  struct Speaker { // FezzedOne: Leaving this here for now.
-#else
   class Speaker {
-#endif
   public:
     SpeakerId speakerId = 0;
     EntityId entityId = 0;

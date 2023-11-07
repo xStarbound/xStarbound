@@ -441,6 +441,7 @@ void TechController::unloadModule(TechModule& techModule) {
   techModule.scriptComponent.removeCallbacks("animator");
   techModule.scriptComponent.removeCallbacks("status");
   techModule.scriptComponent.removeCallbacks("player");
+  techModule.scriptComponent.removeCallbacks("playerAnimator");
   techModule.scriptComponent.removeActorMovementCallbacks();
 }
 
@@ -453,8 +454,10 @@ void TechController::initializeModules() {
     module.scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(m_parentEntity));
     module.scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_techAnimators.getNetElement(module.animatorId)->animator));
     module.scriptComponent.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_statusController));
-    if (auto player = as<Player>(m_parentEntity))
+    if (auto player = as<Player>(m_parentEntity)) {
       module.scriptComponent.addCallbacks("player", LuaBindings::makePlayerCallbacks(player));
+      module.scriptComponent.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(player->effectsAnimator().get()));
+    }
     module.scriptComponent.addActorMovementCallbacks(m_movementController);
 
     module.scriptComponent.init(m_parentEntity->world());
