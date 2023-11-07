@@ -1,0 +1,16 @@
+{
+    "animatedParts": {
+        "parts": {
+            "dummyBackArm": {
+                "properties": {
+                    "zLevel": 2
+                }
+            },
+            "back": {
+                "properties": {
+                    "zLevel": 1
+                }
+            }
+        }
+    }
+}
