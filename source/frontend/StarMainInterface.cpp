@@ -1008,16 +1008,8 @@ PanePtr MainInterface::createEscapeDialog() {
     });
 
   escapeDialogReader.construct(assets->json("/interface.config:escapeDialog"), escapeDialogPtr);
-#ifdef XCLIENT_UNLOCKED
-  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(strf("^#f22;xSB<FE>::xClient^reset; {} (sb {} / {})\n^#822;< Do not share without permission. >", xSbVersionString, StarVersionString, StarArchitectureString));
-#else
-  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(strf("^#f22;xSB::xClient^reset; {} (sb {} / {})", xSbVersionString, StarVersionString, StarArchitectureString));
-#endif
-#ifdef XCLIENT_UNLOCKED
-  escapeDialog->fetchChild<LabelWidget>("lblcopyright")->setText("By ^red;FezzedOne^reset;, OpenSB constributors, Chucklefish");
-#else
-  escapeDialog->fetchChild<LabelWidget>("lblcopyright")->setText("By ^red;FezzedOne^reset;, OpenSB constributors, Chucklefish");
-#endif
+  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(strf("^#822;xSB::xClient^reset; {} (sb {} / {})", xSbVersionString, StarVersionString, StarArchitectureString));
+  escapeDialog->fetchChild<LabelWidget>("lblcopyright")->setText("By ^#800;FezzedOne^reset;, OpenSB, Chucklefish");
   return escapeDialog;
 }
 

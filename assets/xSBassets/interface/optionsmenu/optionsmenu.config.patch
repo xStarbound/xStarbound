@@ -13,14 +13,6 @@
       "base" : "/interface/optionsmenu/duocontrolsbutton.png",
       "hover" : "/interface/optionsmenu/duocontrolsbuttonhover.png"
     },
-    "showVoicePlayers" : {
-      "type" : "button",
-      "disabled" : true,
-      "position" : [82, 169],
-      "caption" : "Players",
-      "base" : "/interface/optionsmenu/duocontrolsbutton.png",
-      "hover" : "/interface/optionsmenu/duocontrolsbuttonhover.png"
-    },
     "showKeybindings" : {
       "type" : "button",
       "position" : [153, 95],
@@ -42,7 +34,7 @@
       "base" : "/interface/optionsmenu/tricontrolsbutton.png",
       "hover" : "/interface/optionsmenu/tricontrolsbuttonhover.png"
     },
-    "sfxValueLabel" : { "position" : [192, 142] }, // this is 2px too low in vanilla lol
+    "sfxValueLabel" : { "position" : [192, 142] },
     "musicSlider" : { "position" : [62, 126] }
   }
 }
