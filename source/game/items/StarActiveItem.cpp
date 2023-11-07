@@ -105,6 +105,7 @@ void ActiveItem::uninit() {
     m_script.removeCallbacks("status");
     m_script.removeActorMovementCallbacks();
     m_script.removeCallbacks("player");
+    m_script.removeCallbacks("playerAnimator");
     m_script.removeCallbacks("entity");
   }
   if (world()->isClient()) {
