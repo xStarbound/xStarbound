@@ -4,7 +4,7 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
 
 Compiled builds for Linux and Windows should be available in the usual place on this repository. xSB-2's (and OpenStarbound) `StarVoice.cpp` currently doesn't compile on macOS with Clang (I used Sonoma with Clang 15.0.0.x); feel free to PR any extra fixes to xSB-2 (and OpenStarbound), since mine aren't working.
 
-If you're compiling xSB-2 anyways, make sure it loads the game assets in `/assets/xSBassets/`; you may use OpenStarbound's assets instead, since xSB-2 is fully asset-compatible with OpenStarbound.
+If you're compiling xSB-2 anyways, make sure it loads the game assets in `/assets/xSBassets/`.
 
 Changes:
 
