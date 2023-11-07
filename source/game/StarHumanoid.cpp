@@ -824,6 +824,15 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
     personality = Root::singleton().speciesDatabase()->species(m_identity.species)->personalities()[0];
 
   if (mode != PortraitMode::Head) {
+    // FezzedOne: Why was this in the wrong order to begin with?
+    if (mode != PortraitMode::Bust) {
+      if (dressed && !m_backArmorFrameset.empty()) {
+        String image = strf("{}:{}", m_backArmorFrameset, personality.idle);
+        Drawable drawable = Drawable::makeImage(move(image), 1.0f, true, {});
+        drawable.imagePart().addDirectives(getBackDirectives(), true);
+        addDrawable(move(drawable));
+      }
+    }
     if (!m_backArmFrameset.empty()) {
       String image = strf("{}:{}", m_backArmFrameset, personality.armIdle);
       Drawable drawable = Drawable::makeImage(move(image), 1.0f, true, personality.armOffset);
@@ -835,14 +844,6 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
       Drawable drawable = Drawable::makeImage(move(image), 1.0f, true, personality.armOffset);
       drawable.imagePart().addDirectives(getChestDirectives(), true);
       addDrawable(move(drawable));
-    }
-    if (mode != PortraitMode::Bust) {
-      if (dressed && !m_backArmorFrameset.empty()) {
-        String image = strf("{}:{}", m_backArmorFrameset, personality.idle);
-        Drawable drawable = Drawable::makeImage(move(image), 1.0f, true, {});
-        drawable.imagePart().addDirectives(getBackDirectives(), true);
-        addDrawable(move(drawable));
-      }
     }
   }
 
