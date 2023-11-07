@@ -53,9 +53,6 @@ OptionsMenu::OptionsMenu(PaneManager* manager)
   reader.registerCallback("showVoiceSettings", [=](Widget*) {
       displayVoiceSettings();
     });
-  reader.registerCallback("showVoicePlayers", [=](Widget*) {
-
-    });
   reader.registerCallback("showModBindings", [=](Widget*) {
       displayModBindings();
     });
@@ -84,19 +81,9 @@ OptionsMenu::OptionsMenu(PaneManager* manager)
   // Allow xSB to use OpenStarbound's assets, but prefer xSB's.
 
   const String xSbVoiceChatPath = "/interface/xsb/voicechat/voicechat.config";
-  const String openSbVoiceChatPath = "/interface/opensb/voicechat/voicechat.config";
-  if (assets->assetExists(xSbVoiceChatPath)) {
-    m_voiceSettingsMenu = make_shared<VoiceSettingsMenu>(assets->json(config.getString("voiceSettingsPanePath", xSbVoiceChatPath)));
-  } else {
-    m_voiceSettingsMenu = make_shared<VoiceSettingsMenu>(assets->json(config.getString("voiceSettingsPanePath", openSbVoiceChatPath)));
-  }
+  m_voiceSettingsMenu = make_shared<VoiceSettingsMenu>(assets->json(config.getString("voiceSettingsPanePath", xSbVoiceChatPath)));
   const String xSbBindingsPath = "/interface/xsb/bindings/bindings.config";
-  const String openSbBindingsPath = "/interface/opensb/bindings/bindings.config";
-  if (assets->assetExists(xSbBindingsPath)) {
-    m_modBindingsMenu = make_shared<BindingsMenu>(assets->json(config.getString("bindingsPanePath", xSbBindingsPath)));
-  } else {
-    m_modBindingsMenu = make_shared<BindingsMenu>(assets->json(config.getString("bindingsPanePath", openSbBindingsPath)));
-  }
+  m_modBindingsMenu = make_shared<BindingsMenu>(assets->json(config.getString("bindingsPanePath", xSbBindingsPath)));
 
   m_keybindingsMenu = make_shared<KeybindingsMenu>();
   m_graphicsMenu = make_shared<GraphicsMenu>();

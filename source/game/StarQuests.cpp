@@ -17,6 +17,7 @@
 #include "StarConfigLuaBindings.hpp"
 #include "StarEntityLuaBindings.hpp"
 #include "StarPlayerLuaBindings.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarStatusControllerLuaBindings.hpp"
 #include "StarQuestManager.hpp"
 #include "StarClientContext.hpp"
@@ -567,6 +568,7 @@ void Quest::initScript() {
   m_scriptComponent.addCallbacks("quest", makeQuestCallbacks(m_player));
   m_scriptComponent.addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client));
   m_scriptComponent.addCallbacks("player", LuaBindings::makePlayerCallbacks(m_player));
+  m_scriptComponent.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_player->effectsAnimator().get()));
   m_scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def) {
       return Json(getTemplate()->scriptConfig).query(name, def);
     }));
@@ -583,6 +585,7 @@ void Quest::uninitScript() {
   m_scriptComponent.removeCallbacks("quest");
   m_scriptComponent.removeCallbacks("celestial");
   m_scriptComponent.removeCallbacks("player");
+  m_scriptComponent.removeCallbacks("playerAnimator");
   m_scriptComponent.removeCallbacks("config");
   m_scriptComponent.removeCallbacks("entity");
   m_scriptComponent.removeCallbacks("status");

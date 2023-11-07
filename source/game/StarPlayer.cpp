@@ -21,6 +21,7 @@
 #include "StarWorld.hpp"
 #include "StarStatusController.hpp"
 #include "StarStatusControllerLuaBindings.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarPlayerBlueprints.hpp"
 #include "StarPlayerUniverseMap.hpp"
 #include "StarPlayerCodexes.hpp"
@@ -207,7 +208,7 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
   m_damageTeamOverridden = false;
   m_chatBubbleConfig = JsonObject{};
 
-    // FezzedOne: For a `player` callback that suppresses tool usage.
+  // FezzedOne: For a `player` callback that suppresses tool usage.
   m_toolUsageSuppressed = false;
 
   m_netGroup.setNeedsLoadCallback(bind(&Player::getNetStates, this, _1));
@@ -392,6 +393,7 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
     for (auto& p : m_genericScriptContexts) {
       p.second->addActorMovementCallbacks(m_movementController.get());
       p.second->addCallbacks("player", LuaBindings::makePlayerCallbacks(this));
+      p.second->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_effectsAnimator.get()));
       p.second->addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_statusController.get()));
       if (m_client)
         p.second->addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client));
@@ -413,11 +415,12 @@ void Player::uninit() {
     m_questManager->uninit();
     m_companions->uninit();
     m_deployment->uninit();
-    
+
     for (auto& p : m_genericScriptContexts) {
       p.second->uninit();
       p.second->removeCallbacks("entity");
       p.second->removeCallbacks("player");
+      p.second->removeCallbacks("playerAnimator");
       p.second->removeCallbacks("mcontroller");
       p.second->removeCallbacks("status");
       p.second->removeCallbacks("world");

@@ -5,6 +5,7 @@
 #include "StarJsonExtra.hpp"
 #include "StarConfigLuaBindings.hpp"
 #include "StarPlayerLuaBindings.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarStatusControllerLuaBindings.hpp"
 #include "StarCelestialLuaBindings.hpp"
 #include "StarLuaGameConverters.hpp"
@@ -29,6 +30,7 @@ ScriptPane::ScriptPane(UniverseClientPtr client, Json config, EntityId sourceEnt
   m_sourceEntityId = sourceEntityId;
 
   m_script.addCallbacks("player", LuaBindings::makePlayerCallbacks(m_client->mainPlayer().get()));
+  m_script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_client->mainPlayer()->effectsAnimator().get()));
   m_script.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_client->mainPlayer()->statusController()));
   m_script.addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client.get()));
 }

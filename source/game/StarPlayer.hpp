@@ -347,7 +347,7 @@ public:
 
   void setIdentity(HumanoidIdentity identity);
   // FezzedOne: Need to overload this function to accept `Json` to avoid an unnecessary conversion, of course.
-  void setIdentity(Json const &newIdentity); 
+  void setIdentity(Json const &newIdentity);
 
   void setAdmin(bool isAdmin);
   bool isAdmin() const override;
@@ -497,7 +497,7 @@ public:
   void setDamageTeam(EntityDamageTeam newTeam);
   void setDamageTeam(); // This overload exists so that damage team overrides can be cleared.
 
-  void setToolUsageSuppressed(Maybe<bool> suppressed);
+  void setToolUsageSuppressed(Maybe<bool> suppressed); // FezzedOne: For a tool suppression callback.
 
   void setOverrideState(Maybe<Humanoid::State> overrideState);
 
@@ -622,8 +622,6 @@ private:
   State m_state;
   HumanoidEmote m_emoteState;
 
-  bool m_toolUsageSuppressed;
-
   float m_footstepTimer;
   float m_teleportTimer;
   float m_emoteCooldownTimer;
@@ -670,6 +668,8 @@ private:
   ActorMovementControllerPtr m_movementController;
   TechControllerPtr m_techController;
   StatusControllerPtr m_statusController;
+
+  bool m_toolUsageSuppressed;
 
   float m_foodLowThreshold;
   List<PersistentStatusEffect> m_foodLowStatusEffects;

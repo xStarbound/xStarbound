@@ -46,6 +46,12 @@ LuaCallbacks LuaBindings::makeNetworkedAnimatorCallbacks(NetworkedAnimator* netw
   callbacks.registerCallbackWithSignature<void, String, float, float, float, float, float, float>(
       "transformTransformationGroup",
       bind(&NetworkedAnimator::transformTransformationGroup, networkedAnimator, _1, _2, _3, _4, _5, _6, _7));
+  callbacks.registerCallbackWithSignature<void, String, float, float, float, float, float, float, float, float, float>(
+      "fullTransformTransformationGroup",
+      bind(&NetworkedAnimator::fullTransformTransformationGroup, networkedAnimator, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10));
+  callbacks.registerCallbackWithSignature<void, String, float, float, float, float, float, float, float, float, float>(
+      "setTransformationGroupTransform",
+      bind(&NetworkedAnimator::setTransformationGroupTransform, networkedAnimator, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10));
   callbacks.registerCallbackWithSignature<void, String>(
       "resetTransformationGroup", bind(&NetworkedAnimator::resetTransformationGroup, networkedAnimator, _1));
   callbacks.registerCallbackWithSignature<void, String, bool>(

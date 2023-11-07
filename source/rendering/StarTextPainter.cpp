@@ -179,7 +179,7 @@ bool TextPainter::processWrapText(StringView text, unsigned* wrapWidth, WrapText
         if (!textFunc(slice(lineStartIt, it), lines++))
           return false;
 
-        lineStart += lineCharSize; 
+        lineStart += lineCharSize;
         lineStartIt = it;
         ++lineStartIt;
 

@@ -337,16 +337,13 @@ void ClientApplication::processInput(InputEvent const& event) {
   int zoomOffset = 0;
 
   if (auto presses = m_input->bindDown("xsb", "zoomIn"))
-    zoomOffset += *presses;
+    zoomOffset += (*presses);
   if (auto presses = m_input->bindDown("xsb", "zoomOut"))
-    zoomOffset -= *presses;
-
-  // Allow xSB to use OpenStarbound keybind configs.
-
-  if (auto presses = m_input->bindDown("opensb", "zoomIn"))
-    zoomOffset += *presses;
-  if (auto presses = m_input->bindDown("opensb", "zoomOut"))
-    zoomOffset -= *presses;
+    zoomOffset -= (*presses);
+  if (auto presses = m_input->bindDown("xsb", "incrementalZoomIn"))
+    zoomOffset += (*presses) * 0.25f;
+  if (auto presses = m_input->bindDown("xsb", "incrementalZoomOut"))
+    zoomOffset -= (*presses) * 0.25f;
 
   if (zoomOffset != 0)
     config->set("zoomLevel", max(1.0f, round(config->get("zoomLevel").toFloat() + zoomOffset)));

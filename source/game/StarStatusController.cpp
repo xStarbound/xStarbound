@@ -728,6 +728,7 @@ void StatusController::initPrimaryScript() {
   m_primaryScript.addCallbacks("entity", LuaBindings::makeEntityCallbacks(m_parentEntity));
   if (auto playerEntity = as<Player>(m_parentEntity)) { // FezzedOne: Add player callbacks if the entity is a player.
     m_primaryScript.addCallbacks("player", LuaBindings::makePlayerCallbacks(playerEntity));
+    m_primaryScript.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(playerEntity->effectsAnimator().get()));
   }
   if (m_primaryAnimatorId != EffectAnimatorGroup::NullElementId) {
     auto animator = m_effectAnimators.getNetElement(m_primaryAnimatorId);
@@ -742,6 +743,7 @@ void StatusController::uninitPrimaryScript() {
   m_primaryScript.removeCallbacks("status");
   m_primaryScript.removeCallbacks("entity");
   m_primaryScript.removeCallbacks("player");
+  m_primaryScript.removeCallbacks("playerAnimator");
   m_primaryScript.removeCallbacks("animator");
   m_primaryScript.removeActorMovementCallbacks();
 }
@@ -753,6 +755,10 @@ void StatusController::initUniqueEffectScript(UniqueEffectInstance& uniqueEffect
       return uniqueEffect.effectConfig.effectConfig.query(name, def);
     }));
   uniqueEffect.script.addCallbacks("entity", LuaBindings::makeEntityCallbacks(m_parentEntity));
+  if (auto playerEntity = as<Player>(m_parentEntity)) { // FezzedOne: Add player callbacks if the entity is a player.
+    uniqueEffect.script.addCallbacks("player", LuaBindings::makePlayerCallbacks(playerEntity));
+    uniqueEffect.script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(playerEntity->effectsAnimator().get()));
+  }
   if (uniqueEffect.animatorId != EffectAnimatorGroup::NullElementId) {
     auto animator = m_effectAnimators.getNetElement(uniqueEffect.animatorId);
     uniqueEffect.script.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&animator->animator));
@@ -767,6 +773,8 @@ void StatusController::uninitUniqueEffectScript(UniqueEffectInstance& uniqueEffe
   uniqueEffect.script.removeCallbacks("status");
   uniqueEffect.script.removeCallbacks("config");
   uniqueEffect.script.removeCallbacks("entity");
+  uniqueEffect.script.removeCallbacks("player");
+  uniqueEffect.script.removeCallbacks("playerAnimator");
   uniqueEffect.script.removeCallbacks("animator");
   uniqueEffect.script.removeActorMovementCallbacks();
 

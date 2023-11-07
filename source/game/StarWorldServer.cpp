@@ -398,13 +398,37 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       }
 
     } else if (auto entityInteract = as<EntityInteractPacket>(packet)) {
-      auto targetEntityConnection = connectionForEntity(entityInteract->interactRequest.targetId);
-      if (targetEntityConnection == ServerConnectionId) {
-        auto interactResult = interact(entityInteract->interactRequest).result();
-        clientInfo->outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, entityInteract->interactRequest.sourceId));
-      } else {
-        auto const& forwardClientInfo = m_clientInfo.get(targetEntityConnection);
-        forwardClientInfo->outgoingPackets.append(entityInteract);
+      // FezzedOne: Server-side part of a fix for an entity interaction error.
+      EntityId targetId = entityInteract->interactRequest.targetId;
+      if (auto targetEntity = m_entityMap->entity(targetId)) {
+        if (auto interactiveTarget = as<InteractiveEntity>(targetEntity)) {
+          auto targetEntityConnection = connectionForEntity(targetId);
+          if (targetEntityConnection == ServerConnectionId) {
+            auto interactResult = interact(entityInteract->interactRequest).result();
+            clientInfo->outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, entityInteract->interactRequest.sourceId));
+          } else {
+            auto const& forwardClientInfo = m_clientInfo.get(targetEntityConnection);
+            forwardClientInfo->outgoingPackets.append(entityInteract);
+          }
+        }
+        // FezzedOne: For modded client compatibility, we need to specifically allow interactions with players, despite them not being considered interactive entities.
+        else {
+          auto targetEntityConnection = connectionForEntity(targetId);
+          if (targetEntityConnection == ServerConnectionId) {
+            EntityId sourceId = entityInteract->interactRequest.sourceId;
+            Logger::info("[xSB] Attempted interaction from entity {} with non-interactive server-side entity {}.", sourceId, targetId);
+            auto interactResult = RpcPromise<InteractAction>::createFulfilled(InteractAction()).result();
+            clientInfo->outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, sourceId));
+          } else {
+            auto const& forwardClientInfo = m_clientInfo.get(targetEntityConnection);
+            forwardClientInfo->outgoingPackets.append(entityInteract);
+          }
+        }
+      }
+      // FezzedOne: Also log any attempts to interact with a nonexistent entity.
+      else {
+        EntityId sourceId = entityInteract->interactRequest.sourceId;
+        Logger::info("[xSB] Attempted interaction from entity {} with nonexistent entity {}.", sourceId, targetId);
       }
 
     } else if (auto interactResult = as<EntityInteractResultPacket>(packet)) {
@@ -413,10 +437,10 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
 
     } else if (auto entityCreate = as<EntityCreatePacket>(packet)) {
       if (!entityIdInSpace(entityCreate->entityId, clientInfo->clientId)) {
-        throw WorldServerException::format("WorldServer received entity create packet with illegal entity id {}.", entityCreate->entityId);
+        throw WorldServerException::format("WorldServer received entity creation packet from cID {} with illegal entity ID {}.", clientInfo->clientId, entityCreate->entityId);
       } else {
         if (m_entityMap->entity(entityCreate->entityId)) {
-          Logger::error("WorldServer received duplicate entity create packet from client, deleting old entity {}", entityCreate->entityId);
+          Logger::error("WorldServer received duplicate entity creation packet from cID {}, deleting old entity {}", clientInfo->clientId, entityCreate->entityId);
           removeEntity(entityCreate->entityId, false);
         }
 
@@ -495,7 +519,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
 
     } else if (auto entityMessageResponsePacket = as<EntityMessageResponsePacket>(packet)) {
       if (!m_entityMessageResponses.contains(entityMessageResponsePacket->uuid))
-        throw WorldServerException("ScriptedEntityResponse received for unknown context!");
+        throw WorldServerException("ScriptedEntityResponse received from cID {} for unknown context!", clientInfo->clientId);
 
       auto response = m_entityMessageResponses.take(entityMessageResponsePacket->uuid).second;
       if (response.is<ConnectionId>()) {
@@ -522,7 +546,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
         pair.second->outgoingPackets.append(make_shared<UpdateWorldPropertiesPacket>(updateWorldProperties->updatedProperties));
 
     } else {
-      throw WorldServerException::format("Improper packet type {} received by client", (int)packet->type());
+      throw WorldServerException::format("Improper packet type {} received from cID {}", (int)packet->type(), clientInfo->clientId);
     }
   }
 }

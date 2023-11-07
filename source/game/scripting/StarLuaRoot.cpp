@@ -93,6 +93,12 @@ LuaContext LuaRoot::createContext(String const& script) {
 }
 
 LuaContext LuaRoot::createContext(StringList const& scriptPaths) {
+  // FezzedOne: Fix for a segfault that happens when the game attempts to initialise a pane script context while the player
+  // is in the middle of warping to another (or the same) world. Also fixes various other segfaults related
+  // to Lua script context initialisation.
+  if (!m_luaEngine)
+    throw LuaException("Lua engine not initialised");
+
   auto newContext = m_luaEngine->createContext();
 
   auto cache = m_scriptCache;
