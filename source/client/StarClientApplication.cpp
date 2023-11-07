@@ -337,16 +337,16 @@ void ClientApplication::processInput(InputEvent const& event) {
   int zoomOffset = 0;
 
   if (auto presses = m_input->bindDown("xsb", "zoomIn"))
-    zoomOffset += (*presses);
+    zoomOffset += (*presses) * 4;
   if (auto presses = m_input->bindDown("xsb", "zoomOut"))
-    zoomOffset -= (*presses);
+    zoomOffset -= (*presses) * 4;
   if (auto presses = m_input->bindDown("xsb", "incrementalZoomIn"))
-    zoomOffset += (*presses) * 0.25f;
+    zoomOffset += (*presses);
   if (auto presses = m_input->bindDown("xsb", "incrementalZoomOut"))
-    zoomOffset -= (*presses) * 0.25f;
+    zoomOffset -= (*presses);
 
   if (zoomOffset != 0)
-    config->set("zoomLevel", max(1.0f, round(config->get("zoomLevel").toFloat() + zoomOffset)));
+    config->set("zoomLevel", max(1.0f, round(config->get("zoomLevel").toFloat() * 4.0f + (float)zoomOffset)) * 0.25f);
 }
 
 void ClientApplication::update() {
