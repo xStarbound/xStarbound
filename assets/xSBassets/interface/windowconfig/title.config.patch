@@ -1,4 +1,4 @@
 {
-  "skyBackdropDarken" : [0, 0, 0, 64],
+  "skyBackdropDarken" : [75, 0, 0, 85],
   "backdropImages" : [ [ [0, 0], "/interface/title/starbound.png", 0.5, [0.5, 0.5] ] ]
 }

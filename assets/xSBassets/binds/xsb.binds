@@ -23,6 +23,24 @@
         "group": "camera",
         "name": "Zoom Out"
       },
+      "incrementalZoomIn": {
+        "default": [{
+          "type": "key",
+          "value": "=",
+          "mods" : ["LShift"]
+        }],
+        "group": "camera",
+        "name": "Zoom In Incrementally"
+      },
+      "incrementalZoomOut": {
+        "default": [{
+          "type": "key",
+          "value": "-",
+          "mods" : ["LShift"]
+        }],
+        "group": "camera",
+        "name": "Zoom Out Incrementally"
+      },
       "pushToTalk": {
         "default": [],
         "group": "voice",
