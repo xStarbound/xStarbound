@@ -23,7 +23,7 @@ Changes:
   - You can also resize the placement area of tiles on the fly.
 - Support for placing foreground tiles with a custom collision type (rewrite by Kae from StarExtensions; requires an OpenSB or xSB-2 server) and, via `world.placeMaterial()`, placing tiles not connected to existing ones (FezzedOne; requires an xSB-2 server). Tile placement with this feature is not network-compatible with servers that support the similar feature present in StarExtensions, although already-placed tiles work just fine. A fork of WEdit with support for these features will be on GitHub within the week.
   - Additionally, objects can be placed under non-solid foreground tiles (Kae).
-- Some minor polish to UI (Kae).
+- Some minor polish to UI (FezzedOne and Kae).
 
 ## Discord
  
