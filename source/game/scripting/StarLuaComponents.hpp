@@ -269,7 +269,13 @@ float LuaUpdatableComponent<Base>::updateDt(float dt) const {
 
 template <typename Base>
 float LuaUpdatableComponent<Base>::updateDt() const {
-  return m_updatePeriodic.stepCount() * m_lastDt;
+  float retDt = m_updatePeriodic.stepCount() * m_lastDt;
+  // FezzedOne: Fix for a bug where this callback returns `0.0f` when called before the first `update`.
+  if (retDt == 0.0f) {
+    return 0.01666666667f * GlobalTimescale;
+  } else {
+    return retDt;
+  }
 }
 
 

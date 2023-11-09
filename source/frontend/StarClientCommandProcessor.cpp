@@ -379,7 +379,7 @@ String ClientCommandProcessor::makeTechAvailable(String const& argumentsString) 
     return "You must be an admin to use this command.";
 
   if (arguments.size() == 0)
-    return "Not enouch arguments to /maketechavailable";
+    return "Not enough arguments to /maketechavailable";
 
   m_universeClient->mainPlayer()->techs()->makeAvailable(arguments.at(0));
   return strf("Added {} to player's visible techs", arguments.at(0));
@@ -391,7 +391,7 @@ String ClientCommandProcessor::enableTech(String const& argumentsString) {
     return "You must be an admin to use this command.";
 
   if (arguments.size() == 0)
-    return "Not enouch arguments to /enabletech";
+    return "Not enough arguments to /enabletech";
 
   m_universeClient->mainPlayer()->techs()->makeAvailable(arguments.at(0));
   m_universeClient->mainPlayer()->techs()->enable(arguments.at(0));
@@ -404,7 +404,7 @@ String ClientCommandProcessor::upgradeShip(String const& argumentsString) {
     return "You must be an admin to use this command.";
 
   if (arguments.size() == 0)
-    return "Not enouch arguments to /upgradeship";
+    return "Not enough arguments to /upgradeship";
 
   auto shipUpgrades = Json::parseJson(arguments.at(0));
   m_universeClient->rpcInterface()->invokeRemote("ship.applyShipUpgrades", shipUpgrades);
@@ -415,7 +415,7 @@ String ClientCommandProcessor::swap(String const& argumentsString) {
   auto arguments = m_parser.tokenizeToStringList(argumentsString);
 
   if (arguments.size() == 0)
-    return "Not enouch arguments to /swap";
+    return "Not enough arguments to /swap";
 
   if (m_universeClient->switchPlayer(arguments[0]))
     return "Successfully swapped player";
@@ -427,7 +427,7 @@ String ClientCommandProcessor::swapUuid(String const& argumentsString) {
   auto arguments = m_parser.tokenizeToStringList(argumentsString);
 
   if (arguments.size() == 0)
-    return "Not enouch arguments to /swapuuid";
+    return "Not enough arguments to /swapuuid";
 
   if (m_universeClient->switchPlayerUuid(arguments[0]))
     return "Successfully swapped player";
@@ -439,7 +439,7 @@ String ClientCommandProcessor::timeScale(String const& argumentsString) {
   auto arguments = m_parser.tokenizeToStringList(argumentsString);
 
   if (arguments.size() == 0)
-    return "Not enouch arguments to /timescale";
+    return "Not enough arguments to /timescale";
 
   GlobalTimescale = clamp(lexicalCast<float>(arguments[0]), 0.001f, 256.0f);
   return strf("Set application timescale to {:6.6f}x", GlobalTimescale);
