@@ -87,7 +87,7 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
   {
     auto protocolRequest = make_shared<ProtocolRequestPacket>(StarProtocolVersion);
     protocolRequest->setCompressionMode(PacketCompressionMode::Enabled);
-    // Signal that we're OpenStarbound. Vanilla Starbound only compresses packets above 64 bytes - by forcing it we can communicate this.
+    // Signal that we're xSB-2/OpenSB. Vanilla Starbound only compresses packets above 64 bytes - by forcing it we can communicate this.
     // If you know a less cursed way, please let me know.
     connection.pushSingle(protocolRequest);
   }
