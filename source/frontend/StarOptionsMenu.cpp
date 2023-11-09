@@ -78,8 +78,6 @@ OptionsMenu::OptionsMenu(PaneManager* manager)
   m_sfxSlider->setRange(m_sfxRange, assets->json("/interface/optionsmenu/optionsmenu.config:sfxDelta").toInt());
   m_musicSlider->setRange(m_musicRange, assets->json("/interface/optionsmenu/optionsmenu.config:musicDelta").toInt());
 
-  // Allow xSB to use OpenStarbound's assets, but prefer xSB's.
-
   const String xSbVoiceChatPath = "/interface/xsb/voicechat/voicechat.config";
   m_voiceSettingsMenu = make_shared<VoiceSettingsMenu>(assets->json(config.getString("voiceSettingsPanePath", xSbVoiceChatPath)));
   const String xSbBindingsPath = "/interface/xsb/bindings/bindings.config";
