@@ -136,7 +136,7 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     m_celestialDatabase = make_shared<CelestialSlaveDatabase>(move(success->celestialInformation));
     m_systemWorldClient = make_shared<SystemWorldClient>(m_universeClock, m_celestialDatabase, m_mainPlayer->universeMap());
 
-    Logger::info("UniverseClient: Joined {} server as client {}", m_legacyServer ? "Starbound" : "OpenStarbound", success->clientId);
+    Logger::info("UniverseClient: Joined {} server as client {}", m_legacyServer ? "Starbound" : "xSB-2/OpenSB", success->clientId);
     return {};
   } else if (auto failure = as<ConnectFailurePacket>(packet)) {
     Logger::error("UniverseClient: Join failed: {}", failure->reason);
