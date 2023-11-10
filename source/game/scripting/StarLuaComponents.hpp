@@ -143,7 +143,8 @@ public:
 
 private:
   Periodic m_updatePeriodic;
-  mutable float m_lastDt;
+  // FezzedOne: Why was this not initialised to zero, Kae?
+  mutable float m_lastDt = 0.0f;
 };
 
 // Wraps a basic lua component so that world callbacks are added on init, and
@@ -270,8 +271,8 @@ float LuaUpdatableComponent<Base>::updateDt(float dt) const {
 template <typename Base>
 float LuaUpdatableComponent<Base>::updateDt() const {
   float retDt = m_updatePeriodic.stepCount() * m_lastDt;
-  // FezzedOne: Fix for a bug where this callback returns `0.0f` when called before the first `update`.
-  if (retDt == 0.0f) {
+  // FezzedOne: Fix for a bug where this callback returns `0.0f` or a negative number when called before the first `update`.
+  if (retDt <= 0.0f) {
     return 0.01666666667f * GlobalTimescale;
   } else {
     return retDt;
