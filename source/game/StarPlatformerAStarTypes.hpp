@@ -56,6 +56,8 @@ struct Parameters {
   Maybe<float> jumpCost;
   // The cost of jump edges that start in liquids.
   Maybe<float> liquidJumpCost;
+  // FezzedOne: The cost of jump edges that start in mid-air.
+  Maybe<float> airJumpCost;
   // The cost of dropping through a platform.
   Maybe<float> dropCost;
   // If set, will be the default bounding box, otherwise will use

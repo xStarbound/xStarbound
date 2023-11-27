@@ -98,6 +98,7 @@ Maybe<PlatformerAStar::Parameters> LuaConverter<PlatformerAStar::Parameters>::to
     p.swimCost = table->get<Maybe<float>>("swimCost");
     p.jumpCost = table->get<Maybe<float>>("jumpCost");
     p.liquidJumpCost = table->get<Maybe<float>>("liquidJumpCost");
+    p.airJumpCost = table->get<Maybe<float>>("airJumpCost");
     p.dropCost = table->get<Maybe<float>>("dropCost");
     p.boundBox = table->get<RectF>("boundBox");
     p.standingBoundBox = table->get<RectF>("standingBoundBox");

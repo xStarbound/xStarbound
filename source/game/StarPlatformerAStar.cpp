@@ -19,6 +19,7 @@ namespace PlatformerAStar {
 
   float const DefaultSwimCost = 40.0f;
   float const DefaultJumpCost = 3.0f;
+  float const DefaultAirJumpCost = 10.0f
   float const DefaultLiquidJumpCost = 10.0f;
   float const DefaultDropCost = 3.0f;
 
@@ -241,6 +242,10 @@ namespace PlatformerAStar {
         neighbors.append(defaultCostEdge(Action::Land, target, Node{target.position, {}}));
       }
     });
+    // FezzedOne: If we can multijump, allow mid-air jumps.
+    if (m_movementParams.airJumpProfile.multiJump && *m_movementParams.airJumpProfile.multiJump) {
+      getJumpingNeighbors(node, neighbors);
+    }
   }
 
   void PathFinder::getJumpingNeighbors(Node const& node, List<Edge>& neighbors) const {
@@ -248,6 +253,10 @@ namespace PlatformerAStar {
       float jumpCost = m_searchParams.jumpCost.value(DefaultJumpCost);
       if (inLiquid(node.position))
         jumpCost = m_searchParams.liquidJumpCost.value(DefaultLiquidJumpCost);
+      if (m_movementParams.airJumpProfile.multiJump && *m_movementParams.airJumpProfile.multiJump) {
+        if (!onGround(node.position))
+          jumpCost = m_searchParams.airJumpCost.value(DefaultAirJumpCost);
+      }
       auto addVel = [jumpCost, &node, &neighbors](Vec2F const& vel) {
         neighbors.append(Edge{jumpCost, Action::Jump, vel, node, node.withVelocity(vel)});
       };
@@ -265,8 +274,10 @@ namespace PlatformerAStar {
 
     // Also allow jumping out of the water if we're at the surface:
     RectF box = boundBox(node.position);
-    if (acceleration(node.position)[1] != 0.0f && m_world->liquidLevel(box).level < 1.0f)
-      getJumpingNeighbors(node, neighbors);
+    // FezzedOne: Allow jumps anywhere in a liquid if `"multiJump"` is enabled.
+    if (acceleration(node.position)[1] != 0.0f && ((m_movementParams.liquidJumpProfile.multiJump
+      && *m_movementParams.liquidJumpProfile.multiJump) || m_world->liquidLevel(box).level < 1.0f))
+        getJumpingNeighbors(node, neighbors);
 
     neighbors.filter([this](Edge& edge) -> bool {
       return inLiquid(edge.target.position);
@@ -303,6 +314,11 @@ namespace PlatformerAStar {
     };
 
     simulateArc(node, addNode);
+
+    // FezzedOne: If we can multijump, also allow mid-air jump edges when getting arc edges.
+    if (m_movementParams.airJumpProfile.multiJump && *m_movementParams.airJumpProfile.multiJump) {
+      getJumpingNeighbors(node, neighbors);
+    }
   }
 
   void PathFinder::forEachArcVelocity(float yVelocity, function<void(Vec2F)> func) const {
