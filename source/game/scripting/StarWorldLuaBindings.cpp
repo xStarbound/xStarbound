@@ -362,7 +362,10 @@ namespace LuaBindings {
     if (auto clientWorld = as<WorldClient>(world)) {
       callbacks.registerCallbackWithSignature<RectI>("clientWindow", bind(ClientWorldCallbacks::clientWindow, clientWorld));
       callbacks.registerCallbackWithSignature<void, Maybe<Vec3F>>("setLightMultiplier", bind(ClientWorldCallbacks::setLightMultiplier, clientWorld, _1));
-      callbacks.registerCallbackWithSignature<void, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>>("setShaderParameters", bind(ClientWorldCallbacks::setShaderParameters, clientWorld, _1, _2, _3, _4, _5, _6));
+      callbacks.registerCallbackWithSignature<void, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>>("setShaderParameters",
+        bind(ClientWorldCallbacks::setShaderParameters, clientWorld, _1, _2, _3, _4, _5, _6));
+      callbacks.registerCallbackWithSignature<LuaTupleReturn<Vec3F, Vec3F, Vec3F, Vec3F, Vec3F, Vec3F>>("getShaderParameters",
+        bind(ClientWorldCallbacks::getShaderParameters, clientWorld));
       callbacks.registerCallbackWithSignature<void>("resetShaderParameters", bind(ClientWorldCallbacks::resetShaderParameters, clientWorld));
       callbacks.registerCallback("players", [clientWorld]() {
         List<EntityId> playerIds;
@@ -1108,6 +1111,11 @@ namespace LuaBindings {
     if (param5) newParameterArray[4] = *param5;
     if (param6) newParameterArray[5] = *param6;
     world->setShaderParameters(newParameterArray);
+  }
+
+  LuaTupleReturn<Vec3F, Vec3F, Vec3F, Vec3F, Vec3F, Vec3F> ClientWorldCallbacks::getShaderParameters(WorldClient* world) {
+    Array<Vec3F, 6> ret = world->getShaderParameters();
+    return luaTupleReturn(ret[0], ret[1], ret[2], ret[3], ret[4], ret[5]);
   }
 
   void ClientWorldCallbacks::resetShaderParameters(WorldClient* world) {
