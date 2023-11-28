@@ -777,6 +777,10 @@ Array<Vec3F, 6> WorldClient::getShaderParameters() const {
   return m_shaderParameters;
 }
 
+Array<Vec3F, 6> WorldClient::getShaderParameters() {
+  return m_shaderParameters;
+}
+
 void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
   auto& root = Root::singleton();
   auto materialDatabase = root.materialDatabase();

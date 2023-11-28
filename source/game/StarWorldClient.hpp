@@ -133,6 +133,7 @@ public:
   // Get and set custom shader parameters.
   void setShaderParameters(Array<Vec3F, 6> newParameters);
   Array<Vec3F, 6> getShaderParameters() const;
+  Array<Vec3F, 6> getShaderParameters();
 
   void handleIncomingPackets(List<PacketPtr> const& packets);
   List<PacketPtr> getOutgoingPackets();

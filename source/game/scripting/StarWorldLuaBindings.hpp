@@ -79,6 +79,7 @@ namespace LuaBindings {
                              Maybe<Vec3F> const& param4,
                              Maybe<Vec3F> const& param5,
                              Maybe<Vec3F> const& param6);
+    LuaTupleReturn<Vec3F, Vec3F, Vec3F, Vec3F, Vec3F, Vec3F> getShaderParameters(WorldClient* world);
     void resetShaderParameters(WorldClient* world);
   }
 
