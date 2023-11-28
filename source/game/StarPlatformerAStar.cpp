@@ -19,7 +19,7 @@ namespace PlatformerAStar {
 
   float const DefaultSwimCost = 40.0f;
   float const DefaultJumpCost = 3.0f;
-  float const DefaultAirJumpCost = 10.0f
+  float const DefaultAirJumpCost = 10.0f;
   float const DefaultLiquidJumpCost = 10.0f;
   float const DefaultDropCost = 3.0f;
 
