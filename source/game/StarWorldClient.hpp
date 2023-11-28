@@ -278,6 +278,9 @@ private:
   ConditionVariable m_lightingCond;
   atomic<WorldRenderData*> m_renderData;
   atomic<bool> m_stopLightingThread;
+  Mutex m_oldLightMapMutex;
+  Image m_oldLightMap;
+  atomic<bool> m_lightingTicked;
   Maybe<Vec3F> m_globalLightingMultiplier;
   Array<Vec3F, 6> m_shaderParameters;
 

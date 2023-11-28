@@ -452,6 +452,19 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
 
   Vec2U lightSize(lightRange.size());
 
+  if (!m_lightingTicked) {
+    // If this is the first lighting tick, reset the "old" light map.
+    MutexLocker olmLocker(m_oldLightMapMutex);
+    m_oldLightMap.reset(lightSize, PixelFormat::RGB24);
+    olmLocker.unlock();
+  } else {
+    // If this is *not* the first lighting tick, use the old light map until the new one is available, rather than a clean slate.
+    // This *should* stop the occasional flickering.
+    MutexLocker olmLocker(m_oldLightMapMutex);
+    renderData.lightMap = m_oldLightMap;
+    olmLocker.unlock();
+  }
+
   renderData.tileLightMap.reset(lightSize, PixelFormat::RGBA32);
   renderData.tileLightMap.fill(Vec4B::filled(0));
 
@@ -480,9 +493,13 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
     if (m_asyncLighting) {
       m_renderData = &renderData;
       m_lightingCond.signal();
-    }
-    else {
+    } else {
       m_lightingCalculator.calculate(renderData.lightMap);
+
+      MutexLocker olmLocker(m_oldLightMapMutex);
+      m_oldLightMap = renderData.lightMap;
+      m_lightingTicked = true;
+      olmLocker.unlock();
     }
   }
 
@@ -1671,8 +1688,10 @@ void WorldClient::lightingMain() {
     MutexLocker locker(m_lightingMutex);
 
     m_lightingCond.wait(m_lightingMutex);
-    if (m_stopLightingThread)
+    if (m_stopLightingThread) {
+      // locker.unlock();
       return;
+    }
 
     if (WorldRenderData* renderData = m_renderData) {
       int64_t start = Time::monotonicMicroseconds();
@@ -1680,14 +1699,17 @@ void WorldClient::lightingMain() {
       lightingTileGather();
 
       m_lightingCalculator.calculate(renderData->lightMap);
+
+      MutexLocker olmLocker(m_oldLightMapMutex);
+      m_oldLightMap = renderData->lightMap;
+      m_lightingTicked = true;
+      olmLocker.unlock();
+
       m_renderData = nullptr;
-      LogMap::set("client_render_world_async_light_calc", strf(u8"{:05d}\u00b5s", Time::monotonicMicroseconds() - start));
+      LogMap::set("async_light_calc", strf(u8"{:05d}\u00b5s", Time::monotonicMicroseconds() - start));
     }
 
-    continue;
-
-    locker.unlock();
-    Thread::yield();
+    // locker.unlock();
   }
 }
 
