@@ -13,7 +13,8 @@ InterpolationTracker::InterpolationTracker(Json config) {
   }
 
   m_interpolationEnabled = config.getBool("interpolationEnabled", false);
-  m_entityUpdateDelta = config.getUInt("enittyUpdateDelta", 3);
+  // What the hell, Chucklefish? Was `"enittyUpdateDelta"`.
+  m_entityUpdateDelta = config.getUInt("entityUpdateDelta", 3);
   m_stepLead = config.getUInt("stepLead", 0);
   m_extrapolationHint = config.getUInt("extrapolationHint", 0);
   m_stepTrackFactor = config.getDouble("stepTrackFactor", 1.0);

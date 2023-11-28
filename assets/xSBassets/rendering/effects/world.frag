@@ -67,10 +67,10 @@ vec3 sampleLightMap(vec2 texcoord, vec2 texscale) {
   vec4 b = bicubicSample(tileLightMap, texcoord, texscale);
   vec4 a = bicubicSample(lightMap, texcoord, texscale);
 
-  if (b.z <= 0.0)
+  if (b.a <= 0.0)
     return a.rgb;
 
-  return mix(a.rgb, b.rgb / b.z, b.z);
+  return mix(a.rgb, b.rgb / b.a, b.a);
 }
 
 // FezzedOne: Sample scriptable colour adjustment function.

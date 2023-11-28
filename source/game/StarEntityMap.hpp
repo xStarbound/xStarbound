@@ -25,7 +25,7 @@ public:
   static float const SpatialHashSectorSize;
   static int const MaximumEntityBoundBox;
 
-  // beginIdSpace and endIdSpace is the *inclusive* range for new enittyIds.
+  // beginIdSpace and endIdSpace is the *inclusive* range for new entityIds.
   EntityMap(Vec2U const& worldSize, EntityId beginIdSpace, EntityId endIdSpace);
 
   // Get the next free id in the entity id space.
