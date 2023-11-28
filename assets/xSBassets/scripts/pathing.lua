@@ -179,10 +179,6 @@ function PathFinder:update(targetPosition)
                 findProgress = self:find(targetPosition, true, false)
             end
         end
-        sb.setLogMap("[xSBscripts] Pather^1;^reset;", "findingTimer = %s", math.floor((self.findingTimer * 10) + 0.5) / 10)
-        sb.setLogMap("[xSBscripts] Pather^2;^reset;", "jumpReset = %s", self.jumpReset)
-        sb.setLogMap("[xSBscripts] Pather^3;^reset;", "flyReset = %s", self.flyReset)
-        sb.setLogMap("[xSBscripts] Pather^4;^reset;", "maxJumpHeight = %s", self.maxJumpHeight)
         if (self.findingTimer >= 10) or (self.options.alwaysFly and self.findingTimer >= 5) then
             -- Notify the parent script that a path can't be found; the parent script can use the position for teleporting.
             unstickPosition = targetPosition
@@ -197,11 +193,6 @@ function PathFinder:update(targetPosition)
             self.findingTimer = self.findingTimer + (self.dt or script.updateDt())
         end
         return findProgress, unstickPosition
-    else
-        sb.setLogMap("[xSBscripts] Pather^1;^reset;", "findingTimer = %s", math.floor((self.findingTimer * 10) + 0.5) / 10)
-        sb.setLogMap("[xSBscripts] Pather^2;^reset;", "jumpReset = %s", self.jumpReset)
-        sb.setLogMap("[xSBscripts] Pather^3;^reset;", "flyReset = %s", self.flyReset)
-        sb.setLogMap("[xSBscripts] Pather^4;^reset;", "maxJumpHeight = %s", self.maxJumpHeight)
     end
 
     if self.aStar then
@@ -293,8 +284,6 @@ function PathMover:new(options)
 end
 
 function PathMover:move(targetPosition, dt)
-    sb.setLogMap("[xPather]^001;", "self.jumpTimer = %s", self.jumpTimer)
-
     local run = self.options.run
     if self.forceWalkingBackwards then if run == true then run = mcontroller.movingDirection() == mcontroller.facingDirection() end end
 
