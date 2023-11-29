@@ -463,8 +463,14 @@ private:
       : parent(parent) {}
 
     Maybe<String> getClipboard() override {
-      if (SDL_HasClipboardText())
-        return String(SDL_GetClipboardText());
+      if (SDL_HasClipboardText()) {
+        char* clipboardText = SDL_GetClipboardText();
+        String clipboardTextStr = "";
+        if (clipboardText != NULL && clipboardText[0] != '\0')
+          clipboardTextStr = String(clipboardText);
+        SDL_free(clipboardText);
+        return Maybe<String>(clipboardTextStr);
+      }
       return {};
     }
 

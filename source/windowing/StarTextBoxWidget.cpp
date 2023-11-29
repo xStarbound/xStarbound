@@ -423,8 +423,14 @@ bool TextBoxWidget::modText(String const& text) {
 }
 
 bool TextBoxWidget::newTextValid(String const& text) const {
-  if (!text.regexMatch(m_regex))
-    return false;
+  // Stopgap fix for a GCC standard library bug. At least until I get around to compiling against LLVM's standard library instead.
+  bool skipRegex = false;
+  if (m_regex == ".*")
+    skipRegex = true;
+  if (!skipRegex) {
+    if (!text.regexMatch(m_regex))
+      return false;
+  }
   if ((m_maxWidth != -1) && !m_overfillMode) {
     context()->setFont(m_font);
     context()->setFontSize(m_fontSize);
