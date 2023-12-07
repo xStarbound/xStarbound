@@ -39,6 +39,8 @@ Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
 
     Image destImage(destSize, srcImage.pixelFormat());
 
+    // FezzedOne: Need to disable Clang optimisations to ensure proper rendering of custom clothes, which depends on this code working *exactly* as specified.
+    #pragma clang optimize off
     for (unsigned y = 0; y < destSize[1]; ++y) {
       for (unsigned x = 0; x < destSize[0]; ++x) {
         auto pos = vdiv(Vec2F(x, y), scale);
@@ -51,6 +53,7 @@ Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
         destImage.set({x, y}, Vec4B(result));
       }
     }
+    #pragma clang optimize on
 
     return destImage;
   } else {
