@@ -2242,27 +2242,32 @@ RpcPromise<Vec2F> WorldClient::findUniqueEntity(String const& uniqueId) {
 
 RpcPromise<Json> WorldClient::sendEntityMessage(Variant<EntityId, String> const& entityId, String const& message, JsonArray const& args) {
   EntityPtr entity;
-  if (entityId.is<EntityId>())
-    entity = m_entityMap->entity(entityId.get<EntityId>());
-  else
-    entity = m_entityMap->uniqueEntity(entityId.get<String>());
-
-  // Only fail with "unknown entity" if we know this entity should exist on the
-  // client, because it's entity id indicates it is master here.
-  if (entityId.is<EntityId>() && !entity && m_clientId == connectionForEntity(entityId.get<EntityId>())) {
-    return RpcPromise<Json>::createFailed("Unknown entity");
-  } else if (entity && entity->isMaster()) {
-    if (auto resp = entity->receiveMessage(*m_clientId, message, args))
-      return RpcPromise<Json>::createFulfilled(resp.take());
+  if (m_entityMap) {
+    if (entityId.is<EntityId>())
+      entity = m_entityMap->entity(entityId.get<EntityId>());
     else
-      return RpcPromise<Json>::createFailed("Message not handled by entity");
+      entity = m_entityMap->uniqueEntity(entityId.get<String>());
+
+    // Only fail with "unknown entity" if we know this entity should exist on the
+    // client, because it's entity id indicates it is master here.
+    if (entityId.is<EntityId>() && !entity && m_clientId == connectionForEntity(entityId.get<EntityId>())) {
+      return RpcPromise<Json>::createFailed("Unknown entity");
+    } else if (entity && entity->isMaster()) {
+      if (auto resp = entity->receiveMessage(*m_clientId, message, args))
+        return RpcPromise<Json>::createFulfilled(resp.take());
+      else
+        return RpcPromise<Json>::createFailed("Message not handled by entity");
+    } else {
+      auto pair = RpcPromise<Json>::createPair();
+      Uuid uuid;
+      m_entityMessageResponses[uuid] = pair.second;
+      m_outgoingPackets.append(make_shared<EntityMessagePacket>(entityId, message, args, uuid));
+      return pair.first;
+    }
   } else {
-    auto pair = RpcPromise<Json>::createPair();
-    Uuid uuid;
-    m_entityMessageResponses[uuid] = pair.second;
-    m_outgoingPackets.append(make_shared<EntityMessagePacket>(entityId, message, args, uuid));
-    return pair.first;
+    throw WorldClientException("Entity map not initialised");
   }
+  return RpcPromise<Json>::createFailed("Unknown entity message error");
 }
 
 List<ChatAction> WorldClient::pullPendingChatActions() {
