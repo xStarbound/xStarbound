@@ -263,10 +263,16 @@ IF (STAR_COMPILER_GNU)
   SET (CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast")
 
 ELSEIF (STAR_COMPILER_CLANG)
-  # Stop Clang from bitching about all those thousands of `move` calls without an `std::` (or `Star::`, since there's an alias in that namespace).
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-export_dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized  -Wno-parentheses-equality -Wno-deprecated-declarations")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wl,-export_dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
-
+  # FezzedOne: Clang is so fucking finicky that a single *dash* causes the resulting executables to be completely unusable.
+  IF (STAR_SYSTEM_LINUX)
+    # Stop Clang from bitching about all those thousands of `move` calls without an `std::` (or `Star::`, since there's an alias in that namespace).
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,--export_dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized  -Wno-parentheses-equality -Wno-deprecated-declarations")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wl,--export_dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
+  ELSEIF (STAR_SYSTEM_MACOS)
+    # Stop Clang from bitching about all those thousands of `move` calls without an `std::` (or `Star::`, since there's an alias in that namespace).
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-export_dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized  -Wno-parentheses-equality -Wno-deprecated-declarations")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wl,-export_dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
+  ENDIF()
 
   IF (STAR_SYSTEM_MACOS)
     # Should hopefully fix a linker error - there's no need to try to link against iOS libraries in a goddamn desktop game, SDL!
