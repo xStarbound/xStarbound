@@ -228,7 +228,8 @@ ENDIF ()
 
 IF (STAR_COMPILER_GNU)
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -rdynamic -Wall -Wextra -Wno-unused -Wno-unqualified-std-cast-call -Wno-implicit-fallthrough -no-pie")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -rdynamic -Wall -Wextra -Wno-unused -Wno-unqualified-std-cast-call -Wno-implicit-fallthrough -no-pie")
+  # Use libc++ (`-stdlib=libc++`) instead of libstdc++, which is really buggy when it comes to regexes.
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -stdlib=libc++ -rdynamic -Wall -Wextra -Wno-unused -Wno-implicit-fallthrough -no-pie")
 
   IF (STAR_SYSTEM_FAMILY_WINDOWS)
     SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mthreads")
@@ -240,7 +241,8 @@ IF (STAR_COMPILER_GNU)
 
   IF (STAR_ENABLE_STATIC_LIBGCC_LIBSTDCXX)
     SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static-libgcc")
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
+    # Use libc++ (`-static-libc++`) instead of libstdc++, which is really buggy when it comes to regexes.
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libc++") # -static-libstdc++
   ENDIF ()
 
   IF (STAR_ENABLE_GCC_PROFILING)
@@ -264,7 +266,7 @@ IF (STAR_COMPILER_GNU)
 
 ELSEIF (STAR_COMPILER_CLANG)
   # Stop Clang from bitching about all those thousands of `move` calls without an `std::` (or `Star::`, since there's an alias in that namespace).
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-export_dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized  -Wno-parentheses-equality -Wno-deprecated-declarations") 
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-export_dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized  -Wno-parentheses-equality -Wno-deprecated-declarations")
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wl,-export_dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
 
 
