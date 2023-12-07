@@ -379,6 +379,10 @@ ENDIF ()
 
 # Set other global build settings based on environment...
 
+IF (STAR_SYSTEM_LINUX AND STAR_COMPILER_CLANG)
+  SET (CMAKE_MODULE_LINKER_FLAGS "-no-pie")
+ENDIF ()
+
 IF (STAR_SYSTEM_MACOS)
   SET (CMAKE_MODULE_LINKER_FLAGS "-flat_namespace -undefined suppress")
 ELSEIF (STAR_SYSTEM_WINDOWS)
