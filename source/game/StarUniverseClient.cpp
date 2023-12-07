@@ -488,6 +488,7 @@ List<ChatReceivedMessage> UniverseClient::pullChatMessages() {
   // FezzedOne: Also send chat messages to any existing main player. We ensure messages aren't dropped while
   // swapping players or warping to worlds.
   if (m_worldClient && m_mainPlayer) {
+    bool worldInitialised = true;
     for (auto pm : m_worldPendingMessages) {
       Json messageJson = JsonObject{
         {"context", JsonObject{
@@ -499,9 +500,15 @@ List<ChatReceivedMessage> UniverseClient::pullChatMessages() {
         {"portrait", pm.portrait},
         {"message", pm.text}
       };
-      m_worldClient->sendEntityMessage(m_mainPlayer->entityId(), "chatMessage", JsonArray{messageJson});
+      try {
+        m_worldClient->sendEntityMessage(m_mainPlayer->entityId(), "chatMessage", JsonArray{messageJson});
+      } catch (WorldClientException const& e) {
+        worldInitialised = false;
+        break;
+      }
     }
-    m_worldPendingMessages = {};
+    if (worldInitialised)
+      m_worldPendingMessages = {};
   }
   return take(m_pendingMessages);
 }
