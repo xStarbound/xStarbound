@@ -31,11 +31,7 @@ Image scaleNearest(Image const& srcImage, Vec2F const& scale) {
 }
 
 // FezzedOne: Need to disable Clang optimisations to ensure proper rendering of custom clothes, which depends on this code working *exactly* as specified.
-#ifdef STAR_COMPILER_CLANG
-__attribute__ ((optnone)) Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
-#else
 Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
-#endif
   if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
     Vec2U srcSize = srcImage.size();
     Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
