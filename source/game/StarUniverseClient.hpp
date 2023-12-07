@@ -136,7 +136,7 @@ private:
   SystemWorldClientPtr m_systemWorldClient;
   Maybe<UniverseConnection> m_connection;
   Maybe<ServerInfo> m_serverInfo;
-  
+
   StringMap<LuaCallbacks> m_luaCallbacks;
 
   CelestialSlaveDatabasePtr m_celestialDatabase;
@@ -156,6 +156,7 @@ private:
   int64_t m_storageTriggerDeadline;
 
   List<ChatReceivedMessage> m_pendingMessages;
+  List<ChatReceivedMessage> m_worldPendingMessages;
 
   Maybe<String> m_disconnectReason;
 
