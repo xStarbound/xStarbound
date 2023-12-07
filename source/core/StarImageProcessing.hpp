@@ -12,11 +12,7 @@ STAR_CLASS(Image);
 STAR_EXCEPTION(ImageOperationException, StarException);
 
 Image scaleNearest(Image const& srcImage, Vec2F const& scale);
-#ifdef STAR_COMPILER_CLANG
-__attribute__ ((optnone)) Image scaleBilinear(Image const& srcImage, Vec2F const& scale);
-#else
 Image scaleBilinear(Image const& srcImage, Vec2F const& scale);
-#endif
 Image scaleBicubic(Image const& srcImage, Vec2F const& scale);
 
 StringList colorDirectivesFromConfig(JsonArray const& directives);
