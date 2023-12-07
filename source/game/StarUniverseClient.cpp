@@ -485,6 +485,24 @@ void UniverseClient::sendChat(String const &text, String const &sendMode, bool s
 }
 
 List<ChatReceivedMessage> UniverseClient::pullChatMessages() {
+  // FezzedOne: Also send chat messages to any existing main player. We ensure messages aren't dropped while
+  // swapping players or warping to worlds.
+  if (m_worldClient && m_mainPlayer) {
+    for (auto pm : m_worldPendingMessages) {
+      Json messageJson = JsonObject{
+        {"context", JsonObject{
+          {"mode", MessageContextModeNames.getRight(pm.context.mode)},
+          {"channelName", pm.context.channelName}
+        }},
+        {"connection", pm.fromConnection},
+        {"nick", pm.fromNick},
+        {"portrait", pm.portrait},
+        {"message", pm.text}
+      };
+      m_worldClient->sendEntityMessage(m_mainPlayer->entityId(), "chatMessage", JsonArray{messageJson});
+    }
+    m_worldPendingMessages = {};
+  }
   return take(m_pendingMessages);
 }
 
@@ -695,6 +713,7 @@ void UniverseClient::handlePackets(List<PacketPtr> const& packets) {
 
     } else if (auto chatReceivePacket = as<ChatReceivePacket>(packet)) {
       m_pendingMessages.append(chatReceivePacket->receivedMessage);
+      m_worldPendingMessages.append(chatReceivePacket->receivedMessage);
 
     } else if (auto universeTimeUpdatePacket = as<UniverseTimeUpdatePacket>(packet)) {
       m_universeClock->setTime(universeTimeUpdatePacket->universeTime);

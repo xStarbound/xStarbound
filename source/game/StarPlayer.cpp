@@ -1124,6 +1124,10 @@ void Player::update(float dt, uint64_t) {
           }
 
           addChatMessageCallback(ir.message);
+
+          // FezzedOne: Send inspection messages as entity messages to the player. This allows them to be handled in Lua scripts.
+          if (world())
+            world()->sendEntityMessage(entityId(), "inspectionMessage", JsonArray{*ir.entityId, ir.message});
         }
       }
     }
@@ -2521,6 +2525,12 @@ void Player::addChatMessageCallback(String const &message) {
   } catch (JsonException) {
     chatPortrait = {};
   }
+  bool skipChatBubble = false;
+  try {
+    skipChatBubble = m_chatBubbleConfig.getBool("skipChatBubble");
+  } catch (JsonException) {
+    skipChatBubble = false;
+  }
 
   String chatPrefix = "";
   try { chatPrefix = m_chatBubbleConfig.getString("chatPrefix", ""); }
@@ -2530,10 +2540,12 @@ void Player::addChatMessageCallback(String const &message) {
   catch (JsonException) { chatSuffix = ""; }
   String modifiedMessage = chatPrefix + message + chatSuffix;
 
-  if (chatPortrait) {
-    m_pendingChatActions.append(PortraitChatAction{entityId(), chatPortrait.get(), modifiedMessage, mouthPosition(), m_chatBubbleConfig});
-  } else {
-    m_pendingChatActions.append(SayChatAction{entityId(), modifiedMessage, mouthPosition(), m_chatBubbleConfig});
+  if (!skipChatBubble) {
+    if (chatPortrait) {
+      m_pendingChatActions.append(PortraitChatAction{entityId(), chatPortrait.get(), modifiedMessage, mouthPosition(), m_chatBubbleConfig});
+    } else {
+      m_pendingChatActions.append(SayChatAction{entityId(), modifiedMessage, mouthPosition(), m_chatBubbleConfig});
+    }
   }
 }
 
