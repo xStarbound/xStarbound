@@ -5,6 +5,7 @@
 #include "StarInteractionTypes.hpp"
 #include "StarItemDescriptor.hpp"
 #include "StarGameTypes.hpp"
+#include "StarChatTypes.hpp"
 #include "StarInterfaceCursor.hpp"
 #include "StarMainInterfaceTypes.hpp"
 #include "StarWarping.hpp"
@@ -105,6 +106,8 @@ public:
 
   void doChat(String const& chat, bool addToHistory);
 
+  void addChatMessage(ChatReceivedMessage message, bool showChat);
+
   void queueMessage(String const& message, Maybe<float> cooldown, float spring);
   void queueMessage(String const& message);
 
@@ -197,7 +200,7 @@ private:
   Vec2I m_cursorScreenPos;
   ItemSlotWidgetPtr m_cursorItem;
   Maybe<String> m_cursorTooltip;
-  // FezzedOne: Add tooltip stuff.
+    // FezzedOne: Add tooltip stuff.
   Maybe<String> m_overrideTooltip;
   bool m_overrideDefaultTooltip;
 

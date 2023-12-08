@@ -493,7 +493,7 @@ List<ChatReceivedMessage> UniverseClient::pullChatMessages() {
       Json messageJson = JsonObject{
         {"context", JsonObject{
           {"mode", MessageContextModeNames.getRight(pm.context.mode)},
-          {"channelName", pm.context.channelName}
+          {"channel", pm.context.channelName}
         }},
         {"connection", pm.fromConnection},
         {"nick", pm.fromNick},

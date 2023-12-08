@@ -865,6 +865,10 @@ void MainInterface::doChat(String const& chat, bool addToHistory) {
     m_chat->addHistory(chat);
 }
 
+void MainInterface::addChatMessage(ChatReceivedMessage const& message, bool showChat) {
+  m_chat->addMessages({message}, showChat);
+}
+
 void MainInterface::queueMessage(String const& message, Maybe<float> cooldown, float spring) {
   auto guiMessage = make_shared<GuiMessage>(message, cooldown.value(m_config->messageTime), spring);
   m_messages.append(guiMessage);
@@ -1008,8 +1012,16 @@ PanePtr MainInterface::createEscapeDialog() {
     });
 
   escapeDialogReader.construct(assets->json("/interface.config:escapeDialog"), escapeDialogPtr);
+#ifdef XCLIENT_UNLOCKED
+  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(strf("^#822;xSB<FE>::xClient^reset; {} (sb {} / {})\n^#822;< Do not share without permission. >", xSbVersionString, StarVersionString, StarArchitectureString));
+#else
   escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(strf("^#822;xSB::xClient^reset; {} (sb {} / {})", xSbVersionString, StarVersionString, StarArchitectureString));
+#endif
+#ifdef XCLIENT_UNLOCKED
   escapeDialog->fetchChild<LabelWidget>("lblcopyright")->setText("By ^#800;FezzedOne^reset;, OpenSB, Chucklefish");
+#else
+  escapeDialog->fetchChild<LabelWidget>("lblcopyright")->setText("By ^#800;FezzedOne^reset;, OpenSB, Chucklefish");
+#endif
   return escapeDialog;
 }
 
