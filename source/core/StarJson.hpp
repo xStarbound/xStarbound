@@ -296,6 +296,13 @@ Json jsonMerge(Json const& base, Json const& merger);
 template <typename... T>
 Json jsonMerge(Json const& base, Json const& merger, T const&... rest);
 
+// FezzedOne: Like the one above, but returns the *merger* value even if null,
+// as long as the *key* exists.
+Json jsonMergeNull(Json const& base, Json const& merger);
+
+template <typename... T>
+Json jsonMergeNull(Json const& base, Json const& merger, T const&... rest);
+
 // Similar to jsonMerge, but query only for a single key.  Gets a value equal
 // to jsonMerge(jsons...).query(key, Json()), but much faster than doing an
 // entire merge operation.
