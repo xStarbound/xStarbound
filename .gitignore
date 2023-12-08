@@ -1,6 +1,7 @@
 build/
 build-qt/
 dist/
+dist-qt/
 enc_temp_folder/
 .cache/
 attic/chucklefish/
