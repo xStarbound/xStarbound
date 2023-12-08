@@ -1035,4 +1035,22 @@ Json jsonMerge(Json const& base, Json const& merger) {
   }
 }
 
+Json jsonMergeNull(Json const& base, Json const& merger) {
+  if (base.type() == Json::Type::Object && merger.type() == Json::Type::Object) {
+    JsonObject merged = base.toObject();
+    for (auto const& p : merger.toObject()) {
+      auto res = merged.insert(p);
+      if (!res.second)
+        res.first->second = jsonMergeNull(res.first->second, p.second);
+    }
+    return merged;
+
+  } else if (merger.type() == Json::Type::Null) {
+    return merger;
+
+  } else {
+    return merger;
+  }
+}
+
 }
