@@ -106,7 +106,7 @@ public:
 
   void doChat(String const& chat, bool addToHistory);
 
-  void addChatMessage(ChatReceivedMessage message, bool showChat);
+  void addChatMessage(ChatReceivedMessage const& message, bool showChat);
 
   void queueMessage(String const& message, Maybe<float> cooldown, float spring);
   void queueMessage(String const& message);
