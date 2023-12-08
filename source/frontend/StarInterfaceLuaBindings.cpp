@@ -62,7 +62,7 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface) {
                                                              messagePortrait);
       mainInterface->addChatMessage(messageToAdd, showChatBool);
     }
-  })
+  });
 
   return callbacks;
 }
