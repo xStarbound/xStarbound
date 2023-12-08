@@ -42,10 +42,12 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface) {
       if (showChat)
         showChatBool = *showChat;
 
-      Json newChatMessageConfig = chatMessageConfig ? chatMessageConfig : JsonObject();
+      Json newChatMessageConfig = JsonObject();
+      if (chatMessageConfig.type() == Json::Type::Object)
+        newChatMessageConfig = chatMessageConfig;
       Json newContext = newChatMessageConfig.getObject("context", JsonObject());
 
-      MessageContext::Mode messageMode = messageContextModeNames.valueLeft(newContext.getString("mode", "Local"), MessageContext::Mode::Local);
+      MessageContext::Mode messageMode = MessageContextModeNames.valueLeft(newContext.getString("mode", "Local"), MessageContext::Mode::Local);
       String messageChannelName = newContext.getString("channel", "");
 
       ConnectionId messageConnectionId = (uint16_t)newChatMessageConfig.getInt("connection", 0);
