@@ -53,7 +53,7 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface) {
       ConnectionId messageConnectionId = (uint16_t)newChatMessageConfig.getInt("connection", 0);
       String messageNick = newChatMessageConfig.getString("nick", "");
       String messagePortrait = newChatMessageConfig.getString("portrait", "");
-      String messageText = newChatMessageConfig.getString("string", "");
+      String messageText = newChatMessageConfig.getString("message", "");
 
       ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(messageMode, messageChannelName),
                                                              messageConnectionId,
