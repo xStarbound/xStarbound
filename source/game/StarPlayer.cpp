@@ -1126,12 +1126,12 @@ void Player::update(float dt, uint64_t) {
           addChatMessageCallback(ir.message);
 
           // FezzedOne: Send inspection messages as entity messages to the player. This allows them to be handled in Lua scripts.
-          EntityId entity = 0;
+          EntityId scanEntityId = 0;
           if (ir.entityId)
-            entityId = *ir.entityId;
+            scanEntityId = *ir.entityId;
 
           if (world())
-            world()->sendEntityMessage(entityId(), "inspectionMessage", JsonArray{entityId, ir.message});
+            world()->sendEntityMessage(entityId(), "inspectionMessage", JsonArray{scanEntityId, ir.message});
         }
       }
     }
