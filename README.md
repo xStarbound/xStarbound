@@ -22,7 +22,7 @@ On Linux:
 
 On Windows:
 
-1. Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/whatsnew/).
+1. Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/whatsnew/). Make sure to install C++ support (and optionally the game dev stuff).
 2. Download the latest source ZIP (or clone the repo) and extract.
 3. Go into `scripts\windows\` and double-click `setup64.bat`.
 4. Wait for that batch file to finish, go up two folders, open up `build\` and double-click `ALL_BUILD.vcxproj`.
