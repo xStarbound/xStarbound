@@ -49,5 +49,5 @@ On Windows:
 - Some minor polish to UI (FezzedOne and Kae).
 
 ## Discord
- 
+
 For support, suggestions or just plain old chit-chat, check out the [xSB-2 Discord server](https://discord.gg/GJ5RTkyFCX).
