@@ -6,7 +6,30 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 
 If you're compiling xSB-2 anyways, make sure it loads the game assets in `/assets/xSBassets/`.
 
-Changes:
+## Building
+
+On Linux:
+
+1. Install Clang and LLVM:
+   - **Arch/Garuda:** `sudo pacman -S clang llvm` (version 16; consider using `-Syu` first).
+   - **Ubuntu/Debian:** `sudo apt install clang-16 llvm-16`.
+   - **Fedora/Nobara:** `sudo dnf install clang llvm` (may be version 16 or 17, depending on OS version).
+   - **SteamOS:** Install Homebrew, then `brew install llvm@16`. If you don't mind modifying your root filesystem, use the `pacman` command above instead.
+2. Download the latest source tarball (or clone the repo) and extract.
+3. `cd xSB-2/`
+4. `scripts/linux/setup.sh 3` (increase that `3` to `4` or more if you've got a beefy system).
+5. Executables should appear in `$src/dist` if built successfully.
+
+On Windows:
+
+1. Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/whatsnew/).
+2. Download the latest source ZIP (or clone the repo) and extract.
+3. Go into `scripts\windows\` and double-click `setup64.bat`.
+4. Wait for that batch file to finish, go up two folders, open up `build\` and double-click `ALL_BUILD.vcxproj`.
+5. Select **Build → Build Solution** in Visual Studio.
+6. Executables should appear in a new `xSB-2\dist\` folder if built successfully.
+
+## Changes
 
 - You can now make `.patch` files that are just merged in, early-beta-style (Kae). That's why the patch files in `assets/xSBassets` are unusually simple.
 - Almost all Lua callbacks from the original xSB (by FezzedOne), `input` callbacks (by Kae), plus some extra `player` callbacks for compatibility with OpenStarbound mods and some StarExtensions mods. The `setSpecies` and `setIdentity` callbacks will not let you switch to a nonexistent species. Documentation has yet to be updated.
