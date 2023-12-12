@@ -114,6 +114,7 @@ ENDIF ()
 
 OPTION (STAR_LUA_APICHECK "Use lua api checks" OFF)
 OPTION (STAR_USE_JEMALLOC "Use jemalloc allocators" OFF)
+OPTION (STAR_USE_MIMALLOC "Use mimalloc allocators (takes precedence over jemalloc)" OFF)
 
 # Report all the discovered system / environment settings and all options.
 
@@ -152,6 +153,7 @@ ENDIF ()
 
 MESSAGE (STATUS "Using Lua API checks: ${STAR_LUA_APICHECK}")
 MESSAGE (STATUS "Using jemalloc: ${STAR_USE_JEMALLOC}")
+MESSAGE (STATUS "Using mimalloc: ${STAR_USE_MIMALLOC}")
 
 # Set C defines and cmake variables based on the build settings we have now
 # determined...
@@ -224,6 +226,9 @@ IF (STAR_USE_JEMALLOC)
   ADD_DEFINITIONS (-DSTAR_USE_JEMALLOC)
 ENDIF ()
 
+IF (STAR_USE_MIMALLOC)
+  ADD_DEFINITIONS (-DSTAR_USE_MIMALLOC)
+ENDIF ()
 # Set C/C++ compiler flags based on build environment...
 
 IF (STAR_COMPILER_GNU)
@@ -438,6 +443,14 @@ IF (STAR_USE_JEMALLOC)
   INCLUDE_DIRECTORIES (SYSTEM ${JEMALLOC_INCLUDE_DIR})
   SET (STAR_EXT_LIBS ${JEMALLOC_LIBRARY})
 ENDIF ()
+
+IF (STAR_USE_MIMALLOC)
+  # Assumes mimalloc was configured with an "mi_" function prefix
+  FIND_PACKAGE(mimalloc REQUIRED)
+
+  INCLUDE_DIRECTORIES (SYSTEM ${MIMALLOC_INCLUDE_DIR})
+  SET (STAR_EXT_LIBS ${MIMALLOC_LIBRARY})
+ENDIF()
 
 FIND_PACKAGE (ZLIB REQUIRED)
 FIND_PACKAGE (PNG REQUIRED)
