@@ -723,8 +723,8 @@ bool String::regexMatch(String const& regex, bool full, bool caseSensitive) cons
   int value;
 
   // Parse the regex.
-  if (caseSensitive) value = regcomp(&cmpRegex, regex.utf8().c_str, REG_EXTENDED);
-  else value = regcomp(&cmpRegex, regex.utf8().c_str, REG_EXTENDED | REG_ICASE);
+  if (caseSensitive) value = regcomp(&cmpRegex, regex.utf8().c_str(), REG_EXTENDED);
+  else value = regcomp(&cmpRegex, regex.utf8().c_str(), REG_EXTENDED | REG_ICASE);
   if (value) {
     // We've run into an error.
     size_t errorLen = regerror(value, &cmpRegex, NULL, 0);
@@ -737,7 +737,7 @@ bool String::regexMatch(String const& regex, bool full, bool caseSensitive) cons
   }
 
   // Execute the regex.
-  value = regexec(&cmpRegex, utf8().c_str, 0, NULL, 0);
+  value = regexec(&cmpRegex, utf8().c_str(), 0, NULL, 0);
 
   // Finish up.
   regfree(&cmpRegex);
