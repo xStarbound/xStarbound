@@ -724,7 +724,7 @@ bool String::regexMatch(String const& regex, bool full, bool caseSensitive) cons
 
   // Parse the regex.
   if (caseSensitive) value = regcomp(&cmpRegex, regex.utf8().c_str, REG_EXTENDED);
-  else value = regcomp(&cmpRegex, regex.utf8().c_str, REG_EXTENDED & REG_ICASE);
+  else value = regcomp(&cmpRegex, regex.utf8().c_str, REG_EXTENDED | REG_ICASE);
   if (value) {
     // We've run into an error.
     size_t errorLen = regerror(value, &cmpRegex, NULL, 0);
