@@ -1,12 +1,30 @@
 #include "StarMemory.hpp"
 
-#ifdef STAR_USE_JEMALLOC
+#ifdef STAR_USE_MIMALLOC
+#include "mimalloc/mimalloc.h"
+#elifdef STAR_USE_JEMALLOC
 #include "jemalloc/jemalloc.h"
 #endif
 
 namespace Star {
 
-#ifdef STAR_USE_JEMALLOC
+#ifdef STAR_USE_MIMALLOC
+  void* malloc(size_t size) {
+    return mi_malloc(size);
+  }
+
+  void* realloc(void* ptr, size_t size) {
+    return mi_realloc(ptr, size);
+  }
+
+  void free(void* ptr) {
+    mi_free(ptr);
+  }
+
+  void free(void* ptr, size_t size) {
+    mi_free(ptr);
+  }
+#elifdef STAR_USE_JEMALLOC
   void* malloc(size_t size) {
     return je_malloc(size);
   }
