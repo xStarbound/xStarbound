@@ -471,7 +471,7 @@ size_t Audio::resample(unsigned destinationChannels, unsigned destinationSampleR
   unsigned sourceChannels = channels();
   unsigned sourceSampleRate = sampleRate();
 
-  if (velocity != 1.0)
+  if (velocity != 1.0 && velocity == velocity) // FezzedOne: Fix for a potential floating-point exception caused by `velocity` being a NaN.
     sourceSampleRate = (unsigned)(sourceSampleRate * velocity);
 
   if (destinationChannels == sourceChannels && destinationSampleRate == sourceSampleRate) {
