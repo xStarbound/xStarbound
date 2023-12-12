@@ -19,8 +19,8 @@ LINUX_LIB_DIR=../lib/linux;
 cmake \
   -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_C_COMPILER=/usr/bin/clang \
-  -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
+  -DCMAKE_C_COMPILER=/usr/bin/gcc \
+  -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
   -DCMAKE_INCLUDE_PATH=$LINUX_LIB_DIR/include \
   -DCMAKE_LIBRARY_PATH=$LINUX_LIB_DIR/ \
   -DSTAR_BUILD_QT_TOOLS=OFF \
