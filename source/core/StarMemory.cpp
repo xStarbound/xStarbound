@@ -1,14 +1,15 @@
 #include "StarMemory.hpp"
 
-#ifdef STAR_USE_MIMALLOC
+#if defined STAR_USE_MIMALLOC
 #include "mimalloc/mimalloc.h"
-#elifdef STAR_USE_JEMALLOC
+// #elifdef apparently isn't compatible with MSVC.
+#elif defined STAR_USE_JEMALLOC
 #include "jemalloc/jemalloc.h"
 #endif
 
 namespace Star {
 
-#ifdef STAR_USE_MIMALLOC
+#if defined STAR_USE_MIMALLOC
   void* malloc(size_t size) {
     return mi_malloc(size);
   }
@@ -24,7 +25,7 @@ namespace Star {
   void free(void* ptr, size_t size) {
     mi_free(ptr);
   }
-#elifdef STAR_USE_JEMALLOC
+#elif defined STAR_USE_JEMALLOC
   void* malloc(size_t size) {
     return je_malloc(size);
   }
