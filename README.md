@@ -4,8 +4,6 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
 
 Compiled builds for Linux and Windows should be available in the usual place on this repository.
 
-If you're compiling xSB-2 anyways, make sure it loads the game assets in `/assets/xSBassets/`.
-
 ## Building
 
 This repository is already set up for easy building. Follow the appropriate instructions for your OS if listed; if your OS *isn't* listed, adjustments generally shouldn't be too complex. Note that building with Clang/LLVM is *not* properly supported, and will likely never be — expect Clang builds to be a buggy mess.
@@ -20,8 +18,9 @@ To build on any reasonably up-to-date Linux distro:
 4. `scripts/linux/setup.sh 3` (increase that `3` to `4` or more if you've got a beefy system).
 5. Executables, required `.so` libaries and the required `sbinit.config` should appear in `$src/dist` if built successfully.
 6. `mkdir -p ${sbInstall}/xsb-linux; cp dist/* ${sbInstall}/xsb-linux/`
-7. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-linux/xclient`.
-8. Optionally install or build `mimalloc` and prepend `env LD_PRELOAD=${pathToMimalloc}/libmimalloc.so` to the launch commands for xClient and xServer.
+7. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
+8. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-linux/xclient`.
+9. Optionally install or build `mimalloc` and prepend `env LD_PRELOAD=${pathToMimalloc}/libmimalloc.so` to the launch commands for xClient and xServer.
 
 ### SteamOS
 
@@ -57,7 +56,8 @@ To build and install on Windows 10 or 11:
 5. Select **Build → Build Solution** in Visual Studio.
 6. Executables, required `.dll` libraries and the required `sbinit.config` should appear in a new `xSB-2\dist\` folder if built successfully.
 7. Make a new `xsb-win64\` folder in your Starbound install folder, and copy or move the `.exe`s and `.dll`s to it.
-8. Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
+8. Make a new `xab-assets\` folder in your Starbound install folder, and copy the `assets\xSBassets` folder into that folder.
+9. Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
 
 Building on earlier versions of Windows is not recommended, although it *should* still be possible to build xSB-2 on Windows 7, 8 or 8.1 if you can get VS 2022 installed.
 
