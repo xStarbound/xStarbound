@@ -8,26 +8,62 @@ If you're compiling xSB-2 anyways, make sure it loads the game assets in `/asset
 
 ## Building
 
-On Linux:
+This repository is already set up for easy building. Follow the appropriate instructions for your OS if listed; if your OS *isn't* listed, adjustments generally shouldn't be too complex. Note that building with Clang/LLVM is *not* properly supported, and will likely never be — expect Clang builds to be a buggy mess.
 
-1. Install Clang and LLVM:
-   - **Arch/Garuda:** `sudo pacman -S clang llvm` (version 16; consider using `-Syu` first).
-   - **Ubuntu/Debian:** `sudo apt install clang-16 llvm-16`.
-   - **Fedora/Nobara:** `sudo dnf install clang llvm` (may be version 16 or 17, depending on OS version).
-   - **SteamOS:** Install Homebrew, then `brew install llvm@16`. If you don't mind modifying your root filesystem, use the `pacman` command above instead.
+### Linux
+
+To build on any reasonably up-to-date Linux distro:
+
+1. Make sure you have GCC installed; it should come preinstalled on most distros.
 2. Download the latest source tarball (or clone the repo) and extract.
 3. `cd xSB-2/`
 4. `scripts/linux/setup.sh 3` (increase that `3` to `4` or more if you've got a beefy system).
-5. Executables should appear in `$src/dist` if built successfully.
+5. Executables, required `.so` libaries and the required `sbinit.config` should appear in `$src/dist` if built successfully.
+6. `mkdir -p ${sbInstall}/xsb-linux; cp dist/* ${sbInstall}/xsb-linux/`
+7. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-linux/xclient`.
+8. Optionally install or build `mimalloc` and prepend `env LD_PRELOAD=${pathToMimalloc}/libmimalloc.so` to the launch commands for xClient and xServer.
 
-On Windows:
+### SteamOS
+
+To build on SteamOS:
+
+1. Run the following commands:
+
+    ```sh
+    sudo steamos-readonly disable
+    sudo pacman -S base-devel glibc linux-api-headers
+    sudo steamos-readonly enable
+    ```
+
+2. Follow the Linux instructions.
+3. To install `mimalloc` on SteamOS:
+
+    ```sh
+    sudo steamos-readonly disable
+    sudo pacman -S mimalloc
+    sudo steamos-readonly enable
+    ```
+
+You will need to re-run the commands in step 1 (and, if you use `mimalloc`, step 3) every time you update SteamOS (and want to rebuild xSB-2).
+
+### Windows
+
+To build and install on Windows 10 or 11:
 
 1. Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/whatsnew/). Make sure to install C++ support (and optionally the game dev stuff).
 2. Download the latest source ZIP (or clone the repo) and extract.
 3. Go into `scripts\windows\` and double-click `setup64.bat`.
 4. Wait for that batch file to finish, go up two folders, open up `build\` and double-click `ALL_BUILD.vcxproj`.
 5. Select **Build → Build Solution** in Visual Studio.
-6. Executables should appear in a new `xSB-2\dist\` folder if built successfully.
+6. Executables, required `.dll` libraries and the required `sbinit.config` should appear in a new `xSB-2\dist\` folder if built successfully.
+7. Make a new `xsb-win64\` folder in your Starbound install folder, and copy or move the `.exe`s and `.dll`s to it.
+8. Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
+
+Building on earlier versions of Windows is not recommended, although it *should* still be possible to build xSB-2 on Windows 7, 8 or 8.1 if you can get VS 2022 installed.
+
+### macOS
+
+There is currently no working macOS toolchain set up. If you want to build on macOS anyway, you should try installing and using GCC. The compiler paths are configured in `scripts/osx/setup.command` (or the `setup.sh` script in the same directory, if you don't like `.command` scripts). You'll also need to make some changes to `source/CMakeLists.txt` so that GCC doesn't assume you're using Linux headers and the like.
 
 ## Changes
 
