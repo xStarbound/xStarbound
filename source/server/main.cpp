@@ -35,7 +35,7 @@ Json const AdditionalDefaultConfiguration = Json::parseJson(R"JSON(
 
 int main(int argc, char** argv) {
   try {
-    RootLoader rootLoader({{}, AdditionalDefaultConfiguration, String("starbound_server.log"), LogLevel::Info, false, String("starbound_server.config")});
+    RootLoader rootLoader({{}, AdditionalDefaultConfiguration, String("xserver.log"), LogLevel::Info, false, String("xserver.config")});
     RootUPtr root = rootLoader.commandInitOrDie(argc, argv).first;
     root->fullyLoad();
 

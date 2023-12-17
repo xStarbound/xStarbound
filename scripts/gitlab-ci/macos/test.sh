@@ -2,7 +2,7 @@
 
 cd macos_binaries
 
-cp ../scripts/osx/sbinit.config .
+cp ../scripts/osx/xsbinit.config .
 
 ./core_tests
 ./game_tests

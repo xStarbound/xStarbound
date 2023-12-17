@@ -29,7 +29,7 @@ GuiContext::GuiContext(MixerPtr mixer, ApplicationControllerPtr appController) {
   m_mixer = move(mixer);
   m_applicationController = move(appController);
 
-  m_interfaceScale = 1;
+  m_interfaceScale = 1.0f;
 
   m_shiftHeld = false;
 
@@ -90,12 +90,13 @@ Vec2U GuiContext::windowInterfaceSize() const {
   return Vec2U::ceil(Vec2F(windowSize()) / interfaceScale());
 }
 
-int GuiContext::interfaceScale() const {
+float GuiContext::interfaceScale() const {
   return m_interfaceScale;
 }
 
-void GuiContext::setInterfaceScale(int interfaceScale) {
-  m_interfaceScale = interfaceScale;
+void GuiContext::setInterfaceScale(float interfaceScale) {
+  if (interfaceScale >= 0.25f)
+    m_interfaceScale = interfaceScale;
 }
 
 Maybe<Vec2I> GuiContext::mousePosition(InputEvent const& event, int pixelRatio) const {
@@ -197,7 +198,7 @@ void GuiContext::drawTriangles(List<tuple<Vec2F, Vec2F, Vec2F>> const& triangles
 }
 
 void GuiContext::drawInterfaceDrawable(Drawable drawable, Vec2F const& screenPos, Vec4B const& color) {
-  drawDrawable(move(drawable), screenPos * interfaceScale(), (float)interfaceScale(), color);
+  drawDrawable(move(drawable), screenPos * interfaceScale(), interfaceScale(), color);
 }
 
 void GuiContext::drawInterfaceLine(Vec2F const& begin, Vec2F const end, Vec4B const& color, float lineWidth) {
@@ -353,8 +354,8 @@ void GuiContext::setFontSize(unsigned size) {
   setFontSize(size, interfaceScale());
 }
 
-void GuiContext::setFontSize(unsigned size, int pixelRatio) {
-  textPainter()->setFontSize(size * pixelRatio);
+void GuiContext::setFontSize(unsigned size, float pixelRatio) {
+  textPainter()->setFontSize((unsigned)(((float)size) * pixelRatio));
 }
 
 void GuiContext::setFontColor(Vec4B const& color) {
