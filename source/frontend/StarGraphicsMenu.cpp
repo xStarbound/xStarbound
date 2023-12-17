@@ -163,7 +163,7 @@ void GraphicsMenu::syncGui() {
   auto zoomIt = std::lower_bound(m_zoomList.begin(), m_zoomList.end(), m_localChanges.get("zoomLevel").toFloat());
   if (zoomIt != m_zoomList.end()) {
     size_t zoomIndex = zoomIt - m_zoomList.begin();
-    zoomIndex = std::min(zoomIndex, m_zoomList.size() - 1);
+    zoomIndex = std::min(zoomIndex, m_resList.size() - 1);
     zoomSlider->setVal(zoomIndex, false);
   } else {
     zoomSlider->setVal(m_zoomList.size() - 1);
@@ -174,7 +174,7 @@ void GraphicsMenu::syncGui() {
   auto scaleIt = std::lower_bound(m_interfaceScaleList.begin(), m_interfaceScaleList.end(), m_localChanges.get("interfaceScale").toFloat());
   if (scaleIt != m_interfaceScaleList.end()) {
     size_t scaleIndex = scaleIt - m_interfaceScaleList.begin();
-    scaleIndex = std::min(scaleIndex, m_interfaceScaleList.size() - 1);
+    scaleIndex = std::min(scaleIndex, m_resList.size() - 1);
     interfaceScaleSlider->setVal(scaleIndex, false);
   } else {
     interfaceScaleSlider->setVal(m_interfaceScaleList.size() - 1);
