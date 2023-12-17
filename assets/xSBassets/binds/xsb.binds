@@ -2,6 +2,7 @@
   "xsb": {
     "groups": {
       "camera": { "name": "Camera" },
+      "interface": { "name": "Interface" },
       "voice": { "name": "Voice" },
       "building": { "name": "Building" }
     },
@@ -40,6 +41,40 @@
         }],
         "group": "camera",
         "name": "Zoom Out Incrementally"
+      },
+      "interfaceZoomIn": {
+        "default": [{
+          "type": "key",
+          "value": "="
+        }],
+        "group": "interface",
+        "name": "Zoom Interface In"
+      },
+      "interfaceZoomOut": {
+        "default": [{
+          "type": "key",
+          "value": "-"
+        }],
+        "group": "interface",
+        "name": "Zoom Interface Out"
+      },
+      "interfaceIncrementalZoomIn": {
+        "default": [{
+          "type": "key",
+          "value": "=",
+          "mods" : ["LShift"]
+        }],
+        "group": "interface",
+        "name": "Zoom Interface In Incrementally"
+      },
+      "interfaceIncrementalZoomOut": {
+        "default": [{
+          "type": "key",
+          "value": "-",
+          "mods" : ["LShift"]
+        }],
+        "group": "interface",
+        "name": "Zoom Interface Out Incrementally"
       },
       "pushToTalk": {
         "default": [],

@@ -27,6 +27,7 @@ private:
 
   List<Vec2U> m_resList;
   List<float> m_zoomList;
+  List<float> m_interfaceScaleList;
 
   JsonObject m_localChanges;
 };

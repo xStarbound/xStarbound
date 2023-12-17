@@ -337,33 +337,34 @@ void ClientApplication::processInput(InputEvent const& event) {
   WorldCamera& camera = m_worldPainter->camera();
 
   auto config = m_root->configuration();
+
   int zoomOffset = 0;
 
   if (auto presses = m_input->bindDown("xsb", "zoomIn"))
-    zoomOffset += (*presses) * 4;
+    zoomOffset += (*presses) * 16;
   if (auto presses = m_input->bindDown("xsb", "zoomOut"))
-    zoomOffset -= (*presses) * 4;
+    zoomOffset -= (*presses) * 16;
   if (auto presses = m_input->bindDown("xsb", "incrementalZoomIn"))
     zoomOffset += (*presses);
   if (auto presses = m_input->bindDown("xsb", "incrementalZoomOut"))
     zoomOffset -= (*presses);
 
   if (zoomOffset != 0)
-    config->set("zoomLevel", max(1.0f, round(config->get("zoomLevel").toFloat() * 4.0f + (float)zoomOffset)) * 0.25f);
+    config->set("zoomLevel", min(100.0f, max(1.0f, round(config->get("zoomLevel").toFloat() * 16.0f + (float)zoomOffset)) * 0.0625f));
 
   int interfaceScaleOffset = 0;
 
   if (auto presses = m_input->bindDown("xsb", "interfaceZoomIn"))
-    interfaceScaleOffset += (*presses) * 4;
+    interfaceScaleOffset += (*presses) * 16;
   if (auto presses = m_input->bindDown("xsb", "interfaceZoomOut"))
-    interfaceScaleOffset -= (*presses) * 4;
+    interfaceScaleOffset -= (*presses) * 16;
   if (auto presses = m_input->bindDown("xsb", "interfaceIncrementalZoomIn"))
     interfaceScaleOffset += (*presses);
   if (auto presses = m_input->bindDown("xsb", "interfaceIncrementalZoomOut"))
     interfaceScaleOffset -= (*presses);
 
   if (interfaceScaleOffset != 0)
-    config->set("interfaceScale", max(1.0f, round(config->get("interfaceScale").toFloat() * 4.0f + (float)interfaceScaleOffset)) * 0.25f);
+    config->set("interfaceScale", min(100.0f, max(1.0f, round(config->get("interfaceScale").toFloat() * 16.0f + (float)interfaceScaleOffset)) * 0.0625f));
 }
 
 void ClientApplication::update() {
