@@ -50,7 +50,7 @@ public:
   float interfaceScale() const;
   void setInterfaceScale(float interfaceScale);
 
-  Maybe<Vec2I> mousePosition(InputEvent const& event, int pixelRatio) const;
+  Maybe<Vec2I> mousePosition(InputEvent const& event, float pixelRatio) const;
   Maybe<Vec2I> mousePosition(InputEvent const& event) const;
 
   Set<InterfaceAction> actions(InputEvent const& event) const;
