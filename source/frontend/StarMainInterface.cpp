@@ -1101,7 +1101,7 @@ void MainInterface::renderMessages() {
       message->springState = (message->springState * m_config->messageWindowSpring) / (m_config->messageWindowSpring + 1.0f);
 
     m_guiContext->drawQuad(m_config->messageTextContainer,
-        RectF::withCenter(backgroundTextCenterPos, Vec2F((float)imgMetadata->imageSize(m_config->messageTextContainer) * interfaceScale())));
+        RectF::withCenter(backgroundTextCenterPos, Vec2F(imgMetadata->imageSize(m_config->messageTextContainer)) * interfaceScale()));
 
     m_guiContext->setFont(m_config->font);
     m_guiContext->setFontSize(m_config->fontSize);
@@ -1548,7 +1548,7 @@ bool MainInterface::overButton(PolyI buttonPoly, Vec2I const& mousePos) const {
   buttonPoly.translate(barPos);
   PolyF buttonPolyF(buttonPoly);
   buttonPolyF.scale(interfaceScale(), Vec2F(barPos));
-  return buttonPolyF.contains(mousePos);
+  return buttonPolyF.contains(Vec2F(mousePos));
 }
 
 bool MainInterface::overlayClick(Vec2I const& mousePos, MouseButton mouseButton) {
