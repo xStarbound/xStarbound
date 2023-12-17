@@ -47,8 +47,8 @@ public:
   Vec2U windowSize() const;
   Vec2U windowInterfaceSize() const;
 
-  int interfaceScale() const;
-  void setInterfaceScale(int interfaceScale);
+  float interfaceScale() const;
+  void setInterfaceScale(float interfaceScale);
 
   Maybe<Vec2I> mousePosition(InputEvent const& event, int pixelRatio) const;
   Maybe<Vec2I> mousePosition(InputEvent const& event) const;
@@ -101,7 +101,7 @@ public:
   RectF determineInterfaceTextSize(String const& s, TextPositioning const& positioning);
 
   void setFontSize(unsigned size);
-  void setFontSize(unsigned size, int pixelRatio);
+  void setFontSize(unsigned size, float pixelRatio);
   void setFontColor(Vec4B const& color);
   void setFontMode(FontMode mode);
   void setFontProcessingDirectives(String const& directives);
@@ -141,7 +141,7 @@ private:
 
   KeyBindings m_keyBindings;
 
-  int m_interfaceScale;
+  float m_interfaceScale;
 
   bool m_shiftHeld;
 };

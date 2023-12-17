@@ -131,7 +131,7 @@ Json const AdditionalDefaultConfiguration = Json::parseJson(R"JSON(
   )JSON");
 
 void ClientApplication::startup(StringList const& cmdLineArgs) {
-  RootLoader rootLoader({AdditionalAssetsSettings, AdditionalDefaultConfiguration, String("starbound.log"), LogLevel::Info, false, String("starbound.config")});
+  RootLoader rootLoader({AdditionalAssetsSettings, AdditionalDefaultConfiguration, String("xclient.log"), LogLevel::Info, false, String("xclient.config")});
   m_root = rootLoader.initOrDie(cmdLineArgs).first;
 
   Logger::info("xSB::xClient v{} [Starbound v{}] ({}) // Source ID: {} // Protocol: {}", xSbVersionString, StarVersionString, StarArchitectureString, StarSourceIdentifierString, StarProtocolVersion);
@@ -193,6 +193,9 @@ void ClientApplication::applicationInit(ApplicationControllerPtr appController) 
 
   if (auto jServerUpdateRate = configuration->get("serverUpdateRate"))
     ServerGlobalTimestep = 1.0f / jServerUpdateRate.toFloat();
+
+  if (auto interfaceScale = configuration->get("interfaceScale")) {}
+  else configuration->set("interfaceScale", 3.0f);
 
   appController->setTargetUpdateRate(updateRate);
   appController->setApplicationTitle(assets->json("/client.config:windowTitle").toString());
@@ -347,6 +350,20 @@ void ClientApplication::processInput(InputEvent const& event) {
 
   if (zoomOffset != 0)
     config->set("zoomLevel", max(1.0f, round(config->get("zoomLevel").toFloat() * 4.0f + (float)zoomOffset)) * 0.25f);
+
+  int interfaceScaleOffset = 0;
+
+  if (auto presses = m_input->bindDown("xsb", "interfaceZoomIn"))
+    interfaceScaleOffset += (*presses) * 4;
+  if (auto presses = m_input->bindDown("xsb", "interfaceZoomOut"))
+    interfaceScaleOffset -= (*presses) * 4;
+  if (auto presses = m_input->bindDown("xsb", "interfaceIncrementalZoomIn"))
+    interfaceScaleOffset += (*presses);
+  if (auto presses = m_input->bindDown("xsb", "interfaceIncrementalZoomOut"))
+    interfaceScaleOffset -= (*presses);
+
+  if (interfaceScaleOffset != 0)
+    config->set("interfaceScale", max(1.0f, round(config->get("interfaceScale").toFloat() * 4.0f + (float)interfaceScaleOffset)) * 0.25f);
 }
 
 void ClientApplication::update() {
@@ -400,10 +417,12 @@ void ClientApplication::render() {
 
   renderer->switchEffectConfig("interface");
 
-  if (m_guiContext->windowWidth() >= m_crossoverRes[0] && m_guiContext->windowHeight() >= m_crossoverRes[1])
-    m_guiContext->setInterfaceScale(m_maxInterfaceScale);
-  else
-    m_guiContext->setInterfaceScale(m_minInterfaceScale);
+  m_guiContext->setInterfaceScale(config->get("interfaceScale").toFloat());
+
+  // if (m_guiContext->windowWidth() >= m_crossoverRes[0] && m_guiContext->windowHeight() >= m_crossoverRes[1])
+  //   m_guiContext->setInterfaceScale(m_maxInterfaceScale);
+  // else
+  //   m_guiContext->setInterfaceScale(m_minInterfaceScale);
 
   if (m_state == MainAppState::Mods || m_state == MainAppState::Splash) {
     m_cinematicOverlay->render();

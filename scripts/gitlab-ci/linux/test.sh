@@ -2,7 +2,7 @@
 
 cd linux_binaries
 
-cp ../scripts/linux/sbinit.config .
+cp ../scripts/linux/xsbinit.config .
 
 ./core_tests
 ./game_tests

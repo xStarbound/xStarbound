@@ -106,9 +106,9 @@ private:
   Vec2F m_cameraPositionSmoother;
   Vec2F m_cameraSmoothDelta;
 
-  int m_minInterfaceScale = 2;
-  int m_maxInterfaceScale = 3;
-  Vec2F m_crossoverRes;
+  // int m_minInterfaceScale = 2;
+  // int m_maxInterfaceScale = 3;
+  // Vec2F m_crossoverRes;
 
   Vec2F m_controllerLeftStick;
   Vec2F m_controllerRightStick;

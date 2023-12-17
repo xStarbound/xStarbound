@@ -5,7 +5,7 @@ cd "`dirname \"$0\"`/../..";
 rm -rI build/ dist/;
 
 mkdir -p dist;
-cp scripts/linux/sbinit.config dist/;
+cp scripts/linux/xsbinit.config dist/;
 cp lib/linux/libsteam_api.so dist/;
 
 mkdir -p build;

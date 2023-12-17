@@ -25,13 +25,13 @@ ChatBubbleManager::ChatBubbleManager()
   m_fontSize = jsonData.getInt("fontSize");
   m_textPadding = jsonToVec2F(jsonData.get("textPadding"));
 
-  m_zoom = jsonData.getInt("textZoom");
+  m_zoom = jsonData.getFloat("textZoom");
   m_bubbleOffset = jsonToVec2F(jsonData.get("bubbleOffset"));
   m_maxAge = jsonData.getFloat("maxAge");
   m_portraitMaxAge = jsonData.getFloat("portraitMaxAge");
 
   unsigned textWrapWidth = jsonData.getUInt("textWrapWidth");
-  m_textTemplate = TextPositioning{Vec2F(), HorizontalAnchor::HMidAnchor, VerticalAnchor::TopAnchor, textWrapWidth * m_zoom};
+  m_textTemplate = TextPositioning{Vec2F(), HorizontalAnchor::HMidAnchor, VerticalAnchor::TopAnchor, (unsigned)(((float)textWrapWidth) * m_zoom)};
 
   m_interBubbleMargin = jsonData.getFloat("interBubbleMargin");
 
@@ -51,7 +51,7 @@ ChatBubbleManager::ChatBubbleManager()
   m_portraitChatterFramerate = jsonData.getFloat("portraitChatterFramerate");
   m_portraitChatterDuration = jsonData.getFloat("portraitChatterDuration");
 
-  m_portraitTextTemplate = TextPositioning{Vec2F(m_portraitTextPosition), HorizontalAnchor::LeftAnchor, VerticalAnchor::TopAnchor, m_portraitTextWidth * m_zoom};
+  m_portraitTextTemplate = TextPositioning{Vec2F(m_portraitTextPosition), HorizontalAnchor::LeftAnchor, VerticalAnchor::TopAnchor, (unsigned)(((float)m_portraitTextWidth) * m_zoom)};
 
   // This is a factor(0.0 - 1.0) based on the window size.
   // 0.0 is directly over the player, 1.0 is the edge of the window
@@ -317,19 +317,19 @@ void ChatBubbleManager::addChatActions(List<ChatAction> chatActions, bool silent
   }
 }
 
-RectF ChatBubbleManager::bubbleImageRect(Vec2F screenPos, BubbleImage const& bubbleImage, int pixelRatio) {
+RectF ChatBubbleManager::bubbleImageRect(Vec2F screenPos, BubbleImage const& bubbleImage, float pixelRatio) {
   auto imgMetadata = Root::singleton().imageMetadataDatabase();
   auto image = get<0>(bubbleImage);
   return RectF::withSize(screenPos + get<1>(bubbleImage) * pixelRatio, Vec2F(imgMetadata->imageSize(image)) * pixelRatio);
 }
 
-void ChatBubbleManager::drawBubbleImage(Vec2F screenPos, BubbleImage const& bubbleImage, int pixelRatio, int alpha) {
+void ChatBubbleManager::drawBubbleImage(Vec2F screenPos, BubbleImage const& bubbleImage, float pixelRatio, int alpha) {
   auto image = get<0>(bubbleImage);
   auto offset = get<1>(bubbleImage) * pixelRatio;
   m_guiContext->drawQuad(image, screenPos + offset, pixelRatio, {255, 255, 255, alpha});
 }
 
-void ChatBubbleManager::drawBubbleText(Vec2F screenPos, BubbleText const& bubbleText, int pixelRatio, int alpha, bool isPortrait) {
+void ChatBubbleManager::drawBubbleText(Vec2F screenPos, BubbleText const& bubbleText, float pixelRatio, int alpha, bool isPortrait) {
   Vec4B const& baseColor = get<2>(bubbleText);
 
   // use the alpha as a blend value for the text colour as pulled from data.

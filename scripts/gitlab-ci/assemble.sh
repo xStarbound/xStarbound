@@ -25,7 +25,7 @@ cp -r \
   windows_binaries/imageformats \
   windows_binaries/platforms \
   windows_binaries/translations \
-  scripts/gitlab-ci/windows/sbinit.config \
+  scripts/gitlab-ci/windows/xsbinit.config \
   client_distribution/win64/
 
 mkdir client_distribution/osx
@@ -40,7 +40,7 @@ cp \
   macos_binaries/dump_versioned_json \
   macos_binaries/make_versioned_json \
   macos_binaries/planet_mapgen \
-  scripts/gitlab-ci/macos/sbinit.config \
+  scripts/gitlab-ci/macos/xsbinit.config \
   scripts/gitlab-ci/macos/run-server.sh \
   client_distribution/osx/
 
@@ -54,7 +54,7 @@ cp \
   linux_binaries/make_versioned_json \
   linux_binaries/planet_mapgen \
   linux_binaries/*.so \
-  scripts/gitlab-ci/linux/sbinit.config \
+  scripts/gitlab-ci/linux/xsbinit.config \
   scripts/gitlab-ci/linux/run-client.sh \
   scripts/gitlab-ci/linux/run-server.sh \
   client_distribution/linux/
@@ -74,11 +74,11 @@ cp \
   linux_binaries/starbound_server \
   linux_binaries/*.so \
   scripts/gitlab-ci/linux/run-server.sh \
-  scripts/gitlab-ci/linux/sbinit.config \
+  scripts/gitlab-ci/linux/xsbinit.config \
   server_distribution/linux/
 
 cp \
   windows_binaries/starbound_server.exe \
   windows_binaries/*.dll \
-  scripts/gitlab-ci/windows/sbinit.config \
+  scripts/gitlab-ci/windows/xsbinit.config \
   server_distribution/win64/

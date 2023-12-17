@@ -39,7 +39,7 @@ TeamBar::TeamBar(MainInterface* mainInterface, UniverseClientPtr client) {
       if (!m_client->teamClient()->isMemberOfTeam())
         return;
       auto position = jsonToVec2I(Root::singleton().assets()->json("/interface/windowconfig/teambar.config:selfMenuOffset"));
-      position[1] += windowHeight() / m_guiContext->interfaceScale();
+      position[1] += (int)(((float)windowHeight()) / m_guiContext->interfaceScale());
       showMemberMenu(m_client->mainPlayer()->clientContext()->playerUuid(), position);
     });
 

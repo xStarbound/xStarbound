@@ -15,7 +15,7 @@ EnumMap<PaneLayer> const PaneLayerNames{
 };
 
 PaneManager::PaneManager()
-  : m_context(GuiContext::singletonPtr()), m_prevInterfaceScale(1) {
+  : m_context(GuiContext::singletonPtr()), m_prevInterfaceScale(1.0f) {
   auto assets = Root::singleton().assets();
   m_tooltipMouseoverTime = assets->json("/panes.config:tooltipMouseoverTime").toFloat();
   m_tooltipMouseoverRadius = assets->json("/panes.config:tooltipMouseoverRadius").toFloat();
@@ -257,7 +257,7 @@ void PaneManager::render() {
       if (panePair.first->active()) {
         if (m_prevInterfaceScale != m_context->interfaceScale())
           panePair.first->setPosition(
-              calculateNewInterfacePosition(panePair.first, (float)m_context->interfaceScale() / m_prevInterfaceScale));
+              calculateNewInterfacePosition(panePair.first, m_context->interfaceScale() / m_prevInterfaceScale));
 
         panePair.first->setDrawingOffset(calculatePaneOffset(panePair.first));
         panePair.first->render(RectI(Vec2I(), windowSize()));
