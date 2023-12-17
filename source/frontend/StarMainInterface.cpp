@@ -1304,7 +1304,7 @@ void MainInterface::renderMainBar() {
   // when the player can only deploy, only show deploy button
   // when the player can deploy or beam down, show both buttons
 
-  Vec2F deployButtonPos(barPos + Vec2F(m_config->mainBarDeployButtonOffset) * interfaceScale());
+  Vec2F deployButtonPos(Vec2F(barPos) + Vec2F(m_config->mainBarDeployButtonOffset) * interfaceScale());
   if (m_client->canBeamUp()) {
     if (overButton(m_config->mainBarDeployButtonPoly, m_cursorScreenPos)) {
       m_guiContext->drawQuad(m_config->beamUpImageHover, deployButtonPos, interfaceScale());
@@ -1323,7 +1323,7 @@ void MainInterface::renderMainBar() {
     m_guiContext->drawQuad(m_config->deployImageDisabled, deployButtonPos, interfaceScale());
   }
 
-  Vec2F beamButtonPos(barPos + Vec2F(m_config->mainBarBeamButtonOffset) * interfaceScale());
+  Vec2F beamButtonPos(Vec2F(barPos) + Vec2F(m_config->mainBarBeamButtonOffset) * interfaceScale());
   if (m_client->canBeamDown()) {
     if (overButton(m_config->mainBarBeamButtonPoly, m_cursorScreenPos)) {
       m_guiContext->drawQuad(m_config->beamDownImageHover, beamButtonPos, interfaceScale());
