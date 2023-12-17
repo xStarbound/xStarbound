@@ -653,13 +653,14 @@ namespace Dungeon {
       return false;
     });
     ground[1] = max(ground[1], liquid[1]);
-    if (air.y() < ground.y())
-      throw DungeonException("Invalid ground vs air contraint. Ground at: " + toString(ground.y()) + " Air at: "
-          + toString(air.y())
-          + " Pixels: highest ground:"
-          + toString(ground)
-          + " lowest air:"
-          + toString(air));
+    /* FezzedOne: The bane of some dungeon modders - time to excise it! */
+    // if (air.y() < ground.y())
+    //   throw DungeonException("Invalid ground vs air constraint. Ground at: " + toString(ground.y()) + " Air at: "
+    //       + toString(air.y())
+    //       + " Pixels: highest ground:"
+    //       + toString(ground)
+    //       + " lowest air:"
+    //       + toString(air));
     return air.y();
   }
 
