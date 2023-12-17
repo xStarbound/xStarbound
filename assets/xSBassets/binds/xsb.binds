@@ -45,7 +45,8 @@
       "interfaceZoomIn": {
         "default": [{
           "type": "key",
-          "value": "="
+          "value": "=",
+          "mods" : ["LCtrl"]
         }],
         "group": "interface",
         "name": "Zoom Interface In"
@@ -53,7 +54,8 @@
       "interfaceZoomOut": {
         "default": [{
           "type": "key",
-          "value": "-"
+          "value": "-",
+          "mods" : ["LCtrl"]
         }],
         "group": "interface",
         "name": "Zoom Interface Out"
@@ -62,7 +64,7 @@
         "default": [{
           "type": "key",
           "value": "=",
-          "mods" : ["LShift"]
+          "mods" : ["LShift", "LCtrl"]
         }],
         "group": "interface",
         "name": "Zoom Interface In Incrementally"
@@ -71,7 +73,7 @@
         "default": [{
           "type": "key",
           "value": "-",
-          "mods" : ["LShift"]
+          "mods" : ["LShift", "LCtrl"]
         }],
         "group": "interface",
         "name": "Zoom Interface Out Incrementally"
