@@ -558,7 +558,7 @@ void MainInterface::update(float dt) {
   }
   if (newMouseOverTarget != NullEntityId && newMouseOverTarget != m_lastMouseoverTarget) {
     m_lastMouseoverTarget = newMouseOverTarget;
-    m_portraitScale = 0;
+    m_portraitScale = 0.0f;
     m_stickyTargetingTimer.reset();
   }
 
@@ -1038,7 +1038,7 @@ unsigned MainInterface::windowWidth() const {
 }
 
 Vec2I MainInterface::mainBarPosition() const {
-  return Vec2I(windowWidth(), windowHeight()) - m_config->mainBarSize * interfaceScale();
+  return Vec2I(windowWidth(), windowHeight()) - Vec2I(Vec2F(m_config->mainBarSize) * interfaceScale());
 }
 
 void MainInterface::renderBreath() {
@@ -1048,8 +1048,8 @@ void MainInterface::renderBreath() {
   Vec2I breathBarSize = Vec2I(Vec2F(m_guiContext->textureSize("/interface/breath/empty.png")) * interfaceScale());
   Vec2I breathOffset = jsonToVec2I(assets->json("/interface.config:breathPos"));
 
-  Vec2F breathBackgroundCenterPos(windowWidth() * 0.5f + breathOffset[0] * interfaceScale(), windowHeight() - breathOffset[1] * interfaceScale());
-  Vec2F breathBarPos = breathBackgroundCenterPos + Vec2F(jsonToVec2I(assets->json("/interface.config:breathBarPos")) * interfaceScale());
+  Vec2F breathBackgroundCenterPos(windowWidth() * 0.5f + ((float)(breathOffset[0]) * interfaceScale()), windowHeight() - ((float)(breathOffset[1]) * interfaceScale()));
+  Vec2F breathBarPos = breathBackgroundCenterPos + Vec2F(jsonToVec2I(assets->json("/interface.config:breathBarPos"))) * interfaceScale();
 
   float breath = m_client->mainPlayer()->breath();
   float breathMax = m_client->mainPlayer()->maxBreath();
@@ -1101,7 +1101,7 @@ void MainInterface::renderMessages() {
       message->springState = (message->springState * m_config->messageWindowSpring) / (m_config->messageWindowSpring + 1.0f);
 
     m_guiContext->drawQuad(m_config->messageTextContainer,
-        RectF::withCenter(backgroundTextCenterPos, Vec2F(imgMetadata->imageSize(m_config->messageTextContainer) * interfaceScale())));
+        RectF::withCenter(backgroundTextCenterPos, Vec2F((float)imgMetadata->imageSize(m_config->messageTextContainer) * interfaceScale())));
 
     m_guiContext->setFont(m_config->font);
     m_guiContext->setFontSize(m_config->fontSize);
@@ -1160,8 +1160,8 @@ void MainInterface::renderMonsterHealthBar() {
     List<Drawable> portrait = showDamageEntity->portrait(PortraitMode::Full);
 
     auto bounds = Drawable::boundBoxAll(portrait, true);
-    if (m_portraitScale == 0)
-      m_portraitScale = max<int>(1, ceil(max(bounds.size().x() / portraitMaxSize.x(), bounds.size().y() / portraitMaxSize.y())));
+    if (m_portraitScale <= 0.0f)
+      m_portraitScale = max(0.0625f, max(bounds.size().x() / portraitMaxSize.x(), bounds.size().y() / portraitMaxSize.y()));
     Drawable::translateAll(portrait, {-bounds.xMin() - (bounds.width() * 0.5f), -bounds.yMin() }); // crop out whitespace, align bottom center
     Drawable::scaleAll(portrait, 1.0f / m_portraitScale);
 
@@ -1210,7 +1210,7 @@ void MainInterface::renderMainBar() {
 
   auto assets = Root::singleton().assets();
 
-  Vec2I inventoryButtonPos = barPos + m_config->mainBarInventoryButtonOffset * interfaceScale();
+  Vec2I inventoryButtonPos = barPos + Vec2I(Vec2F(m_config->mainBarInventoryButtonOffset) * interfaceScale());
   if (m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Inventory)) {
     if (overButton(m_config->mainBarInventoryButtonPoly, m_cursorScreenPos)) {
       m_guiContext->drawQuad(m_config->inventoryImageOpenHover, Vec2F(inventoryButtonPos), interfaceScale());
@@ -1248,7 +1248,7 @@ void MainInterface::renderMainBar() {
     }
   };
 
-  Vec2I craftButtonPos = barPos + m_config->mainBarCraftButtonOffset * interfaceScale();
+  Vec2I craftButtonPos = barPos + Vec2I(Vec2F(m_config->mainBarCraftButtonOffset) * interfaceScale());
   drawStateButton(MainInterfacePanes::CraftingPlain,
       craftButtonPos,
       m_config->mainBarCraftButtonPoly,
@@ -1258,7 +1258,7 @@ void MainInterface::renderMainBar() {
       m_config->craftImageOpenHover,
       assets->json("/interface.config:cursorTooltip.craftingText").toString());
 
-  Vec2I codexButtonPos = barPos + m_config->mainBarCodexButtonOffset * interfaceScale();
+  Vec2I codexButtonPos = barPos + Vec2I(Vec2F(m_config->mainBarCodexButtonOffset) * interfaceScale());
   drawStateButton(MainInterfacePanes::Codex,
       codexButtonPos,
       m_config->mainBarCodexButtonPoly,
@@ -1268,7 +1268,7 @@ void MainInterface::renderMainBar() {
       m_config->codexImageHoverOpen,
       assets->json("/interface.config:cursorTooltip.codexText").toString());
 
-  Vec2I mmUpgradeButtonPos = barPos + m_config->mainBarMmUpgradeButtonOffset * interfaceScale();
+  Vec2I mmUpgradeButtonPos = barPos + Vec2I(Vec2F(m_config->mainBarMmUpgradeButtonOffset) * interfaceScale());
   if (m_client->mainPlayer()->inventory()->essentialItem(EssentialItem::BeamAxe)) {
     drawStateButton(MainInterfacePanes::MmUpgrade,
         mmUpgradeButtonPos,
@@ -1333,7 +1333,7 @@ void MainInterface::renderMainBar() {
     }
   }
 
-  Vec2I questLogButtonPos = barPos + m_config->mainBarQuestLogButtonOffset * interfaceScale();
+  Vec2I questLogButtonPos = barPos + Vec2I(Vec2F(m_config->mainBarQuestLogButtonOffset) * interfaceScale());
   drawStateButton(MainInterfacePanes::QuestLog,
       questLogButtonPos,
       m_config->mainBarQuestLogButtonPoly,
@@ -1460,8 +1460,8 @@ void MainInterface::updateCursor() {
   Maybe<String> cursorOverride = m_actionBar->cursorOverride(m_cursorScreenPos);
 
   if (!cursorOverride) {
-    if (auto pane = m_paneManager.getPaneAt(m_cursorScreenPos / interfaceScale())) {
-      cursorOverride = cursorOverride.orMaybe(pane->cursorOverride(m_cursorScreenPos / interfaceScale()));
+    if (auto pane = m_paneManager.getPaneAt(Vec2I(Vec2F(m_cursorScreenPos) / interfaceScale()))) {
+      cursorOverride = cursorOverride.orMaybe(pane->cursorOverride(Vec2I(Vec2F(m_cursorScreenPos) / interfaceScale())));
     } else {
       auto player = m_client->mainPlayer();
       if (auto anchorState = m_client->mainPlayer()->loungingIn()) {
@@ -1546,15 +1546,18 @@ void MainInterface::renderCursor() {
 bool MainInterface::overButton(PolyI buttonPoly, Vec2I const& mousePos) const {
   Vec2I barPos = mainBarPosition();
   buttonPoly.translate(barPos);
-  buttonPoly.scale(interfaceScale(), barPos);
-  return buttonPoly.contains(mousePos);
+  PolyF buttonPolyF(buttonPoly);
+  buttonPolyF.scale(interfaceScale(), Vec2F(barPos));
+  return buttonPolyF.contains(mousePos);
 }
 
 bool MainInterface::overlayClick(Vec2I const& mousePos, MouseButton mouseButton) {
   PolyI mainBarPoly = m_config->mainBarPoly;
   Vec2I barPos = mainBarPosition();
   mainBarPoly.translate(barPos);
-  mainBarPoly.scale(interfaceScale(), barPos);
+  PolyF mainBarPolyF(mainBarPoly);
+  mainBarPolyF.scale(interfaceScale(), Vec2F(barPos));
+  mainBarPoly = PolyI(mainBarPolyF);
 
   if (overButton(m_config->mainBarInventoryButtonPoly, mousePos)) {
     m_paneManager.toggleRegisteredPane(MainInterfacePanes::Inventory);

@@ -69,8 +69,8 @@ void StatusPane::update(float dt) {
   auto statusEffectDatabase = Root::singleton().statusEffectDatabase();
 
   Vec2I statusIconOffset = jsonToVec2I(assets->json("/interface.config:statusIconPos"));
-  Vec2I statusIconPos = Vec2I(statusIconOffset[0] * interfaceScale, roundWindowHeight - statusIconOffset[1] * interfaceScale);
-  Vec2I statusIconShift = jsonToVec2I(assets->json("/interface.config:statusIconShift")) * interfaceScale;
+  Vec2I statusIconPos = Vec2I((int)((float)statusIconOffset[0] * interfaceScale), roundWindowHeight - (int)((float)statusIconOffset[1] * interfaceScale));
+  Vec2I statusIconShift = Vec2I(Vec2F(jsonToVec2I(assets->json("/interface.config:statusIconShift"))) * interfaceScale);
 
   RectF boundRect = RectF::null();
 
