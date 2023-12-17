@@ -49,7 +49,7 @@
           "mods" : ["LCtrl"]
         }],
         "group": "interface",
-        "name": "Zoom Interface In"
+        "name": "Increase Scale"
       },
       "interfaceZoomOut": {
         "default": [{
@@ -58,7 +58,7 @@
           "mods" : ["LCtrl"]
         }],
         "group": "interface",
-        "name": "Zoom Interface Out"
+        "name": "Decrease Scale"
       },
       "interfaceIncrementalZoomIn": {
         "default": [{
@@ -67,7 +67,7 @@
           "mods" : ["LShift", "LCtrl"]
         }],
         "group": "interface",
-        "name": "Zoom Interface In Incrementally"
+        "name": "Inc. Increase Scale"
       },
       "interfaceIncrementalZoomOut": {
         "default": [{
@@ -76,7 +76,7 @@
           "mods" : ["LShift", "LCtrl"]
         }],
         "group": "interface",
-        "name": "Zoom Interface Out Incrementally"
+        "name": "Inc. Decrease Scale"
       },
       "pushToTalk": {
         "default": [],
