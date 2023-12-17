@@ -34,6 +34,12 @@ GraphicsMenu::GraphicsMenu() {
       Root::singleton().configuration()->set("zoomLevel", m_zoomList[slider->val()]);
       syncGui();
     });
+  reader.registerCallback("interfaceScaleSlider", [=](Widget*) {
+      auto slider = fetchChild<SliderBarWidget>("interfaceScaleSlider");
+      m_localChanges.set("interfaceScale", m_interfaceScaleList[slider->val()]);
+      Root::singleton().configuration()->set("interfaceScale", m_interfaceScaleList[slider->val()]);
+      syncGui();
+    });
   reader.registerCallback("speechBubbleCheckbox", [=](Widget*) {
       auto button = fetchChild<ButtonWidget>("speechBubbleCheckbox");
       m_localChanges.set("speechBubbles", button->isChecked());
@@ -81,11 +87,13 @@ GraphicsMenu::GraphicsMenu() {
 
   m_resList = jsonToVec2UList(assets->json("/interface/windowconfig/graphicsmenu.config:resolutionList"));
   m_zoomList = jsonToFloatList(assets->json("/interface/windowconfig/graphicsmenu.config:zoomList"));
+  m_interfaceScaleList = jsonToFloatList(assets->json("/interface/windowconfig/graphicsmenu.config:interfaceScaleList"));
 
   reader.construct(paneLayout, this);
 
   fetchChild<SliderBarWidget>("resSlider")->setRange(0, m_resList.size() - 1, 1);
   fetchChild<SliderBarWidget>("zoomSlider")->setRange(0, m_zoomList.size() - 1, 1);
+  fetchChild<SliderBarWidget>("interfaceScaleSlider")->setRange(0, m_interfaceScaleList.size() - 1, 1);
 
   initConfig();
   syncGui();
@@ -101,7 +109,7 @@ void GraphicsMenu::dismissed() {
   Pane::dismissed();
 }
 
-void GraphicsMenu::toggleFullscreen() {  
+void GraphicsMenu::toggleFullscreen() {
   bool fullscreen = m_localChanges.get("fullscreen").toBool();
   bool borderless = m_localChanges.get("borderless").toBool();
 
@@ -118,6 +126,7 @@ void GraphicsMenu::toggleFullscreen() {
 StringList const GraphicsMenu::ConfigKeys = {
   "fullscreenResolution",
   "zoomLevel",
+  "interfaceScale",
   "speechBubbles",
   "interactiveHighlight",
   "fullscreen",
@@ -154,13 +163,23 @@ void GraphicsMenu::syncGui() {
   auto zoomIt = std::lower_bound(m_zoomList.begin(), m_zoomList.end(), m_localChanges.get("zoomLevel").toFloat());
   if (zoomIt != m_zoomList.end()) {
     size_t zoomIndex = zoomIt - m_zoomList.begin();
-    zoomIndex = std::min(zoomIndex, m_resList.size() - 1);
+    zoomIndex = std::min(zoomIndex, m_zoomList.size() - 1);
     zoomSlider->setVal(zoomIndex, false);
   } else {
     zoomSlider->setVal(m_zoomList.size() - 1);
   }
   fetchChild<LabelWidget>("zoomValueLabel")->setText(strf("{}x", m_localChanges.get("zoomLevel").toFloat()));
 
+  auto interfaceScaleSlider = fetchChild<SliderBarWidget>("interfaceScaleSlider");
+  auto scaleIt = std::lower_bound(m_interfaceScaleList.begin(), m_interfaceScaleList.end(), m_localChanges.get("interfaceScale").toFloat());
+  if (scaleIt != m_interfaceScaleList.end()) {
+    size_t scaleIndex = scaleIt - m_interfaceScaleList.begin();
+    scaleIndex = std::min(scaleIndex, m_interfaceScaleList.size() - 1);
+    interfaceScaleSlider->setVal(scaleIndex, false);
+  } else {
+    interfaceScaleSlider->setVal(m_interfaceScaleList.size() - 1);
+  }
+  fetchChild<LabelWidget>("interfaceScaleValueLabel")->setText(strf("{}x", m_localChanges.get("interfaceScale").toFloat()));
 
   fetchChild<ButtonWidget>("speechBubbleCheckbox")->setChecked(m_localChanges.get("speechBubbles").toBool());
   fetchChild<ButtonWidget>("interactiveHighlightCheckbox")->setChecked(m_localChanges.get("interactiveHighlight").toBool());
