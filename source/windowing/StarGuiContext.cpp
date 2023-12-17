@@ -133,7 +133,7 @@ void GuiContext::refreshKeybindings() {
 }
 
 void GuiContext::setInterfaceScissorRect(RectI const& scissor) {
-  renderer()->setScissorRect(RectI(scissor).scaled(interfaceScale()));
+  renderer()->setScissorRect(RectI(RectF(scissor).scaled(interfaceScale())));
 }
 
 void GuiContext::resetInterfaceScissorRect() {
@@ -326,11 +326,14 @@ RectF GuiContext::renderText(String const& s, TextPositioning const& position) {
 }
 
 RectF GuiContext::renderInterfaceText(String const& s, TextPositioning const& position) {
+  auto scaleMultiply = [](int wrapWidth, float floatInterfaceScale) -> int {
+    return (int)((float)wrapWidth * floatInterfaceScale);
+  };
   auto res = renderText(s, {
       position.pos * interfaceScale(),
       position.hAnchor,
       position.vAnchor,
-      position.wrapWidth.apply(bind(std::multiplies<int>(), _1, interfaceScale())),
+      position.wrapWidth.apply(bind(scaleMultiply, _1, interfaceScale())),
       position.charLimit
     });
   return RectF(res).scaled(1.0f / interfaceScale());
@@ -341,11 +344,14 @@ RectF GuiContext::determineTextSize(String const& s, TextPositioning const& posi
 }
 
 RectF GuiContext::determineInterfaceTextSize(String const& s, TextPositioning const& positioning) {
+  auto scaleMultiply = [](int wrapWidth, float floatInterfaceScale) -> int {
+    return (int)((float)wrapWidth * floatInterfaceScale);
+  };
   auto res = determineTextSize(s, {
       positioning.pos * interfaceScale(),
       positioning.hAnchor,
       positioning.vAnchor,
-      positioning.wrapWidth.apply(bind(std::multiplies<int>(), _1, interfaceScale()))
+      positioning.wrapWidth.apply(bind(scaleMultiply, _1, interfaceScale()))
     });
   return RectF(res).scaled(1.0f / interfaceScale());
 }
@@ -395,7 +401,7 @@ int GuiContext::stringInterfaceWidth(String const& s) {
   if (interfaceScale()) {
     // font size is already adjusted UP by interfaceScale, so we have to adjust
     // it back down
-    return stringWidth(s) / interfaceScale();
+    return (int)(((float)stringWidth(s)) / interfaceScale());
   }
   return 0;
 }
@@ -406,7 +412,7 @@ StringList GuiContext::wrapText(String const& s, Maybe<unsigned> wrapWidth) {
 
 StringList GuiContext::wrapInterfaceText(String const& s, Maybe<unsigned> wrapWidth) {
   if (wrapWidth)
-    *wrapWidth *= interfaceScale();
+    *wrapWidth = (unsigned)(((float)*wrapWidth) * interfaceScale());
   return wrapText(s, wrapWidth);
 }
 

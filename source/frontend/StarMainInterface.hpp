@@ -228,7 +228,7 @@ private:
 
   EntityId m_lastMouseoverTarget;
   GameTimer m_stickyTargetingTimer;
-  int m_portraitScale;
+  float m_portraitScale;
 
   EntityId m_specialDamageBarTarget;
   float m_specialDamageBarValue;

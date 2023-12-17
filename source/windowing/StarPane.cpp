@@ -404,7 +404,7 @@ LuaCallbacks Pane::makePaneCallbacks() {
       return this->removeChild(widgetName);
     });
 
-  callbacks.registerCallback("scale", []() -> int {
+  callbacks.registerCallback("scale", []() -> float {
       return GuiContext::singleton().interfaceScale();
     });
 

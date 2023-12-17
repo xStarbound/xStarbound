@@ -118,7 +118,7 @@ void TitleScreen::update(float dt) {
   m_cursor.update(dt);
 
   for (auto p : m_rightAnchoredButtons)
-    p.first->setPosition(Vec2I(m_guiContext->windowWidth() / m_guiContext->interfaceScale(), 0) + p.second);
+    p.first->setPosition(Vec2I((int)((float)m_guiContext->windowWidth() / m_guiContext->interfaceScale()), 0) + p.second);
   m_mainMenu->determineSizeFromChildren();
 
   m_skyBackdrop->update(dt);
