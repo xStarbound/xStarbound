@@ -12,7 +12,7 @@ WorldPainter::WorldPainter() {
 
   m_camera.setScreenSize({800, 600});
   m_camera.setCenterWorldPosition(Vec2F());
-  m_camera.setPixelRatio(Root::singleton().configuration()->get("zoomLevel").toFloat());
+  m_camera.setPixelRatio(clamp(Root::singleton().configuration()->get("zoomLevel").toFloat(), 0.25f, 100.0f));
 
   m_highlightConfig = m_assets->json("/highlights.config");
   for (auto p : m_highlightConfig.get("highlightDirectives").iterateObject())
@@ -51,7 +51,7 @@ void WorldPainter::update(float dt) {
 
 void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWaiter, Maybe<Vec3F> const& lightMultiplier, Array<Vec3F, 6> const& shaderParameters) {
   m_camera.setScreenSize(m_renderer->screenSize());
-  m_camera.setTargetPixelRatio(Root::singleton().configuration()->get("zoomLevel").toFloat());
+  m_camera.setTargetPixelRatio(clamp(Root::singleton().configuration()->get("zoomLevel").toFloat(), 0.25f, 100.0f));
 
   m_assets = Root::singleton().assets();
 

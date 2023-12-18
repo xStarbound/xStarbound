@@ -80,6 +80,12 @@ GraphicsMenu::GraphicsMenu() {
       Root::singleton().configuration()->set("monochromeLighting", checked);
       syncGui();
     });
+  reader.registerCallback("headRotationCheckbox", [=](Widget*) {
+      bool checked = fetchChild<ButtonWidget>("headRotationCheckbox")->isChecked();
+      m_localChanges.set("playerHeadRotation", checked);
+      Root::singleton().configuration()->set("playerHeadRotation", checked);
+      syncGui();
+    });
 
   auto assets = Root::singleton().assets();
 
@@ -133,7 +139,8 @@ StringList const GraphicsMenu::ConfigKeys = {
   "borderless",
   "limitTextureAtlasSize",
   "useMultiTexturing",
-  "monochromeLighting"
+  "monochromeLighting",
+  "playerHeadRotation"
 };
 
 void GraphicsMenu::initConfig() {
@@ -163,7 +170,7 @@ void GraphicsMenu::syncGui() {
   auto zoomIt = std::lower_bound(m_zoomList.begin(), m_zoomList.end(), m_localChanges.get("zoomLevel").toFloat());
   if (zoomIt != m_zoomList.end()) {
     size_t zoomIndex = zoomIt - m_zoomList.begin();
-    zoomIndex = std::min(zoomIndex, m_resList.size() - 1);
+    zoomIndex = std::min(zoomIndex, m_zoomList.size() - 1);
     zoomSlider->setVal(zoomIndex, false);
   } else {
     zoomSlider->setVal(m_zoomList.size() - 1);
@@ -174,7 +181,7 @@ void GraphicsMenu::syncGui() {
   auto scaleIt = std::lower_bound(m_interfaceScaleList.begin(), m_interfaceScaleList.end(), m_localChanges.get("interfaceScale").toFloat());
   if (scaleIt != m_interfaceScaleList.end()) {
     size_t scaleIndex = scaleIt - m_interfaceScaleList.begin();
-    scaleIndex = std::min(scaleIndex, m_resList.size() - 1);
+    scaleIndex = std::min(scaleIndex, m_interfaceScaleList.size() - 1);
     interfaceScaleSlider->setVal(scaleIndex, false);
   } else {
     interfaceScaleSlider->setVal(m_interfaceScaleList.size() - 1);
@@ -188,6 +195,7 @@ void GraphicsMenu::syncGui() {
   fetchChild<ButtonWidget>("textureLimitCheckbox")->setChecked(m_localChanges.get("limitTextureAtlasSize").toBool());
   fetchChild<ButtonWidget>("multiTextureCheckbox")->setChecked(m_localChanges.get("useMultiTexturing").optBool().value(true));
   fetchChild<ButtonWidget>("monochromeCheckbox")->setChecked(m_localChanges.get("monochromeLighting").toBool());
+  fetchChild<ButtonWidget>("headRotationCheckbox")->setChecked(m_localChanges.get("playerHeadRotation").toBool());
 }
 
 void GraphicsMenu::apply() {

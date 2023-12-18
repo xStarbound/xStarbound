@@ -28,7 +28,24 @@
         98
       ],
       "gridImage": "/interface/optionsmenu/smallselection.png"
-    }
+    },
+    "headRotationLabel" : {
+      "type" : "label",
+      "position" : [123, 51],
+      "hAnchor" : "left",
+      "value" : "HEAD ROTATION"
+    },
+    "headRotationCheckbox" : {
+      "type" : "button",
+      "pressedOffset" : [0, 0],
+      "position" : [203, 51],
+      "base" : "/interface/optionsmenu/checkboxnocheck.png",
+      "hover" : "/interface/optionsmenu/checkboxnocheckhover.png",
+      "baseImageChecked" : "/interface/optionsmenu/checkboxcheck.png",
+      "hoverImageChecked" : "/interface/optionsmenu/checkboxcheckhover.png",
+      "checkable" : true,
+      "checked" : true
+    },
   },
   "zoomList": [
     0.25,

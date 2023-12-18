@@ -51,7 +51,9 @@ Json const AdditionalDefaultConfiguration = Json::parseJson(R"JSON(
       "borderless" : false,
       "maximized" : true,
       "zoomLevel" : 3.0,
+      "interfaceScale": 3.0,
       "speechBubbles" : true,
+      "playerHeadRotation" : true,
 
       "title" : {
         "multiPlayerAddress" : "",
@@ -399,7 +401,7 @@ void ClientApplication::update() {
     updateTitle(dt);
   else if (m_state > MainAppState::Title)
     updateRunning(dt);
-  
+
   // Swallow leftover encoded voice data if we aren't in-game to allow mic read to continue for settings.
   if (m_state <= MainAppState::Title) {
     DataStreamBuffer ext;
@@ -418,7 +420,7 @@ void ClientApplication::render() {
 
   renderer->switchEffectConfig("interface");
 
-  m_guiContext->setInterfaceScale(config->get("interfaceScale").toFloat());
+  m_guiContext->setInterfaceScale(clamp(config->get("interfaceScale").toFloat(), 0.5f, 100.0f));
 
   // if (m_guiContext->windowWidth() >= m_crossoverRes[0] && m_guiContext->windowHeight() >= m_crossoverRes[1])
   //   m_guiContext->setInterfaceScale(m_maxInterfaceScale);
