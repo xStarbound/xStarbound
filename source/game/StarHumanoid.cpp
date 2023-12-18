@@ -637,7 +637,7 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
 
   Vec2F headRotationOffset(0.0f, 0.0f);
   if (aimAngleToUse) {
-    headRotationOffset = Vec2F::filled(*aimAngleToUse / (0.5f * Constants::pi)).piecewiseMultiply(m_maximumHeadRotationOffset);
+    headRotationOffset = Vec2F::filled(abs(*aimAngleToUse) / (0.5f * Constants::pi)).piecewiseMultiply(m_maximumHeadRotationOffset);
   }
 
   if (!m_headFrameset.empty() && !m_bodyHidden) {
