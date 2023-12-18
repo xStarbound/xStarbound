@@ -164,9 +164,9 @@ void ClientApplication::applicationInit(ApplicationControllerPtr appController) 
   Application::applicationInit(appController);
 
   auto assets = m_root->assets();
-  m_minInterfaceScale = assets->json("/interface.config:minInterfaceScale").toInt();
-  m_maxInterfaceScale = assets->json("/interface.config:maxInterfaceScale").toInt();
-  m_crossoverRes = jsonToVec2F(assets->json("/interface.config:interfaceCrossoverRes"));
+  // m_minInterfaceScale = assets->json("/interface.config:minInterfaceScale").toInt();
+  // m_maxInterfaceScale = assets->json("/interface.config:maxInterfaceScale").toInt();
+  // m_crossoverRes = jsonToVec2F(assets->json("/interface.config:interfaceCrossoverRes"));
 
   appController->setCursorVisible(true);
 
