@@ -19,6 +19,7 @@
 #include "StarItemBag.hpp"
 #include "StarEntitySplash.hpp"
 #include "StarWorld.hpp"
+#include "StarWorldGeometry.hpp"
 #include "StarStatusController.hpp"
 #include "StarStatusControllerLuaBindings.hpp"
 #include "StarNetworkedAnimatorLuaBindings.hpp"
@@ -36,6 +37,7 @@
 #include "StarInspectionTool.hpp"
 #include "StarUtilityLuaBindings.hpp"
 #include "StarCelestialLuaBindings.hpp"
+#include "StarConfiguration.hpp"
 
 namespace Star {
 
@@ -435,11 +437,17 @@ void Player::uninit() {
 List<Drawable> Player::drawables() const {
   List<Drawable> drawables;
 
+  Maybe<float> playerAimAngle = {}; // FezzedOne: Angle used to rotate the head.
+  if (inWorld()) { // FezzedOne: Only clients need to run this head rotation code.
+    if (world()->isClient() && Root::singleton().configuration()->get("playerHeadRotation").toBool())
+      playerAimAngle = getAngleSide(world()->geometry().diff(aimPosition(), position()).angle()).first;
+  }
+
   if (!isTeleporting()) {
     drawables.appendAll(m_techController->backDrawables());
     if (!m_techController->parentHidden()) {
       m_tools->setupHumanoidHandItemDrawables(*m_humanoid);
-      for (auto& drawable : m_humanoid->render()) {
+      for (auto& drawable : m_humanoid->render(true, true, playerAimAngle)) {
         drawable.translate(position() + m_techController->parentOffset());
         if (drawable.isImage()) {
           drawable.imagePart().addDirectivesGroup(m_techController->parentDirectives(), true);

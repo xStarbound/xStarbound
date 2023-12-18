@@ -265,6 +265,11 @@ Humanoid::Humanoid(Json const& config) {
   m_chestArmorOffset = jsonToVec2F(config.get("chestArmorOffset")) / TilePixels;
   m_legsArmorOffset = jsonToVec2F(config.get("legsArmorOffset")) / TilePixels;
   m_backArmorOffset = jsonToVec2F(config.get("backArmorOffset")) / TilePixels;
+  m_headRotationMultiplier = config.getFloat("headRotationMultiplier", 0.375f);
+  Json maximumHeadRotationOffset = config.get("maximumHeadRotationOffset", JsonArray{0.0f, -1.0f});
+  m_maximumHeadRotationOffset = jsonToVec2F(maximumHeadRotationOffset) / TilePixels;
+  Json headCenterPosition = config.get("headRotationCenter", JsonArray{0.0f, 0.0f});
+  m_headCenterPosition = jsonToVec2F(headCenterPosition) / TilePixels;
 
   m_bodyHidden = config.getBool("bodyHidden", false);
 
@@ -499,7 +504,7 @@ void Humanoid::resetAnimation() {
   m_danceTimer = 0.0f;
 }
 
-List<Drawable> Humanoid::render(bool withItems, bool withRotation) {
+List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> aimAngle) {
   List<Drawable> drawables;
 
   int armStateSeq = getArmStateSequence();
@@ -517,6 +522,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation) {
 
   auto frontHand = (m_facingDirection == Direction::Left || m_twoHanded) ? m_primaryHand : m_altHand;
   auto backHand = (m_facingDirection == Direction::Right || m_twoHanded) ? m_primaryHand : m_altHand;
+
+  Maybe<float> aimAngleToUse = {};
+  if (frontHand.holdingItem || backHand.holdingItem)
+    aimAngleToUse = aimAngle;
 
   Vec2F frontArmFrameOffset = Vec2F(0, bobYOffset);
   if (frontHand.recoil)
@@ -610,7 +619,7 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation) {
     }
   }
 
-  Vec2F headPosition(0, bobYOffset);
+  Vec2F headPosition(0.0f, bobYOffset);
   if (dance.isValid())
     headPosition += danceStep->headOffset / TilePixels;
   else if (m_state == Idle)
@@ -626,9 +635,18 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation) {
   else if (m_state == Lay)
     headPosition += m_headLayOffset;
 
+  Vec2F headRotationOffset(0.0f, 0.0f);
+  if (aimAngleToUse) {
+    headRotationOffset = Vec2F::filled(*aimAngleToUse / (0.5f * Constants::pi)).piecewiseMultiply(m_maximumHeadRotationOffset);
+  }
+
   if (!m_headFrameset.empty() && !m_bodyHidden) {
     String image = strf("{}:normal", m_headFrameset);
     auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
+    if (aimAngleToUse) {
+      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+      drawable.translate(headRotationOffset);
+    }
     drawable.imagePart().addDirectives(getBodyDirectives(), true);
     addDrawable(move(drawable), m_bodyFullbright);
   }
@@ -636,6 +654,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation) {
   if (!m_emoteFrameset.empty() && !m_bodyHidden) {
     String image = strf("{}:{}.{}", m_emoteFrameset, emoteFrameBase(m_emoteState), emoteStateSeq);
     auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
+    if (aimAngleToUse) {
+      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+      drawable.translate(headRotationOffset);
+    }
     drawable.imagePart().addDirectives(getEmoteDirectives(), true);
     addDrawable(move(drawable), m_bodyFullbright);
   }
@@ -643,6 +665,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation) {
   if (!m_hairFrameset.empty() && !m_bodyHidden) {
     String image = strf("{}:normal", m_hairFrameset);
     auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
+    if (aimAngleToUse) {
+      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+      drawable.translate(headRotationOffset);
+    }
     drawable.imagePart().addDirectives(getHairDirectives(), true).addDirectives(getHelmetMaskDirectives(), true);
     addDrawable(move(drawable), m_bodyFullbright);
   }
@@ -698,6 +724,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation) {
   if (!m_facialHairFrameset.empty() && !m_bodyHidden) {
     String image = strf("{}:normal", m_facialHairFrameset);
     auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
+    if (aimAngleToUse) {
+      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+      drawable.translate(headRotationOffset);
+    }
     drawable.imagePart().addDirectives(getFacialHairDirectives(), true).addDirectives(getHelmetMaskDirectives(), true);
     addDrawable(move(drawable), m_bodyFullbright);
   }
@@ -705,6 +735,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation) {
   if (!m_facialMaskFrameset.empty() && !m_bodyHidden) {
     String image = strf("{}:normal", m_facialMaskFrameset);
     auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
+    if (aimAngleToUse) {
+      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+      drawable.translate(headRotationOffset);
+    }
     drawable.imagePart().addDirectives(getFacialMaskDirectives(), true).addDirectives(getHelmetMaskDirectives(), true);
     addDrawable(move(drawable));
   }
@@ -712,6 +746,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation) {
   if (!m_headArmorFrameset.empty()) {
     String image = strf("{}:normal", m_headArmorFrameset);
     auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
+    if (aimAngleToUse) {
+      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+      drawable.translate(headRotationOffset);
+    }
     drawable.imagePart().addDirectives(getHeadDirectives(), true);
     addDrawable(move(drawable));
   }

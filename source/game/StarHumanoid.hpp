@@ -198,7 +198,7 @@ public:
 
   // Renders to centered drawables (centered on the normal image center for the
   // player graphics), (in world space, not pixels)
-  List<Drawable> render(bool withItems = true, bool withRotation = true);
+  List<Drawable> render(bool withItems = true, bool withRotation = true, Maybe<float> aimAngle = {});
 
   // Renders to centered drawables (centered on the normal image center for the
   // player graphics), (in pixels, not world space)
@@ -343,6 +343,13 @@ private:
   String m_backArmorFrameset;
   Directives m_backArmorDirectives;
   Directives m_helmetMaskDirectives;
+  Vec2F m_headCenterPosition; // FezzedOne: Position of the centre of the humanoid's head.
+  float m_headRotationMultiplier; // FezzedOne: The amount to multiply head rotation by.
+  // FezzedOne: The maximum offset by which the head is shifted while it is being rotated.
+  // The head rotation (before the multiplier above) is divided by `0.5f * Constants::pi`,
+  // its value is used to fill the X and Y of a `Vec2F`, then that `Vec2F` is piecewise-
+  // multiplied by this value (`x * x`, `y * y`) and used to offset the head.
+  Vec2F m_maximumHeadRotationOffset;
 
   State m_state;
   HumanoidEmote m_emoteState;
