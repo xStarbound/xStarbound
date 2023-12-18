@@ -178,7 +178,7 @@ void GraphicsMenu::syncGui() {
   fetchChild<LabelWidget>("zoomValueLabel")->setText(strf("{}x", m_localChanges.get("zoomLevel").toFloat()));
 
   auto interfaceScaleSlider = fetchChild<SliderBarWidget>("interfaceScaleSlider");
-  auto scaleIt = std::lower_bound(m_interfaceScaleList.begin(), m_interfaceScaleList.end(), m_localChanges.get("interfaceScale").toFloat());
+  auto scaleIt = std::lower_bound(m_interfaceScaleList.begin(), m_interfaceScaleList.end(), m_localChanges.get("interfaceScale").optFloat().value(3.0f));
   if (scaleIt != m_interfaceScaleList.end()) {
     size_t scaleIndex = scaleIt - m_interfaceScaleList.begin();
     scaleIndex = std::min(scaleIndex, m_interfaceScaleList.size() - 1);
@@ -186,7 +186,7 @@ void GraphicsMenu::syncGui() {
   } else {
     interfaceScaleSlider->setVal(m_interfaceScaleList.size() - 1);
   }
-  fetchChild<LabelWidget>("interfaceScaleValueLabel")->setText(strf("{}x", m_localChanges.get("interfaceScale").toFloat()));
+  fetchChild<LabelWidget>("interfaceScaleValueLabel")->setText(strf("{}x", m_localChanges.get("interfaceScale").optFloat().value(3.0f)));
 
   fetchChild<ButtonWidget>("speechBubbleCheckbox")->setChecked(m_localChanges.get("speechBubbles").toBool());
   fetchChild<ButtonWidget>("interactiveHighlightCheckbox")->setChecked(m_localChanges.get("interactiveHighlight").toBool());
