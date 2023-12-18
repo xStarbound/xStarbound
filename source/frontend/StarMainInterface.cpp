@@ -1515,7 +1515,7 @@ void MainInterface::renderCursor() {
     auto backgroundImage = assets->json("/interface.config:cursorTooltip.background").toString();
     auto rawCursorOffset = jsonToVec2I(assets->json("/interface.config:cursorTooltip.offset"));
 
-    Vec2I tooltipSize = Vec2I(imgDb->imageSize(backgroundImage)) * interfaceScale();
+    Vec2F tooltipSize = Vec2F(imgDb->imageSize(backgroundImage)) * interfaceScale();
     Vec2I cursorOffset = (Vec2I{0, -m_cursor.size().y()} + rawCursorOffset) * cursorScale;
     Vec2I tooltipOffset = m_cursorScreenPos + cursorOffset;
     size_t fontSize = assets->json("/interface.config:cursorTooltip.fontSize").toUInt();
@@ -1527,7 +1527,7 @@ void MainInterface::renderCursor() {
     m_guiContext->setFontColor(fontColor);
     m_guiContext->setFont(font);
     m_guiContext->renderText(*m_cursorTooltip,
-        TextPositioning(Vec2F(tooltipOffset) + Vec2F(-tooltipSize.x(), tooltipSize.y()) / 2,
+        TextPositioning(Vec2F(tooltipOffset) + Vec2F(-tooltipSize.x(), tooltipSize.y()) / 2.0f,
             HorizontalAnchor::HMidAnchor,
             VerticalAnchor::VMidAnchor));
   }
