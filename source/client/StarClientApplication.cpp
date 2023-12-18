@@ -350,7 +350,7 @@ void ClientApplication::processInput(InputEvent const& event) {
     zoomOffset -= (*presses);
 
   if (zoomOffset != 0)
-    config->set("zoomLevel", min(100.0f, max(1.0f, round(config->get("zoomLevel").toFloat() * 16.0f + (float)zoomOffset)) * 0.0625f));
+    config->set("zoomLevel", min(100.0f, max(4.0f, round(config->get("zoomLevel").toFloat() * 16.0f + (float)zoomOffset)) * 0.0625f));
 
   int interfaceScaleOffset = 0;
 
@@ -364,7 +364,7 @@ void ClientApplication::processInput(InputEvent const& event) {
     interfaceScaleOffset -= (*presses);
 
   if (interfaceScaleOffset != 0)
-    config->set("interfaceScale", min(100.0f, max(1.0f, round(config->get("interfaceScale").toFloat() * 16.0f + (float)interfaceScaleOffset)) * 0.0625f));
+    config->set("interfaceScale", min(100.0f, max(8.0f, round(config->get("interfaceScale").toFloat() * 16.0f + (float)interfaceScaleOffset)) * 0.0625f));
 }
 
 void ClientApplication::update() {
