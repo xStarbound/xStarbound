@@ -45,7 +45,7 @@
       "hoverImageChecked" : "/interface/optionsmenu/checkboxcheckhover.png",
       "checkable" : true,
       "checked" : true
-    },
+    }
   },
   "zoomList": [
     0.25,
