@@ -195,7 +195,7 @@ void GraphicsMenu::syncGui() {
   fetchChild<ButtonWidget>("textureLimitCheckbox")->setChecked(m_localChanges.get("limitTextureAtlasSize").toBool());
   fetchChild<ButtonWidget>("multiTextureCheckbox")->setChecked(m_localChanges.get("useMultiTexturing").optBool().value(true));
   fetchChild<ButtonWidget>("monochromeCheckbox")->setChecked(m_localChanges.get("monochromeLighting").toBool());
-  fetchChild<ButtonWidget>("headRotationCheckbox")->setChecked(m_localChanges.get("playerHeadRotation").toBool());
+  fetchChild<ButtonWidget>("headRotationCheckbox")->setChecked(m_localChanges.get("playerHeadRotation").optBool().value(true));
 }
 
 void GraphicsMenu::apply() {
