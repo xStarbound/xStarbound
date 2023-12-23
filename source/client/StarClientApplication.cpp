@@ -995,8 +995,11 @@ void ClientApplication::updateRunning(float dt) {
       LogMap::set("tile_dungeon_id", world->isTileProtected(aim) ? strf("^red;{}", world->dungeonId(aim)) : toString(world->dungeonId(aim)));
     }
 
-    if (m_mainInterface->currentState() == MainInterface::ReturnToTitle)
+    if (m_mainInterface->currentState() == MainInterface::ReturnToTitle) {
+      // FezzedOne: Clean up cached directives in the image metadata cache upon exiting to the menu.
+      Root::singleton().cleanUpImageMetadata();
       changeState(MainAppState::Title);
+    }
 
   } catch (std::exception& e) {
     setError("Exception caught in client main-loop", e);

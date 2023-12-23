@@ -14,6 +14,7 @@ STAR_CLASS(ContainerObject);
 class ContainerObject : public Object, public virtual ContainerEntity {
 public:
   ContainerObject(ObjectConfigConstPtr config, Json const& parameters);
+  ~ContainerObject();
 
   void init(World* world, EntityId entityId, EntityMode mode) override;
 

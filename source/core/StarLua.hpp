@@ -592,7 +592,7 @@ public:
   void collectGarbage(Maybe<unsigned> steps = {});
 
   // Stop / start automatic garbage collection
-  void setAutoGarbageCollection(bool autoGarbageColleciton);
+  void setAutoGarbageCollection(bool autoGarbageCollection);
 
   // Tune the pause and step values of the lua garbage collector
   void tuneAutoGarbageCollection(float pause, float stepMultiplier);

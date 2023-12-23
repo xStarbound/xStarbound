@@ -542,8 +542,8 @@ void LuaEngine::collectGarbage(Maybe<unsigned> steps) {
     lua_gc(m_state, LUA_GCCOLLECT, 0);
 }
 
-void LuaEngine::setAutoGarbageCollection(bool autoGarbageColleciton) {
-  lua_gc(m_state, LUA_GCSTOP, autoGarbageColleciton ? 1 : 0);
+void LuaEngine::setAutoGarbageCollection(bool autoGarbageCollection) {
+  lua_gc(m_state, LUA_GCSTOP, autoGarbageCollection ? 1 : 0);
 }
 
 void LuaEngine::tuneAutoGarbageCollection(float pause, float stepMultiplier) {

@@ -1,7 +1,7 @@
 {
   "universeScriptContexts" : { "xSB" : ["/scripts/xsb/universeclient/universeclient.lua"] },
 
-  // Disables scissoring and letterboxing on vanilla and modded warp cinematics
+  // Disables scissoring and letterboxing on vanilla and modded warp cinematics.
   "warpCinematicBase" : {
     "scissor" : false,
     "letterbox" : false
@@ -10,6 +10,10 @@
     "scissor" : false,
     "letterbox" : false
   },
+
+  // FezzedOne: Configures Lua's garbage collector to be more aggressive and stop leaking gobs of memory.
+  "luaGcPause" : 1.2,
+  "luaGcStepMultiplier" : 2.0,
 
   "windowTitle": "xSB xClient"
 }

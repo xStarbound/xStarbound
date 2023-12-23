@@ -25,6 +25,8 @@ public:
 
   ItemBag();
   explicit ItemBag(size_t size);
+  // FezzedOne: Make sure to clean up item pointers to free memory on destruction.
+  ~ItemBag();
 
   static ItemBag fromJson(Json const& spec);
   static ItemBag loadStore(Json const& store);
@@ -40,7 +42,7 @@ public:
   void clearItems();
 
   // Force a cleanup of any empty items from the ItemBag.  Even though no
-  // methods should ever return a null item, it can be usefull to force cleanup
+  // methods should ever return a null item, it can be useful to force cleanup
   // to remove empty items from memory.  If any action was done, will return
   // true.
   bool cleanup() const;

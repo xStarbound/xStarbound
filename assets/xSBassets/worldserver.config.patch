@@ -1,3 +1,7 @@
 {
-  "scriptContexts" : { "xSB" : ["/scripts/xsb/worldserver/worldserver.lua"] }
+  "scriptContexts" : { "xSB" : ["/scripts/xsb/worldserver/worldserver.lua"] },
+
+  // FezzedOne: Configures Lua's garbage collector to be more aggressive and stop leaking gobs of memory.
+  "luaGcPause" : 1.2,
+  "luaGcStepMultiplier" : 2.0
 }

@@ -11,6 +11,14 @@ ItemBag::ItemBag(size_t size) {
   m_items.resize(size);
 }
 
+ItemBag::~ItemBag() {
+  // FezzedOne: Clean up all item pointers on uninit, freeing up memory.
+  for (auto& items : const_cast<ItemBag*>(this)->m_items) {
+    items = {};
+  }
+  m_items = {};
+}
+
 ItemBag ItemBag::fromJson(Json const& store) {
   auto itemDatabase = Root::singleton().itemDatabase();
   ItemBag res;

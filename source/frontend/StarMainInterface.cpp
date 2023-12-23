@@ -1128,7 +1128,7 @@ void MainInterface::renderMonsterHealthBar() {
 
     auto container = assets->json("/interface.config:monsterHealth.container").toString();
     auto offset = jsonToVec2F(assets->json("/interface.config:monsterHealth.offset")) * interfaceScale();
-    m_guiContext->drawQuad(container, RectF::withCenter(backgroundCenterPos + offset, Vec2F(imgMetadata->imageSize(container) * interfaceScale())));
+    m_guiContext->drawQuad(container, RectF::withCenter(backgroundCenterPos + offset, Vec2F(imgMetadata->imageSize(container)) * interfaceScale()));
 
     auto nameTextOffset = jsonToVec2F(assets->json("/interface.config:monsterHealth.nameTextOffset")) * interfaceScale();
     m_guiContext->setFont(m_config->font);
@@ -1163,7 +1163,7 @@ void MainInterface::renderMonsterHealthBar() {
     if (m_portraitScale <= 0.0f)
       m_portraitScale = max(0.0625f, max(bounds.size().x() / portraitMaxSize.x(), bounds.size().y() / portraitMaxSize.y()));
     Drawable::translateAll(portrait, {-bounds.xMin() - (bounds.width() * 0.5f), -bounds.yMin() }); // crop out whitespace, align bottom center
-    Drawable::scaleAll(portrait, 1.0f / m_portraitScale);
+    Drawable::scaleAll(portrait, 1.0f / (m_portraitScale * 2.0f));
 
     for (auto drawable : portrait)
       m_guiContext->drawDrawable(move(drawable), backgroundCenterPos + portraitOffset, portraitScale);
