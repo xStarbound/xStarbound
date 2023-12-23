@@ -10,6 +10,11 @@
 
 namespace Star {
 
+ImageMetadataDatabase::ImageMetadataDatabase() {
+  m_reloadTracker = make_shared<TrackerListener>();
+  Root::singleton().registerReloadListener(m_reloadTracker);
+}
+
 Vec2U ImageMetadataDatabase::imageSize(AssetPath const& path) const {
   MutexLocker locker(m_mutex);
   auto i = m_sizeCache.find(path);
@@ -115,6 +120,16 @@ RectU ImageMetadataDatabase::nonEmptyRegion(AssetPath const& path) const {
   m_regionCache[filteredPath] = region;
 
   return region;
+}
+
+void ImageMetadataDatabase::cleanup(bool triggered) {
+  if (triggered) {
+    MutexLocker locker(m_mutex);
+    m_regionCache.clear();
+    m_spacesCache.clear();
+    m_sizeCache.clear();
+    Logger::info("ImageMetadataDatabase: Cleared cache.");
+  }
 }
 
 AssetPath ImageMetadataDatabase::filterProcessing(AssetPath const& path) {

@@ -137,7 +137,11 @@ void LuaBaseComponent::contextSetup() {
     m_context->setCallbacks(p.first, p.second);
 }
 
-void LuaBaseComponent::contextShutdown() {}
+void LuaBaseComponent::contextShutdown() {
+  // FezzedOne: Tell the Lua root to clean up its fucking garbage whenever any script context is shut down.
+  if (m_luaRoot)
+    m_luaRoot->collectGarbage();
+}
 
 void LuaBaseComponent::setError(String error) {
   m_context.reset();

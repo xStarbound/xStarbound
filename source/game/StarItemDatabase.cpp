@@ -209,6 +209,8 @@ ItemDatabase::ItemConfig ItemDatabase::itemConfig(String const& itemName, Json p
     context.setCallbacks("sb", LuaBindings::makeUtilityCallbacks());
     luaTie(itemConfig.config, itemConfig.parameters) = context.invokePath<LuaTupleReturn<Json, Json>>(
         "build", itemConfig.directory, itemConfig.config, itemConfig.parameters, level, seed);
+    // FezzedOne: Tell the item builder's Lua root to collect its fucking garbage after running `build`.
+    m_luaRoot->collectGarbage();
   }
 
   return itemConfig;
@@ -400,6 +402,8 @@ ItemPtr ItemDatabase::applyAugment(ItemPtr const item, AugmentItem* augment) con
     script.init();
     auto luaResult = script.invoke<LuaTupleReturn<Json, Maybe<uint64_t>>>("apply", item->descriptor().toJson());
     script.uninit();
+    // FezzedOne: Tell the Lua root to collect its fucking garbage after it's done running an augment script.
+    m_luaRoot->collectGarbage();
     locker.unlock();
 
     if (luaResult) {
@@ -430,6 +434,8 @@ bool ItemDatabase::ageItem(ItemPtr& item, double aging) const {
   script.init();
   auto aged = script.invoke<Json>("ageItem", original.toJson(), aging).apply(construct<ItemDescriptor>());
   script.uninit();
+  // FezzedOne: Tell the Lua root to collect its fucking garbage after running `ageItem`.
+  m_luaRoot->collectGarbage();
   locker.unlock();
 
   if (aged && *aged != original) {
@@ -507,6 +513,7 @@ ItemPtr ItemDatabase::tryCreateItem(ItemDescriptor const& descriptor, Maybe<floa
   }
   catch (std::exception const& e) {
     Logger::error("Could not instantiate item '{}'. {}", descriptor, outputException(e, false));
+    result.reset();
     result = createItem(m_items.get("perfectlygenericitem").type, itemConfig("perfectlygenericitem", JsonObject(), {}, {}));
   }
   result->setCount(descriptor.count());
@@ -526,9 +533,13 @@ ItemRecipe ItemDatabase::makeRecipe(List<ItemDescriptor> inputs, ItemDescriptor 
   res.output = move(output);
   res.duration = duration;
   res.groups = move(groups);
+  // FezzedOne: Fixed some potential recipe initialisation bugs.
+  res.matchInputParameters = false;
   if (auto item = ItemDatabase::itemShared(res.output)) {
     res.outputRarity = item->rarity();
     res.guiFilterString = guiFilterString(item);
+  } else {
+    res.outputRarity = Rarity::Common;
   }
   return res;
 }

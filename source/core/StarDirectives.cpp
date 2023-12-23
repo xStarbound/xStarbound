@@ -62,6 +62,11 @@ Directives::Directives(const char* directives) {
   parse(directives);
 }
 
+Directives::~Directives() {
+  // FezzedOne: Fix for a massive memory leak in Kae's directives code.
+  shared.reset();
+}
+
 Directives& Directives::operator=(String const& directives) {
   if (shared && shared->string == directives)
     return *this;
@@ -130,6 +135,7 @@ void Directives::parse(String&& directives) {
     return;
   }
 
+  shared.reset(); // FezzedOne: Reset the shared pointer first to stop a massive memory leak.
   shared = std::make_shared<Shared const>(move(newList), move(directives), prefix);
   if (view.size() < 1000) { // Pre-load short enough directives
     for (auto& entry : shared->entries)

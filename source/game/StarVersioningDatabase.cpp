@@ -165,9 +165,13 @@ VersionedJson VersioningDatabase::updateVersionedJson(VersionedJson const& versi
         Logger::debug("Brought versionedJson '{}' from version {} to {}",
             versionedJson.identifier, result.version, updateScript.toVersion);
         result.version = updateScript.toVersion;
+        // FezzedOne: Tell the Lua root to clean up its fucking garbage after updating a versioned JSON config.
+        m_luaRoot.collectGarbage();
       }
     }
   } catch (std::exception const& e) {
+    // FezzedOne: Remember to clean up any fucking Lua garbage.
+    m_luaRoot.collectGarbage();
     throw VersioningDatabaseException(strf("Could not bring versionedJson with identifier '{}' and version {} forward to current version of {}",
             versionedJson.identifier, result.version, targetVersion), e);
   }

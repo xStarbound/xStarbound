@@ -92,8 +92,8 @@ inline MaterialSpace::MaterialSpace(Vec2I space, MaterialId material)
 
 inline bool MaterialSpace::operator==(MaterialSpace const& rhs) const {
   return space         == rhs.space
-      && material      == rhs.material
-      && prevCollision == rhs.prevCollision;
+      && material      == rhs.material;
+      // && prevCollision == rhs.prevCollision;
 }
 
 }

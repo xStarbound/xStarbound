@@ -75,7 +75,14 @@ WorldServer::~WorldServer() {
   for (auto& p : m_scriptContexts)
     p.second->uninit();
 
+  // FezzedOne: Tell the Lua root to collect its fucking garbage and shut down when the world is uninitialised.
+  if (m_luaRoot) {
+    m_luaRoot->collectGarbage();
+    m_luaRoot->shutdown();
+  }
   m_scriptContexts.clear();
+  // FezzedOne: Why wasn't this cleared on uninit?
+  m_netStateCache.clear();
   m_spawner.uninit();
   writeMetadata();
   m_worldStorage->unloadAll(true);
@@ -1560,18 +1567,25 @@ void WorldServer::updateTileEntityTiles(TileEntityPtr const& entity, bool removi
       bool updated = false;
       bool updatedCollision = false;
       ServerTile* tile = m_tileArray->modifyTile(pos);
-      if (tile && (tile->foreground == EmptyMaterialId || tile->foreground == materialSpace.material)) {
+       if (tile && (tile->foreground == EmptyMaterialId || tile->foreground == materialSpace.material)) {
         tile->foreground = materialSpace.material;
         tile->foregroundMod = NoModId;
+        // Kae: Fix for some overhead in checking tile entity spaces.
+        bool hadRoot = tile->rootSource.isValid();
         if (isRealMaterial(materialSpace.material))
           tile->rootSource = entity->tilePosition();
-        passedSpaces.emplaceAppend(materialSpace).prevCollision.emplace(tile->collision);
+        auto& space = passedSpaces.emplaceAppend(materialSpace);
+        if (hadRoot)
+          space.prevCollision.emplace(tile->collision);
         updatedCollision = tile->updateCollision(materialDatabase->materialCollisionKind(tile->foreground));
         updated = true;
-        passedSpaces.emplaceAppend(materialSpace);
       }
       else if (tile && tile->collision < CollisionKind::Dynamic) {
-        passedSpaces.emplaceAppend(materialSpace).prevCollision.emplace(tile->collision);
+        // Kae: Fix for some overhead in checking tile entity spaces.
+        bool hadRoot = tile->rootSource.isValid();
+        auto& space = passedSpaces.emplaceAppend(materialSpace);
+        if (hadRoot)
+          space.prevCollision.emplace(tile->collision);
         updatedCollision = tile->updateCollision(materialDatabase->materialCollisionKind(materialSpace.material));
         updated = true;
       }
@@ -1870,7 +1884,8 @@ void WorldServer::queueUpdatePackets(ConnectionId clientId) {
           auto pair = make_pair(entityId, *version);
           auto i = m_netStateCache.find(pair);
           if (i == m_netStateCache.end())
-            i = m_netStateCache.insert(pair, monitoredEntity->writeNetState(*version)).first;
+            // FezzedOne: That `move` likely had a very good reason to be there.
+            i = m_netStateCache.insert(pair, std::move(monitoredEntity->writeNetState(*version))).first;
           const auto& netState = i->second;
           if (!netState.first.empty())
             updateSetPacket->deltas[entityId] = netState.first;
@@ -2081,6 +2096,9 @@ void WorldServer::removeEntity(EntityId entityId, bool andDie) {
 
   m_entityMap->removeEntity(entityId);
   entity->uninit();
+  // long refCount = entity.use_count() - 1;
+  // Logger::info("[xSB] [Debug] {} server-side {} to entity {} remaining after entity removal.",
+  //   refCount, refCount == 1 ? "reference" : "references", entityId);
 }
 
 float WorldServer::windLevel(Vec2F const& pos) const {

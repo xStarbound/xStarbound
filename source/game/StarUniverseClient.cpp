@@ -37,6 +37,11 @@ UniverseClient::UniverseClient(PlayerStoragePtr playerStorage, StatisticsPtr sta
 }
 
 UniverseClient::~UniverseClient() {
+  // FezzedOne: Tell the Lua root to clean up its fucking garbage and properly shut down here.
+  if (m_luaRoot) {
+    m_luaRoot->collectGarbage();
+    m_luaRoot->shutdown();
+  }
   disconnect();
 }
 
@@ -164,7 +169,7 @@ void UniverseClient::disconnect() {
   while (m_connection) {
     m_connection->sendAll(timeout);
     if (m_connection->receiveAny(timeout))
-      handlePackets(m_connection->pull());
+      handlePackets(std::move(m_connection->pull()));
     else
       break;
   }
@@ -237,7 +242,7 @@ void UniverseClient::update(float dt) {
   }
 
   m_connection->receive();
-  handlePackets(m_connection->pull());
+  handlePackets(std::move(m_connection->pull()));
 
   if (!isConnected())
     return;

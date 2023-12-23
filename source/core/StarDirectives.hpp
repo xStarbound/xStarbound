@@ -14,6 +14,7 @@ STAR_CLASS(DirectivesGroup);
 STAR_EXCEPTION(DirectivesException, StarException);
 
 // Kae: My attempt at reducing memory allocation and per-frame string parsing for extremely long directives
+// FezzedOne: Clearly a botched attempt.
 class Directives {
 public:
   struct Shared;
@@ -44,6 +45,8 @@ public:
   Directives(String const& directives);
   Directives(String&& directives);
   Directives(const char* directives);
+  // FezzedOne: Fix for a massive memory leak in Kae's directives code.
+  ~Directives();
 
   Directives& operator=(String const& s);
   Directives& operator=(String&& s);

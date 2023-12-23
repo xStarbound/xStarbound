@@ -130,6 +130,12 @@ public:
   // location.
   String toStoragePath(String const& path) const;
 
+  // Cleans up the image metadata cache. Needed because that cache stores
+  // `AssetPath` objects and therefore potentially long custom clothing
+  // directives, hogging up memory. Safe to call even when the
+  // image metadata database is indisposed.
+  void cleanUpImageMetadata();
+
   // All of the Root member accessors are safe to call at any time after Root
   // initialization, if they are not loaded they will load before returning.
 

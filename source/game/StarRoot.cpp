@@ -283,6 +283,8 @@ void Root::reload() {
     m_particleDatabase.reset();
     m_versioningDatabase.reset();
     m_functionDatabase.reset();
+    // FezzedOne: Clean up the image metadata database when reloading.
+    if (m_imageMetadataDatabase) m_imageMetadataDatabase->cleanup(true);
     m_imageMetadataDatabase.reset();
     m_tenantDatabase.reset();
     m_nameGenerator.reset();
@@ -359,6 +361,14 @@ void Root::fullyLoad() {
     MutexLocker locker(m_assetsMutex);
     if (m_assets)
       m_assets->clearCache();
+  }
+}
+
+void Root::cleanUpImageMetadata() {
+  MutexLocker locker(m_imageMetadataDatabaseMutex);
+  if (ImageMetadataDatabasePtr imgMetadataDb = m_imageMetadataDatabase) {
+    locker.unlock();
+    imgMetadataDb->cleanup(true);
   }
 }
 
