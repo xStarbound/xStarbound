@@ -38,6 +38,37 @@ ContainerObject::ContainerObject(ObjectConfigConstPtr config, Json const& parame
   m_craftingProgress.setInterpolator(lerp<float, float>);
 }
 
+ContainerObject::~ContainerObject() {
+  // FezzedOne: This should stop a memory leak.
+  m_scriptComponent.uninit();
+
+  m_netGroup.clearNetElements();
+
+  m_opened.set(0);
+  m_crafting.set(false);
+  m_craftingProgress.set(0.0f);
+
+  m_items.reset();
+  m_itemsNetState.set(ByteArray());
+
+  m_initialized = false;
+  m_count = 0;
+  m_currentState = 0;
+  m_animationFrameCooldown = 0;
+  m_autoCloseCooldown = 0;
+
+  m_goalRecipe = ItemRecipe();
+
+  m_itemsUpdated = false;
+  m_runUpdatedCallback = false;
+
+  m_containerCallback = nullptr;
+
+  m_ageItemsTimer.setElapsedTime(0.0);
+
+  m_lostItems.clear();
+}
+
 void ContainerObject::init(World* world, EntityId entityId, EntityMode mode) {
   if (mode == EntityMode::Master)
     m_interactive.set(true);
@@ -151,6 +182,7 @@ void ContainerObject::destroy(RenderCallback* renderCallback) {
     for (auto const& drop : m_items->items())
       world()->addEntity(ItemDrop::createRandomizedDrop(drop, position()));
   }
+  m_items.reset();
 }
 
 Maybe<Json> ContainerObject::receiveMessage(ConnectionId sendingConnection, String const& message, JsonArray const& args) {
