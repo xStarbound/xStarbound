@@ -635,42 +635,27 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
   else if (m_state == Lay)
     headPosition += m_headLayOffset;
 
-  Vec2F headRotationOffset(0.0f, 0.0f);
-  if (aimAngleToUse) {
-    headRotationOffset = Vec2F::filled(abs(*aimAngleToUse) / (0.5f * Constants::pi)).piecewiseMultiply(m_maximumHeadRotationOffset);
-  }
-
-  if (!m_headFrameset.empty() && !m_bodyHidden) {
-    String image = strf("{}:normal", m_headFrameset);
-    auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
-    if (aimAngleToUse) {
-      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
-      drawable.translate(headRotationOffset);
+  if (!aimAngleToUse) { // FezzedOne: Use default rendering layer when the head isn't being rotated.
+    if (!m_headFrameset.empty() && !m_bodyHidden) {
+      String image = strf("{}:normal", m_headFrameset);
+      auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
+      drawable.imagePart().addDirectives(getBodyDirectives(), true);
+      addDrawable(move(drawable), m_bodyFullbright);
     }
-    drawable.imagePart().addDirectives(getBodyDirectives(), true);
-    addDrawable(move(drawable), m_bodyFullbright);
-  }
 
-  if (!m_emoteFrameset.empty() && !m_bodyHidden) {
-    String image = strf("{}:{}.{}", m_emoteFrameset, emoteFrameBase(m_emoteState), emoteStateSeq);
-    auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
-    if (aimAngleToUse) {
-      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
-      drawable.translate(headRotationOffset);
+    if (!m_emoteFrameset.empty() && !m_bodyHidden) {
+      String image = strf("{}:{}.{}", m_emoteFrameset, emoteFrameBase(m_emoteState), emoteStateSeq);
+      auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
+      drawable.imagePart().addDirectives(getEmoteDirectives(), true);
+      addDrawable(move(drawable), m_bodyFullbright);
     }
-    drawable.imagePart().addDirectives(getEmoteDirectives(), true);
-    addDrawable(move(drawable), m_bodyFullbright);
-  }
 
-  if (!m_hairFrameset.empty() && !m_bodyHidden) {
-    String image = strf("{}:normal", m_hairFrameset);
-    auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
-    if (aimAngleToUse) {
-      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
-      drawable.translate(headRotationOffset);
+    if (!m_hairFrameset.empty() && !m_bodyHidden) {
+      String image = strf("{}:normal", m_hairFrameset);
+      auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
+      drawable.imagePart().addDirectives(getHairDirectives(), true).addDirectives(getHelmetMaskDirectives(), true);
+      addDrawable(move(drawable), m_bodyFullbright);
     }
-    drawable.imagePart().addDirectives(getHairDirectives(), true).addDirectives(getHelmetMaskDirectives(), true);
-    addDrawable(move(drawable), m_bodyFullbright);
   }
 
   if (!m_bodyFrameset.empty() && !m_bodyHidden) {
@@ -719,6 +704,37 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
     auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, position);
     drawable.imagePart().addDirectives(getChestDirectives(), true);
     addDrawable(move(drawable));
+  }
+
+  Vec2F headRotationOffset = Vec2F(0.0f, 0.0f);
+  if (aimAngleToUse) { // FezzedOne: When rotating the head, render it in front of the body.
+    headRotationOffset = Vec2F::filled(abs(*aimAngleToUse) / (0.5f * Constants::pi)).piecewiseMultiply(m_maximumHeadRotationOffset);
+    if (!m_headFrameset.empty() && !m_bodyHidden) {
+      String image = strf("{}:normal", m_headFrameset);
+      auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
+      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+      drawable.translate(headRotationOffset);
+      drawable.imagePart().addDirectives(getBodyDirectives(), true);
+      addDrawable(move(drawable), m_bodyFullbright);
+    }
+
+    if (!m_emoteFrameset.empty() && !m_bodyHidden) {
+      String image = strf("{}:{}.{}", m_emoteFrameset, emoteFrameBase(m_emoteState), emoteStateSeq);
+      auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
+      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+      drawable.translate(headRotationOffset);
+      drawable.imagePart().addDirectives(getEmoteDirectives(), true);
+      addDrawable(move(drawable), m_bodyFullbright);
+    }
+
+    if (!m_hairFrameset.empty() && !m_bodyHidden) {
+      String image = strf("{}:normal", m_hairFrameset);
+      auto drawable = Drawable::makeImage(move(image), 1.0f / TilePixels, true, headPosition);
+      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+      drawable.translate(headRotationOffset);
+      drawable.imagePart().addDirectives(getHairDirectives(), true).addDirectives(getHelmetMaskDirectives(), true);
+      addDrawable(move(drawable), m_bodyFullbright);
+    }
   }
 
   if (!m_facialHairFrameset.empty() && !m_bodyHidden) {

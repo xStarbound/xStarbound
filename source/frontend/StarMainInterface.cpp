@@ -1376,6 +1376,8 @@ void MainInterface::renderDebug() {
     m_guiContext->setFontColor(Color::White.toRgba());
     m_guiContext->setFontMode(FontMode::Normal);
 
+    Vec2I debugOffset = Vec2I(Vec2F(m_config->debugOffset) * (interfaceScale() * 0.5f));
+
     bool clearMap = m_debugMapClearTimer.wrapTick();
     auto logMapValues = LogMap::getValues();
     if (clearMap)
@@ -1386,7 +1388,7 @@ void MainInterface::renderDebug() {
 
     int counter = 0;
     for (auto const& pair : logMapValues) {
-      TextPositioning positioning = { Vec2F(m_config->debugOffset[0], windowHeight() - m_config->debugOffset[1] - m_config->fontSize * interfaceScale() * counter++) };
+      TextPositioning positioning = { Vec2F(debugOffset[0], windowHeight() - debugOffset[1] - m_config->fontSize * interfaceScale() * counter++) };
       String& text = formatted.emplace_back(strf("{}^lightgray;:^green,set; {}", pair.first, pair.second));
       m_debugTextRect.combine(m_guiContext->determineTextSize(text, positioning).padded(m_config->debugBackgroundPad));
     }
@@ -1402,7 +1404,7 @@ void MainInterface::renderDebug() {
 
     counter = 0;
     for (auto const& pair : logMapValues) {
-      TextPositioning positioning = { Vec2F(m_config->debugOffset[0], windowHeight() - m_config->debugOffset[1] - m_config->fontSize * interfaceScale() * counter) };
+      TextPositioning positioning = { Vec2F(debugOffset[0], windowHeight() - debugOffset[1] - m_config->fontSize * interfaceScale() * counter) };
       m_guiContext->renderText(formatted[counter], positioning);
       ++counter;
     }
