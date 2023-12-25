@@ -31,7 +31,7 @@ To build on SteamOS:
 
     ```sh
     sudo steamos-readonly disable
-    sudo pacman -S base-devel glibc linux-api-headers
+    sudo pacman -S base-devel glibc linux-api-headers cmake
     sudo steamos-readonly enable
     ```
 
