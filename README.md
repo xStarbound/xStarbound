@@ -35,7 +35,7 @@ To build on SteamOS:
     sudo steamos-readonly enable
     ```
 
-2. Follow the Linux instructions.
+2. Follow the Linux instructions starting at step 3.
 3. To install `mimalloc` on SteamOS:
 
     ```sh
