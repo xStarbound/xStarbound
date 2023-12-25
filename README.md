@@ -13,14 +13,15 @@ This repository is already set up for easy building. Follow the appropriate inst
 To build on any reasonably up-to-date Linux distro:
 
 1. Make sure you have GCC installed; it should come preinstalled on most distros.
-2. Download the latest source tarball (or clone the repo) and extract.
-3. `cd xSB-2/`
-4. `scripts/linux/setup.sh 3` (increase that `3` to `4` or more if you've got a beefy system).
-5. Executables, required `.so` libaries and the required `sbinit.config` should appear in `$src/dist` if built successfully.
-6. `mkdir -p ${sbInstall}/xsb-linux; cp dist/* ${sbInstall}/xsb-linux/`
-7. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
-8. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-linux/xclient`.
-9. Optionally install or build `mimalloc` and prepend `env LD_PRELOAD=${pathToMimalloc}/libmimalloc.so` to the launch commands for xClient and xServer.
+2. Install CMake. Your distribution's package should be called `cmake`.
+3. Download the latest source tarball (or clone the repo) and extract.
+4. `cd xSB-2/`
+5. `scripts/linux/setup.sh 3` (increase that `3` to `4` or more if you've got a beefy system).
+6. Executables, required `.so` libaries and the required `sbinit.config` should appear in `$src/dist` if built successfully.
+7. `mkdir -p ${sbInstall}/xsb-linux; cp dist/* ${sbInstall}/xsb-linux/`
+8. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
+9. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-linux/xclient`.
+10. Optionally install or build `mimalloc` and prepend `env LD_PRELOAD=${pathToMimalloc}/libmimalloc.so` to the launch commands for xClient and xServer.
 
 ### SteamOS
 
@@ -49,8 +50,8 @@ You will need to re-run the commands in step 1 (and, if you use `mimalloc`, step
 
 To build and install on Windows 10 or 11:
 
-1. Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/whatsnew/). Make sure to install C++ support (and optionally the game dev stuff).
-2. Download the latest source ZIP (or clone the repo) and extract.
+1. Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/whatsnew/) and [CMake](https://cmake.org/download/). For Visual Studio, make sure to install C++ support (and optionally the game dev stuff) when the VS installer asks you what to install. For CMake, make sure you download and use the `.msi` installer for 64-bit Windows.
+2. Download the latest source ZIP (or install [Git](https://git-scm.com/download/win) and clone the repo) and extract.
 3. Go into `scripts\windows\` and double-click `setup64.bat`.
 4. Wait for that batch file to finish, go up two folders, open up `build\` and double-click `ALL_BUILD.vcxproj`.
 5. Select **Build → Build Solution** in Visual Studio.
