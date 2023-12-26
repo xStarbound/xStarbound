@@ -4,7 +4,13 @@
 #include "StarCasting.hpp"
 #include "StarString_windows.hpp"
 
+// FezzedOne: Needs to be lower-case for cross-compilation because Linux is
+// case-sensitive and the WINE/MinGW header's name is lower-case.
+#ifdef STAR_CROSS_COMPILE
+#include <dbghelp.h>
+#else
 #include <DbgHelp.h>
+#endif
 
 namespace Star {
 
