@@ -192,7 +192,8 @@ void Root::reload() {
     // Species database depends on the item database.
     MutexLocker speciesDatabaseLock(m_speciesDatabaseMutex);
 
-    // Item database depends on object database and codex database
+    // Item database depends on object database, codex database and (FezzedOne)
+    // configuration.
     MutexLocker itemDatabaseLock(m_itemDatabaseMutex);
 
     // These databases depend on various things below, but not the item database
@@ -236,7 +237,7 @@ void Root::reload() {
     MutexLocker emoteProcessorLock(m_emoteProcessorMutex);
     MutexLocker terrainDatabaseLock(m_terrainDatabaseMutex);
     MutexLocker particleDatabaseLock(m_particleDatabaseMutex);
-    MutexLocker versioningDatabaseLock(m_versioningDatabaseMutex);
+    MutexLocker versioningDatabaseLock(m_versioningDatabaseMutex); // FezzedOne: Also depends on configuration now.
     MutexLocker functionDatabaseLock(m_functionDatabaseMutex);
     MutexLocker imageMetadataDatabaseLock(m_imageMetadataDatabaseMutex);
     MutexLocker tenantDatabaseLock(m_tenantDatabaseMutex);

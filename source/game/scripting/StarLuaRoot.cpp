@@ -138,9 +138,9 @@ void LuaRoot::collectGarbage(Maybe<unsigned> steps) {
     m_luaEngine->collectGarbage(steps);
 }
 
-void LuaRoot::setAutoGarbageCollection(bool autoGarbageColleciton) {
+void LuaRoot::setAutoGarbageCollection(bool autoGarbageCollection) {
   if (m_luaEngine)
-    m_luaEngine->setAutoGarbageCollection(autoGarbageColleciton);
+    m_luaEngine->setAutoGarbageCollection(autoGarbageCollection);
 }
 
 void LuaRoot::tuneAutoGarbageCollection(float pause, float stepMultiplier) {
