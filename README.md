@@ -12,8 +12,8 @@ This repository is already set up for easy building. Follow the appropriate inst
 
 To build on any reasonably up-to-date Linux distro:
 
-1. Make sure you have GCC installed; it should come preinstalled on most distros.
-2. Install CMake. Your distribution's package should be called `cmake`.
+1. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's "base development" package.
+2. Install CMake and optionally Git (if not already installed). Your distribution's packages should be called `cmake` and `git`, respectively.
 3. Download the latest source tarball (or clone the repo) and extract.
 4. `cd xSB-2/`
 5. `scripts/linux/setup.sh 3` (increase that `3` to `4` or more if you've got a beefy system).
@@ -65,6 +65,24 @@ Building on earlier versions of Windows is not recommended, although it *should*
 ### macOS
 
 There is currently no working macOS toolchain set up. If you want to build on macOS anyway, you should try installing and using GCC. The compiler paths are configured in `scripts/osx/setup.command` (or the `setup.sh` script in the same directory, if you don't like `.command` scripts). You'll also need to make some changes to `source/CMakeLists.txt` so that GCC doesn't assume you're using Linux headers and the like.
+
+### Cross-compilation from Linux to Windows
+
+To cross-compile from Windows to Linux:
+
+1. Install CMake, WINE, MinGW-w64 and optionally Git (if not already preinstalled).
+  - **Arch-/Debian-based distros (`apt`/`pacman`):** Install `cmake`, `wine`, `mingw-w64` and `git`.
+  - **Fedora-based distros (`yum`):** Install `cmake`, `wine`, `mingw64-\*` and `git`.
+2. Install or build the MinGW versions of Freetype (using `--without-harfbuzz`), ZLib, GLEW and SDL2.
+  - On the AUR, these are `mingw-w64-freetype2-bootstrap`, `mingw-w64-zlib`, `mingw-w64-glew` and `mingw-w64-zlib`, respectively.
+  - For Arch users (*not* derivatives), there is a [binary repo](https://martchus.no-ip.biz/repo/arch/ownstuff) for these libraries, but you should still install `mingw-w64-freetype2-bootstrap` from the AUR.
+3. Download the latest source tarball (or clone the repo) and extract.
+4. `cd xSB-2/`
+5. `scripts/mingw/setup.sh 3` (increase that `3` to `4` or more if you've got a beefy system).
+6. Executables, required `.dll` libaries and the required `sbinit.config` should appear in `$src/dist` if built successfully. Note that the Discord library is differently named due to an idiosyncrasy with the linker; do not rename it back.
+7. `mkdir -p ${sbInstall}/xsb-win64; cp dist-windows/* ${sbInstall}/xsb-win64/`
+8. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
+9. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-win64/xclient.exe`.
 
 ## Changes
 
