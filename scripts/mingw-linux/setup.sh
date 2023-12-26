@@ -5,7 +5,7 @@ cd "`dirname \"$0\"`/../..";
 rm -rI build-mingw/ dist-windows/;
 
 mkdir -p dist-windows;
-cp scripts/mingw/xsbinit.config dist-windows/;
+cp scripts/mingw-linux/xsbinit.config dist-windows/;
 cp lib/mingw/*.dll dist-windows/;
 # FezzedOne: Need to rename this DLL because of a linking idiosyncrasy.
 mv dist-windows/discord_game_sdk.dll dist-windows/discord_game_sdk_stub.dll;
