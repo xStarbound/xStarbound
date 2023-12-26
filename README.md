@@ -68,7 +68,7 @@ There is currently no working macOS toolchain set up. If you want to build on ma
 
 ### Cross-compilation from Linux to Windows
 
-To cross-compile from Windows to Linux:
+To cross-compile from Linux to Windows:
 
 1. Install CMake, WINE, MinGW-w64 and optionally Git (if not already preinstalled).
   - **Arch-/Debian-based distros (`apt`/`pacman`):** Install `cmake`, `wine`, `mingw-w64` and `git`.
@@ -82,7 +82,7 @@ To cross-compile from Windows to Linux:
 6. Executables, required `.dll` libaries and the required `sbinit.config` should appear in `$src/dist-windows` if built successfully. Note that the Discord library is differently named due to an idiosyncrasy with the linker; do not rename it back.
 7. `mkdir -p ${sbInstall}/xsb-win64; cp dist-windows/* ${sbInstall}/xsb-win64/`
 8. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
-9. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-win64/xclient.exe` through WINE (or on your Windows install).
+9. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-win64/xclient.exe` through WINE/Proton (or on your Windows install).
 
 Note that `mimalloc` gets built-in as if xSB-2 were built on MSVC — no manual loading required.
 
