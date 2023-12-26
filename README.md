@@ -79,10 +79,12 @@ To cross-compile from Windows to Linux:
 3. Download the latest source tarball (or clone the repo) and extract.
 4. `cd xSB-2/`
 5. `scripts/mingw/setup.sh 3` (increase that `3` to `4` or more if you've got a beefy system).
-6. Executables, required `.dll` libaries and the required `sbinit.config` should appear in `$src/dist` if built successfully. Note that the Discord library is differently named due to an idiosyncrasy with the linker; do not rename it back.
+6. Executables, required `.dll` libaries and the required `sbinit.config` should appear in `$src/dist-windows` if built successfully. Note that the Discord library is differently named due to an idiosyncrasy with the linker; do not rename it back.
 7. `mkdir -p ${sbInstall}/xsb-win64; cp dist-windows/* ${sbInstall}/xsb-win64/`
 8. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
-9. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-win64/xclient.exe`.
+9. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-win64/xclient.exe` through WINE (or on your Windows install).
+
+Note that `mimalloc` gets built-in as if xSB-2 were built on MSVC — no manual loading required.
 
 ## Changes
 
