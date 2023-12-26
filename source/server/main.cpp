@@ -28,6 +28,9 @@ Json const AdditionalDefaultConfiguration = Json::parseJson(R"JSON(
       "rconServerPassword" : "",
       "rconServerTimeout" : 1000,
 
+      "assetLuaGcPause" : 1.2,
+      "assetLuaGcStepMultiplier" : 1.2,
+
       "allowAssetsMismatch" : true,
       "serverOverrideAssetsDigest" : null
     }

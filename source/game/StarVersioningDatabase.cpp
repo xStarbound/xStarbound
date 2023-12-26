@@ -83,6 +83,9 @@ DataStream& operator<<(DataStream& ds, VersionedJson const& versionedJson) {
 
 VersioningDatabase::VersioningDatabase() {
   auto assets = Root::singleton().assets();
+  auto config = Root::singleton().configuration();
+  m_luaRoot.tuneAutoGarbageCollection(config->get("assetLuaGcPause").optFloat().value(1.2f),
+    config->get("assetLuaGcStepMultiplier").optFloat().value(1.2f));
 
   for (auto const& pair : assets->json("/versioning.config").iterateObject())
     m_currentVersions[pair.first] = pair.second.toUInt();

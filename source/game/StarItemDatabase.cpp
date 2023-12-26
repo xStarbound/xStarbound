@@ -133,6 +133,9 @@ bool ItemDatabase::canMakeRecipe(ItemRecipe const& recipe, HashMap<ItemDescripto
 
 ItemDatabase::ItemDatabase()
   : m_luaRoot(make_shared<LuaRoot>()) {
+  auto config = Root::singleton().configuration();
+  m_luaRoot->tuneAutoGarbageCollection(config->get("assetLuaGcPause").optFloat().value(1.2f),
+    config->get("assetLuaGcStepMultiplier").optFloat().value(1.2f));
   scanItems();
   addObjectItems();
   addCodexes();

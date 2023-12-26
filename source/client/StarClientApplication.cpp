@@ -43,6 +43,9 @@ Json const AdditionalDefaultConfiguration = Json::parseJson(R"JSON(
       "useMultiTexturing" : true,
       "audioChannelSeparation" : [-25, 25],
 
+      "assetLuaGcPause" : 1.2,
+      "assetLuaGcStepMultiplier" : 1.2,
+
       "sfxVol" : 100,
       "musicVol" : 70,
       "windowedResolution" : [1000, 600],
