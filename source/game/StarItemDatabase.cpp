@@ -209,8 +209,7 @@ ItemDatabase::ItemConfig ItemDatabase::itemConfig(String const& itemName, Json p
     context.setCallbacks("sb", LuaBindings::makeUtilityCallbacks());
     luaTie(itemConfig.config, itemConfig.parameters) = context.invokePath<LuaTupleReturn<Json, Json>>(
         "build", itemConfig.directory, itemConfig.config, itemConfig.parameters, level, seed);
-    // FezzedOne: Tell the item builder's Lua root to collect its fucking garbage after running `build`.
-    m_luaRoot->collectGarbage();
+    // m_luaRoot->collectGarbage();
   }
 
   return itemConfig;
@@ -402,8 +401,7 @@ ItemPtr ItemDatabase::applyAugment(ItemPtr const item, AugmentItem* augment) con
     script.init();
     auto luaResult = script.invoke<LuaTupleReturn<Json, Maybe<uint64_t>>>("apply", item->descriptor().toJson());
     script.uninit();
-    // FezzedOne: Tell the Lua root to collect its fucking garbage after it's done running an augment script.
-    m_luaRoot->collectGarbage();
+    // m_luaRoot->collectGarbage();
     locker.unlock();
 
     if (luaResult) {
@@ -434,8 +432,7 @@ bool ItemDatabase::ageItem(ItemPtr& item, double aging) const {
   script.init();
   auto aged = script.invoke<Json>("ageItem", original.toJson(), aging).apply(construct<ItemDescriptor>());
   script.uninit();
-  // FezzedOne: Tell the Lua root to collect its fucking garbage after running `ageItem`.
-  m_luaRoot->collectGarbage();
+  // m_luaRoot->collectGarbage();
   locker.unlock();
 
   if (aged && *aged != original) {

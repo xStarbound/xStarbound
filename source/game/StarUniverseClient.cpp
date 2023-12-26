@@ -39,7 +39,6 @@ UniverseClient::UniverseClient(PlayerStoragePtr playerStorage, StatisticsPtr sta
 UniverseClient::~UniverseClient() {
   // FezzedOne: Tell the Lua root to clean up its fucking garbage and properly shut down here.
   if (m_luaRoot) {
-    m_luaRoot->collectGarbage();
     m_luaRoot->shutdown();
   }
   disconnect();
