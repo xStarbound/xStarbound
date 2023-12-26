@@ -1826,8 +1826,7 @@ void WorldClient::clearWorld() {
 
   m_damageManager.reset();
 
-  // FezzedOne: Tell the Lua root to collect its fucking garbage before shutting down.
-  m_luaRoot->collectGarbage();
+  // FezzedOne: Tell the Lua root to shut down properly.
   m_luaRoot->shutdown();
 
   m_particles.reset();

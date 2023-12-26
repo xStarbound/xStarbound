@@ -85,6 +85,7 @@ void LuaRoot::shutdown() {
     File::writeFile(profileSummary, path);
   }
 
+  collectGarbage();
   m_luaEngine.reset();
 }
 

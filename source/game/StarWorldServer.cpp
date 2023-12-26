@@ -77,7 +77,6 @@ WorldServer::~WorldServer() {
 
   // FezzedOne: Tell the Lua root to collect its fucking garbage and shut down when the world is uninitialised.
   if (m_luaRoot) {
-    m_luaRoot->collectGarbage();
     m_luaRoot->shutdown();
   }
   m_scriptContexts.clear();
