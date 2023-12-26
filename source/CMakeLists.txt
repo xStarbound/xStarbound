@@ -11,7 +11,7 @@ ELSE ()
 ENDIF ()
 
 
-PROJECT (starbound)
+PROJECT (xsb2)
 SET (CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../cmake)
 
 SET (CMAKE_CONFIGURATION_TYPES Debug RelWithAsserts RelWithDebInfo Release)
@@ -104,6 +104,26 @@ IF (STAR_COMPILER STREQUAL "msvc")
   OPTION (STAR_ENABLE_STATIC_MSVC_RUNTIME "Statically link with the CRT" OFF)
 ENDIF ()
 
+# FezzedOne: More MinGW stuff.
+IF (STAR_COMPILER STREQUAL "gnu" AND STAR_SYSTEM STREQUAL "windows" AND STAR_CROSS_COMPILE)
+  MESSAGE (STATUS "Cross-compiling for Windows on Linux")
+  SET (TARGET "x86_64-w64-mingw32")
+  SET (CMAKE_C_COMPILER_TARGET ${TARGET})
+  SET (CMAKE_CXX_COMPILER_TARGET ${TARGET})
+  SET (CMAKE_SYSTEM "Windows")
+  SET (CMAKE_SYSTEM_NAME "Windows")
+  SET (CMAKE_SYSTEM_VERSION "10")
+  SET (CMAKE_SYSTEM_PROCESSOR "x86_64")
+  SET (MINGW ON)
+  SET (WIN32 ON)
+  SET (CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+  SET (CMAKE_FIND_ROOT_PATH /usr/x86_64-w64-mingw32/ ${PROJECT_SOURCE_DIR}/../)
+  SET (CMAKE_PREFIX_PATH /usr/x86_64-w64-mingw32/ ${PROJECT_SOURCE_DIR}/../)
+  SET (CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+  SET (CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+  SET (CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+ENDIF()
+
 OPTION (STAR_BUILD_GUI "Build GUI utilities and Client" ON)
 
 IF (STAR_BUILD_GUI)
@@ -114,7 +134,6 @@ ENDIF ()
 
 OPTION (STAR_LUA_APICHECK "Use lua api checks" OFF)
 OPTION (STAR_USE_JEMALLOC "Use jemalloc allocators" OFF)
-OPTION (STAR_USE_MIMALLOC "Use mimalloc allocators (takes precedence over jemalloc)" OFF)
 
 # Report all the discovered system / environment settings and all options.
 
@@ -153,7 +172,6 @@ ENDIF ()
 
 MESSAGE (STATUS "Using Lua API checks: ${STAR_LUA_APICHECK}")
 MESSAGE (STATUS "Using jemalloc: ${STAR_USE_JEMALLOC}")
-MESSAGE (STATUS "Using mimalloc: ${STAR_USE_MIMALLOC}")
 
 # Set C defines and cmake variables based on the build settings we have now
 # determined...
@@ -226,21 +244,25 @@ IF (STAR_USE_JEMALLOC)
   ADD_DEFINITIONS (-DSTAR_USE_JEMALLOC)
 ENDIF ()
 
-IF (STAR_USE_MIMALLOC)
-  ADD_DEFINITIONS (-DSTAR_USE_MIMALLOC)
-ENDIF ()
 # Set C/C++ compiler flags based on build environment...
 
 IF (STAR_COMPILER_GNU)
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -rdynamic -Wall -Wextra -Wno-unused -Wno-unqualified-std-cast-call -Wno-implicit-fallthrough -no-pie")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -rdynamic -Wall -Wextra -Wno-unused -Wno-implicit-fallthrough -no-pie")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wno-unused -Wno-unqualified-std-cast-call -Wno-implicit-fallthrough -no-pie")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Wextra -Wno-unused -Wno-implicit-fallthrough -no-pie")
 
   IF (STAR_SYSTEM_FAMILY_WINDOWS)
-    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mthreads")
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mthreads")
+    # FezzedOne: Fixed GCC linker flag for Windows targets.
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,--export-all-symbols -mthreads")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--export-all-symbols -mthreads")
+    IF (STAR_CROSS_COMPILE)
+      # Cross-compiled binaries have to be statically linked to avoid weird "un-Windows-like" GCC DLL crap.
+      SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -static-libgcc -DSTAR_CROSS_COMPILE")
+      SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libstdc++ -static-libgcc -DSTAR_CROSS_COMPILE")
+      SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/x86_64-w64-mingw32/lib")
+    ENDIF ()
   ELSE ()
-    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -D_REENTRANT")
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_REENTRANT")
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -rdynamic -pthread -D_REENTRANT")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -rdynamic -pthread -D_REENTRANT")
   ENDIF ()
 
   IF (STAR_ENABLE_STATIC_LIBGCC_LIBSTDCXX)
@@ -253,16 +275,18 @@ IF (STAR_COMPILER_GNU)
     SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
   ENDIF ()
 
-  SET (CMAKE_C_FLAGS_DEBUG "-g -Og")
-  SET (CMAKE_CXX_FLAGS_DEBUG "-g -Og")
+  SET (CMAKE_C_FLAGS_DEBUG "-g -Og -fsanitize=address")
+  SET (CMAKE_CXX_FLAGS_DEBUG "-g -Og -fsanitize=address")
+  set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address")
 
   # FezzedOne: Need to define `FLOAT_APPROX` for Opus whenever `-Ofast` is used.
 
   SET (CMAKE_C_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast")
   SET (CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast")
 
-  SET (CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast")
-  SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast")
+  SET (CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast") # -fsanitize=address
+  SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast") # -fsanitize=address
+  set (CMAKE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_LINKER_FLAGS_DEBUG}") # -fsanitize=address
 
   SET (CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast")
   SET (CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast")
@@ -270,18 +294,16 @@ IF (STAR_COMPILER_GNU)
 ELSEIF (STAR_COMPILER_CLANG)
   IF (STAR_SYSTEM_LINUX)
     # Stop Clang from bitching about all those thousands of `move` calls without an `std::` (or `Star::`, since there's an alias in that namespace).
-    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,--export-dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized  -Wno-parentheses-equality -Wno-deprecated-declarations")
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wl,--export-dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,--export-dynamic -Wall -Wextra -Wuninitialized -Wno-unqualified-std-cast-call -Wno-parentheses-equality -Wno-deprecated-declarations")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wl,--export-dynamic -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
   ELSEIF (STAR_SYSTEM_MACOS)
     # Stop Clang from bitching about all those thousands of `move` calls without an `std::` (or `Star::`, since there's an alias in that namespace).
-    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-export_dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized  -Wno-parentheses-equality -Wno-deprecated-declarations")
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wl,-export_dynamic -Wno-unqualified-std-cast-call -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-export_dynamic -Wall -Wextra -Wuninitialized -Wno-unqualified-std-cast-call -Wno-parentheses-equality -Wno-deprecated-declarations")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wl,-export_dynamic -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
   ENDIF()
 
   IF (STAR_SYSTEM_MACOS)
-    # Should hopefully fix a linker error - there's no need to try to link against iOS libraries in a goddamn desktop game, SDL!
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -undefined suppress")
-    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -undefined suppress")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
     SET (CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++17")
     SET (CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
   ELSEIF (STAR_SYSTEM_LINUX)
@@ -336,7 +358,6 @@ ELSEIF (STAR_COMPILER_MSVC)
 
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP /EHsc /bigobj /wd4996 /wd4351 /wd4800 /wd4244 /wd4305 /wd4267 /wd4456 /wd4503 /wd4250 /wd4624")
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /MP /EHsc /bigobj /wd4996 /wd4351 /wd4800 /wd4244 /wd4305 /wd4267 /wd4456 /wd4503 /wd4250 /wd4624")
-
 
   IF (STAR_ENABLE_STATIC_MSVC_RUNTIME)
     SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MT")
@@ -421,8 +442,13 @@ IF (STAR_COMPILER STREQUAL "msvc")
 ENDIF ()
 
 IF (STAR_SYSTEM_WINDOWS)
-  SET (CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES} ws2_32.lib iphlpapi.lib shlwapi.lib dbghelp.lib")
-  SET (CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} ws2_32.lib iphlpapi.lib shlwapi.lib dbghelp.lib")
+  IF (STAR_CROSS_COMPILE)
+    SET (CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES} -lws2_32 -liphlpapi -lshlwapi -ldbghelp")
+    SET (CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -lws2_32 -liphlpapi -lshlwapi -ldbghelp")
+  ELSE ()
+    SET (CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES} ws2_32.lib iphlpapi.lib shlwapi.lib dbghelp.lib")
+    SET (CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} ws2_32.lib iphlpapi.lib shlwapi.lib dbghelp.lib")
+  ENDIF()
 
 ELSEIF (STAR_SYSTEM_LINUX)
   SET (CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES} -lpthread -ldl -lrt")
@@ -457,27 +483,57 @@ FIND_PACKAGE (PNG REQUIRED)
 FIND_PACKAGE (Freetype REQUIRED)
 FIND_PACKAGE (OggVorbis REQUIRED)
 
-INCLUDE_DIRECTORIES (SYSTEM
+IF (STAR_CROSS_COMPILE)
+  INCLUDE_DIRECTORIES (SYSTEM
     ${ZLIB_INCLUDE_DIR}
     ${PNG_INCLUDE_DIR}
     ${FREETYPE_INCLUDE_DIRS}
     ${OGGVORBIS_INCLUDE_DIR}
   )
 
-SET (STAR_EXT_LIBS ${STAR_EXT_LIBS}
-    ${VORBISFILE_LIBRARY}
-    ${VORBIS_LIBRARY}
-    ${OGG_LIBRARY}
-    ${FREETYPE_LIBRARY}
-    ${PNG_LIBRARY}
-    ${ZLIB_LIBRARY}
-    opus
+  SET (STAR_EXT_LIBS ${STAR_EXT_LIBS}
+      ${VORBISFILE_LIBRARY}
+      ${VORBIS_LIBRARY}
+      ${OGG_LIBRARY}
+      ${FREETYPE_LIBRARY}
+      "/usr/x86_64-w64-mingw32/lib/libbrotlidec-static.a"
+      "/usr/x86_64-w64-mingw32/lib/libbrotlienc-static.a"
+      "/usr/x86_64-w64-mingw32/lib/libbrotlicommon-static.a"
+      "/usr/x86_64-w64-mingw32/lib/libbz2.a"
+      ${PNG_LIBRARY}
+      ${ZLIB_LIBRARY}
+      opus
   )
+ELSE()
+  INCLUDE_DIRECTORIES (SYSTEM
+      ${ZLIB_INCLUDE_DIR}
+      ${PNG_INCLUDE_DIR}
+      ${FREETYPE_INCLUDE_DIRS}
+      ${OGGVORBIS_INCLUDE_DIR}
+  )
+
+  SET (STAR_EXT_LIBS ${STAR_EXT_LIBS}
+      ${VORBISFILE_LIBRARY}
+      ${VORBIS_LIBRARY}
+      ${OGG_LIBRARY}
+      ${FREETYPE_LIBRARY}
+      ${PNG_LIBRARY}
+      ${ZLIB_LIBRARY}
+      opus
+  )
+ENDIF()
 
 IF (STAR_BUILD_GUI)
   FIND_PACKAGE (SDL2 REQUIRED)
   INCLUDE_DIRECTORIES (SYSTEM ${SDL2_INCLUDE_DIR})
-  SET (STAR_EXT_GUI_LIBS ${SDL2_LIBRARY})
+  IF (STAR_CROSS_COMPILE)
+    # `-mwindows` stops cross-compiled xClient from opening up a console window when started.
+    # -limagehlp -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid
+    SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows")
+    SET (STAR_EXT_GUI_LIBS "${PROJECT_SOURCE_DIR}/../lib/mingw/SDL2.dll" "${PROJECT_SOURCE_DIR}/../lib/mingw/glew32.dll")
+  ELSE()
+    SET (STAR_EXT_GUI_LIBS ${SDL2_LIBRARY})
+  ENDIF()
 
   FIND_PACKAGE (OpenGL REQUIRED)
   FIND_PACKAGE (GLEW REQUIRED)
@@ -489,14 +545,22 @@ IF (STAR_BUILD_GUI)
     FIND_PACKAGE (SteamApi REQUIRED)
 
     INCLUDE_DIRECTORIES (SYSTEM ${STEAM_API_INCLUDE_DIR})
-    SET (STAR_EXT_GUI_LIBS ${STAR_EXT_GUI_LIBS} ${STEAM_API_LIBRARY})
+    IF (STAR_CROSS_COMPILE)
+      SET (STAR_EXT_GUI_LIBS ${STAR_EXT_GUI_LIBS} "${PROJECT_SOURCE_DIR}/../lib/mingw/steam_api64.dll")
+    ELSE()
+      SET (STAR_EXT_GUI_LIBS ${STAR_EXT_GUI_LIBS} ${STEAM_API_LIBRARY})
+    ENDIF()
   ENDIF ()
 
   IF (STAR_ENABLE_DISCORD_INTEGRATION)
     FIND_PACKAGE (DiscordApi REQUIRED)
 
     INCLUDE_DIRECTORIES (SYSTEM ${DISCORD_API_INCLUDE_DIR})
-    SET (STAR_EXT_GUI_LIBS ${STAR_EXT_GUI_LIBS} ${DISCORD_API_LIBRARY})
+    IF (STAR_CROSS_COMPILE)
+      SET (STAR_EXT_GUI_LIBS ${STAR_EXT_GUI_LIBS} "${PROJECT_SOURCE_DIR}/../lib/mingw/discord_game_sdk.dll")
+    ELSE()
+      SET (STAR_EXT_GUI_LIBS ${STAR_EXT_GUI_LIBS} ${DISCORD_API_LIBRARY})
+    ENDIF()
   ENDIF ()
 ENDIF ()
 
@@ -505,13 +569,53 @@ ENDIF ()
 
 SET (BUILD_SHARED_LIBS false)
 
-# First set output dir for the generic no-config case (e.g. macos / linux)
-SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../dist)
+# FezzedOne: MinGW setup. Windows executables built with GCC (presumably MinGW)
+# go in `$src/dist-windows` or `$src/dist-windows-debug`, while all other executables,
+# including Windows executables built with MinGW and Linux executables built with GCC,
+# go in `$src/dist` or `$src/dist-debug`.
+IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  IF (STAR_CROSS_COMPILE)
+    SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../dist-windows-debug)
+  ELSE()
+    SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../dist-debug)
+  ENDIF()
+ELSEIF (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+  IF (STAR_CROSS_COMPILE)
+    SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../dist-windows-debug)
+  ELSE()
+    SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../dist-debug)
+  ENDIF()
+ELSE()
+  IF (STAR_CROSS_COMPILE)
+    SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../dist-windows)
+  ELSE()
+    # First set output dir for the generic no-config case (e.g. macos / linux)
+    SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/../dist)
+  ENDIF()
+ENDIF()
 
 # Second, set output dir for multi-config builds (e.g. msvc)
 FOREACH (OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
   STRING (TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-  SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/../dist)
+  IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    IF (STAR_CROSS_COMPILE)
+      SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/../dist-windows-debug)
+    ELSE()
+      SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/../dist-debug)
+    ENDIF()
+  ELSEIF (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    IF (STAR_CROSS_COMPILE)
+      SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/../dist-windows-debug)
+    ELSE()
+      SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/../dist-debug)
+    ENDIF()
+  ELSE()
+    IF (STAR_CROSS_COMPILE)
+      SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/../dist-windows)
+    ELSE()
+      SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/../dist)
+    ENDIF()
+  ENDIF()
 ENDFOREACH (OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
 
 # External code included with starbound source, which core depends on
@@ -531,28 +635,28 @@ ADD_SUBDIRECTORY (base)
 SET (STAR_PLATFORM_INCLUDES ${PROJECT_SOURCE_DIR}/platform)
 ADD_SUBDIRECTORY (platform)
 
+# Core game logic used by both server and client.
+SET (STAR_GAME_INCLUDES
+    ${PROJECT_SOURCE_DIR}/game
+    ${PROJECT_SOURCE_DIR}/game/interfaces
+    ${PROJECT_SOURCE_DIR}/game/items
+    ${PROJECT_SOURCE_DIR}/game/objects
+    ${PROJECT_SOURCE_DIR}/game/scripting
+    ${PROJECT_SOURCE_DIR}/game/terrain
+  )
+ADD_SUBDIRECTORY (game)
+
+# Googletest based tests # Don't need to compile these.
+# ENABLE_TESTING()
+# ADD_SUBDIRECTORY (test)
+
 IF (NOT QT_GUIS_ONLY)
 
-  # Core game logic used by both server and client.
-  SET (STAR_GAME_INCLUDES
-      ${PROJECT_SOURCE_DIR}/game
-      ${PROJECT_SOURCE_DIR}/game/interfaces
-      ${PROJECT_SOURCE_DIR}/game/items
-      ${PROJECT_SOURCE_DIR}/game/objects
-      ${PROJECT_SOURCE_DIR}/game/scripting
-      ${PROJECT_SOURCE_DIR}/game/terrain
-    )
-  ADD_SUBDIRECTORY (game)
+# Starbound stand-alone server.
+ADD_SUBDIRECTORY (server)
 
-  # Googletest based tests # Don't need to compile these.
-  # ENABLE_TESTING()
-  # ADD_SUBDIRECTORY (test)
-
-  # Starbound stand-alone server.
-  ADD_SUBDIRECTORY (server)
-
-  # cmdline utilities
-  ADD_SUBDIRECTORY (utility)
+# cmdline utilities
+ADD_SUBDIRECTORY (utility)
 ENDIF()
 
 IF (STAR_BUILD_GUI)

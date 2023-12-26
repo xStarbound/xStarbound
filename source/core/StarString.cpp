@@ -5,9 +5,13 @@
 
 #include <cctype>
 #ifdef STAR_COMPILER_GNU
-#include <regex.h>
+  #ifdef STAR_SYSTEM_FAMILY_UNIX
+    #include <regex.h>
+  #else
+    #include <regex>
+  #endif
 #else
-#include <regex>
+  #include <regex>
 #endif
 
 namespace Star {
@@ -718,7 +722,8 @@ bool String::contains(String const& s, CaseSensitivity cs) const {
 
 bool String::regexMatch(String const& regex, bool full, bool caseSensitive) const {
 #ifdef STAR_COMPILER_GNU
-  // Not that the `full` argument is ignored.
+  #ifdef STAR_SYSTEM_FAMILY_UNIX
+  // Note that the `full` argument is ignored.
   regex_t cmpRegex;
   int value;
 
@@ -743,6 +748,20 @@ bool String::regexMatch(String const& regex, bool full, bool caseSensitive) cons
   regfree(&cmpRegex);
   if (value == 0) return true;
   else if (value == REG_NOMATCH) return false;
+  else throw StringException(strf("unknown error handling regex '{}' in String::regexMatch", regex));
+  #else
+  if (full) {
+    if (caseSensitive)
+      return std::regex_match(utf8(), std::regex(regex.utf8()));
+    else
+      return std::regex_match(utf8(), std::regex(regex.utf8(), std::regex::icase));
+  } else {
+    if (caseSensitive)
+      return std::regex_search(utf8(), std::regex(regex.utf8()));
+    else
+      return std::regex_search(utf8(), std::regex(regex.utf8(), std::regex::icase));
+  }
+  #endif
 #else
   if (full) {
     if (caseSensitive)
