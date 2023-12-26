@@ -1,6 +1,8 @@
 build/
 build-qt/
+build-mingw/
 dist/
+dist-windows/
 dist-qt/
 enc_temp_folder/
 .cache/
