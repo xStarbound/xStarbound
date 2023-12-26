@@ -33,6 +33,8 @@ UniverseClient::UniverseClient(PlayerStoragePtr playerStorage, StatisticsPtr sta
   m_statistics = move(statistics);
   m_pause = false;
   m_luaRoot = make_shared<LuaRoot>();
+  auto clientConfig = Root::singleton().assets()->json("/client.config");
+  m_luaRoot->tuneAutoGarbageCollection(clientConfig.getFloat("luaGcPause"), clientConfig.getFloat("luaGcStepMultiplier"));
   reset();
 }
 

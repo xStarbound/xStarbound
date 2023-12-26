@@ -32,6 +32,10 @@ CommandProcessor::CommandProcessor(UniverseServer* universe)
   m_scriptComponent.setScripts(jsonToStringList(assets->json("/universe_server.config:commandProcessorScripts")));
   auto luaRoot = make_shared<LuaRoot>();
   luaRoot->luaEngine().setNullTerminated(false);
+  // FezzedOne: Using `worldserver.config` to avoid an asset update and because there's no reason not to use
+  // the world server tuning for the Lua GC anyway.
+  auto serverConfig = Root::singleton().assets()->json("/worldserver.config");
+  luaRoot->tuneAutoGarbageCollection(serverConfig.getFloat("luaGcPause"), serverConfig.getFloat("luaGcStepMultiplier"));
   m_scriptComponent.setLuaRoot(luaRoot);
   m_scriptComponent.init();
 }
