@@ -13,10 +13,8 @@ ItemBag::ItemBag(size_t size) {
 
 ItemBag::~ItemBag() {
   // FezzedOne: Clean up all item pointers on uninit, freeing up memory.
-  for (auto& items : const_cast<ItemBag*>(this)->m_items) {
-    items = {};
-  }
-  m_items = {};
+  // FezzedOne: Fixed segfault here.
+  m_items.clear();
 }
 
 ItemBag ItemBag::fromJson(Json const& store) {
@@ -344,9 +342,7 @@ void ItemBag::write(DataStream& ds) const {
 
   ds.writeVlqU(setItemsSize);
   for (size_t i = 0; i < setItemsSize; ++i) {
-    // FezzedOne: Fixed segfault caused by leak fixes.
-    if (at(i))
-      ds.write(itemSafeDescriptor(at(i)));
+    ds.write(itemSafeDescriptor(at(i)));
   }
 }
 
