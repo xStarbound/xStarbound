@@ -343,8 +343,11 @@ void ItemBag::write(DataStream& ds) const {
   }
 
   ds.writeVlqU(setItemsSize);
-  for (size_t i = 0; i < setItemsSize; ++i)
-    ds.write(itemSafeDescriptor(at(i)));
+  for (size_t i = 0; i < setItemsSize; ++i) {
+    // FezzedOne: Fixed segfault caused by leak fixes.
+    if (at(i))
+      ds.write(itemSafeDescriptor(at(i)));
+  }
 }
 
 uint64_t ItemBag::stackTransfer(ItemConstPtr const& to, ItemConstPtr const& from) {
