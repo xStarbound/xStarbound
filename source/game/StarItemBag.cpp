@@ -13,7 +13,6 @@ ItemBag::ItemBag(size_t size) {
 
 ItemBag::~ItemBag() {
   // FezzedOne: Clean up all item pointers on uninit, freeing up memory.
-  // FezzedOne: Fixed segfault here.
   m_items.clear();
 }
 
@@ -332,10 +331,11 @@ void ItemBag::write(DataStream& ds) const {
   // Try not to write the whole bag if a large part of the end of the bag is
   // empty.
 
-  ds.writeVlqU(m_items.size());
+  size_t bagSize = m_items.size();
+  ds.writeVlqU(bagSize);
 
   size_t setItemsSize = 0;
-  for (size_t i = 0; i < m_items.size(); ++i) {
+  for (size_t i = 0; i < bagSize; ++i) {
     if (at(i))
       setItemsSize = i + 1;
   }

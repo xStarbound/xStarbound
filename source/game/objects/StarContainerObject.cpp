@@ -182,7 +182,6 @@ void ContainerObject::destroy(RenderCallback* renderCallback) {
     for (auto const& drop : m_items->items())
       world()->addEntity(ItemDrop::createRandomizedDrop(drop, position()));
   }
-  m_items.reset();
 }
 
 Maybe<Json> ContainerObject::receiveMessage(ConnectionId sendingConnection, String const& message, JsonArray const& args) {
