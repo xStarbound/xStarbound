@@ -1092,8 +1092,8 @@ void MainInterface::renderMessages() {
 
     Vec2F backgroundCenterPos = Vec2F(windowWidth() * 0.5f + messageOffset[0] * interfaceScale(), messageOffset[1] * interfaceScale());
 
-    Vec2F backgroundTextCenterPos = backgroundCenterPos + Vec2F(m_config->messageTextContainerOffset * interfaceScale());
-    Vec2F messageTextOffset = backgroundTextCenterPos + Vec2F(m_config->messageTextOffset * interfaceScale());
+    Vec2F backgroundTextCenterPos = backgroundCenterPos + Vec2F(m_config->messageTextContainerOffset) * interfaceScale();
+    Vec2F messageTextOffset = backgroundTextCenterPos + Vec2F(m_config->messageTextOffset) * interfaceScale();
 
     if (message->cooldown > m_config->messageHideTime)
       message->springState = (message->springState * m_config->messageWindowSpring + 1.0f) / (m_config->messageWindowSpring + 1.0f);
@@ -1186,7 +1186,7 @@ void MainInterface::renderSpecialDamageBar() {
 
     auto background = barConfig.getString("background");
     auto backgroundOffset = jsonToVec2F(barConfig.get("backgroundOffset")) * interfaceScale();
-    auto screenPos = RectF::withSize(bottomCenter + backgroundOffset, Vec2F(imgMetadata->imageSize(background) * interfaceScale()));
+    auto screenPos = RectF::withSize(bottomCenter + backgroundOffset, Vec2F(imgMetadata->imageSize(background)) * interfaceScale());
     m_guiContext->drawQuad(background, screenPos);
 
     auto fill = barConfig.getString("fill");
