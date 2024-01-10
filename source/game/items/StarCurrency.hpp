@@ -7,7 +7,7 @@ namespace Star {
 
 STAR_CLASS(CurrencyItem);
 
-class CurrencyItem : public Item {
+class CurrencyItem : public Item, public SwingableItem {
 public:
   CurrencyItem(Json const& config, String const& directory);
 

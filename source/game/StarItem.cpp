@@ -283,7 +283,7 @@ StringMap<String> Item::collectablesOnPickup() const {
 }
 
 GenericItem::GenericItem(Json const& config, String const& directory, Json const& parameters)
-  : Item(config, directory, parameters) {}
+  : Item(config, directory, parameters), SwingableItem(config) {}
 
 ItemPtr GenericItem::clone() const {
   return make_shared<GenericItem>(*this);

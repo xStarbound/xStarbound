@@ -85,6 +85,7 @@ WorldServer::~WorldServer() {
   m_spawner.uninit();
   writeMetadata();
   m_worldStorage->unloadAll(true);
+  m_entityMap.reset();
 }
 
 void WorldServer::setWorldId(String worldId) {
