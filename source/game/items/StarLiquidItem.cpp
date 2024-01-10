@@ -29,7 +29,6 @@ void LiquidItem::init(ToolUserEntity* owner, ToolHand hand) {
   FireableItem::init(owner, hand);
   auto drawables = iconDrawables();
   Drawable::scaleAll(drawables, 1.0f / TilePixels);
-  Drawable::translateAll(drawables, -handPosition() / TilePixels);
   setNotBeamaxe(true, drawables);
   BeamItem::init(owner, hand);
 }
