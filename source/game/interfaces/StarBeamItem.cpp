@@ -13,6 +13,10 @@ namespace Star {
 BeamItem::BeamItem(Json config) {
   config = Root::singleton().assets()->json("/player.config:beamGunConfig").setAll(config.toObject());
 
+  m_terrariaPreview = config.get("terrariaPreview").optBool().value(true);
+  m_notBeamaxe = false;
+  m_dropDrawables = {};
+
   m_image = config.get("image").toString();
   m_endImages = jsonToStringList(config.get("endImages"));
   m_endType = EndType::Invalid;
@@ -41,6 +45,11 @@ BeamItem::BeamItem(Json config) {
   m_color = {255, 255, 255, 255};
   m_particleGenerateCooldown = .25;
   m_inRangeLastUpdate = false;
+}
+
+void BeamItem::setNotBeamaxe(bool notBeamaxe, List<Drawable> const& dropDrawables) {
+  m_notBeamaxe = m_terrariaPreview && notBeamaxe;
+  m_dropDrawables = dropDrawables;
 }
 
 void BeamItem::init(ToolUserEntity* owner, ToolHand hand) {
@@ -100,7 +109,11 @@ float BeamItem::getAngle(float angle) {
 }
 
 List<Drawable> BeamItem::drawables() const {
-  return {Drawable::makeImage(m_image, 1.0f / TilePixels, true, -handPosition() / TilePixels)};
+  if (!m_notBeamaxe) {
+    return {Drawable::makeImage(m_image, 1.0f / TilePixels, true, -handPosition() / TilePixels)};
+  } else {
+    return m_dropDrawables;
+  }
 }
 
 Vec2F BeamItem::handPosition() const {
@@ -169,7 +182,7 @@ List<Drawable> BeamItem::beamDrawables(bool canPlace) const {
       m_lastUpdateColor = mainColor;
 
       String endImage = "";
-      if (m_endType != EndType::Invalid) {
+      if (m_endType != EndType::Invalid && !m_notBeamaxe) {
         endImage = m_endImages[(unsigned)m_endType];
       }
 
@@ -186,50 +199,52 @@ List<Drawable> BeamItem::beamDrawables(bool canPlace) const {
         res.push_back(ball);
       }
 
-      for (auto line = 0; line < numLines; line++) {
-        float lineThickness = rangeRand(m_beamWidthDev, m_minBeamWidth, m_maxBeamWidth);
-        float beamTransparency = rangeRand(m_beamTransDev, m_minBeamTrans, m_maxBeamTrans);
-        mainColor[3] = mainColor[3] * beamTransparency;
-        Vec2F previousLoc = m_beamCurve.origin(); // lines meet at origin and dest.
-        Color innerStripe = Color::rgba(mainColor);
-        innerStripe.setValue(1 - (1 - innerStripe.value()) / m_innerBrightnessScale);
-        innerStripe.setSaturation(innerStripe.saturation() / m_innerBrightnessScale);
-        Vec4B firstStripe = innerStripe.toRgba();
-        innerStripe.setValue(1 - (1 - innerStripe.value()) / m_innerBrightnessScale);
-        innerStripe.setSaturation(innerStripe.saturation() / m_innerBrightnessScale);
-        Vec4B secondStripe = innerStripe.toRgba();
+      if (!m_notBeamaxe) {
+        for (auto line = 0; line < numLines; line++) {
+          float lineThickness = rangeRand(m_beamWidthDev, m_minBeamWidth, m_maxBeamWidth);
+          float beamTransparency = rangeRand(m_beamTransDev, m_minBeamTrans, m_maxBeamTrans);
+          mainColor[3] = mainColor[3] * beamTransparency;
+          Vec2F previousLoc = m_beamCurve.origin(); // lines meet at origin and dest.
+          Color innerStripe = Color::rgba(mainColor);
+          innerStripe.setValue(1 - (1 - innerStripe.value()) / m_innerBrightnessScale);
+          innerStripe.setSaturation(innerStripe.saturation() / m_innerBrightnessScale);
+          Vec4B firstStripe = innerStripe.toRgba();
+          innerStripe.setValue(1 - (1 - innerStripe.value()) / m_innerBrightnessScale);
+          innerStripe.setSaturation(innerStripe.saturation() / m_innerBrightnessScale);
+          Vec4B secondStripe = innerStripe.toRgba();
 
-        for (auto i = 1; i < (int)(curveLen * m_targetSegmentRun - .5); i++) { // one less than full length
-          float pos = (float)i / (float)(int)(curveLen * m_targetSegmentRun + .5); // project the discrete steps evenly
+          for (auto i = 1; i < (int)(curveLen * m_targetSegmentRun - .5); i++) { // one less than full length
+            float pos = (float)i / (float)(int)(curveLen * m_targetSegmentRun + .5); // project the discrete steps evenly
 
-          Vec2F currentLoc =
-              m_beamCurve.pointAt(pos) + Vec2F(rangeRand(m_beamJitterDev, -m_maxBeamJitter, m_maxBeamJitter),
-                                             rangeRand(m_beamJitterDev, -m_maxBeamJitter, m_maxBeamJitter));
-          res.push_back(
-              Drawable::makeLine(Line2F(previousLoc, currentLoc), lineThickness, Color::rgba(mainColor), Vec2F()));
-          res.push_back(Drawable::makeLine(Line2F(previousLoc, currentLoc),
+            Vec2F currentLoc =
+                m_beamCurve.pointAt(pos) + Vec2F(rangeRand(m_beamJitterDev, -m_maxBeamJitter, m_maxBeamJitter),
+                                              rangeRand(m_beamJitterDev, -m_maxBeamJitter, m_maxBeamJitter));
+            res.push_back(
+                Drawable::makeLine(Line2F(previousLoc, currentLoc), lineThickness, Color::rgba(mainColor), Vec2F()));
+            res.push_back(Drawable::makeLine(Line2F(previousLoc, currentLoc),
+                lineThickness * m_firstStripeThickness,
+                Color::rgba(firstStripe),
+                Vec2F()));
+            res.push_back(Drawable::makeLine(Line2F(previousLoc, currentLoc),
+                lineThickness * m_secondStripeThickness,
+                Color::rgba(secondStripe),
+                Vec2F()));
+            previousLoc = std::move(currentLoc);
+          }
+          res.push_back(Drawable::makeLine(
+              Line2F(previousLoc, m_beamCurve.dest()), lineThickness, Color::rgba(mainColor), Vec2F()));
+          res.push_back(Drawable::makeLine(Line2F(previousLoc, m_beamCurve.dest()),
               lineThickness * m_firstStripeThickness,
               Color::rgba(firstStripe),
               Vec2F()));
-          res.push_back(Drawable::makeLine(Line2F(previousLoc, currentLoc),
+          res.push_back(Drawable::makeLine(Line2F(previousLoc, m_beamCurve.dest()),
               lineThickness * m_secondStripeThickness,
               Color::rgba(secondStripe),
               Vec2F()));
-          previousLoc = std::move(currentLoc);
         }
-        res.push_back(Drawable::makeLine(
-            Line2F(previousLoc, m_beamCurve.dest()), lineThickness, Color::rgba(mainColor), Vec2F()));
-        res.push_back(Drawable::makeLine(Line2F(previousLoc, m_beamCurve.dest()),
-            lineThickness * m_firstStripeThickness,
-            Color::rgba(firstStripe),
-            Vec2F()));
-        res.push_back(Drawable::makeLine(Line2F(previousLoc, m_beamCurve.dest()),
-            lineThickness * m_secondStripeThickness,
-            Color::rgba(secondStripe),
-            Vec2F()));
       }
     } else {
-      if (m_inRangeLastUpdate) {
+      if (m_inRangeLastUpdate && !m_notBeamaxe) {
         m_inRangeLastUpdate = false;
         m_particleGenerateCooldown = .25; // TODO, expose to json
         List<Particle> beamLeftovers;

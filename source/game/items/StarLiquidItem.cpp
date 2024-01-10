@@ -11,7 +11,7 @@ LiquidItem::LiquidItem(Json const& config, String const& directory, Json const& 
   : Item(config, directory, settings), FireableItem(config), BeamItem(config) {
   m_liquidId = Root::singleton().liquidsDatabase()->liquidId(config.getString("liquid"));
 
-  setTwoHanded(config.getBool("twoHanded", true));
+  setTwoHanded(config.getBool("twoHanded", false));
 
   auto assets = Root::singleton().assets();
   m_quantity = assets->json("/items/defaultParameters.config:liquidItems.bucketSize").toUInt();
@@ -27,6 +27,7 @@ ItemPtr LiquidItem::clone() const {
 
 void LiquidItem::init(ToolUserEntity* owner, ToolHand hand) {
   FireableItem::init(owner, hand);
+  setNotBeamaxe(true, dropDrawables());
   BeamItem::init(owner, hand);
 }
 

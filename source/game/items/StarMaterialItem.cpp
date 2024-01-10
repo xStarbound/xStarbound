@@ -65,6 +65,7 @@ ItemPtr MaterialItem::clone() const {
 
 void MaterialItem::init(ToolUserEntity* owner, ToolHand hand) {
   FireableItem::init(owner, hand);
+  setNotBeamaxe(true, dropDrawables());
   BeamItem::init(owner, hand);
   owner->addSound(Random::randValueFrom(m_placeSounds), 1.0f, 2.0f);
   if (auto player = as<Player>(owner))
