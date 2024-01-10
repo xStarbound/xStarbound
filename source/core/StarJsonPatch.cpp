@@ -66,7 +66,31 @@ namespace JsonPatching {
   }
 
   Json applyRemoveOperation(Json const& base, Json const& op) {
-    return JsonPath::Pointer(op.getString("path")).remove(base);
+    if (auto valueToFind = op.ptr("find")) {
+      String path = op.getString("path");
+      auto pointer = JsonPath::Pointer(path);
+      Json entryToSearch = pointer.get(base);
+      if (entryToSearch.type() == Json::Type::Array) {
+        size_t entryIndex = 0;
+        bool entryFound = false;
+        for (auto& entry : entryToSearch.toArray()) {
+          if (entry == *valueToFind) {
+            entryFound = true;
+            // FezzedOne: Only remove the first found entry.
+            break;
+          }
+          entryIndex++;
+        }
+        if (entryFound) {
+          entryToSearch.eraseAt(entryIndex);
+        }
+        return pointer.add(pointer.remove(base), entryToSearch);
+      } else {
+        throw JsonPatchException(strf("JSON value at '{}' is not an array", path));
+      }
+    } else {
+      return JsonPath::Pointer(op.getString("path")).remove(base);
+    }
   }
 
   Json applyAddOperation(Json const& base, Json const& op) {
@@ -74,8 +98,32 @@ namespace JsonPatching {
   }
 
   Json applyReplaceOperation(Json const& base, Json const& op) {
-    auto pointer = JsonPath::Pointer(op.getString("path"));
-    return pointer.add(pointer.remove(base), op.get("value"));
+    if (auto valueToFind = op.ptr("find")) {
+      String path = op.getString("path");
+      auto pointer = JsonPath::Pointer(path);
+      Json entryToSearch = pointer.get(base);
+      if (entryToSearch.type() == Json::Type::Array) {
+        size_t entryIndex = 0;
+        bool entryFound = false;
+        for (auto& entry : entryToSearch.toArray()) {
+          if (entry == *valueToFind) {
+            entryFound = true;
+            // FezzedOne: Only replace the first found entry.
+            break;
+          }
+          entryIndex++;
+        }
+        if (entryFound) {
+          entryToSearch.set(entryIndex, op.get("value"));
+        }
+        return pointer.add(pointer.remove(base), entryToSearch);
+      } else {
+        throw JsonPatchException(strf("JSON value at '{}' is not an array", path));
+      }
+    } else {
+      auto pointer = JsonPath::Pointer(op.getString("path"));
+      return pointer.add(pointer.remove(base), op.get("value"));
+    }
   }
 
   Json applyMoveOperation(Json const& base, Json const& op) {
