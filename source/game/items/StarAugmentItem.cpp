@@ -6,7 +6,6 @@
 #include "StarItemLuaBindings.hpp"
 #include "StarConfigLuaBindings.hpp"
 #include "StarJsonExtra.hpp"
-#include "StarSwingableItem.hpp"
 
 namespace Star {
 

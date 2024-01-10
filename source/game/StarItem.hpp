@@ -4,6 +4,7 @@
 #include "StarSet.hpp"
 #include "StarDrawable.hpp"
 #include "StarItemDescriptor.hpp"
+#include "StarSwingableItem.hpp"
 #include "StarQuests.hpp"
 
 namespace Star {
