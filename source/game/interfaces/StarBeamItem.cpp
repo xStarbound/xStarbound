@@ -13,7 +13,7 @@ namespace Star {
 BeamItem::BeamItem(Json config) {
   config = Root::singleton().assets()->json("/player.config:beamGunConfig").setAll(config.toObject());
 
-  m_terrariaPreview = config.get("terrariaPreview").optBool().value(true);
+  m_terrariaPreview = config.optBool("terrariaPreview").value(true);
   m_notBeamaxe = false;
   m_dropDrawables = {};
 
@@ -113,7 +113,7 @@ List<Drawable> BeamItem::drawables() const {
     return {Drawable::makeImage(m_image, 1.0f / TilePixels, true, -handPosition() / TilePixels)};
   } else {
     List<Drawable> alteredDrawables = List<Drawable>(m_dropDrawables);
-    Drawable::translateAll(m_dropDrawables, -handPosition() / TilePixels);
+    Drawable::translateAll(alteredDrawables, -handPosition() / TilePixels);
     return alteredDrawables;
   }
 }
