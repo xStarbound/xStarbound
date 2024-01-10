@@ -112,7 +112,9 @@ List<Drawable> BeamItem::drawables() const {
   if (!m_notBeamaxe) {
     return {Drawable::makeImage(m_image, 1.0f / TilePixels, true, -handPosition() / TilePixels)};
   } else {
-    return m_dropDrawables;
+    List<Drawable> alteredDrawables = List<Drawable>(m_dropDrawables);
+    Drawable::translateAll(m_dropDrawables, -handPosition() / TilePixels);
+    return alteredDrawables;
   }
 }
 

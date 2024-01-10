@@ -67,7 +67,6 @@ void MaterialItem::init(ToolUserEntity* owner, ToolHand hand) {
   FireableItem::init(owner, hand);
   auto drawables = iconDrawables();
   Drawable::scaleAll(drawables, 1.0f / TilePixels);
-  Drawable::translateAll(drawables, -handPosition() / TilePixels);
   setNotBeamaxe(true, drawables);
   BeamItem::init(owner, hand);
   owner->addSound(Random::randValueFrom(m_placeSounds), 1.0f, 2.0f);
