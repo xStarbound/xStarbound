@@ -25,6 +25,9 @@ List<Drawable> AugmentItem::drawables() const {
   return drawables;
 }
 
+void AugmentItem::fire(FireMode mode, bool shifting, bool edgeTriggered) {}
+void AugmentItem::fireTriggered() {}
+
 StringList AugmentItem::augmentScripts() const {
   return jsonToStringList(instanceValue("scripts")).transformed(bind(&AssetPath::relativeTo, directory(), _1));
 }

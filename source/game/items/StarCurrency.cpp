@@ -13,6 +13,9 @@ ItemPtr CurrencyItem::clone() const {
   return make_shared<CurrencyItem>(*this);
 }
 
+void CurrencyItem::fire(FireMode mode, bool shifting, bool edgeTriggered) {}
+void CurrencyItem::fireTriggered() {}
+
 List<Drawable> CurrencyItem::drawables() const {
   auto drawables = iconDrawables();
   Drawable::scaleAll(drawables, 1.0f / TilePixels);

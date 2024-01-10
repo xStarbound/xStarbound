@@ -163,6 +163,8 @@ public:
   virtual ~GenericItem() {}
   virtual List<Drawable> drawables() const override;
   virtual ItemPtr clone() const;
+  virtual void fire(FireMode mode, bool shifting, bool edgeTriggered) override;
+  virtual void fireTriggered() override;
 };
 
 inline uint64_t itemSafeCount(ItemPtr const& item) {
