@@ -2,6 +2,7 @@
 #define STAR_AUGMENT_ITEM_HPP
 
 #include "StarItem.hpp"
+#include "StarSwingableItem.hpp"
 
 namespace Star {
 

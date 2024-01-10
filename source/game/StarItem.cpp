@@ -5,7 +5,6 @@
 #include "StarRandom.hpp"
 #include "StarLogging.hpp"
 #include "StarWorldLuaBindings.hpp"
-#include "StarSwingableItem.hpp"
 
 namespace Star {
 

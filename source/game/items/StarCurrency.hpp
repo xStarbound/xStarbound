@@ -2,6 +2,7 @@
 #define STAR_CURRENCY_HPP
 
 #include "StarItem.hpp"
+#include "StarSwingableItem.hpp"
 
 namespace Star {
 
