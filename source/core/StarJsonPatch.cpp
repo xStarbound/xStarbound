@@ -1,6 +1,7 @@
 #include "StarJsonPatch.hpp"
 #include "StarJsonPath.hpp"
 #include "StarLexicalCast.hpp"
+#include "StarLogging.hpp"
 
 namespace Star {
 
@@ -82,9 +83,8 @@ namespace JsonPatching {
           }
           entryIndex++;
         }
-        if (entryFound) {
-          entryToSearch.eraseIndex(entryIndex);
-        }
+        if (entryFound)
+          entryToSearch = entryToSearch.eraseIndex(entryIndex);
         return pointer.add(pointer.remove(base), entryToSearch);
       } else {
         throw JsonPatchException(strf("JSON value at '{}' is not an array", path));
@@ -115,9 +115,8 @@ namespace JsonPatching {
           }
           entryIndex++;
         }
-        if (entryFound) {
-          entryToSearch.set(entryIndex, op.get("value"));
-        }
+        if (entryFound)
+          entryToSearch = entryToSearch.set(entryIndex, op.get("value"));
         return pointer.add(pointer.remove(base), entryToSearch);
       } else {
         throw JsonPatchException(strf("JSON value at '{}' is not an array", path));
