@@ -21,6 +21,8 @@ public:
   BeamItem(Json config);
   virtual ~BeamItem() = default;
 
+  void setNotBeamaxe(bool notBeamaxe = true, List<Drawable> const& dropDrawables);
+
   virtual void init(ToolUserEntity* owner, ToolHand hand) override;
   virtual void update(float dt, FireMode fireMode, bool shifting, HashSet<MoveControlType> const& moves) override;
 
@@ -36,6 +38,11 @@ public:
 
 protected:
   List<Drawable> beamDrawables(bool canPlace = true) const;
+
+  bool m_terrariaPreview;
+  bool m_notBeamaxe;
+
+  List<Drawable> m_dropDrawables;
 
   String m_image;
   StringList m_endImages;

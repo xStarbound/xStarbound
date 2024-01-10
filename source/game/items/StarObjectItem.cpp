@@ -5,17 +5,19 @@
 #include "StarObjectDatabase.hpp"
 #include "StarWorld.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarDrawable.hpp"
 
 namespace Star {
 
 ObjectItem::ObjectItem(Json const& config, String const& directory, Json const& objectParameters)
   : Item(config, directory, objectParameters), FireableItem(config), BeamItem(config) {
-  setTwoHanded(config.getBool("twoHanded", true));
+  setTwoHanded(config.getBool("twoHanded", false));
 
   // Make sure that all script objects that have retainObjectParametersInItem
   // start with a blank scriptStorage entry to help them stack properly.
   if (instanceValue("retainObjectParametersInItem", false).toBool() && instanceValue("scriptStorage").isNull())
     setInstanceValue("scriptStorage", JsonObject());
+
   m_shifting = false;
 }
 
@@ -25,6 +27,7 @@ ItemPtr ObjectItem::clone() const {
 
 void ObjectItem::init(ToolUserEntity* owner, ToolHand hand) {
   FireableItem::init(owner, hand);
+  setNotBeamaxe(true, dropDrawables());
   BeamItem::init(owner, hand);
 }
 
