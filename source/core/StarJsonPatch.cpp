@@ -66,7 +66,8 @@ namespace JsonPatching {
   }
 
   Json applyRemoveOperation(Json const& base, Json const& op) {
-    if (auto valueToFind = op.ptr("find")) {
+    if (op.contains("find")) {
+      Json valueToFind = op.get("find");
       String path = op.getString("path");
       auto pointer = JsonPath::Pointer(path);
       Json entryToSearch = pointer.get(base);
@@ -74,7 +75,7 @@ namespace JsonPatching {
         size_t entryIndex = 0;
         bool entryFound = false;
         for (auto& entry : entryToSearch.toArray()) {
-          if (entry == *valueToFind) {
+          if (entry == valueToFind) {
             entryFound = true;
             // FezzedOne: Only remove the first found entry.
             break;
@@ -82,7 +83,7 @@ namespace JsonPatching {
           entryIndex++;
         }
         if (entryFound) {
-          entryToSearch.eraseAt(entryIndex);
+          entryToSearch.eraseIndex(entryIndex);
         }
         return pointer.add(pointer.remove(base), entryToSearch);
       } else {
@@ -98,7 +99,8 @@ namespace JsonPatching {
   }
 
   Json applyReplaceOperation(Json const& base, Json const& op) {
-    if (auto valueToFind = op.ptr("find")) {
+    if (op.contains("find")) {
+      Json valueToFind = op.get("find");
       String path = op.getString("path");
       auto pointer = JsonPath::Pointer(path);
       Json entryToSearch = pointer.get(base);
@@ -106,7 +108,7 @@ namespace JsonPatching {
         size_t entryIndex = 0;
         bool entryFound = false;
         for (auto& entry : entryToSearch.toArray()) {
-          if (entry == *valueToFind) {
+          if (entry == valueToFind) {
             entryFound = true;
             // FezzedOne: Only replace the first found entry.
             break;
