@@ -21,7 +21,7 @@ public:
   BeamItem(Json config);
   virtual ~BeamItem() = default;
 
-  void setNotBeamaxe(bool notBeamaxe = true, List<Drawable> const& dropDrawables);
+  void setNotBeamaxe(bool notBeamaxe = true, List<Drawable> const& dropDrawables = {});
 
   virtual void init(ToolUserEntity* owner, ToolHand hand) override;
   virtual void update(float dt, FireMode fireMode, bool shifting, HashSet<MoveControlType> const& moves) override;
