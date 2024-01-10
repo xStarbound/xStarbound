@@ -15,6 +15,8 @@ public:
 
   ItemPtr clone() const override;
 
+  virtual List<Drawable> drawables() const override;
+
   StringList augmentScripts() const;
 
   // Makes no change to the given item if the augment can't be applied.

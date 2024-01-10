@@ -14,6 +14,8 @@ public:
 
   virtual ItemPtr clone() const override;
 
+  virtual List<Drawable> drawables() const override;
+
   virtual String pickupSound() const override;
 
   String currencyType();
