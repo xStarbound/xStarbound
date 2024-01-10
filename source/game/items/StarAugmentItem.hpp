@@ -7,7 +7,7 @@ namespace Star {
 
 STAR_CLASS(AugmentItem);
 
-class AugmentItem : public Item {
+class AugmentItem : public Item, public SwingableItem {
 public:
   AugmentItem(Json const& config, String const& directory, Json const& parameters = JsonObject());
   AugmentItem(AugmentItem const& rhs);

@@ -373,15 +373,25 @@ void WorldStorage::unloadAll(bool force) {
       for (auto sector : sectors)
         unloadSectorToLevel(sector, SectorLoadLevel::Tiles, force);
 
+      // FezzedOne: Entity map's already been unloaded. No need to do anything.
+      if (!m_entityMap)
+        break;
+
       if (!force || m_entityMap->size() == 0)
         break;
     }
     for (auto sector : sectors)
       unloadSectorToLevel(sector, SectorLoadLevel::None, force);
 
+    // FezzedOne: Make sure these pointers aren't dangling.
+    m_entityMap.reset();
+    m_tileArray.reset();
+
   } catch (std::exception const& e) {
     m_db.rollback();
     m_db.close();
+    m_entityMap.reset();
+    m_tileArray.reset();
     throw WorldStorageException("WorldStorage exception during unload", e);
   }
 }

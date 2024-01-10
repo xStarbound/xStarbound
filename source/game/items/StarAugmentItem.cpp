@@ -10,7 +10,7 @@
 namespace Star {
 
 AugmentItem::AugmentItem(Json const& config, String const& directory, Json const& parameters)
-  : Item(config, directory, parameters) {}
+  : Item(config, directory, parameters), SwingableItem(config) {}
 
 AugmentItem::AugmentItem(AugmentItem const& rhs) : AugmentItem(rhs.config(), rhs.directory(), rhs.parameters()) {}
 

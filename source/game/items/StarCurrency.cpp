@@ -4,7 +4,7 @@
 
 namespace Star {
 
-CurrencyItem::CurrencyItem(Json const& config, String const& directory) : Item(config, directory) {
+CurrencyItem::CurrencyItem(Json const& config, String const& directory) : Item(config, directory), SwingableItem(config) {
   m_currency = config.getString("currency");
   m_value = config.getUInt("value");
 }

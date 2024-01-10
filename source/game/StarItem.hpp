@@ -156,7 +156,7 @@ private:
   StringMap<String> m_collectablesOnPickup;
 };
 
-class GenericItem : public Item {
+class GenericItem : public Item, public SwingableItem {
 public:
   GenericItem(Json const& config, String const& directory, Json const& parameters);
   virtual ItemPtr clone() const;
