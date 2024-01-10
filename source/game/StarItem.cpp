@@ -289,6 +289,13 @@ ItemPtr GenericItem::clone() const {
   return make_shared<GenericItem>(*this);
 }
 
+List<Drawable> GenericItem::drawables() const {
+  auto drawables = iconDrawables();
+  Drawable::scaleAll(drawables, 1.0f / TilePixels);
+  Drawable::translateAll(drawables, -handPosition() / TilePixels);
+  return drawables;
+}
+
 bool Item::itemsEqual(ItemConstPtr const& a, ItemConstPtr const& b) {
   if (!a && !b) // Both are null
     return true;

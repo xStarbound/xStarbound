@@ -18,6 +18,13 @@ ItemPtr AugmentItem::clone() const {
   return make_shared<AugmentItem>(*this);
 }
 
+List<Drawable> AugmentItem::drawables() const {
+  auto drawables = iconDrawables();
+  Drawable::scaleAll(drawables, 1.0f / TilePixels);
+  Drawable::translateAll(drawables, -handPosition() / TilePixels);
+  return drawables;
+}
+
 StringList AugmentItem::augmentScripts() const {
   return jsonToStringList(instanceValue("scripts")).transformed(bind(&AssetPath::relativeTo, directory(), _1));
 }

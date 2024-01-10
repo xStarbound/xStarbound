@@ -160,6 +160,8 @@ private:
 class GenericItem : public Item, public SwingableItem {
 public:
   GenericItem(Json const& config, String const& directory, Json const& parameters);
+  virtual ~GenericItem() {}
+  virtual List<Drawable> drawables() const override;
   virtual ItemPtr clone() const;
 };
 
