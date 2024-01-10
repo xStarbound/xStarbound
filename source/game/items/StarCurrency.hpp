@@ -16,6 +16,9 @@ public:
 
   virtual List<Drawable> drawables() const override;
 
+  virtual void fire(FireMode mode, bool shifting, bool edgeTriggered) override;
+  virtual void fireTriggered() override;
+
   virtual String pickupSound() const override;
 
   String currencyType();

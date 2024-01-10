@@ -289,6 +289,9 @@ ItemPtr GenericItem::clone() const {
   return make_shared<GenericItem>(*this);
 }
 
+void GenericItem::fire(FireMode mode, bool shifting, bool edgeTriggered) {}
+void GenericItem::fireTriggered() {}
+
 List<Drawable> GenericItem::drawables() const {
   auto drawables = iconDrawables();
   Drawable::scaleAll(drawables, 1.0f / TilePixels);
