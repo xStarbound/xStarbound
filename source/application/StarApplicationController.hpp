@@ -55,6 +55,7 @@ public:
   virtual bool closeAudioInputDevice() = 0;
 
   virtual void setClipboard(String text) = 0;
+  virtual Maybe<String> maybeSetClipboard(String text) = 0;
   virtual Maybe<String> getClipboard() = 0;
 
   // Returns the latest actual measured update and render rate, which may be

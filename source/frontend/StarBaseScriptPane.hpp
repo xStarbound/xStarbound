@@ -37,6 +37,7 @@ protected:
   virtual GuiReaderPtr reader();
   Json m_config;
   Json m_rawConfig;
+  bool m_dismissable;
 
   GuiReaderPtr m_reader;
 

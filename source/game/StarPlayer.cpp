@@ -38,6 +38,8 @@
 #include "StarUtilityLuaBindings.hpp"
 #include "StarCelestialLuaBindings.hpp"
 #include "StarConfiguration.hpp"
+#include "StarUniverseClient.hpp"
+#include "StarTeamClient.hpp"
 
 namespace Star {
 
@@ -1788,6 +1790,19 @@ void Player::disableInterpolation() {
 
 UniverseClient* Player::getUniverseClient() const {
   return m_client;
+}
+
+Json Player::teamMembers() const {
+  if (m_client) {
+    TeamClientPtr team = m_client->teamClient();
+    if (team) {
+      return team->teamMembers();
+    } else {
+      return Json();
+    }
+  } else {
+    return Json();
+  }
 }
 
 void Player::passChatText(String const& chatText) {

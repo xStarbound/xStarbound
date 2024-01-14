@@ -478,6 +478,15 @@ private:
       SDL_SetClipboardText(text.utf8Ptr());
     }
 
+    Maybe<String> maybeSetClipboard(String text) override {
+      int check = SDL_SetClipboardText(text.utf8Ptr());
+      if (check == 0) {
+        return Maybe<String>{};
+      } else {
+        return String(SDL_GetError());
+      }
+    }
+
     void setTargetUpdateRate(float targetUpdateRate) override {
       parent->m_updateTicker.setTargetTickRate(targetUpdateRate);
     }

@@ -180,6 +180,25 @@ void TeamClient::statusUpdate() {
     });
 }
 
+Json TeamClient::teamMembers() const {
+  JsonArray array = JsonArray{};
+  for (auto m : m_members) {
+    JsonObject mObj = JsonObject{
+      {"name", m.name},
+      {"uuid", m.uuid.hex()},
+      {"entity", m.entity},
+      {"healthPercentage", m.healthPercentage},
+      {"energyPercentage", m.energyPercentage},
+      {"world", printWorldId(m.world)},
+      {"position", JsonArray{m.position[0], m.position[1]}},
+      {"warpMode", WarpModeNames.getRight(m.warpMode)},
+      {"portrait", m.portrait.transformed(mem_fn(&Drawable::toJson))}
+    };
+    array.append(mObj);
+  }
+  return array;
+}
+
 List<TeamClient::Member> TeamClient::members() {
   return m_members;
 }

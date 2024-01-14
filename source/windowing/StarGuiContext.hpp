@@ -124,7 +124,10 @@ public:
   void setShiftHeld(bool held);
 
   String getClipboard() const;
+  Maybe<String> maybeGetClipboard() const;
   void setClipboard(String text);
+  Maybe<String> maybeSetClipboard(String text);
+  bool clipboardHasText();
 
   void cleanup();
 

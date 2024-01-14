@@ -825,6 +825,9 @@ void MainInterface::render() {
   m_guiContext->setDefaultFont();
   m_guiContext->setFontProcessingDirectives("");
   m_guiContext->setFontColor(Vec4B::filled(255));
+
+  renderQueuedDrawables();
+
   renderBreath();
   renderMessages();
   renderMonsterHealthBar();
@@ -848,6 +851,10 @@ bool MainInterface::isDebugDisplayed() {
   return m_clientCommandProcessor->debugDisplayEnabled();
 }
 
+void MainInterface::drawDrawable(Drawable drawable, Vec2F const& screenPos, float pixelRatio, Vec4B const& color) {
+  m_queuedDrawables.push_back({move(drawable), screenPos, pixelRatio, color});
+}
+
 void MainInterface::doChat(String const& chat, bool addToHistory) {
   if (chat.empty())
     return;
@@ -863,6 +870,31 @@ void MainInterface::doChat(String const& chat, bool addToHistory) {
 
   if (addToHistory)
     m_chat->addHistory(chat);
+}
+
+Maybe<List<String>> MainInterface::doChatCallback(String& chat, bool addToHistory) {
+  if (chat.empty())
+    return {};
+
+  bool gotCommandResult = false;
+  List<String> finalResult = {};
+
+  if (chat.beginsWith("/")) {
+    for (auto const& result : m_clientCommandProcessor->handleCommand(chat)) {
+      m_chat->addLine(result);
+      if (!gotCommandResult) gotCommandResult = true;
+      finalResult.emplace_back(result);
+    }
+
+    m_lastCommand = move(chat);
+  } else {
+    m_client->sendChat(chat, m_chat->sendMode());
+  }
+
+  if (addToHistory)
+    m_chat->addHistory(chat);
+
+  return gotCommandResult ? finalResult : Maybe<List<String>>{};
 }
 
 void MainInterface::addChatMessage(ChatReceivedMessage const& message, bool showChat) {
@@ -1545,6 +1577,15 @@ void MainInterface::renderCursor() {
   m_guiContext->resetInterfaceScissorRect();
 }
 
+void MainInterface::renderQueuedDrawables() {
+  if (!m_queuedDrawables.empty()) {
+    for (auto q : m_queuedDrawables) {
+      m_guiContext->drawDrawable(move(q.drawable), q.screenPosition, q.pixelRatio, q.colour);
+    }
+    m_queuedDrawables.clear();
+  }
+}
+
 bool MainInterface::overButton(PolyI buttonPoly, Vec2I const& mousePos) const {
   Vec2I barPos = mainBarPosition();
   buttonPoly.translate(barPos);
@@ -1637,6 +1678,10 @@ void MainInterface::displayScriptPane(ScriptPanePtr& scriptPane, EntityId source
   } else {
     m_paneManager.displayPane(layer, scriptPane);
   }
+}
+
+Vec2I MainInterface::cursorPosition() const {
+  return m_cursorScreenPos;
 }
 
 }

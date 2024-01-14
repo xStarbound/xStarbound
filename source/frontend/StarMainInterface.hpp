@@ -104,7 +104,10 @@ public:
   void toggleDebugDisplay();
   bool isDebugDisplayed();
 
+  void drawDrawable(Drawable drawable, Vec2F const& screenPos, float pixelRatio, Vec4B const& color);
+
   void doChat(String const& chat, bool addToHistory);
+  Maybe<List<String>> doChatCallback(String& chat, bool addToHistory);
 
   void addChatMessage(ChatReceivedMessage const& message, bool showChat);
 
@@ -132,14 +135,24 @@ public:
     Vec2I position;
   };
 
+    struct QueuedDrawable {
+    Drawable drawable;
+    Vec2F screenPosition;
+    float pixelRatio;
+    Vec4B colour;
+  };
+
   void takeScriptPanes(List<ScriptPaneInfo>& out);
   void reviveScriptPanes(List<ScriptPaneInfo>& panes);
+
+  unsigned windowHeight() const;
+  unsigned windowWidth() const;
+
+  Vec2I cursorPosition() const;
 private:
   PanePtr createEscapeDialog();
 
   float interfaceScale() const;
-  unsigned windowHeight() const;
-  unsigned windowWidth() const;
   Vec2I mainBarPosition() const;
 
   void renderBreath();
@@ -152,6 +165,8 @@ private:
 
   void updateCursor();
   void renderCursor();
+
+  void renderQueuedDrawables();
 
   bool overButton(PolyI buttonPoly, Vec2I const& mousePos) const;
 
@@ -225,6 +240,8 @@ private:
   GuiMessagePtr m_overflowMessage;
 
   List<pair<String, RpcPromiseKeeper<P2PJoinRequestReply>>> m_queuedJoinRequests;
+
+  List<QueuedDrawable> m_queuedDrawables;
 
   EntityId m_lastMouseoverTarget;
   GameTimer m_stickyTargetingTimer;
