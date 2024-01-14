@@ -110,8 +110,8 @@ public:
   void enableInterpolation(float extrapolationHint = 0.0f) override;
   void disableInterpolation() override;
 
-  // FezzedOne: A bunch of hacks related to the chat and indicators. Feel free to PR with a better implementation.
   UniverseClient* getUniverseClient() const;
+  Json teamMembers() const;
   void passChatText(String const& chatText);
   void passChatOpen(bool chatOpen);          
   String chatText() const;

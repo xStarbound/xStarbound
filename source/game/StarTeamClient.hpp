@@ -47,6 +47,7 @@ public:
 
   void pullFullUpdate();
   void statusUpdate();
+  Json teamMembers() const;
 
   void forceUpdate();
 

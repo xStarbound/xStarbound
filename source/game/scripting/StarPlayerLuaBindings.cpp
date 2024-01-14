@@ -760,6 +760,9 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
   callbacks.registerCallback("setToolUsageSuppressed", [player](Maybe<bool> suppressed)
                              { player->setToolUsageSuppressed(suppressed); });
 
+  callbacks.registerCallback("teamMembers", [player]() -> Json
+                             { return player->teamMembers(); });
+
 #ifdef XCLIENT_UNLOCKED
   callbacks.registerCallback("getSecretProperty", [player](String const& name, Json defaultValue) -> Json
                              { return player->getSecretProperty(name, defaultValue); });

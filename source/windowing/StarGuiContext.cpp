@@ -442,8 +442,21 @@ String GuiContext::getClipboard() const {
   return m_applicationController->getClipboard().value();
 }
 
+Maybe<String> GuiContext::maybeGetClipboard() const {
+  return m_applicationController->getClipboard();
+}
+
+bool GuiContext::clipboardHasText() {
+  if (m_applicationController->getClipboard()) return true;
+  else return false;
+}
+
 void GuiContext::setClipboard(String text) {
   m_applicationController->setClipboard(move(text));
+}
+
+Maybe<String> GuiContext::maybeSetClipboard(String text) {
+  return m_applicationController->maybeSetClipboard(move(text));
 }
 
 void GuiContext::cleanup() {

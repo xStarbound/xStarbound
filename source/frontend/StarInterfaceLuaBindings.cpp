@@ -9,6 +9,22 @@
 
 namespace Star {
 
+LuaCallbacks LuaBindings::makeClipboardCallbacks(MainInterface* mainInterface) {
+  LuaCallbacks callbacks;
+
+  callbacks.registerCallback("hasText", [mainInterface]() -> bool {
+    return GuiContext::singleton().clipboardHasText();
+  });
+  callbacks.registerCallback("getText", [mainInterface]() -> Maybe<String> {
+    return GuiContext::singleton().maybeGetClipboard();
+  });
+  callbacks.registerCallback("setText", [mainInterface](String text) -> Maybe<String> {
+    return GuiContext::singleton().maybeSetClipboard(move(text));
+  });
+
+  return callbacks;
+}
+
 LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface) {
   LuaCallbacks callbacks;
 
@@ -24,7 +40,7 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface) {
     return {};
   });
 
-  callbacks.registerCallback("scale", [mainInterface]() -> int {
+  callbacks.registerCallback("scale", [mainInterface]() -> float {
     return GuiContext::singleton().interfaceScale();
   });
 
@@ -34,6 +50,27 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface) {
 
   callbacks.registerCallback("setCursorText", [mainInterface](Maybe<String> const& cursorText, Maybe<bool> overrideGameTooltips) {
     mainInterface->setCursorText(cursorText, overrideGameTooltips);
+  });
+
+  // FezzedOne: Sends a chat message *exactly* as if it were sent through the vanilla chat interface, returning any *client-side*
+  // command results as a list of strings.
+  callbacks.registerCallback("doChat", [mainInterface](String chatText, bool addToHistory) -> Maybe<List<String>> {
+    return mainInterface->doChatCallback(chatText, addToHistory);
+  });
+
+  callbacks.registerCallback("drawDrawable", [mainInterface](Drawable drawable, Vec2F const& screenPos, float pixelRatio, Maybe<Vec4B> const& colour) {
+    Vec4B checkedColour = Vec4B::filled(255);
+    if (colour)
+      checkedColour = *colour;
+    mainInterface->drawDrawable(move(drawable), screenPos, pixelRatio, checkedColour);
+  });
+
+  callbacks.registerCallback("windowSize", [mainInterface]() -> Vec2U {
+    return Vec2U(mainInterface->windowWidth(), mainInterface->windowHeight());
+  });
+
+  callbacks.registerCallback("cursorPosition", [mainInterface]() -> Vec2I {
+    return mainInterface->cursorPosition();
   });
 
   callbacks.registerCallback("addChatMessage", [mainInterface](Json const& chatMessageConfig, Maybe<bool> showChat) {
