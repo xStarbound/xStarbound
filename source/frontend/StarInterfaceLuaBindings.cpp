@@ -44,6 +44,10 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface) {
     return GuiContext::singleton().interfaceScale();
   });
 
+  callbacks.registerCallback("worldPixelRatio", [mainInterface]() -> float {
+    return Root::singleton().configuration()->get("zoomLevel").toFloat();
+  });
+
   callbacks.registerCallback("queueMessage", [mainInterface](String const& message, Maybe<float> cooldown, Maybe<float> springState) {
     mainInterface->queueMessage(message, cooldown, springState.value(0));
   });

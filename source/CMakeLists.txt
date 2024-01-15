@@ -496,9 +496,9 @@ IF (STAR_CROSS_COMPILE)
       ${VORBIS_LIBRARY}
       ${OGG_LIBRARY}
       ${FREETYPE_LIBRARY}
-      "/usr/x86_64-w64-mingw32/lib/libbrotlidec-static.a"
-      "/usr/x86_64-w64-mingw32/lib/libbrotlienc-static.a"
-      "/usr/x86_64-w64-mingw32/lib/libbrotlicommon-static.a"
+      "/usr/x86_64-w64-mingw32/lib/libbrotlidec.a"
+      "/usr/x86_64-w64-mingw32/lib/libbrotlienc.a"
+      "/usr/x86_64-w64-mingw32/lib/libbrotlicommon.a"
       "/usr/x86_64-w64-mingw32/lib/libbz2.a"
       ${PNG_LIBRARY}
       ${ZLIB_LIBRARY}
