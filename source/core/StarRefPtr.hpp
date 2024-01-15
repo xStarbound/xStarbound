@@ -37,7 +37,10 @@ public:
 
   void reset();
 
-  void reset(T* r, bool addRef = true);
+  // FezzedOne: Hack to destroy a referenced object.
+  void zero();
+
+  void reset(T* r, bool addRef = true, bool resetAllRefs = false);
 
   T& operator*() const;
   T* operator->() const;
@@ -101,6 +104,8 @@ class RefCounter {
 public:
   friend void refPtrIncRef(RefCounter* p);
   friend void refPtrDecRef(RefCounter* p);
+  // FezzedOne: Hack to either get rid of the Lua memory leak or at least get a segfault and stack trace.
+  friend void refPtrZeroRef(RefCounter* p);
 
 protected:
   RefCounter();
@@ -188,12 +193,21 @@ void RefPtr<T>::reset() {
 }
 
 template <typename T>
-void RefPtr<T>::reset(T* r, bool addRef) {
+void RefPtr<T>::zero() {
+  reset(nullptr, true, true);
+}
+
+template <typename T>
+void RefPtr<T>::reset(T* r, bool addRef, bool resetAllRefs) {
   if (m_ptr == r)
     return;
 
-  if (m_ptr)
-    refPtrDecRef(m_ptr);
+  if (m_ptr) {
+    if (resetAllRefs)
+      refPtrZeroRef(m_ptr);
+    else
+      refPtrDecRef(m_ptr);
+  }
 
   m_ptr = r;
 
@@ -293,6 +307,11 @@ inline void refPtrIncRef(RefCounter* p) {
 inline void refPtrDecRef(RefCounter* p) {
   if (--p->m_refCounter == 0)
     delete p;
+}
+
+inline void refPtrZeroRef(RefCounter* p) {
+  p->m_refCounter = 0;
+  delete p;
 }
 
 inline RefCounter::RefCounter()

@@ -75,10 +75,6 @@ WorldServer::~WorldServer() {
   for (auto& p : m_scriptContexts)
     p.second->uninit();
 
-  // FezzedOne: Tell the Lua root to collect its fucking garbage and shut down when the world is uninitialised.
-  if (m_luaRoot) {
-    m_luaRoot->shutdown();
-  }
   m_scriptContexts.clear();
   // FezzedOne: Why wasn't this cleared on uninit?
   m_netStateCache.clear();
@@ -86,6 +82,12 @@ WorldServer::~WorldServer() {
   writeMetadata();
   m_worldStorage->unloadAll(true);
   m_entityMap.reset();
+
+  // FezzedOne: Tell the Lua root to collect its fucking garbage and shut down when the world is uninitialised.
+  // Needs to be last because Lua scripts have to be called when unloading a world.
+  if (m_luaRoot) {
+    m_luaRoot->shutdown();
+  }
 }
 
 void WorldServer::setWorldId(String worldId) {
