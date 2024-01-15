@@ -2,7 +2,7 @@
 
 cd "`dirname \"$0\"`/../..";
 
-rm -rI build-mingw/ dist-windows/;
+#rm -rI build-mingw/ dist-windows/;
 
 mkdir -p dist-windows;
 cp scripts/mingw-linux/xsbinit.config dist-windows/;
@@ -29,7 +29,7 @@ cmake \
   -DSTAR_CROSS_COMPILE=ON \
   -DCMAKE_INCLUDE_PATH=$MINGW_LIB_DIR/include \
   -DCMAKE_LIBRARY_PATH="/usr/x86_64-w64-mingw32/lib;$MINGW_LIB_DIR/" \
-  -DSTAR_USE_MIMALLOC=ON \
+  -DSTAR_USE_JEMALLOC=ON \
   -DSTAR_SYSTEM="windows" \
   -DSTAR_SYSTEM_FAMILY="windows" \
   -DSTAR_ENABLE_STEAM_INTEGRATION=ON \
