@@ -2,7 +2,7 @@
 
 cd "`dirname \"$0\"`/../..";
 
-rm -rI build/ dist/;
+#rm -rI build/ dist/;
 
 mkdir -p dist;
 cp scripts/linux/xsbinit.config dist/;
@@ -24,11 +24,11 @@ cmake \
   -DCMAKE_CXX_COMPILER=/usr/bin/g++ \
   -DCMAKE_INCLUDE_PATH=$LINUX_LIB_DIR/include \
   -DCMAKE_LIBRARY_PATH=$LINUX_LIB_DIR/ \
+  -DSTAR_USE_JEMALLOC=ON \
   -DSTAR_BUILD_QT_TOOLS=OFF \
   -DSTAR_ENABLE_STEAM_INTEGRATION=ON \
   -S ../source/ -B .;
 
-# -DSTAR_USE_JEMALLOC=ON \
 # RelWithAsserts
 
 if [ $# -ne 0 ]; then
