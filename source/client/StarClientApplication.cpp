@@ -512,21 +512,26 @@ void ClientApplication::changeState(MainAppState newState) {
 
   if (oldState > MainAppState::Title && m_state == MainAppState::Title) {
     m_titleScreen->resetState();
-    // FezzedOne: Reset these objects to clean up memory whenever returning to the title screen.
-    {
-      m_universeClient.reset();
-      m_playerStorage.reset();
-      if (m_statistics) {
-        m_statistics->writeStatistics();
-        m_statistics.reset();
-      }
-      m_playerStorage = make_shared<PlayerStorage>(m_root->toStoragePath("player"));
-      m_statistics = make_shared<Statistics>(m_root->toStoragePath("player"), appController()->statisticsService());
-      m_universeClient = make_shared<UniverseClient>(m_playerStorage, m_statistics);
-
-      m_universeClient->setLuaCallbacks("input", LuaBindings::makeInputCallbacks());
-      m_universeClient->setLuaCallbacks("voice", LuaBindings::makeVoiceCallbacks());
+    if (m_statistics) {
+      m_statistics->writeStatistics();
+      m_statistics.reset();
     }
+    m_statistics = make_shared<Statistics>(m_root->toStoragePath("player"), appController()->statisticsService());
+    // FezzedOne: Might be causing some memory ballooning.
+    // {
+    //   m_universeClient.reset();
+    //   m_playerStorage.reset();
+    //   if (m_statistics) {
+    //     m_statistics->writeStatistics();
+    //     m_statistics.reset();
+    //   }
+    //   m_playerStorage = make_shared<PlayerStorage>(m_root->toStoragePath("player"));
+    //   m_statistics = make_shared<Statistics>(m_root->toStoragePath("player"), appController()->statisticsService());
+    //   m_universeClient = make_shared<UniverseClient>(m_playerStorage, m_statistics);
+
+    //   m_universeClient->setLuaCallbacks("input", LuaBindings::makeInputCallbacks());
+    //   m_universeClient->setLuaCallbacks("voice", LuaBindings::makeVoiceCallbacks());
+    // }
     m_mainMixer->setUniverseClient({});
   }
   if (oldState >= MainAppState::Title && m_state < MainAppState::Title) {
