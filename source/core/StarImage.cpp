@@ -230,10 +230,9 @@ Image& Image::operator=(Image&& image) {
   reset(0, 0, m_pixelFormat);
 
   m_data = take(image.m_data);
-  // Change from Kae that should get rid of a potential memory leak when moving images.
-  m_width = take(image.m_width);
-  m_height = take(image.m_height);
-  m_pixelFormat = take(image.m_pixelFormat);
+  m_width = take(image.m_width);             // Added by Kae.
+  m_height = take(image.m_height);           //
+  m_pixelFormat = take(image.m_pixelFormat); //
   return *this;
 }
 
@@ -245,8 +244,7 @@ void Image::reset(unsigned width, unsigned height, Maybe<PixelFormat> pf) {
   if (!pf)
     pf = m_pixelFormat;
 
-  // Change from Kae that should fix a potential memory leak with images.
-  if (m_data && m_width == width && m_height == height && m_pixelFormat == *pf)
+  if (m_width == width && m_height == height && m_pixelFormat == *pf) // Removed broken "fix" by Kae.
     return;
 
   size_t imageSize = width * height * Star::bytesPerPixel(*pf);
