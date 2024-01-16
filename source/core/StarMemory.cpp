@@ -26,6 +26,25 @@ namespace Star {
     mi_free(ptr);
   }
 #elif defined STAR_USE_JEMALLOC
+  #if defined STAR_CROSS_COMPILE
+  // FezzedOne: `jemalloc`'s stuff isn't renamed by default in the MinGW version off the AUR.
+  void* malloc(size_t size) {
+    return ::malloc(size);
+  }
+
+  void* realloc(void* ptr, size_t size) {
+    return ::realloc(ptr, size);
+  }
+
+  void free(void* ptr) {
+    ::free(ptr);
+  }
+
+  void free(void* ptr, size_t size) {
+    if (ptr)
+      ::sdallocx(ptr, size, 0);
+  }
+  #else
   void* malloc(size_t size) {
     return je_malloc(size);
   }
@@ -42,6 +61,7 @@ namespace Star {
     if (ptr)
       je_sdallocx(ptr, size, 0);
   }
+  #endif
 #else
   void* malloc(size_t size) {
     return ::malloc(size);
