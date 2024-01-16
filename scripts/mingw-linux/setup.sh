@@ -31,7 +31,7 @@ cmake \
   -DCMAKE_LIBRARY_PATH="/usr/x86_64-w64-mingw32/lib;$MINGW_LIB_DIR/" \
   -DSTAR_USE_JEMALLOC=OFF \
   -DSTAR_USE_MIMALLOC=OFF \
-  -DJEMALLOC_LIBRARY=$MINGW_LIB_DIR/jemalloc.lib \
+  -DJEMALLOC_LIBRARY=$MINGW_LIB_DIR/libjemalloc_s.a \
   -DJEMALLOC_INCLUDE_DIR=$MINGW_LIB_DIR/include/jemalloc \
   -DSTAR_SYSTEM="windows" \
   -DSTAR_SYSTEM_FAMILY="windows" \
