@@ -21,7 +21,6 @@ To build on any reasonably up-to-date Linux distro:
 7. `mkdir -p ${sbInstall}/xsb-linux; cp dist/* ${sbInstall}/xsb-linux/`
 8. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
 9. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-linux/xclient`.
-10. Optionally install or build `mimalloc` and prepend `env LD_PRELOAD=${pathToMimalloc}/libmimalloc.so` to the launch commands for xClient and xServer.
 
 > **Note:** Gentoo users will need to recompile `libstdc++` with `_GLIBCXX_USE_CXX11_ABI` enabled (`-D_GLIBCXX_USE_CXX11_ABI=1`) to avoid linker errors.
 
@@ -38,15 +37,8 @@ To build on SteamOS:
     ```
 
 2. Follow the Linux instructions starting at step 3.
-3. To install `mimalloc` on SteamOS:
 
-    ```sh
-    sudo steamos-readonly disable
-    sudo pacman -S mimalloc
-    sudo steamos-readonly enable
-    ```
-
-You will need to re-run the commands in step 1 (and, if you use `mimalloc`, step 3) every time you update SteamOS (and want to rebuild xSB-2).
+You will need to re-run the commands in step 1 every time you update SteamOS (and want to rebuild xSB-2).
 
 ### Windows
 
@@ -85,8 +77,6 @@ To cross-compile from Linux to Windows:
 7. `mkdir -p ${sbInstall}/xsb-win64; cp dist-windows/* ${sbInstall}/xsb-win64/`
 8. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
 9. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-win64/xclient.exe` through WINE/Proton (or on your Windows install).
-
-> **Note:** `mimalloc` gets built into the binaries as if xSB-2 were built on MSVC — no manual loading or tinkering required.
 
 > **Note:** Gentoo users will need to compile MinGW with `_GLIBCXX_USE_CXX11_ABI` enabled (`-D_GLIBCXX_USE_CXX11_ABI=1`) to avoid linker errors.
 
