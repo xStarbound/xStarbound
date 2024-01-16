@@ -737,22 +737,24 @@ void WorldStorage::unloadSectorToLevel(Sector const& sector, SectorLoadLevel tar
   bool entitiesOverlap = false;
 
   for (auto& entity : m_entityMap->entityQuery(RectF(m_tileArray->sectorRegion(sector)))) {
-    // Only store / remove entities who belong to this sector.  If an entity
-    // overlaps with this sector but does not belong to it, we may not want to
-    // completely unload it.
-    if (!belongsInSector(sector, entity->position())) {
-      entitiesOverlap = true;
-      continue;
+    if (entity) {
+      // Only store / remove entities who belong to this sector.  If an entity
+      // overlaps with this sector but does not belong to it, we may not want to
+      // completely unload it.
+      if (!belongsInSector(sector, entity->position())) {
+        entitiesOverlap = true;
+        continue;
+      }
+
+      bool keepAlive = m_generatorFacade->entityKeepAlive(this, entity);
+      if (keepAlive && !force)
+        return;
+
+      if (m_generatorFacade->entityPersistent(this, entity))
+        entitiesToStore.append(move(entity));
+      else
+        entitiesToRemove.append(move(entity));
     }
-
-    bool keepAlive = m_generatorFacade->entityKeepAlive(this, entity);
-    if (keepAlive && !force)
-      return;
-
-    if (m_generatorFacade->entityPersistent(this, entity))
-      entitiesToStore.append(move(entity));
-    else
-      entitiesToRemove.append(move(entity));
   }
 
   for (auto const& entity : entitiesToRemove) {
@@ -773,12 +775,14 @@ void WorldStorage::unloadSectorToLevel(Sector const& sector, SectorLoadLevel tar
 
     UniqueIndexStore storedUniques;
     for (auto const& entity : entitiesToStore) {
-      m_entityMap->removeEntity(entity->entityId());
-      m_generatorFacade->destructEntity(this, entity);
-      auto position = entity->position();
-      if (auto uniqueId = entity->uniqueId())
-        storedUniques.add(*uniqueId, {sector, position});
-      sectorStore.append(entityFactory->storeVersionedEntity(entity));
+      if (entity) {
+        m_entityMap->removeEntity(entity->entityId());
+        m_generatorFacade->destructEntity(this, entity);
+        auto position = entity->position();
+        if (auto uniqueId = entity->uniqueId())
+          storedUniques.add(*uniqueId, {sector, position});
+        sectorStore.append(entityFactory->storeVersionedEntity(entity));
+      }
     }
     m_db.insert(entitySectorKey(sector), writeEntitySector(sectorStore));
     if (metadata.loadLevel < SectorLoadLevel::Entities)
