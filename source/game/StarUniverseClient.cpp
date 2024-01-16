@@ -476,8 +476,10 @@ bool UniverseClient::flying() const {
 }
 
 void UniverseClient::sendChat(String const& text, ChatSendMode sendMode) {
-  if (!text.beginsWith("/"))
-    m_mainPlayer->addChatMessageCallback(text);
+  if (!text.beginsWith("/")) {
+    if (m_mainPlayer)
+      m_mainPlayer->addChatMessageCallback(text);
+  }
   m_connection->pushSingle(make_shared<ChatSendPacket>(text, sendMode));
 }
 
@@ -485,8 +487,10 @@ void UniverseClient::sendChat(String const &text, String const &sendMode, bool s
   // Override for `player.sendChat`.
   Maybe<ChatSendMode> sendModeEnumMaybe = ChatSendModeNames.maybeLeft(sendMode);
   ChatSendMode sendModeEnum = sendModeEnumMaybe.value(ChatSendMode::Local);
-  if (!text.beginsWith("/") && !suppressBubble)
-    m_mainPlayer->addChatMessageCallback(text); // FezzedOne: Allow chat bubbles to inherit custom player settings.
+  if (!text.beginsWith("/") && !suppressBubble) {
+    if (m_mainPlayer)
+      m_mainPlayer->addChatMessageCallback(text); // FezzedOne: Allow chat bubbles to inherit custom player settings.
+  }
   m_connection->pushSingle(make_shared<ChatSendPacket>(text, sendModeEnum));
 }
 
