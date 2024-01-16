@@ -259,7 +259,7 @@ IF (STAR_COMPILER_GNU)
       SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -static-libgcc -DSTAR_CROSS_COMPILE")
       SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libstdc++ -static-libgcc -DSTAR_CROSS_COMPILE")
       SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/x86_64-w64-mingw32/lib")
-      IF (STAR_USE_JEMALLOC) # Don't rename jemalloc functions.
+      IF (STAR_USE_JEMALLOC)
       ENDIF ()
     ENDIF ()
   ELSE ()
