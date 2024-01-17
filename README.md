@@ -57,7 +57,7 @@ The xSB-2 binaries can be built against either the Steam Runtime or the native s
    - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu qt5-base libpng; sudo steamos-readonly enable`
 4. `cd path/to/xSB-2/`
 5. `scripts/linux/setup-qt.sh 4` (increase that `4` to `8` or more if you've got a beefy system!)
-6. Once built, `cp` the `mod_uploader` to anywhere convenient, optionally renaming it.
+6. Once built, `cp` the `mod_uploader` in `$src/dist` to anywhere convenient, optionally renaming it.
 
 To use the `mod_uploader`, start Steam and then start the `mod_uploader` binary manually — Linux Steam does not have an option to use it through the game library. Once started, you can upload mods normally.
 
