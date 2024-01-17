@@ -67,13 +67,13 @@ There is currently no working macOS toolchain set up. If you want to build on ma
 
 To cross-compile from Linux to Windows:
 
-1. Install CMake, WINE, MinGW-w64 and optionally Git (if not already preinstalled).
+1. Install CMake, WINE, MinGW-w64 and Git (if not already preinstalled).
   - **Arch-/Debian-based distros (`apt`/`pacman`):** Install `cmake`, `wine`, `mingw-w64` and `git`.
   - **Fedora-based distros (`yum`):** Install `cmake`, `wine`, `mingw64-\*` and `git`.
 2. Install or build the MinGW versions of Freetype (using `--without-harfbuzz`), ZLib, GLEW and SDL2.
   - On the AUR, these are `mingw-w64-freetype2-bootstrap`, `mingw-w64-zlib`, `mingw-w64-glew` and `mingw-w64-zlib`, respectively.
   - For Arch users (*not* derivatives), there is a [binary repo](https://martchus.no-ip.biz/repo/arch/ownstuff) for these libraries, but you should still install `mingw-w64-freetype2-bootstrap` from the AUR.
-3. Download the latest source tarball (or clone the repo) and extract.
+3. `git clone --recurse-submodules https://github.com/FezzedOne/xSB-2.git`
 4. `cd xSB-2/`
 5. `scripts/mingw/setup.sh 3` (increase that `3` to `4` or more if you've got a beefy system).
 6. Executables, required `.dll` libaries and the required `sbinit.config` should appear in `$src/dist-windows` if built successfully. Note that the Discord library is differently named due to an idiosyncrasy with the linker; do not rename it back.
