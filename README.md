@@ -47,7 +47,7 @@ To build and install on Windows 10 or 11:
 
 1. Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/whatsnew/) and [CMake](https://cmake.org/download/). For Visual Studio, make sure to install C++ support (and optionally the game dev stuff) when the VS installer asks you what to install. For CMake, make sure you download and use the `.msi` installer for 64-bit Windows.
 2. Download the latest source ZIP (or install [Git](https://git-scm.com/download/win) and clone the repo) and extract.
-3. download the latest [Opus source ZIP](https://github.com/xiph/opus/releases), extract it, and put the `opus\` folder in `source\extern\` (or install Git, open up Git Bash, `cd` into  `xSB-2\` and run `git submodule init`).
+3. Download the latest [Opus source ZIP](https://github.com/xiph/opus/releases), extract it, and put the `opus\` folder in `source\extern\` (or install Git, open up Git Bash, `cd` into  `xSB-2\` and run `git submodule init`).
 4. Go into `scripts\windows\` and double-click `setup64.bat`.
 5. Wait for that batch file to finish, go up two folders, open up `build\` and double-click `ALL_BUILD.vcxproj`.
 6. Select **Build → Build Solution** in Visual Studio.
