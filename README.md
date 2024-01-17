@@ -10,7 +10,7 @@ This repository is already set up for easy building. Follow the appropriate inst
 
 ### Linux
 
-The xSB-2 binaries can be built against either the Steam Runtime or the native system libraries. All prebuilt Linux binaries starting with v2.3.6.1r1 on this repo have been built against the Steam Runtime to ensure cross-distro compatibility.
+The xSB-2 binaries can be built against either the Steam Runtime or the native system libraries; the `mod_uploader` may optionally be built separately. All prebuilt Linux binaries starting with v2.3.6.1r1 on this repo have been built against the Steam Runtime to ensure cross-distro compatibility.
 
 **With Steam Runtime:** To build against the Steam Runtime:
 
@@ -29,7 +29,12 @@ The xSB-2 binaries can be built against either the Steam Runtime or the native s
 **With system libraries:** *Not recommended on non-Arch-based distros!* To build against system libraries on any reasonably up-to-date Linux distro:
 
 1. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's "base development" package.
-2. Install CMake and Git (if not already installed). Your distribution's packages should be called `cmake` and `git`, respectively.
+2. Install CMake and Git:
+   - *Arch-based distros:* `sudo pacman -S cmake git` (you may need to `-Syu` first)
+   - *RPM/`yum`-based distros:* `sudo yum install cmake git`
+   - *Debian/`apt-get`-based distros:* `sudo apt-get install cmake git` (on Mint, replace `apt-get` with `apt`)
+   - *Gentoo:* `emerge -a dev-vcs/git dev-build/cmake`
+   - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu cmake git; sudo steamos-readonly enable`
 3. `git clone --recurse-submodules https://github.com/FezzedOne/xSB-2.git`
 4. `cd xSB-2/`
 5. `scripts/linux/setup.sh 4` (increase that `4` to `8` or more if you've got a beefy system!)
@@ -39,6 +44,22 @@ The xSB-2 binaries can be built against either the Steam Runtime or the native s
 9.  Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-linux/xclient`.
 
 > **Important:** If you're getting library linking errors while attempting to build or run xSB-2 (this is likely on Debian-based distros, Slackware and CentOS due to their older libraries), you'll need to either build xSB-2 against the Steam runtime or find a way to update your system libraries.
+
+**Building the mod uploader:** The Linux `mod_uploader` (needed to upload mods to the Steam Workshop) must be built separately and *cannot* be built in the Steam runtime. You *must* own Starbound on Steam in order to be able to use the `mod_uploader`. To build the `mod_uploader`:
+
+1. Install CMake and Git; see above for package names on popular distros.
+2. Install Steam if you don't already have it installed; see [these instructions](https://www.xda-developers.com/how-run-steam-linux/) if you don't know how.
+3. Install `libpng` 16.x and the Qt5 libraries and headers:
+   - *Arch-based distros:* `sudo pacman -S qt5-base libpng` (you may need to `-Syu` first)
+   - *RPM/`yum`-based distros:* `sudo yum install qt5-qtbase qt5-qtbase-devel libpng`
+   - *Debian/`apt-get`-based distros:* `sudo apt-get install qtbase5-dev libpng16-16` (on Mint, replace `apt-get` with `apt`)
+   - *Gentoo:* `emerge -a @qt5-essentials media-libs/libpng`
+   - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu qt5-base libpng; sudo steamos-readonly enable`
+4. `cd path/to/xSB-2/`
+5. `scripts/linux/setup-qt.sh 4` (increase that `4` to `8` or more if you've got a beefy system!)
+6. `cp` the `mod_uploader` to anywhere convenient, optionally renaming it.
+7.
+To use the `mod_uploader`, start Steam and then start the `mod_uploader` binary manually — Linux Steam does not have an option to use it through the game library. Once started, you can upload mods normally.
 
 ### SteamOS
 
