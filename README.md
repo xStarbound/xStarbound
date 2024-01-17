@@ -33,7 +33,7 @@ The xSB-2 binaries can be built against either the Steam Runtime or the native s
    - *Arch-based distros:* `sudo pacman -S cmake git` (you may need to `-Syu` first)
    - *RPM/`yum`-based distros:* `sudo yum install cmake git`
    - *Debian/`apt-get`-based distros:* `sudo apt-get install cmake git` (on Mint, replace `apt-get` with `apt`)
-   - *Gentoo:* `emerge -a dev-vcs/git dev-build/cmake`
+   - *Gentoo:* `sudo emerge -a dev-vcs/git dev-build/cmake`
    - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu cmake git; sudo steamos-readonly enable`
 3. `git clone --recurse-submodules https://github.com/FezzedOne/xSB-2.git`
 4. `cd xSB-2/`
@@ -53,7 +53,7 @@ The xSB-2 binaries can be built against either the Steam Runtime or the native s
    - *Arch-based distros:* `sudo pacman -S qt5-base libpng` (you may need to `-Syu` first)
    - *RPM/`yum`-based distros:* `sudo yum install qt5-qtbase qt5-qtbase-devel libpng`
    - *Debian/`apt-get`-based distros:* `sudo apt-get install qtbase5-dev libpng16-16` (on Mint, replace `apt-get` with `apt`)
-   - *Gentoo:* `emerge -a @qt5-essentials media-libs/libpng`
+   - *Gentoo:* `sudo emerge -a @qt5-essentials media-libs/libpng`
    - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu qt5-base libpng; sudo steamos-readonly enable`
 4. `cd path/to/xSB-2/`
 5. `scripts/linux/setup-qt.sh 4` (increase that `4` to `8` or more if you've got a beefy system!)
