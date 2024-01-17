@@ -268,8 +268,8 @@ IF (STAR_COMPILER_GNU)
   ENDIF ()
 
   IF (STAR_ENABLE_STATIC_LIBGCC_LIBSTDCXX)
-    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static-libgcc")
-    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static-libgcc") # -static
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++") # -static
   ENDIF ()
 
   IF (STAR_ENABLE_GCC_PROFILING)
@@ -534,7 +534,12 @@ IF (STAR_BUILD_GUI)
     SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows")
     SET (STAR_EXT_GUI_LIBS "${PROJECT_SOURCE_DIR}/../lib/mingw/SDL2.dll" "${PROJECT_SOURCE_DIR}/../lib/mingw/glew32.dll")
   ELSE()
-    SET (STAR_EXT_GUI_LIBS ${SDL2_LIBRARY})
+    # IF (STAR_ENABLE_STATIC_LIBGCC_LIBSTDCXX AND STAR_SYSTEM_LINUX AND STAR_COMPILER_GNU)
+    #   # SDL2 should be dynamically linked.
+    #   SET (STAR_EXT_GUI_LIBS "-Wl,-Bdynamic" ${SDL2_LIBRARY})
+    # ELSE()
+      SET (STAR_EXT_GUI_LIBS ${SDL2_LIBRARY})
+    # ENDIF()
   ENDIF()
 
   FIND_PACKAGE (OpenGL REQUIRED)
