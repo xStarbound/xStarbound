@@ -36,5 +36,3 @@ if [ $# -ne 0 ]; then
 else
   make;
 fi
-
-cp -r ../dist/* ../test/linux/; # Will replace existing xSB test executables.
