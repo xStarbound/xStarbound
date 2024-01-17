@@ -16,11 +16,12 @@ To build on any reasonably up-to-date Linux distro:
 2. Install CMake and optionally Git (if not already installed). Your distribution's packages should be called `cmake` and `git`, respectively.
 3. Download the latest source tarball (or clone the repo) and extract.
 4. `cd xSB-2/`
-5. `scripts/linux/setup.sh 3` (increase that `3` to `4` or more if you've got a beefy system).
-6. Executables, required `.so` libaries and the required `sbinit.config` should appear in `$src/dist` if built successfully.
-7. `mkdir -p ${sbInstall}/xsb-linux; cp dist/* ${sbInstall}/xsb-linux/`
-8. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
-9. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-linux/xclient`.
+5. `git submodule init` or download the latest [Opus source tarball](https://github.com/xiph/opus/releases) and extract into `$src/source/extern/opus/`.
+6. `scripts/linux/setup.sh 3` (increase that `3` to `4` or more if you've got a beefy system).
+7. Executables, required `.so` libaries and the required `sbinit.config` should appear in `$src/dist` if built successfully.
+8. `mkdir -p ${sbInstall}/xsb-linux; cp dist/* ${sbInstall}/xsb-linux/`
+9. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
+10. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-linux/xclient`.
 
 > **Note:** Gentoo users will need to recompile `libstdc++` with `_GLIBCXX_USE_CXX11_ABI` enabled (`-D_GLIBCXX_USE_CXX11_ABI=1`) to avoid linker errors.
 
@@ -46,13 +47,14 @@ To build and install on Windows 10 or 11:
 
 1. Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/whatsnew/) and [CMake](https://cmake.org/download/). For Visual Studio, make sure to install C++ support (and optionally the game dev stuff) when the VS installer asks you what to install. For CMake, make sure you download and use the `.msi` installer for 64-bit Windows.
 2. Download the latest source ZIP (or install [Git](https://git-scm.com/download/win) and clone the repo) and extract.
-3. Go into `scripts\windows\` and double-click `setup64.bat`.
-4. Wait for that batch file to finish, go up two folders, open up `build\` and double-click `ALL_BUILD.vcxproj`.
-5. Select **Build → Build Solution** in Visual Studio.
-6. Executables, required `.dll` libraries and the required `sbinit.config` should appear in a new `xSB-2\dist\` folder if built successfully.
-7. Make a new `xsb-win64\` folder in your Starbound install folder, and copy or move the `.exe`s and `.dll`s to it.
-8. Make a new `xab-assets\` folder in your Starbound install folder, and copy the `assets\xSBassets` folder into that folder.
-9. Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
+3. download the latest [Opus source ZIP](https://github.com/xiph/opus/releases), extract it, and put the `opus\` folder in `source\extern\` (or install Git, open up Git Bash, `cd` into  `xSB-2\` and run `git submodule init`).
+4. Go into `scripts\windows\` and double-click `setup64.bat`.
+5. Wait for that batch file to finish, go up two folders, open up `build\` and double-click `ALL_BUILD.vcxproj`.
+6. Select **Build → Build Solution** in Visual Studio.
+7. Executables, required `.dll` libraries and the required `sbinit.config` should appear in a new `xSB-2\dist\` folder if built successfully.
+8. Make a new `xsb-win64\` folder in your Starbound install folder, and copy or move the `.exe`s and `.dll`s to it.
+9. Make a new `xab-assets\` folder in your Starbound install folder, and copy the `assets\xSBassets` folder into that folder.
+10. Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
 
 Building on earlier versions of Windows is not recommended, although it *should* still be possible to build xSB-2 on Windows 7, 8 or 8.1 if you can get VS 2022 installed.
 
