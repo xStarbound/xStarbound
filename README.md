@@ -10,19 +10,35 @@ This repository is already set up for easy building. Follow the appropriate inst
 
 ### Linux
 
-To build on any reasonably up-to-date Linux distro:
+The xSB-2 binaries can be built against either the Steam Runtime or the native system libraries. All prebuilt Linux binaries starting with v2.3.6.1r1 on this repo have been built against the Steam Runtime to ensure cross-distro compatibility.
+
+**With Steam Runtime:** To build against the Steam Runtime:
+
+1. Install Toolbox and Git — your distro's packages should be called `toolbox` and `git`, respectively.
+2. `toolbox create -i registry.gitlab.steamos.cloud/steamrt/scout/sdk scout`
+3. `git clone --recurse-submodules https://github.com/FezzedOne/xSB-2.git`
+4. `toolbox enter scout`
+5. *In the Toolbox shell:* `cd xSB-2/`
+6. *In the Toolbox shell:* `scripts/linux/setup-runtime.sh 4` (increase that `4` to `8` or more if you've got a beefy system!)
+7. `mkdir -p ${sbInstall}/xsb-linux; cp dist/* ${sbInstall}/xsb-linux/`
+8. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
+9.  Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-linux/xclient`.
+
+> **Note:** All extra libraries required by xSB-2 should already be set up in the repo — there's no need for `apt-get` commands in the Toolbox environment.
+
+**With system libraries:** *Not recommended on non-Arch-based distros!* To build against system libraries on any reasonably up-to-date Linux distro:
 
 1. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's "base development" package.
 2. Install CMake and Git (if not already installed). Your distribution's packages should be called `cmake` and `git`, respectively.
 3. `git clone --recurse-submodules https://github.com/FezzedOne/xSB-2.git`
 4. `cd xSB-2/`
-5. `scripts/linux/setup.sh 3` (increase that `3` to `4` or more if you've got a beefy system).
+5. `scripts/linux/setup.sh 4` (increase that `4` to `8` or more if you've got a beefy system!)
 6. Executables, required `.so` libaries and the required `sbinit.config` should appear in `$src/dist` if built successfully.
 7. `mkdir -p ${sbInstall}/xsb-linux; cp dist/* ${sbInstall}/xsb-linux/`
 8. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
 9.  Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-linux/xclient`.
 
-> **Note:** Gentoo users will need to recompile `libstdc++` with `_GLIBCXX_USE_CXX11_ABI` enabled (`-D_GLIBCXX_USE_CXX11_ABI=1`) to avoid linker errors.
+> **Important:** If you're getting library linking errors while attempting to build or run xSB-2 (this is likely on Debian-based distros, Slackware and CentOS due to their older libraries), you'll need to either build xSB-2 against the Steam runtime or find a way to update your system libraries.
 
 ### SteamOS
 
@@ -32,11 +48,11 @@ To build on SteamOS:
 
     ```sh
     sudo steamos-readonly disable
-    sudo pacman -S base-devel glibc linux-api-headers cmake
+    sudo pacman -S toolbox git
     sudo steamos-readonly enable
     ```
 
-2. Follow the Linux instructions starting at step 3.
+2. Follow the Steam Runtime instructions starting at step 3.
 
 You will need to re-run the commands in step 1 every time you update SteamOS (and want to rebuild xSB-2).
 
@@ -75,7 +91,7 @@ To cross-compile from Linux to Windows:
   - For Arch users (*not* derivatives), there is a [binary repo](https://martchus.no-ip.biz/repo/arch/ownstuff) for these libraries, but you should still install `mingw-w64-freetype2-bootstrap` from the AUR.
 3. `git clone --recurse-submodules https://github.com/FezzedOne/xSB-2.git`
 4. `cd xSB-2/`
-5. `scripts/mingw/setup.sh 3` (increase that `3` to `4` or more if you've got a beefy system).
+5. `scripts/mingw/setup.sh 4` (increase that `4` to `8` or more if you've got a beefy system!)
 6. Executables, required `.dll` libaries and the required `sbinit.config` should appear in `$src/dist-windows` if built successfully. Note that the Discord library is differently named due to an idiosyncrasy with the linker; do not rename it back.
 7. `mkdir -p ${sbInstall}/xsb-win64; cp dist-windows/* ${sbInstall}/xsb-win64/`
 8. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
