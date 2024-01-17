@@ -1,6 +1,7 @@
 build/
 build-qt/
 build-mingw/
+build-runtime/
 dist/
 dist-windows/
 dist-qt/
