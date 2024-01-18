@@ -470,6 +470,10 @@ public:
   // functions that can affect the real world disabled.
   static LuaEnginePtr create(bool safe = true);
 
+  // Gets the Lua engine's "zero" tracker. Required to prevent segfaults from
+  // accessing a zeroed `LuaEngine`.
+  RefZeroTracker* getTracker();
+
   ~LuaEngine();
 
   LuaEngine(LuaEngine const&) = delete;
@@ -709,6 +713,8 @@ private:
   void decrementRecursionLevel();
 
   void updateCountHook();
+
+  RefZeroTracker* m_refZeroTrackerPtr;
 
   // The following fields exist to use their addresses as unique lightuserdata,
   // as is recommended by the lua docs.
@@ -2076,7 +2082,7 @@ LuaUserData LuaEngine::createUserData(T t) {
   lua_rawgeti(m_state, LUA_REGISTRYINDEX, typeMetatable);
   lua_setmetatable(m_state, -2);
 
-  return LuaUserData(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(m_state)));
+  return LuaUserData(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(m_state)));
 }
 
 template <typename T, typename K>

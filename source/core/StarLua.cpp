@@ -196,7 +196,9 @@ Maybe<JsonArray> LuaConverter<JsonArray>::to(LuaEngine& engine, LuaValue v) {
 }
 
 LuaEnginePtr LuaEngine::create(bool safe) {
-  LuaEnginePtr self(new LuaEngine);
+  RefZeroTracker* refZeroTracker = new RefZeroTracker();
+  LuaEnginePtr self(new LuaEngine, refZeroTracker);
+  self->m_refZeroTrackerPtr = refZeroTracker;
 
   self->m_state = lua_newstate(allocate, nullptr);
 
@@ -380,6 +382,10 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   return self;
 }
 
+RefZeroTracker* LuaEngine::getTracker() {
+  return m_refZeroTrackerPtr;
+}
+
 LuaEngine::~LuaEngine() {
   // If we've had a stack space leak, this will not be zero
   starAssert(lua_gettop(m_state) == 0);
@@ -468,28 +474,28 @@ LuaString LuaEngine::createString(String const& str) {
     lua_pushstring(m_state, str.utf8Ptr());
   else
     lua_pushlstring(m_state, str.utf8Ptr(), str.utf8Size());
-  return LuaString(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(m_state)));
+  return LuaString(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(m_state)));
 }
 
 LuaString LuaEngine::createString(char const* str) {
   lua_checkstack(m_state, 1);
 
   lua_pushstring(m_state, str);
-  return LuaString(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(m_state)));
+  return LuaString(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(m_state)));
 }
 
 LuaTable LuaEngine::createTable(int narr, int nrec) {
   lua_checkstack(m_state, 1);
 
   lua_createtable(m_state, narr, nrec);
-  return LuaTable(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(m_state)));
+  return LuaTable(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(m_state)));
 }
 
 LuaThread LuaEngine::createThread() {
   lua_checkstack(m_state, 1);
 
   lua_newthread(m_state);
-  return LuaThread(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(m_state)));
+  return LuaThread(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(m_state)));
 }
 
 void LuaEngine::threadPushFunction(int threadIndex, int functionIndex) {
@@ -527,7 +533,7 @@ LuaContext LuaEngine::createContext() {
   lua_pop(m_state, 1);
 
   // Then set that environment as the new context environment in the registry.
-  return LuaContext(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(m_state)));
+  return LuaContext(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(m_state)));
 }
 
 void LuaEngine::collectGarbage(Maybe<unsigned> steps) {
@@ -897,7 +903,7 @@ void LuaEngine::setContextRequire(int handleIndex, LuaContext::RequireFunction r
       auto moduleName = self->luaTo<LuaString>(self->popLuaValue(state));
 
       lua_pushvalue(state, lua_upvalueindex(2));
-      LuaContext context(LuaDetail::LuaHandle(RefPtr<LuaEngine>(self), self->popHandle(state)));
+      LuaContext context(LuaDetail::LuaHandle(RefPtr<LuaEngine>(self, self->getTracker()), self->popHandle(state)));
 
       (*require)(context, moduleName);
       return 0;
@@ -1129,14 +1135,14 @@ LuaFunction LuaEngine::createWrappedFunction(LuaDetail::LuaWrappedFunction funct
 
   lua_pushcclosure(m_state, invokeFunction, 1);
 
-  return LuaFunction(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(m_state)));
+  return LuaFunction(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(m_state)));
 }
 
 LuaFunction LuaEngine::createRawFunction(lua_CFunction function) {
   lua_checkstack(m_state, 2);
 
   lua_pushcfunction(m_state, function);
-  return LuaFunction(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(m_state)));
+  return LuaFunction(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(m_state)));
 }
 
 LuaFunction LuaEngine::createFunctionFromSource(int handleIndex, char const* contents, size_t size, char const* name) {
@@ -1147,7 +1153,7 @@ LuaFunction LuaEngine::createFunctionFromSource(int handleIndex, char const* con
   pushHandle(m_state, handleIndex);
   lua_setupvalue(m_state, -2, 1);
 
-  return LuaFunction(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(m_state)));
+  return LuaFunction(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(m_state)));
 }
 
 void LuaEngine::pushLuaValue(lua_State* state, LuaValue const& luaValue) {
@@ -1209,19 +1215,19 @@ LuaValue LuaEngine::popLuaValue(lua_State* state) {
       break;
     }
     case LUA_TSTRING: {
-      result = LuaString(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(state)));
+      result = LuaString(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(state)));
       break;
     }
     case LUA_TTABLE: {
-      result = LuaTable(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(state)));
+      result = LuaTable(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(state)));
       break;
     }
     case LUA_TFUNCTION: {
-      result = LuaFunction(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(state)));
+      result = LuaFunction(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(state)));
       break;
     }
     case LUA_TTHREAD: {
-      result = LuaThread(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(state)));
+      result = LuaThread(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(state)));
       break;
     }
     case LUA_TUSERDATA: {
@@ -1230,7 +1236,7 @@ LuaValue LuaEngine::popLuaValue(lua_State* state) {
         throw LuaException("Userdata in popLuaValue missing metatable");
       }
       lua_pop(state, 1);
-      result = LuaUserData(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(state)));
+      result = LuaUserData(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this, getTracker()), popHandle(state)));
       break;
     }
     default: {
