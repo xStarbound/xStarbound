@@ -383,9 +383,9 @@ void WorldStorage::unloadAll(bool force) {
     for (auto sector : sectors)
       unloadSectorToLevel(sector, SectorLoadLevel::None, force);
 
-    // FezzedOne: Make sure these pointers aren't dangling.
-    m_entityMap.reset();
-    m_tileArray.reset();
+    // FezzedOne: Commented out since it's apparently resposible for a rare server segfault.
+    // m_entityMap.reset();
+    // m_tileArray.reset();
 
   } catch (std::exception const& e) {
     m_db.rollback();
@@ -725,6 +725,10 @@ void WorldStorage::loadSectorToLevel(Sector const& sector, SectorLoadLevel targe
 }
 
 void WorldStorage::unloadSectorToLevel(Sector const& sector, SectorLoadLevel targetLoadLevel, bool force) {
+  // FezzedOne: Fix for a rare segfault upon unloading a world.
+  if (!m_tileArray)
+    return;
+
   if (!m_tileArray->sectorValid(sector) || targetLoadLevel == SectorLoadLevel::Loaded)
     return;
 
