@@ -4,6 +4,84 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
 
 Compiled builds for Linux and Windows should be available in the usual place on this repository.
 
+## Changes
+
+- You can now make `.patch` files that are just merged in, early-beta-style (Kae). That's why the patch files in `assets/xSBassets` are unusually simple. In addition, a new `"find"` parameter is supported for `"remove"` and `"replace"` operations where the `"path"` is to a JSON array (FezzedOne) — if `"find"` is present, only the first array value exactly matching the value in `"find"` is removed or replaced by `"value"`, not the entire array.
+- Almost all Lua callbacks from the original xSB (by FezzedOne), `input` callbacks (by Kae), plus some extra `player` callbacks for compatibility with OpenStarbound mods and some StarExtensions mods. The `setSpecies` and `setIdentity` callbacks will not let you switch to a nonexistent species. Documentation has yet to be updated.
+- Various crash fixes (FezzedOne and Kae).
+- Character swapping (rewrite by Kae from StarExtensions): `/swap <name>` (case-insensitive substring matching) and `/swapuuid <uuid>` (requires a UUID; use the one in the player file name).
+- Custom user input support with a keybindings menu (rewrite by Kae from StarExtensions).
+- Positional voice chat that works on completely vanilla servers; is compatible with StarExtensions. This uses Opus for crisp, HD audios. Rewrite by Kae from StarExtensions.
+  - The voice chat configuration dialogue is made available in the options menu rather than as a chat command.
+- Multiple font support (switch fonts inline with `^font=name;`, `.ttf` assets are auto-detected). Added by Kae, fixed by FezzedOne. Additionally, escape codes and custom fonts wrap and propagate across wrapped lines properly in the chat box (FezzedOne).
+- World lightmap generation has been moved off the main thread (Kae).
+- Various changes to the storage of directives and images in memory to greatly reduce their impact on frametimes (Kae).
+  - Works well when extremely long directives are used for "vanilla multiplayer-compatible" creations, like [generated](https://silverfeelin.github.io/Starbound-NgOutfitGenerator/) [clothing](https://github.com/FezzedOne/FezzedOne-Drawable-Generator).
+- Client-side tile placement prediction (rewrite by Kae from StarExtensions).
+  - You can also resize the placement area of tiles on the fly.
+- Support for placing foreground tiles with a custom collision type (rewrite by Kae from StarExtensions; requires an OpenSB or xSB-2 server) and, via `world.placeMaterial()`, placing tiles not connected to existing ones (FezzedOne; requires an xSB-2 server). Tile placement with this feature is not network-compatible with servers that support the similar feature present in StarExtensions, although already-placed tiles work just fine. A [fork of WEdit](https://github.com/FezzedOne/xWEdit) with support for these features is available.
+  - Additionally, objects can be placed under non-solid foreground tiles (Kae).
+- Some polish to UI (FezzedOne and Kae).
+- Terraria-like placement animations for objects, tiles and liquids (FezzedOne).
+
+## Mod compatibility
+
+Read this to see if xSB-2 is compatible with your mods.
+
+**Has xSB-2 support:** The following mods have special functionality that requires or is supported by xSB-2.
+
+- [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — *should* be fully supported by xSB-2.
+- [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — fully supported by xSB-2.
+- [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xSB-2.
+- [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/FezzedOne/FezzedTech)) — requires xSB-2 for full functionality, but also supports StarExtensions (with reduced functionality) and is compatible with vanilla Starbound.
+- [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — the keybind is supported by xSB-2.
+- [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — fully supported by xSB-2.
+- [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — keybinds are supported by xSB-2.
+- [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844&searchtext=starextensions) — fully supported by xSB-2.
+- [xWEdit](https://github.com/FezzedOne/xWEdit) — this WEdit fork requires xSB-2 for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
+
+**Compatible:** Any mod not listed in the "partially compatible" or "not compatible" category should be compatible. Major mods that have been tested to be compatible:
+
+- [Arcana](https://steamcommunity.com/workshop/filedetails/?id=2359135864).
+- [Avali (Triage) Race Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=729558042).
+- [Elithian Races Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=850109963).
+- [Frackin' Universe](https://steamcommunity.com/sharedfiles/filedetails/?id=729480149) ([GitHub](https://github.com/sayterdarkwynd/FrackinUniverse)).
+- [Maple32](https://steamcommunity.com/sharedfiles/filedetails/?id=2568667104&searchtext=maple32).
+- [Project Knightfall](https://steamcommunity.com/sharedfiles/filedetails/?id=2010883172).
+- [Shellguard: Starbound Expansion Remastered](https://steamcommunity.com/sharedfiles/filedetails/?id=1563376005).
+- [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) — although compatibility *might* be lost in future versions.
+
+> **Note:** xSB-2 does not and will not support StarExtensions' "body dynamics" and text-to-speech features, and currently doesn't support StarExtensions' species-specific head rotation parameters. Details:
+>
+> - Armour, clothing and race mods with included SE "body dynamics" support are compatible, but the "non-jiggle" sprites will be displayed.
+> - Race *and* race-modifying mods with StarExtensions head rotation parameters, such as [Nekify](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) may have visual sprite glitches — such as Neki ears being clipped off — while xSB-2's head rotation is enabled.
+> - Mods intended to patch in "body dynamics" support or StarExtensions-specific head rotation parameters for other mods simply will not work at all.
+> - Race mods that support StarExtensions' text-to-speech feature will work just fine, but the text-to-speech functionality won't work.
+
+**Partially compatible:** The following mods are only partially compatible with xSB-2:
+
+- [1x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=1782208070) — won't do anything and is redundant.
+- [3x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=2681858844) — ditto.
+- [4x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=2870596125) — ditto.
+- [Русификатор Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2980671752) — technically fully compatible, but the mod it patches isn't compatible anyway.
+- [Starloader](https://steamcommunity.com/sharedfiles/filedetails/?id=2936533996) ([GitHub](https://github.com/Starbound-Neon/StarLoader)) — fully compatible as long as `"safeScripts"` is disabled in your `xclient.config` (but be careful with that!).
+- [Unitilities | Lua Modding Library](https://steamcommunity.com/sharedfiles/filedetails/?id=2826961297) — the Hasibound-specific functionality is not supported by xSB-2.
+- Other UI scaling mods — these won't do anything and are redundant. Mods that do other stuff besides scaling the UI should work.
+
+**Not compatible:** The following mods are *NOT* compatible with xSB-2:
+
+- [EVEN-Even MORE Optimized Optimizebound!](https://steamcommunity.com/sharedfiles/filedetails/?id=2954354494) — **known to cause crashes!**
+- [Even MORE Optimized Optimizebound!](https://steamcommunity.com/sharedfiles/filedetails/?id=2954344118) — **known to cause crashes!**
+- [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) — **known to cause crashes!**
+- [Optimizebound-Advpng](https://steamcommunity.com/sharedfiles/filedetails/?id=2760659051&searchtext=optimizebound) ­— **may cause crashes!**
+- [Parallax Compression (FPS Improvement)](https://steamcommunity.com/sharedfiles/filedetails/?id=885877773) — **may cause crashes!**
+- [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
+- [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load and may cause crashes!
+- [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
+- [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors and is redundant anyway because xSB-2 already supports this feature.
+- Mods that patch in StarExtensions "body dynamics" support for other mods. These won't do anything.
+- Other mods that optimise PNG compression in Starbound's assets. These are **very likely to cause crashes** because of xSB-2's optimised image handling code.
+
 ## Building
 
 This repository is already set up for easy building. Follow the appropriate instructions for your OS if listed; if your OS *isn't* listed, adjustments generally shouldn't be too complex. Note that building with Clang/LLVM is *not* properly supported, and will likely never be — expect Clang builds to be a buggy mess.
@@ -121,25 +199,6 @@ To cross-compile from Linux to Windows:
 9. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-win64/xclient.exe` through WINE/Proton (or on your Windows install).
 
 > **Note:** Gentoo users will need to compile MinGW with `_GLIBCXX_USE_CXX11_ABI` enabled (`-D_GLIBCXX_USE_CXX11_ABI=1`) to avoid linker errors.
-
-## Changes
-
-- You can now make `.patch` files that are just merged in, early-beta-style (Kae). That's why the patch files in `assets/xSBassets` are unusually simple.
-- Almost all Lua callbacks from the original xSB (by FezzedOne), `input` callbacks (by Kae), plus some extra `player` callbacks for compatibility with OpenStarbound mods and some StarExtensions mods. The `setSpecies` and `setIdentity` callbacks will not let you switch to a nonexistent species. Documentation has yet to be updated.
-- Various crash fixes (Kae and FezzedOne).
-- Character swapping (rewrite by Kae from StarExtensions): `/swap <name>` (case-insensitive substring matching) and `/swapuuid <uuid>` (requires a UUID; use the one in the player file name).
-- Custom user input support with a keybindings menu (rewrite by Kae from StarExtensions).
-- Positional voice chat that works on completely vanilla servers; is compatible with StarExtensions. This uses Opus for crisp, HD audios. Rewrite by Kae from StarExtensions.
-  - Both menus are made available in the options menu rather than as a chat command.
-- Multiple font support (switch fonts inline with `^font=name;`, `.ttf` assets are auto-detected). Added by Kae, fixed by FezzedOne.
-- World lightmap generation has been moved off the main thread (Kae).
-- Experimental changes to the storage of directives in memory to greatly reduce their impact on frametimes (Kae).
-  - Works well when extremely long directives are used for "vanilla multiplayer-compatible" creations, like [generated](https://silverfeelin.github.io/Starbound-NgOutfitGenerator/) [clothing](https://github.com/FezzedOne/FezzedOne-Drawable-Generator).
-- Client-side tile placement prediction (rewrite by Kae from StarExtensions).
-  - You can also resize the placement area of tiles on the fly.
-- Support for placing foreground tiles with a custom collision type (rewrite by Kae from StarExtensions; requires an OpenSB or xSB-2 server) and, via `world.placeMaterial()`, placing tiles not connected to existing ones (FezzedOne; requires an xSB-2 server). Tile placement with this feature is not network-compatible with servers that support the similar feature present in StarExtensions, although already-placed tiles work just fine. A [fork of WEdit](https://github.com/FezzedOne/xWEdit) with support for these features is available.
-  - Additionally, objects can be placed under non-solid foreground tiles (Kae).
-- Some minor polish to UI (FezzedOne and Kae).
 
 ## Discord
 
