@@ -72,7 +72,7 @@ Read this to see if xSB-2 is compatible with your mods.
 
 - [EVEN-Even MORE Optimized Optimizebound!](https://steamcommunity.com/sharedfiles/filedetails/?id=2954354494) — **known to cause crashes!**
 - [Even MORE Optimized Optimizebound!](https://steamcommunity.com/sharedfiles/filedetails/?id=2954344118) — **known to cause crashes!**
-- [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) — **known to cause crashes!**
+- [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) — **may cause crashes!**
 - [Optimizebound-Advpng](https://steamcommunity.com/sharedfiles/filedetails/?id=2760659051&searchtext=optimizebound) ­— **may cause crashes!**
 - [Parallax Compression (FPS Improvement)](https://steamcommunity.com/sharedfiles/filedetails/?id=885877773) — **may cause crashes!**
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
