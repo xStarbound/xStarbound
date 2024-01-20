@@ -80,7 +80,7 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors and is redundant anyway because xSB-2 already supports this feature.
 - Mods that patch in StarExtensions "body dynamics" support for other mods. These won't do anything.
-- Other mods that optimise PNG compression in Starbound's assets. These mods **may cause crashes** because of xSB-2's optimised image handling code.
+- Other mods that optimise PNG compression in Starbound's assets. These mods **may cause crashes**.
 
 ## Building
 
