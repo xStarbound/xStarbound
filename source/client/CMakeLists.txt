@@ -30,7 +30,7 @@ ADD_EXECUTABLE (xclient WIN32
   ${star_client_HEADERS} ${star_client_SOURCES} ${star_client_RESOURCES})
 TARGET_PRECOMPILE_HEADERS (xclient REUSE_FROM star_core)
 TARGET_LINK_LIBRARIES (xclient ${STAR_EXT_LIBS} ${STAR_EXT_GUI_LIBS})
-# Make sure to add the new GCC linker options.
-# IF (STAR_COMPILER_GNU)
-#   TARGET_LINK_OPTIONS (xclient BEFORE PUBLIC "${STAR_GCC_LD_FLAGS}")
-# ENDIF ()
+IF (STAR_COMPILER_GNU AND STAR_CROSS_COMPILE)
+  # `-mwindows` stops cross-compiled xClient from opening up a console window when started.
+  TARGET_LINK_OPTIONS(xclient BEFORE PUBLIC "-mwindows")
+ENDIF ()
