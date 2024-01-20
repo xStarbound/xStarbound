@@ -529,9 +529,6 @@ IF (STAR_BUILD_GUI)
   FIND_PACKAGE (SDL2 REQUIRED)
   INCLUDE_DIRECTORIES (SYSTEM ${SDL2_INCLUDE_DIR})
   IF (STAR_CROSS_COMPILE)
-    # `-mwindows` stops cross-compiled xClient from opening up a console window when started.
-    # -limagehlp -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid
-    SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows")
     SET (STAR_EXT_GUI_LIBS "${PROJECT_SOURCE_DIR}/../lib/mingw/SDL2.dll" "${PROJECT_SOURCE_DIR}/../lib/mingw/glew32.dll")
   ELSE()
     # IF (STAR_ENABLE_STATIC_LIBGCC_LIBSTDCXX AND STAR_SYSTEM_LINUX AND STAR_COMPILER_GNU)
