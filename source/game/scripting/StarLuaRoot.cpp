@@ -86,8 +86,7 @@ void LuaRoot::shutdown() {
   }
 
   collectGarbage();
-  // FezzedOne: Hacky, but fixes a major memory leak.
-  m_luaEngine.zero();
+  m_luaEngine.reset();
 }
 
 LuaContext LuaRoot::createContext(String const& script) {
