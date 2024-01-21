@@ -187,8 +187,8 @@ To cross-compile from Linux to Windows:
 1. Install CMake, WINE, MinGW-w64 and Git (if not already preinstalled).
   - **Arch-/Debian-based distros (`apt`/`pacman`):** Install `cmake`, `wine`, `mingw-w64` and `git`.
   - **Fedora-based distros (`yum`):** Install `cmake`, `wine`, `mingw64-\*` and `git`.
-2. Install or build the MinGW versions of Freetype (using `--without-harfbuzz`), ZLib, `libpng`, GLEW and SDL2.
-  - On the AUR, these are `mingw-w64-freetype2-bootstrap`, `mingw-w64-zlib`, `mingw-w64-glew`, `mingw-w64-zlib`, `mingw-w64-libpng`, and `mingw-w64-sdl2`, respectively.
+2. Install or build the MinGW versions of Freetype (using `--without-harfbuzz`), ZLib, `libpng`, `libogg`, GLEW and SDL2.
+  - On the AUR, these are `mingw-w64-freetype2-bootstrap`, `mingw-w64-zlib`, `mingw-w64-glew`, `mingw-w64-zlib`, `mingw-w64-libpng`, `mingw-w64-libogg` and `mingw-w64-sdl2`, respectively.
   - For Arch users (*not* derivatives), there is a [binary repo](https://martchus.no-ip.biz/repo/arch/ownstuff) for these libraries, but you should still install `mingw-w64-freetype2-bootstrap` from the AUR.
 3. `git clone --recurse-submodules https://github.com/FezzedOne/xSB-2.git`
 4. `cd xSB-2/`
