@@ -63,7 +63,6 @@ Directives::Directives(const char* directives) {
 }
 
 Directives::~Directives() {
-  // FezzedOne: Fix for a massive memory leak in Kae's directives code.
   shared.reset();
 }
 
