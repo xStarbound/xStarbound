@@ -154,6 +154,9 @@ public:
   Maybe<Vec2F> cameraPositionOverride() const;
   void setCameraPositionOverride(Maybe<Vec2F> newCameraOverride);
 
+  UniverseClientPtr universeClient() const;
+  ChatPtr chat() const;
+
 private:
   PanePtr createEscapeDialog();
 

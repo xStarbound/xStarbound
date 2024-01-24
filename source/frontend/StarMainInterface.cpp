@@ -1700,4 +1700,12 @@ void MainInterface::setCameraPositionOverride(Maybe<Vec2F> newCameraOverride) {
   m_cameraPositionOverride = move(newCameraOverride);
 }
 
+UniverseClientPtr MainInterface::universeClient() const {
+  return m_client;
+}
+
+ChatPtr MainInterface::chat() const {
+  return m_chat;
+}
+
 }

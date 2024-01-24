@@ -218,6 +218,21 @@ void Chat::addMessages(List<ChatReceivedMessage> const& messages, bool showPane)
   m_receivedMessages.resize(std::min((unsigned)m_receivedMessages.size(), m_chatHistoryLimit));
 }
 
+void Chat::clearMessages(Maybe<size_t> numMessages) {
+  if (m_receivedMessages.empty())
+    return;
+
+  if (numMessages) {
+    size_t n = *numMessages;
+    for (size_t i = 0; i < n; ++i) {
+      if (m_receivedMessages.empty()) break;
+      m_receivedMessages.pop_front();
+    }
+  } else {
+    m_receivedMessages.clear();
+  }
+}
+
 void Chat::addHistory(String const& chat) {
   if (m_chatHistory.size() > 0 && m_chatHistory.get(0).equals(chat))
     return;

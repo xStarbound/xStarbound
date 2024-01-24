@@ -510,8 +510,19 @@ List<ChatReceivedMessage> UniverseClient::pullChatMessages() {
         {"portrait", pm.portrait},
         {"message", pm.text}
       };
+      // FezzedOne: For StarExtensions compatibility.
+      Json seMessageJson = JsonObject{
+        {"mode", MessageContextModeNames.getRight(pm.context.mode)},
+        {"channel", pm.context.channelName},
+        {"connection", pm.fromConnection},
+        {"nickname", pm.fromNick},
+        {"portrait", pm.portrait},
+        {"text", pm.text}
+        // FezzedOne: Note that `"scripted"` should always be assumed `null` or `false` on xSB-2.
+      };
       try {
         m_worldClient->sendEntityMessage(m_mainPlayer->entityId(), "chatMessage", JsonArray{messageJson});
+        m_worldClient->sendEntityMessage(m_mainPlayer->entityId(), "newChatMessage", JsonArray{seMessageJson});
       } catch (WorldClientException const& e) {
         worldInitialised = false;
         break;
