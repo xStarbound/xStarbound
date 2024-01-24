@@ -9,6 +9,63 @@
 
 namespace Star {
 
+// For SE compatibility, so that mods don't need to get rewritten.
+LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface) {
+  LuaCallbacks callbacks;
+
+  // FezzedOne: Sends a chat message *exactly* as if it were sent through the vanilla chat interface, returning any *client-side*
+  // command results as a list of strings. Intended for compatibility with SE's `chat.command`.
+  callbacks.registerCallback("command", [mainInterface](String chatText, Maybe<bool> addToHistory) -> Maybe<List<String>> {
+    bool addToHistoryBool = false;
+    if (addToHistory) addToHistoryBool = *addToHistory;
+    return mainInterface->doChatCallback(chatText, addToHistoryBool);
+  });
+
+  callbacks.registerCallback("addChatMessage", [mainInterface](Maybe<String> const& text, Json const& chatMessageConfig, Maybe<bool> showChat) {
+    if (chatMessageConfig) {
+      bool showChatBool = true;
+      if (showChat)
+        showChatBool = *showChat;
+
+      Json newChatMessageConfig = JsonObject();
+      if (chatMessageConfig.type() == Json::Type::Object)
+        newChatMessageConfig = chatMessageConfig;
+      Json newContext = newChatMessageConfig.getObject("context", JsonObject());
+
+      MessageContext::Mode messageMode = MessageContextModeNames.valueLeft(newContext.getString("mode", "Local"), MessageContext::Mode::Local);
+      String messageChannelName = newContext.getString("channel", "");
+
+      ConnectionId messageConnectionId = (uint16_t)newChatMessageConfig.getInt("connection", 0);
+      String messageNick = newChatMessageConfig.getString("nick", "");
+      String messagePortrait = newChatMessageConfig.getString("portrait", "");
+      String messageText;
+      if (text)
+        messageText = *text;
+      else
+        messageText = newChatMessageConfig.getString("message", "");
+
+      ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(messageMode, messageChannelName),
+                                                             messageConnectionId,
+                                                             messageNick,
+                                                             messageText,
+                                                             messagePortrait);
+      mainInterface->addChatMessage(messageToAdd, showChatBool);
+    } else if (text) {
+      bool showChatBool = true;
+      if (showChat)
+        showChatBool = *showChat;
+      ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(MessageContext::Mode::CommandResult, ""),
+                                                             (uint16_t)0,
+                                                             "",
+                                                             *text,
+                                                             "");
+      mainInterface->addChatMessage(messageToAdd, showChatBool);
+    }
+  });
+
+  return callbacks;
+}
+
 LuaCallbacks LuaBindings::makeClipboardCallbacks(MainInterface* mainInterface) {
   LuaCallbacks callbacks;
 

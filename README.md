@@ -70,15 +70,11 @@ Read this to see if xSB-2 is compatible with your mods.
 
 **Not compatible:** The following mods are *NOT* compatible with xSB-2:
 
-- [EVEN-Even MORE Optimized Optimizebound!](https://steamcommunity.com/sharedfiles/filedetails/?id=2954354494) — **known to cause crashes!**
-- [Even MORE Optimized Optimizebound!](https://steamcommunity.com/sharedfiles/filedetails/?id=2954344118) — **known to cause crashes!**
-- [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) — **may cause crashes!**
-- [Optimizebound-Advpng](https://steamcommunity.com/sharedfiles/filedetails/?id=2760659051&searchtext=optimizebound) ­— **may cause crashes!**
-- [Parallax Compression (FPS Improvement)](https://steamcommunity.com/sharedfiles/filedetails/?id=885877773) — **may cause crashes!**
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load and may cause crashes!
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors and is redundant anyway because xSB-2 already supports this feature.
+- [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — the keybinds will show up but don't work since xSB-2's chat callbacks are differently named.
 - Mods that patch in StarExtensions "body dynamics" support for other mods. These won't do anything.
 - Other mods that optimise PNG compression in Starbound's assets. These mods **may cause crashes!**
 

@@ -8,6 +8,7 @@ namespace Star {
 STAR_CLASS(MainInterface);
 
 namespace LuaBindings {
+  LuaCallbacks makeChatCallbacks(MainInterface* mainInterface);
   LuaCallbacks makeClipboardCallbacks(MainInterface* mainInterface);
   LuaCallbacks makeInterfaceCallbacks(MainInterface* mainInterface);
 }
