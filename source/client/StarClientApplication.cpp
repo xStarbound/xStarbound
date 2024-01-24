@@ -1058,7 +1058,7 @@ void ClientApplication::updateCamera(float dt) {
   WorldCamera& camera = m_worldPainter->camera();
   camera.update(dt);
 
-  Maybe<Vec2F> cameraOverridePosition = m_mainInterface->cameraPositionOverride()
+  Maybe<Vec2F> cameraOverridePosition = m_mainInterface->cameraPositionOverride();
   if (cameraOverridePosition) {
     m_worldPainter->setCameraPosition(m_universeClient->worldClient()->geometry(), *cameraOverridePosition);
     m_mainInterface->passCameraPosition(*cameraOverridePosition);
