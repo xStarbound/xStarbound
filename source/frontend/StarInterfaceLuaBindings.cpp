@@ -69,27 +69,27 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface) {
   });
 
   callbacks.registerCallback("input", [mainInterface]() -> String {
-    if (mainInterface->chat)
-      return mainInterface->chat->currentChat();
+    if (mainInterface->chat())
+      return mainInterface->chat()->currentChat();
     else
       return "";
   });
 
   callbacks.registerCallback("mode", [mainInterface]() -> Maybe<String> {
-    if (mainInterface->chat)
-      return Maybe<String>(ChatSendModeNames.getRight(mainInterface->chat->sendMode()));
+    if (mainInterface->chat())
+      return Maybe<String>(ChatSendModeNames.getRight(mainInterface->chat()->sendMode()));
     else
       return {};
   });
 
   callbacks.registerCallback("setInput", [mainInterface](String const& chatInput) {
-    if (mainInterface->chat)
-      return mainInterface->chat->sendMode(chatInput);
+    if (mainInterface->chat())
+      return mainInterface->chat()->sendMode(chatInput);
   });
 
   callbacks.registerCallback("clear", [mainInterface](Maybe<size_t> numMessages) {
-    if (mainInterface->chat)
-      return mainInterface->chat->clearMessages(numMessages);
+    if (mainInterface->chat())
+      return mainInterface->chat()->clearMessages(numMessages);
   });
 
   return callbacks;
