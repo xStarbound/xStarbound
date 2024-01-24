@@ -101,8 +101,24 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface) {
     return GuiContext::singleton().interfaceScale();
   });
 
+  callbacks.registerCallback("setScale", [mainInterface](float newScale) {
+    Root::singleton().configuration()->set("interfaceScale", std::clamp(newScale, 0.5f, 100.0f));
+  });
+
   callbacks.registerCallback("worldPixelRatio", [mainInterface]() -> float {
     return Root::singleton().configuration()->get("zoomLevel").toFloat();
+  });
+
+  callbacks.registerCallback("setWorldPixelRatio", [mainInterface](float newPixelRatio) {
+    Root::singleton().configuration()->set("zoomLevel", std::clamp(newPixelRatio, 0.25f, 100.0f));
+  });
+
+  callbacks.registerCallback("cameraPosition", [mainInterface]() -> Vec2F {
+    return mainInterface->cameraPosition();
+  });
+
+  callbacks.registerCallback("overrideCameraPosition", [mainInterface](Vec2F newPosition) {
+    mainInterface->setCameraPositionOverride(move(newPosition));
   });
 
   callbacks.registerCallback("queueMessage", [mainInterface](String const& message, Maybe<float> cooldown, Maybe<float> springState) {

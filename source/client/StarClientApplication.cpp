@@ -943,6 +943,9 @@ void ClientApplication::updateRunning(float dt) {
     voiceData.setByteOrder(ByteOrder::LittleEndian);
     //voiceData.writeBytes(VoiceBroadcastPrefix.utf8Bytes()); transmitting with SE compat for now
     bool needstoSendVoice = m_voice->send(voiceData, 5000);
+      
+    // FezzedOne: Needs to be moved up here to prevent a callback from returning a position of {0, 0} the tick after a world is loaded.  
+    updateCamera(dt);
     m_universeClient->update(dt);
 
     if (checkDisconnection())
@@ -984,7 +987,6 @@ void ClientApplication::updateRunning(float dt) {
       }
       worldClient->setInteractiveHighlightMode(isActionTaken(InterfaceAction::ShowLabels));
     }
-    updateCamera(dt);
 
     m_cinematicOverlay->update(dt);
     m_mainInterface->update(dt);
@@ -1056,6 +1058,15 @@ void ClientApplication::updateCamera(float dt) {
   WorldCamera& camera = m_worldPainter->camera();
   camera.update(dt);
 
+  Maybe<Vec2F> cameraOverridePosition = m_mainInterface->cameraPositionOverride()
+  if (cameraOverridePosition) {
+    m_worldPainter->setCameraPosition(m_universeClient->worldClient()->geometry(), *cameraOverridePosition);
+    m_mainInterface->passCameraPosition(*cameraOverridePosition);
+    m_universeClient->worldClient()->setClientWindow(camera.worldTileRect());
+    m_mainInterface->setCameraPositionOverride(Maybe<Vec2F>{});
+    return;
+  }
+
   if (m_mainInterface->fixedCamera())
     return;
 
@@ -1121,7 +1132,9 @@ void ClientApplication::updateCamera(float dt) {
 
   auto smoothDelta = newCameraPosition - baseCamera;
 
-  m_worldPainter->setCameraPosition(m_universeClient->worldClient()->geometry(), baseCamera + (smoothDelta + m_cameraSmoothDelta) * 0.5f);
+  Vec2F finalCameraPosition = baseCamera + (smoothDelta + m_cameraSmoothDelta) * 0.5f;
+  m_worldPainter->setCameraPosition(m_universeClient->worldClient()->geometry(), finalCameraPosition);
+  m_mainInterface->passCameraPosition(finalCameraPosition);
   m_cameraSmoothDelta = smoothDelta;
 
   m_universeClient->worldClient()->setClientWindow(camera.worldTileRect());
