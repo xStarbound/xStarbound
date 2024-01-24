@@ -38,7 +38,7 @@ Read this to see if xSB-2 is compatible with your mods.
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — fully supported by xSB-2.
 - [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — keybinds are supported by xSB-2.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844&searchtext=starextensions) — fully supported by xSB-2.
-- [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xSB-2 as of v2.3.6.4.
+- [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xSB-2 as of v2.3.7.
 - [xWEdit](https://github.com/FezzedOne/xWEdit) — this WEdit fork requires xSB-2 for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
 
 **Compatible:** Any mod not listed in the "partially compatible" or "not compatible" category should be compatible. Major mods that have been tested to be compatible:
