@@ -38,7 +38,6 @@ Read this to see if xSB-2 is compatible with your mods.
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — fully supported by xSB-2.
 - [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — keybinds are supported by xSB-2.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844&searchtext=starextensions) — fully supported by xSB-2.
-- [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — fully supported by xSB-2 as of v2.3.6.4.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xSB-2 as of v2.3.6.4.
 - [xWEdit](https://github.com/FezzedOne/xWEdit) — this WEdit fork requires xSB-2 for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
 
@@ -75,6 +74,7 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load and may cause crashes!
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
+- [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — this mod explicitly checks for StarExtensions, so the keybinds do not work, although the added hidden chat commands do.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xSB-2 has differently named callbacks) and is redundant anyway because xSB-2 already fully supports this feature.
 - Mods that patch in StarExtensions "body dynamics" support for other mods. These won't do anything.
 
