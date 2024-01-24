@@ -149,6 +149,11 @@ public:
   unsigned windowWidth() const;
 
   Vec2I cursorPosition() const;
+  Vec2F cameraPosition() const;
+  void passCameraPosition(Vec2F cameraPosition);
+  Maybe<Vec2F> cameraPositionOverride() const;
+  void setCameraPositionOverride(Maybe<Vec2F> newCameraOverride);
+
 private:
   PanePtr createEscapeDialog();
 
@@ -251,6 +256,9 @@ private:
   float m_specialDamageBarValue;
 
   ContainerInteractorPtr m_containerInteractor;
+
+  Vec2F m_cameraPosition;
+  Maybe<Vec2F> m_cameraPositionOverride;
 };
 
 }

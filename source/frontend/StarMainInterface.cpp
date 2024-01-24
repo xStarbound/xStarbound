@@ -1684,4 +1684,20 @@ Vec2I MainInterface::cursorPosition() const {
   return m_cursorScreenPos;
 }
 
+Vec2F MainInterface::cameraPosition() const {
+  return m_cameraPosition;
+}
+
+void MainInterface::passCameraPosition(Vec2F cameraPosition) {
+  m_cameraPosition = move(cameraPosition);
+}
+
+Maybe<Vec2F> MainInterface::cameraPositionOverride() const {
+  return m_cameraPositionOverride;
+}
+
+void MainInterface::setCameraPositionOverride(Maybe<Vec2F> newCameraOverride) {
+  m_cameraPositionOverride = move(newCameraOverride);
+}
+
 }
