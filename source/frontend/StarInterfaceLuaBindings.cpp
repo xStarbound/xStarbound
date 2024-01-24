@@ -56,15 +56,12 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface) {
                                                              messagePortrait);
       mainInterface->addChatMessage(messageToAdd, showChatBool);
     } else if (text) {
-      bool showChatBool = true;
-      if (showChat)
-        showChatBool = *showChat;
       ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(MessageContext::Mode::CommandResult, ""),
                                                              (uint16_t)0,
                                                              "",
                                                              *text,
                                                              "");
-      mainInterface->addChatMessage(messageToAdd, showChatBool);
+      mainInterface->addChatMessage(messageToAdd, true);
     }
   });
 
