@@ -84,12 +84,12 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface) {
 
   callbacks.registerCallback("setInput", [mainInterface](String const& chatInput) {
     if (mainInterface->chat())
-      return mainInterface->chat()->sendMode(chatInput);
+      mainInterface->chat()->setCurrentChat(chatInput);
   });
 
   callbacks.registerCallback("clear", [mainInterface](Maybe<size_t> numMessages) {
     if (mainInterface->chat())
-      return mainInterface->chat()->clearMessages(numMessages);
+      mainInterface->chat()->clearMessages(numMessages);
   });
 
   return callbacks;
