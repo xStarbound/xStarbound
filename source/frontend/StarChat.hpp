@@ -30,6 +30,7 @@ public:
 
   void addLine(String const& text, bool showPane = true);
   void addMessages(List<ChatReceivedMessage> const& messages, bool showPane = true);
+  void clearMessages(Maybe<size_t> numMessages);
   void addHistory(String const& chat);
 
   String currentChat() const;

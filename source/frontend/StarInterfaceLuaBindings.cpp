@@ -6,12 +6,20 @@
 #include "StarMainInterface.hpp"
 #include "StarGuiContext.hpp"
 #include "StarChatTypes.hpp"
+#include "StarUniverseClient.hpp"
+#include "StarChat.hpp"
 
 namespace Star {
 
 // For SE compatibility, so that mods don't need to get rewritten.
 LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface) {
   LuaCallbacks callbacks;
+
+  callbacks.registerCallback("send", [mainInterface](String const &text, Maybe<String> const &sendMode, Maybe<bool> suppressBubble) {
+      String sendModeStr = sendMode.value("Broadcast");
+      bool suppressBubbleBool = suppressBubble.value(false);
+      mainInterface->universeClient()->sendChat(text, sendModeStr, suppressBubbleBool);
+    });
 
   // FezzedOne: Sends a chat message *exactly* as if it were sent through the vanilla chat interface, returning any *client-side*
   // command results as a list of strings. Intended for compatibility with SE's `chat.command`.
@@ -21,28 +29,25 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface) {
     return mainInterface->doChatCallback(chatText, addToHistoryBool);
   });
 
-  callbacks.registerCallback("addChatMessage", [mainInterface](Maybe<String> const& text, Json const& chatMessageConfig, Maybe<bool> showChat) {
+  callbacks.registerCallback("addMessage", [mainInterface](Maybe<String> const& text, Json const& chatMessageConfig) {
     if (chatMessageConfig) {
-      bool showChatBool = true;
-      if (showChat)
-        showChatBool = *showChat;
-
       Json newChatMessageConfig = JsonObject();
       if (chatMessageConfig.type() == Json::Type::Object)
         newChatMessageConfig = chatMessageConfig;
-      Json newContext = newChatMessageConfig.getObject("context", JsonObject());
 
-      MessageContext::Mode messageMode = MessageContextModeNames.valueLeft(newContext.getString("mode", "Local"), MessageContext::Mode::Local);
-      String messageChannelName = newContext.getString("channel", "");
+      MessageContext::Mode messageMode = MessageContextModeNames.valueLeft(newChatMessageConfig.getString("mode", "CommandResult"), MessageContext::Mode::CommandResult);
+      String messageChannelName = newChatMessageConfig.getString("channel", "");
 
       ConnectionId messageConnectionId = (uint16_t)newChatMessageConfig.getInt("connection", 0);
-      String messageNick = newChatMessageConfig.getString("nick", "");
+      String messageNick = newChatMessageConfig.getString("fromNick", "");
       String messagePortrait = newChatMessageConfig.getString("portrait", "");
       String messageText;
       if (text)
         messageText = *text;
       else
-        messageText = newChatMessageConfig.getString("message", "");
+        messageText = newChatMessageConfig.getString("text", "");
+
+      bool showChatBool = newChatMessageConfig.optBool("showPane").value(true);
 
       ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(messageMode, messageChannelName),
                                                              messageConnectionId,
@@ -61,6 +66,30 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface) {
                                                              "");
       mainInterface->addChatMessage(messageToAdd, showChatBool);
     }
+  });
+
+  callbacks.registerCallback("input", [mainInterface]() -> String {
+    if (mainInterface->chat)
+      return mainInterface->chat->currentChat();
+    else
+      return "";
+  });
+
+  callbacks.registerCallback("mode", [mainInterface]() -> Maybe<String> {
+    if (mainInterface->chat)
+      return Maybe<String>(ChatSendModeNames.getRight(mainInterface->chat->sendMode()));
+    else
+      return {};
+  });
+
+  callbacks.registerCallback("setInput", [mainInterface](String const& chatInput) {
+    if (mainInterface->chat)
+      return mainInterface->chat->sendMode(chatInput);
+  });
+
+  callbacks.registerCallback("clear", [mainInterface](Maybe<size_t> numMessages) {
+    if (mainInterface->chat)
+      return mainInterface->chat->clearMessages(numMessages);
   });
 
   return callbacks;
