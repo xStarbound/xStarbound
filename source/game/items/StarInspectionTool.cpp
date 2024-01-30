@@ -125,7 +125,8 @@ InspectionTool::InspectionResult InspectionTool::inspect(Vec2F const& position) 
       if (m_allowScanning)
         return { { entity->inspectionDescription(species).value(), entity->inspectionLogName(), entity->entityId() } };
       else
-        return { { entity->inspectionDescription(species).value(), {}, {} } };
+        // FezzedOne: No reason not to include the inspected entity ID here. 
+        return { { entity->inspectionDescription(species).value(), {}, entity->entityId() } };
     }
     return {};
   };
