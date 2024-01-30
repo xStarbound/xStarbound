@@ -54,7 +54,24 @@ EnumMap<Rarity> const RarityNames{
   {Rarity::Uncommon, "uncommon"},
   {Rarity::Rare, "rare"},
   {Rarity::Legendary, "legendary"},
-  {Rarity::Essential, "essential"}
+  {Rarity::Essential, "essential"},
+  // FezzedOne: New colour "rarities".
+  {Rarity::Colour1, "colour1"},
+  {Rarity::Colour2, "colour2"},
+  {Rarity::Colour3, "colour3"},
+  {Rarity::Colour4, "colour4"},
+  {Rarity::Colour5, "colour5"},
+  {Rarity::Colour6, "colour6"},
+  {Rarity::Colour7, "colour7"},
+  {Rarity::Colour8, "colour8"},
+  {Rarity::Colour9, "colour9"},
+  {Rarity::Colour10, "colour10"},
+  {Rarity::Colour11, "colour11"},
+  {Rarity::Colour12, "colour12"},
+  {Rarity::Colour13, "colour13"},
+  {Rarity::Colour14, "colour14"},
+  {Rarity::Colour15, "colour15"},
+  {Rarity::Colour16, "colour16"}
 };
 
 std::pair<EntityId, EntityId> connectionEntitySpace(ConnectionId connectionId) {

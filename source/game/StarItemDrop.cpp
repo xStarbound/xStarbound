@@ -267,33 +267,33 @@ bool ItemDrop::shouldDestroy() const {
 }
 
 void ItemDrop::render(RenderCallback* renderCallback) {
-  if (m_mode.get() != Mode::Taken) {
-    Color beamColor;
-    switch (m_item->rarity()) {
-    case Rarity::Uncommon:
-      beamColor = Color::rgb(87, 255, 81);
-      break;
-    case Rarity::Rare:
-      beamColor = Color::rgb(87, 220, 255);
-      break;
-    case Rarity::Legendary:
-      beamColor = Color::rgb(176, 81, 255);
-      break;
-    case Rarity::Essential:
-      beamColor = Color::rgb(255, 255, 81);
-      break;
-    default:
-      beamColor = Color::White;
-    }
-
-    beamColor.setAlphaF(0.8f);
-    Line2F line = { Vec2F(), Vec2F(0.0f, 1.0f + m_boundBox.height() / 2) };
-    float width = min(2.0f, m_boundBox.width() * TilePixels);
-    auto drawable = Drawable::makeLine(line, width, beamColor, position());
-    (drawable.linePart().endColor = beamColor)->setAlphaF(0.0f);
-    drawable.fullbright = true;
-    renderCallback->addDrawable(move(drawable), RenderLayerItemDrop);
-  }
+  // if (m_mode.get() != Mode::Taken) {
+  //   Color beamColor;
+  //   switch (m_item->rarity()) {
+  //   case Rarity::Uncommon:
+  //     beamColor = Color::rgb(87, 255, 81);
+  //     break;
+  //   case Rarity::Rare:
+  //     beamColor = Color::rgb(87, 220, 255);
+  //     break;
+  //   case Rarity::Legendary:
+  //     beamColor = Color::rgb(176, 81, 255);
+  //     break;
+  //   case Rarity::Essential:
+  //     beamColor = Color::rgb(255, 255, 81);
+  //     break;
+  //   default:
+  //     beamColor = Color::White;
+  //   }
+  //
+  //   beamColor.setAlphaF(0.8f);
+  //   Line2F line = { Vec2F(), Vec2F(0.0f, 1.0f + m_boundBox.height() / 2) };
+  //   float width = min(2.0f, m_boundBox.width() * TilePixels);
+  //   auto drawable = Drawable::makeLine(line, width, beamColor, position());
+  //   (drawable.linePart().endColor = beamColor)->setAlphaF(0.0f);
+  //   drawable.fullbright = true;
+  //   renderCallback->addDrawable(move(drawable), RenderLayerItemDrop);
+  // }
 
   if (!m_drawables) {
     if (auto mat = as<MaterialItem>(m_item.get())) {
