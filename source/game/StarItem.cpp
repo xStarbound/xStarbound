@@ -19,7 +19,11 @@ Item::Item(Json config, String directory, Json parameters) {
   m_shortDescription = instanceValue("shortdescription", "").toString();
   m_description = instanceValue("description", "").toString();
 
-  m_rarity = RarityNames.getLeft(instanceValue("rarity").toString());
+  Json xSbRarity = instanceValue("xSBrarity", Json());
+  if (xSbRarity.type() == Json::Type::String)
+    m_rarity = RarityNames.getLeft(xSbRarity.toString());
+  else
+    m_rarity = RarityNames.getLeft(instanceValue("rarity").toString());
 
   auto inventoryIcon = instanceValue("inventoryIcon", Root::singleton().assets()->json("/items/defaultParameters.config:missingIcon"));
   if (inventoryIcon.type() == Json::Type::Array) {
