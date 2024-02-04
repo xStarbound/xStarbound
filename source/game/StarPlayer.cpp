@@ -933,23 +933,38 @@ Maybe<Json> Player::receiveMessage(ConnectionId fromConnection, String const& me
   } else {
     if (localMessage || !m_ignoreExternalRadioMessages) {
       // FezzedOne: If non-local "radio" messages are ignored, prevent receiving *all* non-local messages.
-      Maybe<Json> result = m_tools->receiveMessage(message, localMessage, args);
-      if (!result)
-        result = m_statusController->receiveMessage(message, localMessage, args);
-      if (!result)
-        result = m_companions->receiveMessage(message, localMessage, args);
-      if (!result)
-        result = m_deployment->receiveMessage(message, localMessage, args);
-      if (!result)
-        result = m_techController->receiveMessage(message, localMessage, args);
-      if (!result)
-        result = m_questManager->receiveMessage(message, localMessage, args);
-      for (auto& p : m_genericScriptContexts) {
-        if (result)
-          break;
-        result = p.second->handleMessage(message, localMessage, args);
+      bool isChatMessage = message == "chatMessage" || message == "newChatMessage";
+      if (isChatMessage) {
+        // FezzedOne: Allow multiple chat message handlers to be called at once. No need for SE's hack.
+        JsonArray results = JsonArray{};
+        results.append(m_tools->receiveMessage(message, localMessage, args).value(Json()));
+        results.append(m_statusController->receiveMessage(message, localMessage, args).value(Json()));
+        results.append(m_companions->receiveMessage(message, localMessage, args).value(Json()));
+        results.append(m_deployment->receiveMessage(message, localMessage, args).value(Json()));
+        results.append(m_techController->receiveMessage(message, localMessage, args).value(Json()));
+        results.append(m_questManager->receiveMessage(message, localMessage, args).value(Json()));
+        for (auto& p : m_genericScriptContexts)
+          results.append(p.second->handleMessage(message, localMessage, args).value(Json()));
+        return Json(results);
+      } else {
+        Maybe<Json> result = m_tools->receiveMessage(message, localMessage, args);
+        if (!result)
+          result = m_statusController->receiveMessage(message, localMessage, args);
+        if (!result)
+          result = m_companions->receiveMessage(message, localMessage, args);
+        if (!result)
+          result = m_deployment->receiveMessage(message, localMessage, args);
+        if (!result)
+          result = m_techController->receiveMessage(message, localMessage, args);
+        if (!result)
+          result = m_questManager->receiveMessage(message, localMessage, args);
+        for (auto& p : m_genericScriptContexts) {
+          if (result)
+            break;
+          result = p.second->handleMessage(message, localMessage, args);
+        }
+        return result;
       }
-      return result;
     } else {
       try {
         Json jsonArgs = Json(args);
