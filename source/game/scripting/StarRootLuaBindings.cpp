@@ -22,6 +22,7 @@
 #include "StarBehaviorDatabase.hpp"
 #include "StarDamageDatabase.hpp"
 #include "StarDungeonGenerator.hpp"
+#include "StarLogging.hpp"
 
 namespace Star {
 
@@ -172,6 +173,44 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
 
   callbacks.registerCallback("itemDescriptorsMatch", [](Json const& descriptor1, Json const& descriptor2, Maybe<bool> exactMatch) -> bool {
       return ItemDescriptor(descriptor1).matches(ItemDescriptor(descriptor2), exactMatch.value(false));
+    });
+
+  callbacks.registerCallback("getConfiguration", [root](String const& key) -> Json {
+      if (key == "title") {
+        Logger::warn("[xSB] root.getConfiguration: Attempted to get the \"title\" key, which isn't permitted.");
+        return Json();
+      } else {
+        return root->configuration()->get(key);
+      }
+    });
+
+  callbacks.registerCallback("getConfigurationPath", [root](String const& path) -> Json {
+      if (path.beginsWith("/title")) {
+        Logger::warn("[xSB] root.getConfigurationPath: Attempted to get something in the \"title\" key, which isn't permitted.");
+        return Json();
+      } else {
+        return root->configuration()->getPath(path);
+      }
+    });
+
+  callbacks.registerCallback("setConfiguration", [root](String const& key, Json const& value) -> Json {
+      if (key == "safeScripts") {
+        Logger::warn("[xSB] root.setConfiguration: Attempted to set the \"safeScripts\" key, which isn't permitted.");
+        return Json();
+      } else {
+        root->configuration()->set(key, value);
+        return value;
+      }
+    });
+
+  callbacks.registerCallback("setConfigurationPath", [root](String const& path, Json const& value) -> Json {
+      if (path.beginsWith("/safeScripts")) {
+        Logger::warn("[xSB] root.setConfigurationPath: Attempted to get something in the \"safeScripts\" key, which isn't permitted.");
+        return Json();
+      } else {
+        root->configuration()->setPath(path, value);
+        return value;
+      }
     });
 
   return callbacks;
