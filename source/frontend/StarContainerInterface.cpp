@@ -178,13 +178,12 @@ void ContainerPane::dismissed() {
   if (m_script) {
     m_script->invoke("dismissed");
     m_script->uninit();
-    // FezzedOne: Make sure to remove callbacks to prevent a segfault from entity message handlers.
-    m_script->removeCallbacks("widget");
-    m_script->removeCallbacks("config");
-    m_script->removeCallbacks("player");
-    m_script->removeCallbacks("playerAnimator");
-    m_script->removeCallbacks("status");
-    m_script->removeCallbacks("pane");
+    // m_script->removeCallbacks("widget");
+    // m_script->removeCallbacks("config");
+    // m_script->removeCallbacks("player");
+    // m_script->removeCallbacks("playerAnimator");
+    // m_script->removeCallbacks("status");
+    // m_script->removeCallbacks("pane");
   }
 }
 

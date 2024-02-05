@@ -47,10 +47,10 @@ void ScriptPane::displayed() {
 void ScriptPane::dismissed() {
   BaseScriptPane::dismissed();
   m_script.removeCallbacks("world");
-  m_script.removeCallbacks("player");
-  m_script.removeCallbacks("playerAnimator");
-  m_script.removeCallbacks("status");
-  m_script.removeCallbacks("celestial");
+  // m_script.removeCallbacks("player");
+  // m_script.removeCallbacks("playerAnimator");
+  // m_script.removeCallbacks("status");
+  // m_script.removeCallbacks("celestial");
 }
 
 void ScriptPane::tick(float dt) {
