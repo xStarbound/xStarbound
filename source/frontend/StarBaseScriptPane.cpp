@@ -29,10 +29,11 @@ BaseScriptPane::BaseScriptPane(Json config) : Pane(), m_rawConfig(config) {
   m_dismissable = m_config.optBool("dismissable").value(true);
   m_interactive = m_config.getBool("interactive", true);
   m_reader = make_shared<GuiReader>();
-  m_reader->registerCallback("close", [this](Widget*) {
-    if (m_dismissable)
+  if (m_dismissable) {
+    m_reader->registerCallback("close", [this](Widget*) {
       dismiss();
-  });
+    });
+  }
 
   for (auto const& callbackName : jsonToStringList(m_config.get("scriptWidgetCallbacks", JsonArray{}))) {
     m_reader->registerCallback(callbackName, [this, callbackName](Widget* widget) {
@@ -75,9 +76,9 @@ void BaseScriptPane::dismissed() {
   Pane::dismissed();
   m_script.invoke("dismissed");
   m_script.uninit();
-  m_script.removeCallbacks("widget");
-  m_script.removeCallbacks("config");
-  m_script.removeCallbacks("pane");
+  // m_script.removeCallbacks("widget");
+  // m_script.removeCallbacks("config");
+  // m_script.removeCallbacks("pane");
 }
 
 void BaseScriptPane::tick(float dt) {
@@ -99,9 +100,11 @@ bool BaseScriptPane::sendEvent(InputEvent const& event) {
   // Intercept GuiClose before the canvas child so GuiClose always closes
   // BaseScriptPanes without having to support it in the script.
   // FezzedOne: Added support for StarExtensions' `"dismissable"` parameter.
-  if (context()->actions(event).contains(InterfaceAction::GuiClose) && m_dismissable) {
-    dismiss();
-    return true;
+  if (context()->actions(event).contains(InterfaceAction::GuiClose)) {
+    if (m_dismissable) {
+      dismiss();
+      return true;
+    }
   }
 
   return Pane::sendEvent(event);

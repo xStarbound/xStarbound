@@ -51,7 +51,6 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Maple32](https://steamcommunity.com/sharedfiles/filedetails/?id=2568667104&searchtext=maple32).
 - [Project Knightfall](https://steamcommunity.com/sharedfiles/filedetails/?id=2010883172).
 - [Shellguard: Starbound Expansion Remastered](https://steamcommunity.com/sharedfiles/filedetails/?id=1563376005).
-- [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) — although compatibility *might* be lost in future versions.
 
 > **Note:** xSB-2 does not and will not support StarExtensions' "body dynamics" and text-to-speech features, and currently doesn't support StarExtensions' species-specific head rotation parameters. Details:
 >
@@ -72,7 +71,9 @@ Read this to see if xSB-2 is compatible with your mods.
 
 **Not compatible:** The following mods are *NOT* compatible with xSB-2:
 
-- [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) — will log script errors and show an empty menu on xSB-2 v2.3.7+ and is deprecated by the author anyway; use [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=251258953) instead.
+- [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) — will log script errors and show an empty menu on xSB-2 v2.3.7+.
+- [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) — will log script errors and not show UIs or menus on xSB-2 v2.3.7+.
+- [Stardust Suite](https://github.com/zetaPRIME/sb.StardustSuite) — will log script errors and not show UIs or menus on xSB-2 v2.3.7+.
 - [StarCustomChat](https://github.com/KrashV/StarCustomChat) — use the feature-identical and fully network-compatible (xAdvancedChat)[https://github.com/FezzedOne/xAdvancedChat] fork instead.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load and may cause crashes!
