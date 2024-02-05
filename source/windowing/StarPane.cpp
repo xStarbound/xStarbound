@@ -351,9 +351,10 @@ Maybe<String> Pane::cursorOverride(Vec2I const&) {
 LuaCallbacks Pane::makePaneCallbacks() {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallback("toWidget", [this]() -> LuaCallbacks {
-    return LuaBindings::makeWidgetCallbacks(this, reader());
-  });
+  /* FezzedOne: Removed to prevent modders causing segfaults in message handlers. */
+  // callbacks.registerCallback("toWidget", [this]() -> LuaCallbacks {
+  //   return LuaBindings::makeWidgetCallbacks(this, reader());
+  // });
 
   callbacks.registerCallback("dismiss", [this]() { dismiss(); });
 
