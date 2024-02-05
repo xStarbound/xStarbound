@@ -75,6 +75,9 @@ void BaseScriptPane::dismissed() {
   Pane::dismissed();
   m_script.invoke("dismissed");
   m_script.uninit();
+  m_script.removeCallbacks("widget");
+  m_script.removeCallbacks("config");
+  m_script.removeCallbacks("pane");
 }
 
 void BaseScriptPane::tick(float dt) {
