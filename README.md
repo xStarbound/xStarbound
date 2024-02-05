@@ -73,7 +73,7 @@ Read this to see if xSB-2 is compatible with your mods.
 **Not compatible:** The following mods are *NOT* compatible with xSB-2:
 
 - [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) — will log script errors and show an empty menu on xSB-2 v2.3.7+ and is deprecated by the author anyway; use [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=251258953) instead.
-- [StarCustomChat](https://github.com/KrashV/StarCustomChat) — use the fully supported (xAdvancedChat)[https://github.com/FezzedOne/xAdvancedChat] fork instead.
+- [StarCustomChat](https://github.com/KrashV/StarCustomChat) — use the feature-identical and fully network-compatible (xAdvancedChat)[https://github.com/FezzedOne/xAdvancedChat] fork instead.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load and may cause crashes!
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
