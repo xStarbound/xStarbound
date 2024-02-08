@@ -319,6 +319,11 @@ void UniverseClient::update(float dt) {
     }
   }
 
+  if (m_playerToSwitchTo) {
+    doSwitchPlayer(*m_playerToSwitchTo);
+    m_playerToSwitchTo = Maybe<Uuid>{};
+  }
+
   m_celestialDatabase->cleanup();
 
   if (auto netStats = m_connection->incomingStats()) {
@@ -634,16 +639,27 @@ bool UniverseClient::reloadPlayer(Json const& data, Uuid const& uuid, bool reset
   return true;
 }
 
-bool UniverseClient::switchPlayer(Uuid const& uuid) {
+void UniverseClient::doSwitchPlayer(Uuid const& uuid) {
   if (uuid == mainPlayer()->uuid())
-    return false;
+    return;
   else if (auto data = m_playerStorage->maybeGetPlayerData(uuid)) {
     if (reloadPlayer(*data, uuid, true, true)) {
       auto dance = Root::singleton().assets()->json("/player.config:swapDance");
       if (dance.isType(Json::Type::String))
         m_mainPlayer->humanoid()->setDance(dance.toString());
-      return true;
+      return;
     }
+  }
+
+  return;
+}
+
+bool UniverseClient::switchPlayer(Uuid const& uuid) {
+  if (uuid == mainPlayer()->uuid())
+    return false;
+  else {
+    m_playerToSwitchTo = uuid;
+    return true;
   }
 
   return false;

@@ -418,9 +418,9 @@ String ClientCommandProcessor::swap(String const& argumentsString) {
     return "Not enough arguments to /swap";
 
   if (m_universeClient->switchPlayer(arguments[0]))
-    return "Successfully swapped player";
+    return "Attempted to swap player";
   else
-    return "Failed to swap player";
+    return "Player not swapped";
 }
 
 String ClientCommandProcessor::swapUuid(String const& argumentsString) {
@@ -430,9 +430,9 @@ String ClientCommandProcessor::swapUuid(String const& argumentsString) {
     return "Not enough arguments to /swapuuid";
 
   if (m_universeClient->switchPlayerUuid(arguments[0]))
-    return "Successfully swapped player";
+    return "Attempted to swap player";
   else
-    return "Failed to swap player";
+    return "Player not swapped";
 }
 
 String ClientCommandProcessor::timeScale(String const& argumentsString) {
