@@ -24,14 +24,13 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface) {
   // FezzedOne: Sends a chat message *exactly* as if it were sent through the vanilla chat interface, returning any *client-side*
   // command results as a list of strings. Intended for compatibility with SE's `chat.command`.
   callbacks.registerCallback("command", [mainInterface](String chatText, Maybe<bool> addToHistory) -> Maybe<List<String>> {
-    if (chatText.beginsWith("/swap ") || chatText.beginsWith("/swapuuid ")) {
-      // Can't allow `/swap` or `/swapuuid` to be used here, as it will cause segfaults.
-      return {};
-    } else {
+    // if (chatText.beginsWith("/swap ") || chatText.beginsWith("/swapuuid ")) {
+    //   return {};
+    // } else {
       bool addToHistoryBool = false;
       if (addToHistory) addToHistoryBool = *addToHistory;
       return mainInterface->doChatCallback(chatText, addToHistoryBool);
-    }
+    // }
   });
 
   callbacks.registerCallback("addMessage", [mainInterface](Maybe<String> const& text, Json const& chatMessageConfig) {
@@ -163,14 +162,13 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface) {
   // FezzedOne: Sends a chat message *exactly* as if it were sent through the vanilla chat interface, returning any *client-side*
   // command results as a list of strings.
   callbacks.registerCallback("doChat", [mainInterface](String chatText, Maybe<bool> addToHistory) -> Maybe<List<String>> {
-    if (chatText.beginsWith("/swap ") || chatText.beginsWith("/swapuuid ")) {
-      // Can't allow `/swap` or `/swapuuid` to be used here, as it will cause segfaults.
-      return {};
-    } else {
+    // if (chatText.beginsWith("/swap ") || chatText.beginsWith("/swapuuid ")) {
+    //   return {};
+    // } else {
       bool addToHistoryBool = false;
       if (addToHistory) addToHistoryBool = *addToHistory;
       return mainInterface->doChatCallback(chatText, addToHistoryBool);
-    }
+    // }
   });
 
   callbacks.registerCallback("drawDrawable", [mainInterface](Drawable drawable, Vec2F const& screenPos, float pixelRatio, Maybe<Vec4B> const& colour) {
