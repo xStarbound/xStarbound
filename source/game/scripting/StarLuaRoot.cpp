@@ -115,11 +115,12 @@ LuaContext LuaRoot::createContext(StringList const& scriptPaths) {
     }
   });
 
-  // yzh5606's fix for `loadstring` calls in mods apparently causing memory ballooning. Note that `newContext` is now passed as a reference.
-  newContext.set("loadstring", m_luaEngine->createFunction([&newContext](String const& source, Maybe<String> const& name, Maybe<LuaValue> const& env) -> LuaFunction {
-    String functionName = name ? strf("loadstring: {}", *name) : "loadstring";
-    return newContext.engine().createFunctionFromSource(newContext.handleIndex(), source.utf8Ptr(), source.utf8Size(), functionName.utf8Ptr());
-  }));
+  /* FezzedOne: Removed this safeScripts version of `loadstring`, since fixing the memory leak it caused makes
+     all `loadstring` calls cause segfaults (if that wasn't the behaviour before). `/run` will now require `safeScripts` to be off in order to do anything. */
+  // newContext.set("loadstring", m_luaEngine->createFunction([&newContext](String const& source, Maybe<String> const& name, Maybe<LuaValue> const& env) -> LuaFunction {
+  //   String functionName = name ? strf("loadstring: {}", *name) : "loadstring";
+  //   return newContext.engine().createFunctionFromSource(newContext.handleIndex(), source.utf8Ptr(), source.utf8Size(), functionName.utf8Ptr());
+  // }));
 
   auto assets = Root::singleton().assets();
 
