@@ -14,23 +14,27 @@ end
 
 
 command("run", function(src)
-	local success, result = pcall(loadstring, src, "/run")
-  if not success then
-    return "^#f00;compile error: " .. result
-  else
-    local success, result = pcall(result)
+  if load then
+    local success, result = pcall(load, src, "/run", "t", _ENV)
     if not success then
-      return "^#f00;error: " .. result
+      return "^#f00;Compiler error: " .. result
     else
-      local success, printed = pcall(sb.printJson, result)
+      local success, result = pcall(result)
       if not success then
-        success, printed = pcall(sb.print, result)
-      end
-      if not success then
-        return "^#f00;could not print return value: " .. printed
+        return "^#f00;Error: " .. result
       else
-        return printed
+        local success, printed = pcall(sb.printJson, result)
+        if not success then
+          success, printed = pcall(sb.print, result)
+        end
+        if not success then
+          return "^#f00;Could not print return value: " .. printed
+        else
+          return printed
+        end
       end
     end
+  else
+    return "\"safeScripts\" must be disabled in xclient.config in order to use this command."
   end
 end)
