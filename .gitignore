@@ -14,11 +14,15 @@ assets/devel/
 assets/packed.pak
 mods/*.pak
 mods/*
+
+# MSVC stuff
 */.vs/
 *.vs/
 *.sln
 *.suo
 *.vcxproj*
+
+# CMake stuff
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
@@ -30,22 +34,17 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
-windows-dist/*
 
-
+# VS Code stuff
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/*.code-snippets
-
-# Local History for Visual Studio Code
 .history/
-
-# Built Visual Studio Code Extensions
 *.vsix
 
 # macOS stuff
-macos/*
+macos/dist
 .DS_Store
