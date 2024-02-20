@@ -74,7 +74,7 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — Would work if it didn't have an explicit StarExtensions check.
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — Would work if it didn't have an explicit StarExtensions check.
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — Would work if it didn't have an explicit StarExtensions check.
-- [StarCustomChat](https://github.com/KrashV/StarCustomChat) — use the feature-identical and fully network-compatible (xAdvancedChat)[https://github.com/FezzedOne/xAdvancedChat] fork instead.
+- [StarCustomChat](https://github.com/KrashV/StarCustomChat) — use the feature-identical and fully network-compatible [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) fork instead.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load and may cause crashes!
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
