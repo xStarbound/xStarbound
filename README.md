@@ -188,7 +188,7 @@ To build and install on macOS 10.15 or later:
 6. `cd xSB-2`
 7. `scripts/osx/setup.command; scripts/osx/build.command`
 8. `cp dist/xclient macos/xClient.app/Contents/MacOS/`
-9. Copy everything in `xSB-2/dist` to a new `xsb-osx` folder in your Starbound install folder.
+9. Copy everything in `xSB-2/dist` except `xclient` to a new `xsb-osx` folder in your Starbound install folder, then copy `xClient.app` ("xClient" in Finder) from `xSB-2/macos` to the new `xsb-osx` folder.
 10. Copy `xSB-2/assets/xSBassets` to a new `xsb-assets` folder in your Starbound install folder.
 11. Optionally configure Steam or GoG to launch `xsb-osx/xClient.app`.
 
