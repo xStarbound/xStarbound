@@ -4,6 +4,9 @@ cd "$(dirname $0)/../.."
 
 mkdir -p dist
 cp scripts/osx/xsbinit.config dist/
+# Assumes the dev environment has GLEW installed via Brew and SDL2 installed from the `.dmg` on GitHub.
+cp /usr/local/opt/glew/lib/libGLEW.2.2.dylib dist/
+cp -r /Library/Frameworks/SDL2.framework dist/SDL2.framework
 
 mkdir -p build
 cd build

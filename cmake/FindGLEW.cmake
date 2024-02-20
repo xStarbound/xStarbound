@@ -46,10 +46,6 @@ ELSE (WIN32)
         /sw/include
         /opt/local/include
         DOC "The directory where GL/glew.h resides")
-    IF (APPLE) # Make sure GLEW is statically linked on macOS.
-        SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".dylib")
-        SET(CMAKE_FIND_FRAMEWORK NEVER)
-    ENDIF (APPLE)
     FIND_LIBRARY( GLEW_LIBRARY
         NAMES GLEW glew
         PATHS

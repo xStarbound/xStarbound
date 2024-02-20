@@ -92,11 +92,6 @@ FIND_LIBRARY(SDL2_LIBRARY_TEMP
 	PATHS ${SDL2_SEARCH_PATHS}
 )
 
-IF (APPLE) # Make sure SDL2 is statically linked on macOS.
-	SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".dylib")
-	SET(CMAKE_FIND_FRAMEWORK NEVER)
-ENDIF (APPLE)
-
 IF(NOT SDL2_BUILDING_LIBRARY)
 	IF(NOT ${SDL2_INCLUDE_DIR} MATCHES ".framework")
 		# Non-OS X framework versions expect you to also dynamically link to
