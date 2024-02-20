@@ -30,13 +30,8 @@ Read this to see if xSB-2 is compatible with your mods.
 
 **Has xSB-2 support:** The following mods have special functionality that requires or is supported by xSB-2.
 
-- [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — fully supported by xSB-2.
-- [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — fully supported by xSB-2.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xSB-2.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/FezzedOne/FezzedTech)) — requires xSB-2 for full functionality, but also supports StarExtensions (with reduced functionality) and is compatible with vanilla Starbound.
-- [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — the keybind is supported by xSB-2.
-- [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — fully supported by xSB-2.
-- [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — keybinds are supported by xSB-2.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844&searchtext=starextensions) — fully supported by xSB-2.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xSB-2 as of v2.3.7.
 - [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) — requires xSB-2 v2.3.7+. Supports all features of and is fully network-compatible with "upstream" [StarCustomChat](https://github.com/KrashV/StarCustomChat).
@@ -48,9 +43,14 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Avali (Triage) Race Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=729558042).
 - [Elithian Races Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=850109963).
 - [Frackin' Universe](https://steamcommunity.com/sharedfiles/filedetails/?id=729480149) ([GitHub](https://github.com/sayterdarkwynd/FrackinUniverse)).
+- [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — the keybind is not supported by xSB-2 solely due to an explicit StarExtensions check.
 - [Maple32](https://steamcommunity.com/sharedfiles/filedetails/?id=2568667104&searchtext=maple32).
 - [Project Knightfall](https://steamcommunity.com/sharedfiles/filedetails/?id=2010883172).
+- [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) — will log script errors and show an empty menu on xSB-2 v2.3.7+.
+- [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — the keybind is not supported by xSB-2 solely due to an explicit StarExtensions check.
 - [Shellguard: Starbound Expansion Remastered](https://steamcommunity.com/sharedfiles/filedetails/?id=1563376005).
+- [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) — but compatibility may change in future versions!
+- [Stardust Suite](https://github.com/zetaPRIME/sb.StardustSuite) — but compatibility may change in future versions!
 
 > **Note:** xSB-2 does not and will not support StarExtensions' "body dynamics" and text-to-speech features, and currently doesn't support StarExtensions' species-specific head rotation parameters. Details:
 >
@@ -71,14 +71,14 @@ Read this to see if xSB-2 is compatible with your mods.
 
 **Not compatible:** The following mods are *NOT* compatible with xSB-2:
 
-- [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) — will log script errors and show an empty menu on xSB-2 v2.3.7+.
-- [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) — will log script errors and not show UIs or menus on xSB-2 v2.3.7+.
-- [Stardust Suite](https://github.com/zetaPRIME/sb.StardustSuite) — will log script errors and not show UIs or menus on xSB-2 v2.3.7+.
+- [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — Would work if it didn't have an explicit StarExtensions check.
+- [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — Would work if it didn't have an explicit StarExtensions check.
+- [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — Would work if it didn't have an explicit StarExtensions check.
 - [StarCustomChat](https://github.com/KrashV/StarCustomChat) — use the feature-identical and fully network-compatible (xAdvancedChat)[https://github.com/FezzedOne/xAdvancedChat] fork instead.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load and may cause crashes!
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
-- [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — this mod explicitly checks for StarExtensions, so the keybinds do not work, although the added hidden chat commands do.
+- [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — this mod explicitly checks for StarExtensions, so the keybinds do not work, although some of the added hidden chat commands do.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xSB-2 has differently named callbacks) and is redundant anyway because xSB-2 already fully supports this feature.
 - Mods that patch in StarExtensions "body dynamics" support for other mods. These won't do anything.
 
