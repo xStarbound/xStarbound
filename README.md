@@ -178,7 +178,19 @@ Building on earlier versions of Windows is not recommended, although it *should*
 
 ### macOS
 
-There is currently no working macOS toolchain set up. If you want to build on macOS anyway, you should try installing and using GCC. The compiler paths are configured in `scripts/osx/setup.command` (or the `setup.sh` script in the same directory, if you don't like `.command` scripts). You'll also need to make some changes to `source/CMakeLists.txt` so that GCC doesn't assume you're using Linux headers and the like.
+To build and install on macOS 10.15 or later:
+
+1. Run `xcode-select --install` in a terminal if you don't already have the Xcode CLI tools installed; if you have issues with the following steps, update macOS afterward.
+2. Download and install [CMake](https://cmake.org/download/) and [Homebrew](https://brew.sh/).
+3. Download and install [SDL2](https://github.com/libsdl-org/SDL/releases/tag/release-2.30.0) — use the DMG with the framework!
+4. Run the following terminal commands: `brew install git glew libvorbis lzlib libpng freetype`
+5. `git clone --recurse-submodules https://github.com/FezzedOne/xSB-2.git`
+6. `cd xSB-2`
+7. `scripts/osx/setup.command; scripts/osx/build.command`
+8. `cp dist/xclient macos/xClient.app/Contents/MacOS/`
+9. Copy everything in `xSB-2/dist` to a new `xsb-osx` folder in your Starbound install folder.
+10. Copy `xSB-2/assets/xSBassets` to a new `xsb-assets` folder in your Starbound install folder.
+11. Optionally configure Steam or GoG to launch `xsb-osx/xClient.app`.
 
 ### Cross-compilation from Linux to Windows
 
