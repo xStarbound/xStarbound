@@ -101,11 +101,11 @@ Voice::Speaker::Speaker(SpeakerId id)
   : decoderMono  (createDecoder(1), opus_decoder_destroy)
   , decoderStereo(createDecoder(2), opus_decoder_destroy) {
   speakerId = id;
-// #ifdef STAR_COMPILER_CLANG
-//  audioStream = std::shared_ptr<VoiceAudioStream>(new VoiceAudioStream());
-// #else
+#ifdef STAR_COMPILER_CLANG
+	audioStream = std::shared_ptr<VoiceAudioStream>(new VoiceAudioStream());
+#else
   audioStream = make_shared<VoiceAudioStream>();
-// #endif
+#endif
 }
 
 Json Voice::Speaker::toJson() const {
@@ -425,6 +425,8 @@ void Voice::mix(int16_t* buffer, size_t frameCount, unsigned channels) {
 }
 
 void Voice::update(float dt, PositionalAttenuationFunction positionalAttenuationFunction) {
+  // Disabled in debug builds to prevent debug spam at the cost of muted mics.
+  // /*
   for (auto& entry : m_speakers) {
     if (SpeakerPtr& speaker = entry.second) {
 			if (positionalAttenuationFunction) {
@@ -437,7 +439,9 @@ void Voice::update(float dt, PositionalAttenuationFunction positionalAttenuation
 				speaker->channelVolumes = Vec2F::filled(1.0f);
 				
 			auto& dbHistory = speaker->dbHistory;
-			memcpy(&dbHistory[1], &dbHistory[0], (dbHistory.size() - 1) * sizeof(float));
+			// This fix (from @kblaschke) isn't *technically* necessary (on GCC/MSVC, that is), but it does stop Valgrind from
+			// complaining and should also fix a known segfault that happens on Clang-compiled builds.
+			memmove(&dbHistory[1], &dbHistory[0], (dbHistory.size() - 1) * sizeof(float));
 			dbHistory[0] = speaker->decibelLevel;
 			float smoothDb = 0.0f;
 			for (float dB : dbHistory)
@@ -446,6 +450,7 @@ void Voice::update(float dt, PositionalAttenuationFunction positionalAttenuation
 			speaker->smoothDb = smoothDb / dbHistory.size();
     }
   }
+  // */
 
   if (m_nextSaveTime && Time::monotonicMilliseconds() > m_nextSaveTime) {
 		m_nextSaveTime = 0;
