@@ -1,0 +1,9 @@
+#!/bin/sh
+
+cd "`dirname \"$0\"`"
+
+LD_LIBRARY_PATH="$LD_LIBRARY_PATH:./";
+# Must go up four directories if running as an `.app`.
+sbPath="$(cd ../../../..; pwd -P)"; export sbPath;
+./xclient; #"$0";
+sbPath=; export sbPath;
