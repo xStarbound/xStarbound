@@ -166,7 +166,7 @@ To build and install on Windows 10 or 11:
 3. Open up Git Bash and run `git clone --recurse-submodules https://github.com/FezzedOne/xSB-2.git`, then go to step 6.
 4. Download the latest xSB-2 source ZIP and extract it somewhere.
 5. Download the latest [Opus source ZIP](https://github.com/xiph/opus/releases), extract it, and put the `opus\` folder in `source\extern\`
-6. Go into `scripts\windows\` and double-click `setup64.bat`.
+6. Go into `scripts\windows\` and double-click `setup.bat`.
 7. Wait for that batch file to finish, go up two folders, open up `build\` and double-click `ALL_BUILD.vcxproj`.
 8. Select **Build → Build Solution** in Visual Studio.
 9.  Executables, required `.dll` libraries and the required `sbinit.config` should appear in a new `xSB-2\dist\` folder if built successfully.
