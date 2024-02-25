@@ -119,6 +119,8 @@ void TitleScreen::update(float dt) {
 
   for (auto p : m_rightAnchoredButtons)
     p.first->setPosition(Vec2I((int)((float)m_guiContext->windowWidth() / m_guiContext->interfaceScale()), 0) + p.second);
+  for (auto p : m_middleAnchoredButtons)
+      p.first->setPosition(Vec2I(((int)((float)m_guiContext->windowWidth() / 2) / m_guiContext->interfaceScale()), 0) + p.second);
   m_mainMenu->determineSizeFromChildren();
 
   m_skyBackdrop->update(dt);
@@ -229,6 +231,7 @@ void TitleScreen::initMainMenu() {
     String key = buttonConfig.getString("key");
     String image = buttonConfig.getString("button");
     String imageHover = buttonConfig.getString("hover");
+    String anchor = buttonConfig.optString("anchor").value("left");
     Vec2I offset = jsonToVec2I(buttonConfig.get("offset"));
     WidgetCallbackFunc callback = buttonCallbacks.get(key);
     bool rightAnchored = buttonConfig.getBool("rightAnchored", false);
@@ -236,8 +239,10 @@ void TitleScreen::initMainMenu() {
     auto button = make_shared<ButtonWidget>(callback, image, imageHover, "", "");
     button->setPosition(offset);
 
-    if (rightAnchored)
-      m_rightAnchoredButtons.append({button, offset});
+    if (anchor == "right")
+        m_rightAnchoredButtons.append({ button, offset });
+    else if (anchor == "middle")
+        m_middleAnchoredButtons.append({ button, offset });
 
     if (key == "back")
       backMenu->addChild(key, button);
