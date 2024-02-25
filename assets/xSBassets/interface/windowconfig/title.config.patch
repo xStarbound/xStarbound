@@ -1,5 +1,5 @@
 [
-  { "op" : "add", "path" : "/mainMenuButtons/5/anchor", "value" : "middle" },
+  { "op" : "add", "path" : "/mainMenuButtons/5/anchor", "value" : "right" },
 
   { "op" : "replace", "path" : "/skyBackdropDarken", "value" : [75, 0, 0, 85] },
   { "op" : "replace", "path" : "/backdropImages", "value" : [ [ [0, 0], "/interface/title/starbound.png", 0.5, [0.5, 0.5] ] ] }
