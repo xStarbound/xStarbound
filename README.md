@@ -163,7 +163,7 @@ To build and install on Windows 10 or 11:
 
 1. Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/whatsnew/) and [CMake](https://cmake.org/download/). For Visual Studio, make sure to install C++ support (and optionally the game dev stuff) when the VS installer asks you what to install. For CMake, make sure you download and use the `.msi` installer for 64-bit Windows
 2. Optionally install [Git](https://git-scm.com/download/win). If using Git, go the next step; otherwise go to step 4.
-3. Open up Git Bash and run `git clone --recurse-submodules https://github.com/FezzedOne/xSB-2.git`, then go to step 7.
+3. Open up Git Bash and run `git clone --recurse-submodules https://github.com/FezzedOne/xSB-2.git`, then go to step 6.
 4. Download the latest xSB-2 source ZIP and extract it somewhere.
 5. Download the latest [Opus source ZIP](https://github.com/xiph/opus/releases), extract it, and put the `opus\` folder in `source\extern\`
 6. Go into `scripts\windows\` and double-click `setup64.bat`.
