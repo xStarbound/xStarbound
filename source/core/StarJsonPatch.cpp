@@ -41,24 +41,54 @@ namespace JsonPatching {
 
   Json applyTestOperation(Json const& base, Json const& op) {
     auto path = op.getString("path");
-    auto value = op.opt("value");
     auto inverseTest = op.getBool("inverse", false);
 
     auto pointer = JsonPath::Pointer(path);
 
     try {
-      auto testValue = pointer.get(base);
-      if (!value) {
-        if (inverseTest)
-          throw JsonPatchTestFail(strf("Test operation failure, expected {} to be missing.", op.getString("path")));
-        return base;
-      }
+        if (op.contains("find")) {
+            Json valueToFind = op.get("find");
+            Json entryToSearch = pointer.get(base);
+            if (entryToSearch.type() == Json::Type::Array) {
+                bool entryFound = false;
+                for (auto& entry : entryToSearch.toArray()) {
+                    if (entry == valueToFind) {
+                        entryFound = true;
+                        // FezzedOne: Only remove the first found entry.
+                        break;
+                    }
+                }
+                if (entryFound) {
+                    if (inverseTest)
+                        throw JsonPatchTestFail(strf("Test operation failure, expected {} to be missing.", valueToFind));
+                    return base;
+                }
+                else {
+                    if (!inverseTest)
+                        throw JsonPatchTestFail(strf("Test operation failure, could not find {}.", valueToFind));
+                    return base;
+                }
+            }
+            else {
+                throw JsonPatchException(strf("JSON value at '{}' is not an array.", path));
+            }
+        }
+        else
+        {
+            auto value = op.opt("value");
+            auto testValue = pointer.get(base);
+            if (!value) {
+                if (inverseTest)
+                    throw JsonPatchTestFail(strf("Test operation failure, expected {} to be missing.", op.getString("path")));
+                return base;
+            }
 
-      if ((value && (testValue == *value)) ^ inverseTest) {
-        return base;
-      }
+            if ((value && (testValue == *value)) ^ inverseTest) {
+                return base;
+            }
 
-      throw JsonPatchTestFail(strf("Test operation failure, expected {} found {}.", value, testValue));
+            throw JsonPatchTestFail(strf("Test operation failure, expected {} found {}.", value, testValue));
+        }
     } catch (JsonPath::TraversalException& e) {
       if (inverseTest)
         return base;
@@ -87,7 +117,7 @@ namespace JsonPatching {
           entryToSearch = entryToSearch.eraseIndex(entryIndex);
         return pointer.add(pointer.remove(base), entryToSearch);
       } else {
-        throw JsonPatchException(strf("JSON value at '{}' is not an array", path));
+        throw JsonPatchException(strf("JSON value at '{}' is not an array.", path));
       }
     } else {
       return JsonPath::Pointer(op.getString("path")).remove(base);
@@ -119,7 +149,7 @@ namespace JsonPatching {
           entryToSearch = entryToSearch.set(entryIndex, op.get("value"));
         return pointer.add(pointer.remove(base), entryToSearch);
       } else {
-        throw JsonPatchException(strf("JSON value at '{}' is not an array", path));
+        throw JsonPatchException(strf("JSON value at '{}' is not an array.", path));
       }
     } else {
       auto pointer = JsonPath::Pointer(op.getString("path"));
