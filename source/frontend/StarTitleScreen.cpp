@@ -119,7 +119,7 @@ void TitleScreen::update(float dt) {
 
   for (auto p : m_rightAnchoredButtons)
     p.first->setPosition(Vec2I((int)((float)m_guiContext->windowWidth() / m_guiContext->interfaceScale()), 0) + p.second);
-  for (auto p : m_middleAnchoredButtons)
+  for (auto p : m_centerAnchoredButtons)
       p.first->setPosition(Vec2I(((int)((float)m_guiContext->windowWidth() / 2) / m_guiContext->interfaceScale()), 0) + p.second);
   m_mainMenu->determineSizeFromChildren();
 
@@ -235,14 +235,19 @@ void TitleScreen::initMainMenu() {
     Vec2I offset = jsonToVec2I(buttonConfig.get("offset"));
     WidgetCallbackFunc callback = buttonCallbacks.get(key);
     bool rightAnchored = buttonConfig.getBool("rightAnchored", false);
+    bool hasPressedOffset = buttonConfig.contains("pressedOffset");
 
     auto button = make_shared<ButtonWidget>(callback, image, imageHover, "", "");
     button->setPosition(offset);
+    if (hasPressedOffset) {
+        Vec2I pressedOffset = jsonToVec2I(buttonConfig.get("pressedOffset"));
+        button->setPressedOffset(pressedOffset);
+    }
 
-    if (anchor == "right")
+    if (anchor == "right" || rightAnchored)
         m_rightAnchoredButtons.append({ button, offset });
-    else if (anchor == "middle")
-        m_middleAnchoredButtons.append({ button, offset });
+    else if (anchor == "center")
+        m_centerAnchoredButtons.append({ button, offset });
 
     if (key == "back")
       backMenu->addChild(key, button);
