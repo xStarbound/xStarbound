@@ -148,6 +148,10 @@ void SliderBarWidget::update(float dt) {
   Widget::update(dt);
 }
 
+bool SliderBarWidget::jogDragActive() {
+  return m_jogDragActive;
+}
+
 bool SliderBarWidget::sendEvent(InputEvent const& event) {
   if (event.is<MouseButtonUpEvent>()) {
     blur();

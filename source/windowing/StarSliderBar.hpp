@@ -26,6 +26,8 @@ public:
 
   virtual void update(float dt) override;
 
+  bool jogDragActive();
+
   virtual bool sendEvent(InputEvent const& event) override;
 
 private:

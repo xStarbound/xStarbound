@@ -37,7 +37,8 @@ GraphicsMenu::GraphicsMenu() {
   reader.registerCallback("interfaceScaleSlider", [=](Widget*) {
       auto slider = fetchChild<SliderBarWidget>("interfaceScaleSlider");
       m_localChanges.set("interfaceScale", m_interfaceScaleList[slider->val()]);
-      Root::singleton().configuration()->set("interfaceScale", m_interfaceScaleList[slider->val()]);
+      if (!slider->jogDragActive())
+        Root::singleton().configuration()->set("interfaceScale", m_interfaceScaleList[slider->val()]);
       syncGui();
     });
   reader.registerCallback("speechBubbleCheckbox", [=](Widget*) {
