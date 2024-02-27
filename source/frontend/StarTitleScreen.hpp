@@ -107,7 +107,7 @@ private:
 
   PanePtr m_mainMenu;
   List<pair<ButtonWidgetPtr, Vec2I>> m_rightAnchoredButtons;
-  List<pair<ButtonWidgetPtr, Vec2I>> m_middleAnchoredButtons;
+  List<pair<ButtonWidgetPtr, Vec2I>> m_centerAnchoredButtons;
 
   PlayerPtr m_mainAppPlayer;
   PlayerStoragePtr m_playerStorage;
