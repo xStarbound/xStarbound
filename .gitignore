@@ -18,6 +18,7 @@ inno-installer/xsb-win64/*.exe
 inno-installer/xsb-win64/*.dll
 inno-installer/xsb-win64/*.config
 inno-installer/xsb-assets/*.pak
+inno-installer/compiled
 
 # MSVC stuff
 */.vs/
