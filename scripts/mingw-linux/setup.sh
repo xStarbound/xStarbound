@@ -5,6 +5,7 @@ cd "`dirname \"$0\"`/../..";
 #rm -rI build-mingw/ dist-windows/;
 
 mkdir -p dist-windows;
+cp scripts/steam_appid.txt dist-windows/;
 cp scripts/mingw-linux/xsbinit.config dist-windows/;
 cp lib/mingw/*.dll dist-windows/;
 # FezzedOne: Need to rename this DLL because of a linking idiosyncrasy.
