@@ -14,6 +14,10 @@ assets/devel/
 assets/packed.pak
 mods/*.pak
 mods/*
+inno-installer/xsb-win64/*.exe
+inno-installer/xsb-win64/*.dll
+inno-installer/xsb-win64/*.config
+inno-installer/xsb-assets/*.pak
 
 # MSVC stuff
 */.vs/

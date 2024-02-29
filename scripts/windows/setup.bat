@@ -3,6 +3,7 @@ cd ..\..
 
 mkdir dist
 del dist\*.dll
+copy scripts\steam_appid.txt dist\
 copy lib\windows\*.dll dist\
 copy scripts\windows\xsbinit.config dist\
 
