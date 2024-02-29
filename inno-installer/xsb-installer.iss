@@ -28,7 +28,7 @@ AllowNoIcons=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 OutputDir={#XSBSourcePath}\inno-installer\compiled
-OutputBaseFilename=Install xSB-2
+OutputBaseFilename=windows-install
 SetupIconFile={#XSBSourcePath}\source\client\xclient-largelogo.ico
 Compression=lzma
 SolidCompression=yes
@@ -40,8 +40,8 @@ Name: "english"; MessagesFile: "English.isl"
 Name: "russian"; MessagesFile: "Russian.isl"
 
 [Files]
-Source: "{#XSBSourcePath}\inno-installer\xsb-win64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#XSBSourcePath}\inno-installer\xsb-assets\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#XSBSourcePath}\inno-installer\xsb-win64\*"; DestDir: "{app}\xsb-win64"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#XSBSourcePath}\inno-installer\xsb-assets\*"; DestDir: "{app}\xsb-assets"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -49,16 +49,12 @@ Name: "{group}\xClient"; FileName: "{app}\xsb-win64\xclient.exe"
 Name: "{group}\xSB-2 GitHub"; Filename: "{#XSBGitHubURL}"
 Name: "{group}\Uninstall xSB-2"; Filename: "{uninstallexe}"
 
-[CustomMessages]
-english.StarboundCheckError=Starbound does not seem to be installed in this folder. Please select your Starbound folder.
-russian.StarboundCheckError=Starbound, кажется, не установлен в этой папке. Пожалуйста, выберите свою папку Starbound.
-
 [Code]
 function NextButtonClick(PageId: Integer): Boolean;
 begin
     Result := True;
     if (PageId = wpSelectDir) and not FileExists(ExpandConstant('{app}\win64\starbound.exe')) then begin
-        MsgBox('{cm:StarboundCheckError}', mbError, MB_OK);
+        MsgBox(ExpandConstant('{cm:StarboundCheckError}'), mbError, MB_OK);
         Result := False;
         exit;
     end;
