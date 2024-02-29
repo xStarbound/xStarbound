@@ -36,8 +36,8 @@ WizardStyle=modern
 SourceDir=D:\xSB-2\inno-installer\
 
 [Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
+Name: "english"; MessagesFile: "English.isl"
+Name: "russian"; MessagesFile: "Russian.isl"
 
 [Files]
 Source: "{#XSBSourcePath}\inno-installer\xsb-win64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
