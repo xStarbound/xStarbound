@@ -368,3 +368,4 @@ AssocingFileExtension=Связывание %1 с файлами %2...
 AutoStartProgramGroupDescription=Автозапуск:
 AutoStartProgram=Автоматически запускать %1
 AddonHostProgramNotFound=%1 не найден в указанной вами папке.%n%nВы всё равно хотите продолжить?
+StarboundCheckError=Starbound, кажется, не установлен в этой папке. Пожалуйста, выберите свою папку Starbound.
