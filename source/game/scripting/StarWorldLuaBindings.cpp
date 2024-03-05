@@ -350,6 +350,45 @@ namespace LuaBindings {
         return {};
       });
       
+    callbacks.registerCallback("biomeAt", [world](Vec2I position, Maybe<bool> getBlockBiome) -> Maybe<String> {
+        WorldTemplateConstPtr worldTemplate;
+        if (auto worldClient = as<WorldClient>(world))
+          worldTemplate = worldClient->currentTemplate();
+        else if (auto worldServer = as<WorldServer>(world))
+          worldTemplate = worldServer->worldTemplate();
+
+        if (worldTemplate) {
+          if (getBlockBiome && *getBlockBiome) {
+            if (auto biome = worldTemplate->blockBiome(position[0], position[1]))
+              return biome->baseName;
+          } else {
+            if (auto biome = worldTemplate->environmentBiome(position[0], position[1]))
+              return biome->baseName;
+          }
+        }
+
+        return {};
+      });
+
+    callbacks.registerCallback("biomeParametersAt", [world](Vec2I position, Maybe<bool> getBlockBiome) -> Json {
+        WorldTemplateConstPtr worldTemplate;
+        if (auto worldClient = as<WorldClient>(world))
+          worldTemplate = worldClient->currentTemplate();
+        else if (auto worldServer = as<WorldServer>(world))
+          worldTemplate = worldServer->worldTemplate();
+
+        if (worldTemplate) {
+          if (getBlockBiome && *getBlockBiome) {
+            if (auto biome = worldTemplate->blockBiome(position[0], position[1]))
+              return biome->toJson();
+          } else {
+            if (auto biome = worldTemplate->environmentBiome(position[0], position[1]))
+              return biome->toJson();
+          }
+        }
+        
+        return Json();
+      });
 
     callbacks.registerCallback("dungeonId", [world](Vec2I position) -> DungeonId {
         if (auto serverWorld = as<WorldServer>(world)) {
