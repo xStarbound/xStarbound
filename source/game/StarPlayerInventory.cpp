@@ -769,7 +769,7 @@ void PlayerInventory::load(Json const& store) {
   eraseWhere(m_bags, [&](auto const& p) { return !itemBags.contains(p.first); });
   // From N1ffe's PR: Clear overflowed items before beginning, then (FezzedOne) load any saved overflow.
   m_inventoryLoadOverflow.clear();
-  if store.contains("overflow") {
+  if (store.contains("overflow")) {
     Json overflow = store.get("overflow");
     if (overflow.type() == Json::Type::Array) {
       m_inventoryLoadOverflow = overflow.toArray().transformed([itemDatabase](Json const& item) { return itemDatabase->diskLoad(item); });

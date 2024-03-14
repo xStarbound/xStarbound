@@ -393,7 +393,7 @@ bool ObjectDatabase::canPlaceObject(World const* world, Vec2I const& position, S
 
 ObjectPtr ObjectDatabase::createForPlacement(World const* world, String const& objectName, Vec2I const& position,
     Direction direction, Json const& parameters) const {
-  if (!canPlaceObject(world, position, objectName))
+  if (!canPlaceObject(world, position, objectName) && !forcePlacement)
     return {};
 
   ObjectPtr object = createObject(objectName, parameters);
