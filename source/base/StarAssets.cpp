@@ -684,7 +684,7 @@ Json Assets::checkPatchArray(String const& path, AssetSourcePtr const& source, J
     switch(patch.type()){
       case Json::Type::Array: // If the patch is an array, go down recursively until objects are found.
         try {
-          newResult = checkPatchArray(path, source, newResult, patch.toArray(), externalRef);
+          newResult = checkPatchArray(path, source, newResult, patch.toArray());
         } catch (JsonPatchTestFail const& e) {
           Logger::debug("Patch test failure from file {} in source: '{}' at '{}'. Caused by: {}", path, source->metadata().value("name", ""), m_assetSourcePaths.getLeft(source), e.what());
         } catch (JsonPatchException const& e) {
@@ -692,7 +692,7 @@ Json Assets::checkPatchArray(String const& path, AssetSourcePtr const& source, J
         }
         break;
       case Json::Type::Object: // If it's an object, check for operations.
-        newResult = JsonPatching::applyOperation(newResult, patch, externalRef);
+        newResult = JsonPatching::applyOperation(newResult, patch);
         break;
       default:
         throw JsonPatchException(strf("Patch data is wrong type: {}", Json::typeName(patch.type())));
