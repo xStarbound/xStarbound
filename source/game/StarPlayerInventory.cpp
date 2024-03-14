@@ -768,15 +768,21 @@ void PlayerInventory::load(Json const& store) {
   auto itemBags = store.get("itemBags").toObject();
   eraseWhere(m_bags, [&](auto const& p) { return !itemBags.contains(p.first); });
   // From N1ffe's PR: Clear overflowed items before beginning, then (FezzedOne) load any saved overflow.
+  Logger::info("[Debug] Starting overflow handling.");
   m_inventoryLoadOverflow.clear();
+  Logger::info("[Debug] Cleared overflow.");
   if (store.contains("overflow")) {
+    Logger::info("[Debug] Found saved overflow items.");
     Json overflow = store.get("overflow");
     if (overflow.type() == Json::Type::Array) {
+      Logger::info("[Debug] Valid overflow array.");
       m_inventoryLoadOverflow = overflow.toArray().transformed([itemDatabase](Json const& item) { return itemDatabase->diskLoad(item); });
+      Logger::info("[Debug] Added overflow items.");
     }
   }
   for (auto const& p : itemBags) {
     auto& bagType = p.first;
+    Logger::info("[Debug] About to check bag '{}' for overflows.", bagType);
     auto newBag = ItemBag::loadStore(p.second);
     if (m_bags.keys().contains(bagType)) {
       auto& bagPtr = m_bags[bagType];
@@ -785,8 +791,10 @@ void PlayerInventory::load(Json const& store) {
         *bagPtr = std::move(newBag);
       else
         bagPtr = make_shared<ItemBag>(std::move(newBag));
+      Logger::info("[Debug] Appended new overflow items from bag '{}'.", bagType);
       m_inventoryLoadOverflow.appendAll(bagPtr.get()->resize(size));
     } else {
+      Logger::info("[Debug] Appended new overflow items from nonexistent bag '{}'.", bagType);
       m_inventoryLoadOverflow.appendAll(ItemBag(newBag).items());
     }
   }

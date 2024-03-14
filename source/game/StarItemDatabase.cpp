@@ -532,8 +532,9 @@ ItemPtr ItemDatabase::tryCreateItem(ItemDescriptor const& descriptor, Maybe<floa
         {"shortdescription", descriptor.name()},
         {"description", "Reinstall the parent mod to return this item to normal!\n^red;(To retain data, do not place as an object or craft with it!)"}
       }), {}, {}));
-    } else
-      throw e; // Throw an error if invalid items aren't being ignored.
+    } else {
+      std::rethrow_exception(std::current_exception()); // Throw an error if invalid items aren't being ignored.
+    }
   }
   result->setCount(descriptor.count());
 
