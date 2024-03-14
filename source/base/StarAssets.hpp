@@ -271,6 +271,9 @@ private:
   IODevicePtr open(String const& basePath) const;
   ByteArray read(String const& basePath) const;
 
+  // WasabiRaptor's recursive patch checking code, «downstreamed» from OpenStarbound.
+  Json checkPatchArray(String const& path, AssetSourcePtr const& source, Json const result, JsonArray const patchData) const;
+
   Json readJson(String const& basePath) const;
 
   // Load / post process an asset and log any exception.  Returns true if the

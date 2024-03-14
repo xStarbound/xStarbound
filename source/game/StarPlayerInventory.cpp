@@ -745,6 +745,13 @@ Maybe<InventorySlot> PlayerInventory::secondaryHeldSlot() const {
   return {};
 }
 
+// From N1ffe's PR: Function to take overflowed items from a player's inventory whenever it gets resized by a mod.
+List<ItemPtr> PlayerInventory::clearOverflow(){
+  auto list = m_inventoryLoadOverflow;
+  m_inventoryLoadOverflow.clear();
+  return list;
+}
+
 void PlayerInventory::load(Json const& store) {
   auto itemDatabase = Root::singleton().itemDatabase();
 
@@ -760,14 +767,28 @@ void PlayerInventory::load(Json const& store) {
   //reuse ItemBags so the Inventory pane still works after load()'ing into the same PlayerInventory again (from swap)
   auto itemBags = store.get("itemBags").toObject();
   eraseWhere(m_bags, [&](auto const& p) { return !itemBags.contains(p.first); });
+  // From N1ffe's PR: Clear overflowed items before beginning, then (FezzedOne) load any saved overflow.
+  m_inventoryLoadOverflow.clear();
+  if store.contains("overflow") {
+    Json overflow = store.get("overflow");
+    if (overflow.type() == Json::Type::Array) {
+      m_inventoryLoadOverflow = overflow.toArray().transformed([itemDatabase](Json const& item) { return itemDatabase->diskLoad(item); });
+    }
+  }
   for (auto const& p : itemBags) {
     auto& bagType = p.first;
     auto newBag = ItemBag::loadStore(p.second);
-    auto& bagPtr = m_bags[bagType];
-    if (bagPtr)
-      *bagPtr = move(newBag);
-    else
-      bagPtr = make_shared<ItemBag>(move(newBag));
+    if (m_bags.keys().contains(bagType)) {
+      auto& bagPtr = m_bags[bagType];
+      auto size = bagPtr.get()->size();
+      if (bagPtr)
+        *bagPtr = std::move(newBag);
+      else
+        bagPtr = make_shared<ItemBag>(std::move(newBag));
+      m_inventoryLoadOverflow.appendAll(bagPtr.get()->resize(size));
+    } else {
+      m_inventoryLoadOverflow.appendAll(ItemBag(newBag).items());
+    }
   }
 
   m_swapSlot = itemDatabase->diskLoad(store.get("swapSlot"));
@@ -779,10 +800,18 @@ void PlayerInventory::load(Json const& store) {
 
   for (size_t i = 0; i < m_customBar.size(0); ++i) {
     for (size_t j = 0; j < m_customBar.size(1); ++j) {
-      Json cbl = store.get("customBar").get(i).get(j);
+      Json cbl = store.get("customBar").get(i,JsonArray()).get(j,JsonArray());
+      // From N1ffe's PR: Function to check whether a hotbar «slot» is valid.
+      auto validateLink = [this](Json link) -> Json {
+        if ((link.isType(Json::Type::Object))
+        && (m_bags.keys().contains(link.getString("type")))
+        && (m_bags[link.getString("type")].get()->size() > link.getUInt("location")))
+          return link;
+        return Json();
+      };
       m_customBar.at(i, j) = CustomBarLink{
-        jsonToMaybe<InventorySlot>(cbl.get(0, {}), jsonToInventorySlot),
-        jsonToMaybe<InventorySlot>(cbl.get(1, {}), jsonToInventorySlot)
+        jsonToMaybe<InventorySlot>(validateLink(cbl.get(0, Json())), jsonToInventorySlot),
+        jsonToMaybe<InventorySlot>(validateLink(cbl.get(1, Json())), jsonToInventorySlot)
       };
     }
   }
@@ -809,31 +838,64 @@ Json PlayerInventory::store() const {
     customBar.append(take(customBarGroup));
   }
 
+  // FezzedOne: Saved any unspawned overflow to the player file.
+  bool overflowExists = false;
+  Json overflow = Json();
+  if (!m_inventoryLoadOverflow.empty()) {
+    overflowExists = true;
+    overflow = m_inventoryLoadOverflow.transformed([itemDatabase](ItemConstPtr const& item) { return itemDatabase->diskStore(item); });
+  }
+
   JsonObject itemBags;
   for (auto bag : m_bags)
     itemBags.add(bag.first, bag.second->diskStore());
 
-  return JsonObject{
-    {"headSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Head))},
-    {"chestSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Chest))},
-    {"legsSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Legs))},
-    {"backSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Back))},
-    {"headCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::HeadCosmetic))},
-    {"chestCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::ChestCosmetic))},
-    {"legsCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::LegsCosmetic))},
-    {"backCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::BackCosmetic))},
-    {"itemBags", itemBags},
-    {"swapSlot", itemDatabase->diskStore(m_swapSlot)},
-    {"trashSlot", itemDatabase->diskStore(m_trashSlot)},
-    {"currencies", jsonFromMap(m_currencies)},
-    {"customBarGroup", m_customBarGroup},
-    {"customBar", move(customBar)},
-    {"selectedActionBar", jsonFromSelectedActionBarLocation(m_selectedActionBar)},
-    {"beamAxe", itemDatabase->diskStore(m_essential.value(EssentialItem::BeamAxe))},
-    {"wireTool", itemDatabase->diskStore(m_essential.value(EssentialItem::WireTool))},
-    {"paintTool", itemDatabase->diskStore(m_essential.value(EssentialItem::PaintTool))},
-    {"inspectionTool", itemDatabase->diskStore(m_essential.value(EssentialItem::InspectionTool))}
-  };
+  if (overflowExists) {
+    return JsonObject{
+      {"headSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Head))},
+      {"chestSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Chest))},
+      {"legsSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Legs))},
+      {"backSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Back))},
+      {"headCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::HeadCosmetic))},
+      {"chestCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::ChestCosmetic))},
+      {"legsCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::LegsCosmetic))},
+      {"backCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::BackCosmetic))},
+      {"itemBags", itemBags},
+      {"swapSlot", itemDatabase->diskStore(m_swapSlot)},
+      {"trashSlot", itemDatabase->diskStore(m_trashSlot)},
+      {"currencies", jsonFromMap(m_currencies)},
+      {"customBarGroup", m_customBarGroup},
+      {"customBar", move(customBar)},
+      {"selectedActionBar", jsonFromSelectedActionBarLocation(m_selectedActionBar)},
+      {"beamAxe", itemDatabase->diskStore(m_essential.value(EssentialItem::BeamAxe))},
+      {"wireTool", itemDatabase->diskStore(m_essential.value(EssentialItem::WireTool))},
+      {"paintTool", itemDatabase->diskStore(m_essential.value(EssentialItem::PaintTool))},
+      {"inspectionTool", itemDatabase->diskStore(m_essential.value(EssentialItem::InspectionTool))},
+      {"overflow", overflow}
+    };
+  } else {
+    return JsonObject{
+      {"headSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Head))},
+      {"chestSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Chest))},
+      {"legsSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Legs))},
+      {"backSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Back))},
+      {"headCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::HeadCosmetic))},
+      {"chestCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::ChestCosmetic))},
+      {"legsCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::LegsCosmetic))},
+      {"backCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::BackCosmetic))},
+      {"itemBags", itemBags},
+      {"swapSlot", itemDatabase->diskStore(m_swapSlot)},
+      {"trashSlot", itemDatabase->diskStore(m_trashSlot)},
+      {"currencies", jsonFromMap(m_currencies)},
+      {"customBarGroup", m_customBarGroup},
+      {"customBar", move(customBar)},
+      {"selectedActionBar", jsonFromSelectedActionBarLocation(m_selectedActionBar)},
+      {"beamAxe", itemDatabase->diskStore(m_essential.value(EssentialItem::BeamAxe))},
+      {"wireTool", itemDatabase->diskStore(m_essential.value(EssentialItem::WireTool))},
+      {"paintTool", itemDatabase->diskStore(m_essential.value(EssentialItem::PaintTool))},
+      {"inspectionTool", itemDatabase->diskStore(m_essential.value(EssentialItem::InspectionTool))}
+    };
+  }
 }
 
 void PlayerInventory::forEveryItem(function<void(InventorySlot const&, ItemPtr&)> function) {

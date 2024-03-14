@@ -1,0 +1,4 @@
+// From N1ffe's PR.
+{
+    "pointLight" : false // Set this to true to enjoy 10 FPS in Apex dungeons. Or don't.
+}

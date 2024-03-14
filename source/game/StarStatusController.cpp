@@ -652,20 +652,25 @@ void StatusController::updateAnimators(float dt) {
 
 void StatusController::updatePersistentUniqueEffects() {
   Set<UniqueStatusEffect> activePersistentUniqueEffects;
-  for (auto const& categoryPair : m_persistentEffects)
-    activePersistentUniqueEffects.addAll(categoryPair.second.uniqueEffects);
-
-  for (auto const& uniqueEffectName : activePersistentUniqueEffects) {
-    // It is important to note here that if a unique effect exists, it *may*
-    // not come from a persistent effect, it *may* be from an ephemeral effect.
-    // Here, when a persistent effect overrides an ephemeral effect, it is
-    // clearing the duration making it into a solely persistent effect.  This
-    // means that by applying a persistent effect and then clearing it, you can
-    // remove an ephemeral effect.
-    if (auto existingEffect = m_uniqueEffects.ptr(uniqueEffectName))
-      m_uniqueEffectMetadata.getNetElement(existingEffect->metadataId)->duration.reset();
-    else
-      addUniqueEffect(uniqueEffectName, {}, {});
+  for (auto & categoryPair : m_persistentEffects) {
+    for (auto & uniqueEffectName : categoryPair.second.uniqueEffects) {
+      // It is important to note here that if a unique effect exists, it *may*
+      // not come from a persistent effect, it *may* be from an ephemeral effect.
+      // Here, when a persistent effect overrides an ephemeral effect, it is
+      // clearing the duration making it into a solely persistent effect.  This
+      // means that by applying a persistent effect and then clearing it, you can
+      // remove an ephemeral effect.
+      if (auto existingEffect = m_uniqueEffects.ptr(uniqueEffectName)) {
+        m_uniqueEffectMetadata.getNetElement(existingEffect->metadataId)->duration.reset();
+        activePersistentUniqueEffects.add(uniqueEffectName);
+      }
+      // From a PR by WasabiRaptor: Make sure the effect being applied actually exists;
+      // if not, then remove it.
+      else if (addUniqueEffect(uniqueEffectName, {}, {}))
+        activePersistentUniqueEffects.add(uniqueEffectName);
+      else
+        categoryPair.second.uniqueEffects.remove(uniqueEffectName);
+    }
   }
 
   // Again, here we are using "durationless" to mean "persistent"
@@ -680,13 +685,13 @@ float StatusController::defaultUniqueEffectDuration(UniqueStatusEffect const& ef
   return Root::singleton().statusEffectDatabase()->uniqueEffectConfig(effect).defaultDuration;
 }
 
-void StatusController::addUniqueEffect(
+bool StatusController::addUniqueEffect(
     UniqueStatusEffect const& effect, Maybe<float> duration, Maybe<EntityId> sourceEntityId) {
   auto statusEffectDatabase = Root::singleton().statusEffectDatabase();
   if (statusEffectDatabase->isUniqueEffect(effect)) {
     auto effectConfig = statusEffectDatabase->uniqueEffectConfig(effect);
     if ((duration && statPositive("statusImmunity")) || (effectConfig.blockingStat && statPositive(*effectConfig.blockingStat)))
-      return;
+      return false;
 
     auto& uniqueEffect = m_uniqueEffects[effect];
     uniqueEffect.effectConfig = effectConfig;
@@ -703,8 +708,11 @@ void StatusController::addUniqueEffect(
 
     if (m_parentEntity)
       initUniqueEffectScript(uniqueEffect);
+
+    return true;
   } else {
     Logger::warn("Unique status effect '{}' not found in status effect database", effect);
+    return false;
   }
 }
 

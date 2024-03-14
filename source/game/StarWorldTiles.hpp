@@ -70,12 +70,20 @@ struct ServerTile : public WorldTile {
   // Updates collision, clears cache, and if the collision kind does not
   // support liquid destroys it.
   bool updateCollision(CollisionKind kind);
+  // From OpenStarbound/Kae: Used for setting the second collision kind calculated by object material spaces.
+  bool updateObjectCollision(CollisionKind kind);
+
+  // Calculates the actually-used collision kind based on the tile and object collision kinds.
+  CollisionKind getCollision() const;
 
   LiquidStore liquid;
 
   // If set, a plant or object is rooted to the tile and tile damage
   // should be redirected to this position
   Maybe<Vec2I> rootSource;
+
+  // From OpenStarbound/Kae: Tile collision calculated at runtime. Does *not* get serialised to the world file.
+  CollisionKind objectCollision;
 };
 typedef TileSectorArray<ServerTile, WorldSectorSize> ServerTileSectorArray;
 typedef shared_ptr<ServerTileSectorArray> ServerTileSectorArrayPtr;
