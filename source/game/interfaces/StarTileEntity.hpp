@@ -18,7 +18,7 @@ struct MaterialSpace {
 
   Vec2I space;
   MaterialId material;
-  Maybe<CollisionKind> prevCollision;
+  // Maybe<CollisionKind> prevCollision;
 };
 
 DataStream& operator<<(DataStream& ds, MaterialSpace const& materialSpace);

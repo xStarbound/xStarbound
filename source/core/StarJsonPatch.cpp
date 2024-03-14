@@ -158,18 +158,75 @@ namespace JsonPatching {
   }
 
   Json applyMoveOperation(Json const& base, Json const& op) {
-    auto fromPointer = JsonPath::Pointer(op.getString("from"));
-    auto toPointer = JsonPath::Pointer(op.getString("path"));
+    if (op.contains("find")) {
+      Json valueToFind = op.get("find");
+      String path = op.getString("path");
+      auto fromPointer = JsonPath::Pointer(op.getString("from"));
+      auto toPointer = JsonPath::Pointer(op.getString("path"));
+      Json entryToSearch = fromPointer.get(base);
+      if (entryToSearch.type() == Json::Type::Array) {
+        size_t entryIndex = 0;
+        bool entryFound = false;
+        for (auto& entry : entryToSearch.toArray()) {
+          if (entry == valueToFind) {
+            entryFound = true;
+            // FezzedOne: Only move the first found entry.
+            break;
+          }
+          entryIndex++;
+        }
+        if (entryFound) {
+          Json value = entryToSearch.get(entryIndex);
+          entryToSearch = entryToSearch.eraseIndex(entryIndex);
+          return toPointer.add(fromPointer.add(fromPointer.remove(base), entryToSearch), value);
+        } else {
+          return base;
+        }
+      } else {
+        throw JsonPatchException(strf("JSON value at '{}' is not an array.", path));
+      }
+    } else {
+      auto fromPointer = JsonPath::Pointer(op.getString("from"));
+      auto toPointer = JsonPath::Pointer(op.getString("path"));
 
-    Json value = fromPointer.get(base);
-    return toPointer.add(fromPointer.remove(base), value);
+      Json value = fromPointer.get(base);
+      return toPointer.add(fromPointer.remove(base), value);
+    }
   }
 
   Json applyCopyOperation(Json const& base, Json const& op) {
-    auto fromPointer = JsonPath::Pointer(op.getString("from"));
-    auto toPointer = JsonPath::Pointer(op.getString("path"));
+    if (op.contains("find")) {
+      Json valueToFind = op.get("find");
+      String path = op.getString("path");
+      auto fromPointer = JsonPath::Pointer(op.getString("from"));
+      auto toPointer = JsonPath::Pointer(op.getString("path"));
+      Json entryToSearch = fromPointer.get(base);
+      if (entryToSearch.type() == Json::Type::Array) {
+        size_t entryIndex = 0;
+        bool entryFound = false;
+        for (auto& entry : entryToSearch.toArray()) {
+          if (entry == valueToFind) {
+            entryFound = true;
+            // FezzedOne: Only copy the first found entry.
+            break;
+          }
+          entryIndex++;
+        }
+        if (entryFound) {
+          Json value = entryToSearch.get(entryIndex);
+          return toPointer.add(base, value);
+        } else {
+          return base;
+        }
+      } else {
+        throw JsonPatchException(strf("JSON value at '{}' is not an array.", path));
+      }
+    } else {
+      auto fromPointer = JsonPath::Pointer(op.getString("from"));
+      auto toPointer = JsonPath::Pointer(op.getString("path"));
 
-    return toPointer.add(base, fromPointer.get(base));
+      return toPointer.add(base, fromPointer.get(base));
+    }
   }
 }
 

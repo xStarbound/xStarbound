@@ -1,0 +1,4 @@
+// From N1ffe's PR.
+{
+    "disableParticleLights" : false // Override the global setting, if present.
+}

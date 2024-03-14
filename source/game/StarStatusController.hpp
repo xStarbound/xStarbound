@@ -191,7 +191,7 @@ private:
   void updatePersistentUniqueEffects();
 
   float defaultUniqueEffectDuration(UniqueStatusEffect const& name) const;
-  void addUniqueEffect(UniqueStatusEffect const& effect, Maybe<float> duration, Maybe<EntityId> sourceEntityId);
+  bool addUniqueEffect(UniqueStatusEffect const& effect, Maybe<float> duration, Maybe<EntityId> sourceEntityId);
   void removeUniqueEffect(UniqueStatusEffect const& name);
 
   void initPrimaryScript();

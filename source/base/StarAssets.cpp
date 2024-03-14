@@ -86,22 +86,10 @@ Assets::Assets(Settings settings, StringList assetSources) {
     m_assetSourcePaths.add(sourcePath, source);
 
     for (auto const& filename : source->assetPaths()) {
-      if (filename.contains(AssetsPatchSuffix, String::CaseInsensitive)) {
-        if (filename.endsWith(AssetsPatchSuffix, String::CaseInsensitive)) {
-            auto targetPatchFile = filename.substr(0, filename.size() - strlen(AssetsPatchSuffix));
-            if (auto p = m_files.ptr(targetPatchFile))
-                p->patchSources.append({ filename, source });
-        }
-        else
-        {
-            for (int i = 0; i < 10; i++) {
-                if (filename.endsWith(AssetsPatchSuffix + toString(i), String::CaseInsensitive)) {
-                    auto targetPatchFile = filename.substr(0, filename.size() - (strlen(AssetsPatchSuffix) + 1));
-                    if (auto p = m_files.ptr(targetPatchFile))
-                        p->patchSources.append({ filename, source });
-                }
-            }
-        }
+      if (filename.endsWith(AssetsPatchSuffix, String::CaseInsensitive)) {
+        auto targetPatchFile = filename.substr(0, filename.size() - strlen(AssetsPatchSuffix));
+        if (auto p = m_files.ptr(targetPatchFile))
+          p->patchSources.append({filename, source});
       }
       auto& descriptor = m_files[filename];
       descriptor.sourceName = filename;
@@ -689,6 +677,31 @@ ByteArray Assets::read(String const& path) const {
   throw AssetException(strf("No such asset '{}'", path));
 }
 
+// WasabiRaptor's recursive patch checking code, «downstreamed» from OpenStarbound.
+Json Assets::checkPatchArray(String const& path, AssetSourcePtr const& source, Json const result, JsonArray const patchData) const {
+  auto newResult = result;
+  for (auto const& patch : patchData) {
+    switch(patch.type()){
+      case Json::Type::Array: // If the patch is an array, go down recursively until objects are found.
+        try {
+          newResult = checkPatchArray(path, source, newResult, patch.toArray(), externalRef);
+        } catch (JsonPatchTestFail const& e) {
+          Logger::debug("Patch test failure from file {} in source: '{}' at '{}'. Caused by: {}", path, source->metadata().value("name", ""), m_assetSourcePaths.getLeft(source), e.what());
+        } catch (JsonPatchException const& e) {
+          Logger::error("Could not apply patch from file {} in source: '{}' at '{}'.  Caused by: {}", path, source->metadata().value("name", ""), m_assetSourcePaths.getLeft(source), e.what());
+        }
+        break;
+      case Json::Type::Object: // If it's an object, check for operations.
+        newResult = JsonPatching::applyOperation(newResult, patch, externalRef);
+        break;
+      default:
+        throw JsonPatchException(strf("Patch data is wrong type: {}", Json::typeName(patch.type())));
+        break;
+    }
+  }
+  return newResult;
+}
+
 Json Assets::readJson(String const& path) const {
   ByteArray streamData = read(path);
   try {
@@ -699,27 +712,11 @@ Json Assets::readJson(String const& path) const {
       if (patchJson.isType(Json::Type::Array)) {
         auto patchData = patchJson.toArray();
         try {
-          if (patchData.size()) {
-            if (patchData.at(0).type() == Json::Type::Array) {
-              for (auto const& patch : patchData) {
-                try {
-                  result = jsonPatch(result, patch.toArray());
-                } catch (JsonPatchTestFail const& e) {
-                  Logger::debug("Patch test failure from file {} in source: {}. Caused by: {}", pair.first, m_assetSourcePaths.getLeft(pair.second), e.what());
-                }
-              }
-            } else if (patchData.at(0).type() == Json::Type::Object) {
-              try {
-                result = jsonPatch(result, patchData);
-              } catch (JsonPatchTestFail const& e) {
-                Logger::debug("Patch test failure from file {} in source: {}. Caused by: {}", pair.first, m_assetSourcePaths.getLeft(pair.second), e.what());
-              }
-            } else {
-              throw JsonPatchException(strf("Patch data is wrong type: {}", Json::typeName(patchData.at(0).type())));
-            }
-          }
+          result = checkPatchArray(pair.first, pair.second, result, patchData, {});
+        } catch (JsonPatchTestFail const& e) {
+          Logger::error("Could not apply patch from file {} in source: '{}' at '{}'.  Caused by: {}", pair.first, pair.second->metadata().value("name", ""), m_assetSourcePaths.getLeft(pair.second), e.what());
         } catch (JsonPatchException const& e) {
-          Logger::error("Could not apply patch from file {} in source: {}.  Caused by: {}", pair.first, m_assetSourcePaths.getLeft(pair.second), e.what());
+          Logger::error("Could not apply patch from file {} in source: '{}' at '{}'.  Caused by: {}", pair.first, pair.second->metadata().value("name", ""), m_assetSourcePaths.getLeft(pair.second), e.what());
         }
       }
       else if (patchJson.isType(Json::Type::Object)) { //Kae: Do a good ol' json merge instead if the .patch file is a Json object

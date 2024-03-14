@@ -1,0 +1,5 @@
+// From N1ffe's PR.
+{
+    "pointLight" : false, // If true, makes light sources emit dynamic lighting.
+    "disableParticleLights" : false // Removes flashing from some light-emitting objects caused by particle lights. Recommended to set this to true if "pointLight" is true.
+}

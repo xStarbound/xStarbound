@@ -26,7 +26,7 @@ bool WorldTile::isColliding(CollisionSet const& collisionSet) const {
 
 VersionNumber const ServerTile::CurrentSerializationVersion = 418;
 
-ServerTile::ServerTile() {}
+ServerTile::ServerTile() : objectCollision(CollisionKind::None) {}
 
 ServerTile::ServerTile(ServerTile const& serverTile) : WorldTile() {
   *this = serverTile;
@@ -37,6 +37,7 @@ ServerTile& ServerTile::operator=(ServerTile const& serverTile) {
 
   liquid = serverTile.liquid;
   rootSource = serverTile.rootSource;
+  objectCollision = serverTile.objectCollision;
 
   return *this;
 }
@@ -107,6 +108,27 @@ bool ServerTile::updateCollision(CollisionKind kind) {
     return true;
   }
   return false;
+}
+
+// From OpenStarbound/Kae: Updates a runtime-calculated tile collision kind to fix collision bugs caused by object placement.
+bool ServerTile::updateObjectCollision(CollisionKind kind) {
+  if (objectCollision != kind) {
+    objectCollision = kind;
+    collisionCacheDirty = true;
+    collisionCache.clear();
+    return true;
+  }
+  return false;
+}
+
+// From OpenStarbound/Kae: Calculates the *actual* tile collision the server should use and report to clients at runtime.
+CollisionKind ServerTile::getCollision() const {
+  CollisionKind kind = collision;
+  if (objectCollision != CollisionKind::None
+      && (objectCollision != CollisionKind::Platform || kind == CollisionKind::None)) {
+    kind = objectCollision;
+  }
+  return kind;
 }
 
 PredictedTile::operator bool() const {

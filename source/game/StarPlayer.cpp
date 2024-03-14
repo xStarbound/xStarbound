@@ -403,6 +403,11 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
         p.second->addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client));
       p.second->init(world);
     }
+
+    // From N1ffe's PR: Spawn any overflowed inventory items.
+    for (auto& p : m_inventory->clearOverflow()) {
+      world->addEntity(ItemDrop::createRandomizedDrop(p,m_movementController->position(),true));
+    }
   }
 
   m_xAimPositionNetState.setInterpolator(world->geometry().xLerpFunction());

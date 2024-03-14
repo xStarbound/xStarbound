@@ -278,6 +278,26 @@ public:
     SDL_ShowWindow(m_sdlWindow);
     SDL_RaiseWindow(m_sdlWindow);
 
+    // Makes xSB-2 respect Windows' dark mode setting (from OpenSB/Kae).
+    // Code from: https://github.com/libsdl-org/SDL/commit/89948787#diff-f2ae5c36a8afc0a9a343a6664ab306da2963213e180af8cd97b12397dcbb9ae7R1478
+#ifdef STAR_SYSTEM_WINDOWS
+    if (void* handle = SDL_LoadObject("dwmapi.dll")) {
+      if (auto DwmSetWindowAttributeFunc = (decltype(&DwmSetWindowAttribute))SDL_LoadFunction(handle, "DwmSetWindowAttribute")) {
+        SDL_SysWMinfo wmInfo{};
+        SDL_VERSION(&wmInfo.version);
+        SDL_GetWindowWMInfo(m_sdlWindow, &wmInfo);
+        DWORD type{}, value{}, count = sizeof(value);
+        LSTATUS status = RegGetValue(HKEY_CURRENT_USER,
+                             TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"),
+                             TEXT("AppsUseLightTheme"),
+                             RRF_RT_REG_DWORD, &type, &value, &count);
+        BOOL enabled = status == ERROR_SUCCESS && type == REG_DWORD && value == 0;
+        DwmSetWindowAttributeFunc(wmInfo.info.win.window, DWMWA_USE_IMMERSIVE_DARK_MODE, &enabled, sizeof(enabled));
+      }
+      SDL_UnloadObject(handle);
+    }
+#endif
+
     int width;
     int height;
     SDL_GetWindowSize(m_sdlWindow, &width, &height);
