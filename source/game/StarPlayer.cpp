@@ -215,6 +215,9 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
   // FezzedOne: For a `player` callback that suppresses tool usage.
   m_toolUsageSuppressed = false;
 
+  // FezzedOne: Variable to make sure the inventory overflow check doesn't run more than once in `update`.
+  m_overflowCheckDone = false;
+
   m_netGroup.setNeedsLoadCallback(bind(&Player::getNetStates, this, _1));
   m_netGroup.setNeedsStoreCallback(bind(&Player::setNetStates, this));
 }
@@ -988,6 +991,15 @@ void Player::update(float dt, uint64_t) {
 
   if (isMaster()) {
     m_cameraOverridePosition = {}; // FezzedOne: Reset this every tick.
+
+    // From N1ffe's PR: Spawn any overflowed inventory items. *Has* to be done in `update` to get drops to actually spawn for some reason.
+    if (!m_overflowCheckDone) {
+      for (auto& p : m_inventory->clearOverflow()) {
+        giveItem(p);
+        // world()->addEntity(ItemDrop::createRandomizedDrop(p,m_movementController->position(),true));
+      }
+      m_overflowCheckDone = true;
+    }
 
     if (m_emoteCooldownTimer) {
       m_emoteCooldownTimer -= dt;
