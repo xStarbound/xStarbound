@@ -407,7 +407,7 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
       p.second->init(world);
     }
 
-    // From N1ffe's PR: Spawn any overflowed inventory items.
+    // From WasabiRaptor's PR: Spawn any overflowed inventory items.
     for (auto& p : m_inventory->clearOverflow()) {
       world->addEntity(ItemDrop::createRandomizedDrop(p,m_movementController->position(),true));
     }
@@ -992,7 +992,7 @@ void Player::update(float dt, uint64_t) {
   if (isMaster()) {
     m_cameraOverridePosition = {}; // FezzedOne: Reset this every tick.
 
-    // From N1ffe's PR: Spawn any overflowed inventory items. *Has* to be done in `update` to get drops to actually spawn for some reason.
+    // From WasabiRaptor's PR: Spawn any overflowed inventory items. *Has* to be done in `update` to get drops to actually spawn for some reason.
     if (!m_overflowCheckDone) {
       for (auto& p : m_inventory->clearOverflow()) {
         giveItem(p);

@@ -754,7 +754,7 @@ Maybe<InventorySlot> PlayerInventory::secondaryHeldSlot() const {
   return {};
 }
 
-// From N1ffe's PR: Function to take overflowed items from a player's inventory whenever it gets resized by a mod.
+// From WasabiRaptor's PR: Function to take overflowed items from a player's inventory whenever it gets resized by a mod.
 List<ItemPtr> PlayerInventory::clearOverflow(){
   auto list = m_inventoryLoadOverflow;
   m_inventoryLoadOverflow.clear();
@@ -834,7 +834,7 @@ void PlayerInventory::load(Json const& store) {
   for (size_t i = 0; i < m_customBar.size(0); ++i) {
     for (size_t j = 0; j < m_customBar.size(1); ++j) {
       Json cbl = store.get("customBar").get(i,JsonArray()).get(j,JsonArray());
-      // From N1ffe's PR: Function to check whether a hotbar «slot» is valid.
+      // From WasabiRaptor's PR: Function to check whether a hotbar «slot» is valid.
       auto validateLink = [this](Json link) -> Json {
         if ((link.isType(Json::Type::Object))
         && (m_bags.keys().contains(link.getString("type")))
