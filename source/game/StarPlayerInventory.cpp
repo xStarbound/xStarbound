@@ -427,7 +427,7 @@ ItemBagConstPtr PlayerInventory::bagContents(String const& type) const {
   return m_bags.get(type);
 }
 
-void PlayerInventory::condenseBagStacks(String const& bagType) {\
+void PlayerInventory::condenseBagStacks(String const& bagType) {
   auto bag = m_bags[bagType];
 
   bag->condenseStacks();
@@ -768,21 +768,15 @@ void PlayerInventory::load(Json const& store) {
   auto itemBags = store.get("itemBags").toObject();
   eraseWhere(m_bags, [&](auto const& p) { return !itemBags.contains(p.first); });
   // From N1ffe's PR: Clear overflowed items before beginning, then (FezzedOne) load any saved overflow.
-  Logger::info("[Debug] Starting overflow handling.");
   m_inventoryLoadOverflow.clear();
-  Logger::info("[Debug] Cleared overflow.");
   if (store.contains("overflow")) {
-    Logger::info("[Debug] Found saved overflow items.");
     Json overflow = store.get("overflow");
     if (overflow.type() == Json::Type::Array) {
-      Logger::info("[Debug] Valid overflow array.");
       m_inventoryLoadOverflow = overflow.toArray().transformed([itemDatabase](Json const& item) { return itemDatabase->diskLoad(item); });
-      Logger::info("[Debug] Added overflow items.");
     }
   }
   for (auto const& p : itemBags) {
     auto& bagType = p.first;
-    Logger::info("[Debug] About to check bag '{}' for overflows.", bagType);
     auto newBag = ItemBag::loadStore(p.second);
     if (m_bags.keys().contains(bagType)) {
       auto& bagPtr = m_bags[bagType];
@@ -791,11 +785,24 @@ void PlayerInventory::load(Json const& store) {
         *bagPtr = std::move(newBag);
       else
         bagPtr = make_shared<ItemBag>(std::move(newBag));
-      Logger::info("[Debug] Appended new overflow items from bag '{}'.", bagType);
       m_inventoryLoadOverflow.appendAll(bagPtr.get()->resize(size));
     } else {
-      Logger::info("[Debug] Appended new overflow items from nonexistent bag '{}'.", bagType);
       m_inventoryLoadOverflow.appendAll(ItemBag(newBag).items());
+    }
+  }
+
+  // FezzedOne: Create any missing inventory «bags».
+  auto config = Root::singleton().assets()->json("/player.config:inventory");
+
+  auto bags = config.get("itemBags");
+  // auto bagOrder = bags.toObject().keys().sorted([&bags](String const& a, String const& b) {
+  //   return bags.get(a).getInt("priority", 0) < bags.get(b).getInt("priority", 0);
+  // });
+  for (auto name : bags.toObject().keys()) {
+    size_t size = bags.get(name).getUInt("size");
+    if (!m_bags.keys().contains(name)) {
+      m_bags[name] = make_shared<ItemBag>(size);
+      // m_bagsNetState[name].resize(size);
     }
   }
 
@@ -803,6 +810,13 @@ void PlayerInventory::load(Json const& store) {
   m_trashSlot = itemDatabase->diskLoad(store.get("trashSlot"));
 
   m_currencies = jsonToMapV<StringMap<uint64_t>>(store.get("currencies"), mem_fn(&Json::toUInt));
+
+  // FezzedOne: Create any missing currencies.
+  // auto currenciesConfig = Root::singleton().assets()->json("/currencies.config");
+  // for (auto p : currenciesConfig.iterateObject()) {
+  //   if (!m_currencies.keys().contains(name))
+  //     m_currencies[p.first] = 0;
+  // }
 
   m_customBarGroup = store.getUInt("customBarGroup");
 
