@@ -34,7 +34,10 @@
         "priority" : 5,
         "size" : 40
       }
-    }
+    },
+
+    "networkedCustomBarGroups" : 2,
+    "networkedCustomBarIndexes" : 6
   },
 
   "swapDance" : null // Set this to a valid dance to trigger on character swap.
