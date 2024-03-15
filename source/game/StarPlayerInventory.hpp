@@ -218,6 +218,8 @@ private:
   NetElementData<ItemDescriptor> m_trashSlotNetState;
   Map<EssentialItem, NetElementData<ItemDescriptor>> m_essentialNetState;
   NetElementData<StringMap<uint64_t>> m_currenciesNetState;
+  uint8_t m_networkedCustomBarGroups;
+  uint8_t m_networkedCustomBarIndexes;
   NetElementUInt m_customBarGroupNetState;
   MultiArray<NetElementData<CustomBarLink>, 2> m_customBarNetState;
   NetElementData<SelectedActionBarLocation> m_selectedActionBarNetState;

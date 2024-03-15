@@ -84,8 +84,10 @@ PlayerInventory::PlayerInventory() {
 
   addNetElement(&m_currenciesNetState);
 
+  m_networkedCustomBarGroups = config.getUInt("networkedCustomBarGroups");
+  m_networkedCustomBarIndexes = config.getUInt("networkedCustomBarIndexes");
   addNetElement(&m_customBarGroupNetState);
-  m_customBarNetState.resize(customBarGroups, customBarIndexes);
+  m_customBarNetState.resize(m_networkedCustomBarGroups, m_networkedCustomBarIndexes);
   m_customBarNetState.forEach([this](Array2S const&, NetElementData<CustomBarLink>& e) {
       addNetElement(&e);
     });
@@ -1164,12 +1166,27 @@ void PlayerInventory::netElementsNeedStore() {
 
   m_currenciesNetState.set(m_currencies);
 
-  m_customBarGroupNetState.set(m_customBarGroup);
-  m_customBar.forEach([&](auto const& index, auto& cbl) {
-      m_customBarNetState.at(index).set(cbl);
+  // FezzedOne: Spoof the selected custom bar group.
+  m_customBarGroupNetState.set(m_customBarGroup < m_networkedCustomBarGroups ? m_customBarGroup : m_networkedCustomBarGroups - 1);
+
+  // FezzedOne: Spoof the networked custom bars.
+  m_customBarNetState.forEach([&](auto const& index, auto& cbl) {
+      if (index[0] < m_customBar.size(0) && index[1] < m_customBar.size(1))
+        m_customBarNetState.at(index).set(m_customBar.at(index));
+      else // FezzedOne: Out-of-bounds slots are spoofed as empty slots.
+        m_customBarNetState.at(index).set(CustomBarLink{{}, {}});
     });
 
-  m_selectedActionBarNetState.set(m_selectedActionBar);
+  // FezzedOne: Spoof the selected custom bar slot.
+  if (auto nonEssentialSlot = m_selectedActionBar.maybe<CustomBarIndex>()) {
+    if (*nonEssentialSlot < m_networkedCustomBarIndexes)
+      m_selectedActionBarNetState.set(m_selectedActionBar);
+    else
+      m_selectedActionBarNetState.set((CustomBarIndex)(m_networkedCustomBarIndexes - 1));
+  } else {
+    m_selectedActionBarNetState.set(m_selectedActionBar);
+  }
+
 
   serializeItemMap(m_essentialNetState, m_essential);
 }
