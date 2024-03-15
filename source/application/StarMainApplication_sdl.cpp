@@ -10,6 +10,12 @@
 #include "SDL.h"
 #include "StarPlatformServices_pc.hpp"
 
+// Necessary includes for Windows stuff.
+#ifdef STAR_SYSTEM_WINDOWS
+#include "SDL2/SDL_syswm.h"
+#include <dwmapi.h>
+#endif
+
 namespace Star {
 
 Maybe<Key> keyFromSdlKeyCode(SDL_Keycode sym) {
@@ -292,7 +298,9 @@ public:
                              TEXT("AppsUseLightTheme"),
                              RRF_RT_REG_DWORD, &type, &value, &count);
         BOOL enabled = status == ERROR_SUCCESS && type == REG_DWORD && value == 0;
-        DwmSetWindowAttributeFunc(wmInfo.info.win.window, DWMWA_USE_IMMERSIVE_DARK_MODE, &enabled, sizeof(enabled));
+        // FezzedOne: The DWMWINDOWATTRIBUTE enum isn't available on MinGW, so the raw `int` (for DWMWA_USE_IMMERSIVE_DARK_MODE) is used here.
+        // See: https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
+        DwmSetWindowAttributeFunc(wmInfo.info.win.window, 20, &enabled, sizeof(enabled));
       }
       SDL_UnloadObject(handle);
     }
