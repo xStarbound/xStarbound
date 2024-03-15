@@ -36,6 +36,7 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xSB-2 as of v2.3.7.
 - [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) — requires xSB-2 v2.3.7+. Supports all features of and is fully network-compatible with "upstream" [StarCustomChat](https://github.com/KrashV/StarCustomChat).
 - [xWEdit](https://github.com/FezzedOne/xWEdit) — this WEdit fork requires xSB-2 for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
+- Mods that change the size or number of bags in the inventory or hotbar — as of v2.4, xSB-2 gives these mods full compatibility with vanilla multiplayer and existing characters "out of the box".
 
 **Compatible:** Any mod not listed in the "partially compatible" or "not compatible" category should be compatible. Major mods that have been tested to be compatible:
 
@@ -55,7 +56,7 @@ Read this to see if xSB-2 is compatible with your mods.
 > **Note:** xSB-2 does not and will not support StarExtensions' "body dynamics" and text-to-speech features, and currently doesn't support StarExtensions' species-specific head rotation parameters. Details:
 >
 > - Armour, clothing and race mods with included SE "body dynamics" support are compatible, but the "non-jiggle" sprites will be displayed.
-> - Race *and* race-modifying mods with StarExtensions head rotation parameters, such as [Nekify](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) may have visual sprite glitches — such as Neki ears being clipped off — while xSB-2's head rotation is enabled.
+> - Race *and* race-modifying mods with StarExtensions head rotation parameters, such as [Nekify](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913), may have visual sprite glitches — such as Neki ears being clipped off — while xSB-2's head rotation is enabled.
 > - Mods intended to patch in "body dynamics" support or StarExtensions-specific head rotation parameters for other mods simply will not work at all.
 > - Race mods that support StarExtensions' text-to-speech feature will work just fine, but the text-to-speech functionality won't work.
 
