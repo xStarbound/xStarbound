@@ -712,7 +712,7 @@ Json Assets::readJson(String const& path) const {
       if (patchJson.isType(Json::Type::Array)) {
         auto patchData = patchJson.toArray();
         try {
-          result = checkPatchArray(pair.first, pair.second, result, patchData, {});
+          result = checkPatchArray(pair.first, pair.second, result, patchData);
         } catch (JsonPatchTestFail const& e) {
           Logger::error("Could not apply patch from file {} in source: '{}' at '{}'.  Caused by: {}", pair.first, pair.second->metadata().value("name", ""), m_assetSourcePaths.getLeft(pair.second), e.what());
         } catch (JsonPatchException const& e) {
