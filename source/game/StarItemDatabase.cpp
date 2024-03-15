@@ -525,7 +525,7 @@ ItemPtr ItemDatabase::tryCreateItem(ItemDescriptor const& descriptor, Maybe<floa
     if (descriptor.name() == "perfectlygenericitem") {
       Logger::error("Could not re-instantiate item '{}'. {}", descriptor, outputException(e, false));
 		  result = createItem(m_items.get("perfectlygenericitem").type, itemConfig("perfectlygenericitem", descriptor.parameters(), level, seed));
-    } else if (!ignoreInvalid) {
+    } else if (ignoreInvalid) {
       Logger::error("Could not instantiate item '{}'. {}", descriptor, outputException(e, false));
       result = createItem(m_items.get("perfectlygenericitem").type, itemConfig("perfectlygenericitem", JsonObject({
         {"genericItemStorage", descriptor.toJson()},
