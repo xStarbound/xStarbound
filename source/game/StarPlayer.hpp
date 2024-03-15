@@ -737,6 +737,9 @@ private:
   bool m_chatOpen;
   bool m_overrideChatIndicator;
   bool m_overrideMenuIndicator;
+
+  // FezzedOne: Variable to make sure the inventory overflow check doesn't run more than once in `update`.
+  bool m_overflowCheckDone;
 };
 
 }

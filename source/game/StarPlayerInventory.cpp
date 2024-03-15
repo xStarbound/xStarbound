@@ -46,6 +46,13 @@ PlayerInventory::PlayerInventory() {
   for (auto name : bagOrder) {
     size_t size = bags.get(name).getUInt("size");
     m_bags[name] = make_shared<ItemBag>(size);
+  }
+  auto networkedBags = config.get("networkedItemBags");
+  auto networkedBagOrder = networkedBags.toObject().keys().sorted([&networkedBags](String const& a, String const& b) {
+    return networkedBags.get(a).getInt("priority", 0) < networkedBags.get(b).getInt("priority", 0);
+  });
+  for (auto name : networkedBagOrder) {
+    size_t size = networkedBags.get(name).getUInt("size");
     m_bagsNetState[name].resize(size);
   }
 
@@ -767,7 +774,7 @@ void PlayerInventory::load(Json const& store) {
   //reuse ItemBags so the Inventory pane still works after load()'ing into the same PlayerInventory again (from swap)
   auto itemBags = store.get("itemBags").toObject();
   eraseWhere(m_bags, [&](auto const& p) { return !itemBags.contains(p.first); });
-  // From N1ffe's PR: Clear overflowed items before beginning, then (FezzedOne) load any saved overflow.
+  // FezzedOne: Load any saved overflow.
   m_inventoryLoadOverflow.clear();
   if (store.contains("overflow")) {
     Json overflow = store.get("overflow");
@@ -775,30 +782,32 @@ void PlayerInventory::load(Json const& store) {
       m_inventoryLoadOverflow = overflow.toArray().transformed([itemDatabase](Json const& item) { return itemDatabase->diskLoad(item); });
     }
   }
+
+  // FezzedOne: Load the configured bags from `player.config`.
+  auto config = Root::singleton().assets()->json("/player.config:inventory");
+  auto bags = config.get("itemBags").toObject();
+
   for (auto const& p : itemBags) {
     auto& bagType = p.first;
     auto newBag = ItemBag::loadStore(p.second);
-    if (m_bags.keys().contains(bagType)) {
-      auto& bagPtr = m_bags[bagType];
-      auto size = bagPtr.get()->size();
-      if (bagPtr)
-        *bagPtr = std::move(newBag);
+    if (bags.keys().contains(bagType)) { // If the bag exists in the config, only take overflowed items.
+      auto& bag = m_bags[bagType];
+      auto size = bag.get()->size();
+      if (bag)
+        *bag = std::move(newBag);
       else
-        bagPtr = make_shared<ItemBag>(std::move(newBag));
-      m_inventoryLoadOverflow.appendAll(bagPtr.get()->resize(size));
-    } else {
+        bag = make_shared<ItemBag>(std::move(newBag));
+      m_inventoryLoadOverflow.appendAll(bag.get()->resize(bags.get(bagType).getUInt("size")));
+    } else { // If the bag *doesn't* exist in the config, take all items from it as overflow.
       m_inventoryLoadOverflow.appendAll(ItemBag(newBag).items());
     }
   }
 
-  // FezzedOne: Create any missing inventory «bags».
-  auto config = Root::singleton().assets()->json("/player.config:inventory");
-
-  auto bags = config.get("itemBags");
-  // auto bagOrder = bags.toObject().keys().sorted([&bags](String const& a, String const& b) {
+  /* FezzedOne: Create any missing inventory «bags». */
+  // auto bagOrder = bags.keys().sorted([&bags](String const& a, String const& b) {
   //   return bags.get(a).getInt("priority", 0) < bags.get(b).getInt("priority", 0);
   // });
-  for (auto name : bags.toObject().keys()) {
+  for (auto name : bags.keys()) {
     size_t size = bags.get(name).getUInt("size");
     if (!m_bags.keys().contains(name)) {
       m_bags[name] = make_shared<ItemBag>(size);
@@ -1132,8 +1141,12 @@ void PlayerInventory::netElementsNeedStore() {
   };
 
   auto serializeItemList = [&](List<NetElementData<ItemDescriptor>>& netStatesList, List<ItemPtr>& itemList) {
-    for (size_t i = 0; i < netStatesList.size(); ++i)
-      serializeItem(netStatesList[i], itemList[i]);
+    for (size_t i = 0; i < netStatesList.size(); ++i) {
+      if (i < itemList.size())
+        serializeItem(netStatesList[i], itemList[i]);
+      else // If the real bag is smaller than the networked one, make the networked item slot look «empty».
+        netStatesList[i].set(ItemDescriptor());
+    }
   };
 
   auto serializeItemMap = [&](auto& netStatesMap, auto& itemMap) {
