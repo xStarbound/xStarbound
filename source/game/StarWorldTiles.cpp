@@ -123,12 +123,13 @@ bool ServerTile::updateObjectCollision(CollisionKind kind) {
 
 // From OpenStarbound/Kae: Calculates the *actual* tile collision the server should use and report to clients at runtime.
 CollisionKind ServerTile::getCollision() const {
-  CollisionKind kind = collision;
-  if (objectCollision != CollisionKind::None
-      && (objectCollision != CollisionKind::Platform || kind == CollisionKind::None)) {
-    kind = objectCollision;
+  CollisionKind tileCollision = collision;
+  if (objectCollision != CollisionKind::None // If the object has collision *and*...
+      && (objectCollision != CollisionKind::Platform || tileCollision == CollisionKind::None)) { // ...either the object has block collision or the tile has no collision...
+      // ... the object's collision takes precedence.
+    tileCollision = objectCollision;
   }
-  return kind;
+  return tileCollision;
 }
 
 PredictedTile::operator bool() const {

@@ -295,7 +295,7 @@ InteractiveEntityPtr EntityMap::interactiveEntityNear(Vec2F const& pos, float ma
   double bestCenterDistance = maxRadius + 100;
   m_spatialMap.forEach(m_geometry.splitRect(rect), [&](EntityPtr const& entity) {
       if (auto ie = as<InteractiveEntity>(entity)) {
-        if (ie->isInteractive()) {
+        { // FezzedOne: Removed `if (ie->isInteractive())`; moving that check elsewhere.
           if (auto tileEntity = as<TileEntity>(entity)) {
             for (Vec2I space : tileEntity->interactiveSpaces()) {
               auto dist = m_geometry.diff(pos, centerOfTile(space + tileEntity->tilePosition())).magnitude();
