@@ -101,7 +101,8 @@ namespace WorldImpl {
   template <typename TileSectorArray>
   bool rectTileCollision(shared_ptr<TileSectorArray> const& tileSectorArray, RectI const& region, CollisionSet const& collisionSet) {
     return tileSectorArray->tileSatisfies(region, [&collisionSet](Vec2I const&, typename TileSectorArray::Tile const& tile) {
-        return isColliding(tile.collision, collisionSet);
+        // FezzedOne: Need a `getCollision` call here to make sure the correct collision is returned.
+        return isColliding(tile.getCollision(), collisionSet);
       });
   }
 
@@ -350,7 +351,7 @@ namespace WorldImpl {
     } else if (auto placeMaterialColor = modification.ptr<PlaceMaterialColor>()) {
       good = WorldImpl::canPlaceMaterialColorVariant(pos, placeMaterialColor->layer, placeMaterialColor->color, getTile);
     } else if (modification.is<PlaceLiquid>()) {
-      good = getTile(pos).collision == CollisionKind::None;
+      good = getTile(pos).getCollision() == CollisionKind::None;
     } else {
       good = false;
     }

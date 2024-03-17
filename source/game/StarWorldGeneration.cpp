@@ -574,7 +574,7 @@ bool SpawnerWorld::signalRegion(RectF const& region) const {
 }
 
 CollisionKind SpawnerWorld::collision(Vec2I const& position) const {
-  return m_worldServer->getServerTile(position + Vec2I(0, 1)).collision;
+  return m_worldServer->getServerTile(position + Vec2I(0, 1)).getCollision();
 }
 
 bool SpawnerWorld::isFreeSpace(RectF const& area) const {
@@ -1289,7 +1289,7 @@ void WorldGenerator::reapplyBiome(WorldStorage* worldStorage, ServerTileSectorAr
 
       if (tile->biomeTransition && !blockInfo.biomeTransition) {
         tile->biomeTransition = false;
-        if (!isSolidColliding(tile->collision))
+        if (!isSolidColliding(tile->getCollision()))
           biomeItemTiles.append(position);
       }
     }
@@ -1398,7 +1398,7 @@ void WorldGenerator::reapplyBiome(WorldStorage* worldStorage, ServerTileSectorAr
         }
       }
 
-      if (isSolidColliding(tileAbove.collision)) {
+      if (isSolidColliding(tileAbove.getCollision())) {
         for (auto const& itemDistribution : blockBiome->undergroundPlaceables.itemDistributions) {
           if (itemDistribution.mode() == BiomePlacementMode::Ceiling) {
             if (auto itemToPlace = itemDistribution.itemToPlace(position[0], position[1]))
@@ -1407,7 +1407,7 @@ void WorldGenerator::reapplyBiome(WorldStorage* worldStorage, ServerTileSectorAr
         }
       }
 
-      if (isSolidColliding(tileBelow.collision)) {
+      if (isSolidColliding(tileBelow.getCollision())) {
         for (auto const& itemDistribution : blockBiome->undergroundPlaceables.itemDistributions) {
           if (itemDistribution.mode() == BiomePlacementMode::Floor) {
             if (auto itemToPlace = itemDistribution.itemToPlace(position[0], position[1]))
@@ -1416,7 +1416,7 @@ void WorldGenerator::reapplyBiome(WorldStorage* worldStorage, ServerTileSectorAr
         }
       }
     } else {
-      if (isSolidColliding(tileBelow.collision)) {
+      if (isSolidColliding(tileBelow.getCollision())) {
         for (auto const& itemDistribution : blockBiome->surfacePlaceables.itemDistributions) {
           if (itemDistribution.mode() == BiomePlacementMode::Floor) {
             if (auto itemToPlace = itemDistribution.itemToPlace(position[0], position[1]))
