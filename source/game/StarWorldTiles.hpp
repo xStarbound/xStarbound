@@ -95,7 +95,8 @@ public:
 typedef TileSectorArray<ServerTile, WorldSectorSize> ServerTileSectorArray;
 typedef shared_ptr<ServerTileSectorArray> ServerTileSectorArrayPtr;
 
-struct ClientTile : public WorldTile {
+class ClientTile : public WorldTile {
+public:
   ClientTile();
 
   ClientTile(ClientTile const& clientTile);
