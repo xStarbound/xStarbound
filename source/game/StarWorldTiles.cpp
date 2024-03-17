@@ -4,7 +4,7 @@
 namespace Star {
 
 // FezzedOne: Need this virtual «dummy» method.
-virtual CollisionKind WorldTile::getCollision() const {
+CollisionKind WorldTile::getCollision() const {
   return collision;
 }
 
