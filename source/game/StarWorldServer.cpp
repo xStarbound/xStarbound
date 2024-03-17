@@ -1578,11 +1578,6 @@ void WorldServer::updateTileEntityTiles(TileEntityPtr const& entity, bool removi
           // FezzedOne: Fixes metamaterial collision modifiers sticking around when there should be no collision.
           updatedCollision = tile->updateCollision(CollisionKind::None); // materialDatabase->materialCollisionKind(tile->foreground)
           updatedTile = true;
-        } else if (tile->foreground != NullMaterialId && !isRealMaterial(tile->foreground)) {
-          // FezzedOne: Fix for «sticky» metamaterial collision modifiers in object spaces. Without this fix, automatic doors
-          // would need to be opened, closed, then reopened to have their collision correctly updated to `None`,
-          // and other minor collision bugs might happen.
-          updatedTile |= updatedCollision = tile->updateCollision(CollisionKind::None);
         }
         // From OpenStarbound/Kae: Fixed collision bugs caused by conflicts between object collision and tile collision kinds.
         bool hadRoot = tile->rootSource.isValid();
