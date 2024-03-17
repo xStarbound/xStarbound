@@ -12,7 +12,8 @@
 
 namespace Star {
 
-struct WorldTile {
+class WorldTile {
+public:
   WorldTile();
 
   // Copy constructor and operator= do not preserve collision cache.
@@ -59,7 +60,8 @@ struct WorldTile {
   DungeonId dungeonId;
 };
 
-struct ServerTile : public WorldTile {
+class ServerTile : public WorldTile {
+public:
   static VersionNumber const CurrentSerializationVersion;
 
   ServerTile();
