@@ -1544,10 +1544,11 @@ void WorldServer::updateTileEntityTiles(TileEntityPtr const& entity, bool removi
       if (tile->foreground == materialSpace.material) {
         tile->foreground = EmptyMaterialId;
         tile->foregroundMod = NoModId;
+        // FezzedOne: Should fix objects having «dangling» metamaterial collision modifiers.
+        tile->updateCollision(CollisionKind::None);
         updatedTile = true;
       }
-      // FezzedOne: Should fix removed objects having «dangling» metamaterial collision modifiers.
-      if (tile->updateObjectCollision(CollisionKind::None) || tile->updateCollision(CollisionKind::None)) {
+      if (tile->updateObjectCollision(CollisionKind::None)) {
         m_liquidEngine->visitLocation(pos);
         m_fallingBlocksAgent->visitLocation(pos);
         dirtyCollision(RectI::withSize(pos, { 1, 1 }));
