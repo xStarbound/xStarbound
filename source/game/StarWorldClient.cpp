@@ -1992,7 +1992,12 @@ bool WorldClient::readNetTile(Vec2I const& pos, NetTile const& netTile, bool upd
   auto materialDatabase = Root::singleton().materialDatabase();
   tile->backgroundLightTransparent = materialDatabase->backgroundLightTransparent(tile->background);
   tile->foregroundLightTransparent =
-      materialDatabase->foregroundLightTransparent(tile->foreground) && tile->collision != CollisionKind::Dynamic;
+      materialDatabase->foregroundLightTransparent(tile->foreground) &&
+      // FezzedOne: Fixed wire-locked doors and certain other things visually letting light through when they shouldn't.
+      (isRealMaterial(tile->foreground) ||
+      (tile->collision != CollisionKind::Dynamic &&
+      tile->collision != CollisionKind::Slippery &&
+      tile->collision != CollisionKind::Block));
 
   if (updateCollision)
     dirtyCollision(RectI::withSize(pos, {1, 1}));

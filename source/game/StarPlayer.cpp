@@ -18,6 +18,7 @@
 #include "StarItemDatabase.hpp"
 #include "StarItemBag.hpp"
 #include "StarEntitySplash.hpp"
+#include "StarInteractiveEntity.hpp"
 #include "StarWorld.hpp"
 #include "StarWorldGeometry.hpp"
 #include "StarStatusController.hpp"
@@ -1553,7 +1554,7 @@ InteractiveEntityPtr Player::bestInteractionEntity(bool includeNearby) {
     return {};
 
   InteractiveEntityPtr interactiveEntity;
-  if (auto entity = world()->getInteractiveInRange(m_aimPosition, isAdmin() ? m_aimPosition : position(), m_interactRadius)) {
+  if (auto entity = world()->getInteractiveInRange(m_aimPosition, (isAdmin() || m_canReachAll) ? m_aimPosition : position(), m_interactRadius)) {
     interactiveEntity = entity;
   } else if (includeNearby) {
     Vec2F interactBias = m_walkIntoInteractBias;
@@ -1565,8 +1566,10 @@ InteractiveEntityPtr Player::bestInteractionEntity(bool includeNearby) {
       interactiveEntity = entity;
   }
 
-  if (interactiveEntity && (isAdmin() || world()->canReachEntity(position(), interactRadius(), interactiveEntity->entityId())))
-    return interactiveEntity;
+  if (interactiveEntity && ((isAdmin() || m_canReachAll) || world()->canReachEntity(position(), interactRadius(), interactiveEntity->entityId()))) {
+    if (interactiveEntity->isInteractive() || isAdmin() || m_canReachAll)
+      return interactiveEntity;
+  }
   return {};
 }
 
