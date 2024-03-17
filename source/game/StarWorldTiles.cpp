@@ -3,6 +3,11 @@
 
 namespace Star {
 
+// FezzedOne: Need this virtual «dummy» method.
+virtual CollisionKind WorldTile::getCollision() const {
+  return collision;
+}
+
 bool WorldTile::isConnectable(TileLayer layer, bool materialOnly) const {
   if (layer == TileLayer::Foreground) {
     if (isConnectableMaterial(foreground))
@@ -15,13 +20,13 @@ bool WorldTile::isConnectable(TileLayer layer, bool materialOnly) const {
     return false;
 
   if (layer == TileLayer::Foreground)
-    return collision == CollisionKind::Block || collision == CollisionKind::Platform;
+    return getCollision() == CollisionKind::Block || getCollision() == CollisionKind::Platform;
   else
     return false;
 }
 
 bool WorldTile::isColliding(CollisionSet const& collisionSet) const {
-  return Star::isColliding(collision, collisionSet);
+  return Star::isColliding(getCollision(), collisionSet);
 }
 
 VersionNumber const ServerTile::CurrentSerializationVersion = 418;

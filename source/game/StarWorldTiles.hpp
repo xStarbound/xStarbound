@@ -26,6 +26,9 @@ struct WorldTile {
   bool isConnectable(TileLayer layer, bool materialOnly) const;
   bool isColliding(CollisionSet const& collisionSet) const;
 
+  // FezzedOne: Virtual «dummy» method for server-side collision handling.
+  virtual CollisionKind getCollision() const;
+
   MaterialId foreground;
   MaterialHue foregroundHueShift;
   ModId foregroundMod;
@@ -73,8 +76,10 @@ struct ServerTile : public WorldTile {
   // From OpenStarbound/Kae: Used for setting the second collision kind calculated by object material spaces.
   bool updateObjectCollision(CollisionKind kind);
 
-  // Calculates the actually-used collision kind based on the tile and object collision kinds.
-  CollisionKind getCollision() const;
+  // From OpenStarbound/Kae: Calculates the actually-used collision kind based on the tile and object collision kinds.
+  // FezzedOne: Needs to be an override so that *everything* gets the correct runtime-calculated collision.
+  // This, among other things, fixes a collision detection issue preventing Nuru from opening the gate in the floran mission.
+  CollisionKind getCollision() const override;
 
   LiquidStore liquid;
 
