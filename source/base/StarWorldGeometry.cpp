@@ -29,7 +29,8 @@ function<float(float, float, float)> WorldGeometry::xLerpFunction(Maybe<float> d
     unsigned xsize = m_size[0];
     return [discontinuityThreshold, xsize](float offset, float min, float max) -> float {
       float distance = wrapDiffF<float>(max, min, xsize);
-      if (discontinuityThreshold && distance > *discontinuityThreshold)
+      // From OpenStarbound/Kae: Minor interpolation bugfix.
+      if (discontinuityThreshold && std::abs(distance) > *discontinuityThreshold)
         return min + distance;
       return min + offset * distance;
     };
