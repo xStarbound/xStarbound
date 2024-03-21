@@ -1125,7 +1125,9 @@ void PlayerInventory::netElementsNeedLoad(bool) {
 
   m_customBarGroup = m_customBarGroupNetState.get();
   m_customBarNetState.forEach([&](auto const& index, auto& ns) {
-      m_customBar.at(index) = ns.get();
+      // FezzedOne: Assume the action bar is fully empty. This prevents a server-side segfault caused by
+      // action bar slots being linked to inventory slots the server cannot see.
+      m_customBar.at(index) = CustomBarLink{{}, {}}; // ns.get();
     });
 
   m_selectedActionBar = m_selectedActionBarNetState.get();
@@ -1171,10 +1173,9 @@ void PlayerInventory::netElementsNeedStore() {
 
   // FezzedOne: Spoof the networked custom bars.
   m_customBarNetState.forEach([&](auto const& index, auto& cbl) {
-      if (index[0] < m_customBar.size(0) && index[1] < m_customBar.size(1))
-        m_customBarNetState.at(index).set(m_customBar.at(index));
-      else // FezzedOne: Out-of-bounds slots are spoofed as empty slots.
-        m_customBarNetState.at(index).set(CustomBarLink{{}, {}});
+      // FezzedOne: Spoof *all* slots as empty. This prevents the case where an action bar slot linked to an
+      // inventory slot the server can't see causes the server to segfault.
+      m_customBarNetState.at(index).set(CustomBarLink{{}, {}});
     });
 
   // FezzedOne: Spoof the selected custom bar slot.
