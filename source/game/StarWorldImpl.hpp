@@ -75,7 +75,7 @@ namespace WorldImpl {
       WorldTemplateConstPtr const& worldTemplate, SkyConstPtr const& sky, CellularLightIntensityCalculator& lighting, Vec2F pos);
 
   InteractiveEntityPtr getInteractiveInRange(WorldGeometry const& geometry, EntityMapPtr const& entityMap,
-      Vec2F const& targetPosition, Vec2F const& sourcePosition, float maxRange);
+      Vec2F const& targetPosition, Vec2F const& sourcePosition, float maxRange, bool alwaysInteractive = false);
   bool isTileEntityInRange(WorldGeometry const& geometry, EntityMapPtr const& entityMap,
       EntityId targetEntity, Vec2F const& sourcePosition, float maxRange);
   template <typename TileSectorArray>
@@ -466,8 +466,8 @@ namespace WorldImpl {
   }
 
   inline InteractiveEntityPtr getInteractiveInRange(WorldGeometry const& geometry, EntityMapPtr const& entityMap,
-      Vec2F const& targetPosition, Vec2F const& sourcePosition, float maxRange) {
-    if (auto entity = entityMap->interactiveEntityNear(targetPosition, maxRange)) {
+      Vec2F const& targetPosition, Vec2F const& sourcePosition, float maxRange, bool alwaysInteractive) {
+    if (auto entity = entityMap->interactiveEntityNear(targetPosition, maxRange, alwaysInteractive)) {
       if (auto tileEntity = as<TileEntity>(entity)) {
         if (isTileEntityInRange(geometry, entityMap, tileEntity->entityId(), sourcePosition, maxRange))
           return entity;

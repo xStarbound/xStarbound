@@ -110,7 +110,7 @@ public:
   // position are only damaged once)
   virtual TileDamageResult damageTiles(List<Vec2I> const& tilePositions, TileLayer layer, Vec2F const& sourcePosition, TileDamage const& tileDamage, Maybe<EntityId> sourceEntity = {}) = 0;
 
-  virtual InteractiveEntityPtr getInteractiveInRange(Vec2F const& targetPosition, Vec2F const& sourcePosition, float maxRange) const = 0;
+  virtual InteractiveEntityPtr getInteractiveInRange(Vec2F const& targetPosition, Vec2F const& sourcePosition, float maxRange, bool alwaysInteractive = false) const = 0;
   // Can the target entity be reached from the given position within the given radius?
   virtual bool canReachEntity(Vec2F const& position, float radius, EntityId targetEntity, bool preferInteractive = true) const = 0;
   virtual RpcPromise<InteractAction> interact(InteractRequest const& request) = 0;
