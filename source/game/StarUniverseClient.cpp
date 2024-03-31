@@ -731,6 +731,11 @@ bool UniverseClient::paused() const {
   return m_pause;
 }
 
+bool UniverseClient::switchingPlayer() const {
+  if (m_playerToSwitchTo) return true;
+  else return false;
+}
+
 void UniverseClient::setPause(bool pause) {
   m_pause = pause;
 

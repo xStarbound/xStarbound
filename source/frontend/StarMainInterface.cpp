@@ -389,122 +389,125 @@ void MainInterface::handleInteractAction(InteractAction interactAction) {
   auto assets = Root::singleton().assets();
   auto world = m_client->worldClient();
 
-  if (interactAction.type == InteractActionType::OpenContainer) {
-    // If we're currently displaying this container, close it.
-    if (m_containerPane && m_containerInteractor->openContainerId() == interactAction.entityId) {
-      m_paneManager.dismissPane(m_containerPane);
-      return;
-    }
+  // FezzedOne: If we're in the middle of swapping players, don't allow player-based panes to be opened to prevent visual bugs.
+  if (!m_client->switchingPlayer()) {
+    if (interactAction.type == InteractActionType::OpenContainer) {
+      // If we're currently displaying this container, close it.
+      if (m_containerPane && m_containerInteractor->openContainerId() == interactAction.entityId) {
+        m_paneManager.dismissPane(m_containerPane);
+        return;
+      }
 
-    // If we're currently displaying another container, close it before we open.
-    if (m_containerPane)
-      m_paneManager.dismissPane(m_containerPane);
+      // If we're currently displaying another container, close it before we open.
+      if (m_containerPane)
+        m_paneManager.dismissPane(m_containerPane);
 
-    auto containerEntity = world->get<ContainerEntity>(interactAction.entityId);
-    if (!containerEntity)
-      return;
+      auto containerEntity = world->get<ContainerEntity>(interactAction.entityId);
+      if (!containerEntity)
+        return;
 
-    m_containerInteractor->openContainer(containerEntity);
+      m_containerInteractor->openContainer(containerEntity);
 
-    m_paneManager.displayRegisteredPane(MainInterfacePanes::Inventory);
+      m_paneManager.displayRegisteredPane(MainInterfacePanes::Inventory);
 
-    m_containerPane = make_shared<ContainerPane>(world, m_client->mainPlayer(), m_containerInteractor);
-    m_paneManager.displayPane(PaneLayer::Window, m_containerPane, [this](PanePtr const&) {
-      if (auto player = m_client->mainPlayer())
-        player->clearSwap();
-      m_paneManager.dismissRegisteredPane(MainInterfacePanes::Inventory);
-    });
+      m_containerPane = make_shared<ContainerPane>(world, m_client->mainPlayer(), m_containerInteractor);
+      m_paneManager.displayPane(PaneLayer::Window, m_containerPane, [this](PanePtr const&) {
+        if (auto player = m_client->mainPlayer())
+          player->clearSwap();
+        m_paneManager.dismissRegisteredPane(MainInterfacePanes::Inventory);
+      });
 
-    m_paneManager.bringPaneAdjacent(m_paneManager.registeredPane(MainInterfacePanes::Inventory),
-        m_containerPane, Root::singleton().assets()->json("/interface.config:bringAdjacentWindowGap").toFloat());
-  } else if (interactAction.type == InteractActionType::SitDown) {
-    m_client->mainPlayer()->lounge(interactAction.entityId, interactAction.data.toUInt());
-  } else if (interactAction.type == InteractActionType::OpenCraftingInterface) {
-    if (!world->entity(interactAction.entityId))
-      return;
+      m_paneManager.bringPaneAdjacent(m_paneManager.registeredPane(MainInterfacePanes::Inventory),
+          m_containerPane, Root::singleton().assets()->json("/interface.config:bringAdjacentWindowGap").toFloat());
+    } else if (interactAction.type == InteractActionType::SitDown) {
+      m_client->mainPlayer()->lounge(interactAction.entityId, interactAction.data.toUInt());
+    } else if (interactAction.type == InteractActionType::OpenCraftingInterface) {
+      if (!world->entity(interactAction.entityId))
+        return;
 
-    openCraftingWindow(interactAction.data, interactAction.entityId);
-  } else if (interactAction.type == InteractActionType::OpenSongbookInterface) {
-    m_paneManager.displayRegisteredPane(MainInterfacePanes::Songbook);
-  } else if (interactAction.type == InteractActionType::OpenNpcCraftingInterface) {
-    if (!world->entity(interactAction.entityId))
-      return;
+      openCraftingWindow(interactAction.data, interactAction.entityId);
+    } else if (interactAction.type == InteractActionType::OpenSongbookInterface) {
+      m_paneManager.displayRegisteredPane(MainInterfacePanes::Songbook);
+    } else if (interactAction.type == InteractActionType::OpenNpcCraftingInterface) {
+      if (!world->entity(interactAction.entityId))
+        return;
 
-    openCraftingWindow(interactAction.data, interactAction.entityId);
-  } else if (interactAction.type == InteractActionType::OpenMerchantInterface) {
-    if (!world->entity(interactAction.entityId))
-      return;
+      openCraftingWindow(interactAction.data, interactAction.entityId);
+    } else if (interactAction.type == InteractActionType::OpenMerchantInterface) {
+      if (!world->entity(interactAction.entityId))
+        return;
 
-    openMerchantWindow(interactAction.data, interactAction.entityId);
-  } else if (interactAction.type == InteractActionType::OpenAiInterface) {
-    as<AiInterface>(m_paneManager.registeredPane(MainInterfacePanes::Ai))->setSourceEntityId(interactAction.entityId);
-    m_paneManager.displayRegisteredPane(MainInterfacePanes::Ai);
-  } else if (interactAction.type == InteractActionType::OpenTeleportDialog) {
-    if (m_teleportDialog)
-      m_teleportDialog->dismiss();
+      openMerchantWindow(interactAction.data, interactAction.entityId);
+    } else if (interactAction.type == InteractActionType::OpenAiInterface) {
+      as<AiInterface>(m_paneManager.registeredPane(MainInterfacePanes::Ai))->setSourceEntityId(interactAction.entityId);
+      m_paneManager.displayRegisteredPane(MainInterfacePanes::Ai);
+    } else if (interactAction.type == InteractActionType::OpenTeleportDialog) {
+      if (m_teleportDialog)
+        m_teleportDialog->dismiss();
 
-    if (!m_client->canTeleport())
-      return;
+      if (!m_client->canTeleport())
+        return;
 
-    auto currentLocation = TeleportBookmark();
+      auto currentLocation = TeleportBookmark();
 
-    auto config = assets->fetchJson(interactAction.data);
-    if (config.getBool("canBookmark", false)) {
-      if (auto entity = world->entity(interactAction.entityId)) {
-        if (auto uniqueEntityId = entity->uniqueId()) {
-          auto worldTemplate = m_client->worldClient()->currentTemplate();
+      auto config = assets->fetchJson(interactAction.data);
+      if (config.getBool("canBookmark", false)) {
+        if (auto entity = world->entity(interactAction.entityId)) {
+          if (auto uniqueEntityId = entity->uniqueId()) {
+            auto worldTemplate = m_client->worldClient()->currentTemplate();
 
-          String icon, planetName;
-          if (m_client->playerWorld().is<ClientShipWorldId>()) {
-            icon = "ship";
-            planetName = "Player Ship";
-          } else if (m_client->playerWorld().is<CelestialWorldId>()) {
-            icon = worldTemplate->worldParameters()->typeName;
-            planetName = worldTemplate->worldName();
-          } else if (m_client->playerWorld().is<InstanceWorldId>()) {
-            icon = worldTemplate->worldParameters()->typeName;
-            planetName = worldTemplate->worldName();
-          } else {
-            icon = "default";
-            planetName = "???";
-          }
+            String icon, planetName;
+            if (m_client->playerWorld().is<ClientShipWorldId>()) {
+              icon = "ship";
+              planetName = "Player Ship";
+            } else if (m_client->playerWorld().is<CelestialWorldId>()) {
+              icon = worldTemplate->worldParameters()->typeName;
+              planetName = worldTemplate->worldName();
+            } else if (m_client->playerWorld().is<InstanceWorldId>()) {
+              icon = worldTemplate->worldParameters()->typeName;
+              planetName = worldTemplate->worldName();
+            } else {
+              icon = "default";
+              planetName = "???";
+            }
 
-          currentLocation = TeleportBookmark {
-            {m_client->playerWorld(), SpawnTargetUniqueEntity(*uniqueEntityId)},
-            planetName,
-            config.getString("bookmarkName", ""),
-            icon
-          };
+            currentLocation = TeleportBookmark {
+              {m_client->playerWorld(), SpawnTargetUniqueEntity(*uniqueEntityId)},
+              planetName,
+              config.getString("bookmarkName", ""),
+              icon
+            };
 
-          if (!m_client->mainPlayer()->universeMap()->teleportBookmarks().contains(currentLocation) || !config.getBool("canTeleport", true)) {
-            auto editBookmarkDialog = make_shared<EditBookmarkDialog>(m_client->mainPlayer()->universeMap());
-            editBookmarkDialog->setBookmark(currentLocation);
-            m_paneManager.displayPane(PaneLayer::ModalWindow, editBookmarkDialog);
-            return;
+            if (!m_client->mainPlayer()->universeMap()->teleportBookmarks().contains(currentLocation) || !config.getBool("canTeleport", true)) {
+              auto editBookmarkDialog = make_shared<EditBookmarkDialog>(m_client->mainPlayer()->universeMap());
+              editBookmarkDialog->setBookmark(currentLocation);
+              m_paneManager.displayPane(PaneLayer::ModalWindow, editBookmarkDialog);
+              return;
+            }
           }
         }
       }
+
+      if (config.getBool("canTeleport", true)) {
+        m_teleportDialog = make_shared<TeleportDialog>(m_client, &m_paneManager, interactAction.data, interactAction.entityId, currentLocation);
+        m_paneManager.displayPane(PaneLayer::ModalWindow, m_teleportDialog);
+      }
+    } else if (interactAction.type == InteractActionType::ShowPopup) {
+      m_paneManager.displayRegisteredPane(MainInterfacePanes::Popup);
+      m_popupInterface->displayMessage(interactAction.data.getString("message"), interactAction.data.getString("title", ""), interactAction.data.getString("subtitle", ""), interactAction.data.optString("sound"));
+    } else if (interactAction.type == InteractActionType::ScriptPane) {
+      auto sourceEntity = interactAction.entityId;
+      // dismiss if there's already a scriptpane open for this source entity
+      if (sourceEntity != NullEntityId && m_interactionScriptPanes.contains(sourceEntity) && m_paneManager.isDisplayed(m_interactionScriptPanes[sourceEntity]))
+        m_paneManager.dismissPane(m_interactionScriptPanes[sourceEntity]);
+
+      ScriptPanePtr scriptPane = make_shared<ScriptPane>(m_client, interactAction.data, sourceEntity);
+      displayScriptPane(scriptPane, sourceEntity);
+
+    } else if (interactAction.type == InteractActionType::Message) {
+      m_client->mainPlayer()->receiveMessage(connectionForEntity(interactAction.entityId),
+          interactAction.data.getString("messageType"), interactAction.data.getArray("messageArgs"));
     }
-
-    if (config.getBool("canTeleport", true)) {
-      m_teleportDialog = make_shared<TeleportDialog>(m_client, &m_paneManager, interactAction.data, interactAction.entityId, currentLocation);
-      m_paneManager.displayPane(PaneLayer::ModalWindow, m_teleportDialog);
-    }
-  } else if (interactAction.type == InteractActionType::ShowPopup) {
-    m_paneManager.displayRegisteredPane(MainInterfacePanes::Popup);
-    m_popupInterface->displayMessage(interactAction.data.getString("message"), interactAction.data.getString("title", ""), interactAction.data.getString("subtitle", ""), interactAction.data.optString("sound"));
-  } else if (interactAction.type == InteractActionType::ScriptPane) {
-    auto sourceEntity = interactAction.entityId;
-    // dismiss if there's already a scriptpane open for this source entity
-    if (sourceEntity != NullEntityId && m_interactionScriptPanes.contains(sourceEntity) && m_paneManager.isDisplayed(m_interactionScriptPanes[sourceEntity]))
-      m_paneManager.dismissPane(m_interactionScriptPanes[sourceEntity]);
-
-    ScriptPanePtr scriptPane = make_shared<ScriptPane>(m_client, interactAction.data, sourceEntity);
-    displayScriptPane(scriptPane, sourceEntity);
-
-  } else if (interactAction.type == InteractActionType::Message) {
-    m_client->mainPlayer()->receiveMessage(connectionForEntity(interactAction.entityId),
-        interactAction.data.getString("messageType"), interactAction.data.getArray("messageArgs"));
   }
 }
 
