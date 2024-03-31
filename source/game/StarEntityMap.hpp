@@ -84,7 +84,7 @@ public:
   EntityPtr closestEntity(Vec2F const& center, float radius, EntityFilter const& filter = {}) const;
 
   // Returns interactive entity that is near the given world position
-  InteractiveEntityPtr interactiveEntityNear(Vec2F const& pos, float maxRadius = 1.5f) const;
+  InteractiveEntityPtr interactiveEntityNear(Vec2F const& pos, float maxRadius = 1.5f, bool alwaysInteractive = false) const;
 
   // Whether or not any tile entity occupies this tile
   bool tileIsOccupied(Vec2I const& pos, bool includeEphemeral = false) const;

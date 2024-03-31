@@ -2426,8 +2426,8 @@ bool WorldServer::ClientInfo::needsDamageNotification(RemoteDamageNotification c
   return false;
 }
 
-InteractiveEntityPtr WorldServer::getInteractiveInRange(Vec2F const& targetPosition, Vec2F const& sourcePosition, float maxRange) const {
-  return WorldImpl::getInteractiveInRange(m_geometry, m_entityMap, targetPosition, sourcePosition, maxRange);
+InteractiveEntityPtr WorldServer::getInteractiveInRange(Vec2F const& targetPosition, Vec2F const& sourcePosition, float maxRange, bool alwaysInteractive) const {
+  return WorldImpl::getInteractiveInRange(m_geometry, m_entityMap, targetPosition, sourcePosition, maxRange, alwaysInteractive);
 }
 
 bool WorldServer::canReachEntity(Vec2F const& position, float radius, EntityId targetEntity, bool preferInteractive) const {

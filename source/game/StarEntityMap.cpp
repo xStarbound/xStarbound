@@ -288,14 +288,14 @@ EntityPtr EntityMap::closestEntity(Vec2F const& center, float radius, EntityFilt
   return closest;
 }
 
-InteractiveEntityPtr EntityMap::interactiveEntityNear(Vec2F const& pos, float maxRadius) const {
+InteractiveEntityPtr EntityMap::interactiveEntityNear(Vec2F const& pos, float maxRadius, bool alwaysInteractive) const {
   auto rect = RectF::withCenter(pos, Vec2F::filled(maxRadius));
   InteractiveEntityPtr interactiveEntity;
   double bestDistance = maxRadius + 100;
   double bestCenterDistance = maxRadius + 100;
   m_spatialMap.forEach(m_geometry.splitRect(rect), [&](EntityPtr const& entity) {
       if (auto ie = as<InteractiveEntity>(entity)) {
-        { // FezzedOne: Removed `if (ie->isInteractive())`; moving that check elsewhere.
+        if (alwaysInteractive || ie->isInteractive()) { // FezzedOne: Allow the interactivity check to be overridden.
           if (auto tileEntity = as<TileEntity>(entity)) {
             for (Vec2I space : tileEntity->interactiveSpaces()) {
               auto dist = m_geometry.diff(pos, centerOfTile(space + tileEntity->tilePosition())).magnitude();
