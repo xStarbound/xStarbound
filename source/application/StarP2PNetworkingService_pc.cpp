@@ -321,7 +321,12 @@ void PcP2PNetworkingService::steamOnConnectionFailure(P2PSessionConnectFail_t* c
 
 void PcP2PNetworkingService::steamOnJoinRequested(GameRichPresenceJoinRequested_t* callback) {
   Logger::info("Queueing join request with steam friend id {} to address {}", callback->m_steamIDFriend.ConvertToUint64(), callback->m_rgchConnect);
+  // FezzedOne: Patch for a Steam API bug on Windows where the Steam friend ID does not match the address.
+#ifdef STAR_SYSTEM_WINDOWS
+  addPendingJoin(strf("+platform:connect:steamid_{}", callback->m_steamIDFriend.ConvertToUint64()));
+#else
   addPendingJoin(callback->m_rgchConnect);
+#endif
 }
 
 void PcP2PNetworkingService::steamOnSessionRequest(P2PSessionRequest_t* callback) {

@@ -115,6 +115,8 @@ public:
 
   bool paused() const;
 
+  bool switchingPlayer() const;
+
 private:
   struct ServerInfo {
     uint16_t players;
