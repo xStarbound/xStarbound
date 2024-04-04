@@ -33,7 +33,7 @@ Read this to see if xSB-2 is compatible with your mods.
 
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xSB-2.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/FezzedOne/FezzedTech)) — requires xSB-2 for full functionality, but also supports StarExtensions (with reduced functionality) and is compatible with vanilla Starbound.
-- [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844&searchtext=starextensions) — fully supported by xSB-2.
+- [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xSB-2.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xSB-2 as of v2.3.7.
 - [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) — requires xSB-2 v2.3.7+. Supports all features of and is fully network-compatible with "upstream" [StarCustomChat](https://github.com/KrashV/StarCustomChat).
 - [xWEdit](https://github.com/FezzedOne/xWEdit) — this WEdit fork requires xSB-2 for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
