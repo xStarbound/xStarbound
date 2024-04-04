@@ -2,7 +2,7 @@
 
 This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound). Contributions are welcomed. You **must** own a copy of Starbound to use xSB-2. Base game assets are not provided for obvious reasons.
 
-Compiled builds for Linux and Windows should be available in the usual place on this repository.
+Compiled builds for Linux, Windows and macOS should be available in the usual place on this repository.
 
 ## Changes
 
