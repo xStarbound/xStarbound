@@ -6,16 +6,17 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 
 ## Changes
 
+- The UI scale can now be adjusted in the graphics settings dialogue, complete with configurable keybinds and support for fractional scales (FezzedOne). There are also keybinds for changing the in-game camera zoom (Kae). Both the UI scale and zoom level are scriptable (FezzedOne). UI scaling mods are no longer needed (and in fact no longer do anything) in xSB-2!
 - You can now make `.patch` files that are just merged in, early-beta-style (Kae). That's why the patch files in `assets/xSBassets` are unusually simple. In addition, a new `"find"` parameter is supported for `"remove"` and `"replace"` operations where the `"path"` is to a JSON array (FezzedOne) — if `"find"` is present, only the first array value exactly matching the value in `"find"` is removed or replaced by `"value"`, not the entire array.
-- Almost all Lua callbacks from the original xSB (by FezzedOne), `input` callbacks (by Kae), plus some extra `player` callbacks for compatibility with OpenStarbound mods and some StarExtensions mods. The `setSpecies` and `setIdentity` callbacks will not let you switch to a nonexistent species. Documentation has yet to be updated.
+- Almost all Lua callbacks from the original xSB (by FezzedOne), `input` callbacks (by Kae), plus some extra `player`, `interface` and `clipboard` callbacks for compatibility with OpenStarbound mods and some StarExtensions mods. The `setSpecies` and `setIdentity` callbacks will not let you switch to a nonexistent species. Documentation has yet to be updated.
 - Various crash fixes (FezzedOne and Kae).
 - Character swapping (rewrite by Kae from StarExtensions): `/swap <name>` (case-insensitive substring matching) and `/swapuuid <uuid>` (requires a UUID; use the one in the player file name).
 - Custom user input support with a keybindings menu (rewrite by Kae from StarExtensions).
 - Positional voice chat that works on completely vanilla servers; is compatible with StarExtensions. This uses Opus for crisp, HD audios. Rewrite by Kae from StarExtensions.
   - The voice chat configuration dialogue is made available in the options menu rather than as a chat command.
 - Multiple font support (switch fonts inline with `^font=name;`, `.ttf` assets are auto-detected). Added by Kae, fixed by FezzedOne. Additionally, escape codes and custom fonts wrap and propagate across wrapped lines properly in the chat box (FezzedOne).
-- World lightmap generation has been moved off the main thread (Kae).
-- Various changes to the storage of directives and images in memory to greatly reduce their impact on frametimes (Kae).
+- Lighting is partially asynchronous (Kae).
+- Various changes to the storage of directives and images in memory to greatly reduce their impact on FPS (Kae).
   - Works well when extremely long directives are used for "vanilla multiplayer-compatible" creations, like [generated](https://silverfeelin.github.io/Starbound-NgOutfitGenerator/) [clothing](https://github.com/FezzedOne/FezzedOne-Drawable-Generator).
 - Client-side tile placement prediction (rewrite by Kae from StarExtensions).
   - You can also resize the placement area of tiles on the fly.
@@ -74,10 +75,10 @@ Read this to see if xSB-2 is compatible with your mods.
 
 - [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — Would work if it didn't have an explicit StarExtensions check.
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — Would work if it didn't have an explicit StarExtensions check.
-- [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — Would work if it didn't have an explicit StarExtensions check.
+- [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — Would work if it didn't have an explicit StarExtensions check. Use [FezzedTech](https://github.com/FezzedOne/FezzedTech) instead.
 - [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — this mod explicitly checks for StarExtensions, so the keybinds do not work, although some of the added hidden chat commands do.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
-- [StarCustomChat](https://github.com/KrashV/StarCustomChat) — use the feature-identical and fully network-compatible [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) fork instead.
+- [StarCustomChat](https://github.com/KrashV/StarCustomChat) — use the fully network-compatible [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) fork instead.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load and may cause crashes!
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xSB-2 has differently named callbacks) and is redundant anyway because xSB-2 already fully supports this feature.
