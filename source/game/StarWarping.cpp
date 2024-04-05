@@ -195,10 +195,11 @@ WarpAction parseWarpAction(String const& warpString) {
     SpawnTarget target;
     if (parts.size() == 2) {
       auto const& targetPart = parts.at(1);
-      if (targetPart.regexMatch("\\d+.\\d+")) {
+      // FezzedOne: Fix regex parsing on the Linux build. POSIX regexes don't support `\d`.
+      if (targetPart.regexMatch("[0-9]+\\.[0-9]+")) {
         auto pos = targetPart.split(".", 1);
         target = SpawnTargetPosition(Vec2F(lexicalCast<int>(pos.at(0)), lexicalCast<int>(pos.at(1))));
-      } else if (targetPart.regexMatch("\\d+")) {
+      } else if (targetPart.regexMatch("[0-9]+")) {
         target = SpawnTargetX(lexicalCast<int>(targetPart));
       } else {
         target = SpawnTargetUniqueEntity(targetPart);
