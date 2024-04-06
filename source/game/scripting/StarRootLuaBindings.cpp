@@ -321,7 +321,7 @@ List<Vec2I> LuaBindings::RootCallbacks::imageSpaces(
 bool LuaBindings::RootCallbacks::saveAssetPathToImage(Root* root, String const& arg1, String const& arg2, Maybe<bool> arg3) {
   bool byFrame = false;
   if (arg3)
-    byFrame = arg3;
+    byFrame = *arg3;
   auto assets = root->assets();
   if (File::baseName(arg2) == "") {
     Logger::error("root.saveAssetPathToImage: Must specify a valid filename.");
