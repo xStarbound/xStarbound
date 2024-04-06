@@ -50,7 +50,7 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
   callbacks.registerCallbackWithSignature<double, String, double, double>("evalFunction2", bind(RootCallbacks::evalFunction2, root, _1, _2, _3));
   callbacks.registerCallbackWithSignature<Vec2U, String>("imageSize", bind(RootCallbacks::imageSize, root, _1));
   callbacks.registerCallbackWithSignature<List<Vec2I>, String, Vec2F, float, bool>("imageSpaces", bind(RootCallbacks::imageSpaces, root, _1, _2, _3, _4));
-  callbacks.registerCallbackWithSignature<bool, String, Maybe<bool>>("saveAssetPathToImage", bind(RootCallbacks::saveAssetPathToImage, root, _1, _2));
+  callbacks.registerCallbackWithSignature<bool, String, String, Maybe<bool>>("saveAssetPathToImage", bind(RootCallbacks::saveAssetPathToImage, root, _1, _2, _3));
   callbacks.registerCallbackWithSignature<RectU, String>("nonEmptyRegion", bind(RootCallbacks::nonEmptyRegion, root, _1));
   callbacks.registerCallbackWithSignature<Json, String>("npcConfig", bind(RootCallbacks::npcConfig, root, _1));
   callbacks.registerCallbackWithSignature<float, String>("projectileGravityMultiplier", bind(RootCallbacks::projectileGravityMultiplier, root, _1));
@@ -318,13 +318,17 @@ List<Vec2I> LuaBindings::RootCallbacks::imageSpaces(
 }
 
 // FezzedOne: Saves an image asset with directives to `output.png` in the `$storage/` directory.
-bool LuaBindings::RootCallbacks::saveAssetPathToImage(Root* root, String const& arg1, Maybe<bool> arg2) {
+bool LuaBindings::RootCallbacks::saveAssetPathToImage(Root* root, String const& arg1, String const% arg2, Maybe<bool> arg3) {
   bool byFrame = false;
-  if (arg2)
-    byFrame = arg2;
+  if (arg3)
+    byFrame = arg3;
   auto assets = root->assets();
+  if (File::baseName(arg2) == "") {
+    Logger::error("root.saveAssetPathToImage: Must specify a valid filename.");
+    return false;
+  }
   try {
-    String outputPath = root->toStoragePath("output.png");
+    String outputPath = root->toStoragePath("sprites/" + File::baseName(arg2) + ".png");
     AssetPath path = AssetPath::split(arg1);
     if (path.subPath || !byFrame) {
       ImageConstPtr image = assets->image(path);
