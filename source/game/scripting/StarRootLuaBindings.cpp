@@ -318,7 +318,7 @@ List<Vec2I> LuaBindings::RootCallbacks::imageSpaces(
 }
 
 // FezzedOne: Saves an image asset with directives to `output.png` in the `$storage/` directory.
-bool LuaBindings::RootCallbacks::saveAssetPathToImage(Root* root, String const& arg1, String const% arg2, Maybe<bool> arg3) {
+bool LuaBindings::RootCallbacks::saveAssetPathToImage(Root* root, String const& arg1, String const& arg2, Maybe<bool> arg3) {
   bool byFrame = false;
   if (arg3)
     byFrame = arg3;
