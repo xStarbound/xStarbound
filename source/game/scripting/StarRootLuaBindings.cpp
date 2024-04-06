@@ -23,6 +23,11 @@
 #include "StarDamageDatabase.hpp"
 #include "StarDungeonGenerator.hpp"
 #include "StarLogging.hpp"
+#include "StarImage.hpp"
+#include "StarAssets.hpp"
+#include "StarAssetPath.hpp"
+#include "StarFile.hpp"
+#include "StarDirectives.hpp"
 
 namespace Star {
 
@@ -45,6 +50,7 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
   callbacks.registerCallbackWithSignature<double, String, double, double>("evalFunction2", bind(RootCallbacks::evalFunction2, root, _1, _2, _3));
   callbacks.registerCallbackWithSignature<Vec2U, String>("imageSize", bind(RootCallbacks::imageSize, root, _1));
   callbacks.registerCallbackWithSignature<List<Vec2I>, String, Vec2F, float, bool>("imageSpaces", bind(RootCallbacks::imageSpaces, root, _1, _2, _3, _4));
+  callbacks.registerCallbackWithSignature<bool, String, Maybe<bool>>("saveAssetPathToImage", bind(RootCallbacks::saveAssetPathToImage, root, _1, _2));
   callbacks.registerCallbackWithSignature<RectU, String>("nonEmptyRegion", bind(RootCallbacks::nonEmptyRegion, root, _1));
   callbacks.registerCallbackWithSignature<Json, String>("npcConfig", bind(RootCallbacks::npcConfig, root, _1));
   callbacks.registerCallbackWithSignature<float, String>("projectileGravityMultiplier", bind(RootCallbacks::projectileGravityMultiplier, root, _1));
@@ -309,6 +315,64 @@ Vec2U LuaBindings::RootCallbacks::imageSize(Root* root, String const& arg1) {
 List<Vec2I> LuaBindings::RootCallbacks::imageSpaces(
     Root* root, String const& arg1, Vec2F const& arg2, float arg3, bool arg4) {
   return root->imageMetadataDatabase()->imageSpaces(arg1, arg2, arg3, arg4);
+}
+
+// FezzedOne: Saves an image asset with directives to `output.png` in the `$storage/` directory.
+bool LuaBindings::RootCallbacks::saveAssetPathToImage(Root* root, String const& arg1, Maybe<bool> arg2) {
+  bool byFrame = false;
+  if (arg2)
+    byFrame = arg2;
+  auto assets = root->assets();
+  try {
+    String outputPath = root->toStoragePath("output.png");
+    AssetPath path = AssetPath::split(arg1);
+    if (path.subPath || !byFrame) {
+      ImageConstPtr image = assets->image(path);
+      if (image) {
+        // auto processedImage = std::make_shared<Image>(std::move(path.directives.applyNewImage(*image)));
+        image->writePng(File::open(outputPath, IOMode::Write));
+        Logger::info("root.saveAssetPathToImage: Saved output image to {}", outputPath);
+        return true;
+      } else {
+        Logger::error("root.saveAssetPathToImage: Base image asset not found.");
+      }
+    } else {
+      auto framesSpec = assets->imageFrames(path.basePath);
+      if (framesSpec) {
+        ImageConstPtr baseImage = assets->image(AssetPath{path.basePath, {}, DirectivesGroup()});
+        if (baseImage) {
+          Vec2U size = baseImage->size();
+          ImagePtr newImage = std::make_shared<Image>(size);
+          for (auto frame : framesSpec->frames) {
+            String frameName = frame.first;
+            RectU frameRect = frame.second;
+            // FezzedOne: For images, the Y axis is zero at the top, increasing as you go down. So flip the Y coordinate for frames.
+            Vec2U framePos = Vec2U(frameRect.xMin(), size[1] - frameRect.yMax());
+            ImageConstPtr frameImage = assets->image(AssetPath{path.basePath, frameName, path.directives});
+            newImage->copyInto(framePos, *frameImage);
+          }
+          newImage->writePng(File::open(outputPath, IOMode::Write));
+          Logger::info("root.saveAssetPathToImage: Saved output image with by-frame directives to {}", outputPath);
+          return true;
+        } else {
+          Logger::error("root.saveAssetPathToImage: Base image asset not found.");
+        }
+      } else {
+        ImageConstPtr image = assets->image(path);
+        if (image) {
+          // auto processedImage = std::make_shared<Image>(std::move(path.directives.applyNewImage(*image)));
+          image->writePng(File::open(outputPath, IOMode::Write));
+          Logger::info("root.saveAssetPathToImage: Saved output image to {}", outputPath);
+          return true;
+        } else {
+          Logger::error("root.saveAssetPathToImage: Base image asset not found.");
+        }
+      }
+    }
+  } catch (std::exception const& e) {
+    Logger::error("root.saveAssetPathToImage: Error saving asset path to image: {}", e.what());
+  }
+  return false;
 }
 
 RectU LuaBindings::RootCallbacks::nonEmptyRegion(Root* root, String const& arg1) {
