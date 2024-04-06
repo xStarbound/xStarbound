@@ -323,6 +323,10 @@ bool LuaBindings::RootCallbacks::saveAssetPathToImage(Root* root, String const& 
   if (arg3)
     byFrame = *arg3;
   auto assets = root->assets();
+  if (!File::isDirectory(root->toStoragePath("sprites"))) {
+    Logger::info("root.saveAssetPathToImage: Creating sprite export directory.");
+    File::makeDirectory(root->toStoragePath("sprites"));
+  }
   if (File::baseName(arg2) == "") {
     Logger::error("root.saveAssetPathToImage: Must specify a valid filename.");
     return false;
@@ -335,7 +339,7 @@ bool LuaBindings::RootCallbacks::saveAssetPathToImage(Root* root, String const& 
       if (image) {
         // auto processedImage = std::make_shared<Image>(std::move(path.directives.applyNewImage(*image)));
         image->writePng(File::open(outputPath, IOMode::Write));
-        Logger::info("root.saveAssetPathToImage: Saved output image to {}", outputPath);
+        Logger::info("root.saveAssetPathToImage: Saved output image to '{}'.", outputPath);
         return true;
       } else {
         Logger::error("root.saveAssetPathToImage: Base image asset not found.");
@@ -356,7 +360,7 @@ bool LuaBindings::RootCallbacks::saveAssetPathToImage(Root* root, String const& 
             newImage->copyInto(framePos, *frameImage);
           }
           newImage->writePng(File::open(outputPath, IOMode::Write));
-          Logger::info("root.saveAssetPathToImage: Saved output image with by-frame directives to {}", outputPath);
+          Logger::info("root.saveAssetPathToImage: Saved output image with by-frame directives to '{}'.", outputPath);
           return true;
         } else {
           Logger::error("root.saveAssetPathToImage: Base image asset not found.");
@@ -366,7 +370,7 @@ bool LuaBindings::RootCallbacks::saveAssetPathToImage(Root* root, String const& 
         if (image) {
           // auto processedImage = std::make_shared<Image>(std::move(path.directives.applyNewImage(*image)));
           image->writePng(File::open(outputPath, IOMode::Write));
-          Logger::info("root.saveAssetPathToImage: Saved output image to {}", outputPath);
+          Logger::info("root.saveAssetPathToImage: Saved output image to '{}'.", outputPath);
           return true;
         } else {
           Logger::error("root.saveAssetPathToImage: Base image asset not found.");
