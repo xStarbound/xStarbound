@@ -27,6 +27,7 @@ namespace LuaBindings {
     double evalFunction2(Root* root, String const& arg1, double arg2, double arg3);
     Vec2U imageSize(Root* root, String const& arg1);
     List<Vec2I> imageSpaces(Root* root, String const& arg1, Vec2F const& arg2, float arg3, bool arg4);
+    bool saveAssetPathToImage(Root* root, String const& arg1, Maybe<bool> arg2);
     RectU nonEmptyRegion(Root* root, String const& arg1);
     Json npcConfig(Root* root, String const& arg1);
     float projectileGravityMultiplier(Root* root, String const& arg1);
