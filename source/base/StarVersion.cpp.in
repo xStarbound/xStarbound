@@ -5,6 +5,9 @@ namespace Star {
 char const* const StarVersionString = "1.4.4";
 char const* const StarSourceIdentifierString = "${STAR_SOURCE_IDENTIFIER}";
 char const* const StarArchitectureString = "${STAR_SYSTEM} ${STAR_ARCHITECTURE}";
-char const* const xSbVersionString = "2.4.0.3";
+// FezzedOne: The version of the *binaries*. Don't update this for releases that don't affect the binaries.
+char const* const xSbVersionString = "2.4.1";
+// FezzedOne: The version of the *assets*. Don't update this for releases that don't affect the assets.
+char const* const xSbAssetVersionString = "2.4.1";
 
 }

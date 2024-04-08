@@ -4,5 +4,5 @@
   "priority" : -9999,
   "friendlyName" : "xSB-2 Assets",
   "requires" : ["base"],
-  "version" : "2.4.0.3"
+  "version" : "2.4.1"
 }

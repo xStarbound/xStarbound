@@ -50,6 +50,7 @@ public:
 
   void offer();
   void declineOffer();
+  void cancelOffer();
   void start();
   void complete(Maybe<size_t> followupIndex = {});
   void fail();

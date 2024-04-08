@@ -241,6 +241,14 @@ void Quest::declineOffer() {
   uninitScript();
 }
 
+// OpenStarbound/Kae: Run the quest script's `questCancel` function, if any exists, when Esc is hit on a quest dialogue.
+// `questCancel` is for when a quest dialogue is merely closed, and does not signal declining the quest.
+void Quest::cancelOffer() {
+  setState(QuestState::New);
+  m_scriptComponent.invoke("questCancel");
+  uninitScript();
+}
+
 void Quest::start() {
   setState(QuestState::Active);
   initScript();
