@@ -52,6 +52,7 @@ protected:
 
   void commonSetup(Json config, String bodyText, String const& portraitName);
   virtual void close();
+  virtual void decline();
   virtual void accept();
   virtual PanePtr createTooltip(Vec2I const& screenPosition) override;
 
@@ -61,16 +62,21 @@ protected:
 
 class NewQuestInterface : public QuestPane {
 public:
+  enum class QuestDecision { Declined, Accepted, Cancelled };
+
   NewQuestInterface(QuestManagerPtr const& manager, QuestPtr const& quest, PlayerPtr player);
 
 protected:
   void close() override;
+  void decline() override;
   void accept() override;
   void dismissed() override;
 
 private:
   QuestManagerPtr m_manager;
-  bool m_declined;
+  // Kae/OpenStarbound: Hitting Esc on a quest dialogue no longer automatically declines the quest, but simply 'sets it aside' for later.
+  QuestDecision m_decision;
+  // bool m_declined;
 };
 
 class QuestCompleteInterface : public QuestPane {

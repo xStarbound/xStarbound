@@ -122,6 +122,8 @@ void TeamBar::updatePlayerResources() {
     } else {
       m_foodBar->setOverlay("");
     }
+    // From OpenStarbound: Show the hunger meter when swapping to a character that can get hungry.
+    m_foodBar->show();
   } else {
     m_foodBar->hide();
   }
