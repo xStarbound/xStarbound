@@ -2,7 +2,7 @@
 
 #define XSBName "xSB-2"
 ; Note: Tick this version number every update. Use the higher of the asset version and binary version.
-#define XSBVersion "2.4.1"
+#define XSBVersion "2.4.1 stage 1"
 #define XSBPublisher "xSB-2 and OpenStarbound Contributors"
 #define XSBGitHubURL "https://github.com/FezzedOne/xSB-2"
 ; Set this to the location of your xSB-2 source code folder.
