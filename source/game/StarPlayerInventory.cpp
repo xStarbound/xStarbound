@@ -970,8 +970,10 @@ Map<String, uint64_t> PlayerInventory::itemSummary() const {
 }
 
 void PlayerInventory::cleanup() {
-  for (auto pair : m_bags)
-    pair.second->cleanup();
+  for (auto pair : m_bags) {
+    if (pair.second)
+      pair.second->cleanup();
+  }
 
   for (auto& p : m_equipment)
     if (p.second && p.second->empty())
