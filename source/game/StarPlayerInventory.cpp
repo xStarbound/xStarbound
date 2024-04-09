@@ -1106,8 +1106,13 @@ void PlayerInventory::netElementsNeedLoad(bool) {
   };
 
   auto deserializeItemList = [&](List<NetElementData<ItemDescriptor>>& netStatesList, List<ItemPtr>& itemList) {
-    for (size_t i = 0; i < netStatesList.size(); ++i)
-      deserializeItem(netStatesList[i], itemList[i]);
+    // FezzedOne: If the actual inventory is larger than the networked one, fill the remaining slots with empty items.
+    for (size_t i = 0; i < itemList.size(); ++i) {
+      if (i < netStatesList.size())
+        deserializeItem(netStatesList[i], itemList[i]);
+      else
+        break;
+    }
   };
 
   auto deserializeItemMap = [&](auto& netStatesMap, auto& itemMap) {
