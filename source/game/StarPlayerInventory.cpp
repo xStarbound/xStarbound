@@ -1153,6 +1153,12 @@ void PlayerInventory::netElementsNeedStore() {
     }
   };
 
+  auto serializeEmptyItemList = [&](List<NetElementData<ItemDescriptor>>& netStatesList) {
+    for (size_t i = 0; i < netStatesList.size(); ++i) {
+      netStatesList[i].set(ItemDescriptor());
+    }
+  };
+
   auto serializeItemMap = [&](auto& netStatesMap, auto& itemMap) {
     for (auto k : netStatesMap.keys())
       serializeItem(netStatesMap[k], itemMap[k]);
@@ -1160,8 +1166,13 @@ void PlayerInventory::netElementsNeedStore() {
 
   serializeItemMap(m_equipmentNetState, m_equipment);
 
-  for (auto bagType : m_bagsNetState.keys())
-    serializeItemList(m_bagsNetState[bagType], m_bags[bagType]->items());
+  for (auto bagType : m_bagsNetState.keys()) {
+    // Check if the bag exists in the player's real inventory. If not, fill it with empty slots.
+    if (m_bags[bagType])
+      serializeItemList(m_bagsNetState[bagType], m_bags[bagType]->items());
+    else
+      serializeEmptyItemList(m_bagsNetState[bagType]);
+  }
 
   serializeItem(m_swapSlotNetState, m_swapSlot);
   serializeItem(m_trashSlotNetState, m_trashSlot);
