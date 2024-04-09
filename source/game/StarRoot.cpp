@@ -692,6 +692,7 @@ StringList Root::scanForAssetSources(StringList const& directories) {
   // Throw exceptions and close the game if there's an xSB-2 asset version mismatch or the xSB-2 or base game assets aren't found.
   bool xSbAssetsFound = false;
   bool baseAssetsFound = false;
+  String expectedXSbAssetVersion = String(xSbAssetVersionString);
   for (auto const& source : dependencySortedSources) {
     if (source->name) {
       if (*source->name == "base") {
@@ -700,15 +701,15 @@ StringList Root::scanForAssetSources(StringList const& directories) {
       } else if (*source->name == "xSBassets") {
         xSbAssetsFound = true;
         if (source->version) {
-          if (*source->version == String(xSbAssetVersionString)) {
+          if (*source->version == expectedXSbAssetVersion) {
             Logger::info("Root: Detected xSB-2 assets, version '{}', at '{}'.", *source->version, source->path);
           } else {
             throw StarException("Root: Detected mismatched version '{}' of xSB-2 assets at '{}', expected version '{}'! Make sure xSB-2 is correctly installed and up to date.",
-              *source->version, source->path, String(xSbAssetVersionString));
+              *source->version, source->path, expectedXSbAssetVersion);
           }
         } else {
           throw StarException("Root: Detected non-versioned xSB-2 assets at '{}', expected version '{}'! Make sure xSB-2 is correctly installed and up to date.",
-            source->path, String(xSbAssetVersionString));
+            source->path, expectedXSbAssetVersion);
         }
       } else {
         Logger::info("Root: Detected asset source named '{}' at '{}'.", *source->name, source->path);
