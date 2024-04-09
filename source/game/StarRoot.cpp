@@ -704,7 +704,7 @@ StringList Root::scanForAssetSources(StringList const& directories) {
             Logger::info("Root: Detected xSB-2 assets, version '{}', at '{}'.", *source->version, source->path);
           } else {
             throw StarException("Root: Detected mismatched version '{}' of xSB-2 assets at '{}', expected version '{}'! Make sure xSB-2 is correctly installed and up to date.",
-              *source->version, *source->path, xSbAssetVersionString);
+              *source->version, source->path, xSbAssetVersionString);
           }
         } else {
           throw StarException("Root: Detected non-versioned xSB-2 assets at '{}', expected version '{}'! Make sure xSB-2 is correctly installed and up to date.",
