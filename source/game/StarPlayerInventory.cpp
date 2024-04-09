@@ -1117,8 +1117,11 @@ void PlayerInventory::netElementsNeedLoad(bool) {
 
   deserializeItemMap(m_equipmentNetState, m_equipment);
 
-  for (auto bagType : m_bagsNetState.keys())
-    deserializeItemList(m_bagsNetState[bagType], m_bags[bagType]->items());
+  // FezzedOne: Check to make sure the bag actually exists before deserialising anything into it.
+  for (auto bagType : m_bagsNetState.keys()) {
+    if (m_bags[bagType])
+      deserializeItemList(m_bagsNetState[bagType], m_bags[bagType]->items());
+  }
 
   deserializeItem(m_swapSlotNetState, m_swapSlot);
   deserializeItem(m_trashSlotNetState, m_trashSlot);
