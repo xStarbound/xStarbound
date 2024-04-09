@@ -700,7 +700,7 @@ StringList Root::scanForAssetSources(StringList const& directories) {
       } else if (*source->name == "xSBassets") {
         xSbAssetsFound = true;
         if (source->version) {
-          if (*source->version == xSbAssetVersionString) {
+          if (*source->version == String(xSbAssetVersionString)) {
             Logger::info("Root: Detected xSB-2 assets, version '{}', at '{}'.", *source->version, source->path);
           } else {
             throw StarException("Root: Detected mismatched version '{}' of xSB-2 assets at '{}', expected version '{}'! Make sure xSB-2 is correctly installed and up to date.",
@@ -708,7 +708,7 @@ StringList Root::scanForAssetSources(StringList const& directories) {
           }
         } else {
           throw StarException("Root: Detected non-versioned xSB-2 assets at '{}', expected version '{}'! Make sure xSB-2 is correctly installed and up to date.",
-            source->path, xSbAssetVersionString);
+            source->path, String(xSbAssetVersionString));
         }
       } else {
         Logger::info("Root: Detected asset source named '{}' at '{}'.", *source->name, source->path);
