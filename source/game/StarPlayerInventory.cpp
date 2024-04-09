@@ -1117,9 +1117,9 @@ void PlayerInventory::netElementsNeedLoad(bool) {
 
   deserializeItemMap(m_equipmentNetState, m_equipment);
 
-  // FezzedOne: Check to make sure the bag actually exists before deserialising anything into it.
+  // FezzedOne: Check to make sure the bag actually exists in the real inventory before deserialising anything into it.
   for (auto bagType : m_bagsNetState.keys()) {
-    if (m_bags[bagType])
+    if (m_bags.contains(bagType))
       deserializeItemList(m_bagsNetState[bagType], m_bags[bagType]->items());
   }
 
@@ -1173,7 +1173,7 @@ void PlayerInventory::netElementsNeedStore() {
 
   for (auto bagType : m_bagsNetState.keys()) {
     // Check if the bag exists in the player's real inventory. If not, fill it with empty slots.
-    if (m_bags[bagType])
+    if (m_bags.contains(bagType))
       serializeItemList(m_bagsNetState[bagType], m_bags[bagType]->items());
     else
       serializeEmptyItemList(m_bagsNetState[bagType]);
