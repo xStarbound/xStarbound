@@ -21,7 +21,7 @@ LuaCallbacks LuaBindings::makeUniverseServerCallbacks(UniverseServer* universe) 
   callbacks.registerCallbackWithSignature<bool, String>("isWorldActive", bind(UniverseServerCallbacks::isWorldActive, universe, _1));
   callbacks.registerCallbackWithSignature<StringList>("activeWorlds", bind(UniverseServerCallbacks::activeWorlds, universe));
   callbacks.registerCallbackWithSignature<RpcThreadPromise<Json>, String, String, LuaVariadic<Json>>("sendWorldMessage", bind(UniverseServerCallbacks::sendWorldMessage, universe, _1, _2, _3));
-  callbacks.registerCallbackWithSignature<String, ConnectionId>("clientWorld", bind(UniverseServerCallbacks::clientWorld, universe));
+  callbacks.registerCallbackWithSignature<String, ConnectionId>("clientWorld", bind(UniverseServerCallbacks::clientWorld, universe, _1));
 
   return callbacks;
 }
@@ -129,9 +129,9 @@ RpcThreadPromise<Json> LuaBindings::UniverseServerCallbacks::sendWorldMessage(Un
 
 // ErodeesFleurs: Returns the world a given player is located on.
 //
-// @param clientId The connection ID to check.
+// @param connectionId The connection ID to check.
 // @return A world ID string.
-String LuaBindings::UniverseServerCallbacks::clientWorld(UniverseServer* universe, ConnectionId clientId) {
+String LuaBindings::UniverseServerCallbacks::clientWorld(UniverseServer* universe, ConnectionId connectionId) {
   return printWorldId(universe->clientWorld(clientId));
 }
 
