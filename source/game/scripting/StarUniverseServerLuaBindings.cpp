@@ -132,7 +132,7 @@ RpcThreadPromise<Json> LuaBindings::UniverseServerCallbacks::sendWorldMessage(Un
 // @param connectionId The connection ID to check.
 // @return A world ID string.
 String LuaBindings::UniverseServerCallbacks::clientWorld(UniverseServer* universe, ConnectionId connectionId) {
-  return printWorldId(universe->clientWorld(clientId));
+  return printWorldId(universe->clientWorld(connectionId));
 }
 
 }
