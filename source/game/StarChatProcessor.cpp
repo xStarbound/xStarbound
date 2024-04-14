@@ -1,4 +1,5 @@
 #include "StarChatProcessor.hpp"
+#include "StarShellParser.hpp"
 
 namespace Star {
 
@@ -231,11 +232,53 @@ bool ChatProcessor::handleCommand(ChatReceivedMessage& message) {
     auto newNick = renick(message.fromConnection, commandLine.trim());
     response = strf("Nick changed to {}", newNick);
   } else if (command == "w") {
-    String target = commandLine.extract();
-    if (m_nicks.contains(target))
-      whisper(message.fromConnection, m_nicks.get(target), commandLine.trim());
-    else
-      response = strf("No such nick {}", target);
+    // FezzedOne: Fixed the inability to whisper players with spaces in their names.
+    ShellParser parser;
+    StringList args = parser.tokenizeToStringList(commandLine);
+    String target = args.get(0, "");
+    if (!commandLine.empty()) {
+      String chatText;
+      // Strip the whispered name from the command line to obtain the chat text.
+      try {
+        if (commandLine.at(0) == '\"' || commandLine.at(0) == '\'') {
+          String::Char quote = commandLine.at(0);
+          chatText = commandLine.substr(1);
+          size_t quotePos = 0;
+          size_t escapePos = 0;
+          while (quotePos != NPos) { // Keep looping until we run out of characters or find the matching unescaped quote.
+            quotePos = chatText.find(quote, quotePos + 1);
+            if (chatText.at(quotePos - 1) != '\\') // We've found the actual end quote.
+              break;
+          }
+          if (quotePos != NPos)
+            chatText = chatText.substr(quotePos + 2);
+          else
+            chatText = "";
+        } else {
+          String::Char space = ' ';
+          chatText = commandLine;
+          size_t spacePos = 0;
+          size_t escapePos = 0;
+          while (spacePos != NPos) { // Keep looping until we run out of characters or find a terminating space.
+            spacePos = chatText.find(space, spacePos + 1);
+            if (chatText.at(spacePos - 1) != '\\') // We've found the actual terminating space.
+              break;
+          }
+          if (spacePos != NPos)
+            chatText = chatText.substr(spacePos + 1);
+          else
+            chatText = "";
+        }
+      } catch (OutOfRangeException const& e) {
+        chatText = "";
+      }
+      if (m_nicks.contains(target))
+        whisper(message.fromConnection, m_nicks.get(target), chatText);
+      else
+        response = strf("No such nick {}", target);
+    } else {
+      response = "Must specify a nick";
+    }
   } else if (m_commandHandler) {
     response = m_commandHandler(message.fromConnection, command, commandLine);
   } else {

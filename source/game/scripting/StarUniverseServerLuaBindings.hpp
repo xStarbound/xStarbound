@@ -23,6 +23,7 @@ namespace LuaBindings {
     bool isAdmin(UniverseServer* universe, ConnectionId arg1);
     bool isPvp(UniverseServer* universe, ConnectionId arg1);
     void setPvp(UniverseServer* universe, ConnectionId arg1, Maybe<bool> arg2);
+    bool isLocal(UniverseServer* universe, ConnectionId arg1);
     bool isWorldActive(UniverseServer* universe, String const& worldId);
     StringList activeWorlds(UniverseServer* universe);
     RpcThreadPromise<Json> sendWorldMessage(UniverseServer* universe, String const& worldId, String const& message, LuaVariadic<Json> args);
