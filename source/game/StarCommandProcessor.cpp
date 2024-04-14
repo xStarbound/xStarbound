@@ -1021,6 +1021,8 @@ LuaCallbacks CommandProcessor::makeCommandCallbacks() {
   LuaCallbacks callbacks;
   callbacks.registerCallbackWithSignature<Maybe<String>, ConnectionId, String>(
       "adminCheck", bind(&CommandProcessor::adminCheck, this, _1, _2));
+  callbacks.registerCallbackWithSignature<Maybe<String>, ConnectionId, String>(
+      "localCheck", bind(&CommandProcessor::localCheck, this, _1, _2));
   return callbacks;
 }
 

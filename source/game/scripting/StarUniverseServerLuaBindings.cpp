@@ -18,6 +18,7 @@ LuaCallbacks LuaBindings::makeUniverseServerCallbacks(UniverseServer* universe) 
   callbacks.registerCallbackWithSignature<bool, ConnectionId>("isAdmin", bind(UniverseServerCallbacks::isAdmin, universe, _1));
   callbacks.registerCallbackWithSignature<bool, ConnectionId>("isPvp", bind(UniverseServerCallbacks::isPvp, universe, _1));
   callbacks.registerCallbackWithSignature<void, ConnectionId, bool>("setPvp", bind(UniverseServerCallbacks::setPvp, universe, _1, _2));
+  callbacks.registerCallbackWithSignature<bool, ConnectionId>("isLocal", bind(UniverseServerCallbacks::isLocal, universe, _1));
   callbacks.registerCallbackWithSignature<bool, String>("isWorldActive", bind(UniverseServerCallbacks::isWorldActive, universe, _1));
   callbacks.registerCallbackWithSignature<StringList>("activeWorlds", bind(UniverseServerCallbacks::activeWorlds, universe));
   callbacks.registerCallbackWithSignature<RpcThreadPromise<Json>, String, String, LuaVariadic<Json>>("sendWorldMessage", bind(UniverseServerCallbacks::sendWorldMessage, universe, _1, _2, _3));
@@ -111,10 +112,25 @@ void LuaBindings::UniverseServerCallbacks::setPvp(UniverseServer* universe, Conn
   universe->setPvp(client, setPvpTo);
 }
 
+// Returns whether the user is local (i.e., the user's client is also the server)
+//
+// @param clientId The connection ID to check.
+// @return A boolean containing true if the client in question is also the server, false otherwise.
+bool LuaBindings::UniverseServerCallbacks::isLocal(UniverseServer* universe, ConnectionId arg1) {
+  return universe->isLocal(arg1);
+}
+
+// Returns whether the user is local (i.e., the user's client is also the server).
+//
+// @param worldId The world ID to check.
+// @return A boolean containing true if the world is active, false otherwise.
 bool LuaBindings::UniverseServerCallbacks::isWorldActive(UniverseServer* universe, String const& worldId) {
   return universe->isWorldActive(parseWorldId(worldId));
 }
 
+// Returns whether the user is local (i.e., the user's client is also the server)
+//
+// @return A list of active world IDs.
 StringList LuaBindings::UniverseServerCallbacks::activeWorlds(UniverseServer* universe) {
   StringList worlds;
   for (WorldId& world : universe->activeWorlds())
@@ -123,6 +139,12 @@ StringList LuaBindings::UniverseServerCallbacks::activeWorlds(UniverseServer* un
   return worlds;
 }
 
+// Sends a message to a world, returning an RPC promise for that message. Similar to world.sendEntityMessage, but the target is a world's global context and it may be used by universe server scripts.
+//
+// @param worldId The target world ID to which to send the message.
+// @param message A string containing the message name.
+// @param args... Optional JSON arguments.
+// @return An RPC promise for the sent world message.
 RpcThreadPromise<Json> LuaBindings::UniverseServerCallbacks::sendWorldMessage(UniverseServer* universe, String const& worldId, String const& message, LuaVariadic<Json> args) {
   return universe->sendWorldMessage(parseWorldId(worldId), message, JsonArray::from(move(args)));
 }

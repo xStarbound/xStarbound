@@ -8,6 +8,7 @@
 #include "StarChatTypes.hpp"
 #include "StarUniverseClient.hpp"
 #include "StarChat.hpp"
+#include "StarShellParser.hpp"
 
 namespace Star {
 
@@ -20,6 +21,12 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface) {
       bool suppressBubbleBool = suppressBubble.value(false);
       mainInterface->universeClient()->sendChat(text, sendModeStr, suppressBubbleBool);
     });
+
+  // FezzedOne: For compatibility with the StarExtensions callback of the same name.
+  callbacks.registerCallback("parseArguments", [mainInterface](String const& argumentString) -> Json {
+    ShellParser parser;
+    return jsonFromStringList(parser.tokenizeToStringList(argumentString));
+  });
 
   // FezzedOne: Sends a chat message *exactly* as if it were sent through the vanilla chat interface, returning any *client-side*
   // command results as a list of strings. Intended for compatibility with SE's `chat.command`.
