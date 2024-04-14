@@ -230,7 +230,9 @@ Vec2U ImageMetadataDatabase::calculateImageSize(AssetPath const& path) const {
     }
 
     void operator()(ScaleImageOperation const& sio) {
-      imageSize = Vec2U::round(vmult(Vec2F(imageSize), sio.scale));
+      // FezzedOne: Minor optimisation.
+      if (sio.scale != Vec2F(1.0f, 1.0f))
+        imageSize = Vec2U::round(vmult(Vec2F(imageSize), sio.scale));
     }
 
     void operator()(CropImageOperation const& cio) {
