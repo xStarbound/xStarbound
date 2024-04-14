@@ -41,6 +41,7 @@
 #include "StarConfiguration.hpp"
 #include "StarUniverseClient.hpp"
 #include "StarTeamClient.hpp"
+#include "StarImageProcessing.hpp"
 
 namespace Star {
 
@@ -458,11 +459,49 @@ List<Drawable> Player::drawables() const {
     drawables.appendAll(m_techController->backDrawables());
     if (!m_techController->parentHidden()) {
       m_tools->setupHumanoidHandItemDrawables(*m_humanoid);
+
+      // FezzedOne: Detect any `?scalenearest` drawables without a `skip` parameter and handle them separately.
+      DirectivesGroup humanoidDirectives;
+      Vec2F humanoidScale = Vec2F::filled(1.0f);
+
+      auto extractScaleDirectives = [&](Directives const& directives) -> pair<Vec2F, Directives> {
+        Vec2F finalScale = Vec2F::filled(1.0f);
+        
+        if (!directives)
+          return make_pair(finalScale, Directives());
+        
+        for (auto& entry : directives.shared->entries) {
+          ScaleImageOperation* op = const_cast<ScaleImageOperation*>(entry.loadOperation(*directives.shared).ptr<ScaleImageOperation>());
+          if (op) {
+            if (op->mode == ScaleImageOperation::Nearest) /* Not `NearestPixel`. */ {
+              finalScale = finalScale.piecewiseMultiply(op->rawScale);
+              op->scale = Vec2F::filled(1.0f);
+            }
+          }
+          entry.operation = *op;
+        }
+
+        return make_pair(finalScale, directives);
+      };
+
+      auto extractScaleFromDirectives = [&](List<Directives> const& directivesList) {
+        for (auto& directives : directivesList) {
+          auto result = extractScaleDirectives(directives);
+          humanoidScale = humanoidScale.piecewiseMultiply(result.first);
+          humanoidDirectives.append(result.second);
+        }
+      };
+
+      extractScaleFromDirectives(m_techController->parentDirectives().list());
+      extractScaleFromDirectives(m_statusController->parentDirectives().list());
+
       for (auto& drawable : m_humanoid->render(true, true, playerAimAngle)) {
+        drawable.scale(humanoidScale);
         drawable.translate(position() + m_techController->parentOffset());
         if (drawable.isImage()) {
-          drawable.imagePart().addDirectivesGroup(m_techController->parentDirectives(), true);
-          drawable.imagePart().addDirectivesGroup(m_statusController->parentDirectives(), true);
+          drawable.imagePart().addDirectivesGroup(humanoidDirectives, true);
+          // drawable.imagePart().addDirectivesGroup(m_techController->parentDirectives(), true);
+          // drawable.imagePart().addDirectivesGroup(m_statusController->parentDirectives(), true);
 
           if (auto anchor = as<LoungeAnchor>(m_movementController->entityAnchor())) {
             if (auto& directives = anchor->directives)

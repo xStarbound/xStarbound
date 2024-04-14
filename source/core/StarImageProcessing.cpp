@@ -30,7 +30,6 @@ Image scaleNearest(Image const& srcImage, Vec2F const& scale) {
   }
 }
 
-// FezzedOne: Need to disable Clang optimisations to ensure proper rendering of custom clothes, which depends on this code working *exactly* as specified.
 Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
   if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
     Vec2U srcSize = srcImage.size();
@@ -325,6 +324,11 @@ ImageOperation imageOperationFromString(StringView string) {
 
     } else if (type == "scalenearest" || type == "scalebilinear" || type == "scalebicubic" || type == "scale") {
       Vec2F scale;
+      // Check if the operation is an explicit «nearest pixel» operation. If so, it will be ignored by the humanoid scale directive handler.
+      bool isNearestPixel = false;
+      const String skipArgStr = "skip";
+      if (bits.remove(skipArgStr))
+        isNearestPixel = true;
       if (bits.size() == 2)
         scale = Vec2F::filled(lexicalCast<float>(bits.at(1)));
       else
@@ -332,13 +336,13 @@ ImageOperation imageOperationFromString(StringView string) {
 
       ScaleImageOperation::Mode mode;
       if (type == "scalenearest")
-        mode = ScaleImageOperation::Nearest;
+        mode = isNearestPixel ? ScaleImageOperation::NearestPixel : ScaleImageOperation::Nearest;
       else if (type == "scalebicubic")
         mode = ScaleImageOperation::Bicubic;
       else
         mode = ScaleImageOperation::Bilinear;
 
-      return ScaleImageOperation{mode, scale};
+      return ScaleImageOperation{mode, scale, scale};
 
     } else if (type == "crop") {
       return CropImageOperation{RectI(lexicalCast<float>(bits.at(1)), lexicalCast<float>(bits.at(2)),
@@ -404,11 +408,14 @@ String imageOperationToString(ImageOperation const& operation) {
       return strf("border={};{};{}", op->pixels, Color::rgba(op->startColor).toHex(), Color::rgba(op->endColor).toHex());
   } else if (auto op = operation.ptr<ScaleImageOperation>()) {
     if (op->mode == ScaleImageOperation::Nearest)
-      return strf("scalenearest={}", op->scale);
+      return strf("scalenearest={}", op->rawScale);
+    // FezzedOne: Faithfully translate explicit nearest-pixel ops with their `skip` argument.
+    else if (op->mode == ScaleImageOperation::NearestPixel)
+      return strf("scalenearest={};skip", op->rawScale);
     else if (op->mode == ScaleImageOperation::Bilinear)
-      return strf("scalebilinear={}", op->scale);
+      return strf("scalebilinear={}", op->rawScale);
     else if (op->mode == ScaleImageOperation::Bicubic)
-      return strf("scalebicubic={}", op->scale);
+      return strf("scalebicubic={}", op->rawScale);
   } else if (auto op = operation.ptr<CropImageOperation>()) {
     return strf("crop={};{};{};{}", op->subset.xMin(), op->subset.xMax(), op->subset.yMin(), op->subset.yMax());
   } else if (auto op = operation.ptr<FlipImageOperation>()) {
@@ -627,12 +634,12 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     image = borderImage;
 
   } else if (auto op = operation.ptr<ScaleImageOperation>()) {
-    if (op->mode == ScaleImageOperation::Nearest)
-      image = scaleNearest(image, op->scale);
-    else if (op->mode == ScaleImageOperation::Bilinear)
+    if (op->mode == ScaleImageOperation::Bilinear)
       image = scaleBilinear(image, op->scale);
     else if (op->mode == ScaleImageOperation::Bicubic)
       image = scaleBicubic(image, op->scale);
+    else // FezzedOne: It's either `Nearest` or `NearestPixel`, which should be treated the same here.
+      image = scaleNearest(image, op->scale);
 
   } else if (auto op = operation.ptr<CropImageOperation>()) {
     image = image.subImage(Vec2U(op->subset.min()), Vec2U(op->subset.size()));

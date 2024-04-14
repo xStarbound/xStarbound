@@ -773,7 +773,6 @@ void PlayerInventory::load(Json const& store) {
   m_equipment[EquipmentSlot::LegsCosmetic] = itemDatabase->diskLoad(store.get("legsCosmeticSlot"));
   m_equipment[EquipmentSlot::BackCosmetic] = itemDatabase->diskLoad(store.get("backCosmeticSlot"));
 
-  //reuse ItemBags so the Inventory pane still works after load()'ing into the same PlayerInventory again (from swap)
   auto itemBags = store.get("itemBags").toObject();
   eraseWhere(m_bags, [&](auto const& p) { return !itemBags.contains(p.first); });
   // FezzedOne: Load any saved overflow.
