@@ -849,7 +849,7 @@ private:
         operations = {
           FlipImageOperation{ FlipImageOperation::Mode::FlipY }, // SDL wants an Australian cursor.
           BorderImageOperation{ 1, Vec4B(), Vec4B(), false, false }, // Nearest scaling fucks up and clips half off the edges, work around this with border+crop for now.
-          ScaleImageOperation{ ScaleImageOperation::Mode::Nearest, Vec2F::filled(scale) },
+          ScaleImageOperation{ ScaleImageOperation::Mode::Nearest, Vec2F::filled(scale), Vec2F::filled(scale) },
           CropImageOperation{ RectI::withSize(Vec2I::filled(ceilf((float)scale / 2)), Vec2I(imageSize)) }
         };
       else

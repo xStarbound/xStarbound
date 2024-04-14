@@ -479,10 +479,47 @@ void Npc::render(RenderCallback* renderCallback) {
     renderLayer = loungeAnchor->loungeRenderLayer;
 
   m_tools->setupHumanoidHandItemDrawables(m_humanoid);
+
+  // FezzedOne: Detect any `?scalenearest` drawables without a `skip` parameter and handle them separately.
+  DirectivesGroup humanoidDirectives;
+  Vec2F humanoidScale = Vec2F::filled(1.0f);
+
+  auto extractScaleDirectives = [&](Directives const& directives) -> pair<Vec2F, Directives> {
+    Vec2F finalScale = Vec2F::filled(1.0f);
+    
+    if (!directives)
+      return make_pair(finalScale, Directives());
+    
+    for (auto& entry : directives.shared->entries) {
+      ScaleImageOperation* op = const_cast<ScaleImageOperation*>(entry.loadOperation(*directives.shared).ptr<ScaleImageOperation>());
+      if (op) {
+        if (op->mode == ScaleImageOperation::Nearest) /* Not `NearestPixel`. */ {
+          finalScale = finalScale.piecewiseMultiply(op->rawScale);
+          op->scale = Vec2F::filled(1.0f);
+        }
+      }
+      entry.operation = *op;
+    }
+
+    return make_pair(finalScale, directives);
+  };
+
+  auto extractScaleFromDirectives = [&](List<Directives> const& directivesList) {
+    for (auto& directives : directivesList) {
+      auto result = extractScaleDirectives(directives);
+      humanoidScale = humanoidScale.piecewiseMultiply(result.first);
+      humanoidDirectives.append(result.second);
+    }
+  };
+
+  extractScaleFromDirectives(m_statusController->parentDirectives().list());
+
   for (auto& drawable : m_humanoid.render()) {
+    drawable.scale(humanoidScale);
     drawable.translate(position());
     if (drawable.isImage())
-      drawable.imagePart().addDirectivesGroup(m_statusController->parentDirectives(), true);
+      drawable.imagePart().addDirectivesGroup(humanoidDirectives, true);
+      // drawable.imagePart().addDirectivesGroup(m_statusController->parentDirectives(), true);
     renderCallback->addDrawable(move(drawable), renderLayer);
   }
 
@@ -521,6 +558,10 @@ DamageBarType Npc::damageBar() const {
 
 List<Drawable> Npc::portrait(PortraitMode mode) const {
   return m_humanoid.renderPortrait(mode);
+}
+
+List<Drawable> Npc::renderHumanoid(bool withItems, bool withRotation) {
+  return m_humanoid.render(withItems, withRotation);
 }
 
 String Npc::name() const {

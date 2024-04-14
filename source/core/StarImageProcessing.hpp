@@ -117,11 +117,14 @@ struct ScaleImageOperation {
   enum Mode {
     Nearest,
     Bilinear,
-    Bicubic
+    Bicubic,
+    // FezzedOne: Unlike `Nearest`, ignores humanoid pre-scaling.
+    NearestPixel
   };
 
   Mode mode;
   Vec2F scale;
+  Vec2F rawScale;
 };
 
 struct CropImageOperation {

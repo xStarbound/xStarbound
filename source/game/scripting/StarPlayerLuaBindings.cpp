@@ -121,6 +121,10 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
     player->setPersonality(parsePersonality(newPersonality, personalityConfig));
   });
 
+  // From OpenStarbound/Kae: Callbacks for getting and setting the player difficulty mode.
+  callbacks.registerCallback(   "mode", [player]()                       { return PlayerModeNames.getRight(player->modeType());    });
+  callbacks.registerCallback("setMode", [player](String const& modeName) { player->setModeType(PlayerModeNames.getLeft(modeName)); });
+
   callbacks.registerCallback(   "identity", [player]() -> Json { return player->getIdentity(); });
   callbacks.registerCallback("getIdentity", [player]() -> Json { return player->getIdentity(); }); // Exists for mod compatibility reasons.
   callbacks.registerCallback("setIdentity", [player](Json const &newIdentity) { player->setIdentity(newIdentity); });
