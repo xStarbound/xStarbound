@@ -1,0 +1,19 @@
+[
+    {
+        "op": "move",
+        "from": "/adminCommands/unbanuuiud",
+        "path": "/adminCommands/unbanuuid"
+    },
+    {
+        "op": "remove",
+        "path": "/debugCommands/entityeval"
+    },
+    {
+        "op": "remove",
+        "path": "/debugCommands/eval"
+    },
+    {
+        "op": "remove",
+        "path": "/debugCommands/togglelayer"
+    }
+]

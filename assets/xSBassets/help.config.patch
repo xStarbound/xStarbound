@@ -1,5 +1,41 @@
 {
   "basicHelpText" : "Basic commands are: {}",
   "adminHelpText" : "Admin commands are: {}",
-  "debugHelpText" : "Debug commands are: {}"
+  "debugHelpText" : "Debug commands are: {}",
+
+  "basicCommands" : {
+    "xsb": "Usage /xsb <subcommand>. Returns the running version of xClient and provides basic help for xSB-2's client and server commands. Client-side; requires xClient.",
+    "xserver": "Usage /xserver. Returns the running version of xServer or xClient on the server or host.",
+    "identity": "Usage /identity [subcommand]. Changes the player's identity. Invoke without a subcommand for help. Client-side; requires xClient. Changing the character's species with this command does not change his or her ship, and may cause some issues with mods.",
+    "description": "Usage /description <new description>. Views or changes the player's description; invoke without an argument to view the current description. Descriptions containing spaces (i.e., most of them) must either be quoted or have the spaces escaped. This description shows up when anyone else uses a scanning or inspection tool on the player on xClient, OpenStarbound, starlight and StarExtensions clients, and also shows up with certain modded tools on vanilla clients.",
+    "gamemode": "Usage /gamemode <mode>. Displays the character's game mode. If a mode is specified and the player is an admin, the command lets the player change his or her game mode. The mode must be one of: casual, survival, hardcore. Client-side; requires xClient.",
+    "render": "Usage /render [subcommand or directive string]. Renders armour directives or directive strings to PNG files in $storageDir/sprites. Useful for recovering sprites. Invoke without an argument for help. Client-side; requires xClient.",
+    "mute": "Usage /mute [name or subcommand]. Mutes a speaker by name or UUID. Invoke /mute by itself for subcommand help. Client-side; requires xClient.",
+    "unmute": "Usage /unmute [name or subcommand]. Unmutes a speaker by name or UUID. Invoke /unmute by itself for subcommand help. Client-side; requires xClient.",
+    "listmutes": "Usage /listmutes. Lists muted speakers. Client-side; requires xClient.",
+    "voice": "Usage /voice [subcommand]. Changes xClient's voice chat settings. Invoke /voice by itself for subcommand help. Client-side; requires xClient.",
+    "who": "Usage /who. Lists all players on the server.",
+    "nick": "Usage /nick [new nickname]. Sets the player's nickname to the one specified. The nickname does not to have spaces escaped or quoted.",
+    "w": "Usage /w [player name] [message]. Whispers to the player with the specified nickname. Spaces and the like in the nickname must be appropriately escaped or quoted. The message, on the other hand, does not need to be escaped or quoted.",
+    "world": "Usage /world. Lists all players on the same world as the player invoking the command.",
+    "swap": "Usage /swap [name or part of name]. Swaps to the first character whose name contains the specified argument, if any such character exists. Spaces and the like must be appropriately escaped or quoted.",
+    "swapuuid": "Usage /swap [UUID]. Swaps to the character with the specified UUID, if the character exists. The UUID specified must be the character's real UUID, not the vanity UUID."
+  },
+
+  "adminCommands" : {
+    "serverexec": "Usage /serverexec <lua>. Evaluates given Lua in the universe server's context. xServer only.",
+    "serverrun": "Usage /serverexec <lua>. Evaluates given Lua in the universe server's context. xServer only.",
+    "entityeval": "Usage /entityeval <lua>. Evaluates given Lua in the context of the closest server-side scripted entity to the cursor. Unavailable on non-xServer servers.",
+    "eval": "Usage /eval <lua>. Evaluates given Lua in the universe server's context. Unavailable on non-xServer servers.",
+    "list" : "Usage /list. List all clients connected to the server. Format is $clientId : serverNickname : $$playerUuid. If the serverNickname contains unprintable characters the unicode escape sequence for those characters will be displayed instead. If escape codes cause issues, check your client log.",
+    "exec": "Usage /exec <lua>. Evaluates given Lua in the client-side player context.",
+    "run": "Usage /run <lua>. Evaluates given Lua in the client-side player context.",
+    "warprandom": "Usage /warprandom [world type]. Warps the player to a random world of the given type.",
+    "addbiomeregion": "Usage /addbiomeregion [biome] [tile width] <sub-block selector>. Adds a region of the given biome centred at the player's position. Works much like a terraformer.",
+    "expandbiomeregion": "Usage /expandbiomeregion [new tile width]. Expands an existing biome region at the player's position. Works much like a terraformer.",
+    "updateplanettype": "Usage /updateplanettype [world ID] [new type] [new weather type]. Changes the planet type and weather biome of the given world.",
+    "setenvironmentbiome": "Usage /setenvironmentbiome. Used to ensure that the environment biome for the world layer the player is currently in is properly updated.",
+    "listworlds": "Usage /listworlds. Lists all currently loaded worlds on the server.",
+    "listworld": "Usage /listworld [world ID]. Lists all players currently on the given world. Format is $clientId : serverNickname : $$playerUuid. Unicode characters in nicknames won't be escaped; use /list for that. If escape codes cause issues, check your client log."
+  }
 }

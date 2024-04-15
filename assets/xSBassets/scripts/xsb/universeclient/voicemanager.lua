@@ -128,7 +128,8 @@ local function drawIndicators()
 	end
 
 	local speakerCount = 0
-	for i, speaker in pairs(voice.speakers()) do
+	local showAllSpeakers = root.getConfiguration("voiceShowAllSpeakers")
+	for i, speaker in pairs(voice.speakers(not showAllSpeakers)) do
 		local speakerId = speaker.speakerId
 		speakersRemaining[speakerId] = true
 		if speakerId == hoveredSpeakerId then
@@ -159,10 +160,10 @@ local function drawIndicators()
 	end
 end
 
-function module.init()
+function module:init()
 	canvas = interface.bindCanvas("voice", true)
 end
 
-function module.update()
+function module:update(dt)
 	drawIndicators()
 end
