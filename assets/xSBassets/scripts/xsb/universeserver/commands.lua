@@ -146,14 +146,15 @@ function commands.listworlds(cid, _)
     end
 end
 
-function commands.listworld(cid, worldId)
+function commands.listworld(cid, args)
     if universe.isAdmin(cid) then
         local hostType = checkHostType(cid)
         local connectionIds = universe.clientIds()
         local worldConnectionIds = {}
-        if worldId[1] then
+        local worldId = args[1] or universe.clientWorld(cid) 
+        if worldId then
             for _, connectionId in ipairs(connectionIds) do
-                if universe.clientWorld(connectionId) == worldId[1] then
+                if universe.clientWorld(connectionId) == worldId then
                     table.insert(worldConnectionIds, connectionId)
                 end
             end
@@ -163,7 +164,7 @@ function commands.listworld(cid, worldId)
                     .. tostring(playerCount)
                     .. (playerCount == 1 and " player" or " players")
                     .. " on world '"
-                    .. worldId[1]
+                    .. worldId
                     .. "':^reset;\n"
                 for n, connectionId in ipairs(worldConnectionIds) do
                     listing = listing
