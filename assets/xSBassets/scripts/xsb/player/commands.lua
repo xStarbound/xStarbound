@@ -17,9 +17,9 @@ function module:init()
     math.__showAllSpeakers = showAllSpeakers
     self.muteCheckInterval = root.getConfiguration("voiceMuteCheckInterval")
     if (not self.muteCheckInterval) or (type(self.muteCheckInterval) == "number" and self.muteCheckInterval < 0) then
-        root.setConfiguration("voiceMuteCheckInterval", 1.0)
+        root.setConfiguration("voiceMuteCheckInterval", 0.0)
     end
-    self.muteCheckInterval = self.muteCheckInterval or 1.0
+    self.muteCheckInterval = self.muteCheckInterval or 0.0
     self.oldMutes = jobject()
 end
 
@@ -721,23 +721,27 @@ local muteHelp = [===[^#f33;</mute>^reset;
 Usage:
 ^cyan;/mute [name]^reset;: Mute a player by name. Spaces must be quoted or escaped.
 ^cyan;/mute name [name]^reset;: Same as above, but allows a user named 'name' to be muted.
-^cyan;/mute uuid [uuid]^reset;: Mute a player by UUID. Must use the player's real UUID, not a vanity one.]===]
+^cyan;/mute uuid [uuid]^reset;: Mute a player by UUID. Must use the player's real UUID, not a vanity one.
+To turn on saved mutes, use ^cyan;/voice muteupdate [number above zero]^reset;. ]===]
 
 local invalidMuteHelp = [===[Invalid syntax. Usage:
 ^cyan;/mute [name]^reset;: Mute a player by name. Spaces must be quoted or escaped.
 ^cyan;/mute name [name]^reset;: Same as above, but allows a user named 'name' to be muted.
-^cyan;/mute uuid [uuid]^reset;: Mute a player by UUID. Must use the player's real UUID, not a vanity one.]===]
+^cyan;/mute uuid [uuid]^reset;: Mute a player by UUID. Must use the player's real UUID, not a vanity one.
+To turn on saved mutes, use ^cyan;/voice muteupdate [number above zero]^reset;. ]===]
 
 local unmuteHelp = [===[^#f33;</unmute>^reset;
 Usage:
 ^cyan;/unmute [name]^reset;: Unmute a player by name. Spaces must be quoted or escaped.
 ^cyan;/unmute name [name]^reset;: Same as above, but allows a user named 'name' to be unmuted.
-^cyan;/unmute uuid [uuid]^reset;: Unmute a player by UUID. Must use the player's real UUID, not a vanity one.]===]
+^cyan;/unmute uuid [uuid]^reset;: Unmute a player by UUID. Must use the player's real UUID, not a vanity one.
+To turn on saved mutes, use ^cyan;/voice muteupdate [number above zero]^reset;. ]===]
 
 local invalidUnmuteHelp = [===[Invalid syntax. Usage:
 ^cyan;/unmute [name]^reset;: Unmute a player by name. Spaces must be quoted or escaped.
 ^cyan;/unmute name [name]^reset;: Same as above, but allows a user named 'name' to be unmuted.
-^cyan;/unmute uuid [uuid]^reset;: Unmute a player by UUID. Must use the player's real UUID, not a vanity one.]===]
+^cyan;/unmute uuid [uuid]^reset;: Unmute a player by UUID. Must use the player's real UUID, not a vanity one.
+To turn on saved mutes, use ^cyan;/voice muteupdate [number above zero]^reset;. ]===]
 
 local function mute(rawArgs)
     local args = chat.parseArguments(rawArgs)
@@ -1010,11 +1014,11 @@ end
 local voiceHelp = [===[^#f33;</voice>^reset;
 Available subcommands:
 ^cyan;/voice showall [on/off]^reset;: Toggle whether to show all potential speakers in the voice UI, not just people actually speaking.
-^cyan;/voice muteupdate [seconds/off]^reset;: Set the interval in seconds at which saved mutes should be updated. Set this to ^cyan;0^reset; or ^cyan;off^reset; to turn saved mutes off.]===]
+^cyan;/voice muteupdate [seconds/off]^reset;: Set the interval in seconds at which saved mutes should be updated. Set this to ^cyan;0^reset; or ^cyan;off^reset; to turn saved mutes off, or to a non-zero value to turn them on.]===]
 
 local invalidVoiceHelp = [===[Invalid syntax. Valid subcommands:
 ^cyan;/voice showall [on/off]^reset;: Toggle whether to show all potential speakers in the voice UI, not just people actually speaking.
-^cyan;/voice muteupdate [seconds/off]^reset;: Set the interval in seconds at which saved mutes should be updated. Set this to ^cyan;0^reset; or ^cyan;off^reset; to turn saved mutes off.]===]
+^cyan;/voice muteupdate [seconds/off]^reset;: Set the interval in seconds at which saved mutes should be updated. Set this to ^cyan;0^reset; or ^cyan;off^reset; to turn saved mutes off, or to a non-zero value to turn them on.]===]
 
 local function voiceSettings(rawArgs)
     local args = chat.parseArguments(rawArgs)
