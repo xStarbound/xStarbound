@@ -104,6 +104,7 @@ public:
   DamageBarType damageBar() const override;
 
   List<Drawable> portrait(PortraitMode mode) const override;
+  List<Drawable> renderHumanoid(bool withItems, bool withRotation);
   String name() const override;
   Maybe<String> statusText() const override;
   bool displayNametag() const override;
