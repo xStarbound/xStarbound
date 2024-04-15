@@ -986,13 +986,19 @@ function module:update(dt)
         if self.muteCheckTimer >= self.muteCheckInterval then
             self.muteCheckTimer = 0
             local mutes = getSavedMutes()
-            for uuid, _ in pairs(mutes) do
-                local speakerId = speakerFromUuid(uuid)
-                if speakerId and not self.oldMutes[uuid] then voice.setSpeakerMuted(speakerId, true) end
-            end
-            for uuid, _ in pairs(self.oldMutes) do
-                local speakerId = speakerFromUuid(uuid)
-                if speakerId and not mutes[uuid] then voice.setSpeakerMuted(speakerId, false) end
+            for _, speaker in ipairs(voice.speakers(false)) do
+                local speakerUuid = uuidFromSpeaker(speaker.speakerId)
+                local muted = false
+                for uuid, _ in pairs(mutes) do
+                    if speakerUuid == uuid then
+                        voice.setSpeakerMuted(speaker.speakerId, true)
+                        muted = true
+                        break
+                    end
+                end
+                if not muted then
+                    voice.setSpeakerMuted(speaker.speakerId, false)
+                end
             end
             self.oldMutes = mutes
         end
