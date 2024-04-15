@@ -497,8 +497,8 @@ void Npc::render(RenderCallback* renderCallback) {
           finalScale = finalScale.piecewiseMultiply(op->rawScale);
           op->scale = Vec2F::filled(1.0f);
         }
+        entry.operation = *op;
       }
-      entry.operation = *op;
     }
 
     return make_pair(finalScale, directives);
