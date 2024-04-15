@@ -683,8 +683,8 @@ String CommandProcessor::serverReload(ConnectionId connectionId, String const&) 
 }
 
 String CommandProcessor::eval(ConnectionId connectionId, String const& lua) {
-  if (auto errorMsg = localCheck(connectionId, "execute server script"))
-    return *errorMsg;
+  // if (auto errorMsg = localCheck(connectionId, "execute server script"))
+  //   return *errorMsg;
 
   if (auto errorMsg = adminCheck(connectionId, "execute server script"))
     return *errorMsg;
@@ -693,8 +693,8 @@ String CommandProcessor::eval(ConnectionId connectionId, String const& lua) {
 }
 
 String CommandProcessor::entityEval(ConnectionId connectionId, String const& lua) {
-  if (auto errorMsg = localCheck(connectionId, "execute server entity script"))
-    return *errorMsg;
+  // if (auto errorMsg = localCheck(connectionId, "execute server entity script"))
+  //   return *errorMsg;
 
   if (auto errorMsg = adminCheck(connectionId, "execute server entity script"))
     return *errorMsg;
