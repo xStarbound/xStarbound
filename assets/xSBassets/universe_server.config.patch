@@ -1,0 +1,3 @@
+{
+    "commandProcessorScripts": ["/scripts/xsb/universeserver/commands.lua"]
+}
