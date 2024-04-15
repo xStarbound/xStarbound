@@ -2,6 +2,7 @@
 #include "StarJsonExtra.hpp"
 #include "StarLuaGameConverters.hpp"
 #include "StarUniverseServer.hpp"
+#include "StarUuid.hpp"
 
 namespace Star {
 
@@ -23,6 +24,7 @@ LuaCallbacks LuaBindings::makeUniverseServerCallbacks(UniverseServer* universe) 
   callbacks.registerCallbackWithSignature<StringList>("activeWorlds", bind(UniverseServerCallbacks::activeWorlds, universe));
   callbacks.registerCallbackWithSignature<RpcThreadPromise<Json>, String, String, LuaVariadic<Json>>("sendWorldMessage", bind(UniverseServerCallbacks::sendWorldMessage, universe, _1, _2, _3));
   callbacks.registerCallbackWithSignature<String, ConnectionId>("clientWorld", bind(UniverseServerCallbacks::clientWorld, universe, _1));
+  callbacks.registerCallbackWithSignature<Maybe<String>, ConnectionId>("clientUuid", bind(UniverseServerCallbacks::clientUuid, universe, _1));
 
   return callbacks;
 }
@@ -155,6 +157,17 @@ RpcThreadPromise<Json> LuaBindings::UniverseServerCallbacks::sendWorldMessage(Un
 // @return A world ID string.
 String LuaBindings::UniverseServerCallbacks::clientWorld(UniverseServer* universe, ConnectionId connectionId) {
   return printWorldId(universe->clientWorld(connectionId));
+}
+
+// Returns the UUID of a given client.
+//
+// @param connectionId The connection ID to check.
+// @return The UUID, or nil if the connection ID is not connected.
+Maybe<String> LuaBindings::UniverseServerCallbacks::clientUuid(UniverseServer* universe, ConnectionId connectionId) {
+  if (universe->isConnectedClient(connectionId))
+    return universe->uuidForClient(connectionId)->hex();
+  else
+    return {};
 }
 
 }
