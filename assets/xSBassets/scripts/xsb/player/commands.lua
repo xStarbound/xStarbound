@@ -78,11 +78,15 @@ Change character's game mode: ^cyan;/gamemode [casual/survival/hardcore]^reset; 
 View character description: ^cyan;/description^reset; (nothing after the command)
 Edit character description: ^cyan;/description [new description in quotes]^reset;]===]
     elseif subCommand == "voice" then
-        return [===[^#f33;<voice commands>^reset;
+        local voiceHelp = [===[^#f33;<voice commands>^reset;
 Mute speaker by name: ^cyan;/mute [name or part of name]^reset;
 Unmute speaker by name: ^cyan;/unmute [name of part of name]^reset;
 List muted speakers: ^cyan;/listmutes^reset;
 Adjust voice settings: ^cyan;/voice [subcommand]^reset; (invoke without subcommand for help)]===]
+        local muteCheck = root.getConfiguration("voiceMuteCheckInterval") == 0
+            or type(root.getConfiguration("voiceMuteCheckInterval")) ~= "number"
+        voiceHelp = voiceHelp .. (muteCheck and "\nRun ^cyan;/voice muteupdate 1^reset; to turn saved mutes on." or "")
+        return voiceHelp
     elseif subCommand == "server" then
         return [===[^#f33;<server commands>^reset;
 These commands require xServer or xClient on the server/host.
@@ -1000,9 +1004,7 @@ function module:update(dt)
                         break
                     end
                 end
-                if not muted then
-                    voice.setSpeakerMuted(speaker.speakerId, false)
-                end
+                if not muted then voice.setSpeakerMuted(speaker.speakerId, false) end
             end
             self.oldMutes = mutes
         end

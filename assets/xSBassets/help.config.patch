@@ -36,6 +36,6 @@
     "updateplanettype": "Usage /updateplanettype [world ID] [new type] [new weather type]. Changes the planet type and weather biome of the given world.",
     "setenvironmentbiome": "Usage /setenvironmentbiome. Used to ensure that the environment biome for the world layer the player is currently in is properly updated.",
     "listworlds": "Usage /listworlds. Lists all currently loaded worlds on the server.",
-    "listworld": "Usage /listworld [world ID]. Lists all players currently on the given world. Format is $clientId : serverNickname : $$playerUuid. Unicode characters in nicknames won't be escaped; use /list for that. If escape codes cause issues, check your client log."
+    "listworld": "Usage /listworld <world ID>. Lists all players currently on the given world; if no ID is specified, defaults to the world the invoker is on. Format is $clientId : serverNickname : $$playerUuid. Unicode characters in nicknames won't be escaped; use /list for that. If escape codes cause issues, check your client log."
   }
 }
