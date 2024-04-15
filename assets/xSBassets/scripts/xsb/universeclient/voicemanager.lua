@@ -130,15 +130,13 @@ local function drawIndicators()
 	local speakerCount = 0
 	local showAllSpeakers = root.getConfiguration("voiceShowAllSpeakers")
 	for i, speaker in pairs(voice.speakers(not showAllSpeakers)) do
-		if world.entityExists(speaker.entityId) or not showAllSpeakers then
-			local speakerId = speaker.speakerId
-			speakersRemaining[speakerId] = true
-			if speakerId == hoveredSpeakerId then
-				hoveredSpeaker = speaker
-			else
-				speakerCount = speakerCount + 1
-				speakers[speakerCount] = speaker
-			end
+		local speakerId = speaker.speakerId
+		speakersRemaining[speakerId] = true
+		if speakerId == hoveredSpeakerId then
+			hoveredSpeaker = speaker
+		else
+			speakerCount = speakerCount + 1
+			speakers[speakerCount] = speaker
 		end
 	end
 
