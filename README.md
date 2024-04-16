@@ -58,7 +58,7 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — the keybind is not supported by xSB-2 solely due to an explicit StarExtensions check.
 - [Maple32](https://steamcommunity.com/sharedfiles/filedetails/?id=2568667104&searchtext=maple32).
 - [Project Knightfall](https://steamcommunity.com/sharedfiles/filedetails/?id=2010883172).
-- [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) — will log script errors and show an empty menu on xSB-2 v2.3.7+.
+- [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034).
 - [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — the keybind is not supported by xSB-2 solely due to an explicit StarExtensions check.
 - [Shellguard: Starbound Expansion Remastered](https://steamcommunity.com/sharedfiles/filedetails/?id=1563376005).
 - [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) — but compatibility may change in future versions!
