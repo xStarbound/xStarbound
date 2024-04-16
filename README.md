@@ -27,7 +27,7 @@ Compiled builds for Linux, Windows and macOS should be available in the usual pl
 - Multiple font support (switch fonts inline with `^font=name;`, `.ttf` assets are auto-detected). Added by Kae, fixed by FezzedOne. Additionally, escape codes and custom fonts wrap and propagate across wrapped lines properly in the chat box (FezzedOne).
 - Lighting is partially asynchronous (Kae).
 - Various changes to the storage of directives and images in memory to greatly reduce their impact on FPS (Kae).
-  - Works well when extremely long directives are used for "vanilla multiplayer-compatible" creations, like [generated](https://silverfeelin.github.io/Starbound-NgOutfitGenerator/) [clothing](https://github.com/FezzedOne/FezzedOne-Drawable-Generator).
+  - Works well when extremely long directives are used for «vanilla multiplayer-compatible» creations, like [generated](https://silverfeelin.github.io/Starbound-NgOutfitGenerator/) [clothing](https://github.com/FezzedOne/FezzedOne-Drawable-Generator).
 - Client-side tile placement prediction (rewrite by Kae from StarExtensions).
   - You can also resize the placement area of tiles on the fly.
 - Client- and server-side support for placing foreground tiles with a custom collision type (rewrite by Kae from StarExtensions; requires xServer or xClient on the host) and, via `world.placeMaterial()`, placing tiles not connected to existing ones (FezzedOne; requires xServer or xClient on the host). Compatible with the overground placement feature of StarExtensions and OpenStarbound clients. [xWEdit](https://github.com/FezzedOne/xWEdit), a fork of WEdit with support for these features, is available; xWEdit requires xClient for full client-side functionality, but partially works with OpenStarbound clients (not StarExtensions!).
@@ -42,12 +42,12 @@ Read this to see if xSB-2 is compatible with your mods.
 **Has xSB-2 support:** The following mods have special functionality that requires or is supported by xSB-2.
 
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xSB-2.
-- [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/FezzedOne/FezzedTech)) — requires xSB-2 for full functionality, but also supports StarExtensions (with reduced functionality) and is compatible with vanilla Starbound.
+- [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/FezzedOne/FezzedTech)) — requires xSB-2 for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with vanilla Starbound.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xSB-2.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xSB-2 as of v2.3.7.
-- [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) — requires xSB-2 v2.3.7+. Supports all features of and is fully network-compatible with "upstream" [StarCustomChat](https://github.com/KrashV/StarCustomChat).
+- [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) — requires xSB-2 v2.3.7+. Supports most features of and is fully network-compatible with «upstream» [StarCustomChat](https://github.com/KrashV/StarCustomChat).
 - [xWEdit](https://github.com/FezzedOne/xWEdit) — this WEdit fork requires xSB-2 for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
-- Mods that change the size or number of bags in the inventory or hotbar — as of v2.4, xSB-2 gives these mods full compatibility with vanilla multiplayer and existing characters "out of the box".
+- Mods that change the size or number of bags in the inventory or hotbar — as of v2.4, xSB-2 gives these mods full compatibility with vanilla multiplayer and existing characters «out of the box».
 
 **Compatible:** Any mod not listed in the "partially compatible" or "not compatible" category should be compatible. Major mods that have been tested to be compatible:
 
