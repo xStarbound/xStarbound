@@ -89,7 +89,7 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — this mod explicitly checks for StarExtensions, so the keybinds do not work, although some of the added hidden chat commands do.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
 - [StarCustomChat](https://github.com/KrashV/StarCustomChat) — use the fully network-compatible [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) fork instead.
-- [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load and may cause crashes!
+- [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load on xClient and may cause crashes! However, *xServer* fully supports the server-side part of SE's «overground» tile placement feature.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xSB-2 has differently named callbacks) and is redundant anyway because xSB-2 already fully supports this feature.
 - Mods that patch in StarExtensions "body dynamics" support for other mods. These won't do anything.
