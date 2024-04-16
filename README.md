@@ -6,12 +6,14 @@ Compiled builds for Linux, Windows and macOS should be available in the usual pl
 
 ## Changes
 
+- Several new commands (by FezzedOne)! Type `/xsb` for info on the new client-side commands, or `/help` (on xServer, an xcClient host or in single-player on xClient) to see the new server-side ones.
+- Nicer (and optimised) non-pixelated humanoid tech and status effect scaling for players and NPCs (reimplementation by FezzedOne).
 - The UI scale can now be adjusted in the graphics settings dialogue, complete with configurable keybinds and support for fractional scales (FezzedOne). There are also keybinds for changing the in-game camera zoom (Kae). Both the UI scale and zoom level are scriptable (FezzedOne). UI scaling mods are no longer needed (and in fact no longer do anything) in xSB-2!
 - Inventory and action bar expansion (or reduction) mods are now fully compatible with vanilla multiplayer with no changes needed on the mod's part. Additionally, these mods can now be safely added or removed without item loss or crashes as long as characters are loaded in xSB-2. Added by WasabiRaptor and FezzedOne.
   - Loading a character after changes to inventory or action bar mods will drop any items that no longer fit on the ground beside the player (which will be picked up if there still is inventory space), instead of showing an error dialogue.
   - *Warning for users of vanilla clients and other client mods:* If you load any characters that have their inventories resized but haven't yet dropped overflowed items on a non-xSB-2 client — this can happen if you open xSB-2 after changing mods, but don't actually load some characters before switching to another client — you may lose items, so load your characters in xSB-2 and save your items first!
   - The networked inventory and action bar config can be configured separately with a patch to `$assets/player.config`; see [`$src/assets/xSBassets/player.config.patch`](https://github.com/FezzedOne/xSB-2/blob/main/assets/xSBassets/player.config.patch) for the new parameters. Such a patch mod is *required* for an xClient client to join a non-xServer server with inventory or action bar mods installed, but allows joining the server with mismatched mods (assuming mismatched assets are allowed).
-- Anything that the game converts to a Perfectly Generic Item now has its parameters saved in the item and will be restored once any missing mods are reinstalled (WasabiRaptor and FezzedOne). Requires xServer for server-side items (such as those in containers on worlds, even shipworlds!) and xClient for single-player and client-side items (those in the player's inventory).
+- Anything that the game converts to a Perfectly Generic Item now has its parameters saved in the item and will be restored once any missing mods are reinstalled (WasabiRaptor and FezzedOne). Requires xServer (or xClient on the host) for server-side items (such as those in containers on worlds, even shipworlds!) and xClient for single-player and client-side items (those in the player's inventory).
 - Modded techs and status effects no longer cause crashes to the menu when the offending mod is removed (Kae and WasabiRaptor).
 - Scriptable shader and lighting parameters are supported (FezzedOne).
 - You can now make `.patch` files that are just merged in, early-beta-style (Kae). That's why the patch files in `assets/xSBassets` are unusually simple. In addition, a new `"find"` parameter is supported for `"remove"` and `"replace"` operations where the `"path"` is to a JSON array (FezzedOne) — if `"find"` is present, only the first array value exactly matching the value in `"find"` is removed or replaced by `"value"`, not the entire array.
@@ -19,18 +21,19 @@ Compiled builds for Linux, Windows and macOS should be available in the usual pl
 - Various crash fixes (FezzedOne and Kae).
 - Character swapping (rewrite by Kae from StarExtensions): `/swap <name>` (case-insensitive substring matching) and `/swapuuid <uuid>` (requires a UUID; use the one in the player file name).
 - Custom user input support with a keybindings menu (rewrite by Kae from StarExtensions).
-- Positional voice chat that works on completely vanilla servers; is compatible with StarExtensions. This uses Opus for crisp, HD audios. Rewrite by Kae from StarExtensions.
+- Client-side positional voice chat that works on completely vanilla servers; is compatible with StarExtensions. This uses Opus for crisp, HD audios. Rewrite by Kae from StarExtensions.
   - The voice chat configuration dialogue is made available in the options menu rather than as a chat command.
+  - Extra voice chat options, including persistent saved mutes, are available with the `/voice` command (FezzedOne).
 - Multiple font support (switch fonts inline with `^font=name;`, `.ttf` assets are auto-detected). Added by Kae, fixed by FezzedOne. Additionally, escape codes and custom fonts wrap and propagate across wrapped lines properly in the chat box (FezzedOne).
 - Lighting is partially asynchronous (Kae).
 - Various changes to the storage of directives and images in memory to greatly reduce their impact on FPS (Kae).
   - Works well when extremely long directives are used for "vanilla multiplayer-compatible" creations, like [generated](https://silverfeelin.github.io/Starbound-NgOutfitGenerator/) [clothing](https://github.com/FezzedOne/FezzedOne-Drawable-Generator).
 - Client-side tile placement prediction (rewrite by Kae from StarExtensions).
   - You can also resize the placement area of tiles on the fly.
-- Support for placing foreground tiles with a custom collision type (rewrite by Kae from StarExtensions; requires an OpenSB or xSB-2 server) and, via `world.placeMaterial()`, placing tiles not connected to existing ones (FezzedOne; requires an xSB-2 server). Tile placement with this feature is not network-compatible with servers that support the similar feature present in StarExtensions, although already-placed tiles work just fine. A [fork of WEdit](https://github.com/FezzedOne/xWEdit) with support for these features is available.
+- Client- and server-side support for placing foreground tiles with a custom collision type (rewrite by Kae from StarExtensions; requires xServer or xClient on the host) and, via `world.placeMaterial()`, placing tiles not connected to existing ones (FezzedOne; requires xServer or xClient on the host). Compatible with the overground placement feature of StarExtensions and OpenStarbound clients. [xWEdit](https://github.com/FezzedOne/xWEdit), a fork of WEdit with support for these features, is available; xWEdit requires xClient for full client-side functionality, but partially works with OpenStarbound clients (not StarExtensions!).
   - Additionally, objects can be placed under non-solid foreground tiles (Kae).
 - Some polish to UI (FezzedOne and Kae).
-- Terraria-like placement animations for objects, tiles and liquids (FezzedOne).
+- Terraria-like placement animations for objects, tiles and liquids (FezzedOne). Can be disabled with an asset mod if you don't like them.
 
 ## Mod compatibility
 
