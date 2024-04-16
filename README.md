@@ -45,11 +45,12 @@ Read this to see if xSB-2 is compatible with your mods.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/FezzedOne/FezzedTech)) — requires xSB-2 for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with vanilla Starbound.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xSB-2.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xSB-2 as of v2.3.7.
+- [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111) and [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) — xSB-2 fully supports non-pixelated scaling as of v2.4.1.1.
 - [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) — requires xSB-2 v2.3.7+. Supports most features of and is fully network-compatible with «upstream» [StarCustomChat](https://github.com/KrashV/StarCustomChat).
 - [xWEdit](https://github.com/FezzedOne/xWEdit) — this WEdit fork requires xSB-2 for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
 - Mods that change the size or number of bags in the inventory or hotbar — as of v2.4, xSB-2 gives these mods full compatibility with vanilla multiplayer and existing characters «out of the box».
 
-**Compatible:** Any mod not listed in the "partially compatible" or "not compatible" category should be compatible. Major mods that have been tested to be compatible:
+**Compatible:** Any mod not listed in the «partially compatible» or «not compatible» category should be compatible. Major mods that have been tested to be compatible:
 
 - [Arcana](https://steamcommunity.com/workshop/filedetails/?id=2359135864).
 - [Avali (Triage) Race Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=729558042).
@@ -64,11 +65,11 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) — but compatibility may change in future versions!
 - [Stardust Suite](https://github.com/zetaPRIME/sb.StardustSuite) — but compatibility may change in future versions!
 
-> **Note:** xSB-2 does not and will not support StarExtensions' "body dynamics" and text-to-speech features, and currently doesn't support StarExtensions' species-specific head rotation parameters. Details:
+> **Note:** xSB-2 does not and will not support StarExtensions' «body dynamics» and text-to-speech features, and currently doesn't support StarExtensions' species-specific head rotation parameters. Details:
 >
-> - Armour, clothing and race mods with included SE "body dynamics" support are compatible, but the "non-jiggle" sprites will be displayed.
+> - Armour, clothing and race mods with included SE «body dynamics» support are compatible, but the «non-jiggle» sprites will be displayed.
 > - Race *and* race-modifying mods with StarExtensions head rotation parameters, such as [Nekify](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913), may have visual sprite glitches — such as Neki ears being clipped off — while xSB-2's head rotation is enabled.
-> - Mods intended to patch in "body dynamics" support or StarExtensions-specific head rotation parameters for other mods simply will not work at all.
+> - Mods intended to patch in «body dynamics» support or StarExtensions-specific head rotation parameters for other mods simply will not work at all.
 > - Race mods that support StarExtensions' text-to-speech feature will work just fine, but the text-to-speech functionality won't work.
 
 **Partially compatible:** The following mods are only partially compatible with xSB-2:
@@ -92,7 +93,7 @@ Read this to see if xSB-2 is compatible with your mods.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load on xClient and may cause crashes! However, *xServer* fully supports the server-side part of SE's «overground» tile placement feature.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xSB-2 has differently named callbacks) and is redundant anyway because xSB-2 already fully supports this feature.
-- Mods that patch in StarExtensions "body dynamics" support for other mods. These won't do anything.
+- Mods that patch in StarExtensions «body dynamics» support for other mods. These won't do anything.
 
 ## Building
 
@@ -118,7 +119,7 @@ The xSB-2 binaries can be built against either the Steam Runtime or the native s
 
 **With system libraries:** *Not recommended on non-Arch-based distros!* To build against system libraries on any reasonably up-to-date Linux distro:
 
-1. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's "base development" package.
+1. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's «base development» package.
 2. Install CMake and Git:
    - *Arch-based distros:* `sudo pacman -S cmake git` (you may need to `-Syu` first)
    - *RPM/`yum`-based distros:* `sudo yum install cmake git`
@@ -151,7 +152,7 @@ The xSB-2 binaries can be built against either the Steam Runtime or the native s
 
 To use the `mod_uploader`, start Steam and then start the `mod_uploader` binary manually — Linux Steam does not have an option to use it through the game library. Once started, you can upload mods normally.
 
-> **Note:** If you get a "`libpng` not found" linker error while building, change the `libpng` path in `$src/scripts/linux/setup-qt.sh` to wherever `libpng16.so.16` is installed on your system.
+> **Note:** If you get a «`libpng` not found» linker error while building, change the `libpng` path in `$src/scripts/linux/setup-qt.sh` to wherever `libpng16.so.16` is installed on your system.
 
 ### SteamOS
 
@@ -200,7 +201,7 @@ To build and install on macOS 10.15 or later:
 6. `cd xSB-2`
 7. `scripts/osx/setup.command; scripts/osx/build.command`
 8. `cp dist/xclient macos/xClient.app/Contents/MacOS/`
-9. Copy everything in `xSB-2/dist` except `xclient` to a new `xsb-osx` folder in your Starbound install folder, then copy `xClient.app` ("xClient" in Finder) from `xSB-2/macos` to the new `xsb-osx` folder.
+9. Copy everything in `xSB-2/dist` except `xclient` to a new `xsb-osx` folder in your Starbound install folder, then copy `xClient.app` («xClient» in Finder) from `xSB-2/macos` to the new `xsb-osx` folder.
 10. Copy `xSB-2/assets/xSBassets` to a new `xsb-assets` folder in your Starbound install folder.
 11. Optionally configure Steam or GoG to launch `xsb-osx/xClient.app`.
 
