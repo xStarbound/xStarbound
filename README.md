@@ -46,7 +46,7 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — fully supported by xSB-2 as of v2.4.1.1.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xSB-2.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xSB-2 as of v2.3.7.
-- [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111), [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) and other mods based on the framework — xSB-2 fully supports non-pixelated scaling as of v2.4.1.1.
+- [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111), [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) and other mods based on the framework — xSB-2 supports «nice» non-pixelated scaling as of v2.4.1.1.
 - [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) — requires xSB-2 v2.3.7+. Supports most features of and is fully network-compatible with «upstream» [StarCustomChat](https://github.com/KrashV/StarCustomChat).
 - [xWEdit](https://github.com/FezzedOne/xWEdit) — this WEdit fork requires xSB-2 for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
 - Mods that change the size or number of bags in the inventory or hotbar — as of v2.4, xSB-2 gives these mods full compatibility with vanilla multiplayer and existing characters «out of the box».
