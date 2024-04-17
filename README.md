@@ -43,6 +43,7 @@ Read this to see if xSB-2 is compatible with your mods.
 
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xSB-2.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/FezzedOne/FezzedTech)) — requires xSB-2 for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with vanilla Starbound.
+- [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — fully supported by xSB-2 as of v2.4.1.1.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xSB-2.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xSB-2 as of v2.3.7.
 - [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111), [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) and other mods based on the framework — xSB-2 fully supports non-pixelated scaling as of v2.4.1.1.
