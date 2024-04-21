@@ -104,7 +104,7 @@ RootLoader::RootLoader(Defaults defaults) {
   addSwitch("quiet", strf("Do not log to stdout, defaults to {}", defaults.quiet));
   addSwitch("verbose", strf("Log to stdout, defaults to {}", !defaults.quiet));
   addSwitch("runtimeconfig",
-      strf("Sets the path to the runtime configuration storage file relative to root directory, defauts to {}",
+      strf("Sets the path to the runtime configuration storage file relative to root directory, defaults to {}", /* FezzedOne: Fixed spelling error. */
         defaults.runtimeConfigFile ? *defaults.runtimeConfigFile : "no storage file"));
   m_defaults = move(defaults);
 }
