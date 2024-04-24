@@ -271,10 +271,6 @@ bool WorldServer::addClient(ConnectionId clientId, SpawnTarget const& spawnTarge
 
   clientInfo->outgoingPackets.append(make_shared<CentralStructureUpdatePacket>(m_centralStructure.store()));
 
-  // ErodeesFleurs: Invoke `addClient` in the world's main Lua script whenever a player joins a world.
-  for (auto& p : m_scriptContexts)
-    p.second->invoke("addClient", clientId, isLocal);
-
   return true;
 }
 
@@ -303,10 +299,6 @@ List<PacketPtr> WorldServer::removeClient(ConnectionId clientId) {
   m_clientInfo.remove(clientId);
 
   packets.append(make_shared<WorldStopPacket>("Removed"));
-
-  // ErodeesFleurs: Invoke `removeClient` in the world's main Lua script whenever a player leaves a world.
-  for (auto& p : m_scriptContexts)
-    p.second->invoke("removeClient", clientId);
 
   return packets;
 }
@@ -450,7 +442,11 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
 
     } else if (auto interactResult = as<EntityInteractResultPacket>(packet)) {
       auto const& forwardClientInfo = m_clientInfo.get(connectionForEntity(interactResult->sourceEntityId));
-      forwardClientInfo->outgoingPackets.append(interactResult);
+      if (forwardClientInfo)
+        forwardClientInfo->outgoingPackets.append(interactResult);
+      else
+        Logger::warn("EntityInteractResult from cID {} sent to invalid cID {}", clientInfo->clientId, connectionForEntity(interactResult->sourceEntityId));
+      
 
     } else if (auto entityCreate = as<EntityCreatePacket>(packet)) {
       if (!entityIdInSpace(entityCreate->entityId, clientInfo->clientId)) {
@@ -535,18 +531,25 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       }
 
     } else if (auto entityMessageResponsePacket = as<EntityMessageResponsePacket>(packet)) {
-      if (!m_entityMessageResponses.contains(entityMessageResponsePacket->uuid))
-        throw WorldServerException("ScriptedEntityResponse received from cID {} for unknown context!", clientInfo->clientId);
-
-      auto response = m_entityMessageResponses.take(entityMessageResponsePacket->uuid).second;
-      if (response.is<ConnectionId>()) {
-        if (auto clientInfo = m_clientInfo.value(response.get<ConnectionId>()))
-          clientInfo->outgoingPackets.append(move(entityMessageResponsePacket));
+      // From OpenSB: Log errors instead of throwing and kicking everyone off the world. Also prevent server-side segfaults.
+      if (!m_entityMessageResponses.contains(entityMessageResponsePacket->uuid)) {
+        Logger::warn("EntityMessageResponse received from cID {} for unknown context [UUID: {}]", clientInfo->clientId,
+          entityMessageResponsePacket->uuid.hex());
       } else {
-        if (entityMessageResponsePacket->response.isRight())
-          response.get<RpcPromiseKeeper<Json>>().fulfill(entityMessageResponsePacket->response.right());
-        else
-          response.get<RpcPromiseKeeper<Json>>().fail(entityMessageResponsePacket->response.left());
+        if (auto response = m_entityMessageResponses.maybeTake(entityMessageResponsePacket->uuid)) {
+          if (response->second.is<ConnectionId>()) {
+            if (auto clientInfo = m_clientInfo.value(response->second.get<ConnectionId>()))
+              clientInfo->outgoingPackets.append(move(entityMessageResponsePacket));
+          } else {
+            if (entityMessageResponsePacket->response.isRight())
+              response->second.get<RpcPromiseKeeper<Json>>().fulfill(entityMessageResponsePacket->response.right());
+            else
+              response->second.get<RpcPromiseKeeper<Json>>().fail(entityMessageResponsePacket->response.left());
+          }
+        } else {
+          Logger::warn("Invalid EntityMessageResponse received from cID {} [UUID: {}]", clientInfo->clientId,
+            entityMessageResponsePacket->uuid.hex());
+        }
       }
     } else if (auto pingPacket = as<PingPacket>(packet)) {
       clientInfo->outgoingPackets.append(make_shared<PongPacket>());
