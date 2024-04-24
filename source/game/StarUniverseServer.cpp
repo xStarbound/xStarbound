@@ -1506,6 +1506,8 @@ void UniverseServer::packetsReceived(UniverseConnectionServer*, ConnectionId cli
           currentWorld->pushIncomingPackets(clientId, {move(packet)});
       }
     }
+  } else {
+    Logger::warn("UniverseServer: Packet sent from invalid cID {}", clientId);
   }
 }
 
@@ -1554,7 +1556,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   connection.receiveAny(clientWaitLimit);
   auto clientConnect = as<ClientConnectPacket>(connection.pullSingle());
   if (!clientConnect) {
-    Logger::warn("UniverseServer: client connection aborted");
+    Logger::warn("UniverseServer: Invalid client connection aborted");
     connection.pushSingle(make_shared<ConnectFailurePacket>("connect timeout"));
     mainLocker.lock();
     m_deadConnections.append({move(connection), Time::monotonicMilliseconds()});

@@ -1032,14 +1032,19 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
       }
 
     } else if (auto entityMessageResponsePacket = as<EntityMessageResponsePacket>(packet)) {
-      if (!m_entityMessageResponses.contains(entityMessageResponsePacket->uuid))
-        throw WorldClientException("EntityMessageResponse received for unknown context!");
-
-      auto response = m_entityMessageResponses.take(entityMessageResponsePacket->uuid);
-      if (entityMessageResponsePacket->response.isRight())
-        response.fulfill(entityMessageResponsePacket->response.right());
-      else
-        response.fail(entityMessageResponsePacket->response.left());
+      // From OpenSB: Prevent CTMs and potential client segfaults here.
+      if (!m_entityMessageResponses.contains(entityMessageResponsePacket->uuid)) {
+        Logger::warn("EntityMessageResponse received for unknown context");
+      } else {
+        if (auto response = m_entityMessageResponses.maybeTake(entityMessageResponsePacket->uuid)) {
+          if (entityMessageResponsePacket->response.isRight())
+            response->fulfill(entityMessageResponsePacket->response.right());
+          else
+            response->fail(entityMessageResponsePacket->response.left());
+        } else {
+          Logger::warn("Invalid EntityMessageResponse received");
+        }
+      }
 
     } else if (auto updateWorldProperties = as<UpdateWorldPropertiesPacket>(packet)) {
       // Kae: Properties set to null (nil from Lua) should be erased instead of lingering around
@@ -1070,11 +1075,15 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
       m_outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, entityInteract->interactRequest.sourceId));
 
     } else if (auto interactResult = as<EntityInteractResultPacket>(packet)) {
-      auto response = m_entityInteractionResponses.take(interactResult->requestId);
-      if (interactResult->action)
-        response.fulfill(interactResult->action);
-      else
-        response.fail("no interaction result");
+      // From OpenSB: Prevent CTMs and potential client segfaults here.
+      if (auto response = m_entityInteractionResponses.take(interactResult->requestId)) {
+        if (interactResult->action)
+          response->fulfill(interactResult->action);
+        else
+          response->fail("no interaction result");
+      } else {
+        Logger::warn("Invalid EntityInteractResult received");
+      }
 
     } else if (auto setPlayerStart = as<SetPlayerStartPacket>(packet)) {
       m_playerStart = setPlayerStart->playerStart;
