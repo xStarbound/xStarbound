@@ -271,6 +271,10 @@ bool WorldServer::addClient(ConnectionId clientId, SpawnTarget const& spawnTarge
 
   clientInfo->outgoingPackets.append(make_shared<CentralStructureUpdatePacket>(m_centralStructure.store()));
 
+  // ErodeesFleurs: Invoke `addClient` in the world's main Lua script whenever a player joins a world.
+  for (auto& p : m_scriptContexts)
+    p.second->invoke("addClient", clientId, isLocal);
+
   return true;
 }
 
@@ -299,6 +303,10 @@ List<PacketPtr> WorldServer::removeClient(ConnectionId clientId) {
   m_clientInfo.remove(clientId);
 
   packets.append(make_shared<WorldStopPacket>("Removed"));
+
+  // ErodeesFleurs: Invoke `removeClient` in the world's main Lua script whenever a player leaves a world.
+  for (auto& p : m_scriptContexts)
+    p.second->invoke("removeClient", clientId);
 
   return packets;
 }
