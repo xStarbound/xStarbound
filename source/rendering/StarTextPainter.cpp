@@ -123,8 +123,8 @@ int TextPainter::stringWidth(StringView s) {
 
 // Kae: Updated text wrapping. Should fix unclosed `^`s not letting text wrap.
 bool TextPainter::processWrapText(StringView text, unsigned* wrapWidth, WrapTextCallback textFunc) {
-  std::string const AllEsc = strf("{:c}{:c}", CmdEsc, StartEsc);
-  std::string const AllEscEnd = strf("{:c}{:c}{:c}", CmdEsc, StartEsc, EndEsc);
+  std::string const AllEsc = strf("{:c}{:c}", Text::CmdEsc, Text::StartEsc);
+  std::string const AllEscEnd = strf("{:c}{:c}{:c}", Text::CmdEsc, Text::StartEsc, Text::EndEsc);
 
   String font = m_renderSettings.font, setFont = font;
   m_fontTextureGroup.switchFont(font);
@@ -149,8 +149,8 @@ bool TextPainter::processWrapText(StringView text, unsigned* wrapWidth, WrapText
       size_t index = &*iterator.base() - text.utf8Ptr();
       if (commandStart == NPos) {
         for (size_t escOrEnd = commandStart = index;
-        (escOrEnd = text.utf8().find_first_of(Text::AllEscEnd, escOrEnd + 1)) != NPos;) {
-          if (text.utf8().at(escOrEnd) != Text::EndEsc)
+        (escOrEnd = text.utf8().find_first_of(AllEscEnd, escOrEnd + 1)) != NPos;) {
+          if (text.utf8().at(escOrEnd) != EndEsc)
             commandStart = escOrEnd;
           else {
             commandEnd = escOrEnd;
