@@ -121,122 +121,107 @@ int TextPainter::stringWidth(StringView s) {
   return width;
 }
 
+// Kae: Updated text wrapping. Should fix unclosed `^`s not letting text wrap.
 bool TextPainter::processWrapText(StringView text, unsigned* wrapWidth, WrapTextCallback textFunc) {
   String font = m_renderSettings.font, setFont = font;
   m_fontTextureGroup.switchFont(font);
-  int lines = 0;
+  auto iterator = text.begin(), end = text.end();
 
-  size_t i = 0;
-  auto it = text.begin();
-  auto end = text.end();
-
-  unsigned lineStart = 0; // Where does this line start ?
-  unsigned linePixelWidth = 0; // How wide is this line so far
-  unsigned lineCharSize = 0; // how many characters in this line ?
-
-  auto escIt = end;
-
-  unsigned splitPos = 0; // Where did we last see a place to split the string ?
-  unsigned splitWidth = 0; // How wide was the string there ?
-
-  auto lineStartIt = it; // Where does this line start ?
-  auto splitIt = end;
+  unsigned lines = 0;
+  auto lineStartIterator = iterator, splitIterator = end;
+  unsigned linePixelWidth = 0, splitPixelWidth = 0;
+  size_t commandStart = NPos, commandEnd = NPos;
+  bool finished = true;
 
   auto slice = [](StringView::const_iterator a, StringView::const_iterator b) -> StringView {
     const char* aPtr = &*a.base();
     return StringView(aPtr, &*b.base() - aPtr);
   };
 
-  while (it != end) {
-    auto character = *it;
-
-    if (Text::isEscapeCode(character))
-      escIt = it;
-    ++i;
-
-    if (escIt != end) {
-      if (character == Text::EndEsc) {
-        StringView inner = slice(escIt, it);
-        inner.forEachSplitView(",", [&](StringView command, size_t, size_t) {
-          if (command == "reset" || command == "^reset") // FezzedOne: Fixed text wrapping bug with `"^font="`.
-            m_fontTextureGroup.switchFont(font = setFont);
-          else if (command == "set" || command == "^set")
-            setFont = font;
-          else if (command.beginsWith("font="))
-            m_fontTextureGroup.switchFont(font = command.substr(5));
-          else if (command.beginsWith("^font="))
-            m_fontTextureGroup.switchFont(font = command.substr(6));
-        });
-        escIt = end;
-      }
-      lineCharSize++;
-    } else {
-      lineCharSize++; // assume at least one character if we get here.
-
-      // is this a linefeed / cr / whatever that forces a line split ?
-      if (character == '\n' || character == '\v') {
-        // knock one off the end because we don't render the CR
-        if (!textFunc(slice(lineStartIt, it), lines++))
-          return false;
-
-        lineStart += lineCharSize;
-        lineStartIt = it;
-        ++lineStartIt;
-
-        lineCharSize = linePixelWidth = splitPos = 0; // ...with no characters in it and no known splits.
-      } else {
-        int charWidth = glyphWidth(character);
-
-        // is it a place where we might want to split the line ?
-        if (character == ' ' || character == '\t') {
-          splitPos = lineStart + lineCharSize; // this is the character after the space.
-          splitWidth = linePixelWidth + charWidth; // the width of the string at
-          splitIt = it;
-          ++splitIt;
-          // the split point, i.e. after the space.
-        }
-
-        // would the line be too long if we render this next character ?
-        if (wrapWidth && (linePixelWidth + charWidth) > *wrapWidth) {
-          // did we find somewhere to split the line ?
-          if (splitPos) {
-            if (!textFunc(slice(lineStartIt, splitIt), lines++))
-              return false;
-
-            unsigned stringEnd = lineStart + lineCharSize;
-            lineCharSize = stringEnd - splitPos; // next line has the characters after the space.
-
-            unsigned stringWidth = (linePixelWidth - splitWidth);
-            linePixelWidth = stringWidth + charWidth; // and is as wide as the bit after the space.
-
-            lineStart = splitPos;
-            lineStartIt = splitIt;
-
-            splitPos = 0;
-          } else {
-            if (!textFunc(slice(lineStartIt, it), lines++))
-              return false;
-
-            lineStart += lineCharSize - 1;
-            lineStartIt = it; // include that character on the next line.
-
-            lineCharSize = 1;           // next line has that character in
-            linePixelWidth = charWidth; // and is as wide as that character
+  while (iterator != end) {
+    auto character = *iterator;
+    finished = false; // assume at least one character if we get here
+    bool noMoreCommands = commandStart != NPos && commandEnd == NPos;
+    if (!noMoreCommands && Text::isEscapeCode(character)) {
+      size_t index = &*iterator.base() - text.utf8Ptr();
+      if (commandStart == NPos) {
+        for (size_t escOrEnd = commandStart = index;
+        (escOrEnd = text.utf8().find_first_of(Text::AllEscEnd, escOrEnd + 1)) != NPos;) {
+          if (text.utf8().at(escOrEnd) != Text::EndEsc)
+            commandStart = escOrEnd;
+          else {
+            commandEnd = escOrEnd;
+            break;
           }
-        } else {
-          linePixelWidth += charWidth;
         }
+      }
+      if (commandStart == index && commandEnd != NPos) {
+        const char* commandStr = text.utf8Ptr() + ++commandStart;
+        StringView inner(commandStr, commandEnd - commandStart);
+        inner.forEachSplitView(",", [&](StringView command, size_t, size_t) {
+          if (command == "reset") {
+            m_fontTextureGroup.switchFont(font = setFont);
+          } else if (command == "set") {
+            setFont = font;
+          } else if (command.beginsWith("font=")) {
+            m_fontTextureGroup.switchFont(font = command.substr(5));
+          }
+        });
+        // jump the iterator to the character after the command
+        iterator = text.utf8().begin() + commandEnd + 1;
+        commandStart = commandEnd = NPos;
+        continue;
+      }
+    }
+    // is this a linefeed / cr / whatever that forces a line split ?
+    if (character == '\n' || character == '\v') {
+      // knock one off the end because we don't render the CR
+      if (!textFunc(slice(lineStartIterator, iterator), lines++))
+        return false;
+
+      lineStartIterator = iterator;
+      ++lineStartIterator;
+      // next line starts after the CR with no characters in it and no known splits.
+      linePixelWidth = 0;
+      splitIterator = end;
+      finished = true;
+    } else {
+      int characterWidth = glyphWidth(character);
+      // is it a place where we might want to split the line ?
+      if (character == ' ' || character == '\t') {
+        splitIterator = iterator;
+        splitPixelWidth = linePixelWidth + characterWidth;
+      }
+
+      // would the line be too long if we render this next character ?
+      if (wrapWidth && (linePixelWidth + characterWidth) > *wrapWidth) {
+        // did we find somewhere to split the line ?
+        if (splitIterator != end) {
+          if (!textFunc(slice(lineStartIterator, splitIterator), lines++))
+            return false;
+          // do not include the split character on the next line
+          unsigned stringWidth = linePixelWidth - splitPixelWidth;
+          linePixelWidth = stringWidth + characterWidth;
+          lineStartIterator = ++splitIterator;
+          splitIterator = end;
+        } else {
+          if (!textFunc(slice(lineStartIterator, iterator), lines++))
+            return false;
+          // include that character on the next line
+          lineStartIterator = iterator;  
+          linePixelWidth = characterWidth;
+          finished = false;
+        }
+      } else {
+        linePixelWidth += characterWidth;
       }
     }
 
-    ++it;
+    ++iterator;
   };
 
-  // if we hit the end of the string before hitting the end of the line.
-  if (lineCharSize > 0)
-    return textFunc(slice(lineStartIt, end), lines);
-
-  return true;
+  // if we hit the end of the string before hitting the end of the line
+  return finished || textFunc(slice(lineStartIterator, end), lines);
 }
 
 List<StringView> TextPainter::wrapTextViews(StringView s, Maybe<unsigned> wrapWidth) {
