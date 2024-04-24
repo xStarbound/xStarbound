@@ -150,7 +150,7 @@ bool TextPainter::processWrapText(StringView text, unsigned* wrapWidth, WrapText
       if (commandStart == NPos) {
         for (size_t escOrEnd = commandStart = index;
         (escOrEnd = text.utf8().find_first_of(AllEscEnd, escOrEnd + 1)) != NPos;) {
-          if (text.utf8().at(escOrEnd) != EndEsc)
+          if (text.utf8().at(escOrEnd) != Text::EndEsc)
             commandStart = escOrEnd;
           else {
             commandEnd = escOrEnd;
