@@ -1076,7 +1076,7 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
 
     } else if (auto interactResult = as<EntityInteractResultPacket>(packet)) {
       // From OpenSB: Prevent CTMs and potential client segfaults here.
-      if (auto response = m_entityInteractionResponses.take(interactResult->requestId)) {
+      if (auto response = m_entityInteractionResponses.maybeTake(interactResult->requestId)) {
         if (interactResult->action)
           response->fulfill(interactResult->action);
         else
