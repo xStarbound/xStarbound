@@ -6,7 +6,7 @@ cd "`dirname \"$0\"`/../..";
 #rm -rI build-runtime/ dist/;
 
 mkdir -p dist;
-cp scripts/linux/xsbinit.config dist/;
+cp scripts/linux/xsbinit.config scripts/linux/xclient.sh scripts/linux/xserver.sh dist/;
 
 mkdir -p build-runtime;
 cd build-runtime;

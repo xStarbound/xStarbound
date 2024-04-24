@@ -6,7 +6,7 @@ cd "`dirname \"$0\"`/../..";
 
 mkdir -p dist;
 cp lib/steam_appid.txt dist/;
-cp scripts/linux/xsbinit.config dist/;
+cp scripts/linux/xsbinit.config scripts/linux/xclient.sh scripts/linux/xserver.sh dist/;
 cp lib/linux/libsteam_api.so dist/;
 
 mkdir -p build;
