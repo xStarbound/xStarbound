@@ -181,7 +181,7 @@ To build and install on Windows 10 or 11:
 2. Optionally install [Git](https://git-scm.com/download/win). If using Git, go the next step; otherwise go to step 4.
 3. Open up Git Bash and run `git clone --recurse-submodules https://github.com/FezzedOne/xSB-2.git`, then go to step 6.
 4. Download the latest xSB-2 source ZIP and extract it somewhere.
-5. Download the latest [Opus source ZIP](https://github.com/xiph/opus/releases), extract it, and put the `opus\` folder in `source\extern\`
+5. Download the latest [Opus source ZIP](https://github.com/xiph/opus/releases), extract it, and put the `opus\` folder in `source\extern\`.
 6. Go into `scripts\windows\` and double-click `setup.bat`.
 7. Wait for that batch file to finish, go up two folders, open up `build\` and double-click `ALL_BUILD.vcxproj`.
 8. Select **Build → Build Solution** in Visual Studio.
