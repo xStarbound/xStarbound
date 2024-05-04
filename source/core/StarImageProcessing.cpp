@@ -627,7 +627,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
         Logger::warn("{}: {} width must be between 0 and 128 inclusive!", op->outlineOnly ? "outline" : "border", op->outlineOnly ? "Outline" : "Border");
       bool includeTransparent = op->includeTransparent;
       if (pixel[3] == 0 || (includeTransparent && pixel[3] != 255)) {
-        int dist = 256;
+        int dist = std::numeric_limits<int>::max();
         for (int j = -pixels; j < pixels + 1; j++) {
           for (int i = -pixels; i < pixels + 1; i++) {
             if (i + x >= pixels && j + y >= pixels && i + x < borderImageSize[0] - pixels && j + y < borderImageSize[1] - pixels) {
@@ -641,7 +641,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
           }
         }
 
-        if (dist <= 256) {
+        if (dist <= std::numeric_limits<int>::max()) {
           float percent = (dist - 1) / (2.0f * pixels - 1);
           if (pixel[3] != 0) {
             Color color = Color::rgba(op->startColor).mix(Color::rgba(op->endColor), percent);
