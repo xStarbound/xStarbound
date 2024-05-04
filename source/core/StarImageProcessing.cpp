@@ -11,21 +11,20 @@
 
 namespace Star {
 
-Image scaleNearest(Image const& srcImage, Vec2F const& scale) {
-  Vec2F scaleToProcess = scale;
-  if (!(scaleToProcess[0] == 1.0f && scaleToProcess[1] == 1.0f)) {
+Image scaleNearest(Image const& srcImage, Vec2F scale) {
+  if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
-    if ((scaleToProcess[0] < 0.0f || scaleToProcess[1] < 0.0f)) {
+    if ((scale[0] < 0.0f || scale[1] < 0.0f)) {
       Logger::warn("scalenearest: Scale must be non-negative!");
-      scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
+      scale = scale.piecewiseMax(Vec2F::filled(0.0f));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
-    if ((scaleToProcess[0] > 256.0f || scaleToProcess[1] > 256.0f)) {
+    if ((scale[0] > 256.0f || scale[1] > 256.0f)) {
       Logger::warn("scalenearest: Scale may not exceed 256x in either dimension!");
-      scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(256.0f));
+      scale = scale.piecewiseMin(Vec2F::filled(256.0f));
     }
     Vec2U srcSize = srcImage.size();
-    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scaleToProcess));
+    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
     destSize[0] = max(destSize[0], 1u);
     destSize[1] = max(destSize[1], 1u);
 
@@ -33,7 +32,7 @@ Image scaleNearest(Image const& srcImage, Vec2F const& scale) {
 
     for (unsigned y = 0; y < destSize[1]; ++y) {
       for (unsigned x = 0; x < destSize[0]; ++x)
-        destImage.set({x, y}, srcImage.clamp(Vec2I::round(vdiv(Vec2F(x, y), scaleToProcess))));
+        destImage.set({x, y}, srcImage.clamp(Vec2I::round(vdiv(Vec2F(x, y), scale))));
     }
     return destImage;
   } else {
@@ -41,21 +40,30 @@ Image scaleNearest(Image const& srcImage, Vec2F const& scale) {
   }
 }
 
-Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
-  Vec2F scaleToProcess = scale;
-  if (!(scaleToProcess[0] == 1.0f && scaleToProcess[1] == 1.0f)) {
+Image scaleBilinear(Image const& srcImage, Vec2F scale) {
+  if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
-    if ((scaleToProcess[0] < 0.0f || scaleToProcess[1] < 0.0f)) {
+    if ((scale[0] < 0.0f || scale[1] < 0.0f)) {
       Logger::warn("scalebilinear: Scale must be non-negative!");
-      scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
+      scale = Vec2F(std::abs(scale[0]), std::abs(scale[1]));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
-    if ((scaleToProcess[0] > 256.0f || scaleToProcess[1] > 256.0f)) {
+    if ((scale[0] > 256.0f || scale[1] > 256.0f)) {
       Logger::warn("scalebilinear: Scale may not exceed 256x in either dimension!");
-      scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(256.0f));
+      scale = scale.piecewiseMin(Vec2F::filled(256.0f));
     }
+    // FezzedOne: Ensures a certain floating-point value is rounded correctly by changing 0x3f766666f
+    // to 0x3f766665f (x86 little-endian representation). The actual code is endian-agnostic.
+#define WRONG_VALUE 0.9625f
+#define FIXED_VALUE 0.9624999f
+    // union ScaleFloatToHex { float floatVal; int byteVal; };
+    // int byteScale_0 = ScaleFloatToHex{.floatVal = scale[0]}.byteVal;
+    // int byteScale_1 = ScaleFloatToHex{.floatVal = scale[1]}.byteVal;
+    // Logger::info("[Debug] scalebilinear: Scale is {{ {:}, {:} }}, hex {{ {:x}, {:x} }}", scale[0], scale[1], byteScale_0, byteScale_1);
+    if (scale[0] == WRONG_VALUE) scale[0] = FIXED_VALUE;
+    if (scale[1] == WRONG_VALUE) scale[1] = FIXED_VALUE;
     Vec2U srcSize = srcImage.size();
-    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scaleToProcess));
+    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
     destSize[0] = max(destSize[0], 1u);
     destSize[1] = max(destSize[1], 1u);
 
@@ -63,12 +71,18 @@ Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
 
     for (unsigned y = 0; y < destSize[1]; ++y) {
       for (unsigned x = 0; x < destSize[0]; ++x) {
-        auto pos = vdiv(Vec2F(x, y), scaleToProcess);
+        auto pos = vdiv(Vec2F(x, y), scale);
         auto ipart = Vec2I::floor(pos);
         auto fpart = pos - Vec2F(ipart);
 
-        auto result = lerp(fpart[1], lerp(fpart[0], Vec4F(srcImage.clamp(ipart[0], ipart[1])), Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1]))), lerp(fpart[0],
-              Vec4F(srcImage.clamp(ipart[0], ipart[1] + 1)), Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 1))));
+        Vec4F topLeft     = Vec4F(srcImage.clamp(ipart[0],       ipart[1]));
+        Vec4F topRight    = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1]));
+        Vec4F bottomLeft  = Vec4F(srcImage.clamp(ipart[0],       ipart[1] + 1));
+        Vec4F bottomRight = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1] + 1));
+
+        Vec4F top     = lerp(fpart[0], topLeft,     topRight);
+        Vec4F bottom  = lerp(fpart[0], bottomLeft,  bottomRight);
+        Vec4F result  = lerp(fpart[1], top,         bottom);
 
         destImage.set({x, y}, Vec4B(result));
       }
@@ -80,21 +94,20 @@ Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
   }
 }
 
-Image scaleBicubic(Image const& srcImage, Vec2F const& scale) {
-  Vec2F scaleToProcess = scale;
-  if (!(scaleToProcess[0] == 1.0f && scaleToProcess[1] == 1.0f)) {
+Image scaleBicubic(Image const& srcImage, Vec2F scale) {
+  if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
-    if ((scaleToProcess[0] < 0.0f || scaleToProcess[1] < 0.0f)) {
+    if ((scale[0] < 0.0f || scale[1] < 0.0f)) {
       Logger::warn("scalebicubic: Scale must be non-negative!");
-      scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
+      scale = scale.piecewiseMax(Vec2F::filled(0.0f));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
-    if ((scaleToProcess[0] > 256.0f || scaleToProcess[1] > 256.0f)) {
+    if ((scale[0] > 256.0f || scale[1] > 256.0f)) {
       Logger::warn("scalebicubic: Scale may not exceed 256x in either dimension!");
-      scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(256.0f));
+      scale = scale.piecewiseMin(Vec2F::filled(256.0f));
     }
     Vec2U srcSize = srcImage.size();
-    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scaleToProcess));
+    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
     destSize[0] = max(destSize[0], 1u);
     destSize[1] = max(destSize[1], 1u);
 
@@ -102,7 +115,7 @@ Image scaleBicubic(Image const& srcImage, Vec2F const& scale) {
 
     for (unsigned y = 0; y < destSize[1]; ++y) {
       for (unsigned x = 0; x < destSize[0]; ++x) {
-        auto pos = vdiv(Vec2F(x, y), scaleToProcess);
+        auto pos = vdiv(Vec2F(x, y), scale);
         auto ipart = Vec2I::floor(pos);
         auto fpart = pos - Vec2F(ipart);
 
@@ -641,7 +654,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
           }
         }
 
-        if (dist <= std::numeric_limits<int>::max()) {
+        if (dist < std::numeric_limits<int>::max()) {
           float percent = (dist - 1) / (2.0f * pixels - 1);
           Color color = Color::rgba(op->startColor).mix(Color::rgba(op->endColor), percent);
           if (pixel[3] != 0) {
