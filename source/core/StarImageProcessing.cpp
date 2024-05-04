@@ -622,7 +622,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
 
     borderImage.forEachPixel([&op, &image, &borderImageSize](int x, int y, Vec4B& pixel) {
       // FezzedOne: Fixed potential CPU pegging exploit.
-      int pixels = std::clamp(op->pixels, 0, 128);
+      int pixels = std::clamp(op->pixels, 0u, 128u);
       if (op->pixels != pixels)
         Logger::warn("{}: {} width must be between 0 and 128 inclusive!", op->outlineOnly ? "outline" : "border", op->outlineOnly ? "Outline" : "Border");
       bool includeTransparent = op->includeTransparent;
