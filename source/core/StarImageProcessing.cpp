@@ -16,12 +16,12 @@ Image scaleNearest(Image const& srcImage, Vec2F const& scale) {
   if (!(scaleToProcess[0] == 1.0f && scaleToProcess[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
     if ((scaleToProcess[0] < 0.0f || scaleToProcess[1] < 0.0f)) {
-      Logger::warn("scaleNearest: Scale must be non-negative!");
+      Logger::warn("scalenearest: Scale must be non-negative!");
       scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
     if ((scaleToProcess[0] >= 128.0f || scaleToProcess[1] >= 128.0f)) {
-      Logger::warn("scaleNearest: Scale may not exceed 128x in either dimension!");
+      Logger::warn("scalenearest: Scale may not exceed 128x in either dimension!");
       scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(128.0f));
     }
     Vec2U srcSize = srcImage.size();
@@ -46,12 +46,12 @@ Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
   if (!(scaleToProcess[0] == 1.0f && scaleToProcess[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
     if ((scaleToProcess[0] < 0.0f || scaleToProcess[1] < 0.0f)) {
-      Logger::warn("scaleBilinear: Scale must be non-negative!");
+      Logger::warn("scalebilinear: Scale must be non-negative!");
       scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
     if ((scaleToProcess[0] >= 128.0f || scaleToProcess[1] >= 128.0f)) {
-      Logger::warn("scaleBilinear: Scale may not exceed 128x in either dimension!");
+      Logger::warn("scalebilinear: Scale may not exceed 128x in either dimension!");
       scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(128.0f));
     }
     Vec2U srcSize = srcImage.size();
@@ -85,12 +85,12 @@ Image scaleBicubic(Image const& srcImage, Vec2F const& scale) {
   if (!(scaleToProcess[0] == 1.0f && scaleToProcess[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
     if ((scaleToProcess[0] < 0.0f || scaleToProcess[1] < 0.0f)) {
-      Logger::warn("scaleBicubic: Scale must be non-negative!");
+      Logger::warn("scalebicubic: Scale must be non-negative!");
       scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
     if ((scaleToProcess[0] >= 128.0f || scaleToProcess[1] >= 128.0f)) {
-      Logger::warn("scaleBicubic: Scale may not exceed 128x in either dimension!");
+      Logger::warn("scalebicubic: Scale may not exceed 128x in either dimension!");
       scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(128.0f));
     }
     Vec2U srcSize = srcImage.size();
@@ -621,10 +621,13 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     Vec2I borderImageSize = Vec2I(borderImage.size());
 
     borderImage.forEachPixel([&op, &image, &borderImageSize](int x, int y, Vec4B& pixel) {
-      int pixels = op->pixels;
+      // FezzedOne: Fixed potential CPU pegging exploit.
+      int pixels = std::clamp(op->pixels, 0, 128);
+      if (op->pixels != pixels)
+        Logger::warn("{}: {} width must be between 0 and 128 inclusive!", op->outlineOnly ? "outline" : "border", op->outlineOnly ? "Outline" : "Border");
       bool includeTransparent = op->includeTransparent;
       if (pixel[3] == 0 || (includeTransparent && pixel[3] != 255)) {
-        int dist = std::numeric_limits<int>::max();
+        int dist = 256;
         for (int j = -pixels; j < pixels + 1; j++) {
           for (int i = -pixels; i < pixels + 1; i++) {
             if (i + x >= pixels && j + y >= pixels && i + x < borderImageSize[0] - pixels && j + y < borderImageSize[1] - pixels) {
@@ -638,10 +641,10 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
           }
         }
 
-        if (dist < std::numeric_limits<int>::max()) {
+        if (dist <= 256) {
           float percent = (dist - 1) / (2.0f * pixels - 1);
-          Color color = Color::rgba(op->startColor).mix(Color::rgba(op->endColor), percent);
           if (pixel[3] != 0) {
+            Color color = Color::rgba(op->startColor).mix(Color::rgba(op->endColor), percent);
             if (op->outlineOnly) {
               float pixelA = byteToFloat(pixel[3]);
               color.setAlphaF((1.0f - pixelA) * fminf(pixelA, 0.5f) * 2.0f);
@@ -656,8 +659,10 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
               color.convertToSRGB();
               color.setAlphaF(colorA);
             }
+            pixel = color.toRgba();
+          } else {
+            pixel = Vec4B(Vec4F(op->startColor) * (1 - percent) + Vec4F(op->endColor) * percent);
           }
-          pixel = color.toRgba();
         }
       } else if (op->outlineOnly) {
         pixel = Vec4B(0, 0, 0, 0);
