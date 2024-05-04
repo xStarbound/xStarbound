@@ -14,9 +14,15 @@ namespace Star {
 Image scaleNearest(Image const& srcImage, Vec2F const& scale) {
   Vec2F scaleToProcess = scale;
   if (!(scaleToProcess[0] == 1.0f && scaleToProcess[1] == 1.0f)) {
+    // «Downstreamed» from Kae. Fixes a segfault.
     if ((scaleToProcess[0] < 0.0f || scaleToProcess[1] < 0.0f)) {
       Logger::warn("scaleNearest: Scale must be non-negative!");
       scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
+    }
+    // FezzedOne: Fixes a CPU pegging exploit.
+    if ((scaleToProcess[0] >= 128.0f || scaleToProcess[1] >= 128.0f)) {
+      Logger::warn("scaleNearest: Scale may not exceed 128x in either dimension!");
+      scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(128.0f));
     }
     Vec2U srcSize = srcImage.size();
     Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scaleToProcess));
@@ -38,9 +44,15 @@ Image scaleNearest(Image const& srcImage, Vec2F const& scale) {
 Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
   Vec2F scaleToProcess = scale;
   if (!(scaleToProcess[0] == 1.0f && scaleToProcess[1] == 1.0f)) {
+    // «Downstreamed» from Kae. Fixes a segfault.
     if ((scaleToProcess[0] < 0.0f || scaleToProcess[1] < 0.0f)) {
       Logger::warn("scaleBilinear: Scale must be non-negative!");
       scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
+    }
+    // FezzedOne: Fixes a CPU pegging exploit.
+    if ((scaleToProcess[0] >= 128.0f || scaleToProcess[1] >= 128.0f)) {
+      Logger::warn("scaleBilinear: Scale may not exceed 128x in either dimension!");
+      scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(128.0f));
     }
     Vec2U srcSize = srcImage.size();
     Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scaleToProcess));
@@ -71,9 +83,15 @@ Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
 Image scaleBicubic(Image const& srcImage, Vec2F const& scale) {
   Vec2F scaleToProcess = scale;
   if (!(scaleToProcess[0] == 1.0f && scaleToProcess[1] == 1.0f)) {
+    // «Downstreamed» from Kae. Fixes a segfault.
     if ((scaleToProcess[0] < 0.0f || scaleToProcess[1] < 0.0f)) {
       Logger::warn("scaleBicubic: Scale must be non-negative!");
       scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
+    }
+    // FezzedOne: Fixes a CPU pegging exploit.
+    if ((scaleToProcess[0] >= 128.0f || scaleToProcess[1] >= 128.0f)) {
+      Logger::warn("scaleBicubic: Scale may not exceed 128x in either dimension!");
+      scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(128.0f));
     }
     Vec2U srcSize = srcImage.size();
     Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scaleToProcess));
