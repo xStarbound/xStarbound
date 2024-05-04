@@ -589,7 +589,7 @@ local renderHelp =
     [===[^cyan;/render hat <male/female/default> <hair/facialhair/facialmask>^reset;: Renders the worn head item to PNG files. The sprites are exported to ^orange;'$sprites/${shortdescription} (hat).png'^reset; and ^orange;'$sprites/${name} (mask).png'^reset;.
 ^cyan;/render chest <male/female/default>^reset;: Renders the worn chest/sleeves item to PNG files. The sprites are exported to ^orange;'$sprites/${shortdescription} (chest).png'^reset;, ^orange;'$sprites/${shortdescription} (back sleeve).png'^reset; and ^orange;'$sprites/${shortdescription} (front sleeve).png'^reset;.
 ^cyan;/render legs <male/female/default>^reset;: Renders the worn legs or chest/legs item to a PNG file. The sprite is exported to ^orange;'$sprites/${shortdescription} (legs).png'^reset;.
-^cyan;/render legs <male/female/default>^reset;: Renders the worn back item to a PNG file. The sprite is exported to ^orange;'$sprites/${shortdescription} (back).png'^reset;.
+^cyan;/render back <male/female/default>^reset;: Renders the worn back item to a PNG file. The sprite is exported to ^orange;'$sprites/${shortdescription} (back).png'^reset;.
 
 ^cyan;/render body <male/female/default>^reset;: Renders the character's humanoid sprites to PNG files. The sprites are exported to ^orange;'$sprites/${character name} (head).png'^reset;, ^orange;'$sprites/${character name} (emotes).png'^reset;, ^orange;'$sprites/${character name} (hair).png'^reset;, ^orange;'$sprites/${character name} (facial hair).png'^reset;, ^orange;'$sprites/${character name} (facial mask).png'^reset;, ^orange;'$sprites/${character name} (back arm).png'^reset;, ^orange;'$sprites/${character name} (front arm).png'^reset; and ^orange;'$sprites/${character name} (body).png'^reset;.
 
