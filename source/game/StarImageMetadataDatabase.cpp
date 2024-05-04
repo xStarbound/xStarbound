@@ -226,7 +226,7 @@ Vec2U ImageMetadataDatabase::calculateImageSize(AssetPath const& path) const {
     void operator()(MultiplyImageOperation const&) {}
 
     void operator()(BorderImageOperation const& bio) {
-      imageSize += Vec2U::filled(std::clamp(bio.pixels, 0, 128) * 2);
+      imageSize += Vec2U::filled(std::clamp(bio.pixels, 0u, 128u) * 2);
     }
 
     void operator()(ScaleImageOperation const& sio) {
