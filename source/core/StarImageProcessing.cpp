@@ -20,9 +20,9 @@ Image scaleNearest(Image const& srcImage, Vec2F const& scale) {
       scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
-    if ((scaleToProcess[0] >= 128.0f || scaleToProcess[1] >= 128.0f)) {
-      Logger::warn("scalenearest: Scale may not exceed 128x in either dimension!");
-      scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(128.0f));
+    if ((scaleToProcess[0] > 256.0f || scaleToProcess[1] > 256.0f)) {
+      Logger::warn("scalenearest: Scale may not exceed 256x in either dimension!");
+      scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(256.0f));
     }
     Vec2U srcSize = srcImage.size();
     Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scaleToProcess));
@@ -50,9 +50,9 @@ Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
       scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
-    if ((scaleToProcess[0] >= 128.0f || scaleToProcess[1] >= 128.0f)) {
-      Logger::warn("scalebilinear: Scale may not exceed 128x in either dimension!");
-      scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(128.0f));
+    if ((scaleToProcess[0] > 256.0f || scaleToProcess[1] > 256.0f)) {
+      Logger::warn("scalebilinear: Scale may not exceed 256x in either dimension!");
+      scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(256.0f));
     }
     Vec2U srcSize = srcImage.size();
     Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scaleToProcess));
@@ -89,9 +89,9 @@ Image scaleBicubic(Image const& srcImage, Vec2F const& scale) {
       scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
-    if ((scaleToProcess[0] >= 128.0f || scaleToProcess[1] >= 128.0f)) {
-      Logger::warn("scalebicubic: Scale may not exceed 128x in either dimension!");
-      scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(128.0f));
+    if ((scaleToProcess[0] > 256.0f || scaleToProcess[1] > 256.0f)) {
+      Logger::warn("scalebicubic: Scale may not exceed 256x in either dimension!");
+      scaleToProcess = scaleToProcess.piecewiseMin(Vec2F::filled(256.0f));
     }
     Vec2U srcSize = srcImage.size();
     Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scaleToProcess));
