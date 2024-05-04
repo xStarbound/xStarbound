@@ -7,14 +7,19 @@
 #include "StarStringView.hpp"
 #include "StarEncode.hpp"
 //#include "StarTime.hpp"
-//#include "StarLogging.hpp"
+#include "StarLogging.hpp"
 
 namespace Star {
 
 Image scaleNearest(Image const& srcImage, Vec2F const& scale) {
-  if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
+  Vec2F scaleToProcess = scale;
+  if (!(scaleToProcess[0] == 1.0f && scaleToProcess[1] == 1.0f)) {
+    if ((scaleToProcess[0] < 0.0f || scaleToProcess[1] < 0.0f)) {
+      Logger::warn("scaleNearest: Scale must be non-negative!");
+      scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
+    }
     Vec2U srcSize = srcImage.size();
-    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
+    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scaleToProcess));
     destSize[0] = max(destSize[0], 1u);
     destSize[1] = max(destSize[1], 1u);
 
@@ -22,7 +27,7 @@ Image scaleNearest(Image const& srcImage, Vec2F const& scale) {
 
     for (unsigned y = 0; y < destSize[1]; ++y) {
       for (unsigned x = 0; x < destSize[0]; ++x)
-        destImage.set({x, y}, srcImage.clamp(Vec2I::round(vdiv(Vec2F(x, y), scale))));
+        destImage.set({x, y}, srcImage.clamp(Vec2I::round(vdiv(Vec2F(x, y), scaleToProcess))));
     }
     return destImage;
   } else {
@@ -31,9 +36,14 @@ Image scaleNearest(Image const& srcImage, Vec2F const& scale) {
 }
 
 Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
-  if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
+  Vec2F scaleToProcess = scale;
+  if (!(scaleToProcess[0] == 1.0f && scaleToProcess[1] == 1.0f)) {
+    if ((scaleToProcess[0] < 0.0f || scaleToProcess[1] < 0.0f)) {
+      Logger::warn("scaleBilinear: Scale must be non-negative!");
+      scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
+    }
     Vec2U srcSize = srcImage.size();
-    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
+    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scaleToProcess));
     destSize[0] = max(destSize[0], 1u);
     destSize[1] = max(destSize[1], 1u);
 
@@ -41,7 +51,7 @@ Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
 
     for (unsigned y = 0; y < destSize[1]; ++y) {
       for (unsigned x = 0; x < destSize[0]; ++x) {
-        auto pos = vdiv(Vec2F(x, y), scale);
+        auto pos = vdiv(Vec2F(x, y), scaleToProcess);
         auto ipart = Vec2I::floor(pos);
         auto fpart = pos - Vec2F(ipart);
 
@@ -59,9 +69,14 @@ Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
 }
 
 Image scaleBicubic(Image const& srcImage, Vec2F const& scale) {
-  if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
+  Vec2F scaleToProcess = scale;
+  if (!(scaleToProcess[0] == 1.0f && scaleToProcess[1] == 1.0f)) {
+    if ((scaleToProcess[0] < 0.0f || scaleToProcess[1] < 0.0f)) {
+      Logger::warn("scaleBicubic: Scale must be non-negative!");
+      scaleToProcess = scaleToProcess.piecewiseMax(Vec2F::filled(0.0f));
+    }
     Vec2U srcSize = srcImage.size();
-    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
+    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scaleToProcess));
     destSize[0] = max(destSize[0], 1u);
     destSize[1] = max(destSize[1], 1u);
 
@@ -69,7 +84,7 @@ Image scaleBicubic(Image const& srcImage, Vec2F const& scale) {
 
     for (unsigned y = 0; y < destSize[1]; ++y) {
       for (unsigned x = 0; x < destSize[0]; ++x) {
-        auto pos = vdiv(Vec2F(x, y), scale);
+        auto pos = vdiv(Vec2F(x, y), scaleToProcess);
         auto ipart = Vec2I::floor(pos);
         auto fpart = pos - Vec2F(ipart);
 
