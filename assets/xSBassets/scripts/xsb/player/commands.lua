@@ -342,12 +342,16 @@ local function resolveName(itemConfig)
     return itemConfig.parameters.shortdescription or itemConfig.config.shortdescription or itemConfig.config.itemName
 end
 
+local function resolveSpecies(identity)
+    return identity.imagePath or identity.species
+end
+
 local function resolveFacialHair()
     local identity = player.identity()
     local facialHairDirectives
     if identity.facialHairType ~= "" and identity.facialHairGroup ~= "" then
         facialHairDirectives = "/humanoid/"
-            .. identity.species
+            .. resolveSpecies(identity)
             .. "/"
             .. identity.facialHairGroup
             .. "/"
@@ -365,7 +369,7 @@ local function resolveFacialMask()
     local facialMaskDirectives
     if identity.facialMaskType ~= "" and identity.facialMaskGroup ~= "" then
         facialMaskDirectives = "/humanoid/"
-            .. identity.species
+            .. resolveSpecies(identity)
             .. "/"
             .. identity.facialMaskGroup
             .. "/"
@@ -383,7 +387,7 @@ local function resolveHair()
     local hairDirectives
     if identity.hairType ~= "" and identity.hairGroup ~= "" then
         hairDirectives = "/humanoid/"
-            .. identity.species
+            .. resolveSpecies(identity)
             .. "/"
             .. identity.hairGroup
             .. "/"
@@ -489,27 +493,27 @@ end
 
 local function resolveEmotes()
     local identity = player.identity()
-    return "/humanoid/" .. identity.species .. "/emote.png" .. identity.emoteDirectives
+    return "/humanoid/" .. resolveSpecies(identity) .. "/emote.png" .. identity.emoteDirectives
 end
 
 local function resolveHead(gender)
     local identity = player.identity()
-    return "/humanoid/" .. identity.species .. "/" .. gender .. "head.png" .. identity.bodyDirectives
+    return "/humanoid/" .. resolveSpecies(identity) .. "/" .. gender .. "head.png" .. identity.bodyDirectives
 end
 
 local function resolveBody(gender)
     local identity = player.identity()
-    return "/humanoid/" .. identity.species .. "/" .. gender .. "body.png" .. identity.bodyDirectives
+    return "/humanoid/" .. resolveSpecies(identity) .. "/" .. gender .. "body.png" .. identity.bodyDirectives
 end
 
 local function resolveFrontArm()
     local identity = player.identity()
-    return "/humanoid/" .. identity.species .. "/frontarm.png" .. identity.bodyDirectives
+    return "/humanoid/" .. resolveSpecies(identity) .. "/frontarm.png" .. identity.bodyDirectives
 end
 
 local function resolveBackArm()
     local identity = player.identity()
-    return "/humanoid/" .. identity.species .. "/frontarm.png" .. identity.bodyDirectives
+    return "/humanoid/" .. resolveSpecies(identity) .. "/frontarm.png" .. identity.bodyDirectives
 end
 
 local function renderHumanoid(gender)
