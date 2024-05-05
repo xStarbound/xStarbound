@@ -7,6 +7,8 @@
 
 namespace Star {
 
+typedef Vector<uint8_t, 5> Vec5B;
+
 STAR_CLASS(Image);
 
 STAR_EXCEPTION(ImageOperationException, StarException);
@@ -79,9 +81,10 @@ struct SetColorImageOperation {
 };
 
 typedef HashMap<Vec4B, Vec4B> ColorReplaceMap;
+typedef HashMap<Vec5B, Vec4B> ColorReplaceMap5;
 
 struct ColorReplaceImageOperation {
-  ColorReplaceMap colorReplaceMap;
+  ColorReplaceMap5 colorReplaceMap;
 };
 
 struct AlphaMaskImageOperation {

@@ -125,11 +125,13 @@ MonsterDatabase::MonsterDatabase() {
       if (m_colorSwaps.contains(paletteName))
         throw MonsterException(strf("Duplicate monster colors name '{}'", paletteName));
 
-      ColorReplaceMap colorSwaps;
+      ColorReplaceMap5 colorSwaps;
       for (auto const& swapSet : config.getArray("swaps")) {
-        ColorReplaceMap colorSwaps;
+        ColorReplaceMap5 colorSwaps;
         for (auto const& swap : swapSet.iterateObject()) {
-          colorSwaps[Color::fromHex(swap.first).toRgba()] = Color::fromHex(swap.second.toString()).toRgba();
+          Vec4B colour = Color::fromHex(swap.first).toRgba();
+          Vec5B swapColour = Vec5B(colour[0], colour[1], colour[2], colour[3], 0);
+          colorSwaps[swapColour] = Color::fromHex(swap.second.toString()).toRgba();
         }
         m_colorSwaps[paletteName].append(colorSwaps);
       }
@@ -251,7 +253,7 @@ Json MonsterDatabase::skillConfigParameter(String const& skillName, String const
   }
 }
 
-ColorReplaceMap MonsterDatabase::colorSwap(String const& setName, uint64_t seed) const {
+ColorReplaceMap5 MonsterDatabase::colorSwap(String const& setName, uint64_t seed) const {
   if (m_colorSwaps.contains(setName))
     return staticRandomFrom(m_colorSwaps.get(setName), seed);
   else {
@@ -372,10 +374,12 @@ void MonsterDatabase::readCommonParameters(MonsterVariant& variant) {
 
   variant.nametagColor = jsonToVec3B(variant.parameters.get("nametagColor", JsonArray{255, 255, 255}));
 
-  variant.colorSwap = variant.parameters.optObject("colorSwap").apply([](JsonObject const& json) -> ColorReplaceMap {
-      ColorReplaceMap swaps;
+  variant.colorSwap = variant.parameters.optObject("colorSwap").apply([](JsonObject const& json) -> ColorReplaceMap5 {
+      ColorReplaceMap5 swaps;
       for (auto pair : json) {
-        swaps.insert(Color::fromHex(pair.first).toRgba(), Color::fromHex(pair.second.toString()).toRgba());
+        Vec4B originalColour = Color::fromHex(pair.first).toRgba();
+        Vec5B swapColour = Vec5B(originalColour[0], originalColour[1], originalColour[2], originalColour[3], 0);
+        swaps.insert(swapColour, Color::fromHex(pair.second.toString()).toRgba());
       }
       return swaps;
     });

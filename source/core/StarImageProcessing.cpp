@@ -210,8 +210,11 @@ StringList colorDirectivesFromConfig(JsonArray const& directives) {
 
 String paletteSwapDirectivesFromConfig(Json const& swaps) {
   ColorReplaceImageOperation paletteSwaps;
-  for (auto const& swap : swaps.iterateObject())
-    paletteSwaps.colorReplaceMap[Color::fromHex(swap.first).toRgba()] = Color::fromHex(swap.second.toString()).toRgba();
+  for (auto const& swap : swaps.iterateObject()) {
+    Vec4B hexColour = Color::fromHex(swap.first).toRgba();
+    Vec5B replaceColour = Vec5B(hexColour[0], hexColour[1], hexColour[2], hexColour[3], 0);
+    paletteSwaps.colorReplaceMap[replaceColour] = Color::fromHex(swap.second.toString()).toRgba();
+  }
   return "?" + imageOperationToString(paletteSwaps);
 }
 
@@ -258,7 +261,7 @@ ImageOperation imageOperationFromString(StringView string) {
       char const* ptr = bits.data(); // Pointer to the current byte of the bits string.
       char const* end = ptr + bits.size(); // Pointer to the end of the bits string.
 
-      char a[4]{}, b[4]{}; // `a` and `b` are the hex color strings being parsed.
+      char a[5]{}, b[4]{}; // `a` and `b` are the hex color strings being parsed. Hack: `a` has an extra byte for storing whether this colour was subject to any substitution hacks below.
       bool which = true; // `which` is whether we are currently parsing `a` (`true`) or `b` (`false`).
 
       while (true) { // Loop through each byte of the bits string.
@@ -274,6 +277,7 @@ ImageOperation imageOperationFromString(StringView string) {
               c[1] |= (c[1] << 4); // Blue. Ditto.
               c[2] |= (c[2] << 4); // Green. Ditto.
               c[3] = 255; // Add an alpha of `ff` (fully opaque).
+              if (which) c[4] = 0; // Substitution hack marker.
             }
             else if (hexLen == 4) { // If the hex color string is 4 characters long, it's an `RGBA` hex string, so expand it to 8 by doubling each character.
               nibbleDecode(hexPtr, 4, c, 4); // Decodes into {0x0H, 0x0H, 0x0H, 0x0H}, where H is each hex character in order.
@@ -281,26 +285,32 @@ ImageOperation imageOperationFromString(StringView string) {
               c[1] |= (c[1] << 4); // Blue. Ditto.
               c[2] |= (c[2] << 4); // Green. Ditto.
               c[3] |= (c[3] << 4); // Alpha. Ditto.
+              if (which) c[4] |= 0; // Substitution hack marker.
             }
             else if (hexLen == 6) { // If the hex color string is 6 characters long, it's an `RRGGBB` hex string, so expand it to 8 by adding an alpha of `ff` (fully opaque).
               hexDecode(hexPtr, 6, c, 4); // Decodes into the first three bytes of the array as hex bytes equivalent to their string representation.
               c[3] = 255; // Add an alpha of `ff` (fully opaque).
-              // FezzedOne: Really icky hack to make sure generated sleeves are rendered properly. To bypass this hack, tack an `ff` alpha value onto the end of `bcbc5d`.
-              // The hack replaces an `a` of `bcbc5d` (not `bcbc5dff`) with `bcbc5e`.
-              c[2] = (which && (c[0] == (char)0xbc && c[1] == (char)0xbc && c[2] == (char)0x5d)) ? 0x5e : c[2]; 
+              // FezzedOne: Warning: Disgusting hack! This makes sure generated sleeves are rendered properly. To bypass this hack, tack an `ff` alpha value onto the end of `bcbc5d` when using
+              // it as an `a` colour. The hack replaces an `a` of `bcbc5d` (not `bcbc5dff`) with `bcbc5e`, which is visually nearly indistinguishable anyway.
+              // The hack is needed because `scaleBilinear` (way up above) now works very slightly differently from the vanilla version, just enough to impact this one edge case.
+              #define COLOUR_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d)
+              #define OLD_COLOUR_BYTE (char)0x5d
+              #define NEW_COLOUR_BYTE (char)0x5e
+              c[2] = (which && COLOUR_NEEDS_SUB(c, char)) ? NEW_COLOUR_BYTE : c[2];
+              if (which) c[4] = COLOUR_NEEDS_SUB(c, char) ? (char)255 : 0; // Mark the presence of this hack so that conversion back to a string remains lossless.
             }
             else if (hexLen == 8) { // If the hex color string is 8 characters long, it's a full `RRGGBBAA` hex string.
               hexDecode(hexPtr, 8, c, 4); // Decodes into all four bytes of the array as hex bytes equivalent to their string representation.
+              if (which) c[4] = 0; // Substitution hack marker.
             }
-            else if (!which || (ptr != end && ++ptr != end))
+            else if (!which || (ptr != end && ++ptr != end)) // If we're in `b` of `a=b` and the hex string is of the wrong length, throw an exception.
               throw ImageOperationException(strf("Improper size for hex string '{}' in imageOperationFromString", StringView(hexPtr, hexLen)), false);
             else // We're in `a` of `a=b`. In vanilla, only `a=b` pairs are evaluated, so only throw an exception if `b` is also there.
-              return move(operation);
-              
+              return move(operation); // Return the incomplete operation, whose parsing stopped just before the invalid `a`, so no valid replacements after that part will be executed.
 
             which = !which; // If we parsed a hex colour code, switch `which` to the other colour. I.e., from `a` to `b` and vice versa.
             if (which)
-              operation.colorReplaceMap[*(Vec4B*)&a] = *(Vec4B*)&b; // Add the parsed colours to the operation.
+              operation.colorReplaceMap[*(Vec5B*)&a] = *(Vec4B*)&b; // Add the parsed colours to the operation.
 
             hexLen = 0; // Reset hexLen so we can parse the next hex colour string.
           }
@@ -346,13 +356,13 @@ ImageOperation imageOperationFromString(StringView string) {
     } else if (type == "setcolor") {
       return SetColorImageOperation{Color::fromHex(bits.at(1)).toRgb()};
 
-    } else if (type == "replace") {
-      // The old `?replace` parser. Now never gets called.
-      ColorReplaceImageOperation operation;
-      for (size_t i = 0; i < (bits.size() - 1) / 2; ++i)
-        operation.colorReplaceMap[Color::hexToVec4B(bits[i * 2 + 1])] = Color::hexToVec4B(bits[i * 2 + 2]);
+    // } else if (type == "replace") {
+    //   // The old `?replace` parser. Now never gets called.
+    //   ColorReplaceImageOperation operation;
+    //   for (size_t i = 0; i < (bits.size() - 1) / 2; ++i)
+    //     operation.colorReplaceMap[Color::hexToVec4B(bits[i * 2 + 1])] = Color::hexToVec4B(bits[i * 2 + 2]);
 
-      return operation;
+    //   return operation;
 
     } else if (type == "addmask" || type == "submask") {
       AlphaMaskImageOperation operation;
@@ -469,8 +479,22 @@ String imageOperationToString(ImageOperation const& operation) {
     return strf("setcolor={}", Color::rgb(op->color).toHex());
   } else if (auto op = operation.ptr<ColorReplaceImageOperation>()) {
     String str = "replace";
-    for (auto const& pair : op->colorReplaceMap)
-      str += strf(";{}={}", Color::rgba(pair.first).toHex(), Color::rgba(pair.second).toHex());
+    for (auto const& [a, b] : op->colorReplaceMap) {
+      // FezzedOne: Transparently convert compiled colour replacements back to the original directives,
+      // as if the replacement never happened.
+      Vec4B adjustedColour{a[0], a[1], a[2], a[3]};
+      char colourSubstitutionMode = a[4];
+      if (colourSubstitutionMode == (char)255 && adjustedColour[2] == NEW_COLOUR_BYTE) {
+        adjustedColour[2] = OLD_COLOUR_BYTE;
+      }
+
+      String aStr = Color::rgba(adjustedColour).toHex();
+      if (colourSubstitutionMode != (char)255 && COLOUR_NEEDS_SUB(adjustedColour, unsigned char)) {
+        aStr += "ff";
+      }
+
+      str += strf(";{}={}", aStr, Color::rgba(b).toHex());
+    }
     return str;
   } else if (auto op = operation.ptr<AlphaMaskImageOperation>()) {
     if (op->mode == AlphaMaskImageOperation::Additive)
@@ -596,7 +620,9 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     });
   } else if (auto op = operation.ptr<ColorReplaceImageOperation>()) {
     image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
-      if (auto m = op->colorReplaceMap.maybe(pixel))
+      if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 255)))
+        pixel = *m;
+      if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 0)))
         pixel = *m;
     });
 
