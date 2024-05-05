@@ -16,7 +16,7 @@ Image scaleNearest(Image const& srcImage, Vec2F scale) {
     // «Downstreamed» from Kae. Fixes a segfault.
     if ((scale[0] < 0.0f || scale[1] < 0.0f)) {
       Logger::warn("scalenearest: Scale must be non-negative!");
-      scale = scale.piecewiseMax(Vec2F::filled(0.0f));
+      scale = Vec2F(std::abs(scale[0]), std::abs(scale[1]));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
     if ((scale[0] > 256.0f || scale[1] > 256.0f)) {
@@ -132,7 +132,7 @@ Image scaleBicubic(Image const& srcImage, Vec2F scale) {
     // «Downstreamed» from Kae. Fixes a segfault.
     if ((scale[0] < 0.0f || scale[1] < 0.0f)) {
       Logger::warn("scalebicubic: Scale must be non-negative!");
-      scale = scale.piecewiseMax(Vec2F::filled(0.0f));
+      scale = Vec2F(std::abs(scale[0]), std::abs(scale[1]));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
     if ((scale[0] > 256.0f || scale[1] > 256.0f)) {
