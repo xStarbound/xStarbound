@@ -242,78 +242,81 @@ FadeToColorImageOperation::FadeToColorImageOperation(Vec3B color, float amount) 
 
 ImageOperation imageOperationFromString(StringView string) {
   try {
-    std::string_view view = string.utf8();
-    //double time = view.size() > 10000 ? Time::monotonicTime() : 0.0;
-    auto firstBitEnd = view.find_first_of("=;");
+    std::string_view view = string.utf8(); // A view into the string containing all the image operations to be compiled.
+    // «Bits» are the `;`/`=`-separated parts of the operation, where the first «bit» is the operation's name and the rest are arguments.
+    auto firstBitEnd = view.find_first_of("=;"); // End of the operation's name.
+    // Kae's optimised parser for `?replace` operations.
     if (view.substr(0, firstBitEnd).compare("replace") == 0 && (firstBitEnd + 1) != view.size()) {
-      //Perform optimized replace parse
-      ColorReplaceImageOperation operation;
+      ColorReplaceImageOperation operation; // The operation to be returned.
 
-      std::string_view bits = view.substr(firstBitEnd + 1);
-      operation.colorReplaceMap.reserve(bits.size() / 8);
+      std::string_view bits = view.substr(firstBitEnd + 1); // The part of the string containing all the hex colour directives.
+      operation.colorReplaceMap.reserve(bits.size() / 8); // Reserving enough space for the result.
 
-      char const* hexPtr = nullptr;
-      unsigned int hexLen = 0;
+      char const* hexPtr = nullptr; // Pointer to the current hex color string.
+      unsigned int hexLen = 0; // Length of the current hex color string.
 
-      char const* ptr = bits.data();
-      char const* end = ptr + bits.size();
+      char const* ptr = bits.data(); // Pointer to the current byte of the bits string.
+      char const* end = ptr + bits.size(); // Pointer to the end of the bits string.
 
-      char a[4]{}, b[4]{};
-      bool which = true;
+      char a[4]{}, b[4]{}; // `a` and `b` are the hex color strings being parsed.
+      bool which = true; // `which` is whether we are currently parsing `a` (`true`) or `b` (`false`).
 
-      while (true) {
-        char ch = *ptr;
+      while (true) { // Loop through each byte of the bits string.
+        char ch = *ptr; // Get the current byte as a char.
 
-        if (ch == '=' || ch == ';' || ptr == end) {
-          if (hexLen != 0) {
-            char* c = which ? a : b;
+        if (ch == '=' || ch == ';' || ptr == end) { // If we reached the end of a hex color directive or the end of the bits string,
+          if (hexLen != 0) { // If we have a complete hex color directive,
+            char* c = which ? a : b; // Get the correct array to store the color in.
 
-            if (hexLen == 3) {
-              nibbleDecode(hexPtr, 3, c, 4);
-              c[0] |= (c[0] << 4);
-              c[1] |= (c[1] << 4);
-              c[2] |= (c[2] << 4);
-              c[3] = 255;
+            if (hexLen == 3) { // If the hex color string is 3 characters long, it's an `RGB` hex string, so expand it to 6 by doubling each character, then to 8 by adding an alpha of `ff` (fully opaque).
+              nibbleDecode(hexPtr, 3, c, 4); // Decodes into {0x0H, 0x0H, 0x0H, 0x00}, where H is each hex character in order.
+              c[0] |= (c[0] << 4); // Red. Shift the least significant bits left by 4 bits, copying them into the empty most significant 4 bits.
+              c[1] |= (c[1] << 4); // Blue. Ditto.
+              c[2] |= (c[2] << 4); // Green. Ditto.
+              c[3] = 255; // Add an alpha of `ff` (fully opaque).
             }
-            else if (hexLen == 4) {
-              nibbleDecode(hexPtr, 4, c, 4);
-              c[0] |= (c[0] << 4);
-              c[1] |= (c[1] << 4);
-              c[2] |= (c[2] << 4);
-              c[3] |= (c[3] << 4);
+            else if (hexLen == 4) { // If the hex color string is 4 characters long, it's an `RGBA` hex string, so expand it to 8 by doubling each character.
+              nibbleDecode(hexPtr, 4, c, 4); // Decodes into {0x0H, 0x0H, 0x0H, 0x0H}, where H is each hex character in order.
+              c[0] |= (c[0] << 4); // Red. Shift the least significant bits left by 4 bits, copying them into the empty most significant 4 bits.
+              c[1] |= (c[1] << 4); // Blue. Ditto.
+              c[2] |= (c[2] << 4); // Green. Ditto.
+              c[3] |= (c[3] << 4); // Alpha. Ditto.
             }
-            else if (hexLen == 6) {
-              hexDecode(hexPtr, 6, c, 4);
-              c[3] = 255;
+            else if (hexLen == 6) { // If the hex color string is 6 characters long, it's an `RRGGBB` hex string, so expand it to 8 by adding an alpha of `ff` (fully opaque).
+              hexDecode(hexPtr, 6, c, 4); // Decodes into the first three bytes of the array as hex bytes equivalent to their string representation.
+              c[3] = 255; // Add an alpha of `ff` (fully opaque).
+              // FezzedOne: Really icky hack to make sure generated sleeves are rendered properly. To bypass this hack, tack an `ff` alpha value onto the end of `bcbc5d`.
+              // The hack replaces an `a` of `bcbc5d` (not `bcbc5dff`) with `bcbc5e`.
+              c[2] = (which && (c[0] == (char)0xbc && c[1] == (char)0xbc && c[2] == (char)0x5d)) ? 0x5e : c[2]; 
             }
-            else if (hexLen == 8) {
-              hexDecode(hexPtr, 8, c, 4);
+            else if (hexLen == 8) { // If the hex color string is 8 characters long, it's a full `RRGGBBAA` hex string.
+              hexDecode(hexPtr, 8, c, 4); // Decodes into all four bytes of the array as hex bytes equivalent to their string representation.
             }
             else if (!which || (ptr != end && ++ptr != end))
-                throw ImageOperationException(strf("Improper size for hex string '{}' in imageOperationFromString", StringView(hexPtr, hexLen)), false);
-            else // we're in A of A=B. In vanilla only A=B pairs are evaluated, so only throw an exception if B is also there.
-                return move(operation);
+              throw ImageOperationException(strf("Improper size for hex string '{}' in imageOperationFromString", StringView(hexPtr, hexLen)), false);
+            else // We're in `a` of `a=b`. In vanilla, only `a=b` pairs are evaluated, so only throw an exception if `b` is also there.
+              return move(operation);
               
 
-            which = !which;
+            which = !which; // If we parsed a hex colour code, switch `which` to the other colour. I.e., from `a` to `b` and vice versa.
             if (which)
-              operation.colorReplaceMap[*(Vec4B*)&a] = *(Vec4B*)&b;
+              operation.colorReplaceMap[*(Vec4B*)&a] = *(Vec4B*)&b; // Add the parsed colours to the operation.
 
-            hexLen = 0;
+            hexLen = 0; // Reset hexLen so we can parse the next hex colour string.
           }
         }
-        else if (!hexLen++)
-          hexPtr = ptr;
+        else if (!hexLen++) // If the current byte is not a separator, increment hexLen.
+          hexPtr = ptr; // Set hexPtr to the current byte.
 
         if (ptr++ == end)
-          break;
+          break; // If we reached the end of the bits string, break out of the loop.
       }
 
-      //if (time != 0.0)
-      //  Logger::logf(LogLevel::Debug, "Parsed %u long directives to %u replace operations in %fs", view.size(), operation.colorReplaceMap.size(), Time::monotonicTime() - time);
       return operation;
     }
 
+
+    // Code for non-`?replace` operations.
     List<StringView> bits;
 
     string.forEachSplitAnyView("=;", [&](StringView split, size_t, size_t) {
@@ -344,6 +347,7 @@ ImageOperation imageOperationFromString(StringView string) {
       return SetColorImageOperation{Color::fromHex(bits.at(1)).toRgb()};
 
     } else if (type == "replace") {
+      // The old `?replace` parser. Now never gets called.
       ColorReplaceImageOperation operation;
       for (size_t i = 0; i < (bits.size() - 1) / 2; ++i)
         operation.colorReplaceMap[Color::hexToVec4B(bits[i * 2 + 1])] = Color::hexToVec4B(bits[i * 2 + 2]);
