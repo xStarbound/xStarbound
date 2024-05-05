@@ -42,6 +42,7 @@ Image scaleNearest(Image const& srcImage, Vec2F scale) {
 
 #if defined STAR_COMPILER_MSVC
 // FezzedOne: Needed to use `/fp:strict` for this function on MSVC.
+#pragma float_control(push)         // push existing settings onto stack
 #pragma float_control(precise, on)  // enable precise semantics
 #pragma fenv_access(on)             // enable environment sensitivity
 #pragma float_control(except, on)   // enable exception semantics
@@ -120,6 +121,11 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
     return srcImage;
   }
 }
+#if defined STAR_COMPILER_MSVC
+// FezzedOne: Needed to use `/fp:strict` for this function on MSVC.
+#pragma fenv_access(off)            // disable environment sensitivity
+#pragma float_control(pop)          // pop existing settings from stack
+#endif
 
 Image scaleBicubic(Image const& srcImage, Vec2F scale) {
   if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
