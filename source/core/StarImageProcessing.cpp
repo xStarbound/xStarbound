@@ -52,16 +52,15 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
       Logger::warn("scalebilinear: Scale may not exceed 256x in either dimension!");
       scale = scale.piecewiseMin(Vec2F::filled(256.0f));
     }
-    // FezzedOne: Ensures a certain floating-point value is rounded correctly by changing 0x3f766666f
-    // to 0x3f766665f (x86 little-endian representation). The actual code is endian-agnostic.
-#define WRONG_VALUE 0.9625f
-#define FIXED_VALUE 0.9624999f
+    // FezzedOne: Ensures a certain floating-point value is rounded «correctly».
+// #define WRONG_VALUE 0.9625f
+// #define FIXED_VALUE 0.962498f
     // union ScaleFloatToHex { float floatVal; int byteVal; };
     // int byteScale_0 = ScaleFloatToHex{.floatVal = scale[0]}.byteVal;
     // int byteScale_1 = ScaleFloatToHex{.floatVal = scale[1]}.byteVal;
     // Logger::info("[Debug] scalebilinear: Scale is {{ {:}, {:} }}, hex {{ {:x}, {:x} }}", scale[0], scale[1], byteScale_0, byteScale_1);
-    if (scale[0] == WRONG_VALUE) scale[0] = FIXED_VALUE;
-    if (scale[1] == WRONG_VALUE) scale[1] = FIXED_VALUE;
+    // if (scale[0] == WRONG_VALUE) scale[0] = FIXED_VALUE;
+    // if (scale[1] == WRONG_VALUE) scale[1] = FIXED_VALUE;
     Vec2U srcSize = srcImage.size();
     Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
     destSize[0] = max(destSize[0], 1u);
@@ -79,6 +78,11 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
         Vec4F topRight    = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1]));
         Vec4F bottomLeft  = Vec4F(srcImage.clamp(ipart[0],       ipart[1] + 1));
         Vec4F bottomRight = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1] + 1));
+
+        // FezzedOne: Let's try changing the order of operations.
+        // Vec4F left     = lerp(fpart[1], topLeft,     bottomLeft);
+        // Vec4F right  = lerp(fpart[1], topRight,  bottomRight);
+        // Vec4F result  = lerp(fpart[0], left,         right);
 
         Vec4F top     = lerp(fpart[0], topLeft,     topRight);
         Vec4F bottom  = lerp(fpart[0], bottomLeft,  bottomRight);
