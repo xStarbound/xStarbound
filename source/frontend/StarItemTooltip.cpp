@@ -192,27 +192,28 @@ void ItemTooltipBuilder::describePersistentEffect(
       listItem->fetchChild<ImageWidget>("statusImage")->setImage(*effectConfig.icon);
     }
   } else if (auto modifierEffect = effect.ptr<StatModifier>()) {
+    // Pruned decimal dust. «Downstreamed» from OpenStarbound.
     auto statsConfig = Root::singleton().assets()->json("/interface/stats/stats.config");
     if (auto baseMultiplier = modifierEffect->ptr<StatBaseMultiplier>()) {
       if (statsConfig.contains(baseMultiplier->statName)) {
         auto listItem = container->addItem();
         listItem->fetchChild<ImageWidget>("statusImage")
             ->setImage(statsConfig.get(baseMultiplier->statName).getString("icon"));
-        listItem->setLabel("statusLabel", strf("{}%", (baseMultiplier->baseMultiplier - 1) * 100));
+        listItem->setLabel("statusLabel", strf("{:.1f}%", (baseMultiplier->baseMultiplier - 1) * 100));
       }
     } else if (auto valueModifier = modifierEffect->ptr<StatValueModifier>()) {
       if (statsConfig.contains(valueModifier->statName)) {
         auto listItem = container->addItem();
         listItem->fetchChild<ImageWidget>("statusImage")
             ->setImage(statsConfig.get(valueModifier->statName).getString("icon"));
-        listItem->setLabel("statusLabel", strf("{}{}", valueModifier->value < 0 ? "-" : "", valueModifier->value));
+        listItem->setLabel("statusLabel", strf("{:.1f}", valueModifier->value));
       }
     } else if (auto effectiveMultiplier = modifierEffect->ptr<StatEffectiveMultiplier>()) {
       if (statsConfig.contains(effectiveMultiplier->statName)) {
         auto listItem = container->addItem();
         listItem->fetchChild<ImageWidget>("statusImage")
             ->setImage(statsConfig.get(effectiveMultiplier->statName).getString("icon"));
-        listItem->setLabel("statusLabel", strf("{}%", (effectiveMultiplier->effectiveMultiplier - 1) * 100));
+        listItem->setLabel("statusLabel", strf("{:.1f}%", (effectiveMultiplier->effectiveMultiplier - 1) * 100));
       }
     }
   }
