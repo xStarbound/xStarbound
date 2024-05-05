@@ -83,7 +83,7 @@ struct MonsterVariant {
   float onFireAggressiveDuration;
 
   Vec3B nametagColor;
-  Maybe<ColorReplaceMap> colorSwap;
+  Maybe<ColorReplaceMap5> colorSwap;
 };
 
 class MonsterDatabase {
@@ -114,7 +114,7 @@ public:
   pair<String, String> skillInfo(String const& skillName) const;
   Json skillConfigParameter(String const& skillName, String const& configParameterName) const;
 
-  ColorReplaceMap colorSwap(String const& setName, uint64_t seed) const;
+  ColorReplaceMap5 colorSwap(String const& setName, uint64_t seed) const;
 
 private:
   struct MonsterType {
@@ -188,7 +188,7 @@ private:
   StringMap<MonsterType> m_monsterTypes;
   PartDirectory m_partDirectory;
   StringMap<MonsterSkill> m_skills;
-  StringMap<List<ColorReplaceMap>> m_colorSwaps;
+  StringMap<List<ColorReplaceMap5>> m_colorSwaps;
 
   mutable Mutex m_cacheMutex;
 
