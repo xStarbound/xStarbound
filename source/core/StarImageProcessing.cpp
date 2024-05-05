@@ -40,6 +40,12 @@ Image scaleNearest(Image const& srcImage, Vec2F scale) {
   }
 }
 
+#if defined STAR_COMPILER_MSVC
+// FezzedOne: Needed to use `/fp:strict` for this function on MSVC.
+#pragma float_control(precise, on)  // enable precise semantics
+#pragma fenv_access(on)             // enable environment sensitivity
+#pragma float_control(except, on)   // enable exception semantics
+#endif
 Image scaleBilinear(Image const& srcImage, Vec2F scale) {
   if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
@@ -52,17 +58,19 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
       Logger::warn("scalebilinear: Scale may not exceed 256x in either dimension!");
       scale = scale.piecewiseMin(Vec2F::filled(256.0f));
     }
-    // FezzedOne: Ensures a certain floating-point value is rounded «correctly».
-// #define WRONG_VALUE 0.9625f
-// #define FIXED_VALUE 0.962498f
     // union ScaleFloatToHex { float floatVal; int byteVal; };
     // int byteScale_0 = ScaleFloatToHex{.floatVal = scale[0]}.byteVal;
     // int byteScale_1 = ScaleFloatToHex{.floatVal = scale[1]}.byteVal;
     // Logger::info("[Debug] scalebilinear: Scale is {{ {:}, {:} }}, hex {{ {:x}, {:x} }}", scale[0], scale[1], byteScale_0, byteScale_1);
-    // if (scale[0] == WRONG_VALUE) scale[0] = FIXED_VALUE;
-    // if (scale[1] == WRONG_VALUE) scale[1] = FIXED_VALUE;
     Vec2U srcSize = srcImage.size();
-    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
+    Vec2U destSize;
+    {
+      #if defined STAR_COMPILER_CLANG
+      // FezzedOne: Needed to disable `-ffast-math` on Clang.
+      #pragma clang fp reciprocal(off) reassociate(off) contract(on) exceptions(strict)
+      #endif
+      destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
+    }
     destSize[0] = max(destSize[0], 1u);
     destSize[1] = max(destSize[1], 1u);
 
@@ -70,25 +78,40 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
 
     for (unsigned y = 0; y < destSize[1]; ++y) {
       for (unsigned x = 0; x < destSize[0]; ++x) {
-        auto pos = vdiv(Vec2F(x, y), scale);
-        auto ipart = Vec2I::floor(pos);
-        auto fpart = pos - Vec2F(ipart);
+        Vec4B processedResult;
 
-        Vec4F topLeft     = Vec4F(srcImage.clamp(ipart[0],       ipart[1]));
-        Vec4F topRight    = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1]));
-        Vec4F bottomLeft  = Vec4F(srcImage.clamp(ipart[0],       ipart[1] + 1));
-        Vec4F bottomRight = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1] + 1));
+        {
+          #if defined STAR_COMPILER_CLANG
+          // FezzedOne: Needed to disable `-ffast-math` on Clang.
+          #pragma clang fp reciprocal(off) reassociate(off) contract(on) exceptions(strict)
+          #endif
+          auto pos = vdiv(Vec2F(x, y), scale);
+          auto ipart = Vec2I::floor(pos);
+          auto fpart = pos - Vec2F(ipart);
 
-        // FezzedOne: Let's try changing the order of operations.
-        // Vec4F left     = lerp(fpart[1], topLeft,     bottomLeft);
-        // Vec4F right  = lerp(fpart[1], topRight,  bottomRight);
-        // Vec4F result  = lerp(fpart[0], left,         right);
+          Vec4F topLeft     = Vec4F(srcImage.clamp(ipart[0],       ipart[1]));
+          Vec4F topRight    = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1]));
+          Vec4F bottomLeft  = Vec4F(srcImage.clamp(ipart[0],       ipart[1] + 1));
+          Vec4F bottomRight = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1] + 1));
 
-        Vec4F top     = lerp(fpart[0], topLeft,     topRight);
-        Vec4F bottom  = lerp(fpart[0], bottomLeft,  bottomRight);
-        Vec4F result  = lerp(fpart[1], top,         bottom);
+          // FezzedOne: Inlined lerp function.
+          auto inlineLerp = [](float offset, Vec4F f0, Vec4F f1) -> Vec4F {
+            return f0 * (1.0f - offset) + f1 * (offset);
+          };
 
-        destImage.set({x, y}, Vec4B(result));
+          // FezzedOne: Let's try changing the order of operations.
+          Vec4F left    = inlineLerp(fpart[1], topLeft,   bottomLeft);
+          Vec4F right   = inlineLerp(fpart[1], topRight,  bottomRight);
+          Vec4F result  = inlineLerp(fpart[0], left,      right);
+
+          processedResult = Vec4B(result);
+
+          // Vec4F top     = inlineLerp(fpart[0], topLeft,     topRight);
+          // Vec4F bottom  = inlineLerp(fpart[0], bottomLeft,  bottomRight);
+          // Vec4F result  = inlineLerp(fpart[1], top,         bottom);
+        }
+
+        destImage.set({x, y}, processedResult);
       }
     }
 
