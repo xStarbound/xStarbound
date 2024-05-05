@@ -233,7 +233,7 @@ Vec2U ImageMetadataDatabase::calculateImageSize(AssetPath const& path) const {
       // FezzedOne: Minor optimisation.
       Vec2F scale = sio.scale;
       if (scale != Vec2F(1.0f, 1.0f)) {
-        scale = scale.piecewiseMax(Vec2F::filled(0.0f)).piecewiseMin(Vec2F::filled(256.0f));
+        scale = scale.abs().piecewiseMax(Vec2F::filled(0.0f)).piecewiseMin(Vec2F::filled(256.0f));
         imageSize = Vec2U::round(vmult(Vec2F(imageSize), scale));
       }
     }
