@@ -294,13 +294,15 @@ ImageOperation imageOperationFromString(StringView string) {
               // it as an `a` colour. The hack replaces an `a` of `bcbc5d` (not `bcbc5dff`) with `bcbc5e`, which is visually nearly indistinguishable anyway.
               // The hack is needed because `scaleBilinear` (way up above) now works very slightly differently from the vanilla version, just enough to impact this one edge case.
               #define COLOUR_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d) // Check if this colour is the one needing substitution.
+              #define COLOUR_NEEDS_SUB_RGBA(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d && bytes[2] == (castType)0xff) // Same, but for RGBA.
               // Check if this RGBA colour is the colour getting substituted. This is for lookups when the `?replace` operation is actually being executed.
-              #define COLOUR_IS_SUBBED(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d && bytes[3] == (castType)0xff) 
+              #define COLOUR_IS_SUBBED(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5e && bytes[3] == (castType)0xff)
               #define SUBBED_COLOUR Vec5B(0xbc, 0xbc, 0x5e, 0xff, 0xff) // The substituted colour, for lookups.
               #define OLD_COLOUR_BYTE (char)0x5d // The byte to replace with...
               #define NEW_COLOUR_BYTE (char)0x5e // this byte.
-              if (which) c[4] = COLOUR_NEEDS_SUB(c, char) ? (char)255 : 0; // Mark the presence of the following hack so that conversion back to a string remains lossless.
-              c[2] = (which && COLOUR_NEEDS_SUB(c, char)) ? NEW_COLOUR_BYTE : c[2]; // Substitute `5d` with `5e` if we're in an `a` of `bcbc5d`.
+              bool colourNeedsSub = COLOUR_NEEDS_SUB(c, char); // Micro-optimisation.
+              if (which) c[4] = colourNeedsSub ? (char)255 : 0; // Mark the presence of the following hack for later.
+              c[2] = (which && colourNeedsSub) ? NEW_COLOUR_BYTE : c[2]; // Substitute `5d` with `5e` if we're in an `a` of `bcbc5d`.
             }
             else if (hexLen == 8) { // If the hex color string is 8 characters long, it's a full `RRGGBBAA` hex string.
               hexDecode(hexPtr, 8, c, 4); // Decodes into all four bytes of the array as hex bytes equivalent to their string representation.
@@ -492,7 +494,7 @@ String imageOperationToString(ImageOperation const& operation) {
       }
 
       String aStr = Color::rgba(adjustedColour).toHex();
-      if (colourSubstitutionMode != (char)255 && COLOUR_NEEDS_SUB(adjustedColour, unsigned char)) {
+      if (colourSubstitutionMode == (char)0 && COLOUR_NEEDS_SUB_RGBA(adjustedColour, unsigned char)) {
         aStr += "ff";
       }
 
@@ -627,7 +629,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
         pixel = *m; return; // An explicit `bcbc5e`/`bcbc5eff`/`bcbc5dff` replacement takes precedence above anything else.
       } else if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 255))) {
         pixel = *m; return; // Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
-      } else if (COLOUR_IS_SUBBED(pixel, unsigned char)) {
+      } else if (COLOUR_NEEDS_SUB_RGBA(pixel, unsigned char)) {
         if (auto m = op->colorReplaceMap.maybe(SUBBED_COLOUR))
           pixel = *m; // Execute any tagged `bcbc5d` → `bcbc5dff` replacement if no preceding explicit replacement for `bcbc5dff` is found.
       }
