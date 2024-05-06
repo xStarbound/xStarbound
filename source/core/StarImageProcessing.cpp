@@ -295,8 +295,6 @@ ImageOperation imageOperationFromString(StringView string) {
               // The hack is needed because `scaleBilinear` (way up above) now works very slightly differently from the vanilla version, just enough to impact this one edge case.
               #define COLOUR_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d) // Check if this colour is the one needing substitution.
               #define COLOUR_NEEDS_SUB_RGBA(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d && bytes[2] == (castType)0xff) // Same, but for RGBA.
-              // Check if this RGBA colour is the colour getting substituted. This is for lookups when the `?replace` operation is actually being executed.
-              #define COLOUR_IS_SUBBED(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5e && bytes[3] == (castType)0xff)
               #define SUBBED_COLOUR Vec5B(0xbc, 0xbc, 0x5e, 0xff, 0xff) // The substituted colour, for lookups.
               #define OLD_COLOUR_BYTE (char)0x5d // The byte to replace with...
               #define NEW_COLOUR_BYTE (char)0x5e // this byte.
