@@ -299,8 +299,8 @@ ImageOperation imageOperationFromString(StringView string) {
               #define SUBBED_COLOUR Vec5B(0xbc, 0xbc, 0x5e, 0xff, 0xff) // The substituted colour, for lookups.
               #define OLD_COLOUR_BYTE (char)0x5d // The byte to replace with...
               #define NEW_COLOUR_BYTE (char)0x5e // this byte.
+              if (which) c[4] = COLOUR_NEEDS_SUB(c, char) ? (char)255 : 0; // Mark the presence of the following hack so that conversion back to a string remains lossless.
               c[2] = (which && COLOUR_NEEDS_SUB(c, char)) ? NEW_COLOUR_BYTE : c[2]; // Substitute `5d` with `5e` if we're in an `a` of `bcbc5d`.
-              if (which) c[4] = COLOUR_NEEDS_SUB(c, char) ? (char)255 : 0; // Mark the presence of this hack so that conversion back to a string remains lossless.
             }
             else if (hexLen == 8) { // If the hex color string is 8 characters long, it's a full `RRGGBBAA` hex string.
               hexDecode(hexPtr, 8, c, 4); // Decodes into all four bytes of the array as hex bytes equivalent to their string representation.
