@@ -293,10 +293,13 @@ ImageOperation imageOperationFromString(StringView string) {
               // FezzedOne: Warning: Disgusting hack! This makes sure generated sleeves are rendered properly. To bypass this hack, tack an `ff` alpha value onto the end of `bcbc5d` when using
               // it as an `a` colour. The hack replaces an `a` of `bcbc5d` (not `bcbc5dff`) with `bcbc5e`, which is visually nearly indistinguishable anyway.
               // The hack is needed because `scaleBilinear` (way up above) now works very slightly differently from the vanilla version, just enough to impact this one edge case.
-              #define COLOUR_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d)
-              #define OLD_COLOUR_BYTE (char)0x5d
-              #define NEW_COLOUR_BYTE (char)0x5e
-              c[2] = (which && COLOUR_NEEDS_SUB(c, char)) ? NEW_COLOUR_BYTE : c[2];
+              #define COLOUR_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d) // Check if this colour is the one needing substitution.
+              // Check if this RGBA colour is the colour getting substituted. This is for lookups when the `?replace` operation is actually being executed.
+              #define COLOUR_IS_SUBBED(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d && bytes[3] == (castType)0xff) 
+              #define SUBBED_COLOUR Vec5B(0xbc, 0xbc, 0x5e, 0xff, 0xff) // The substituted colour, for lookups.
+              #define OLD_COLOUR_BYTE (char)0x5d // The byte to replace with...
+              #define NEW_COLOUR_BYTE (char)0x5e // this byte.
+              c[2] = (which && COLOUR_NEEDS_SUB(c, char)) ? NEW_COLOUR_BYTE : c[2]; // Substitute `5d` with `5e` if we're in an `a` of `bcbc5d`.
               if (which) c[4] = COLOUR_NEEDS_SUB(c, char) ? (char)255 : 0; // Mark the presence of this hack so that conversion back to a string remains lossless.
             }
             else if (hexLen == 8) { // If the hex color string is 8 characters long, it's a full `RRGGBBAA` hex string.
@@ -620,10 +623,14 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     });
   } else if (auto op = operation.ptr<ColorReplaceImageOperation>()) {
     image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
-      if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 255)))
-        pixel = *m;
       if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 0)))
-        pixel = *m;
+        pixel = *m; // An explicit `bcbc5e`/`bcbc5eff`/`bcbc5dff` replacement takes precedence above anything else.
+      else if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 255)))
+        pixel = *m; // Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
+      else if (COLOUR_IS_SUBBED(pixel, unsigned char)) {
+        if (auto m = op->colorReplaceMap.maybe(SUBBED_COLOUR))
+          pixel = *m; // Execute any tagged `bcbc5d` → `bcbc5dff` replacement if no preceding explicit replacement for `bcbc5dff` is found.
+      }
     });
 
   } else if (auto op = operation.ptr<AlphaMaskImageOperation>()) {
@@ -644,13 +651,11 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
         if (pos[0] < mask->width() && pos[1] < mask->height()) {
           if (op->mode == AlphaMaskImageOperation::Additive) {
             // We produce our mask alpha from the maximum alpha of any of
-            // the
-            // mask images.
+            // the mask images.
             maskAlpha = std::max(maskAlpha, mask->get(pos)[3]);
           } else if (op->mode == AlphaMaskImageOperation::Subtractive) {
             // We produce our mask alpha from the minimum alpha of any of
-            // the
-            // mask images.
+            // the mask images.
             maskAlpha = std::min(maskAlpha, mask->get(pos)[3]);
           }
         }
