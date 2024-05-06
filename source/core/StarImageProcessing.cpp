@@ -623,11 +623,11 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     });
   } else if (auto op = operation.ptr<ColorReplaceImageOperation>()) {
     image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
-      if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 0)))
-        pixel = *m; // An explicit `bcbc5e`/`bcbc5eff`/`bcbc5dff` replacement takes precedence above anything else.
-      else if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 255)))
-        pixel = *m; // Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
-      else if (COLOUR_IS_SUBBED(pixel, unsigned char)) {
+      if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 0))) {
+        pixel = *m; return; // An explicit `bcbc5e`/`bcbc5eff`/`bcbc5dff` replacement takes precedence above anything else.
+      } else if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 255))) {
+        pixel = *m; return; // Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
+      } else if (COLOUR_IS_SUBBED(pixel, unsigned char)) {
         if (auto m = op->colorReplaceMap.maybe(SUBBED_COLOUR))
           pixel = *m; // Execute any tagged `bcbc5d` → `bcbc5dff` replacement if no preceding explicit replacement for `bcbc5dff` is found.
       }
