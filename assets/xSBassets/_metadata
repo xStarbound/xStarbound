@@ -1,8 +1,8 @@
 {
-  "author" : "Not Chucklefish",
+  "author" : "FezzedOne and xSB-2/OpenSB contributors",
   "name" : "xSBassets",
   "priority" : -9999,
   "friendlyName" : "xSB-2 Assets",
   "requires" : ["base"],
-  "version" : "2.4.1.1"
+  "version" : "2.4.1.2"
 }
