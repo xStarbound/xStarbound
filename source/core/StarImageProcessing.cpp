@@ -45,6 +45,9 @@ Image scaleNearest(Image const& srcImage, Vec2F scale) {
 #pragma float_control(precise, on)  // enable precise semantics
 #pragma fenv_access(on)             // enable environment sensitivity
 #pragma float_control(except, on)   // enable exception semantics
+#elif defined STAR_CROSS_COMPILE
+// FezzedOne: Apparently needed to disable FP optimisations on MinGW GCC.
+#pragma GCC optimize("O3")
 #endif
 Image scaleBilinear(Image const& srcImage, Vec2F scale) {
   if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
@@ -125,6 +128,9 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
 #pragma float_control(except, off)  // disable exception semantics
 #pragma fenv_access(off)            // disable environment sensitivity
 #pragma float_control(precise, off) // disable precise semantics
+#elif defined STAR_CROSS_COMPILE
+// FezzedOne: Reset to whatever MinGW GCC options were specified in CMakeLists.txt.
+#pragma GCC reset_options
 #endif
 
 Image scaleBicubic(Image const& srcImage, Vec2F scale) {
@@ -296,11 +302,32 @@ ImageOperation imageOperationFromString(StringView string) {
               #define COLOUR_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d) // Check if this colour is the one needing substitution.
               #define COLOUR_NEEDS_SUB_RGBA(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d && bytes[3] == (castType)0xff) // Same, but for RGBA.
               #define SUBBED_COLOUR Vec5B(0xbc, 0xbc, 0x5e, 0xff, 0xff) // The substituted colour, for lookups.
-              #define OLD_COLOUR_BYTE (char)0x5d // The byte to replace with...
-              #define NEW_COLOUR_BYTE (char)0x5e // this byte.
+              #define OLD_COLOUR_BYTE_B (char)0x5d // The byte to replace with...
+              #define NEW_COLOUR_BYTE_B (char)0x5e // this byte.
+
+              #ifdef STAR_CROSS_COMPILE // MinGW builds need an *additional* substitution because the compiler refuses to disable FP optimisations.
+                #define COLOUR_2_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xad && bytes[1] == (castType)0x9b && bytes[2] == (castType)0x5a) // Check if this colour is the one needing substitution.
+                #define COLOUR_2_NEEDS_SUB_RGBA(bytes, castType) (bytes[0] == (castType)0xad && bytes[1] == (castType)0x9b && bytes[2] == (castType)0x5a && bytes[3] == (castType)0xff) // Same, but for RGBA.
+                #define SUBBED_COLOUR_2 Vec5B(0xae, 0x9c, 0x5a, 0xff, 0xff) // The substituted colour, for lookups.
+                #define OLD_COLOUR_BYTE_R (char)0xad // The first byte to replace with...
+                #define NEW_COLOUR_BYTE_R (char)0xae // this byte.
+                #define OLD_COLOUR_BYTE_G (char)0x9b // The second byte to replace with...
+                #define NEW_COLOUR_BYTE_G (char)0x9c // this byte.
+              #endif
+
               bool colourNeedsSub = COLOUR_NEEDS_SUB(c, char); // Micro-optimisation.
+              #ifdef STAR_CROSS_COMPILE
+              bool colour2NeedsSub = COLOUR_2_NEEDS_SUB(c, char); // Micro-optimisation.
+              if (which) c[4] = (colourNeedsSub || colour2NeedsSub) ? (char)255 : 0; // Mark the presence of the following hack for later.
+              #else
               if (which) c[4] = colourNeedsSub ? (char)255 : 0; // Mark the presence of the following hack for later.
-              c[2] = (which && colourNeedsSub) ? NEW_COLOUR_BYTE : c[2]; // Substitute `5d` with `5e` if we're in an `a` of `bcbc5d`.
+              #endif
+
+              #ifdef STAR_CROSS_COMPILE
+              c[0] = (which && colour2NeedsSub) ? NEW_COLOUR_BYTE_R : c[0]; // Substitute `ad` with `ae` if we're in an `a` of `ad9b5a`.
+              c[1] = (which && colour2NeedsSub) ? NEW_COLOUR_BYTE_G : c[1]; // Substitute `9b` with `9c` if we're in an `a` of `ad9b5a`.
+              #endif
+              c[2] = (which && colourNeedsSub) ? NEW_COLOUR_BYTE_B : c[2]; // Substitute `5d` with `5e` if we're in an `a` of `bcbc5d`.
             }
             else if (hexLen == 8) { // If the hex color string is 8 characters long, it's a full `RRGGBBAA` hex string.
               hexDecode(hexPtr, 8, c, 4); // Decodes into all four bytes of the array as hex bytes equivalent to their string representation.
@@ -487,14 +514,28 @@ String imageOperationToString(ImageOperation const& operation) {
       // as if the replacement never happened.
       Vec4B adjustedColour{a[0], a[1], a[2], a[3]};
       char colourSubstitutionMode = a[4];
-      if (colourSubstitutionMode == (char)255 && adjustedColour[2] == NEW_COLOUR_BYTE) {
-        adjustedColour[2] = OLD_COLOUR_BYTE;
+      #ifdef STAR_CROSS_COMPILE
+      if (colourSubstitutionMode == (char)255 && adjustedColour[0] == NEW_COLOUR_BYTE_R) {
+        adjustedColour[0] = OLD_COLOUR_BYTE_R;
+      }
+      if (colourSubstitutionMode == (char)255 && adjustedColour[1] == NEW_COLOUR_BYTE_G) {
+        adjustedColour[1] = OLD_COLOUR_BYTE_G;
+      }
+      #endif
+      if (colourSubstitutionMode == (char)255 && adjustedColour[2] == NEW_COLOUR_BYTE_B) {
+        adjustedColour[2] = OLD_COLOUR_BYTE_B;
       }
 
       String aStr = Color::rgba(adjustedColour).toHex();
+      #ifdef STAR_CROSS_COMPILE
+      if (colourSubstitutionMode == (char)0 && (COLOUR_NEEDS_SUB_RGBA(adjustedColour, unsigned char) || COLOUR_2_NEEDS_SUB_RGBA(adjustedColour, unsigned char))) {
+        aStr += "ff";
+      }
+      #else
       if (colourSubstitutionMode == (char)0 && COLOUR_NEEDS_SUB_RGBA(adjustedColour, unsigned char)) {
         aStr += "ff";
       }
+      #endif
 
       str += strf(";{}={}", aStr, Color::rgba(b).toHex());
     }
@@ -624,13 +665,25 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
   } else if (auto op = operation.ptr<ColorReplaceImageOperation>()) {
     image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
       if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 0))) {
-        pixel = *m; return; // An explicit `bcbc5e`/`bcbc5eff`/`bcbc5dff` replacement takes precedence above anything else.
+        // An explicit `bcbc5e`/`bcbc5eff`/`bcbc5dff` replacement takes precedence above anything else.
+        // MinGW builds: Additionally, an explicit `ae9c5a`/`ae9c5aff`/`ad9b5aff` replacement takes precedence above anything else.
+        pixel = *m; return; 
       } else if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 255))) {
-        pixel = *m; return; // Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
+        // Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
+        // MinGW builds: Also execute any tagged `ad9b5a` → `ae9c5aff` replacement if no preceding explicit replacement for `ae9c5a`/`ae9c5aff` is found.
+        pixel = *m; return; 
       } else if (COLOUR_NEEDS_SUB_RGBA(pixel, unsigned char)) {
         if (auto m = op->colorReplaceMap.maybe(SUBBED_COLOUR))
-          pixel = *m; // Execute any tagged `bcbc5d` → `bcbc5dff` replacement if no preceding explicit replacement for `bcbc5dff` is found.
+          // Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
+          pixel = *m; return;
       }
+      #ifdef STAR_CROSS_COMPILE
+      else if (COLOUR_2_NEEDS_SUB_RGBA(pixel, unsigned char)) {
+        if (auto m = op->colorReplaceMap.maybe(SUBBED_COLOUR_2))
+          // MinGW builds: Additionally execute any tagged `ad9b5a` → `ad9b5aff` replacement if no preceding explicit replacement for `ad9b5a`/`ad9b5aff` is found.
+          pixel = *m; return;
+      }
+      #endif
     });
 
   } else if (auto op = operation.ptr<AlphaMaskImageOperation>()) {
