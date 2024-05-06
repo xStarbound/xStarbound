@@ -513,7 +513,7 @@ end
 
 local function resolveBackArm()
     local identity = player.identity()
-    return "/humanoid/" .. resolveSpecies(identity) .. "/frontarm.png" .. identity.bodyDirectives
+    return "/humanoid/" .. resolveSpecies(identity) .. "/backarm.png" .. identity.bodyDirectives
 end
 
 local function renderHumanoid(gender)
