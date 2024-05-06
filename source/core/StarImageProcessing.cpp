@@ -102,16 +102,15 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
             return f0 * (1.0f - offset) + f1 * (offset);
           };
 
-          // FezzedOne: Let's try changing the order of operations.
-          Vec4F left    = inlineLerp(fpart[1], topLeft,   bottomLeft);
-          Vec4F right   = inlineLerp(fpart[1], topRight,  bottomRight);
-          Vec4F result  = inlineLerp(fpart[0], left,      right);
+          // Vec4F left    = inlineLerp(fpart[1], topLeft,   bottomLeft);
+          // Vec4F right   = inlineLerp(fpart[1], topRight,  bottomRight);
+          // Vec4F result  = inlineLerp(fpart[0], left,      right);
+
+          Vec4F top     = inlineLerp(fpart[0], topLeft,     topRight);
+          Vec4F bottom  = inlineLerp(fpart[0], bottomLeft,  bottomRight);
+          Vec4F result  = inlineLerp(fpart[1], top,         bottom);
 
           processedResult = Vec4B(result);
-
-          // Vec4F top     = inlineLerp(fpart[0], topLeft,     topRight);
-          // Vec4F bottom  = inlineLerp(fpart[0], bottomLeft,  bottomRight);
-          // Vec4F result  = inlineLerp(fpart[1], top,         bottom);
         }
 
         destImage.set({x, y}, processedResult);
