@@ -6,7 +6,7 @@ cd "`dirname \"$0\"`/../..";
 # rm -rI build-qt/ dist/mod_uploader dist/json_tool;
 
 mkdir -p dist;
-cp scripts/linux/xsbinit.config dist/;
+cp scripts/linux/mod_uploader.sh dist/;
 
 mkdir -p build-qt;
 cd build-qt;
