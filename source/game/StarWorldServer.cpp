@@ -1561,7 +1561,18 @@ void WorldServer::updateTileEntityTiles(TileEntityPtr const& entity, bool removi
      if (tile) {
       tile->rootSource = {};
       bool updatedTile = false;
-      if (tile->foreground == materialSpace.material) {
+      // FezzedOne: Should fix a bug where trapdoors and other objects that copy background materials into the foreground
+      // leave actual tiles placed in front of them. This bug broke two hidden doors in a Frackin' Universe dungeon
+      // (which is tile-protected, so players couldn't remove the extra tiles).
+      bool expectedBiomeMetamaterial = [&]() -> bool {
+        return materialSpace.material == BiomeMaterialId  ||
+               materialSpace.material == Biome1MaterialId ||
+               materialSpace.material == Biome2MaterialId ||
+               materialSpace.material == Biome3MaterialId ||
+               materialSpace.material == Biome4MaterialId ||
+               materialSpace.material == Biome5MaterialId;
+      }();
+      if (tile->foreground == materialSpace.material || expectedBiomeMetamaterial) {
         tile->foreground = EmptyMaterialId;
         tile->foregroundMod = NoModId;
         // FezzedOne: Should fix objects having «dangling» metamaterial collision modifiers.
