@@ -63,8 +63,6 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034).
 - [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — the keybind is not supported by xSB-2 solely due to an explicit StarExtensions check.
 - [Shellguard: Starbound Expansion Remastered](https://steamcommunity.com/sharedfiles/filedetails/?id=1563376005).
-- [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) — but compatibility may change in future versions!
-- [Stardust Suite](https://github.com/zetaPRIME/sb.StardustSuite) — but compatibility may change in future versions!
 
 > **Note:** xSB-2 does not and will not support StarExtensions' «body dynamics» and text-to-speech features, and currently doesn't support StarExtensions' species-specific head rotation parameters. Details:
 >
@@ -93,6 +91,8 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — this mod explicitly checks for StarExtensions, so the keybinds do not work, although some of the added hidden chat commands do.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
 - [StarCustomChat](https://github.com/KrashV/StarCustomChat) — use the fully network-compatible [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) fork instead.
+- [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) — Has UI clipping bugs that occur only on xSB-2.
+- [Stardust Suite](https://github.com/zetaPRIME/sb.StardustSuite) — Has UI clipping bugs that occur only on xSB-2.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load on xClient and may cause crashes! However, *xServer* fully supports the server-side part of SE's «overground» tile placement feature.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xSB-2 has differently named callbacks) and is redundant anyway because xSB-2 already fully supports this feature.
