@@ -47,7 +47,7 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xSB-2.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xSB-2 as of v2.3.7.
 - [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111), [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) and other mods based on the framework — xSB-2 supports «nice» non-pixelated scaling as of v2.4.1.1.
-- [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) — requires xSB-2 v2.3.7+. Supports most features of and is fully network-compatible with «upstream» [StarCustomChat](https://github.com/KrashV/StarCustomChat).
+- [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) — requires xSB-2 v2.3.7+. Supports most features of and is network-compatible with «upstream» [StarCustomChat](https://github.com/KrashV/StarCustomChat).
 - [xWEdit](https://github.com/FezzedOne/xWEdit) — this WEdit fork requires xSB-2 for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
 - Mods that change the size or number of bags in the inventory or hotbar — as of v2.4, xSB-2 gives these mods full compatibility with vanilla multiplayer and existing characters «out of the box».
 
@@ -88,9 +88,10 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Futara's Dragon Engine](https://steamcommunity.com/sharedfiles/filedetails/?id=2297133082) — Causes severe server- *and* client-side entity lag on xSB-2.
 - [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) — Depends on Futara's Dragon Engine and thus inherits its severe lag issue.
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — Would work if it didn't have an explicit StarExtensions check. Use [FezzedTech](https://github.com/FezzedOne/FezzedTech) instead.
+- [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) and its [two](https://steamcommunity.com/sharedfiles/filedetails/?id=2954344118) [counterparts](https://steamcommunity.com/sharedfiles/filedetails/?id=2954354494) — their PNG compression does not play well with xClient's hardware cursor, making it invisible.
 - [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — this mod explicitly checks for StarExtensions, so the keybinds do not work, although some of the added hidden chat commands do.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
-- [StarCustomChat](https://github.com/KrashV/StarCustomChat) — use the fully network-compatible [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) fork instead.
+- [StarCustomChat](https://github.com/KrashV/StarCustomChat) — use the network-compatible [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) fork instead.
 - [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) — Has UI clipping bugs that occur only on xSB-2.
 - [Stardust Suite](https://github.com/zetaPRIME/sb.StardustSuite) — Has UI clipping bugs that occur only on xSB-2.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load on xClient and may cause crashes! However, *xServer* fully supports the server-side part of SE's «overground» tile placement feature.
