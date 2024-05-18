@@ -19,9 +19,9 @@ Image scaleNearest(Image const& srcImage, Vec2F scale) {
       scale = Vec2F(std::abs(scale[0]), std::abs(scale[1]));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
-    if ((scale[0] > 256.0f || scale[1] > 256.0f)) {
-      Logger::warn("scalenearest: Scale may not exceed 256x in either dimension!");
-      scale = scale.piecewiseMin(Vec2F::filled(256.0f));
+    if ((scale[0] > 4096.0f || scale[1] > 4096.0f)) {
+      Logger::warn("scalenearest: Scale may not exceed 4096x in either dimension!");
+      scale = scale.piecewiseMin(Vec2F::filled(4096.0f));
     }
     Vec2U srcSize = srcImage.size();
     Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
@@ -57,9 +57,9 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
       scale = Vec2F(std::abs(scale[0]), std::abs(scale[1]));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
-    if ((scale[0] > 256.0f || scale[1] > 256.0f)) {
-      Logger::warn("scalebilinear: Scale may not exceed 256x in either dimension!");
-      scale = scale.piecewiseMin(Vec2F::filled(256.0f));
+    if ((scale[0] > 4096.0f || scale[1] > 4096.0f)) {
+      Logger::warn("scalebilinear: Scale may not exceed 4096x in either dimension!");
+      scale = scale.piecewiseMin(Vec2F::filled(4096.0f));
     }
     // union ScaleFloatToHex { float floatVal; int byteVal; };
     // int byteScale_0 = ScaleFloatToHex{.floatVal = scale[0]}.byteVal;
@@ -140,9 +140,9 @@ Image scaleBicubic(Image const& srcImage, Vec2F scale) {
       scale = Vec2F(std::abs(scale[0]), std::abs(scale[1]));
     }
     // FezzedOne: Fixes a CPU pegging exploit.
-    if ((scale[0] > 256.0f || scale[1] > 256.0f)) {
-      Logger::warn("scalebicubic: Scale may not exceed 256x in either dimension!");
-      scale = scale.piecewiseMin(Vec2F::filled(256.0f));
+    if ((scale[0] > 4096.0f || scale[1] > 4096.0f)) {
+      Logger::warn("scalebicubic: Scale may not exceed 4096x in either dimension!");
+      scale = scale.piecewiseMin(Vec2F::filled(4096.0f));
     }
     Vec2U srcSize = srcImage.size();
     Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
