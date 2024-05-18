@@ -791,14 +791,17 @@ void Object::addNodeConnection(WireNode wireNode, WireConnection nodeConnection)
 }
 
 void Object::removeNodeConnection(WireNode wireNode, WireConnection nodeConnection) {
-  if (wireNode.direction == WireDirection::Input) {
-    m_inputNodes.at(wireNode.nodeIndex).connections.update([&](auto& list) {
-        return list.remove(nodeConnection);
-      });
-  } else {
-    m_outputNodes.at(wireNode.nodeIndex).connections.update([&](auto& list) {
-        return list.remove(nodeConnection);
-      });
+  // Fezzedone: Attempting to remove a wire connected to a nonexistent node results in an out-of-range exception, so block that.
+  if (wireNode.nodeIndex < nodeCount(wireNode.direction)) {
+    if (wireNode.direction == WireDirection::Input) {
+      m_inputNodes.at(wireNode.nodeIndex).connections.update([&](auto& list) {
+          return list.remove(nodeConnection);
+        });
+    } else {
+      m_outputNodes.at(wireNode.nodeIndex).connections.update([&](auto& list) {
+          return list.remove(nodeConnection);
+        });
+    }
   }
   m_scriptComponent.invoke("onNodeConnectionChange");
 }

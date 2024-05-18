@@ -87,7 +87,8 @@ namespace JsonPatching {
                 return base;
             }
 
-            throw JsonPatchTestFail(strf("Test operation failure, expected {} found {}.", value, testValue));
+            // FezzedOne: Made patch test error messages more helpful.
+            throw JsonPatchTestFail(strf("Test operation failure, expected{} {}, but found {}.", inverseTest ? " value other than" : "", value, testValue));
         }
     } catch (JsonPath::TraversalException& e) {
       if (inverseTest)

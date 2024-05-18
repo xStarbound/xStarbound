@@ -122,9 +122,11 @@ void WirePane::renderImpl() {
   auto region = RectF(m_worldClient->clientWindow());
 
   auto const& camera = m_worldPainter->camera();
-  auto highWire = Color::Red;
-  auto lowWire = Color::Red.mix(Color::Black, 0.8f);
-  auto white = Color::White.toRgba();
+  auto const highWire = Color::Red;
+  auto const lowWire = Color::Red.mix(Color::Black, 0.8f);
+  // FezzedOne: «Downstreamed» wire crash fix from OpenStarbound.
+  auto const invalidWire = Color::Black;
+  auto const white = Color::White.toRgba();
   float phase = 0.5f + 0.5f * std::sin((double)Time::monotonicMilliseconds() / 100.0);
   auto drawLineColor = Color::Red.mix(Color::White, phase);
 
@@ -160,9 +162,14 @@ void WirePane::renderImpl() {
         auto wire = lowWire;
         Vec2I outPosition = connection.entityLocation;
         if (auto sourceEntity = m_worldClient->atTile<WireEntity>(connection.entityLocation).get(0)) {
-          outPosition += sourceEntity->nodePosition({WireDirection::Output, connection.nodeIndex});
-          if (sourceEntity->nodeState(WireNode{WireDirection::Output, connection.nodeIndex}))
-            wire = highWire;
+          // FezzedOne: «Downstreamed» client crash fix for rendering a wire connected to an invalid output node.
+          if (connection.nodeIndex < sourceEntity->nodeCount(WireDirection::Output)) {
+            outPosition += sourceEntity->nodePosition({WireDirection::Output, connection.nodeIndex});
+            if (sourceEntity->nodeState(WireNode{WireDirection::Output, connection.nodeIndex}))
+              wire = highWire;
+          } else {
+            wire = invalidWire;
+          }
         }
 
         renderWire(centerOfTile(inPosition), centerOfTile(outPosition), wire);
@@ -181,8 +188,13 @@ void WirePane::renderImpl() {
         visitedConnections.contains({connection, {tilePosition, i}});
 
         Vec2I inPosition = connection.entityLocation;
-        if (auto sourceEntity = m_worldClient->atTile<WireEntity>(connection.entityLocation).get(0))
-          inPosition += sourceEntity->nodePosition({WireDirection::Input, connection.nodeIndex});
+        if (auto sourceEntity = m_worldClient->atTile<WireEntity>(connection.entityLocation).get(0)) {
+          // FezzedOne: «Downstreamed» client crash fix for rendering a wire connected to an invalid input node.
+          if (connection.nodeIndex < sourceEntity->nodeCount(WireDirection::Input))
+            inPosition += sourceEntity->nodePosition({WireDirection::Input, connection.nodeIndex});
+          else
+            wire = invalidWire;
+        }
 
         renderWire(centerOfTile(outPosition), centerOfTile(inPosition), wire);
       }
