@@ -520,6 +520,26 @@ void PlayerInventory::sortBag(String const& bagType) {
 }
 
 void PlayerInventory::shiftSwap(InventorySlot const& slot) {
+  // FezzedOne: Replacement item swap function that also returns whether items were actually swapped or just stacked.
+  auto canSwapItems = [&](ItemBagPtr bag, size_t pos, ItemPtr items) -> std::tuple<ItemPtr, bool> {
+    auto& storedItem = bag->at(pos);
+    bool didSwap = true;
+    auto swapItems = items;
+    if (!swapItems || swapItems->empty()) {
+      swapItems = storedItem;
+      storedItem = {};
+    } else if (storedItem) {
+      if (!storedItem->stackWith(swapItems))
+        std::swap(storedItem, swapItems);
+      else
+        didSwap = false;
+    } else {
+      storedItem = swapItems;
+      swapItems = {};
+    }
+    return std::tuple(swapItems, didSwap);
+  };
+
   if (auto es = slot.ptr<EquipmentSlot>()) {
     if (itemAllowedAsEquipment(m_swapSlot, *es)) {
       auto& equipSlot = m_equipment[*es];
@@ -535,9 +555,10 @@ void PlayerInventory::shiftSwap(InventorySlot const& slot) {
     swapCustomBarLinks(SwapSlot(), slot);
   } else if (auto bs = slot.ptr<BagSlot>()) {
     if (itemAllowedInBag(m_swapSlot, bs->first)) {
-      m_swapSlot = m_bags[bs->first]->swapItems(bs->second, m_swapSlot);
-      // OpenSB fix for an annoying vanilla bug where an item is removed from the hotbar if an identical item is stacked onto it.
-      if (m_swapSlot && !m_swapSlot->empty())
+      bool didSwap = false;
+      std::tie(m_swapSlot, didSwap) = canSwapItems(m_bags[bs->first], bs->second, m_swapSlot);
+      // m_swapSlot = m_bags[bs->first]->swapItems(bs->second, m_swapSlot);
+      if (didSwap)
         swapCustomBarLinks(SwapSlot(), slot);
     }
   }
