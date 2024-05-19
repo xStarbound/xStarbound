@@ -42,7 +42,7 @@ Read this to see if xSB-2 is compatible with your mods.
 **Has xSB-2 support:** The following mods have special functionality that requires or is supported by xSB-2.
 
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xSB-2.
-- [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/FezzedOne/FezzedTech)) — requires xSB-2 for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with vanilla Starbound.
+- [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/FezzedOne/FezzedTech)) — requires xSB-2 for full functionality, but also supports StarExtensions (with reduced functionality) and is compatible with vanilla Starbound. Is *not* compatible with OpenStarbound.
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — fully supported by xSB-2 as of v2.4.1.1.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xSB-2.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xSB-2 as of v2.3.7.
