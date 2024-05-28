@@ -1154,10 +1154,12 @@ void PlayerInventory::netElementsNeedLoad(bool) {
   m_currencies = m_currenciesNetState.get();
 
   m_customBarGroup = m_customBarGroupNetState.get();
-  m_customBarNetState.forEach([&](auto const& index, auto& ns) {
+  m_customBarNetState.forEach([&](Array<unsigned long, 2> const& index, auto& ns) {
       // FezzedOne: Assume the action bar is fully empty. This prevents a server-side segfault caused by
       // action bar slots being linked to inventory slots the server cannot see.
-      m_customBar.at(index) = CustomBarLink{{}, {}}; // ns.get();
+      // Also don't try to fill custom bar slots that don't exist.
+      if (index[0] < m_customBar.size(0) && index[1] < m_customBar.size(1))
+        m_customBar.at(index) = CustomBarLink{{}, {}}; // ns.get();
     });
 
   m_selectedActionBar = m_selectedActionBarNetState.get();
