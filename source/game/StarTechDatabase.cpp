@@ -1,6 +1,7 @@
 #include "StarTechDatabase.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarRoot.hpp"
+#include "StarLogging.hpp"
 #include "StarAssets.hpp"
 
 namespace Star {
@@ -31,7 +32,25 @@ bool TechDatabase::contains(String const& techName) const {
 TechConfig TechDatabase::tech(String const& techName) const {
   if (auto p = m_tech.ptr(techName))
     return *p;
-  throw TechDatabaseException::format("No such tech '{}'", techName);
+  else {
+    // FezzedOne: Get rid of «missing tech» crashes by substituting a «dummy» tech.
+    Logger::error("TechDatabase: No such tech '{}'", techName);
+    return TechConfig{
+      .name = techName,
+      .path = "",
+      .parameters = Json(),
+
+      .type = TechType::Head,
+
+      .scripts = StringList{},
+      .animationConfig = Maybe<String>{},
+
+      .description = "^red;<missing tech>^reset;",
+      .shortDescription = "^red;<missing tech>^reset;",
+      .rarity = Rarity::Colour5,
+      .icon = "/interface/inventory/techdisabled.png"
+    };
+  }
 }
 
 TechConfig TechDatabase::parseTech(Json const& config, String const& path) const {

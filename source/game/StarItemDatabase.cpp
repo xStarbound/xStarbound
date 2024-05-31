@@ -400,6 +400,10 @@ ItemPtr ItemDatabase::applyAugment(ItemPtr const item, AugmentItem* augment) con
     LuaBaseComponent script;
     script.setLuaRoot(m_luaRoot);
     script.setScripts(augment->augmentScripts());
+    // FezzedOne: Added apparently missing `root`, `xsb` and `sb` callbacks.
+    script.addCallbacks("root", LuaBindings::makeRootCallbacks());
+    script.addCallbacks("xsb", LuaBindings::makeXsbCallbacks());
+    script.addCallbacks("sb", LuaBindings::makeUtilityCallbacks());
     script.addCallbacks("item", LuaBindings::makeItemCallbacks(augment));
     script.addCallbacks("config", LuaBindings::makeConfigCallbacks(bind(&Item::instanceValue, augment, _1, _2)));
     script.init();
