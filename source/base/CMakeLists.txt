@@ -14,11 +14,14 @@ SET (star_base_HEADERS
     StarCellularLiquid.hpp
     StarConfiguration.hpp
     StarDirectoryAssetSource.hpp
+    StarMemoryAssetSource.hpp
     StarMixer.hpp
     StarPackedAssetSource.hpp
-    StarVersion.hpp
+    StarRootBase.hpp
     StarVersionOptionParser.hpp
     StarWorldGeometry.hpp
+
+    scripting/StarImageLuaBindings.hpp
   )
 
 SET (star_base_SOURCES
@@ -27,12 +30,15 @@ SET (star_base_SOURCES
     StarCellularLighting.cpp
     StarConfiguration.cpp
     StarDirectoryAssetSource.cpp
+    StarMemoryAssetSource.cpp
     StarMixer.cpp
     StarPackedAssetSource.cpp
+    StarRootBase.cpp
     StarVersionOptionParser.cpp
     StarWorldGeometry.cpp
+
+    scripting/StarImageLuaBindings.cpp
   )
 
-CONFIGURE_FILE (StarVersion.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/StarVersion.cpp)
-ADD_LIBRARY (star_base OBJECT ${star_base_SOURCES} ${star_base_HEADERS} ${CMAKE_CURRENT_BINARY_DIR}/StarVersion.cpp)
+ADD_LIBRARY (star_base OBJECT ${star_base_SOURCES} ${star_base_HEADERS})
 TARGET_PRECOMPILE_HEADERS (star_base REUSE_FROM star_core)

@@ -4,6 +4,7 @@
 #include "StarRect.hpp"
 #include "StarGameTypes.hpp"
 #include "StarLua.hpp"
+#include "StarAssets.hpp"
 
 namespace Star {
 

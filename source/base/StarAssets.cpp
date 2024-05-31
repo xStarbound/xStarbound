@@ -4,6 +4,7 @@
 #include "StarTime.hpp"
 #include "StarDirectoryAssetSource.hpp"
 #include "StarPackedAssetSource.hpp"
+#include "StarMemoryAssetSource.hpp"
 #include "StarJsonBuilder.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarJsonPatch.hpp"
@@ -17,33 +18,36 @@
 #include "StarLexicalCast.hpp"
 #include "StarSha256.hpp"
 #include "StarDataStreamDevices.hpp"
+#include "StarLua.hpp"
+#include "StarImageLuaBindings.hpp"
+#include "StarUtilityLuaBindings.hpp"
 
 namespace Star {
 
-static void validatePath(AssetPath const& components, bool canContainSubPath, bool canContainDirectives) {
-  if (components.basePath.empty() || components.basePath[0] != '/')
-    throw AssetException(strf("Path '{}' must be absolute", components.basePath));
+static void validateBasePath(std::string_view const& basePath) {
+  if (basePath.empty() || basePath[0] != '/')
+    throw AssetException(strf("Path '{}' must be absolute", basePath));
 
   bool first = true;
   bool slashed = true;
   bool dotted = false;
-  for (auto c : components.basePath) {
+  for (auto c : basePath) {
     if (c == '/') {
       if (!first) {
         if (slashed)
-          throw AssetException(strf("Path '{}' contains consecutive //, not allowed", components.basePath));
+          throw AssetException(strf("Path '{}' contains consecutive //, not allowed", basePath));
         else if (dotted)
-          throw AssetException(strf("Path '{}' '.' and '..' not allowed", components.basePath));
+          throw AssetException(strf("Path '{}' '.' and '..' not allowed", basePath));
       }
       slashed = true;
       dotted = false;
     } else if (c == ':') {
       if (slashed)
-        throw AssetException(strf("Path '{}' has ':' after directory", components.basePath));
+        throw AssetException(strf("Path '{}' has ':' after directory", basePath));
       break;
     } else if (c == '?') {
       if (slashed)
-        throw AssetException(strf("Path '{}' has '?' after directory", components.basePath));
+        throw AssetException(strf("Path '{}' has '?' after directory", basePath));
       break;
     } else {
       slashed = false;
@@ -52,12 +56,42 @@ static void validatePath(AssetPath const& components, bool canContainSubPath, bo
     first = false;
   }
   if (slashed)
-    throw AssetException(strf("Path '{}' cannot be a file", components.basePath));
+    throw AssetException(strf("Path '{}' cannot be a file", basePath));
+}
+
+static void validatePath(AssetPath const& components, bool canContainSubPath, bool canContainDirectives) {
+  validateBasePath(components.basePath.utf8());
 
   if (!canContainSubPath && components.subPath)
     throw AssetException::format("Path '{}' cannot contain sub-path", components);
   if (!canContainDirectives && !components.directives.empty())
     throw AssetException::format("Path '{}' cannot contain directives", components);
+}
+
+static void validatePath(StringView const& path, bool canContainSubPath, bool canContainDirectives) {
+  std::string_view const& str = path.utf8();
+
+  size_t end = str.find_first_of(":?");
+  auto basePath = str.substr(0, end);
+  validateBasePath(basePath);
+
+  bool subPath = false;
+  if (str[end] == ':') {
+    size_t beg = end + 1;
+    if (beg != str.size()) {
+      end = str.find_first_of('?', beg);
+      if (end == NPos && beg + 1 != str.size())
+        subPath = true;
+      else if (size_t len = end - beg)
+        subPath = true;
+    }
+  }
+
+  if (subPath)
+    throw AssetException::format("Path '{}' cannot contain sub-path", path);
+
+  if (end != NPos && str[end] == '?' && !canContainDirectives)
+    throw AssetException::format("Path '{}' cannot contain directives", path);
 }
 
 Maybe<RectU> FramesSpecification::getRect(String const& frame) const {
@@ -70,51 +104,189 @@ Maybe<RectU> FramesSpecification::getRect(String const& frame) const {
 
 Assets::Assets(Settings settings, StringList assetSources) {
   const char* const AssetsPatchSuffix = ".patch";
+  const char* const AssetsLuaPatchSuffix = ".patch.lua";
 
-  m_settings = move(settings);
+  m_settings = std::move(settings);
   m_stopThreads = false;
-  m_assetSources = move(assetSources);
+  m_assetSources = std::move(assetSources);
+
+  // OpenStarbound: Run any asset loading scripts, then load any modified assets and asset patches (both JSON and Lua).
+  auto luaEngine = LuaEngine::create();
+  m_luaEngine = luaEngine;
+  auto pushGlobalContext = [&luaEngine](String const& name, LuaCallbacks && callbacks) {
+    auto table = luaEngine->createTable();
+    for (auto const& p : callbacks.callbacks())
+      table.set(p.first, luaEngine->createWrappedFunction(p.second));
+    luaEngine->setGlobal(name, table);
+  };
+
+  auto makeBaseAssetCallbacks = [this]() {
+    LuaCallbacks callbacks;
+    // callbacks.registerCallbackWithSignature<StringSet, String>("byExtension", bind(&Assets::scanExtension, this, _1));
+    callbacks.registerCallbackWithSignature<Json, String>("json", bind(&Assets::json, this, _1));
+
+    callbacks.registerCallback("byExtension", [this](String const& ext) -> StringList {
+      StringList assetList{};
+      for (auto& asset : scanExtension(ext))
+        assetList.append(asset);
+      return assetList;
+    });
+
+    callbacks.registerCallback("bytes", [this](String const& path) -> String {
+      auto assetBytes = bytes(path);
+      return String(assetBytes->ptr(), assetBytes->size());
+    });
+
+    callbacks.registerCallback("image", [this](String const& path) -> Image {
+      auto assetImage = image(path);
+      if (assetImage->bytesPerPixel() == 3)
+        return assetImage->convert(PixelFormat::RGBA32);
+      else
+        return *assetImage;
+    });
+
+    callbacks.registerCallback("scan", [this](Maybe<String> const& a, Maybe<String> const& b) -> StringList {
+      return b ? scan(a.value(), *b) : scan(a.value());
+    });
+    return callbacks;
+  };
+
+  pushGlobalContext("sb", LuaBindings::makeUtilityCallbacks());
+  pushGlobalContext("xsb", LuaBindings::makeXsbCallbacks());
+  pushGlobalContext("assets", makeBaseAssetCallbacks());
+
+  auto decorateLuaContext = [&](LuaContext& context, MemoryAssetSourcePtr newFiles) {
+    if (newFiles) {
+      // re-add the assets callbacks with more functions
+      context.remove("assets");
+      auto callbacks = makeBaseAssetCallbacks();
+      callbacks.registerCallback("add", [&newFiles](LuaEngine& engine, String const& path, LuaValue const& data) {
+        ByteArray bytes;
+        if (auto str = engine.luaMaybeTo<String>(data))
+          bytes = ByteArray(str->utf8Ptr(), str->utf8Size());
+        else if (auto image = engine.luaMaybeTo<Image>(data)) {
+          newFiles->set(path, std::move(*image));
+          return;
+        } else {
+          auto json = engine.luaTo<Json>(data).repr();
+          bytes = ByteArray(json.utf8Ptr(), json.utf8Size());
+        }
+        newFiles->set(path, bytes);
+      });
+
+      callbacks.registerCallback("patch", [this, &newFiles](String const& path, String const& patchPath) -> bool {
+        if (auto file = m_files.ptr(path)) {
+          if (newFiles->contains(patchPath)) {
+            file->patchSources.append(make_pair(patchPath, newFiles));
+            return true;
+          } else {
+            if (auto asset = m_files.ptr(patchPath)) {
+              file->patchSources.append(make_pair(patchPath, asset->source));
+              return true;
+            }
+          }
+        }
+        return false;
+      });
+
+      callbacks.registerCallback("erase", [this](String const& path) -> bool {
+        bool erased = m_files.erase(path);
+        if (erased)
+          m_filesByExtension[AssetPath::extension(path).toLower()].erase(path);
+        return erased;
+      });
+
+      context.setCallbacks("assets", callbacks);
+    }
+  };
+
+  auto addSource = [&](String const& sourcePath, AssetSourcePtr source) {
+    m_assetSourcePaths.add(sourcePath, source);
+
+    for (auto const& filename : source->assetPaths()) {
+      if (filename.contains(AssetsPatchSuffix, String::CaseInsensitive)) {
+        if (filename.endsWith(AssetsPatchSuffix, String::CaseInsensitive)) {
+          auto targetPatchFile = filename.substr(0, filename.size() - strlen(AssetsPatchSuffix));
+          if (auto p = m_files.ptr(targetPatchFile))
+            p->patchSources.append({filename, source});
+        } else if (filename.endsWith(AssetsLuaPatchSuffix, String::CaseInsensitive)) {
+          auto targetPatchFile = filename.substr(0, filename.size() - strlen(AssetsLuaPatchSuffix));
+          if (auto p = m_files.ptr(targetPatchFile))
+            p->patchSources.append({filename, source});
+        } else {
+          for (int i = 0; i < 10; i++) {
+            if (filename.endsWith(AssetsPatchSuffix + toString(i), String::CaseInsensitive)) {
+              auto targetPatchFile = filename.substr(0, filename.size() - strlen(AssetsPatchSuffix) + 1);
+              if (auto p = m_files.ptr(targetPatchFile))
+                p->patchSources.append({filename, source});
+              break;
+            }
+          }
+        }
+      }
+
+      auto& descriptor = m_files[filename];
+      descriptor.sourceName = filename;
+      descriptor.source = source;
+      m_filesByExtension[AssetPath::extension(filename).toLower()].insert(filename);
+    }
+  };
+
+  auto runLoadScripts = [&](String const& groupName, String const& sourcePath, AssetSourcePtr source) {
+    // Runs any load scripts specified in the asset source's `_metadata` file. Not to be confused with `.patch.lua` scripts!
+    auto metadata = source->metadata();
+    if (auto scripts = metadata.ptr("scripts")) {
+      if (auto scriptGroup = scripts->optArray(groupName)) {
+        auto memoryName = strf("{}::{}", metadata.value("name", File::baseName(sourcePath)), groupName);
+        JsonObject memoryMetadata{ {"name", memoryName} };
+        auto memoryAssets = make_shared<MemoryAssetSource>(memoryName, memoryMetadata);
+        Logger::info("Running {} scripts {}", groupName, *scriptGroup);
+        try {
+          auto context = luaEngine->createContext();
+          decorateLuaContext(context, memoryAssets);
+          for (auto& jPath : *scriptGroup) {
+            auto path = jPath.toString();
+            auto script = source->read(path);
+            context.load(script, path);
+          }
+        } catch (LuaException const& e) {
+          Logger::error("Exception while running {} scripts from asset source '{}': {}", groupName, sourcePath, e.what());
+        }
+        if (!memoryAssets->empty())
+          addSource(strf("{}::{}", sourcePath, groupName), memoryAssets);
+      }
+    }
+    // clear any caching that may have been trigered by load scripts as they may no longer be valid
+    m_framesSpecifications.clear();
+    m_assetsCache.clear();
+  };
+
+  List<pair<String, AssetSourcePtr>> sources;
 
   for (auto& sourcePath : m_assetSources) {
     Logger::info("Loading assets from: '{}'", sourcePath);
     AssetSourcePtr source;
     if (File::isDirectory(sourcePath))
-      source = make_shared<DirectoryAssetSource>(sourcePath, m_settings.pathIgnore);
+      source = std::make_shared<DirectoryAssetSource>(sourcePath, m_settings.pathIgnore);
     else
-      source = make_shared<PackedAssetSource>(sourcePath);
+      source = std::make_shared<PackedAssetSource>(sourcePath);
 
-    m_assetSourcePaths.add(sourcePath, source);
+    addSource(sourcePath, source);
+    sources.append(make_pair(sourcePath, source));
 
-    for (auto const& filename : source->assetPaths()) {
-      // FezzedOne: Restored JamesTheMaker's asset patching code.
-      if (filename.contains(AssetsPatchSuffix, String::CaseInsensitive)) {
-        if (filename.endsWith(AssetsPatchSuffix, String::CaseInsensitive)) {
-            auto targetPatchFile = filename.substr(0, filename.size() - strlen(AssetsPatchSuffix));
-            if (auto p = m_files.ptr(targetPatchFile))
-                p->patchSources.append({ filename, source });
-        }
-        else
-        {
-            for (int i = 0; i < 10; i++) {
-                if (filename.endsWith(AssetsPatchSuffix + toString(i), String::CaseInsensitive)) {
-                    auto targetPatchFile = filename.substr(0, filename.size() - (strlen(AssetsPatchSuffix) + 1));
-                    if (auto p = m_files.ptr(targetPatchFile))
-                        p->patchSources.append({ filename, source });
-                }
-            }
-        }
-      }
-      auto& descriptor = m_files[filename];
-      descriptor.sourceName = filename;
-      descriptor.source = source;
-    }
+    runLoadScripts("onLoad", sourcePath, source);
   }
+
+  Logger::info("[xSB::Debug] Running post-processing scripts.");
+
+  for (auto& pair : sources)
+    runLoadScripts("postLoad", pair.first, pair.second);
 
   Sha256Hasher digest;
 
-  for (auto const& assetPath : m_files.keys().transformed([](String const& s) {
-        return s.toLower();
-      }).sorted()) {
+  Logger::info("[xSB::Debug] Calculating asset digest.");
+
+  for (auto const& assetPath : m_files.keys().sorted()) {
     bool digestFile = true;
     for (auto const& pattern : m_settings.digestIgnore) {
       if (assetPath.regexMatch(pattern, false, false)) {
@@ -135,8 +307,12 @@ Assets::Assets(Settings settings, StringList assetSources) {
 
   m_digest = digest.compute();
 
+  Logger::info("[xSB::Debug] Adding all assets to the extension-sorted list.");
+
   for (auto const& filename : m_files.keys())
-    m_filesByExtension[AssetPath::extension(filename).toLower()].append(filename);
+    m_filesByExtension[AssetPath::extension(filename).toLower()].add(filename);
+
+  Logger::info("[xSB::Debug] Finished processing assets. Now loading.");
 
   int workerPoolSize = m_settings.workerPoolSize;
   for (int i = 0; i < workerPoolSize; i++)
@@ -197,6 +373,11 @@ bool Assets::assetExists(String const& path) const {
   return m_files.contains(path);
 }
 
+Maybe<Assets::AssetFileDescriptor> Assets::assetDescriptor(String const& path) const {
+  MutexLocker assetsLocker(m_assetsMutex);
+  return m_files.maybe(path);
+}
+
 String Assets::assetSource(String const& path) const {
   MutexLocker assetsLocker(m_assetsMutex);
   if (auto p = m_files.ptr(path))
@@ -204,9 +385,16 @@ String Assets::assetSource(String const& path) const {
   throw AssetException(strf("No such asset '{}'", path));
 }
 
+Maybe<String> Assets::assetSourcePath(AssetSourcePtr const& source) const {
+  MutexLocker assetsLocker(m_assetsMutex);
+  return m_assetSourcePaths.maybeLeft(source);
+}
+
 StringList Assets::scan(String const& suffix) const {
   if (suffix.beginsWith(".") && !suffix.substr(1).hasChar('.')) {
-    return scanExtension(suffix);
+    return scanExtension(suffix).values();
+  } else if (suffix.empty()) {
+    return m_files.keys();
   } else {
     StringList result;
     for (auto const& fileEntry : m_files) {
@@ -222,7 +410,7 @@ StringList Assets::scan(String const& suffix) const {
 StringList Assets::scan(String const& prefix, String const& suffix) const {
   StringList result;
   if (suffix.beginsWith(".") && !suffix.substr(1).hasChar('.')) {
-    StringList filesWithExtension = scanExtension(suffix);
+    auto filesWithExtension = scanExtension(suffix);
     for (auto const& file : filesWithExtension) {
       if (file.beginsWith(prefix, String::CaseInsensitive))
         result.append(file);
@@ -237,11 +425,11 @@ StringList Assets::scan(String const& prefix, String const& suffix) const {
   return result;
 }
 
-StringList Assets::scanExtension(String const& extension) const {
-  if (extension.beginsWith("."))
-    return m_filesByExtension.value(extension.substr(1));
-  else
-    return m_filesByExtension.value(extension);
+const CaseInsensitiveStringSet NullExtensionScan;
+
+CaseInsensitiveStringSet Assets::scanExtension(String const& extension) const {
+  auto find = m_filesByExtension.find(extension.beginsWith(".") ? extension.substr(1) : extension);
+  return find != m_filesByExtension.end() ? find->second : NullExtensionScan;
 }
 
 Json Assets::json(String const& path) const {
@@ -267,6 +455,16 @@ void Assets::queueJsons(StringList const& paths) const {
   }));
 }
 
+void Assets::queueJsons(CaseInsensitiveStringSet const& paths) const {
+  MutexLocker assetsLocker(m_assetsMutex);
+  for (String const& path : paths) {
+    auto components = AssetPath::split(path);
+    validatePath(components, true, false);
+
+    queueAsset(AssetId{AssetType::Json, {components.basePath, {}, {}}});
+  };
+}
+
 ImageConstPtr Assets::image(AssetPath const& path) const {
   validatePath(path, true, true);
 
@@ -280,6 +478,16 @@ void Assets::queueImages(StringList const& paths) const {
 
     return AssetId{AssetType::Image, move(components)};
   }));
+}
+
+void Assets::queueImages(CaseInsensitiveStringSet const& paths) const {
+  MutexLocker assetsLocker(m_assetsMutex);
+  for (String const& path : paths) {
+    auto components = AssetPath::split(path);
+    validatePath(components, true, true);
+
+    queueAsset(AssetId{AssetType::Image, std::move(components)});
+  };
 }
 
 ImageConstPtr Assets::tryImage(AssetPath const& path) const {
@@ -313,6 +521,16 @@ void Assets::queueAudios(StringList const& paths) const {
 
     return AssetId{AssetType::Audio, move(components)};
   }));
+}
+
+void Assets::queueAudios(CaseInsensitiveStringSet const& paths) const {
+  MutexLocker assetsLocker(m_assetsMutex);
+  for (String const& path : paths) {
+    auto components = AssetPath::split(path);
+    validatePath(components, false, true);
+
+    queueAsset(AssetId{AssetType::Audio, std::move(components)});
+  };
 }
 
 AudioConstPtr Assets::tryAudio(String const& path) const {
@@ -502,17 +720,20 @@ FramesSpecification Assets::parseFramesSpecification(Json const& frameConfig, St
 void Assets::queueAssets(List<AssetId> const& assetIds) const {
   MutexLocker assetsLocker(m_assetsMutex);
 
-  for (auto const& id : assetIds) {
-    auto i = m_assetsCache.find(id);
-    if (i != m_assetsCache.end()) {
-      if (i->second)
-        freshen(i->second);
-    } else {
-      auto j = m_queue.find(id);
-      if (j == m_queue.end()) {
-        m_queue[id] = QueuePriority::Load;
-        m_assetsQueued.signal();
-      }
+  for (auto const& id : assetIds)
+    queueAsset(id);
+}
+
+void Assets::queueAsset(AssetId const& assetId) const {
+  auto i = m_assetsCache.find(assetId);
+  if (i != m_assetsCache.end()) {
+    if (i->second)
+      freshen(i->second);
+  } else {
+    auto j = m_queue.find(assetId);
+    if (j == m_queue.end()) {
+      m_queue[assetId] = QueuePriority::Load;
+      m_assetsQueued.signal();
     }
   }
 }
@@ -690,6 +911,57 @@ ByteArray Assets::read(String const& path) const {
   throw AssetException(strf("No such asset '{}'", path));
 }
 
+// From OpenStarbound: Image patching method.
+ImageConstPtr Assets::readImage(String const& path) const {
+  if (auto p = m_files.ptr(path)) {
+    ImageConstPtr image;
+    if (auto memorySource = as<MemoryAssetSource>(p->source))
+      image = memorySource->image(p->sourceName);
+    if (!image)
+      image = make_shared<Image>(Image::readPng(p->source->open(p->sourceName)));
+
+    if (!p->patchSources.empty()) {
+      RecursiveMutexLocker luaLocker(m_luaMutex);
+      LuaEngine* luaEngine = as<LuaEngine>(m_luaEngine.get());
+      LuaValue result = luaEngine->createUserData(*image);
+      luaLocker.unlock();
+      // For a given image `imageAsset.png`, runs any `imageAsset.png.patch.lua` scripts.
+      for (auto const& pair : p->patchSources) {
+        auto& patchPath = pair.first;
+        auto& patchSource = pair.second;
+        auto patchStream = patchSource->read(patchPath);
+        if (patchPath.endsWith(".lua")) {
+          luaLocker.lock();
+          LuaContextPtr& context = m_patchContexts[patchPath];
+          if (!context) {
+            context = make_shared<LuaContext>(luaEngine->createContext());
+            context->load(patchStream, patchPath);
+          }
+          auto newResult = context->invokePath<LuaValue>("patch", result, path);
+          if (!newResult.is<LuaNilType>()) {
+            if (auto ud = newResult.ptr<LuaUserData>()) {
+              if (ud->is<Image>())
+                result = std::move(newResult);
+              else
+                Logger::warn("Patch '{}' for image '{}' returned a non-Image userdata value, ignoring");
+            } else {
+              Logger::warn("Patch '{}' for image '{}' returned a non-Image value, ignoring");
+            }
+          }
+          luaLocker.unlock();
+        } else {
+          Logger::warn("Patch '{}' for image '{}' isn't a Lua script, ignoring", patchPath, path);
+        }
+      }
+      image = make_shared<Image>(std::move(result.get<LuaUserData>().get<Image>()));
+    }
+
+    return image;
+  }
+  throw AssetException(strf("No such asset '{}'", path));
+}
+
+
 // WasabiRaptor's recursive patch checking code, «downstreamed» from OpenStarbound.
 Json Assets::checkPatchArray(String const& path, AssetSourcePtr const& source, Json const result, JsonArray const patchData) const {
   auto newResult = result;
@@ -720,21 +992,34 @@ Json Assets::readJson(String const& path) const {
   try {
     Json result = inputUtf8Json(streamData.begin(), streamData.end(), false);
     for (auto const& pair : m_files.get(path).patchSources) {
-      auto patchStream = pair.second->read(pair.first);
-      auto patchJson = inputUtf8Json(patchStream.begin(), patchStream.end(), false);
-      if (patchJson.isType(Json::Type::Array)) {
+      auto& patchPath = pair.first;
+      auto& patchSource = pair.second;
+      auto patchStream = patchSource->read(patchPath);
+      if (patchPath.endsWith(".lua")) {
+        RecursiveMutexLocker luaLocker(m_luaMutex);
+        // Kae: i don't like that lock. perhaps have a LuaEngine and patch context cache per worker thread later on?
+        LuaContextPtr& context = m_patchContexts[patchPath];
+        if (!context) {
+          context = make_shared<LuaContext>(as<LuaEngine>(m_luaEngine.get())->createContext());
+          context->load(patchStream, patchPath);
+        }
+        auto newResult = context->invokePath<Json>("patch", result, path);
+        if (newResult)
+          result = std::move(newResult);
+      } else {
+        auto patchJson = inputUtf8Json(patchStream.begin(), patchStream.end(), false);
+        if (patchJson.isType(Json::Type::Array)) {
         auto patchData = patchJson.toArray();
         try {
-          result = checkPatchArray(pair.first, pair.second, result, patchData);
+          result = checkPatchArray(patchPath, patchSource, result, patchData);
         } catch (JsonPatchTestFail const& e) {
-          Logger::error("Could not apply patch from file {} in source: '{}' at '{}'.  Caused by: {}", pair.first, pair.second->metadata().value("name", ""), m_assetSourcePaths.getLeft(pair.second), e.what());
+          Logger::debug("Patch test failure from file {} in source: '{}' at '{}'. Caused by: {}", patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
         } catch (JsonPatchException const& e) {
-          Logger::error("Could not apply patch from file {} in source: '{}' at '{}'.  Caused by: {}", pair.first, pair.second->metadata().value("name", ""), m_assetSourcePaths.getLeft(pair.second), e.what());
+          Logger::error("Could not apply patch from file {} in source: '{}' at '{}'.  Caused by: {}", patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
         }
-      }
-      else if (patchJson.isType(Json::Type::Object)) { //Kae: Do a good ol' json merge instead if the .patch file is a Json object
-        auto patchData = patchJson.toObject();
-        result = jsonMerge(result, patchData);
+        } else if (patchJson.isType(Json::Type::Object)) { // Kae: Do a good ol' json merge instead if the .patch file is a Json object
+          result = jsonMerge(result, patchJson.toObject());
+        }
       }
     }
     return result;
@@ -879,6 +1164,7 @@ shared_ptr<Assets::AssetData> Assets::loadJson(AssetPath const& path) const {
 }
 
 shared_ptr<Assets::AssetData> Assets::loadImage(AssetPath const& path) const {
+  validatePath(path, true, true);
   if (!path.directives.empty()) {
     shared_ptr<ImageData> source =
         as<ImageData>(loadAsset(AssetId{AssetType::Image, {path.basePath, path.subPath, {}}}));
@@ -954,7 +1240,7 @@ shared_ptr<Assets::AssetData> Assets::loadImage(AssetPath const& path) const {
   } else {
     auto imageData = make_shared<ImageData>();
     imageData->image = unlockDuring([&]() {
-      return make_shared<Image>(Image::readPng(open(path.basePath)));
+      return readImage(path.basePath);
     });
     imageData->frames = bestFramesSpecification(path.basePath);
 

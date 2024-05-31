@@ -151,7 +151,9 @@ BehaviorTree::BehaviorTree(String const& name, StringSet scripts, JsonObject con
 BehaviorDatabase::BehaviorDatabase() {
   auto assets = Root::singleton().assets();
 
-  StringList nodeFiles = assets->scanExtension("nodes");
+  // FezzedOne: Why this specifically expected a `StringList` before, no one knows.
+  // It now uses a `StringSet` via deduction.
+  auto nodeFiles = assets->scanExtension("nodes");
   assets->queueJsons(nodeFiles);
   for (String const& file : nodeFiles) {
     try {

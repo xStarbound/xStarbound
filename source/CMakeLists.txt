@@ -627,12 +627,12 @@ SET (STAR_EXTERN_INCLUDES ${PROJECT_SOURCE_DIR}/extern)
 ADD_SUBDIRECTORY (extern)
 
 # Core support code, not specific to starbound.
-SET (STAR_CORE_INCLUDES ${PROJECT_SOURCE_DIR}/core)
+SET (STAR_CORE_INCLUDES ${PROJECT_SOURCE_DIR}/core ${PROJECT_SOURCE_DIR}/core/scripting)
 ADD_SUBDIRECTORY (core)
 
 # Less general purpose code than core that is available to both the game and
 # application modules.
-SET (STAR_BASE_INCLUDES ${PROJECT_SOURCE_DIR}/base)
+SET (STAR_BASE_INCLUDES ${PROJECT_SOURCE_DIR}/base ${PROJECT_SOURCE_DIR}/base/scripting)
 ADD_SUBDIRECTORY (base)
 
 # Platform APIs that are implemented by the application module

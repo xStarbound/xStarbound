@@ -363,6 +363,15 @@ Json jsonMergeQueryDef(String const& key, Json def, Json const& first, T const&.
   return def;
 }
 
+// From OpenStarbound:
+// Compares two JSON values to see if the second is a subset of the first.
+// For objects, each key in the second object must exist in the first
+// object and the values are recursively compared the same way. For arrays,
+// each element in the second array must successfully compare with some
+// element of the first array, regardless of order or duplication.
+// For all other types, the values must be equal.
+bool jsonPartialMatch(Json const& base, Json const& compare);
+
 }
 
 template <> struct fmt::formatter<Star::Json> : ostream_formatter {};

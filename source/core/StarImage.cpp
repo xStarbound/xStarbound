@@ -418,14 +418,19 @@ Vec4B Image::clamprgb(Vec2I const& pos) const {
 }
 
 Image Image::subImage(Vec2U const& pos, Vec2U const& size) const {
-  if (pos[0] + size[0] > m_width || pos[1] + size[1] > m_height)
-    throw ImageException(strf("call to subImage with pos {} size {} out of image bounds ({}, {})", pos, size, m_width, m_height));
+  // FezzedOne: Crops out-of-bounds images so that they remain in bounds now, and no longer throws an exception about it.
+  // if (pos[0] + size[0] > m_width || pos[1] + size[1] > m_height)
+  //   Logger::warn("Image::subImage: Call with pos {} size {} out of image bounds ({}, {}), cropping to bounds", pos, size, m_width, m_height);
+  // throw ImageException(strf("call to subImage with pos {} size {} out of image bounds ({}, {})", pos, size, m_width, m_height));
+  Vec2U baseSizePos = (pos + size).piecewiseMin(Vec2U(m_width, m_height)); 
+  Vec2U adjPos = pos.piecewiseMin(Vec2U(m_width, m_height));
+  Vec2U adjSize = baseSizePos - adjPos;
 
-  Image sub(size[0], size[1], m_pixelFormat);
+  Image sub(adjSize[0], adjSize[1], m_pixelFormat);
 
-  for (unsigned y = 0; y < size[1]; ++y) {
-    for (unsigned x = 0; x < size[0]; ++x) {
-      sub.set({x, y}, get(pos + Vec2U(x, y)));
+  for (unsigned y = 0; y < adjSize[1]; ++y) {
+    for (unsigned x = 0; x < adjSize[0]; ++x) {
+      sub.set({x, y}, get(adjPos + Vec2U(x, y)));
     }
   }
 

@@ -34,6 +34,9 @@ namespace JsonPatching {
 
   // Copies "from" to "path"
   Json applyCopyOperation(Json const& base, Json const& op);
+
+  // Merges "value" into value at "path"
+  Json applyMergeOperation(Json const& base, Json const& op);
 }
 
 }

@@ -66,15 +66,16 @@ ADD_EXECUTABLE (dungeon_generation_benchmark
   dungeon_generation_benchmark.cpp)
 TARGET_LINK_LIBRARIES (dungeon_generation_benchmark ${STAR_EXT_LIBS})
 
-ADD_EXECUTABLE (map_grep
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-  map_grep.cpp)
-TARGET_LINK_LIBRARIES (map_grep ${STAR_EXT_LIBS})
+# xSB-2 v2.5 breaks `word_count`. Might as well get rid of it and `map_grep`.
+# ADD_EXECUTABLE (map_grep
+#   $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
+#   map_grep.cpp)
+# TARGET_LINK_LIBRARIES (map_grep ${STAR_EXT_LIBS})
 
-ADD_EXECUTABLE (word_count
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-  word_count.cpp)
-TARGET_LINK_LIBRARIES (word_count ${STAR_EXT_LIBS})
+# ADD_EXECUTABLE (word_count
+#   $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
+#   word_count.cpp)
+# TARGET_LINK_LIBRARIES (word_count ${STAR_EXT_LIBS})
 
 # Kae's `btree_repacker`.
 ADD_EXECUTABLE (btree_repacker

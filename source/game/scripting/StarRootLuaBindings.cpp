@@ -223,7 +223,10 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
 }
 
 StringList LuaBindings::RootCallbacks::assetsByExtension(Root* root, String const& extension) {
-  return root->assets()->scanExtension(extension);
+  StringList assetList{};
+  for (auto& asset : root->assets()->scanExtension(extension))
+    assetList.append(asset);
+  return assetList;
 }
 
 String LuaBindings::RootCallbacks::assetData(Root* root, String const& path) {

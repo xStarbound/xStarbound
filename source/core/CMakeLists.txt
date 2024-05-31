@@ -122,10 +122,13 @@ SET (star_core_HEADERS
     StarUnicode.hpp
     StarUuid.hpp
     StarVector.hpp
+    StarVersion.hpp
     StarVlqEncoding.hpp
     StarWeightedPool.hpp
     StarWorkerPool.hpp
     StarXXHash.hpp
+
+    scripting/StarUtilityLuaBindings.hpp
   )
 
 SET (star_core_SOURCES
@@ -181,6 +184,8 @@ SET (star_core_SOURCES
     StarUnicode.cpp
     StarUuid.cpp
     StarWorkerPool.cpp
+
+    scripting/StarUtilityLuaBindings.cpp
   )
 
 IF (STAR_SYSTEM_FAMILY_UNIX)
@@ -213,5 +218,6 @@ ELSEIF (STAR_SYSTEM_FAMILY_WINDOWS)
 
 ENDIF ()
 
-ADD_LIBRARY (star_core OBJECT ${star_core_SOURCES} ${star_core_HEADERS})
+CONFIGURE_FILE (StarVersion.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/StarVersion.cpp)
+ADD_LIBRARY (star_core OBJECT ${star_core_SOURCES} ${star_core_HEADERS} ${CMAKE_CURRENT_BINARY_DIR}/StarVersion.cpp)
 TARGET_PRECOMPILE_HEADERS (star_core PUBLIC StarPch.hpp)
