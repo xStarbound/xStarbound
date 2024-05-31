@@ -533,7 +533,10 @@ ItemPtr ItemDatabase::tryCreateItem(ItemDescriptor const& descriptor, Maybe<floa
         {"description", "Reinstall the parent mod to return this item to normal!\n^red;(To retain data, do not place as an object or craft with it!)"}
       }), {}, {}));
     } else {
-      std::rethrow_exception(std::current_exception()); // Throw an error if invalid items aren't being ignored.
+      // FezzedOne: Rethrowing this exception stops the game and prevents certain mods from loading when they would have loaded in vanilla.
+      // So we're not doing that anymore.
+      Logger::error("Could not instantiate item '{}'. {}", descriptor, outputException(e, false));
+      result = createItem(m_items.get("perfectlygenericitem").type, itemConfig("perfectlygenericitem", descriptor.parameters(), level, seed));
     }
   }
   result->setCount(descriptor.count());
