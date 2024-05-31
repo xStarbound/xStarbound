@@ -157,7 +157,7 @@ Assets::Assets(Settings settings, StringList assetSources) {
 
   auto decorateLuaContext = [&](LuaContext& context, MemoryAssetSourcePtr newFiles) {
     if (newFiles) {
-      // re-add the assets callbacks with more functions
+      // Kae: Re-add the assets callbacks with more functions.
       context.remove("assets");
       auto callbacks = makeBaseAssetCallbacks();
       callbacks.registerCallback("add", [&newFiles](LuaEngine& engine, String const& path, LuaValue const& data) {

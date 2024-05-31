@@ -4,5 +4,8 @@
   "priority" : -9999,
   "friendlyName" : "xSB-2 Assets",
   "requires" : ["base"],
+  "scripts": {
+    "postLoad": ["/titlebar.lua"]
+  },
   "version" : "2.4.1.2"
 }
