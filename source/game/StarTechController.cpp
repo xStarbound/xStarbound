@@ -78,9 +78,15 @@ Json TechController::diskStore() {
 }
 
 void TechController::diskLoad(Json const& store) {
-  setupTechModules( store.getArray("techModules", {}).transformed([](Json const& v) {
+  auto techDatabase = Root::singleton().techDatabase();
+  auto techModules = store.getArray("techModules", {}).transformed([](Json const& v) {
       return make_tuple(v.getString("module"), v.getObject("scriptData", {}));
-    }));
+    });
+  for (auto& tm : techModules) {
+    if (!techDatabase->contains(get<0>(tm)))
+      Logger::warn("Tech module '{}' not found in tech database", get<0>(tm)); /* FezzedOne: Much less spammy here. */
+  }
+  setupTechModules(techModules);
 }
 
 void TechController::init(Entity* parentEntity, ActorMovementController* movementController, StatusController* statusController) {
@@ -428,7 +434,7 @@ void TechController::setupTechModules(List<tuple<String, JsonObject>> const& mod
         moduleAnimator->animator.setPartTag(pair.first, "partImage", pair.second.toString());
       module.animatorId = m_techAnimators.addNetElement(moduleAnimator);
     } else {
-      Logger::warn("Tech module '{}' not found in tech database", get<0>(moduleInit));
+      // Logger::warn("Tech module '{}' not found in tech database", get<0>(moduleInit)); /* Too spammy. */
     }
   }
 }

@@ -34,7 +34,7 @@ TechConfig TechDatabase::tech(String const& techName) const {
     return *p;
   else {
     // FezzedOne: Get rid of «missing tech» crashes by substituting a «dummy» tech.
-    Logger::error("TechDatabase: No such tech '{}'", techName);
+    // Logger::error("TechDatabase: No such tech '{}'", techName); /* Too spammy. */
     return TechConfig{
       .name = techName,
       .path = "",
