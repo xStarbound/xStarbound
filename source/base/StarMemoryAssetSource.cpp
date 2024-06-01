@@ -5,7 +5,11 @@
 
 namespace Star {
 
-MemoryAssetSource::MemoryAssetSource(String const& name, JsonObject metadata) : m_name(name), m_metadata(metadata) {}
+MemoryAssetSource::MemoryAssetSource(String const& name, JsonObject metadata) :
+  m_name(name),
+  m_metadata(metadata),
+  /* FezzedOne: Make sure this is properly empty when we begin. */
+  m_files(CaseInsensitiveStringMap<FileEntry>{}) {}
 
 String MemoryAssetSource::name() const {
   return m_name;
