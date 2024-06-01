@@ -7,5 +7,5 @@
   "scripts": {
     "postLoad": ["/titlebar.lua"]
   },
-  "version" : "2.4.1.2"
+  "version" : "2.5"
 }

@@ -173,7 +173,9 @@ TilePainter::ChunkHash TilePainter::liquidChunkHash(WorldRenderData& renderData,
 
   forEachRenderTile(renderData, tileRange, [&](Vec2I const&, RenderTile const& renderTile) {
     //renderTile.hashPushLiquid(hasher);
-    buffer.append((char*)&renderTile.liquidId, sizeof(LiquidId) + sizeof(LiquidLevel));
+    // FezzedOne: Fixed buffer overflow that showed up on ASan.
+    buffer.append((char*)&renderTile.liquidId, sizeof(char));
+    buffer.append((char*)&renderTile.liquidLevel, sizeof(char));
   });
 
   //return hasher.digest();
