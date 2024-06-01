@@ -155,51 +155,6 @@ Assets::Assets(Settings settings, StringList assetSources) {
   pushGlobalContext("xsb", LuaBindings::makeXsbCallbacks());
   pushGlobalContext("assets", makeBaseAssetCallbacks());
 
-  auto decorateLuaContext = [&](LuaContext& context, MemoryAssetSourcePtr newFiles) {
-    if (newFiles) {
-      // Kae: Re-add the assets callbacks with more functions.
-      context.remove("assets");
-      auto callbacks = makeBaseAssetCallbacks();
-      callbacks.registerCallback("add", [&newFiles](LuaEngine& engine, String const& path, LuaValue const& data) {
-        ByteArray bytes;
-        if (auto str = engine.luaMaybeTo<String>(data))
-          bytes = ByteArray(str->utf8Ptr(), str->utf8Size());
-        else if (auto image = engine.luaMaybeTo<Image>(data)) {
-          newFiles->set(path, std::move(*image));
-          return;
-        } else {
-          auto json = engine.luaTo<Json>(data).repr();
-          bytes = ByteArray(json.utf8Ptr(), json.utf8Size());
-        }
-        newFiles->set(path, bytes);
-      });
-
-      callbacks.registerCallback("patch", [this, &newFiles](String const& path, String const& patchPath) -> bool {
-        if (auto file = m_files.ptr(path)) {
-          if (newFiles->contains(patchPath)) {
-            file->patchSources.append(make_pair(patchPath, newFiles));
-            return true;
-          } else {
-            if (auto asset = m_files.ptr(patchPath)) {
-              file->patchSources.append(make_pair(patchPath, asset->source));
-              return true;
-            }
-          }
-        }
-        return false;
-      });
-
-      callbacks.registerCallback("erase", [this](String const& path) -> bool {
-        bool erased = m_files.erase(path);
-        if (erased)
-          m_filesByExtension[AssetPath::extension(path).toLower()].erase(path);
-        return erased;
-      });
-
-      context.setCallbacks("assets", callbacks);
-    }
-  };
-
   auto addSource = [&](String const& sourcePath, AssetSourcePtr source) {
     m_assetSourcePaths.add(sourcePath, source);
 
@@ -243,7 +198,52 @@ Assets::Assets(Settings settings, StringList assetSources) {
         Logger::info("Running {} scripts {}", groupName, *scriptGroup);
         try {
           auto context = luaEngine->createContext();
-          decorateLuaContext(context, memoryAssets);
+
+          /* FezzedOne: Inlined `decorateLuaContext` to see if this will fix a segfault on release builds. */
+          if (memoryAssets) {
+            // Kae: Re-add the assets callbacks with more functions.
+            context.remove("assets");
+            auto callbacks = makeBaseAssetCallbacks();
+            callbacks.registerCallback("add", [&memoryAssets](LuaEngine& engine, String const& path, LuaValue const& data) {
+              ByteArray bytes;
+              if (auto str = engine.luaMaybeTo<String>(data))
+                bytes = ByteArray(str->utf8Ptr(), str->utf8Size());
+              else if (auto image = engine.luaMaybeTo<Image>(data)) {
+                memoryAssets->set(path, std::move(*image));
+                return;
+              } else {
+                auto json = engine.luaTo<Json>(data).repr();
+                bytes = ByteArray(json.utf8Ptr(), json.utf8Size());
+              }
+              memoryAssets->set(path, bytes);
+            });
+
+            callbacks.registerCallback("patch", [this, &memoryAssets](String const& path, String const& patchPath) -> bool {
+              if (auto file = m_files.ptr(path)) {
+                if (memoryAssets->contains(patchPath)) {
+                  file->patchSources.append(make_pair(patchPath, memoryAssets));
+                  return true;
+                } else {
+                  if (auto asset = m_files.ptr(patchPath)) {
+                    file->patchSources.append(make_pair(patchPath, asset->source));
+                    return true;
+                  }
+                }
+              }
+              return false;
+            });
+
+            callbacks.registerCallback("erase", [this](String const& path) -> bool {
+              bool erased = m_files.erase(path);
+              if (erased)
+                m_filesByExtension[AssetPath::extension(path).toLower()].erase(path);
+              return erased;
+            });
+
+            context.setCallbacks("assets", callbacks);
+          }
+          /* End of inlined lambda. */
+
           for (auto& jPath : *scriptGroup) {
             auto path = jPath.toString();
             auto script = source->read(path);
@@ -943,9 +943,9 @@ ImageConstPtr Assets::readImage(String const& path) const {
               if (ud->is<Image>())
                 result = std::move(newResult);
               else
-                Logger::warn("Patch '{}' for image '{}' returned a non-Image userdata value, ignoring");
+                Logger::warn("Patch '{}' for image '{}' returned a non-Image userdata value, ignoring", patchPath, path);
             } else {
-              Logger::warn("Patch '{}' for image '{}' returned a non-Image value, ignoring");
+              Logger::warn("Patch '{}' for image '{}' returned a non-Image value, ignoring", patchPath, path);
             }
           }
           luaLocker.unlock();
