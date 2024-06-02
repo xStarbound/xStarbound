@@ -1320,6 +1320,31 @@ void LuaDetail::shallowCopy(lua_State* state, int sourceIndex, int targetIndex) 
   }
 }
 
+// From OpenStarbound.
+LuaTable LuaDetail::insertJsonMetatable(LuaEngine& engine, LuaTable const& table, Json::Type type) {
+  auto newIndexMetaMethod = [](LuaTable const& table, LuaValue const& key, LuaValue const& value) {
+    auto mt = table.getMetatable();
+    auto nils = mt->rawGet<LuaTable>("__nils");
+
+    // If we are setting an entry to nil, need to add a bogus integer entry
+    // to the __nils table, otherwise need to set the entry *in* the __nils
+    // table to nil and remove it.
+    if (value == LuaNil)
+      nils.rawSet(key, 0);
+    else
+      nils.rawSet(key, LuaNil);
+    table.rawSet(key, value);
+  };
+
+  auto mt = engine.createTable();
+  auto nils = engine.createTable();
+  mt.rawSet("__nils", nils);
+  mt.rawSet("__newindex", engine.createFunction(newIndexMetaMethod));
+  mt.rawSet("__typehint", type == Json::Type::Array ? 1 : 2);
+  table.setMetatable(mt);
+  return nils;
+}
+
 LuaTable LuaDetail::jsonContainerToTable(LuaEngine& engine, Json const& container) {
   if (!container.isType(Json::Type::Array) && !container.isType(Json::Type::Object))
     throw LuaException("jsonContainerToTable called on improper json type");
@@ -1441,12 +1466,24 @@ Maybe<Json> LuaDetail::tableToJsonContainer(LuaTable const& table) {
   }
 }
 
-Json LuaDetail::jarrayCreate() {
-  return JsonArray();
+// From OpenStarbound.
+LuaTable LuaDetail::jarrayCreate(LuaEngine& engine, Maybe<LuaTable> table) {
+  if (auto t = table.ptr()) {
+    insertJsonMetatable(engine, *t, Json::Type::Array);
+    return *t;
+  } else {
+    return jsonContainerToTable(engine, JsonArray());
+  }
 }
 
-Json LuaDetail::jobjectCreate() {
-  return JsonObject();
+// From OpenStarbound.
+LuaTable LuaDetail::jobjectCreate(LuaEngine& engine, Maybe<LuaTable> table) {
+  if (auto t = table.ptr()) {
+    insertJsonMetatable(engine, *t, Json::Type::Object);
+    return *t;
+  } else {
+    return jsonContainerToTable(engine, JsonObject());
+  }
 }
 
 void LuaDetail::jcontRemove(LuaTable const& table, LuaValue const& key) {
