@@ -188,17 +188,26 @@ namespace JsonPatching {
   Json applyMergeOperation(Json const& base, Json const& op) {
     String path = op.getString("path");
     auto pointer = JsonPath::Pointer(path);
+    bool nulling = op.getBool("nulling", false);
 
     if (op.contains("search")) {
       auto searchable = pointer.get(base);
       auto searchValue = op.get("search");
       bool exact = op.getBool("exact", false);
       if (size_t index = findJsonMatch(searchable, searchValue, pointer, exact))
-        return pointer.add(pointer.remove(base), searchable.set(index - 1, jsonMerge(searchable.get(index - 1), op.get("value"))));
+        return pointer.add(pointer.remove(base), 
+          searchable.set(index - 1,
+            nulling ? jsonMerge(searchable.get(index - 1), op.get("value"))
+                    : jsonMerge(searchable.get(index - 1), op.get("value"))
+          )
+        );
       else
         return base;
     } else {
-      return pointer.add(pointer.remove(base), jsonMerge(pointer.get(base), op.get("value")));
+      return pointer.add(pointer.remove(base), 
+        nulling ? jsonMergeNull(pointer.get(base), op.get("value"))
+                : jsonMerge(pointer.get(base), op.get("value"))
+      );
     }
   }
 }
