@@ -199,7 +199,7 @@ Assets::Assets(Settings settings, StringList assetSources) {
         try {
           auto context = luaEngine->createContext();
 
-          /* FezzedOne: Inlined `decorateLuaContext` to see if this will fix a segfault on release builds. */
+          /* FezzedOne: Inlined `decorateLuaContext` to fix an optimisation-related segfault on some builds. */
           if (memoryAssets) {
             // Kae: Re-add the assets callbacks with more functions.
             context.remove("assets");
@@ -1018,7 +1018,7 @@ Json Assets::readJson(String const& path) const {
           Logger::error("Could not apply patch from file {} in source: '{}' at '{}'.  Caused by: {}", patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
         }
         } else if (patchJson.isType(Json::Type::Object)) { // Kae: Do a good ol' json merge instead if the .patch file is a Json object
-          result = jsonMerge(result, patchJson.toObject());
+          result = jsonMergeNull(result, patchJson.toObject());
         }
       }
     }
