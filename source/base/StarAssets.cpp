@@ -156,7 +156,7 @@ Assets::Assets(Settings settings, StringList assetSources) {
     });
 
     callbacks.registerCallback("newImage", [this](Vec2U const& size) -> Image {
-      return Image(size);
+      return Image::filled(size, Vec4B::filled(0));
     });
 
     callbacks.registerCallback("scan", [this](Maybe<String> const& a, Maybe<String> const& b) -> StringList {
