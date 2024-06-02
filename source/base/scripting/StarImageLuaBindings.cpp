@@ -40,6 +40,7 @@ LuaMethods<ByteArray> LuaUserDataMethods<ByteArray>::make() {
   // These act on stuff returned by `assets.rawBytes` and `assets.newRawBytes`.
   LuaMethods<ByteArray> methods;
 
+  methods.registerMethodWithSignature<size_t, ByteArray&>("size", mem_fn(&ByteArray::size));
   methods.registerMethod("set", [](ByteArray& bytes, String const& byteStr) {
     bytes = ByteArray::fromCStringWithNull(byteStr.utf8().c_str());
   });
