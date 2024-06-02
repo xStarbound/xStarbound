@@ -62,9 +62,9 @@ PlayerStorage::PlayerStorage(String const& storageDir) {
           auto entityFactory = Root::singleton().entityFactory();
           auto player = as<Player>(entityFactory->diskLoadEntity(EntityType::Player, entry.second));
           if (player->uuid() != entry.first)
-            throw PlayerException(strf("Uuid mismatch in loaded player with filename uuid '{}'", entry.first.hex()));
+            throw PlayerException(strf("UUID mismatch in loaded player with filename UUID '{}'", entry.first.hex()));
         } catch (StarException const& e) {
-          Logger::error("Failed to valid player with uuid {} : {}", entry.first.hex(), outputException(e, true));
+          Logger::error("Failed to validate player with UUID {} : {}", entry.first.hex(), outputException(e, true));
           it.remove();
         }
       }

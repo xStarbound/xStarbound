@@ -19,6 +19,7 @@
 #include "StarSha256.hpp"
 #include "StarDataStreamDevices.hpp"
 #include "StarLua.hpp"
+#include "StarLuaConverters.hpp"
 #include "StarImageLuaBindings.hpp"
 #include "StarUtilityLuaBindings.hpp"
 
@@ -137,12 +138,25 @@ Assets::Assets(Settings settings, StringList assetSources) {
       return String(assetBytes->ptr(), assetBytes->size());
     });
 
+    callbacks.registerCallback("rawBytes", [this](String const& path) -> ByteArray {
+      auto assetBytes = bytes(path);
+      return *assetBytes;
+    });
+
+    callbacks.registerCallback("newRawBytes", [this]() -> ByteArray {
+      return ByteArray();
+    });
+
     callbacks.registerCallback("image", [this](String const& path) -> Image {
       auto assetImage = image(path);
       if (assetImage->bytesPerPixel() == 3)
         return assetImage->convert(PixelFormat::RGBA32);
       else
         return *assetImage;
+    });
+
+    callbacks.registerCallback("newImage", [this](Vec2U const& size) -> Image {
+      return Image(size);
     });
 
     callbacks.registerCallback("scan", [this](Maybe<String> const& a, Maybe<String> const& b) -> StringList {
@@ -192,10 +206,17 @@ Assets::Assets(Settings settings, StringList assetSources) {
     auto metadata = source->metadata();
     if (auto scripts = metadata.ptr("scripts")) {
       if (auto scriptGroup = scripts->optArray(groupName)) {
-        auto memoryName = strf("{}::{}", metadata.value("name", File::baseName(sourcePath)), groupName);
+        auto sourceName = metadata.value("name", File::baseName(sourcePath));
+
+        String sourceNameStr = strf("{}", sourceName);
+        if (sourceName.type() == Json::Type::String) sourceNameStr = sourceName.toString();
+
+        String memoryName = strf("{}::{}", sourceNameStr, groupName);
         JsonObject memoryMetadata{ {"name", memoryName} };
         auto memoryAssets = make_shared<MemoryAssetSource>(memoryName, memoryMetadata);
-        Logger::info("Running {} scripts {}", groupName, *scriptGroup);
+
+        Logger::info("Running {} preprocessing scripts for asset source '{}': {}", groupName == "onLoad" ? "on-load" : "post-load", sourceNameStr, *scriptGroup);
+
         try {
           auto context = luaEngine->createContext();
 
@@ -204,18 +225,37 @@ Assets::Assets(Settings settings, StringList assetSources) {
             // Kae: Re-add the assets callbacks with more functions.
             context.remove("assets");
             auto callbacks = makeBaseAssetCallbacks();
-            callbacks.registerCallback("add", [&memoryAssets](LuaEngine& engine, String const& path, LuaValue const& data) {
+            callbacks.registerCallback("add", [this, &source, &memoryAssets](LuaEngine& engine, String const& path, LuaValue const& data) {
               ByteArray bytes;
+              bool isImageOrBytes = false;
               if (auto str = engine.luaMaybeTo<String>(data))
                 bytes = ByteArray(str->utf8Ptr(), str->utf8Size());
               else if (auto image = engine.luaMaybeTo<Image>(data)) {
                 memoryAssets->set(path, std::move(*image));
-                return;
+                isImageOrBytes = true;
+              } else if (auto rawBytes = engine.luaMaybeTo<ByteArray>(data)) {
+                memoryAssets->set(path, std::move(*rawBytes));
+                isImageOrBytes = true;
               } else {
                 auto json = engine.luaTo<Json>(data).repr();
                 bytes = ByteArray(json.utf8Ptr(), json.utf8Size());
               }
-              memoryAssets->set(path, bytes);
+              if (!isImageOrBytes)
+                memoryAssets->set(path, bytes);
+
+              // FezzedOne: Make sure the asset gets added to the overall file list.
+              if (m_files.ptr(path)) {
+                auto& descriptor = m_files[path];
+                descriptor.sourceName = path;
+                descriptor.source = memoryAssets;
+              } else {
+                m_files[path] = {
+                  .sourceName = path,
+                  .source = memoryAssets,
+                  .patchSources = {},
+                };
+              }
+              m_filesByExtension[AssetPath::extension(path).toLower()].insert(path);
             });
 
             callbacks.registerCallback("patch", [this, &memoryAssets](String const& path, String const& patchPath) -> bool {
@@ -256,7 +296,7 @@ Assets::Assets(Settings settings, StringList assetSources) {
           addSource(strf("{}::{}", sourcePath, groupName), memoryAssets);
       }
     }
-    // clear any caching that may have been trigered by load scripts as they may no longer be valid
+    // Kae: Clear any cached files that may have been added by preprocessing scripts, as they may no longer be valid.
     m_framesSpecifications.clear();
     m_assetsCache.clear();
   };
@@ -277,14 +317,10 @@ Assets::Assets(Settings settings, StringList assetSources) {
     runLoadScripts("onLoad", sourcePath, source);
   }
 
-  Logger::info("[xSB::Debug] Running post-processing scripts.");
-
   for (auto& pair : sources)
     runLoadScripts("postLoad", pair.first, pair.second);
 
   Sha256Hasher digest;
-
-  Logger::info("[xSB::Debug] Calculating asset digest.");
 
   for (auto const& assetPath : m_files.keys().sorted()) {
     bool digestFile = true;
@@ -307,12 +343,8 @@ Assets::Assets(Settings settings, StringList assetSources) {
 
   m_digest = digest.compute();
 
-  Logger::info("[xSB::Debug] Adding all assets to the extension-sorted list.");
-
   for (auto const& filename : m_files.keys())
     m_filesByExtension[AssetPath::extension(filename).toLower()].add(filename);
-
-  Logger::info("[xSB::Debug] Finished processing assets. Now loading.");
 
   int workerPoolSize = m_settings.workerPoolSize;
   for (int i = 0; i < workerPoolSize; i++)
@@ -911,15 +943,17 @@ ByteArray Assets::read(String const& path) const {
   throw AssetException(strf("No such asset '{}'", path));
 }
 
-// From OpenStarbound: Image patching method.
 ImageConstPtr Assets::readImage(String const& path) const {
   if (auto p = m_files.ptr(path)) {
     ImageConstPtr image;
-    if (auto memorySource = as<MemoryAssetSource>(p->source))
+    if (auto memorySource = as<MemoryAssetSource>(p->source)) {
       image = memorySource->image(p->sourceName);
-    if (!image)
+    }
+    if (!image) {
       image = make_shared<Image>(Image::readPng(p->source->open(p->sourceName)));
+    }
 
+    // From OpenStarbound: Image patching code.
     if (!p->patchSources.empty()) {
       RecursiveMutexLocker luaLocker(m_luaMutex);
       LuaEngine* luaEngine = as<LuaEngine>(m_luaEngine.get());

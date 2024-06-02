@@ -120,8 +120,8 @@ ImageConstPtr MemoryAssetSource::image(String const& path) {
     throw AssetSourceException::format("Requested file '{}' does not exist in memory", path);
   else if (auto imagePtr = p->ptr<ImagePtr>())
     return *imagePtr;
-  else
-    return nullptr;
+  else // FezzedOne: Without this, preprocessing scripts can't read assets in memory.
+    return make_shared<Image>(Image::readPng(open(path)));
 }
 
 }
