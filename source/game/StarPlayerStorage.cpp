@@ -155,7 +155,7 @@ Maybe<Json> PlayerStorage::maybeGetPlayerData(Uuid const& uuid) {
 Json PlayerStorage::getPlayerData(Uuid const& uuid) {
   auto data = maybeGetPlayerData(uuid);
   if (!data)
-    throw PlayerException(strf("No such stored player with uuid '{}'", uuid.hex()));
+    throw PlayerException(strf("No such stored player with UUID '{}'", uuid.hex()));
   else
     return *data;
 }
@@ -166,7 +166,7 @@ PlayerPtr PlayerStorage::loadPlayer(Uuid const& uuid) {
   try {
     auto player = convert<Player>(entityFactory->diskLoadEntity(EntityType::Player, playerCacheData));
     if (player->uuid() != uuid)
-      throw PlayerException(strf("Uuid mismatch in loaded player with filename uuid '{}'", uuid.hex()));
+      throw PlayerException(strf("UUID mismatch in loaded player with filename UUID '{}'", uuid.hex()));
     return player;
   } catch (std::exception const& e) {
     Logger::error("Error loading player file, ignoring! {}", outputException(e, false));
@@ -179,7 +179,7 @@ PlayerPtr PlayerStorage::loadPlayer(Uuid const& uuid) {
 void PlayerStorage::deletePlayer(Uuid const& uuid) {
   RecursiveMutexLocker locker(m_mutex);
   if (!m_savedPlayersCache.contains(uuid))
-    throw PlayerException(strf("No such stored player with uuid '{}'", uuid.hex()));
+    throw PlayerException(strf("No such stored player with UUID '{}'", uuid.hex()));
 
   m_savedPlayersCache.remove(uuid);
 
@@ -208,7 +208,7 @@ void PlayerStorage::deletePlayer(Uuid const& uuid) {
 WorldChunks PlayerStorage::loadShipData(Uuid const& uuid) {
   RecursiveMutexLocker locker(m_mutex);
   if (!m_savedPlayersCache.contains(uuid))
-    throw PlayerException(strf("No such stored player with uuid '{}'", uuid.hex()));
+    throw PlayerException(strf("No such stored player with UUID '{}'", uuid.hex()));
 
   String filename = File::relativeTo(m_storageDirectory, strf("{}.shipworld", uuidFileName(uuid)));
   try {
@@ -225,7 +225,7 @@ WorldChunks PlayerStorage::loadShipData(Uuid const& uuid) {
 void PlayerStorage::applyShipUpdates(Uuid const& uuid, WorldChunks const& updates) {
   RecursiveMutexLocker locker(m_mutex);
   if (!m_savedPlayersCache.contains(uuid))
-    throw PlayerException(strf("No such stored player with uuid '{}'", uuid.hex()));
+    throw PlayerException(strf("No such stored player with UUID '{}'", uuid.hex()));
 
   if (updates.empty())
     return;
@@ -276,7 +276,7 @@ String const& PlayerStorage::uuidFileName(Uuid const& uuid) const {
   if (auto fileName = m_playerFileNames.rightPtr(uuid))
     return *fileName;
   else
-    throw PlayerException::format("No matching filename for uuid '{}'", uuid.hex());
+    throw PlayerException::format("No matching filename for UUID '{}'", uuid.hex());
 }
 
 void PlayerStorage::writeMetadata() {
