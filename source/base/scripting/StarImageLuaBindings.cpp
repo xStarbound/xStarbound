@@ -10,11 +10,24 @@ LuaMethods<Image> LuaUserDataMethods<Image>::make() {
   LuaMethods<Image> methods;
 
   methods.registerMethodWithSignature<Vec2U, Image&>("size", mem_fn(&Image::size));
-  methods.registerMethodWithSignature<void, Image&, Vec2U, Image&>("drawInto", mem_fn(&Image::drawInto));
-  methods.registerMethodWithSignature<void, Image&, Vec2U, Image&>("copyInto", mem_fn(&Image::copyInto));
-  methods.registerMethod("set", [](Image& image, unsigned x, unsigned y, Color const& color) {
-    image.set(x, y, color.toRgba()); 
+
+  // FezzedOne: Not returning the image is unintuitive for asset modders. Fixed that.
+  /* { */
+  methods.registerMethod("copyInto", [](Image& image, Vec2U pos, Image const& subImage) {
+    image.copyInto(pos, subImage);
+    return image;
   });
+
+  methods.registerMethod("drawInto", [](Image& image, Vec2U pos, Image const& subImage) {
+    image.drawInto(pos, subImage);
+    return image;
+  });
+
+  methods.registerMethod("set", [](Image& image, unsigned x, unsigned y, Color const& color) {
+    image.set(x, y, color.toRgba());
+    return image;
+  });
+  /* } */
 
   methods.registerMethod("get", [](Image& image, unsigned x, unsigned y) {
     return Color::rgba(image.get(x, y));
@@ -43,6 +56,7 @@ LuaMethods<ByteArray> LuaUserDataMethods<ByteArray>::make() {
   methods.registerMethodWithSignature<size_t, ByteArray&>("size", mem_fn(&ByteArray::size));
   methods.registerMethod("set", [](ByteArray& bytes, String const& byteStr) {
     bytes = ByteArray::fromCStringWithNull(byteStr.utf8().c_str());
+    return bytes;
   });
 
   methods.registerMethod("setByte", [](ByteArray& bytes, size_t pos, String const& singleByte) {
@@ -56,6 +70,7 @@ LuaMethods<ByteArray> LuaUserDataMethods<ByteArray>::make() {
       else
         throw LuaException(strf("setByte: Attempted to set byte out of bounds at {}; size of byte array is {}", pos, bytes.size()));
     }
+    return bytes;
   });
 
   methods.registerMethod("get", [](ByteArray& bytes) {
