@@ -148,9 +148,30 @@ struct FlipImageOperation {
   Mode mode;
 };
 
+struct SetPixelImageOperation {
+  Vec2U pixel;
+  Vec4B colour;
+};
+
+struct BlendPixelImageOperation {
+  Vec2U pixel;
+  Vec4B colour;
+};
+
+struct CopyIntoImageOperation {
+  Vec2U offset;
+  String image;
+};
+
+struct DrawIntoImageOperation {
+  Vec2U offset;
+  String image;
+};
+
 typedef Variant<NullImageOperation, ErrorImageOperation, HueShiftImageOperation, SaturationShiftImageOperation, BrightnessMultiplyImageOperation, FadeToColorImageOperation,
   ScanLinesImageOperation, SetColorImageOperation, ColorReplaceImageOperation, AlphaMaskImageOperation, BlendImageOperation,
-  MultiplyImageOperation, BorderImageOperation, ScaleImageOperation, CropImageOperation, FlipImageOperation> ImageOperation;
+  MultiplyImageOperation, BorderImageOperation, ScaleImageOperation, CropImageOperation, FlipImageOperation,
+  SetPixelImageOperation, BlendPixelImageOperation, CopyIntoImageOperation, DrawIntoImageOperation> ImageOperation;
 
 ImageOperation imageOperationFromString(StringView string);
 String imageOperationToString(ImageOperation const& operation);

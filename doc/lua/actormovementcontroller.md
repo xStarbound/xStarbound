@@ -1,22 +1,29 @@
-# actor mcontroller
+# Actor `mcontroller`
 
 The `mcontroller` table sometimes contains functions relating to the actor movement controller.
 
-This section of mcontroller documentation refers to the ActorMovementController lua bindings. There is other documentation referring to the mcontroller table for base MovementControllers.
+This section of `mcontroller` documentation refers to the `ActorMovementController` lua bindings. The `ActorMovementController` is the one used by the following kinds of entities:
 
-* monsters
-* npcs
-* tech
-* companion system scripts
-* status effects
-* quest scripts
-* active items
+- monsters
+- NPCs
+- players
+
+The `mcontroller` bindings are available in the following scripts running on players, NPCs and monsters:
+
+- tech scripts
+- companion system scripts
+- status effect scripts
+- status controller scripts
+- quest scripts
+- active item scripts
+
+See `movementcontroller.md` for documentation on the `mcontroller` table for base `MovementController`s (the ones used by projectiles and vehicles).
 
 ---
 
 #### `RectF` mcontroller.boundBox()
 
-Returns a rect containing the entire collision of the movement controller, in local coordinates.
+Returns a `RectF` containing the entire collision of the movement controller, in local coordinates.
 
 ---
 
@@ -106,13 +113,13 @@ Returns the angle that the movement controller is currently stuck at, in radians
 
 #### `float` mcontroller.liquidPercentage()
 
-Returns the percentage of the collision poly currently submerged in liquid;
+Returns the percentage of the collision poly currently submerged in liquid, from `0.0` (no submersion at all) to `1.0` (total submersion).
 
 ---
 
 #### `LiquidId` mcontroller.liquidId()
 
-Returns the liquid ID of the liquid that the movement controller is currently submerged in. If this is several liquids this returns the most plentiful one.
+Returns the liquid ID of the liquid that the movement controller is currently submerged in. If this is several liquids this returns the most plentiful one. If multiple liquids share the 'most plentiful' status (by having equal levels), the liquid ID returned is the first in bottom-to-top, left-to-right precedence, in that order.
 
 ---
 
@@ -278,7 +285,7 @@ Returns whether the controller is currently in liquid movement mode.
 
 ---
 
-## controls
+## Controls
 
 The actor movement controller has a set of controls. Controls can be set anywhere and are accumulated and evaluated after all scripts are run. Controls will either override previously set controls, or combine them.
 

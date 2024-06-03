@@ -12,7 +12,7 @@ LuaCallbacks LuaBindings::makeUniverseServerCallbacks(UniverseServer* universe) 
   callbacks.registerCallbackWithSignature<List<ConnectionId>>("clientIds", bind(UniverseServerCallbacks::clientIds, universe));
   callbacks.registerCallbackWithSignature<size_t>("numberOfClients", bind(UniverseServerCallbacks::numberOfClients, universe));
   callbacks.registerCallbackWithSignature<bool, ConnectionId>("isConnectedClient", bind(UniverseServerCallbacks::isConnectedClient, universe, _1));
-  callbacks.registerCallbackWithSignature<String, ConnectionId>("clientNick", bind(UniverseServerCallbacks::clientNick, universe, _1));
+  callbacks.registerCallbackWithSignature<Maybe<String>, ConnectionId>("clientNick", bind(UniverseServerCallbacks::clientNick, universe, _1));
   callbacks.registerCallbackWithSignature<Maybe<ConnectionId>, String>("findNick", bind(UniverseServerCallbacks::findNick, universe, _1));
   callbacks.registerCallbackWithSignature<void, String>("adminBroadcast", bind(UniverseServerCallbacks::adminBroadcast, universe, _1));
   callbacks.registerCallbackWithSignature<void, ConnectionId, String>("adminWhisper", bind(UniverseServerCallbacks::adminWhisper, universe, _1, _2));
@@ -55,8 +55,10 @@ bool LuaBindings::UniverseServerCallbacks::isConnectedClient(UniverseServer* uni
 //
 // @param clientId the client ID in question
 // @return A string containing the nickname of the given client
-String LuaBindings::UniverseServerCallbacks::clientNick(UniverseServer* universe, ConnectionId arg1) {
-  return universe->clientNick(arg1);
+Maybe<String> LuaBindings::UniverseServerCallbacks::clientNick(UniverseServer* universe, ConnectionId arg1) {
+  if (universe->isConnectedClient(arg1))
+    return universe->clientNick(arg1);
+  return {};
 }
 
 // Returns the client ID for the given nick

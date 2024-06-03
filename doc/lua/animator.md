@@ -1,18 +1,20 @@
-# animator
+# `animator`
 
-The *animator* table contains functions that relate to an attached networked animator. Networked animators are found in:
+The `animator` table contains functions that relate to an attached networked animator. Networked animators are found in:
 
-* tech
-* monsters
-* vehicles
-* status effects
-* active items
+- techs
+- monsters
+- vehicles
+- status effects
+- active items
+
+As such, the `animator` table is available in scripts running in those contexts.
 
 ---
 
 #### `bool` animator.setAnimationState(`String` stateType, `String` State, `bool` startNew = false)
 
-Sets an animation state. If startNew is true, restart the animation loop if it's already active. Returns whether the state was set.
+Sets an animation state. If `startNew` is true, restart the animation loop if it's already active. Returns whether the state was set.
 
 ---
 
@@ -30,13 +32,13 @@ Returns the value of the specified property for a state type.
 
 #### `void` animator.setGlobalTag(`String` tagName, `String` tagValue)
 
-Sets a global animator tag. A global tag replaces any tag <tagName> with the specified tagValue across all animation parts.
+Sets a global animator tag. A global tag replaces any tag `<tagName>` with the specified tagValue across all animation parts.
 
 ---
 
 #### `void` animator.setPartTag(`String` partType, `String` tagName, `String` tagValue)
 
-Sets a local animator tag. A part tag replaces any tag <tagName> with the specified tagValue in the partType animation part only.
+Sets a local animator tag. A part tag replaces any tag `<tagName>` with the specified tagValue in the partType animation part only.
 
 ---
 
@@ -56,7 +58,7 @@ Sets the animation rate of the animator.
 
 Rotates a rotation group to the specified angle. If immediate, ignore rotation speed.
 
-*NOTE:* Rotation groups have largely been replaced by transformation groups and should only be used in a context where maintaining a rotation speed is important. When possible use transformation groups.
+*NOTE:* Rotation groups have largely been replaced by transformation groups and should only be used in a context where maintaining a rotation speed is important. When possible, use transformation groups.
 
 ---
 
@@ -88,13 +90,13 @@ Rotates the specified transformation group by the specified angle in radians, op
 
 #### `void` animator.scaleTransformationGroup(`String` transformationGroup, `Vec2F` scale, [`Vec2F` scaleCenter])
 
-Scales the specified transformation group by the specified scale. Optionally scale it from a scaleCenter.
+Scales the specified transformation group by the specified scale. Optionally scale it from a `scaleCenter`.
 
 ---
 
 #### `void` animator.transformTransformationGroup(`String` transformationGroup, `float` a, `float` b, `float` c, `float` d, `float` tx, `float` ty)
 
-Applies a custom Mat3 transform to the specified transformationGroup. The applied matrix will be:
+Applies a custom Mat3 transform to the specified transformation group. The applied matrix will be:
 
 [a, b, tx,
  c, d, ty,
@@ -102,13 +104,47 @@ Applies a custom Mat3 transform to the specified transformationGroup. The applie
 
 ---
 
-#### `void` animator.resetTransformationGroup(`String` transformationGroup)
+#### `void` animator.fullTransformTransformationGroup(`String` transformationGroup, `float` a, `float` b, `float` c, `float` d, `float` e, `float` f, `float` tx, `float` ty, `float` tz)
 
-Resets a transformationGroup to the identity transform.
+Applies a custom Mat3 transform to the specified transformation group. The applied matrix will be:
+
+[a, b, tx,
+ c, d, ty,
+ e, f, tz]
+
+**Note:** Starbound renders everything in 2D. You may see visual clipping when you transform on the Z axis.
+
+---
+
+#### `void` animator.fullTransformTransformationGroup(`String` transformationGroup, `float` a, `float` b, `float` c, `float` d, `float` e, `float` f, `float` tx, `float` ty, `float` tz)
+
+Sets the transformation values of the specified transformation group. The applied matrix will be:
+
+[a, b, tx,
+ c, d, ty,
+ e, f, tz]
+
+**Note:** Starbound renders everything in 2D. You may see visual clipping when you transform on the Z axis.
+
+**Tip:** Instead of using `animator.resetTransformationGroup`, you can pass the following matrix to this callback to reset a transformation group back to identity:
 
 [1, 0, 0
  0, 1, 0,
- 0, 1, 1]
+ 0, 0, 1]
+
+In Lua argument order, this is `groupName, 1, 0, 0, 1, 0, 0, 0, 0, 1`.
+
+**Stock Starbound note:** The identity transform specified in the stock documentation is incorrect. The correct transform is as shown above.
+
+---
+
+#### `void` animator.resetTransformationGroup(`String` transformationGroup)
+
+Resets a transformation group to the identity transform:
+
+[1, 0, 0
+ 0, 1, 0,
+ 0, 0, 1]
 
 ---
 
@@ -144,7 +180,7 @@ Spawns the entire set of particles `burstCount` times, where `burstCount` can be
 
 #### `void` animator.setLightActive(`String` lightName, bool active)
 
-Sets a light to be active/inactive.
+Sets a light to be active or inactive.
 
 ---
 

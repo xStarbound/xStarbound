@@ -1,4 +1,6 @@
-The activeItem table contains bindings which provide functionality for the ActiveItem and for the item's 'owner' (a ToolUser entity currently holding the item).
+# `activeItem`
+
+The `activeItem` table contains bindings which provide functionality for an active item and for the item's 'owner' (a ToolUser entity currently holding the item). Only available to scripts running on active items.
 
 ---
 

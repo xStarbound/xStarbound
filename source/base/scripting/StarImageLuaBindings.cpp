@@ -77,6 +77,15 @@ LuaMethods<ByteArray> LuaUserDataMethods<ByteArray>::make() {
     return String(bytes.ptr(), bytes.size());
   });
 
+  methods.registerMethod("getByte", [](ByteArray& bytes, size_t pos) {
+    // FezzedOne: Starts at 1 because that's how Lua does things.
+    if (pos != 0 && (pos - 1) < bytes.size())
+      return String(bytes[pos - 1]);
+    else {
+      throw LuaException(strf("getByte: Attempted to get byte out of bounds at {}; size of byte array is {}", pos, bytes.size()));
+    }
+  });
+
   return methods;
 }
 

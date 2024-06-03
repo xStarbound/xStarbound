@@ -475,6 +475,46 @@ ImageOperation imageOperationFromString(StringView string) {
     } else if (type == "flipxy") {
       return FlipImageOperation{FlipImageOperation::FlipXY};
 
+    } else if (type == "setpixel") {
+      SetPixelImageOperation operation;
+      operation.pixel[0] = lexicalCast<int>(bits.at(1));
+      operation.pixel[1] = lexicalCast<int>(bits.at(2));
+      operation.colour = Color::fromHex(bits.at(3)).toRgba();
+      return operation;
+
+    } else if (type == "blendpixel") {
+      BlendPixelImageOperation operation;
+      operation.pixel[0] = lexicalCast<int>(bits.at(1));
+      operation.pixel[1] = lexicalCast<int>(bits.at(2));
+      operation.colour = Color::fromHex(bits.at(3)).toRgba();
+      return operation;
+
+    } else if (type == "copyinto") {
+      CopyIntoImageOperation operation;
+
+      operation.image = String(bits.at(1));
+
+      if (bits.size() > 2)
+        operation.offset[0] = lexicalCast<int>(bits.at(2));
+
+      if (bits.size() > 3)
+        operation.offset[1] = lexicalCast<int>(bits.at(3));
+
+      return operation;
+
+    } else if (type == "drawinto") {
+      DrawIntoImageOperation operation;
+
+      operation.image = String(bits.at(1));
+
+      if (bits.size() > 2)
+        operation.offset[0] = lexicalCast<int>(bits.at(2));
+
+      if (bits.size() > 3)
+        operation.offset[1] = lexicalCast<int>(bits.at(3));
+
+      return operation;
+
     } else {
       throw ImageOperationException(strf("Could not recognize ImageOperation type {}", type), false);
     }
@@ -568,6 +608,14 @@ String imageOperationToString(ImageOperation const& operation) {
       return "flipy";
     else if (op->mode == FlipImageOperation::FlipXY)
       return "flipxy";
+  } else if (auto op = operation.ptr<SetPixelImageOperation>()) {
+    return strf("setpixel={};{};{}", op->pixel[0], op->pixel[1], Color::rgba(op->colour).toHex());
+  } else if (auto op = operation.ptr<BlendPixelImageOperation>()) {
+    return strf("blendpixel={};{};{}", op->pixel[0], op->pixel[1], Color::rgba(op->colour).toHex());
+  } else if (auto op = operation.ptr<CopyIntoImageOperation>()) {
+    return strf("copyinto={};{};{}", op->image, op->offset[0], op->offset[1]);
+  } else if (auto op = operation.ptr<DrawIntoImageOperation>()) {
+    return strf("drawinto={};{};{}", op->image, op->offset[0], op->offset[1]);
   }
 
   return "";
@@ -836,6 +884,44 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
         }
       }
     }
+
+  } else if (auto op = operation.ptr<SetPixelImageOperation>()) {
+    auto& oldPixel = op->pixel;
+    auto pixel = oldPixel.piecewiseMin(image.size());
+
+    if (oldPixel != pixel) return;
+
+    image.set(pixel, op->colour);
+
+  } else if (auto op = operation.ptr<BlendPixelImageOperation>()) {
+    auto& oldPixel = op->pixel;
+    auto pixel = oldPixel.piecewiseMin(image.size());
+
+    if (oldPixel != pixel) return;
+
+    auto dest = image.get(pixel);
+    auto& src = op->colour;
+
+    Vec3U destMultiplied = Vec3U(dest[0], dest[1], dest[2]) * dest[3] / 255;
+    Vec3U srcMultiplied = Vec3U(src[0], src[1], src[2]) * src[3] / 255;
+
+    // Src over dest alpha composition
+    Vec3U over = srcMultiplied + destMultiplied * (255 - src[3]) / 255;
+    unsigned alpha = src[3] + dest[3] * (255 - src[3]) / 255;
+
+    image.set(pixel, Vec4B(over[0], over[1], over[2], alpha));
+
+  } else if (auto op = operation.ptr<CopyIntoImageOperation>()) {
+    if (!refCallback)
+      throw StarException("Missing image ref callback during CopyIntoImageOperation in ImageProcessor::process");
+
+    image.copyInto(op->offset, *refCallback(op->image));
+
+  } else if (auto op = operation.ptr<DrawIntoImageOperation>()) {
+    if (!refCallback)
+      throw StarException("Missing image ref callback during DrawIntoImageOperation in ImageProcessor::process");
+
+    image.drawInto(op->offset, *refCallback(op->image));
   }
 }
 

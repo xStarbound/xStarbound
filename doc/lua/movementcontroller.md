@@ -1,11 +1,13 @@
-# mcontroller
+# Base `mcontroller`
 
 The `mcontroller` table contains functions relating to the movement controller.
 
-This section of mcontroller documentation refers to the MovementController lua bindings. Other documentation may refer to ActorMovementController lua bindings. MovementController is used in:
+This section of mcontroller documentation refers to the base `MovementController` lua bindings. The base `MovementController` is used in scripts running on:
 
-* projectiles
-* vehicles
+- projectiles
+- vehicles
+
+See `actormovementcontroller.md` for documentation on the `mcontroller` table for `ActorMovementController`s (the ones used by projectiles and the like).
 
 ---
 
@@ -125,13 +127,13 @@ Returns the angle that the movement controller is currently stuck at, in radians
 
 #### `float` mcontroller.liquidPercentage()
 
-Returns the percentage of the collision poly currently submerged in liquid;
+Returns the percentage of the collision poly currently submerged in liquid, from `0.0` (no submersion at all) to `1.0` (total submersion).
 
 ---
 
 #### `LiquidId` mcontroller.liquidId()
 
-Returns the liquid ID of the liquid that the movement controller is currently submerged in. If this is several liquids this returns the most plentiful one.
+Returns the liquid ID of the liquid that the movement controller is currently submerged in. If this is several liquids this returns the most plentiful one. If multiple liquids share the 'most plentiful' status (by having equal levels), the liquid ID returned is the first in bottom-to-top, left-to-right precedence, in that order.
 
 ---
 

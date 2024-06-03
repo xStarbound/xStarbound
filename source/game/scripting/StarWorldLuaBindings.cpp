@@ -1252,7 +1252,7 @@ namespace LuaBindings {
   Maybe<LuaValue> ServerWorldCallbacks::callScriptContext(World* world, String const& contextName, String const& function, LuaVariadic<LuaValue> const& args) {
     auto context = as<WorldServer>(world)->scriptContext(contextName);
     if (!context)
-      throw StarException::format("Context {} does not exist", contextName);
+      throw StarException::format("Context '{}' does not exist", contextName);
     return context->invoke(function, args);
   }
 

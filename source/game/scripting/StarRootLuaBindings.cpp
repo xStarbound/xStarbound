@@ -10,6 +10,8 @@
 #include "StarTenantDatabase.hpp"
 #include "StarTechDatabase.hpp"
 #include "StarTreasure.hpp"
+#include "StarImage.hpp"
+#include "StarByteArray.hpp"
 #include "StarBehaviorDatabase.hpp"
 #include "StarNameGenerator.hpp"
 #include "StarNpc.hpp"
@@ -101,6 +103,46 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
       if (auto path = root->liquidsDatabase()->liquidPath(liquidId))
         return JsonObject{{"path", *path}, {"config", root->liquidsDatabase()->liquidConfig(liquidId).get()}};
       return {};
+    });
+
+  callbacks.registerCallback("image", [root](String const& imagePath) -> Maybe<Image> {
+      if (auto image = root->assets()->image(imagePath))
+        return *image;
+      return {};
+    });
+
+  callbacks.registerCallback("newImage", [root](Vec2U const& imageSize) -> Image {
+      return Image(imageSize);
+    });
+
+  callbacks.registerCallback("bytes", [root](String const& bytesPath) -> Maybe<ByteArray> {
+      if (auto bytes = root->assets()->bytes(bytesPath))
+        return *bytes;
+      return {};
+    });
+
+  callbacks.registerCallback("newBytes", [root]() -> ByteArray {
+      return ByteArray();
+    });
+
+  callbacks.registerCallback("exportImage", [root](Image const& image, String const& saveName) {
+      if (!File::isDirectory(root->toStoragePath("sprites"))) {
+        Logger::info("root.exportImage: Creating sprite export directory.");
+        File::makeDirectory(root->toStoragePath("sprites"));
+      }
+      if (File::baseName(saveName) == "") {
+        Logger::error("root.exportImage: Must specify a valid filename.");
+        return false;
+      }
+      try {
+        String outputPath = root->toStoragePath("sprites/" + File::baseName(saveName) + ".png");
+        image.writePng(File::open(outputPath, IOMode::Write));
+        Logger::info("root.exportImage: Saved output image to '{}'.", outputPath);
+        return true;
+      } catch (std::exception const& e) {
+        Logger::error("root.exportImage: Error saving asset path to image: {}", e.what());
+      }
+      return false;
     });
 
   callbacks.registerCallback("liquidName", [root](LiquidId liquidId) -> String {

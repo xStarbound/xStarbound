@@ -16,7 +16,7 @@ namespace LuaBindings {
     List<ConnectionId> clientIds(UniverseServer* universe);
     size_t numberOfClients(UniverseServer* universe);
     bool isConnectedClient(UniverseServer* universe, ConnectionId arg1);
-    String clientNick(UniverseServer* universe, ConnectionId arg1);
+    Maybe<String> clientNick(UniverseServer* universe, ConnectionId arg1);
     Maybe<ConnectionId> findNick(UniverseServer* universe, String const& arg1);
     void adminBroadcast(UniverseServer* universe, String const& arg1);
     void adminWhisper(UniverseServer* universe, ConnectionId arg1, String const& arg2);

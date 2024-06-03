@@ -251,6 +251,14 @@ Vec2U ImageMetadataDatabase::calculateImageSize(AssetPath const& path) const {
     }
 
     void operator()(FlipImageOperation const&) {}
+
+    void operator()(SetPixelImageOperation const&) {}
+
+    void operator()(BlendPixelImageOperation const&) {}
+
+    void operator()(CopyIntoImageOperation const&) {}
+
+    void operator()(DrawIntoImageOperation const&) {}
   };
 
   OperationSizeAdjust osa(imageSize);
