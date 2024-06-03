@@ -1,4 +1,5 @@
 #include "StarRootLuaBindings.hpp"
+#include "StarImageLuaBindings.hpp"
 #include "StarLuaGameConverters.hpp"
 #include "StarRoot.hpp"
 #include "StarStoredFunctions.hpp"
