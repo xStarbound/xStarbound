@@ -886,18 +886,18 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     }
 
   } else if (auto op = operation.ptr<SetPixelImageOperation>()) {
-    auto& oldPixel = op->pixel;
-    auto pixel = oldPixel.piecewiseMin(image.size());
+    auto& pixel = op->pixel;
+    auto size = image.size();
 
-    if (oldPixel != pixel) return;
+    if (pixel[0] >= size[0] || pixel[1] >= size[1]) return;
 
     image.set(pixel, op->colour);
 
   } else if (auto op = operation.ptr<BlendPixelImageOperation>()) {
-    auto& oldPixel = op->pixel;
-    auto pixel = oldPixel.piecewiseMin(image.size());
+    auto& pixel = op->pixel;
+    auto size = image.size();
 
-    if (oldPixel != pixel) return;
+    if (pixel[0] >= size[0] || pixel[1] >= size[1]) return;
 
     auto dest = image.get(pixel);
     auto& src = op->colour;
