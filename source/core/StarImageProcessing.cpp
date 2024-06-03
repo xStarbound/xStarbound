@@ -647,6 +647,10 @@ void addImageOperationReferences(ImageOperation const& operation, StringList& ou
     out.appendAll(op->maskImages);
   else if (auto op = operation.ptr<BlendImageOperation>())
     out.appendAll(op->blendImages);
+  else if (auto op = operation.ptr<CopyIntoImageOperation>())
+    out.append(op->image);
+  else if (auto op = operation.ptr<DrawIntoImageOperation>())
+    out.append(op->image);
 }
 
 StringList imageOperationReferences(List<ImageOperation> const& operations) {
