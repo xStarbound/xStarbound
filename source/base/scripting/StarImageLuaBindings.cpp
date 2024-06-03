@@ -27,10 +27,19 @@ LuaMethods<Image> LuaUserDataMethods<Image>::make() {
     image.set(x, y, color.toRgba());
     return image;
   });
+
+  methods.registerMethod("setHex", [](Image& image, unsigned x, unsigned y, String const& hex) {
+    image.set(x, y, Color::fromHex(hex).toRgba());
+    return image;
+  });
   /* } */
 
   methods.registerMethod("get", [](Image& image, unsigned x, unsigned y) {
     return Color::rgba(image.get(x, y));
+  });
+
+  methods.registerMethod("getHex", [](Image& image, unsigned x, unsigned y) {
+    return Color::rgba(image.get(x, y)).toHex();
   });
 
   methods.registerMethod("subImage", [](Image& image, Vec2U const& min, Vec2U const& size) {
