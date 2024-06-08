@@ -125,6 +125,7 @@ private:
   SkyType m_skyType = SkyType::Orbital;
 
   double m_time = 0.0;
+  bool m_usingOwnClock = false;
 
   ClockConstPtr m_referenceClock;
   Maybe<double> m_clockTrackingTime;

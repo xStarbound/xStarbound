@@ -116,7 +116,7 @@ void Sky::stateUpdate() {
 }
 
 void Sky::update(double dt) {
-  if (m_referenceClock) {
+  if (m_referenceClock && !m_usingOwnClock) {
     m_time = m_referenceClock->time();
     if (!m_clockTrackingTime) {
       m_clockTrackingTime = m_time;
@@ -243,7 +243,16 @@ double Sky::epochTime() const {
 }
 
 void Sky::setEpochTime(double epochTime) {
-  m_time = epochTime;
+  // FezzedOne: Fixed the inability to manually set some worlds' sky time in a server-side world or entity script.
+  // Note that `m_usingOwnClock` will be reset when the world is unloaded.
+  if (epochTime == std::numeric_limits<double>::infinity()) // `math.huge` in Lua. Disables the universe clock *without* setting time.
+    m_usingOwnClock = true;
+  else if (epochTime == -std::numeric_limits<double>::infinity()) // `-math.huge` in Lua. (Re-)enables the universe clock *without* setting time.
+    m_usingOwnClock = false;
+  else {
+    m_time = epochTime;
+    m_usingOwnClock = true;
+  }
 }
 
 float Sky::altitude() const {
