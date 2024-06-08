@@ -26,7 +26,20 @@ bool StatusEffectDatabase::isUniqueEffect(UniqueStatusEffect const& effect) cons
 UniqueStatusEffectConfig StatusEffectDatabase::uniqueEffectConfig(UniqueStatusEffect const& effect) const {
   if (auto uniqueEffect = m_uniqueEffects.maybe(effect))
     return uniqueEffect.take();
-  throw StatusEffectDatabaseException::format("No such unique stat effect '{}'", effect);
+  Logger::warn("StatusEffectDatabase: No such unique status effect '{}'", effect);
+  return UniqueStatusEffectConfig{
+    .name = "",
+    .blockingStat = {},
+    .effectConfig = JsonObject(),
+    .defaultDuration = 0.0f,
+    .scripts = {},
+    .scriptDelta = 1,
+    .animationConfig = {},
+    .label = "<invalid status effect>",
+    .description = "<invalid status effect>",
+    .icon = String("/interface/inventory/techdisabled.png"),
+  };
+  // throw StatusEffectDatabaseException::format("No such unique stat effect '{}'", effect);
 }
 
 UniqueStatusEffectConfig StatusEffectDatabase::parseUniqueEffect(Json const& config, String const& path) const {
