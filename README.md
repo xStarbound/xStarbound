@@ -52,7 +52,7 @@ Read this to see if xSB-2 is compatible with your mods.
 - [Time Control Command](https://steamcommunity.com/sharedfiles/filedetails/?id=3256623666) ([GitHub](https://github.com/bongus-jive/TimeControlCommand)) — fully supported by xSB-2.
 - [Universal Instant Crafting for All Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3251274439) — As of v2.5, fully supported by xSB-2.
 - [xAdvancedChat](https://github.com/FezzedOne/xAdvancedChat) — requires xSB-2 v2.3.7+. Supports most features of and is network-compatible with «upstream» [StarCustomChat](https://github.com/KrashV/StarCustomChat).
-- [xSIP](https://github.com/FezzedOne/xSIP) — this Spawnable Item Pack fork's «universal» mod support requires xSB-2 or OpenStarbound.
+- [xSIP](https://github.com/FezzedOne/xSIP) — this Spawnable Item Pack fork's universal mod support requires xSB-2 v2.5+ or OpenStarbound.
 - [xWEdit](https://github.com/FezzedOne/xWEdit) — this WEdit fork requires xSB-2 for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
 - Mods that change the size or number of bags in the inventory or hotbar — as of v2.4, xSB-2 gives these mods full compatibility with vanilla multiplayer and existing characters «out of the box».
 
