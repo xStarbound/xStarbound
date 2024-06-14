@@ -281,3 +281,34 @@ Sets whether the npc should be flagged as aggressive.
 #### `void` npc.setUniqueId(`String` uniqueId)
 
 Sets a unique ID for this npc that can be used to access it. A unique ID has to be unique for the world the npc is on, but not universally unique.
+
+--- 
+
+#### `void` npc.setIdentity(`Json` identity)
+
+Sets the NPC's humanoid identity. The new identity will be merged with the current one; as a special case, if the `"imagePath"` key (and *only* that key) has been explicitly set to a `nil` value, *and* either the table was created with `jobject` or its metatable's `"__nils"` table otherwise contains `"imagePath"` (e.g., the metatable is `{["__nils"] = {imagePath = 0}}`), the `"imagePath"` will be set to `null`. Will log an error and leave the species unchanged if the new identity includes a `"species"` that doesn't exist in the loaded assets.
+
+---
+
+#### `Json` npc.parameters()
+
+Returns the NPC's full parameters.
+
+---
+
+#### `void` npc.setOverrideState(`Maybe<String>` newState)
+
+Overrides the NPC's humanoid animation state. Available states are:
+
+- `"idle"`
+- `"jump"`
+- `"fall"`
+- `"sit"`
+- `"lay"`
+- `"duck"`
+- `"walk"`
+- `"run"`
+- `"swim"`
+- `"swimIdle"`
+
+Any other string will set the state to `"idle"`. If `nil` or no argument is passed, any existing override is cleared. Most tech parent state equivalences are obvious, but note that `"idle"` is equivalent to the tech parent state `"Stand"`, and `"jump"` is equivalent to the tech parent state `"Fly"`.

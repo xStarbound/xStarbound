@@ -1,4 +1,6 @@
-The physics table is available to objects and used to control any collisions or force regions configured on those objects.
+# `physics`
+
+The `physics` table is available to server-side object scripts. It's used to control any collisions or force regions configured on those objects.
 
 ---
 

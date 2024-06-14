@@ -1,4 +1,6 @@
-The objectAnimator table contains bindings available to client-side animation scripts for objects.
+# `objectAnimator`
+
+The `objectAnimator` table contains bindings available to client-side animation scripts for objects.
 
 ---
 
@@ -10,7 +12,7 @@ Returns the value for the specified object parameter. If there is no value set, 
 
 #### `int` objectAnimator.direction()
 
-Returns the object's facing direction. This will be 1 for right or -1 for left.
+Returns the object's facing direction. This will be `1` for right or `-1` for left.
 
 ---
 

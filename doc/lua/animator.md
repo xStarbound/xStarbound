@@ -8,7 +8,7 @@ The `animator` table contains functions that relate to an attached networked ani
 - status effects
 - active items
 
-As such, the `animator` table is available in scripts running in those contexts.
+As such, the `animator` table is available in scripts running in those contexts. Additionally, any script that has access to the `player` also has access to the `playerAnimator` table, which contains all the `animator` callbacks below but applies to the player effect animator specified under `"primaryAnimationConfig"` in `$assets/player.config`.
 
 ---
 

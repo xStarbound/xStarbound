@@ -1,4 +1,8 @@
-The object table contains bindings specific to objects which are available in addition to their common tables.
+# `object`
+
+The `object` table contains bindings specific to objects which are available in server-side object scripts.
+
+**Note:** Wiring node indexes start at `0`, not `1`.
 
 ---
 
@@ -10,13 +14,13 @@ Returns the object's type name.
 
 #### `int` object.direction()
 
-Returns the object's facing direction. This will be 1 for right or -1 for left.
+Returns the object's facing direction. This will be `1` for right or `-1` for left.
 
 ---
 
 #### `Vec2F` object.position()
 
-Returns the object's tile position. This is identical to entity.position(), so use that instead.
+Returns the object's tile position. Identical to `entity.position()`.
 
 ---
 
@@ -28,13 +32,15 @@ Sets whether the object is currently interactive.
 
 #### `String` object.uniqueId()
 
-Returns the object's unique entity id, or `nil` if no unique id is set. This should be identical to entity.uniqueId(), so use that instead.
+Returns the object's unique entity ID, or `nil` if no unique ID is set. Identical to `entity.uniqueId()`.
 
 ---
 
 #### `void` object.setUniqueId([`String` uniqueId])
 
-Sets the objects unique entity id, or clears it if unspecified.
+Sets the object's unique entity ID, or clears it if unspecified.
+
+**Note:** A world error will be thrown, causing the world to immediately shut down, if the specified unique ID is already used by any other object in the world. If done on `init`, the offending object will not be there when the world is loaded again.
 
 ---
 
@@ -70,7 +76,7 @@ Breaks the object. If smash is `true` then it will be smashed, causing it to (by
 
 #### `float` object.level()
 
-Returns the "level" parameter if set, otherwise returns the current world's threat level.
+Returns the `"level"` parameter if set, otherwise returns the current world's threat level.
 
 ---
 
@@ -124,55 +130,55 @@ Returns the number of wire output nodes the object has.
 
 #### `Vec2I` object.getInputNodePosition(`unsigned` nodeIndex)
 
-Returns the relative position of the specified wire input node.
+Returns the relative position of the specified wire input node. Will throw an error if an invalid (out-of-range) node is specified.
 
 ---
 
 #### `Vec2I` object.getOutputNodePosition(`unsigned` nodeIndex)
 
-Returns the relative position of the specified wire output node.
+Returns the relative position of the specified wire output node. Will throw an error if an invalid (out-of-range) node is specified.
 
 ---
 
 #### `bool` object.getInputNodeLevel(`unsigned` nodeIndex)
 
-Returns the current level of the specified wire input node.
+Returns the current level of the specified wire input node. Will throw an error if an invalid (out-of-range) node is specified.
 
 ---
 
 #### `bool` object.getOutputNodeLevel(`unsigned` nodeIndex)
 
-Returns the current level of the specified wire output node.
+Returns the current level of the specified wire output node. Will throw an error if an invalid (out-of-range) node is specified.
 
 ---
 
 #### `bool` object.isInputNodeConnected(`unsigned` nodeIndex)
 
-Returns `true` if any wires are currently connected to the specified wire input node and `false` otherwise.
+Returns `true` if any wires are currently connected to the specified wire input node and `false` otherwise. Will throw an error if an invalid (out-of-range) node is specified.
 
 ---
 
 #### `bool` object.isOutputNodeConnected(`unsigned` nodeIndex)
 
-Returns `true` if any wires are currently connected to the specified wire output node and `false` otherwise
+Returns `true` if any wires are currently connected to the specified wire output node and `false` otherwise. Will throw an error if an invalid (out-of-range) node is specified.
 
 ---
 
 #### `Map<EntityId, unsigned>` object.getInputNodeIds(`unsigned` nodeIndex)
 
-Returns a map of the entity id of each wire entity connected to the given wire input node and the index of that entity's output node to which the input node is connected.
+Returns a map of the entity ID of each wire entity connected to the given wire input node and the index of that entity's output node to which the input node is connected. Will return any connections to invalid output nodes.
 
 ---
 
 #### `Map<EntityId, unsigned>` object.getOutputNodeIds(`unsigned` nodeIndex)
 
-Returns a map of the entity id of each wire entity connected to the given wire output node and the index of that entity's input node to which the output node is connected.
+Returns a map of the entity ID of each wire entity connected to the given wire output node and the index of that entity's input node to which the output node is connected. Will return any connections to invalid input nodes.
 
 ---
 
 #### `void` object.setOutputNodeLevel(`unsigned` nodeIndex, `bool` level)
 
-Sets the level of the specified wire output node.
+Sets the level of the specified wire output node. Will throw an error if an invalid (out-of-range) node is specified.
 
 ---
 
@@ -196,7 +202,7 @@ Sets the list of quests that the object will accept turn-in for, or clears them 
 
 #### `void` object.setConfigParameter(`String` key, `Json` value)
 
-Sets the specified override configuration parameter for the object.
+Sets the specified overridden configuration parameter for the object.
 
 ---
 
@@ -208,11 +214,13 @@ Sets the specified animation parameter for the object's scripted animator.
 
 #### `void` object.setMaterialSpaces([`JsonArray` spaces])
 
-Sets the object's material spaces to the specified list, or clears them if unspecified. List entries should be in the form of `pair<Vec2I, String>` specifying the relative position and material name of materials to be set. __Objects should only set material spaces within their occupied tile spaces to prevent Bad Things TM from happening.__
+Sets the object's material spaces to the specified list, or clears them if unspecified. List entries should be in the form of `pair<Vec2I, String>` specifying the relative position and material name of materials to be set. 
+
+**Warning:** Objects should only set material spaces within their occupied tile spaces to prevent Bad Things™ from happening.
 
 ---
 
-#### `void` object.setDamageSources([`List<DamageSource>` damageSources])
+#### `void` object.setDamageSources([`Maybe<List<DamageSource>>` damageSources])
 
 Sets the object's active damage sources (or clears them if unspecified).
 

@@ -1,4 +1,6 @@
-The monster table contains bindings specific to monsters which are available in addition to their common tables.
+# `monster`
+
+The `monster` table contains bindings specific to monsters which are available in monster scripts.
 
 ---
 
@@ -133,13 +135,13 @@ Sets whether the monster should display its nametag.
 
 #### `bool` monster.say(`String` line, [`Map<String, String>` tags])
 
-Causes the monster to say the line, optionally replacing any specified tags in the text. Returns `true` if anything is said (i.e. the line is not empty) and `false` otherwise.
+Causes the monster to say the line (rendering a chat bubble), optionally replacing any specified tags in the text. Returns `true` if anything is said (i.e. the line is not empty) and `false` otherwise.
 
 ---
 
 #### `bool` monster.sayPortrait(`String` line, `String` portrait, [`Map<String, String>` tags])
 
-Similar to monster.say, but uses a portrait chat bubble with the specified portrait image.
+Similar to `monster.say`, but uses a portrait chat bubble with the specified portrait image.
 
 ---
 

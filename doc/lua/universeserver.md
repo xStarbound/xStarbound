@@ -63,7 +63,7 @@ Returns a list of loaded worlds on the server.
 
 #### `RpcThreadPromise<Json>` universe.sendWorldMessage(`WorldId` worldId, `String` message, `Json...` args)
 
-Sends a message to a world's global script context. The world's global script must have a message handler to handle the message, exactly as for `world.sendEntityMessage`. See `message.md` for info on message handlers.
+Sends a message to a world's global script context. The world's global script(s) must have a message handler to handle the message, exactly as for `world.sendEntityMessage`. See `message.md` for info on message handlers.
 
 #### `WorldId` universe.clientWorld(`ClientId` clientId)
 
