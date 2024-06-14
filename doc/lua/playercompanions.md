@@ -1,4 +1,6 @@
-The playerCompanions table contains bindings used to manage player companions such as pets and crew members.
+# `playerCompanions`
+
+The `playerCompanions` table contains bindings used to manage player companions such as pets and crew members. Available in player companion scripts.
 
 ---
 

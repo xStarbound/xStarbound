@@ -1,4 +1,4 @@
-# quest
+# `quest`
 
 The `quest` table contains functions relating directly to the quest whose script its run in.
 

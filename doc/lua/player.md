@@ -731,13 +731,13 @@ Adds a set of effect emitters to the player this tick. The argument is an array 
 
 #### `void` player.dropEverything()
 
-Forces the player to drop all items in his or her inventory. Don't know why anyone would ever want to use this though.
+Forces the player to drop all inventory items. Don't know why anyone would ever want to use this though.
 
 ---
 
-#### `String` player.currentEmote()
+#### `Emote` player.currentEmote()
 
-Returns the player's current emote state. Valid emote states are:
+Returns the player's current emote state. Valid `Emote` values are:
 
 - `"Idle"` - No ongoing emote.
 - `"Blabbering"` - Talking.
@@ -756,9 +756,9 @@ Returns the player's current emote state. Valid emote states are:
 
 ---
 
-#### `void` player.emote(`String` emote, `Maybe<float>` cooldown, `Maybe<bool>` gentleRequest)
+#### `void` player.emote(`Emote` emote, `Maybe<float>` cooldown, `Maybe<bool>` gentleRequest)
 
-Makes the player show the requested emote. If a cooldown is specified, this overrides the default emote cooldown specified under `"emoteCooldown"` in `$assets/player.config`. Any unrecognised emote is assumed `"Idle"`. If `gentleRequest` is `true`, ongoing emotes that aren't `"Idle"` or `"Blink"` aren't "clobbered". Note that emote names are case-sensitive!
+Makes the player show the requested emote. See above for valid `Emote` values. If a cooldown is specified, this overrides the default emote cooldown specified under `"emoteCooldown"` in `$assets/player.config`. Any unrecognised emote is assumed `"Idle"`. If `gentleRequest` is `true`, ongoing emotes that aren't `"Idle"` or `"Blink"` aren't "clobbered". Note that emote names are case-sensitive!
 
 ---
 
@@ -788,7 +788,7 @@ Sets whether all physics entities and force regions are ignored by the player. I
 
 #### `void` player.setNudityIgnored(`bool` ignored)
 
-Sets whether nudity caused by lounging, status effects, etc., is ignored. If `true`, the player always remains modest (unless he or she explicitly undresses). This setting is saved in the player file under `"xSbProperties"` as `"ignoreNudity"`.
+Sets whether nudity caused by lounging, status effects, etc., is ignored. If `true`, the player always remains modest (unless the player explicitly undresses). This setting is saved in the player file under `"xSbProperties"` as `"ignoreNudity"`.
 
 ---
 
@@ -1010,7 +1010,7 @@ Sets whether the player can use held items. Identical to `tech.setToolUsageSuppr
 
 #### `Json` player.teamMembers()
 
-Returns a list of all team members in the player's current team, including the player him- or herself. If the player is not currently in any team, returns `jarray{}`. The list has the following format:
+Returns a list of all team members in the player's current team, *including* the current player. If the player is not currently in any team, returns `jarray{}`. The list has the following format:
 
 ```lua
 local teamMembers = jarray{

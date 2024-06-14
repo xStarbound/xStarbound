@@ -1,4 +1,6 @@
-The `root` table contains functions that reference the game's currently loaded assets and don't relate to any more specific context such as a particular world or universe.
+# `root`
+
+The `root` table contains functions that reference the game's currently loaded assets and don't relate to any more specific context such as a particular world or universe. Available in all script contexts, except patch and preprocessor scripts (since the assets aren't fully loaded yet).
 
 ---
 

@@ -1,4 +1,6 @@
-The projectile table contains bindings specific to projectiles which are available in addition to their common tables.
+# `projectile`
+
+The projectile table contains bindings specific to projectiles. Available in projectile scripts.
 
 ---
 
@@ -16,7 +18,7 @@ Destroys the projectile.
 
 #### `EntityId` projectile.sourceEntity()
 
-Returns the entity id of the projectile's source entity, or `nil` if no source entity is set.
+Returns the entity ID of the projectile's source entity, or `nil` if no source entity is set.
 
 ---
 
@@ -58,10 +60,10 @@ Returns `true` if the projectile has collided and `false` otherwise.
 
 #### `void` projectile.processAction(`Json` action)
 
-Immediately performs the specified action. Action should be specified in a format identical to a single entry in e.g. actionOnReap in the projectile's configuration. This function will not properly perform rendering actions as they will not be networked.
+Immediately performs the specified action. Action should be specified in a format identical to a single entry in, e.g., `"actionOnReap"` in the projectile's configuration. This function will not properly perform rendering actions as they will not be networked.
 
 ---
 
 #### 'void' projectile.setReferenceVelocity(Maybe<`Vec2F`> velocity)
 
-Sets the projectile's reference velocity (a base velocity to which movement is relative)
+Sets the projectile's reference velocity (a base velocity to which movement is relative).
