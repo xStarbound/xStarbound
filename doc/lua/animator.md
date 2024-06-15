@@ -8,7 +8,7 @@ The `animator` table contains functions that relate to an attached networked ani
 - status effects
 - active items
 
-As such, the `animator` table is available in scripts running in those contexts. Additionally, any script that has access to the `player` also has access to the `playerAnimator` table, which contains all the `animator` callbacks below but applies to the player effect animator specified under `"primaryAnimationConfig"` in `$assets/player.config`.
+As such, the `animator` table is available in scripts running in those contexts. Additionally, any script that has access to the `player` table also has access to the `playerAnimator` table, which contains all the `animator` callbacks below but applies to the player effect animation whose config is specified under `"primaryAnimationConfig"` in `$assets/player.config`.
 
 ---
 
@@ -32,13 +32,13 @@ Returns the value of the specified property for a state type.
 
 #### `void` animator.setGlobalTag(`String` tagName, `String` tagValue)
 
-Sets a global animator tag. A global tag replaces any tag `<tagName>` with the specified tagValue across all animation parts.
+Sets a global animator tag. A global tag replaces any tag `<tagName>` with the specified `tagValue` across all image paths in animation parts. See `root.md` for more information on animator tags.
 
 ---
 
 #### `void` animator.setPartTag(`String` partType, `String` tagName, `String` tagValue)
 
-Sets a local animator tag. A part tag replaces any tag `<tagName>` with the specified tagValue in the partType animation part only.
+Sets a local animator tag. A part tag replaces any tag `<tagName>` with the specified `tagValue` in image paths within the animation part specified in `partType` only. See `root.md` for more information on animator tags.
 
 ---
 
