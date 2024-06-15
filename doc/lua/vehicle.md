@@ -1,4 +1,6 @@
-The vehicle table contains bindings specific to vehicles which are available in addition to their common tables.
+# `vehicle`
+
+The `vehicle` table contains bindings specific to vehicles which are available only in vehicle scripts.
 
 ---
 
@@ -16,7 +18,7 @@ Returns the world aim position for the specified lounge position.
 
 #### `EntityId` vehicle.entityLoungingIn(`String` loungeName)
 
-Returns the entity id of the entity currently occupying the specified lounge position, or `nil` if the lounge position is unoccupied.
+Returns the entity ID of the entity currently occupying the specified lounge position, or `nil` if the lounge position is unoccupied.
 
 ---
 
@@ -28,7 +30,7 @@ Enables or disables the specified lounge position.
 
 #### `void` vehicle.setLoungeOrientation(`String` loungeName, `String` orientation)
 
-Sets the lounge orientation for the specified lounge position. Valid orientations are "sit", "stand" or "lay".
+Sets the lounge orientation for the specified lounge position. Valid orientations are `"sit"`, `"stand"` or `"lay"`.
 
 ---
 
@@ -52,7 +54,7 @@ Sets the list of status effects to be applied to entities occupying the specifie
 
 #### `void` vehicle.setPersistent(`bool` persistent)
 
-Sets whether the vehicle is persistent, i.e. whether it will be stored when the world is unloaded and reloaded.
+Sets whether the vehicle is persistent, i.e., whether it will be stored when the world is unloaded and reloaded.
 
 ---
 

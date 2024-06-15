@@ -180,7 +180,7 @@ Returns a random `bool` value.
 
 #### `PerlinSource` sb.makePerlinSource(`Json` config)
 
-Creates and returns a Lua UserData value which can be used as a Perlin noise source. The configuration for the `PerlinSource` should be a JSON object (consider using `jobject`) and can include the following keys:
+Creates and returns a `PerlinNoise` userdata object which can be used as a Perlin noise source. The configuration for the `PerlinSource` should be a JSON object (consider using `jobject`) and can include the following keys:
 
 - `uint64_t` __seed__ - Seed value used to initialize the source.
 - `String` __type__ - Type of noise to use. Valid types are `"perlin"`, `"billow"` or `"ridgedMulti"`.
