@@ -333,6 +333,8 @@ Sets the progress overlay on the item slot to the specified value (between 0 and
 
 Binds the canvas widget with the specified name as a `CanvasWidget` userdata object for easy access. The `CanvasWidget` has the following methods:
 
+----
+
 ##### `Vec2I` `CanvasWidget`:size()
 
 Returns the size of the canvas.
