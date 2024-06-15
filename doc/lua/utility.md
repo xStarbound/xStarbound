@@ -182,16 +182,16 @@ Returns a random `bool` value.
 
 Creates and returns a Lua UserData value which can be used as a Perlin noise source. The configuration for the `PerlinSource` should be a JSON object (consider using `jobject`) and can include the following keys:
 
-- `unsigned` __seed__ - Seed value used to initialize the source.
-- `String` __type__ - Type of noise to use. Valid types are "perlin", "billow" or "ridgedMulti".
+- `uint64_t` __seed__ - Seed value used to initialize the source.
+- `String` __type__ - Type of noise to use. Valid types are `"perlin"`, `"billow"` or `"ridgedMulti"`.
 - `int` __octaves__ - Number of octaves of noise to use. Defaults to 1.
-- `double` __frequency__ - Defaults to 1.0.
-- `double` __amplitude__ - Defaults to 1.0.
-- `double` __bias__ - Defaults to 0.0.
-- `double` __alpha__ - Defaults to 2.0.
-- `double` __beta__ - Defaults to 2.0.
-- `double` __offset__ - Defaults to 1.0.
-- `double` __gain__ - Defaults to 2.0.
+- `double` __frequency__ - Defaults to `1.0`.
+- `double` __amplitude__ - Defaults to `1.0`.
+- `double` __bias__ - Defaults to `0.0`.
+- `double` __alpha__ - Defaults to `2.0`.
+- `double` __beta__ - Defaults to `2.0`.
+- `double` __offset__ - Defaults to `1.0`.
+- `double` __gain__ - Defaults to `2.0`.
 
 The `PerlinSource` has only one method:
 
