@@ -9,6 +9,8 @@ Example:
 widget.getPosition("itemScrollArea.itemList.1.name")
 ```
 
+**Note:** All pixel sizes are in *interface* pixels, so there is rarely any need to account for changes to interface scale.
+
 ## General callbacks
 
 These callbacks are available for all widgets.
