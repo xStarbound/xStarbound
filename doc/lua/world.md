@@ -1,6 +1,8 @@
 # `world`
 
-The `world` table contains functions that perform actions within a specified such as querying or modifying entities, tiles, etc. in that world. It's available in the following script contexts:
+The `world` table contains bindings that perform actions within a specified world, such as querying or modifying entities, tiles, etc. in that world.
+
+The `world` table is available in the following script contexts:
 
 - world context scripts (server-side)
 - pane scripts (client-side)
@@ -15,6 +17,7 @@ The `world` table contains functions that perform actions within a specified suc
 - tech scripts (client-side)
 - status controller and effect scripts (client-side for client-mastered entities, server-side for server-mastered entities)
 - vehicle scripts (client-side for client-mastered entities, server-side for server-mastered entities)
+- projectile scripts (client-side for client-mastered projectiles, server-side for server-mastered projectiles)
 - active and fireable item scripts (client-side for items used by client-mastered entities, server-side for items used by server-mastered entities)
 - active item animation scripts (client-side)
 - behaviour scripts (client-side if running on client-mastered entities, server-side if running on server-mastered entities)

@@ -1,6 +1,6 @@
 # `player`
 
-The player table contains functions with privileged access to the player. This table is available in all script contexts which run on a client-mastered player; as such, a modder may check for the existence of this table in scripts running on active items, status effects, etc., to determine whether the entity that is wielding the item, is affected by the status effect, etc., is a player.
+The `player` table contains functions with privileged access to the player. This table is available in all script contexts which run on a client-mastered player (with the current exception of scripted items that aren't active items); as such, a modder may check for the existence of this table in scripts running on active items, status effects, etc., to determine whether the entity that is wielding the item, is affected by the status effect, etc., is a player.
 
 ---
 
