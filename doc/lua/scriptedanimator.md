@@ -1,4 +1,4 @@
-# animationConfig
+# `animationConfig`
 
 The `animationConfig` table contains functions for getting configuration options from the base entity and its networked animator.
 

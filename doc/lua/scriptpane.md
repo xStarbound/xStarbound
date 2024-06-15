@@ -1,4 +1,6 @@
-These pane bindings are available to scripted interface panes and include functions not specifically related to widgets within the pane.
+# `pane` in non-container panes
+
+These `pane` bindings are available to scripted interface panes and include functions not specifically related to widgets within the pane.
 
 ---
 
@@ -28,13 +30,37 @@ Stops all instances of the given sound asset, and returns `true` if any sounds w
 
 #### `void` pane.setTitle(`String` title, `String` subtitle)
 
-Sets the window title and subtitle.
+Sets the pane window's title and subtitle.
 
 ---
 
 #### `void` pane.setTitleIcon(`String` image)
 
-Sets the window icon.
+Sets the pane window's icon.
+
+---
+
+#### `Vec2I` pane.getPosition()
+
+Gets the pane window's position relative to the upper left corner of the window, in scaled interface pixels. The position is that of the pane's upper left corner.
+
+---
+
+#### `void` pane.setPosition(`Vec2I` newPosition)
+
+Sets the pane window's position relative to the upper left corner of the window, in scaled interface pixels. The position is that of the pane's upper left corner.
+
+---
+
+#### `Vec2I` pane.getSize()
+
+Returns the pane window's size in scaled interface pixels.
+
+---
+
+#### `void` pane.setSize(`Vec2I` newSize)
+
+Sets the pane window's size in scaled interface pixels.
 
 ---
 
