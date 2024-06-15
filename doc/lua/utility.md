@@ -184,7 +184,7 @@ Creates and returns a Lua UserData value which can be used as a Perlin noise sou
 
 - `uint64_t` __seed__ - Seed value used to initialize the source.
 - `String` __type__ - Type of noise to use. Valid types are `"perlin"`, `"billow"` or `"ridgedMulti"`.
-- `int` __octaves__ - Number of octaves of noise to use. Defaults to 1.
+- `int64_t` __octaves__ - Number of octaves of noise to use. Defaults to `1`.
 - `double` __frequency__ - Defaults to `1.0`.
 - `double` __amplitude__ - Defaults to `1.0`.
 - `double` __bias__ - Defaults to `0.0`.
