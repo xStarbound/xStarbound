@@ -3,7 +3,7 @@
 These callbacks are available in the following script contexts:
 
 - universe server scripts
-- world server scripts
+- world context scripts
 
 **Note:** A `ClientId` is an unsigned integer.
 

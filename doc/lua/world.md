@@ -1,22 +1,47 @@
-The `world` table contains functions that perform actions within a specified such as querying or modifying entities, tiles, etc. in that world.
+# `world`
+
+The `world` table contains functions that perform actions within a specified such as querying or modifying entities, tiles, etc. in that world. It's available in the following script contexts:
+
+- world context scripts (server-side)
+- pane scripts (client-side)
+- container interface scripts (client-side)
+- monster, NPC and object scripts (client-side for client-mastered entities, server-side for server-mastered entities)
+- monster and object animation scripts (client-side)
+- stagehand scripts (server-side)
+- generic player scripts (client-side)
+- player companion scripts (client-side)
+- player deployment scripts (client-side)
+- quest scripts (client-side)
+- tech scripts (client-side)
+- status controller and effect scripts (client-side for client-mastered entities, server-side for server-mastered entities)
+- vehicle scripts (client-side for client-mastered entities, server-side for server-mastered entities)
+- active and fireable item scripts (client-side for items used by client-mastered entities, server-side for items used by server-mastered entities)
+- active item animation scripts (client-side)
+- behaviour scripts (client-side if running on client-mastered entities, server-side if running on server-mastered entities)
+
+The client-sided `world` callbacks are only available to client-sided scripts, while the server-sided callbacks are only available to server-sided scripts.
+
+## Generic bindings
+
+The following `world` bindings are available in both client- and server-side scripts.
 
 ---
 
 #### `String` world.type()
 
-Returns a string describing the world's type. For terrestrial worlds this will be the primary biome, for instance worlds this will be the instance name, and for ship or generic worlds this will be 'unknown'.
+Returns a string describing the world's type. For terrestrial worlds this will be the primary biome, for instance worlds this will be the instance name, and for ship or generic worlds this will be `"unknown"`.
 
 ---
 
 #### `bool` world.terrestrial()
 
-Returns a `true` if the current world is a terrestrial world, i.e. a planet, and `false` otherwise.
+Returns a `true` if the current world is a terrestrial world, i.e., a planet, or `false` otherwise.
 
 ---
 
 #### `Vec2I` world.size()
 
-Returns a vector describing the size of the current world.
+Returns a vector describing the size of the current world in world tiles.
 
 ---
 
@@ -80,7 +105,7 @@ Returns `true` if the line between the specified points overlaps any tiles of th
 
 #### `Maybe<pair<Vec2F, Vec2F>>` world.lineTileCollisionPoint(`Vec2F` startPoint, `Vec2F` endPoint, [`CollisionSet` collisionKinds])
 
-Returns a table of {`position`, `normal`} where `position` is the position that the line intersects the first collidable tile, and `normal` is the collision normal. Returns `nil` if no tile is intersected.
+Returns a table of `{position, normal}` where `position` is the position that the line intersects the first collidable tile, and `normal` is the collision normal. Returns `nil` if no tile is intersected.
 
 ---
 
@@ -122,7 +147,7 @@ Attempts to move the specified poly (relative to the specified position) such th
 
 #### `bool` world.tileIsOccupied(`Vec2I` tilePosition, [`bool` foregroundLayer], [`bool` includeEphemeral])
 
-Returns `true` if the specified tile position is occupied by a material or tile entity and `false` if it is empty. The check will be performed on the foreground tile layer if foregroundLayer is `true` (or unspecified) and the background tile layer if it is `false`. The check will include ephemeral tile entities such as preview objects if includeEphemeral is `true`, and will not include these entities if it is `false` (or unspecified).
+Returns `true` if the specified tile position is occupied by a material or tile entity and `false` if it is empty. The check will be performed on the foreground tile layer if `foregroundLayer` is `true` (or unspecified) or the background tile layer if it is `false`. The check will include ephemeral tile entities such as preview objects if includeEphemeral is `true`, and will not include these entities if it is `false` (or unspecified).
 
 ---
 
@@ -164,7 +189,7 @@ Attempts to spawn a stagehand of the specified type at the specified position wi
 
 #### `EntityId` world.spawnProjectile(`String` projectileName, `Vec2F` position, [`EntityId` sourceEntityId], [`Vec2F` direction], [`bool` trackSourceEntity], [`Json` parameters])
 
-Attempts to spawn a projectile of the specified type at the specified position with the specified source entity id, direction, and parameters. If trackSourceEntity is `true` then the projectile's position will be locked relative to its source entity's position. Returns the `EntityId` of the spawned projectile if successful and `nil` otherwise.
+Attempts to spawn a projectile of the specified type at the specified position with the specified source entity ID, direction, and parameters. If trackSourceEntity is `true` then the projectile's position will be locked relative to its source entity's position. Returns the `EntityId` of the spawned projectile if successful and `nil` otherwise.
 
 ---
 
@@ -304,6 +329,10 @@ Returns `true` if the specified position is below the world's surface level and 
 
 Returns `true` if the world is terrestrial and the specified position is within its surface layer, and `false` otherwise.
 
+> **Technical note:** A segfault that happens on stock Starbound when this callback is invoked with a negative Y position value has been fixed in xSB-2.
+
+---
+
 #### `float` world.surfaceLevel()
 
 Returns the surface layer base height.
@@ -312,7 +341,7 @@ Returns the surface layer base height.
 
 #### `int` world.oceanLevel(`Vec2I` position)
 
-If the specified position is within a region that has ocean (endless) liquid, returns the world Y level of that ocean's surface, or 0 if there is no ocean in the specified region.
+If the specified position is within a region that has ocean (endless) liquid, returns the world Y level of that ocean's surface, or `0` if there is no ocean in the specified region.
 
 ---
 
@@ -342,25 +371,27 @@ Returns the hue shift of the mod at the specified position and layer.
 
 #### `unsigned` world.materialColor(`Vec2F` position, `String` layerName)
 
-Returns the color variant (painted color) of the material at the specified position and layer.
+Returns the colour variant (i.e., painted colour) of the material at the specified position and layer.
 
 ---
 
 #### `void` world.setMaterialColor(`Vec2F` position, `String` layerName, `unsigned` color)
 
-Sets the color variant of the material at the specified position and layer to the specified color.
+Sets the colour variant of the material at the specified position and layer to the specified colour.
 
 ---
 
 #### `bool` world.damageTiles(`List<Vec2I>` positions, `String` layerName, `Vec2F` sourcePosition, `String` damageType, `float` damageAmount, [`unsigned` harvestLevel], [`EntityId` sourceEntity])
 
-Damages all tiles in the specified layer and positions by the specified amount. The source position of the damage determines the initial direction of the damage particles. Damage types are: "plantish", "blockish", "beamish", "explosive", "fire", "tilling". Harvest level determines whether destroyed materials or mods will drop as items. Returns `true` if any damage was done and `false` otherwise.
+Damages all tiles in the specified layer and positions by the specified amount. The source position of the damage determines the initial direction of the damage particles. Damage types are: `"plantish"`, `"blockish"`, `"beamish"`, `"explosive"`, `"fire"`, `"tilling"`. Harvest level determines whether destroyed materials or mods will drop as items. Returns `true` if any damage was done and `false` otherwise.
+
+> **Technical note:** Tiles with a configured `"health"` value of infinity (`math.huge` in Lua) can only be destroyed with an infinite amount of damage (again, `math.huge` in Lua). The only way to set such a `"health"` value is with a Lua patch script (*not* a preprocessor script!), as this is the only way to set any value *after* text parsing, which considers any `inf` or `Infinity` values invalid (as per the JSON standard).
 
 ---
 
-#### `bool` world.damageTileArea(`Vec2F` center, `float` radius, `String` layerName, `Vec2F` sourcePosition, `String` damageType, `float` damageAmount, [`unsigned` harvestLevel, [`EntityId` sourceEntity)
+#### `bool` world.damageTileArea(`Vec2F` center, `float` radius, `String` layerName, `Vec2F` sourcePosition, `String` damageType, `float` damageAmount, [`unsigned` harvestLevel], [`EntityId` sourceEntity])
 
-Identical to world.damageTiles but applies to tiles in a circular radius around the specified center point.
+Identical to `world.damageTiles`, but applies to tiles in a circular radius around the specified center point.
 
 ---
 
@@ -372,21 +403,21 @@ Returns a list of existing tiles within `radius` of the given position, on the s
 
 #### `bool` world.placeMaterial(`Vec2I` position, `String` layerName, `String` materialName, [`int` hueShift], [`bool` allowOverlap], [`bool` allowDisconnected])
 
-Attempts to place the specified material in the specified position and layer. If allowOverlap is `true`, the material can be placed in a space occupied by mobile entities, otherwise such placement attempts will fail. If allowDisconnected is `true`, the material does not need to be connected to any other tiles to be placed. Returns `true` if the placement succeeds and `false` otherwise.
+Attempts to place the specified material in the specified position and layer. If `allowOverlap` is `true`, the material can be placed in a space occupied by mobile entities, otherwise such placement attempts will fail. If `allowDisconnected` is `true`, the material does not need to be connected to any other tiles to be placed. Returns `true` if the placement succeeds and `false` otherwise.
 
-> **xSB note on allowDisconnected:** The use of allowDisconnected to ignore the requirement for newly placed tiles to be connected to existing tiles currently requires *both* xClient *and* xServer (although this may change), or only xClient if you're in single-player.
+> **Note on `allowDisconnected`:** The client-side use of `allowDisconnected` to ignore the requirement for newly placed tiles to be connected to existing tiles currently requires *both* xClient *and* xServer (although this may change), or only xClient if you're in single-player. Server-side use of `allowDisconnected` only requires xServer.
 
-> **OpenStarbound/xSB note on layerName:** The layerName may optionally include any one of the following collision modifiers (e.g. `"foreground+none"`, `"background+block"`):
+> **Note on `layerName`:** The `layerName` may optionally include any one of the following collision modifiers (e.g. `"foreground+none"`, `"background+block"`):
 >
 > - `+none`: The tile is placed with no collision. Entities can move through the tile regardless of whether collision is active in their movement controllers, and objects can be placed in front of or behind the tile, depending on its layer. However, entities with active collision cannot stand on the tile, nor can objects be anchored to it.
 > - `+platform`: The tile is placed with platform collision. Entities can move through the tile regardless of whether collision is active in their movement controllers, but objects cannot be placed in front of or behind the tile. Entities with active collision can stand on the tile and objects can be anchored to it, provided there is enough space around the tile.
 > - `+block`: The tile is placed with block collision. Entities cannot move through the tile unless collision is disabled in their movement controllers, nor can objects be placed in front or behind the tile. Entities with active collision can stand on the tile and objects can be anchored to it, provided there is enough space around the tile.
 >
-> Collision modifiers affect only foreground tiles; background tiles always have no collision. To see what kind of tile collision a given foreground tile has, use `/boxes` and `/debug`.
+> Collision modifiers affect only foreground tiles; background tiles always have no collision. To see what kind of tile collision a given foreground tile has, enable `/debug` and `/boxes`. If no collision modifier is specified, the default configured collision for the material type is used when placing foreground tiles; this is normally platform collision for platforms and block collision for other tiles.
 >
-> Collision modifiers are currently supported on OpenStarbound and xServer servers. Note that legacy StarExtensions / pre-v2.0.0 xSB collision modifiers are *not* network-compatible with OpenStarbound servers or xServer v2.0.0+ (ordinary foreground or background tiles will be placed instead), although already placed "legacy collision" will still work on such servers.
+> Collision modifiers are currently supported on xServer and OpenStarbound servers. StarExtensions collision modifiers are network-compatible with xServer v2.0.0+ (and OpenStarbound) servers, although StarExtensions provides no modified `world.placeMaterial` callback for this.
 
-Note that you will need xWEdit x2.0.0+ [link to Git repository] if you want WEdit support for all the new features of `placeMaterial`.
+> **Tip:** Use [xWEdit](https://github.com/FezzedOne/xWEdit) if you want WEdit support for all the new features of `placeMaterial`.
 
 ---
 
@@ -398,7 +429,7 @@ Attempts to place the specified mod in the specified position and layer. If allo
 
 #### `List<EntityId>` world.entityQuery(`Vec2F` position, `Variant<Vec2F, float` positionOrRadius, [`Json` options])
 
-Queries for entities in a specified area of the world and returns a list of their entity ids. Area can be specified either as the `Vec2F` lower left and upper right positions of a rectangle, or as the `Vec2F` center and `float` radius of a circular area. The following additional parameters can be specified in options:
+Queries for entities in a specified area of the world and returns a list of their entity IDs. Area can be specified either as the `Vec2F` lower left and upper right positions of a rectangle, or as the `Vec2F` center and `float` radius of a circular area. The following additional parameters can be specified in options:
 
 * __withoutEntityId__ - Specifies an `EntityId` that will be excluded from the returned results
 * __includedTypes__ - Specifies a list of one or more `String` entity types that the query will return. In addition to standard entity type names, this list can include "mobile" for all mobile entity types or "creature" for players, monsters and NPCs.
@@ -466,13 +497,13 @@ Identical to world.entityLineQuery but only considers NPCs.
 
 #### `EntityId` world.objectAt(`Vec2I` tilePosition)
 
-Returns the entity id of any object occupying the specified tile position, or `nil` if the position is not occupied by an object.
+Returns the entity ID of any object occupying the specified tile position, or `nil` if the position is not occupied by an object.
 
 ---
 
 #### `bool` world.entityExists(`EntityId` entityId)
 
-Returns `true` if an entity with the specified id exists in the world and `false` otherwise.
+Returns `true` if an entity with the specified ID exists in the world and `false` otherwise.
 
 ---
 
@@ -574,32 +605,31 @@ Returns the configured description for the specified inspectable entity (current
 
 ---
 
-#### `JsonArray` world.entityPortrait(`EntityId` entityId, `String` portraitMode)
+#### `Maybe<JsonArray>` world.entityPortrait(`EntityId` entityId, `String` portraitMode)
 
 Generates a portrait of the specified entity in the specified portrait mode and returns a list of drawables, or `nil` if the entity is not a portrait entity.
 
 ---
 
-#### `String` world.entityHandItem(`EntityId` entityId, `String` handName)
+#### `Maybe<String>` world.entityHandItem(`EntityId` entityId, `String` handName)
 
-Returns the name of the item held in the specified hand of the specified player or NPC, or `nil` if the entity is not holding an item or is not a player or NPC. Hand name should be specified as "primary" or "alt".
-
----
-
-#### `ItemDescriptor` world.entityHandItemDescriptor(`EntityId` entityId, `String` handName)
-
-Similar to world.entityHandItem but returns the full descriptor of the item rather than the name.
-
+Returns the name of the item held in the specified hand of the specified player or NPC, or `nil` if the entity is not holding an item or is not a player or NPC. Hand name should be specified as `"primary"` (left hand; two-handed items also go here) or `"alt"` (right hand).
 
 ---
 
-### `ItemDescriptor` world.itemDropItem(`EntityId` entityId)
+#### `Maybe<ItemDescriptor>` world.entityHandItemDescriptor(`EntityId` entityId, `String` handName)
 
-Returns the item descriptor of an item drop's contents.
+Similar to `world.entityHandItem`, but returns the full descriptor of the item rather than the name.
 
 ---
 
-### `Maybe<List<MaterialId>>` world.biomeBlocksAt(`Vec2I` position)
+#### `Maybe<ItemDescriptor>` world.itemDropItem(`EntityId` entityId)
+
+Returns the item descriptor of an item drop's contents, or `nil` if the specified entity is not an item drop.
+
+---
+
+#### `Maybe<List<MaterialId>>` world.biomeBlocksAt(`Vec2I` position)
 
 Returns the list of biome specific blocks that can place in the biome at the specified position.
 
@@ -607,7 +637,7 @@ Returns the list of biome specific blocks that can place in the biome at the spe
 
 #### `String` world.entityUniqueId(`EntityId` entityId)
 
-Returns the unique id of the specified entity, or `nil` if the entity does not have a unique id.
+Returns the unique ID of the specified entity, or `nil` if the entity does not have a unique ID. Will return a vanity UUID if the entity uses such.
 
 ---
 
@@ -751,19 +781,21 @@ A combination of world.containerItemApply and world.containerSwapItemsNoCombine 
 
 #### `LuaValue` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`LuaValue` args ...])
 
-Attempts to call the specified function name in the context of the specified scripted entity with the specified arguments and returns the result. This method is synchronous and thus can only be used on local master entities, i.e. scripts run on the server may only call scripted entities that are also server-side master and scripts run on the client may only call scripted entities that are client-side master on that client. For more featureful entity messaging, use world.sendEntityMessage.
+Attempts to call the specified function name in the context of the specified scripted entity with any specified arguments and returns the result of that call. This method is synchronous and thus can only be used on local master entities, i.e. scripts run on the server may only call scripted entities (on the same world) that are also server-side mastered, and scripts run on the client may only call scripted entities that are client-side mastered on that client.
+
+For more featureful entity messaging, use `world.sendEntityMessage`. To call a world script context, use `world.callScriptContext`.
 
 ---
 
 #### `RpcPromise<Json>` world.sendEntityMessage(`Variant<EntityId, String>` entityId, `String` messageType, [`LuaValue` args ...])
 
-Sends an asynchronous message to an entity with the specified entity id or unique id with the specified message type and arguments and returns an `RpcPromise` which can be used to receive the result of the message when available. See the message table for information on entity message handling. This function __should not be called in any entity's init function__ as the sending entity will not have been fully loaded.
+Sends an asynchronous message to an entity with the specified entity ID or unique ID with the specified message type and arguments and returns an `RpcPromise` which can be used to receive the result of the message when available. See the message table for information on entity message handling. This function __should not be called in any entity's init function__ as the sending entity will not have been fully loaded.
 
 ---
 
 #### `RpcPromise<Vec2F>` world.findUniqueEntity(`String` uniqueId)
 
-Attempts to find an entity on the server by unique id and returns an `RpcPromise` that can be used to get the position of that entity if successful.
+Attempts to find an entity on the server by unique ID and returns an `RpcPromise` that can be used to get the position of that entity if successful.
 
 ---
 
@@ -793,7 +825,7 @@ Returns `true` if the specified entity exists and is an NPC and `false` otherwis
 
 #### `bool` world.isEntityInteractive(`EntityId` entityId)
 
-Returns `true` if an entity with the specified id is player interactive and `false` otherwise.
+Returns `true` if an entity with the specified ID is player interactive and `false` otherwise.
 
 ---
 
@@ -833,7 +865,17 @@ Displays text visible in debug mode at the specified position using the specifie
 
 ---
 
-The following additional world bindings are available only for scripts running on the server.
+## Server-side bindings
+
+The following `world` bindings are available only in server-side scripts.
+
+---
+
+#### `LuaValue` world.callScriptContext(`String` contextName, `String` functionName, [`LuaValue` args ...])
+
+Attempts to call the specified function name in the specified world script context (on the same world as the context or entity calling this binding) with any specified arguments and returns the result of that call.
+
+To message *other* worlds, use `universe.sendWorldMessage` in a world context script (see `universeserver.md`). If you need to message another world from a server-side entity, use `world.callScriptContext` to "pass through" to a `universe.sendWorldMessage` call. Both client- and server-side entities may also use `world.sendEntityMessage` for "passthrough".
 
 ---
 
@@ -863,23 +905,23 @@ Returns `true` if all sectors overlapping the specified region are fully loaded 
 
 #### `void` world.setTileProtection(`DungeonId` dungeonId, `bool` protected)
 
-Enables or disables tile protection for the specified dungeon id.
+Enables or disables tile protection for the specified dungeon ID.
 
 ---
 
 #### `DungeonId` world.dungeonId(`Vec2F` position)
 
-Returns the dungeon id at the specified world position.
+Returns the dungeon ID at the specified world position.
 
 ---
 
 #### `DungeonId` world.setDungeonId(`RectI` tileArea, `DungeonId` dungeonId)
 
-Sets the dungeonId of all tiles within the specified area.
+Sets the dungeon ID of all tiles within the specified area.
 
 ---
 
-#### `Promise<Vec2I>` world.enqueuePlacement(`List<Json>` distributionConfigs, [`DungeonId` id])
+#### `RpcPromise<Vec2I>` world.enqueuePlacement(`List<Json>` distributionConfigs, [`DungeonId` id])
 
 Enqueues a biome distribution config for placement through world generation. The returned promise is fulfilled with the position of the placement, once it has been placed.
 
@@ -893,25 +935,27 @@ Returns `true` if any tile within the specified region has been modified (placed
 
 #### `LiquidLevel` world.forceDestroyLiquid(`Vec2F` position)
 
-Identical to world.destroyLiquid but ignores tile protection.
+Identical to `world.destroyLiquid`, but ignores tile protection.
+
+**Note:** There is currently no equivalent server-side callback for forcibly destroying tiles. Instead, disable tile protection first, destroy the tiles in question with `world.damageTiles` or `world.damageTileArea`, then re-enable it.
 
 ---
 
 #### `EntityId` world.loadUniqueEntity(`String` uniqueId)
 
-Forces (synchronous) loading of the specified unique entity and returns its non-unique entity id or 0 if no such unique entity exists.
+Forces (synchronous) loading of the specified unique entity, and returns its non-unique entity ID, or `0` if no such unique entity exists.
 
 ---
 
 #### `void` world.setUniqueId(`EntityId` entityId, [`String` uniqueId])
 
-Sets the unique id of the specified entity to the specified unique id or clears it if no unique id is specified.
+Sets the unique ID of the specified entity to the specified unique ID, or clears it if no unique ID is specified.
 
 ---
 
 #### `ItemDescriptor` world.takeItemDrop(`EntityId` targetEntityId, [`EntityId` sourceEntityId])
 
-Takes the specified item drop and returns an `ItemDescriptor` of its contents or `nil` if the operation fails. If a source entity id is specified, the item drop will briefly animate toward that entity.
+Takes the specified item drop and returns an `ItemDescriptor` of its contents or `nil` if the operation fails. If a source entity ID is specified, the item drop will briefly animate toward that entity.
 
 ---
 
@@ -923,7 +967,7 @@ Sets the world's default beam-down point to the specified position. If respawnIn
 
 #### `List<EntityId>` world.players()
 
-Returns a list of the entity ids of all players currently in the world.
+Returns a list of the entity IDs of all players currently in the world.
 
 ---
 
@@ -977,13 +1021,13 @@ Sets the current time for the world's sky to the specified value.
 
 #### `void` world.placeDungeon(`String` dungeonName, `Vec2I` position, [`DungeonId` dungeonId])
 
-Generates the specified dungeon in the world at the specified position, ignoring normal dungeon anchoring rules. If a dungeon id is specified, it will be assigned to the dungeon.
+Generates the specified dungeon in the world at the specified position, ignoring normal dungeon anchoring rules. If a dungeon ID is specified, it will be assigned to the dungeon.
 
 ---
 
 #### `void` world.placeDungeon(`String` dungeonName, `Vec2I` position, [`DungeonId` dungeonId])
 
-Generates the specified dungeon in the world at the specified position. Does not ignore anchoring rules, will fail if the dungeon can't be placed. If a dungeon id is specified, it will be assigned to the dungeon.
+Generates the specified dungeon in the world at the specified position. Does not ignore anchoring rules, will fail if the dungeon can't be placed. If a dungeon ID is specified, it will be assigned to the dungeon.
 
 ---
 
@@ -1025,10 +1069,66 @@ Sets the planet type of the current world to `planetType` with primary biome `pr
 
 #### `void` world.setDungeonGravity(`DungeonId` dungeonId, `Maybe<float>` gravity)
 
-Sets the overriding gravity for the specified dungeon id, or returns it to the world default if unspecified.
+Sets the overriding gravity for the specified dungeon ID, or returns it to the world default if unspecified.
 
 ---
 
 #### `void` world.setDungeonBreathable(`DungeonId` dungeonId, `Maybe<bool>` breathable)
 
-Sets the overriding breathability for the specified dungeon id, or returns it to the world default if unspecified.
+Sets the overriding breathability for the specified dungeon ID, or returns it to the world default if unspecified.
+
+---
+
+## Client-side bindings
+
+The following `world` bindings are available only in client-side scripts.
+
+---
+
+#### `RectI` world.clientWindow
+
+Returns the bounds of what is visible in the client window in world tiles.
+
+---
+
+#### `void` world.setLightMultiplier(`RgbColorMultiplier` colour)
+
+Multiplies the RGB colour of all rendered light sources in the world is (client-sidedly) multiplied by the respective value in the given colour multiplier array (red multiplies red, and so on). This is reset every tick, so you should invoke it every tick.
+
+The `colour` parameter is an array of three floats — one each for red, green and blue, respectively. Example:
+
+```lua
+world.setLightMultiplier({5.0, 2.5, 4.5})
+```
+
+The callback allows techs and status effects to grant the player "night vision" (or make the player nearly blind, as the case may be).
+
+---
+
+#### `void` world.setShaderParameters(`Maybe<Vec3F>` param1, `Maybe<Vec3F>` param2, `Maybe<Vec3F>` param3, `Maybe<Vec3F>` param4, `Maybe<Vec3F>` param5, `Maybe<Vec3F>` param6)
+
+Sets the corresponding scriptable shader parameters to the given values. Any `nil` or unspecified parameter is left unchanged.
+
+The parameters are used in the GLSL shader file `$assets/rendering/effects/world.frag` (see `$src/assets/xSBscripts/rendering/effects/world.frag` for a usage example). Feel free to come up with your own uses for these parameters!
+
+> **Shader compilation:** A full client restart is required to recompile and reload shader files — `/reload` isn't enough — and the client will shut down immediately if any compilation errors come up; check `xclient.log`.
+
+---
+
+#### `void` world.resetShaderParameters()
+
+Resets all scriptable shader parameters to `{0.0, 0.0, 0.0}` (in GLSL, `vec3(0.0, 0.0, 0.0)`).
+
+Note that these parameters are automatically reset whenever the player is warped to a new world (including upon player death) or "warp-reset" to the same world (where the world is unloaded and then reloaded on the client).
+
+---
+
+#### `Vec3F, Vec3F, Vec3F, Vec3F, Vec3F, Vec3F` world.getShaderParameters()
+
+Returns the current values of the scriptable shader parameters. Consider using `table.pack` on the returned values.
+
+---
+
+#### `List<EntityId>` world.players()
+
+Returns a list of entity IDs for all player entities currently loaded/rendered by the client.

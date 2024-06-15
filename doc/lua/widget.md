@@ -90,7 +90,7 @@ Sets arbitrary data for the widget.
 
 #### `String` widget.getChildAt(`Vec2I` screenPosition)
 
-Returns the full name for any widget at screenPosition.
+Returns the full name for any child widget at `screenPosition`.
 
 ---
 
@@ -349,17 +349,25 @@ Clears the canvas.
 
 Returns the mouse position relative to the canvas.
 
+##### `void` `CanvasWidget`:drawDrawable(`Drawable` drawable, [`Vec2F` position])
+
+Draws an arbitrary drawable to the canvas, optionally with a specified position to use as the origin for any position specified in the drawable itself.
+
+##### `void` `CanvasWidget`:drawDrawables(`List<Drawable>` drawables, [`Vec2F` position])
+
+Draws an arbitrary list of drawables to the canvas, optionally with a specified position to use as the origin for any positions specified in the drawables themselves.
+
 ##### `void` `CanvasWidget`:drawImage(`String` image, `Vec2F` position, [`float` scale], [`Color` color], [`bool` centered])
 
 Draws an image to the canvas.
 
 ##### `void` `CanvasWidget`:drawImageDrawable(`String` image, `Vec2F` position, [`Variant<Vec2F, float>` scale], [`Color` color], [`float` rotation])
 
-Draws an image to the canvas, centered on position, with slightly different options.
+Draws an image to the canvas, centered on `position`, with slightly different options.
 
 ##### `void` `CanvasWidget`:drawImageRect(`String` texName, `RectF` texCoords, `RectF` screenCoords, [`Color` color])
 
-Draws a rect section of a texture to a rect section of the canvas.
+Draws a `Rect` section of a texture to a `Rect` section of the canvas.
 
 ##### `void` `CanvasWidget`:drawTiledImage(`String` image, `Vec2F` offset, `RectF` screenCoords, [`float` scale], [`Color` color])
 
