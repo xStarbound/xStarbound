@@ -1,14 +1,14 @@
-# status
+# `status`
 
-The `status` table relates to the status controller attached to an entity. It is available in:
+The `status` table relates to the status controller attached to an entity. It is available in the following script contexts:
 
-* monsters
-* npcs
-* status effects
-* companion system scripts
-* quest scripts
-* tech
-* primary status scripts for: player, monster, npc
+- monster scripts
+- NPC scripts
+- status effect scripts
+- player companion scripts
+- quest scripts
+- tech scripts
+- primary status scripts for players, monsters and NPCs
 
 ---
 
@@ -26,7 +26,7 @@ Sets a status property to the specified value.
 
 #### `float` status.stat(`String` statName)
 
-Returns the value for the specified stat. Defaults to 0.0 if the stat does not exist.
+Returns the value for the specified stat. Defaults to `0.0` if the stat does not exist.
 
 ---
 
@@ -38,7 +38,7 @@ Returns whether the stat value is greater than 0.
 
 #### `List<String>` status.resourceNames()
 
-Returns a list of the names of all the configured resources;
+Returns a list of the names of all configured resources.
 
 ---
 
@@ -56,7 +56,7 @@ Returns the value of the specified resource.
 
 #### `bool` status.resourcePositive(`String` resourceName)
 
-Returns whether the value of the specified resource is greater than 0.
+Returns whether the value of the specified resource is greater than zero.
 
 ---
 
@@ -116,25 +116,25 @@ Resets all resources to their base values.
 
 #### `float` status.resourceMax(`String` resourceName)
 
-Returns the max value for the specified resource.
+Returns the maximum value for the specified resource.
 
 ---
 
 #### `float` status.resourcePercentage(`String` resourceName)
 
-Returns the percentage of max that the resource is currently at. From 0.0 to 1.0.
+Returns the percentage of the maximum value that the resource is currently at, as a fractional percentage between 0.0 and 1.0.
 
 ---
 
 #### `void` status.setResourcePercentage(`String` resourceName, `float` value)
 
-Sets a resource to a percentage of the max value for the resource. From 0.0 to 1.0.
+Sets a resource to a percentage of the maximum value for the resource, as a fractional percentage between 0.0 and 1.0.
 
 ---
 
 #### `void` status.modifyResourcePercentage(`String` resourceName, `float` value)
 
-Adds a percentage of the max resource value to the current value of the resource.
+Adds a percentage of the maximum resource value to the current value of the resource.
 
 ---
 
@@ -176,15 +176,26 @@ Clears all persistent status effects from all effect categories.
 
 #### `void` status.addEphemeralEffect(`String` effectName, [`float` duration], [`EntityId` sourceEntity])
 
-Adds the specified unique status effect. Optionally with a custom duration, and optionally with a source entity id accessible in the status effect.
+Adds the specified unique status effect, optionally with a custom duration, and optionally with a source entity ID accessible in the status effect's script.
 
 ---
 
 #### `void` status.addEphemeralEffects(`JsonArray` effects, [`EntityId` sourceEntity])
 
-Adds a list of unique status effects. Optionally with a source entity id.
+Adds a list of unique status effects, optionally with a source entity ID.
 
-Unique status effects can be specified either as a string, "myuniqueeffect", or as a table, {effect = "myuniqueeffect", duration = 5}. Remember that this function takes a `list` of these effect descriptors. This is a valid list of effects: { "myuniqueeffect", {effect = "myothereffect", duration = 5} }
+Unique status effects can be specified either as a string or as a JSON object. Example:
+
+```lua
+local effectList = jarray{
+    "myuniqueeffect",
+    jobject{
+        effect = "myothereffect",
+        duration = 5 -- In seconds.
+    }
+}
+status.addEphemeralEffects(effectList)
+```
 
 ---
 
@@ -200,37 +211,40 @@ Clears all ephemeral status effects.
 
 ---
 
-#### `List<pair<DamageNotification>>`, `unsigned` status.damageTakenSince([`unsigned` since = 0]])
+#### `List<pair<DamageNotification>>, unsigned` status.damageTakenSince([`unsigned` since = 0])
 
 Returns two values:
-* A list of damage notifications for the entity's damage taken since the specified heartbeat.
-* The most recent heartbeat to be passed into the function again to get the damage notifications taken since this function call.
+
+- A list of damage notifications for the entity's damage taken since the specified heartbeat.
+- The most recent heartbeat value, intended to be passed into this callback again to get the damage notifications taken since the last call.
 
 Example:
 
 ```lua
-_,lastStep = status.damageTakenSince() -- Returns the full buffer of damage notifications, throw this away, we only want the current step
+_, lastStep = status.damageTakenSince() -- Returns the full buffer of damage notifications, throw this away, we only want the current step.
 
--- stuff
+-- ...
 
-notifications,lastStep = status.damageTakenSince(lastStep) -- Get the damage notifications since the last call, and update the heartbeat
+notifications,lastStep = status.damageTakenSince(lastStep) -- Get the damage notifications since the last call, and update the heartbeat.
 ```
 
 ---
 
-#### `List<pair<EntityId,DamageRequest>>`, `unsigned` status.inflictedHitsSince([`unsigned` since = 0]])
+#### `List<pair<EntityId, DamageRequest>>, unsigned` status.inflictedHitsSince([`unsigned` since = 0])
 
 Returns two values:
-* A list {{entityId, damageRequest}} for the entity's inflicted hits since the specified heartbeat.
-* The most recent heartbeat to be passed into the function again to get the inflicted hits since this function call.
+
+- A list (e.g., `{ {entityId, damageRequest}, ...}`) for hits inflicted by the entity.
+- The most recent heartbeat value, intended to be passed into the function again to get a list of inflicted hits since the last call.
 
 ---
 
-#### `List<DamageNotification>`, `unsigned` status.inflictedDamageSince([`unsigned` since = 0])
+#### `List<DamageNotification>, unsigned` status.inflictedDamageSince([`unsigned` since = 0])
 
 Returns two values:
-* A list of damage notifications for damage inflicted by the entity.
-* The most recent heartbeat to be passed into the function again to get the list of damage notifications since the last call.
+
+- A list of damage notifications for damage inflicted *by* the entity.
+- The most recent heartbeat value, intended to be passed into the function again to get a list of damage notifications since the last call.
 
 ---
 
@@ -254,7 +268,7 @@ Returns the primary set of image processing directives applied to the animation 
 
 #### `void` status.setPrimaryDirectives([`String` directives])
 
-Sets the primary set of image processing directives that should be applied to the animation of the entity using this status controller.
+Sets the primary set of image processing directives that should be applied to the animation of the entity using this status controller. If no directives are specified, any existing primary directives are cleared.
 
 ---
 

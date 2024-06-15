@@ -1,16 +1,18 @@
-The stagehand table contains bindings specific to stagehands which are available in addition to their common tables.
+# `stagehand`
+
+The `stagehand` table contains bindings specific to stagehands and is available in stagehand scripts.
 
 ---
 
 #### `EntityId` stagehand.id()
 
-Returns the stagehand's entity id. Identical to entity.id(), so use that instead.
+Returns the stagehand's entity ID. Identical to `entity.id`.
 
 ---
 
 #### `Vec2F` stagehand.position()
 
-Returns the stagehand's position. This is identical to entity.position(), so use that instead.
+Returns the stagehand's position. Identical to `entity.position`.
 
 ---
 
@@ -34,4 +36,4 @@ Returns the stagehand's type name.
 
 #### `void` stagehand.setUniqueId([`String` uniqueId])
 
-Sets the stagehand's unique entity id, or clears it if unspecified.
+Sets the stagehand's unique entity ID, or clears it if unspecified.

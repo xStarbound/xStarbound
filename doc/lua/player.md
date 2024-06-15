@@ -1004,7 +1004,7 @@ Sets the player's selected action bar slot. See above for valid `EssentialItem` 
 
 Sets whether the player can use held items. Identical to `tech.setToolUsageSuppressed` (see `tech.md`).
 
-**Note:** The internal values of *both* `player.setToolUsageSuppressed` and `tech.setToolUsageSuppressed` must be false for the player to use held items.
+**Note:** The internal values used by *both* `player.setToolUsageSuppressed` and `tech.setToolUsageSuppressed` must be `false` for the player to use held items.
 
 ---
 
@@ -1025,7 +1025,6 @@ local teamMembers = jarray{
         warpMode = "BeamOrDeploy", -- One of `"None"`, `"BeamOnly"`, `"DeployOnly"` and `"BeamOrDeploy"`.
         portrait = jarray{...} -- The team member's portrait drawables.
     },
-    jobject{...}, -- Another team member listing with the same format.
-    jobject{...} -- Ditto.
+    ...
 }
 ```

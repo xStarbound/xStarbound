@@ -1,6 +1,6 @@
-# effect
+# `effect`
 
-The `effect` table relates to functions specifically for status effects.
+The `effect` table relates to callbacks specifically for status effects and is only available in status effect scripts.
 
 ---
 
@@ -18,13 +18,13 @@ Adds the specified duration to the current remaining duration.
 
 #### `void` effect.expire()
 
-Immediately expire the effect, setting the duration to 0.
+Immediately expire the effect, setting the duration to 0. The effect after this tick's `update` completes, causing `uninit` to be invoked.
 
 ---
 
 #### `EntityId` effect.sourceEntity()
 
-Returns the source entity id of the status effect, if any.
+Returns the source entity ID for the status effect, if any.
 
 ---
 
@@ -34,36 +34,37 @@ Sets image processing directives for the entity the status effect is active on.
 
 ---
 
-#### `Json` effect.getParameter(`String` name, `Json` def)
+#### `Json` effect.getParameter(`String` name, `Json` default)
 
-Returns the value associated with the parameter name in the effect configuration. If no value is set, returns the default specified.
+Returns the value associated with the parameter name in the effect configuration. If no value is set, returns the specified default value; if the value is explicitly set to `null`, returns `nil` even if a non-`nil` default is specified.
 
 ---
 
 #### `StatModifierGroupId` effect.addStatModifierGroup(`List<StatModifier>` modifiers)
 
-Adds a new stat modifier group and returns the ID created for the group. Stat modifier groups will stay active until the effect expires.
+Adds a new stat modifier group and returns the ID created for the group. Stat modifier groups will stay active until the effect expires. The returned group ID is an unsigned integer.
 
-Stat modifiers are of the format:
+Stat modifiers are of the following format:
 
 ```lua
-{
+jobject{
   stat = "health",
 
-  amount = 50
-  --OR baseMultiplier = 1.5
-  --OR effectiveMultiplier = 1.5
+  -- *One* of the following:
+  amount = 50,
+  baseMultiplier = 1.5,
+  effectiveMultiplier = 1.5
 }
 ```
 
 ---
 
-#### `void` effect.setStatModifierGroup(`StatModifierGroupId`, groupId, `List<StatModifier>` modifiers)
+#### `void` effect.setStatModifierGroup(`StatModifierGroupId` groupId, `List<StatModifier>` modifiers)
 
-Replaces the list of stat modifiers in a group with the specified modifiers.
+Replaces the list of stat modifiers in a group with the specified modifiers. The `groupId` is an unsigned integer.
 
 ---
 
 #### `void` effect.removeStatModifierGroup(`StatModifierGroupId` groupId)
 
-Removes the specified stat modifier group.
+Removes the specified stat modifier group. The `groupId` is an unsigned integer.

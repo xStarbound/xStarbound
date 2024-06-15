@@ -1,12 +1,12 @@
-# tech
+# `tech`
 
-The `tech` table contains functions exclusively available in tech scripts.
+The `tech` table contains callbacks exclusively available in tech scripts.
 
 ---
 
 #### `Vec2F` tech.aimPosition()
 
-Returns the current cursor aim position.
+Returns the current cursor aim position as a world coordinate.
 
 ---
 
@@ -21,21 +21,23 @@ Sets whether the tech should be visible.
 Set the animation state of the player.
 
 Valid states:
-* "Stand"
-* "Fly"
-* "Fall"
-* "Sit"
-* "Lay"
-* "Duck"
-* "Walk"
-* "Run"
-* "Swim"
+
+- `"Stand"`
+- `"Fly"`
+- `"Fall"`
+- `"Sit"`
+- `"Lay"`
+- `"Duck"`
+- `"Walk"`
+- `"Run"`
+- `"Swim"`
+- `"SwimIdle"`
 
 ---
 
-#### `void` tech.setParentDirectives(`String` directives)
+#### `void` tech.setParentDirectives(`Maybe<String>` directives)
 
-Sets the image processing directives for the player.
+Sets the image processing directives for the player. If no directives are specified, clears any existing tech parent directives. Each tech slot has its own parent directives.
 
 ---
 
@@ -47,7 +49,7 @@ Sets whether to make the player invisible. Will still show the tech.
 
 #### `void` tech.setParentOffset(`Vec2F` offset)
 
-Sets the position of the player relative to the tech.
+Sets the position of the player relative to the tech, in world tiles.
 
 ---
 
@@ -59,5 +61,6 @@ Returns whether the player is lounging.
 
 #### `void` tech.setToolUsageSuppressed(`bool` suppressed)
 
-Sets whether to suppress tool usage on the player. When tool usage is suppressed no items can be used.
+Sets whether the player can use held items. Identical to `player.setToolUsageSuppressed` (see `player.md`).
 
+**Note:** The internal values used by *both* `player.setToolUsageSuppressed` and `tech.setToolUsageSuppressed` must be `false` for the player to use held items.
