@@ -263,26 +263,36 @@ Maybe<Json> MaterialDatabase::materialConfig(MaterialId materialId) const {
     return {};
 }
 
+/* FezzedOne: Segfault fixes. { */
 String MaterialDatabase::materialDescription(MaterialId materialNumber, String const& species) const {
   auto material = m_materials[materialNumber];
-  return material->descriptions.getString(
+  if (material)
+    return material->descriptions.getString(
       strf("{}Description", species), material->descriptions.getString("description"));
+  return "";
 }
 
 String MaterialDatabase::materialDescription(MaterialId materialNumber) const {
   auto material = m_materials[materialNumber];
-  return material->descriptions.getString("description");
+  if (material)
+    return material->descriptions.getString("description");
+  return "";
 }
 
 String MaterialDatabase::materialShortDescription(MaterialId materialNumber) const {
   auto material = m_materials[materialNumber];
-  return material->descriptions.getString("shortdescription");
+  if (material)
+    return material->descriptions.getString("shortdescription");
+  return "";
 }
 
 String MaterialDatabase::materialCategory(MaterialId materialNumber) const {
   auto material = m_materials[materialNumber];
-  return material->category;
+  if (material)
+    return material->category;
+  return "";
 }
+/* } */
 
 StringList MaterialDatabase::modNames() const {
   StringList modNames = m_modIndex.keys();
@@ -329,20 +339,28 @@ Maybe<Json> MaterialDatabase::modConfig(ModId mod) const {
     return {};
 }
 
+/* FezzedOne: More segfault fixes. { */
 String MaterialDatabase::modDescription(ModId modId, String const& species) const {
   auto mod = m_mods[modId];
-  return mod->descriptions.getString(strf("{}Description", species), mod->descriptions.getString("description"));
+  if (mod)
+    return mod->descriptions.getString(strf("{}Description", species), mod->descriptions.getString("description"));
+  return "";
 }
 
 String MaterialDatabase::modDescription(ModId modId) const {
   auto mod = m_mods[modId];
-  return mod->descriptions.getString("description");
+  if (mod)
+    return mod->descriptions.getString("description");
+  return "";
 }
 
 String MaterialDatabase::modShortDescription(ModId modId) const {
   auto mod = m_mods[modId];
-  return mod->descriptions.getString("shortdescription");
+  if (mod)
+    return mod->descriptions.getString("shortdescription");
+  return "";
 }
+/* } */
 
 String MaterialDatabase::defaultFootstepSound() const {
   return m_defaultFootstepSound;
@@ -554,21 +572,21 @@ void MaterialDatabase::setMod(ModId modId, ModInfo info) {
 
 shared_ptr<MaterialDatabase::MetaMaterialInfo const> const& MaterialDatabase::getMetaMaterialInfo(MaterialId materialId) const {
   if (!containsMetaMaterial(materialId))
-    throw MaterialException(strf("No such metamaterial id: {}\n", materialId));
+    throw MaterialException(strf("No such metamaterial ID: {}\n", materialId));
   else
     return m_metaMaterials[metaMaterialIndex(materialId)];
 }
 
 shared_ptr<MaterialDatabase::MaterialInfo const> const& MaterialDatabase::getMaterialInfo(MaterialId materialId) const {
   if (materialId >= m_materials.size() || !m_materials[materialId])
-    throw MaterialException(strf("No such material id: {}\n", materialId));
+    throw MaterialException(strf("No such material ID: {}\n", materialId));
   else
     return m_materials[materialId];
 }
 
 shared_ptr<MaterialDatabase::ModInfo const> const& MaterialDatabase::getModInfo(ModId modId) const {
   if (modId >= m_mods.size() || !m_mods[modId])
-    throw MaterialException(strf("No such modId id: {}\n", modId));
+    throw MaterialException(strf("No such modId ID: {}\n", modId));
   else
     return m_mods[modId];
 }

@@ -189,15 +189,21 @@ private:
 };
 
 inline MaterialRenderProfileConstPtr MaterialDatabase::materialRenderProfile(MaterialId materialId) const {
+  // FezzedOne: Fixed potential segfault.
   if (materialId >= m_materials.size())
     return {};
-  return m_materials[materialId]->materialRenderProfile;
+  if (m_materials[materialId])
+    return m_materials[materialId]->materialRenderProfile;
+  return {};
 }
 
 inline MaterialRenderProfileConstPtr MaterialDatabase::modRenderProfile(ModId modId) const {
+  // FezzedOne: Fixed potential segfault.
   if (modId >= m_mods.size())
     return {};
-  return m_mods[modId]->modRenderProfile;
+  if (m_mods[modId])
+    return m_mods[modId]->modRenderProfile;
+  return {};
 }
 
 inline bool MaterialDatabase::foregroundLightTransparent(MaterialId materialId) const {
@@ -238,15 +244,22 @@ inline bool MaterialDatabase::occludesBehind(MaterialId materialId) const {
 
 inline Vec3F MaterialDatabase::radiantLight(MaterialId materialId, ModId modId) const {
   Vec3F radiantLight;
+  // FezzedOne: Fixed a segfault that could happen when attempting to get a
+  // nonexistent material or mod whose ID is at or below the largest assigned
+  // to any loaded material or mod, respectively.
   if (materialId < m_materials.size()) {
     auto const& mat = m_materials[materialId];
-    if (mat->materialRenderProfile)
-      radiantLight += mat->materialRenderProfile->radiantLight;
+    if (mat) {
+      if (mat->materialRenderProfile)
+        radiantLight += mat->materialRenderProfile->radiantLight;
+    }
   }
   if (modId < m_mods.size()) {
     auto const& mat = m_mods[modId];
-    if (mat->modRenderProfile)
-      radiantLight += mat->modRenderProfile->radiantLight;
+    if (mat) {
+      if (mat->modRenderProfile)
+        radiantLight += mat->modRenderProfile->radiantLight;
+    }
   }
   return radiantLight;
 }
