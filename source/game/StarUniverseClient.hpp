@@ -92,12 +92,29 @@ public:
   void startLua();
   void stopLua();
 
+  std::pair<bool, PlayerPtr> playerIsLoaded(Uuid const& uuid);
   bool reloadPlayer(Json const& data, Uuid const& uuid, bool resetInterfaces = false, bool showIndicator = false);
+  PlayerPtr loadPlayer(Uuid const& uuid, bool resetInterfaces = false, bool showIndicator = false);
+  
   void doSwitchPlayer(Uuid const& uuid);
   bool switchPlayer(Uuid const& uuid);
   bool switchPlayer(size_t index);
   bool switchPlayer(String const& name);
   bool switchPlayerUuid(String const& uuidStr);
+
+  void doAddPlayer(Uuid const& uuid);
+  bool addPlayer(Uuid const& uuid);
+  bool addPlayer(size_t index);
+  bool addPlayer(String const& name);
+  bool addPlayerUuid(String const& uuidStr);
+
+  void doRemovePlayer(Uuid const& uuid);
+  bool removePlayer(Uuid const& uuid);
+  bool removePlayer(size_t index);
+  bool removePlayer(String const& name);
+  bool removePlayerUuid(String const& uuidStr);
+
+  List<PlayerPtr> controlledPlayers();
 
   typedef std::function<void()> Callback;
   typedef std::function<void(bool)> ReloadPlayerCallback;
@@ -131,6 +148,7 @@ private:
   PlayerStoragePtr m_playerStorage;
   StatisticsPtr m_statistics;
   PlayerPtr m_mainPlayer;
+  List<PlayerPtr> m_loadedPlayers;
 
   bool m_legacyServer;
   bool m_pause;
@@ -175,6 +193,9 @@ private:
   bool m_shouldUpdateMainPlayerShip;
 
   Maybe<Uuid> m_playerToSwitchTo;
+  List<Uuid> m_playersToLoad;
+  List<Uuid> m_playersToRemove;
+  Uuid m_mainPlayerUuid;
 };
 
 }

@@ -66,14 +66,27 @@ GuiMessage::GuiMessage(String const& message, float cooldown, float spring)
   : message(message), cooldown(cooldown), springState(spring) {}
 
 MainInterface::MainInterface(UniverseClientPtr client, WorldPainterPtr painter, CinematicPtr cinematicOverlay) {
-  m_state = Running;
-
   m_guiContext = GuiContext::singletonPtr();
 
   m_client = client;
   m_worldPainter = painter;
   m_cinematicOverlay = cinematicOverlay;
 
+  reset();
+}
+
+MainInterface::~MainInterface() {
+  clean();
+}
+
+void MainInterface::clean() {
+  m_paneManager.dismissAllPanes();
+  m_paneManager.deregisterAllPanes();
+}
+
+void MainInterface::reset() { // *Completely* reset the interface.
+  m_state = Running;
+  
   m_disableHud = false;
 
   m_cursorScreenPos = Vec2I();
@@ -184,17 +197,13 @@ MainInterface::MainInterface(UniverseClientPtr client, WorldPainterPtr painter, 
   m_paneManager.registerPane(MainInterfacePanes::PlanetText, PaneLayer::Hud, planetName);
 
   m_nameplatePainter = make_shared<NameplatePainter>();
-  m_questIndicatorPainter = make_shared<QuestIndicatorPainter>(client);
+  m_questIndicatorPainter = make_shared<QuestIndicatorPainter>(m_client);
   m_chatBubbleManager = make_shared<ChatBubbleManager>();
 
   m_paneManager.displayRegisteredPane(MainInterfacePanes::ActionBar);
   m_paneManager.displayRegisteredPane(MainInterfacePanes::Chat);
   m_paneManager.displayRegisteredPane(MainInterfacePanes::TeamBar);
   m_paneManager.displayRegisteredPane(MainInterfacePanes::StatusPane);
-}
-
-MainInterface::~MainInterface() {
-  m_paneManager.dismissAllPanes();
 }
 
 MainInterface::RunningState MainInterface::currentState() const {

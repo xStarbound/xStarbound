@@ -1135,3 +1135,27 @@ Returns the current values of the scriptable shader parameters. Consider using `
 #### `List<EntityId>` world.players()
 
 Returns a list of entity IDs for all player entities currently loaded/rendered by the client.
+
+---
+
+#### `List<EntityId>` world.ownPlayers()
+
+Returns a list of entity IDs for all player entities currently mastered by the client (and loaded into the world).
+
+---
+
+#### `List<EntityId>` world.primaryPlayer()
+
+Returns the entity ID of the client's primary player — i.e., the one to and from which client input and output are currently being passed.
+
+---
+
+#### `List<Uuid>` world.ownPlayerUuids()
+
+Returns a list of UUIDs for all player entities currently mastered by the client. Includes players not currently loaded in the world (e.g., currently dead players).
+
+---
+
+#### `List<Uuid>` world.primaryPlayerUuid()
+
+Returns the UUID of the client's primary player — i.e., the one to and from which client input and output are currently being passed.

@@ -72,6 +72,9 @@ public:
 
   MainInterfacePaneManager* paneManager();
 
+  void clean();
+  void reset();
+
   bool escapeDialogOpen() const;
 
   void openCraftingWindow(Json const& config, EntityId sourceEntityId = NullEntityId);

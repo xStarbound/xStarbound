@@ -53,6 +53,10 @@ ClientCommandProcessor::ClientCommandProcessor(UniverseClientPtr universeClient,
     {"upgradeship", bind(&ClientCommandProcessor::upgradeShip, this, _1)},
     {"swap", bind(&ClientCommandProcessor::swap, this, _1)},
     {"swapuuid", bind(&ClientCommandProcessor::swapUuid, this, _1)},
+    {"add", bind(&ClientCommandProcessor::add, this, _1)},
+    {"adduuid", bind(&ClientCommandProcessor::addUuid, this, _1)},
+    {"remove", bind(&ClientCommandProcessor::remove, this, _1)},
+    {"removeuuid", bind(&ClientCommandProcessor::removeUuid, this, _1)},
     {"timescale", bind(&ClientCommandProcessor::timeScale, this, _1)}
   };
 }
@@ -433,6 +437,54 @@ String ClientCommandProcessor::swapUuid(String const& argumentsString) {
     return "Attempted to swap player";
   else
     return "Player not swapped";
+}
+
+String ClientCommandProcessor::add(String const& argumentsString) {
+  auto arguments = m_parser.tokenizeToStringList(argumentsString);
+
+  if (arguments.size() == 0)
+    return "Not enough arguments to /add";
+
+  if (m_universeClient->addPlayer(arguments[0]))
+    return "Attempted to add player";
+  else
+    return "Player not added";
+}
+
+String ClientCommandProcessor::addUuid(String const& argumentsString) {
+  auto arguments = m_parser.tokenizeToStringList(argumentsString);
+
+  if (arguments.size() == 0)
+    return "Not enough arguments to /adduuid";
+
+  if (m_universeClient->addPlayerUuid(arguments[0]))
+    return "Attempted to add player";
+  else
+    return "Player not added";
+}
+
+String ClientCommandProcessor::remove(String const& argumentsString) {
+  auto arguments = m_parser.tokenizeToStringList(argumentsString);
+
+  if (arguments.size() == 0)
+    return "Not enough arguments to /remove";
+
+  if (m_universeClient->removePlayer(arguments[0]))
+    return "Attempted to remove player";
+  else
+    return "Player not removed";
+}
+
+String ClientCommandProcessor::removeUuid(String const& argumentsString) {
+  auto arguments = m_parser.tokenizeToStringList(argumentsString);
+
+  if (arguments.size() == 0)
+    return "Not enough arguments to /removeuuid";
+
+  if (m_universeClient->removePlayerUuid(arguments[0]))
+    return "Attempted to remove player";
+  else
+    return "Player not removed";
 }
 
 String ClientCommandProcessor::timeScale(String const& argumentsString) {

@@ -416,6 +416,32 @@ namespace LuaBindings {
 
         return playerIds;
       });
+      callbacks.registerCallback("ownPlayers", [clientWorld]() {
+        List<EntityId> playerIds;
+
+        clientWorld->forAllEntities([&](EntityPtr const& entity) {
+          if (entity->entityType() == EntityType::Player && entity->isMaster())
+            playerIds.emplace_back(entity->entityId());
+        });
+
+        return playerIds;
+      });
+      callbacks.registerCallback("primaryPlayer", [clientWorld]() {
+        return clientWorld->mainPlayer()->entityId();
+      });
+      callbacks.registerCallback("ownPlayerUuids", [clientWorld]() {
+        List<String> playerUuids;
+
+        for (auto& player : clientWorld->universeClient()->controlledPlayers()) {
+          if (player)
+            playerUuids.emplace_back(player->uuid().hex());
+        }
+
+        return playerUuids;
+      });
+      callbacks.registerCallback("primaryPlayerUuid", [clientWorld]() {
+        return clientWorld->mainPlayer()->uuid().hex();
+      });
     }
 
     if (auto serverWorld = as<WorldServer>(world)) {

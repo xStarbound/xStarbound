@@ -561,23 +561,25 @@ void ClientApplication::changeState(MainAppState newState) {
     m_universeClient->setLuaCallbacks("input", LuaBindings::makeInputCallbacks());
     m_universeClient->setLuaCallbacks("voice", LuaBindings::makeVoiceCallbacks());
 
-    auto heldScriptPanes = make_shared<List<MainInterface::ScriptPaneInfo>>();
+    // auto heldScriptPanes = make_shared<List<MainInterface::ScriptPaneInfo>>();
 
-    m_universeClient->playerReloadPreCallback() = [&, heldScriptPanes](bool resetInterface) {
+    m_universeClient->playerReloadPreCallback() = [&](bool resetInterface) {
       if (!resetInterface)
         return;
 
-      m_mainInterface->takeScriptPanes(*heldScriptPanes);
+      // m_mainInterface->takeScriptPanes(*heldScriptPanes);
+      m_mainInterface->clean();
     };
 
-    m_universeClient->playerReloadCallback() = [&, heldScriptPanes](bool resetInterface) {
-      auto paneManager = m_mainInterface->paneManager();
-      if (auto inventory = paneManager->registeredPane<InventoryPane>(MainInterfacePanes::Inventory))
-        inventory->clearChangedSlots();
+    m_universeClient->playerReloadCallback() = [&](bool resetInterface) {
+      // auto paneManager = m_mainInterface->paneManager();
+      // if (auto inventory = paneManager->registeredPane<InventoryPane>(MainInterfacePanes::Inventory))
+      //   inventory->clearChangedSlots();
 
       if (resetInterface) {
-        m_mainInterface->reviveScriptPanes(*heldScriptPanes);
-        heldScriptPanes->clear();
+        m_mainInterface->reset();
+        // m_mainInterface->reviveScriptPanes(*heldScriptPanes);
+        // heldScriptPanes->clear();
       }
     };
 
@@ -857,6 +859,10 @@ void ClientApplication::updateRunning(float dt) {
     
     if (p2pNetworkingService)
       p2pNetworkingService->setActivityData("In Game", party);
+
+    // FezzedOne: Make sure inputs are always passed to the active player.
+    m_player = m_universeClient->mainPlayer();
+    m_cinematicOverlay->setPlayer(m_player);
 
     if (!m_mainInterface->inputFocus() && !m_cinematicOverlay->suppressInput()) {
       m_player->setShifting(isActionTaken(InterfaceAction::PlayerShifting));

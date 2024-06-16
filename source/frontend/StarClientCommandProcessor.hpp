@@ -60,6 +60,10 @@ private:
   String upgradeShip(String const& argumentsString);
   String swap(String const& argumentsString);
   String swapUuid(String const& argumentsString);
+  String add(String const& argumentsString);
+  String addUuid(String const& argumentsString);
+  String remove(String const& argumentsString);
+  String removeUuid(String const& argumentsString);
   String timeScale(String const& argumentsString);
 
   UniverseClientPtr m_universeClient;

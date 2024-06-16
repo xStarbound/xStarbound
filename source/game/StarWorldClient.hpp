@@ -15,6 +15,7 @@
 #include "StarWorld.hpp"
 #include "StarGameTimers.hpp"
 #include "StarLuaRoot.hpp"
+#include "StarUniverseClient.hpp"
 
 namespace Star {
 
@@ -38,7 +39,7 @@ STAR_EXCEPTION(WorldClientException, StarException);
 
 class WorldClient : public World {
 public:
-  WorldClient(PlayerPtr mainPlayer);
+  WorldClient(PlayerPtr mainPlayer, UniverseClient* universeClient);
   ~WorldClient();
 
   ConnectionId connection() const override;
@@ -99,13 +100,18 @@ public:
   RpcPromise<Json> sendEntityMessage(Variant<EntityId, String> const& entity, String const& message, JsonArray const& args = {}) override;
   bool isTileProtected(Vec2I const& pos) const override;
 
+  UniverseClient* universeClient() const;
+
   // Is this WorldClient properly initialized in a world
   bool inWorld() const;
 
   bool inSpace() const;
   bool flying() const;
 
+  PlayerPtr mainPlayer() const;
+  void setMainPlayer(PlayerPtr const& newMainPlayer);
   bool mainPlayerDead() const;
+  bool playerDead(PlayerPtr const& player) const;
   void reviveMainPlayer();
   bool respawnInWorld() const;
 
@@ -252,6 +258,8 @@ private:
   void setTileProtection(DungeonId dungeonId, bool isProtected);
 
   void setupForceRegions();
+
+  UniverseClient* m_universeClient;
 
   Json m_clientConfig;
   WorldTemplatePtr m_worldTemplate;

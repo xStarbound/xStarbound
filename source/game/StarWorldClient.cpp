@@ -28,7 +28,9 @@ const std::string SECRET_BROADCAST_PUBLIC_KEY = "SecretBroadcastPublicKey";
 const std::string SECRET_BROADCAST_PREFIX = "\0Broadcast\0"s;
 
 const float WorldClient::DropDist = 6.0f;
-WorldClient::WorldClient(PlayerPtr mainPlayer) {
+WorldClient::WorldClient(PlayerPtr mainPlayer, UniverseClient* universeClient) {
+  m_universeClient = universeClient;
+
   auto& root = Root::singleton();
   auto assets = root.assets();
 
@@ -109,6 +111,10 @@ WorldClient::~WorldClient() {
   clearWorld();
 }
 
+UniverseClient* WorldClient::universeClient() const {
+  return m_universeClient;
+}
+
 bool WorldClient::inWorld() const {
   return m_inWorld;
 }
@@ -125,6 +131,14 @@ bool WorldClient::flying() const {
   return m_sky->flying();
 }
 
+PlayerPtr WorldClient::mainPlayer() const {
+  return m_mainPlayer;
+}
+
+void WorldClient::setMainPlayer(PlayerPtr const& newMainPlayer) {
+  m_mainPlayer = newMainPlayer;
+}
+
 bool WorldClient::mainPlayerDead() const {
   if (inWorld())
     return !m_entityMap->get<Player>(m_mainPlayer->entityId());
@@ -132,11 +146,32 @@ bool WorldClient::mainPlayerDead() const {
     return false;
 }
 
+bool WorldClient::playerDead(PlayerPtr const& player) const {
+  if (player) {
+    if (inWorld())
+      return !m_entityMap->get<Player>(player->entityId());
+    else
+      return false;
+  } else {
+    return true;
+  }
+}
+
 void WorldClient::reviveMainPlayer() {
-  if (inWorld() && mainPlayerDead()) {
-    m_mainPlayer->revive(m_playerStart);
-    m_mainPlayer->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
-    m_entityMap->addEntity(m_mainPlayer);
+  if (inWorld()) {
+    if (mainPlayerDead()) {
+      m_mainPlayer->revive(m_playerStart);
+      m_mainPlayer->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
+      m_entityMap->addEntity(m_mainPlayer);
+    }
+    for (auto player : universeClient()->controlledPlayers()) {
+      if (player && player != m_mainPlayer) {
+        player->revive(m_playerStart);
+        player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
+        m_entityMap->addEntity(player);
+        player->moveTo(m_mainPlayer->position());
+      }
+    }
   }
 }
 
@@ -1125,6 +1160,19 @@ void WorldClient::update(float dt) {
   if (!inWorld())
     return;
 
+  for (auto player : universeClient()->controlledPlayers()) {
+    if (player && player != m_mainPlayer) {
+      if (playerDead(player) && (player->alwaysRespawnInWorld() || respawnInWorld())) {
+        // FezzedOne: Secondary players who don't have `"alwaysRespawnInWorld"` active won't automatically respawn
+        // on a world unless that world allows it. The primary player must first warp (or die) to respawn any secondaries.
+        // Keeps things kinda balanced.
+        player->revive(m_playerStart);
+        player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
+        m_entityMap->addEntity(player);
+      }
+    }
+  }
+
   auto assets = Root::singleton().assets();
 
   m_lightingCalculator.setMonochrome(Root::singleton().configuration()->get("monochromeLighting").toBool());
@@ -1780,6 +1828,16 @@ void WorldClient::initWorld(WorldStartPacket const& startPacket) {
     m_entityMap->addEntity(m_mainPlayer);
   }
   m_mainPlayer->moveTo(startPacket.playerStart);
+  for (auto& player : universeClient()->controlledPlayers()) {
+    if (player && player != m_mainPlayer) {
+      if (player->isDead())
+        player->revive(startPacket.playerStart);
+      player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
+      m_entityMap->addEntity(player);
+      if (!player->isDead())
+        player->moveTo(startPacket.playerStart);
+    }
+  }
   if (m_worldTemplate->worldParameters() && !(m_mainPlayer->ignoreAllTechOverrides() || m_mainPlayer->isAdmin()))
     m_mainPlayer->overrideTech(m_worldTemplate->worldParameters()->overrideTech);
   else

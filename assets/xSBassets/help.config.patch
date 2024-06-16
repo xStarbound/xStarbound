@@ -18,8 +18,12 @@
     "nick": "Usage /nick [new nickname]. Sets the player's nickname to the one specified. The nickname does not to have spaces escaped or quoted.",
     "w": "Usage /w [player name] [message]. Whispers to the player with the specified nickname. Spaces and the like in the nickname must be appropriately escaped or quoted. The message, on the other hand, does not need to be escaped or quoted.",
     "world": "Usage /world. Lists all players on the same world as the player invoking the command.",
-    "swap": "Usage /swap [name or part of name]. Swaps to the first character whose name contains the specified argument, if any such character exists. Spaces and the like must be appropriately escaped or quoted.",
-    "swapuuid": "Usage /swap [UUID]. Swaps to the character with the specified UUID, if the character exists. The UUID specified must be the character's real UUID, not the vanity UUID."
+    "swap": "Usage /swap [name or part of name]. Swaps to the first character whose name contains the specified argument, if any such character exists. If the character is already loaded as a secondary, this will swap control to that character. Spaces and the like must be appropriately escaped or quoted.",
+    "swapuuid": "Usage /swap [UUID]. Swaps to the character with the specified UUID, if the character exists. If the character is already loaded as a secondary, this will swap control to that character.  The UUID specified must be the character's real UUID, not the vanity UUID.",
+    "add": "Usage /add [name or part of name]. Adds the first character whose name contains the specified argument, if any such character exists, to the loaded secondary characters, then immediately spawns the character at the primary character's position. Spaces and the like must be appropriately escaped or quoted.",
+    "adduuid": "Usage /adduuid [UUID]. If the character exists, adds the character with the specified UUID to the loaded secondary characters, then immediately spawns the character, at the primary character's position. The UUID specified must be the character's real UUID, not the vanity UUID.",
+    "remove": "Usage /remove [name or part of name]. Removes the first character whose name contains the specified argument, if any such character exists, from the loaded secondary characters, then immediately despawns and saves the character. Spaces and the like must be appropriately escaped or quoted.",
+    "removeuuid": "Usage /removeuuid [UUID]. Removes the character with the specified UUID from the loaded secondary characters, then immediately despawns and saves the character, if the character exists. The UUID specified must be the character's real UUID, not the vanity UUID."
   },
 
   "adminCommands" : {
