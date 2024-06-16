@@ -825,7 +825,7 @@ PlayerPtr UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, boo
 }
 
 void UniverseClient::doSwitchPlayer(Uuid const& uuid) {
-  reloadAllPlayers(true, true);
+  // reloadAllPlayers(true, true);
   auto isAlreadyLoaded = playerIsLoaded(uuid);
   if (uuid == mainPlayer()->uuid())
     return;
@@ -864,7 +864,7 @@ void UniverseClient::doAddPlayer(Uuid const& uuid) {
   else if (isAlreadyLoaded.first) {
     return;
   } else {
-    reloadAllPlayers(true, true);
+    // reloadAllPlayers(true, true);
     if (auto player = loadPlayer(uuid, false, true)) {
       auto dance = Root::singleton().assets()->json("/player.config:swapDance");
       if (dance.isType(Json::Type::String))
@@ -890,13 +890,13 @@ void UniverseClient::doRemovePlayer(Uuid const& uuid) {
             player->uninit();
           }
           m_playerStorage->savePlayer(player);
-          player.reset();
+          // player.reset();
           m_loadedPlayers.remove(player);
           break;
         }
       }
     }
-    reloadAllPlayers(true, true);
+    // reloadAllPlayers(true, true);
   }
 
   return;
