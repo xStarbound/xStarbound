@@ -93,6 +93,7 @@ public:
   void stopLua();
 
   std::pair<bool, PlayerPtr> playerIsLoaded(Uuid const& uuid);
+  void reloadAllPlayers(bool resetInterfaces = false, bool showIndicator = false);
   bool reloadPlayer(Json const& data, Uuid const& uuid, bool resetInterfaces = false, bool showIndicator = false);
   PlayerPtr loadPlayer(Uuid const& uuid, bool resetInterfaces = false, bool showIndicator = false);
   

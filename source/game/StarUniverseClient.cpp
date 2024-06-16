@@ -622,6 +622,51 @@ std::pair<bool, PlayerPtr> UniverseClient::playerIsLoaded(Uuid const& uuid) {
   return returnVal;
 }
 
+void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) {
+  for (auto& player : m_loadedPlayers) {
+    if (!player) throw PlayerException("Attempted to reload an unloaded player!");
+
+    bool playerInWorld = player->inWorld();
+    if (!playerInWorld) return;
+
+    bool alreadyLoaded = false;
+    auto worldPtr = m_mainPlayer->world();
+    auto world = as<WorldClient>(worldPtr);
+    auto uuid = player->uuid();
+    auto data = m_playerStorage->getPlayerData(uuid);
+
+    auto entitySpace = connectionEntitySpace(world->connection());
+    bool alreadyHasId = playerInWorld || !world->inWorld();
+    EntityId entityId = alreadyHasId ? player->entityId() : entitySpace.first; // entitySpace.first;
+
+    if (m_playerReloadPreCallback)
+      m_playerReloadPreCallback(resetInterfaces);
+
+    ProjectilePtr indicator;
+
+    if (showIndicator) {
+      // EntityCreatePacket for player entities can be pretty big.
+      // We can show a loading projectile to other players while the create packet uploads.
+      auto projectileDb = Root::singleton().projectileDatabase();
+      auto config = projectileDb->projectileConfig("xsb:playerloading");
+      indicator = projectileDb->createProjectile("stationpartsound", config);
+      indicator->setInitialPosition(player->position());
+      indicator->setInitialDirection({ 1.0f, 0.0f });
+      world->addEntity(indicator);
+    }
+
+    world->removeEntity(player->entityId(), false);
+
+    world->addEntity(player, entityId);
+
+    if (indicator && indicator->inWorld())
+      world->removeEntity(indicator->entityId(), false);
+
+    if (m_playerReloadCallback)
+      m_playerReloadCallback(resetInterfaces);
+  }
+}
+
 bool UniverseClient::reloadPlayer(Json const& data, Uuid const& uuid, bool resetInterfaces, bool showIndicator) {
   auto player = mainPlayer();
   if (!player) throw PlayerException("Attempted to reload an unloaded player!");
@@ -671,7 +716,7 @@ bool UniverseClient::reloadPlayer(Json const& data, Uuid const& uuid, bool reset
   Json originalData = m_playerStorage->savePlayer(player);
   std::exception_ptr exception;
 
-  Logger::info("[xSB] UniverseClient: {} player [UUID: {}].", alreadyLoaded ? "Swapped to loaded secondary" : "Loading primary", uuid.hex());
+  Logger::info("[xSB] UniverseClient: {} player [{}].", alreadyLoaded ? "Swapped to loaded secondary" : "Loading primary", uuid.hex());
 
   if (!alreadyLoaded) {
     try {
@@ -780,6 +825,7 @@ PlayerPtr UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, boo
 }
 
 void UniverseClient::doSwitchPlayer(Uuid const& uuid) {
+  reloadAllPlayers(true, true);
   auto isAlreadyLoaded = playerIsLoaded(uuid);
   if (uuid == mainPlayer()->uuid())
     return;
@@ -817,12 +863,15 @@ void UniverseClient::doAddPlayer(Uuid const& uuid) {
     return;
   else if (isAlreadyLoaded.first) {
     return;
-  } else if (auto player = loadPlayer(uuid, false, true)) {
-    auto dance = Root::singleton().assets()->json("/player.config:swapDance");
-    if (dance.isType(Json::Type::String))
-      player->humanoid()->setDance(dance.toString());
-    m_loadedPlayers.emplaceAppend(player);
-    return;
+  } else {
+    reloadAllPlayers(true, true);
+    if (auto player = loadPlayer(uuid, false, true)) {
+      auto dance = Root::singleton().assets()->json("/player.config:swapDance");
+      if (dance.isType(Json::Type::String))
+        player->humanoid()->setDance(dance.toString());
+      m_loadedPlayers.emplaceAppend(player);
+      return;
+    }
   }
 
   return;
@@ -847,6 +896,7 @@ void UniverseClient::doRemovePlayer(Uuid const& uuid) {
         }
       }
     }
+    reloadAllPlayers(true, true);
   }
 
   return;
