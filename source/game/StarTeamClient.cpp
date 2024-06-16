@@ -31,6 +31,10 @@ bool TeamClient::isTeamLeader() {
   return m_teamLeader == m_clientContext->playerUuid();
 }
 
+void TeamClient::setMainPlayer(PlayerPtr newMainPlayer) {
+  m_mainPlayer = newMainPlayer;
+}
+
 bool TeamClient::isTeamLeader(Uuid const& playerUuid) {
   if (!m_teamUuid)
     return false;

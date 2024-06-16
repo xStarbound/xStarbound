@@ -28,6 +28,8 @@ public:
 
   TeamClient(PlayerPtr mainPlayer, ClientContextPtr clientContext);
 
+  void setMainPlayer(PlayerPtr newMainPlayer);
+
   void invitePlayer(String const& playerName);
   void acceptInvitation(Uuid const& inviterUuid);
 

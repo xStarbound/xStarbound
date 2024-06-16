@@ -627,12 +627,17 @@ bool UniverseClient::reloadPlayer(Json const& data, Uuid const& uuid, bool reset
   if (!player) throw PlayerException("Attempted to reload an unloaded player!");
 
   bool playerInWorld = player->inWorld();
+  if (!playerInWorld) return false;
+
   bool alreadyLoaded = !(data.type() == Json::Type::Object);
-  auto world = as<WorldClient>(player->world());
+  auto worldPtr = m_mainPlayer->world();
+  auto world = as<WorldClient>(worldPtr);
 
   auto entitySpace = connectionEntitySpace(world->connection());
   bool alreadyHasId = playerInWorld || !world->inWorld();
   EntityId entityId = alreadyHasId ? player->entityId() : entitySpace.first; // entitySpace.first;
+
+  player->setBusyState(PlayerBusyState::None);
 
   // if (alreadyLoaded)
   //   player->uninit();
@@ -703,7 +708,6 @@ bool UniverseClient::reloadPlayer(Json const& data, Uuid const& uuid, bool reset
 }
 
 PlayerPtr UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool showIndicator) {
-  bool playerInWorld = false;
   auto world = as<WorldClient>(m_mainPlayer->world());
 
   if (m_respawning) return nullptr; // Don't allow loading players while respawning!
@@ -781,12 +785,14 @@ void UniverseClient::doSwitchPlayer(Uuid const& uuid) {
   else if (isAlreadyLoaded.first) {
     auto oldMainPlayer = m_mainPlayer;
     m_mainPlayer = isAlreadyLoaded.second;
+    m_teamClient->setMainPlayer(m_mainPlayer);
     try {
       reloadPlayer(Json(), uuid, true, true);
       if (m_mainPlayer->inWorld())
         as<WorldClient>(m_mainPlayer->world())->setMainPlayer(m_mainPlayer);
     } catch (std::exception const& e) {
       m_mainPlayer = oldMainPlayer;
+      m_teamClient->setMainPlayer(oldMainPlayer);
       if (m_mainPlayer->inWorld())
         as<WorldClient>(m_mainPlayer->world())->setMainPlayer(m_mainPlayer);
       throw;

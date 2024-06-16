@@ -1162,6 +1162,8 @@ void WorldClient::update(float dt) {
   if (!inWorld())
     return;
 
+  m_clientState.setPlayer(m_mainPlayer->entityId());
+
   for (auto player : universeClient()->controlledPlayers()) {
     if (player && player != m_mainPlayer) {
       if (playerDead(player) && (player->alwaysRespawnInWorld() || respawnInWorld())) {
@@ -1233,7 +1235,6 @@ void WorldClient::update(float dt) {
       return a->entityType() < b->entityType();
     });
 
-  m_clientState.setPlayer(m_mainPlayer->entityId());
   m_clientState.setClientPresenceEntities(move(clientPresenceEntities));
 
   m_damageManager->update(dt);
