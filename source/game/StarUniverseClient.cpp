@@ -638,6 +638,7 @@ bool UniverseClient::reloadPlayer(Json const& data, Uuid const& uuid, bool reset
   EntityId entityId = alreadyHasId ? player->entityId() : entitySpace.first; // entitySpace.first;
 
   player->setBusyState(PlayerBusyState::None);
+  player->passChatOpen(false);
 
   // if (alreadyLoaded)
   //   player->uninit();
