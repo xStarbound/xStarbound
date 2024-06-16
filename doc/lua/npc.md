@@ -1,6 +1,6 @@
 # npc
 
-The `npc` table is for functions relating directly to the current npc. It is available only in NPC scripts.
+The `npc` table is for functions relating directly to the current NPC. It is available only in NPC scripts.
 
 ---
 
@@ -18,55 +18,55 @@ Returns the species of the npc.
 
 #### `String` npc.gender()
 
-Returns the gender of the npc
+Returns the gender of the NPC.
 
 ---
 
 #### `Json` npc.humanoidIdentity()
 
-Returns the specific humanoid identity of the npc, containing information such as hair style and idle pose.
+Returns the NPC's humanoid identity.
 
 ---
 
 #### `String` npc.npcType()
 
-Returns the npc type of the npc.
+Returns the NPC type of the NPC.
 
 ---
 
 #### `uint64_t` npc.seed()
 
-Returns the seed used to generate this npc.
+Returns the seed used to generate this NPC.
 
 ---
 
 #### `float` npc.level()
 
-Returns the level of the npc.
+Returns the level of the NPC.
 
 ---
 
 #### `List<String>` npc.dropPools()
 
-Returns the list of treasure pools that will spawn when the npc dies.
+Returns the list of treasure pools that will spawn when the NPC dies.
 
 ---
 
 #### `void` npc.setDropPools(`List<String>` pools)
 
-Sets the list of treasure pools that will spawn when the npc dies.
+Sets the list of treasure pools that will spawn when the NPC dies.
 
 ---
 
 #### `float` npc.energy()
 
-Returns the current energy of the npc. Same as `status.resource("energy")`
+Returns the current energy of the NPC. Equivalent to `status.resource("energy")`.
 
 ---
 
 #### `float` npc.maxEnergy()
 
-Returns the current energy of the npc. Same as `status.maxResource("energy")`
+Returns the maximum energy of the NPC. Equivalent: `status.maxResource("energy")`.
 
 ---
 
@@ -76,12 +76,12 @@ Makes the npc say a string. Optionally pass in tags to replace text tags. Option
 
 Returns whether the chat message was successfully added.
 
-Available options:
-```
-{
+An example showing the available options:
+```lua
+jobject{
   drawBorder = true,
   fontSize = 8,
-  color = {255, 255, 255},
+  color = jarray{255, 255, 255},
   sound = "/sfx/humanoid/avian_chatter_male1.ogg"
 }
 ```
@@ -105,44 +105,44 @@ Available options:
 
 #### `void` npc.emote(`String` emote)
 
-Makes the npc show a facial emote.
+Makes the NPC show a facial emote.
 
 ---
 
 #### `void` npc.dance(`String` dance)
 
-Sets the current dance for the npc. Dances are defined in .dance files.
+Sets the current dance for the NPC. Dances are defined in `.dance` files.
 
 ---
 
 #### `void` npc.setInteractive(`bool` interactive)
 
-Sets whether the npc should be interactive.
+Sets whether the NPC should be interactive.
 
 ---
 
 #### `bool` npc.setLounging(`EntityId` loungeable, [`size_t` anchorIndex])
 
-Sets the npc to lounge in a loungeable. Optionally specify which anchor (seat) to use.
-Returns whether the npc successfully lounged.
+Sets the NPC to lounge in a loungeable entity. Optionally specify which anchor (seat) to use.
+Returns whether the NPC successfully lounged.
 
 ---
 
 #### `void` npc.resetLounging()
 
-Makes the npc stop lounging.
+Makes the NPC stop lounging.
 
 ---
 
 #### `bool` npc.isLounging()
 
-Returns whether the npc is currently lounging.
+Returns whether the NPC is currently lounging.
 
 ---
 
 #### `Maybe<EntityId>` npc.loungingIn()
 
-Returns the EntityId of the loungeable the NPC is currently lounging in. Returns nil if not lounging.
+Returns the entity ID of the loungeable the NPC is currently lounging in. Returns `nil` if the NPC is not lounging.
 
 ---
 
@@ -154,67 +154,68 @@ Sets the list of quests the NPC will offer.
 
 #### `void` npc.setTurnInQuests(`JsonArray` quests)
 
-Sets the list of quests the played can turn in at this npc.
+Sets the list of quests the player can turn in at this NPC.
 
 ---
 
-#### `bool` npc.setItemSlot(`String` slot, `ItemDescriptor` item)
+#### `bool` npc.setItemSlot(`ItemSlot` slot, `ItemDescriptor` item)
 
 Sets the specified item slot to contain the specified item.
 
-Possible equipment items slots:
-* head
-* headCosmetic
-* chest
-* chestCosmetic
-* legs
-* legsCosmetic
-* back
-* backCosmetic
-* primary
-* alt
+The valid values for `slot` are:
+
+- `"head"`
+- `"headCosmetic"`
+- `"chest"`
+- `"chestCosmetic"`
+- `"legs"`
+- `"legsCosmetic"`
+- `"back"`
+- `"backCosmetic"`
+- `"primary"`
+- `"alt"`
 
 ---
 
-#### `ItemDescriptor` npc.getItemSlot(`String` slot)
+#### `ItemDescriptor` npc.getItemSlot(`ItemSlot` slot)
 
-Returns the item currently in the specified item slot.
+Returns the item currently in the specified item slot. See above for valid values for `slot`.
 
 ---
 
 #### `void` npc.disableWornArmor(`bool` disable)
 
-Set whether the npc should not gain status effects from the equipped armor. Armor will still be visually equipped.
+Set whether the NPC should not gain status effects from the equipped armour. Armour will still be visually equipped.
 
 ---
 
 #### `void` npc.beginPrimaryFire()
 
-Toggles `on` firing the item equipped in the `primary` item slot.
+Makes the NPC start firing the item equipped in the `"primary"` item slot.
 
 ---
 
 #### `void` npc.beginAltFire()
 
-Toggles `on` firing the item equipped in the `alt` item slot.
+Makes the NPC start firing the item equipped in the `"alt"` item slot.
 
 ---
 
 #### `void` npc.endPrimaryFire()
 
-Toggles `off` firing the item equipped in the `primary` item slot.
+Stops the NPC from firing the item equipped in the `"primary"` item slot.
 
 ---
 
 #### `void` npc.endAltFire()
 
-Toggles `off` firing the item equipped in the `alt` item slot.
+Stops the NPC from firing the item equipped in the `"alt"` item slot.
 
 ---
 
 #### `void` npc.setShifting(`bool` shifting)
 
-Sets whether tools should be used as though shift is held.
+Sets whether tools should be used as though the **Run** key (**Shift** by default) were held.
 
 ---
 
@@ -226,61 +227,67 @@ Sets whether damage on touch should be enabled.
 
 #### `Vec2F` npc.aimPosition()
 
-Returns the current aim position in world space.
+Returns the NPC's current aim position in world coordinates.
 
 ---
 
 #### `void` npc.setAimPosition(`Vec2F` position)
 
-Sets the aim position in world space.
+Sets the NPC's aim position in world coordinates.
 
 ---
 
 #### `void` npc.setDeathParticleBurst(`String` emitter)
 
-Sets a particle emitter to burst when the npc dies.
+Sets a particle emitter to burst when the NPC dies.
 
 ---
 
 #### `void` npc.setStatusText(`String` status)
 
-Sets the text to appear above the npc when it first appears on screen.
+Sets the text to appear above the NPC when it first appears on screen.
 
 ---
 
 #### `void` npc.setDisplayNametag(`bool` display)
 
-Sets whether the nametag should be displayed above the NPC.
+Sets whether the name tag should be displayed above the NPC.
 
 ---
 
 #### `void` npc.setPersistent(`bool` persistent)
 
-Sets whether this npc should persist after being unloaded.
+Sets whether this NPC should persist (i.e., be saved to the world) after being unloaded.
 
 ---
 
 #### `void` npc.setKeepAlive(`bool` keepAlive)
 
-Sets whether to keep this npc alive. If true, the npc will never be unloaded as long as the world is loaded.
+Sets whether to keep this NPC alive. If true, the NPC will never be unloaded as long as the world is loaded. See also `npc.setPersistent`.
 
 ---
 
 #### `void` npc.setDamageTeam(`Json` damageTeam)
 
-Sets a damage team for the npc in the format: `{type = "enemy", team = 2}`
+Sets a damage team for the NPC.
+
+Example of the required format:
+
+```lua
+jarray{ type = "enemy", team = 2 }
+```
 
 ---
 
 #### `void` npc.setAggressive(`bool` aggressive)
 
-Sets whether the npc should be flagged as aggressive.
+Sets whether the NPC should be flagged as aggressive.
 
 ---
 
 #### `void` npc.setUniqueId(`String` uniqueId)
 
-Sets a unique ID for this npc that can be used to access it. A unique ID has to be unique for the world the npc is on, but not universally unique.
+Sets a unique ID for this NPC that can be used to access it. If `nil` is specified, clears any existing unique ID. A unique ID has to be unique for the world the NPC is on, but not universally unique.
 
 --- 
 
