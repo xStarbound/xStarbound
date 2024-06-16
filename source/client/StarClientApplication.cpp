@@ -860,9 +860,7 @@ void ClientApplication::updateRunning(float dt) {
     if (p2pNetworkingService)
       p2pNetworkingService->setActivityData("In Game", party);
 
-    // FezzedOne: Make sure inputs are always passed to the active player.
-    m_player = m_universeClient->mainPlayer();
-    m_cinematicOverlay->setPlayer(m_player);
+    
 
     if (!m_mainInterface->inputFocus() && !m_cinematicOverlay->suppressInput()) {
       m_player->setShifting(isActionTaken(InterfaceAction::PlayerShifting));
@@ -955,6 +953,9 @@ void ClientApplication::updateRunning(float dt) {
     // FezzedOne: Needs to be moved up here to prevent a callback from returning a position of {0, 0} the tick after a world is loaded.  
     updateCamera(dt);
     m_universeClient->update(dt);
+    // FezzedOne: Make sure inputs are always passed to the active player.
+    m_player = m_universeClient->mainPlayer();
+    m_cinematicOverlay->setPlayer(m_player);
 
     if (checkDisconnection())
       return;
