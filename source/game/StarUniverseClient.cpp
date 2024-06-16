@@ -829,8 +829,10 @@ void UniverseClient::doRemovePlayer(Uuid const& uuid) {
       if (player) {
         if (uuid == player->uuid()) {
           Logger::info("[xSB] UniverseClient: Removing secondary player '{}' [{}].", player->name(), uuid.hex());
-          if (player->inWorld())
+          if (player->inWorld()) {
             as<WorldClient>(player->world())->removeEntity(player->entityId(), false);
+            player->uninit();
+          }
           m_playerStorage->savePlayer(player);
           player.reset();
           m_loadedPlayers.remove(player);
