@@ -88,25 +88,6 @@ void UniverseClient::setMainPlayer(PlayerPtr player) {
     m_playerStorage->moveToFront(m_mainPlayer->uuid());
     if (selectedFromTitleScreen)
       m_shouldUpdateMainPlayerShip = m_mainPlayer->shipUpdatesIgnored();
-
-    for (auto uuid : m_playerStorage->playerUuids()) {
-      if (uuid == m_mainPlayerUuid) {
-        m_loadedPlayers[uuid] = {true, m_mainPlayer};
-      } else {
-        m_playerStorage->backupCycle(uuid);
-        auto playerToLoad = m_playerStorage->loadPlayer(uuid);
-        m_playerStorage->savePlayer(playerToLoad);
-        playerToLoad->setClientContext(m_clientContext);
-        playerToLoad->setStatistics(m_statistics);
-        playerToLoad->setUniverseClient(this);
-        m_loadedPlayers[uuid] = {false, playerToLoad};
-      }
-    }
-
-    size_t playerCount = m_playerStorage->playerCount();
-    Logger::info("UniverseClient: Pre-loaded {} saved {}",
-      playerCount,
-      playerCount == 1 ? "player" : "players");
   }    
 }
 
@@ -123,6 +104,22 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
 
   if (!m_mainPlayer)
     throw StarException("Cannot call UniverseClient::connect with no main player");
+
+  for (auto uuid : m_playerStorage->playerUuids()) {
+    if (uuid == m_mainPlayerUuid) {
+      m_loadedPlayers[uuid] = {true, m_mainPlayer};
+    } else {
+      m_playerStorage->backupCycle(uuid);
+      auto playerToLoad = m_playerStorage->loadPlayer(uuid);
+      m_playerStorage->savePlayer(playerToLoad);
+      m_loadedPlayers[uuid] = {false, playerToLoad};
+    }
+  }
+
+  size_t playerCount = m_playerStorage->playerCount();
+  Logger::info("UniverseClient: Pre-loaded {} saved {}",
+    playerCount,
+    playerCount == 1 ? "player" : "players");
 
   unsigned timeout = assets->json("/client.config:serverConnectTimeout").toUInt();
 
@@ -152,7 +149,7 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
   connection.receiveAny(timeout);
   auto packet = connection.pullSingle();
   if (auto challenge = as<HandshakeChallengePacket>(packet)) {
-    Logger::info("UniverseClient: Sending Handshake Response");
+    Logger::info("UniverseClient: Sending handshake challenge");
     ByteArray passAccountSalt = (password + account).utf8Bytes();
     passAccountSalt.append(challenge->passwordSalt);
     ByteArray passHash = Star::sha256(passAccountSalt);
@@ -168,6 +165,15 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     m_universeClock = make_shared<Clock>();
     m_clientContext = make_shared<ClientContext>(success->serverUuid, m_mainPlayer->uuid());
     m_teamClient = make_shared<TeamClient>(m_mainPlayer, m_clientContext);
+
+    m_mainPlayer->setClientContext(m_clientContext);
+    m_mainPlayer->setStatistics(m_statistics);
+    m_mainPlayer->setUniverseClient(this);
+
+    size_t loadedCount = m_loadedPlayers.size();
+    Logger::info("UniverseClient: Setting up {} pre-loaded {}",
+      loadedCount,
+      loadedCount == 1 ? "player" : "players");
 
     for (auto& loadedPlayer : m_loadedPlayers) {
       auto& player = loadedPlayer.second.ptr;

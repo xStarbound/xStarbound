@@ -1597,7 +1597,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
 
     if (!clientConnect->account.empty()) {
       auto passwordSalt = secureRandomBytes(assets->json("/universe_server.config:passwordSaltLength").toUInt());
-      Logger::info("UniverseServer: Sending Handshake Challenge");
+      Logger::info("UniverseServer: Sending handshake challenge");
       connection.pushSingle(make_shared<HandshakeChallengePacket>(passwordSalt));
       connection.sendAll(clientWaitLimit);
       connection.receiveAny(clientWaitLimit);
