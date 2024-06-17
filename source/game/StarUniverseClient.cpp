@@ -36,6 +36,7 @@ UniverseClient::UniverseClient(PlayerStoragePtr playerStorage, StatisticsPtr sta
   m_playerToSwitchTo = {};
   m_playersToLoad = {};
   m_loadedPlayers = {};
+  m_mainPlayerUuid = Uuid();
   m_luaRoot = make_shared<LuaRoot>();
   auto clientConfig = Root::singleton().assets()->json("/client.config");
   m_luaRoot->tuneAutoGarbageCollection(clientConfig.getFloat("luaGcPause"), clientConfig.getFloat("luaGcStepMultiplier"));
@@ -60,6 +61,17 @@ void UniverseClient::setMainPlayer(PlayerPtr player) {
     m_playerStorage->savePlayer(m_mainPlayer);
     m_mainPlayer->setClientContext({});
     m_mainPlayer->setStatistics({});
+    m_mainPlayerUuid = Uuid();
+
+    for (auto loadedPlayer : m_loadedPlayers) {
+      if (auto& player = loadedPlayer.second.ptr) {
+        m_playerStorage->savePlayer(player);
+        player->setClientContext({});
+        player->setStatistics({});
+      }
+    }
+
+    m_loadedPlayers = {};
   } else {
     selectedFromTitleScreen = true;
   }
@@ -67,6 +79,7 @@ void UniverseClient::setMainPlayer(PlayerPtr player) {
   m_mainPlayer = player;
 
   if (m_mainPlayer) {
+    m_mainPlayerUuid = m_mainPlayer->uuid();
     m_mainPlayer->setClientContext(m_clientContext);
     m_mainPlayer->setStatistics(m_statistics);
     m_mainPlayer->setUniverseClient(this);
@@ -75,7 +88,26 @@ void UniverseClient::setMainPlayer(PlayerPtr player) {
     m_playerStorage->moveToFront(m_mainPlayer->uuid());
     if (selectedFromTitleScreen)
       m_shouldUpdateMainPlayerShip = m_mainPlayer->shipUpdatesIgnored();
-  }
+
+    for (auto uuid : m_playerStorage->playerUuids()) {
+      if (uuid == m_mainPlayerUuid) {
+        m_loadedPlayers[uuid] = {true, m_mainPlayer};
+      } else {
+        m_playerStorage->backupCycle(uuid);
+        auto playerToLoad = m_playerStorage->loadPlayer(uuid);
+        m_playerStorage->savePlayer(playerToLoad);
+        playerToLoad->setClientContext(m_clientContext);
+        playerToLoad->setStatistics(m_statistics);
+        playerToLoad->setUniverseClient(this);
+        m_loadedPlayers[uuid] = {false, playerToLoad};
+      }
+    }
+
+    size_t playerCount = m_playerStorage->playerCount();
+    Logger::info("UniverseClient: Pre-loaded {} saved {}",
+      playerCount,
+      playerCount == 1 ? "player" : "players");
+  }    
 }
 
 PlayerPtr UniverseClient::mainPlayer() const {
@@ -137,14 +169,6 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     m_clientContext = make_shared<ClientContext>(success->serverUuid, m_mainPlayer->uuid());
     m_teamClient = make_shared<TeamClient>(m_mainPlayer, m_clientContext);
 
-    for (auto uuid : m_playerStorage->playerUuids()) {
-      if (uuid == m_mainPlayerUuid) {
-        m_loadedPlayers[uuid] = {true, m_mainPlayer};
-      } else {
-        m_loadedPlayers[uuid] = {false, m_playerStorage->loadPlayer(uuid)};
-      }
-    }
-
     for (auto& loadedPlayer : m_loadedPlayers) {
       auto& player = loadedPlayer.second.ptr;
       player->setClientContext(m_clientContext);
@@ -161,15 +185,11 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     m_celestialDatabase = make_shared<CelestialSlaveDatabase>(move(success->celestialInformation));
     m_systemWorldClient = make_shared<SystemWorldClient>(m_universeClock, m_celestialDatabase, m_mainPlayer->universeMap());
 
-    m_mainPlayerUuid = m_mainPlayer->uuid();
-
     size_t playerCount = m_playerStorage->playerCount();
 
-    Logger::info("UniverseClient: Joined {} server as client {}; loaded {} {}",
+    Logger::info("UniverseClient: Joined {} server as client {}",
       m_legacyServer ? "Starbound" : "xSB-2/OpenSB",
-      success->clientId,
-      playerCount,
-      playerCount == 1 ? "player" : "players");
+      success->clientId);
     return {};
   } else if (auto failure = as<ConnectFailurePacket>(packet)) {
     Logger::error("UniverseClient: Join failed: {}", failure->reason);
