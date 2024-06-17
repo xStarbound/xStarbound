@@ -422,7 +422,10 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
           auto targetEntityConnection = connectionForEntity(targetId);
           if (targetEntityConnection == ServerConnectionId) {
             auto interactResult = interact(entityInteract->interactRequest).result();
-            clientInfo->outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, entityInteract->interactRequest.sourceId));
+            if (interactResult)
+              clientInfo->outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, entityInteract->interactRequest.sourceId));
+            else
+              Logger::warn("No result from server-side entity interaction");
           } else {
             auto const& forwardClientInfo = m_clientInfo.get(targetEntityConnection);
             forwardClientInfo->outgoingPackets.append(entityInteract);
@@ -435,7 +438,10 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
             EntityId sourceId = entityInteract->interactRequest.sourceId;
             Logger::info("[xSB] Attempted interaction from entity {} with non-interactive server-side entity {}.", sourceId, targetId);
             auto interactResult = RpcPromise<InteractAction>::createFulfilled(InteractAction()).result();
-            clientInfo->outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, sourceId));
+            if (interactResult)
+              clientInfo->outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, sourceId));
+            else
+              Logger::warn("No result from server-side entity interaction");
           } else {
             auto const& forwardClientInfo = m_clientInfo.get(targetEntityConnection);
             forwardClientInfo->outgoingPackets.append(entityInteract);

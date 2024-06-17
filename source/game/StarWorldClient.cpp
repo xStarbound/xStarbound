@@ -1112,7 +1112,10 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
 
     } else if (auto entityInteract = as<EntityInteractPacket>(packet)) {
       auto interactResult = interact(entityInteract->interactRequest).result();
-      m_outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, entityInteract->interactRequest.sourceId));
+      if (interactResult)
+        m_outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, entityInteract->interactRequest.sourceId));
+      else
+        Logger::warn("No result from client-side entity interaction");
 
     } else if (auto interactResult = as<EntityInteractResultPacket>(packet)) {
       // From OpenSB: Prevent CTMs and potential client segfaults here.
