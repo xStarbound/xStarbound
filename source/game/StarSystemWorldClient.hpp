@@ -16,7 +16,9 @@ STAR_CLASS(ClientContext);
 
 class SystemWorldClient : public SystemWorld {
 public:
-  SystemWorldClient(ClockConstPtr universeClock, CelestialDatabasePtr celestialDatabase, PlayerUniverseMapPtr clientContext);
+  SystemWorldClient(ClockConstPtr universeClock, CelestialDatabasePtr celestialDatabase, PlayerUniverseMapPtr universeMap);
+
+  void setUniverseMap(PlayerUniverseMapPtr newUniverseMap);
 
   CelestialCoordinate currentSystem() const;
 

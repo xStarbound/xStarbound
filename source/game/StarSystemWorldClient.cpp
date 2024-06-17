@@ -9,6 +9,10 @@ namespace Star {
 SystemWorldClient::SystemWorldClient(ClockConstPtr universeClock, CelestialDatabasePtr celestialDatabase, PlayerUniverseMapPtr universeMap)
   : SystemWorld(universeClock, celestialDatabase), m_universeMap(move(universeMap)) {}
 
+void SystemWorldClient::setUniverseMap(PlayerUniverseMapPtr newUniverseMap) {
+  m_universeMap = move(newUniverseMap);
+}
+
 CelestialCoordinate SystemWorldClient::currentSystem() const {
   return CelestialCoordinate(m_location);
 }

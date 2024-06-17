@@ -432,9 +432,9 @@ namespace LuaBindings {
       callbacks.registerCallback("ownPlayerUuids", [clientWorld]() {
         List<String> playerUuids;
 
-        for (auto& player : clientWorld->universeClient()->controlledPlayers()) {
-          if (player)
-            playerUuids.emplace_back(player->uuid().hex());
+        for (auto& entry : clientWorld->universeClient()->controlledPlayers()) {
+          if (entry.second)
+            playerUuids.emplace_back(entry.first.hex());
         }
 
         return playerUuids;

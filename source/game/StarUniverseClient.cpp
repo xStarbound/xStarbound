@@ -24,6 +24,7 @@
 #include "StarPlayerUniverseMap.hpp"
 #include "StarWorldTemplate.hpp"
 #include "StarCelestialLuaBindings.hpp"
+#include "StarStatusController.hpp"
 
 namespace Star {
 
@@ -42,7 +43,7 @@ UniverseClient::UniverseClient(PlayerStoragePtr playerStorage, StatisticsPtr sta
 }
 
 UniverseClient::~UniverseClient() {
-  // FezzedOne: Tell the Lua root to clean up its fucking garbage and properly shut down here.
+  // FezzedOne: Tell the Lua root to shut down properly.
   if (m_luaRoot) {
     m_luaRoot->shutdown();
   }
@@ -146,20 +147,22 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     m_celestialDatabase = make_shared<CelestialSlaveDatabase>(move(success->celestialInformation));
     m_systemWorldClient = make_shared<SystemWorldClient>(m_universeClock, m_celestialDatabase, m_mainPlayer->universeMap());
 
-    if (m_loadedPlayers.size()) {
-      for (auto& player : m_loadedPlayers) {
-        if (player) {
-          m_playerStorage->savePlayer(player); // FezzedOne: Better safe than sorry.
-          player.reset();
-        }
-      }
-    }
-
-    m_loadedPlayers = {};
-    m_loadedPlayers.emplaceAppend(m_mainPlayer);
     m_mainPlayerUuid = m_mainPlayer->uuid();
 
-    Logger::info("UniverseClient: Joined {} server as client {}", m_legacyServer ? "Starbound" : "xSB-2/OpenSB", success->clientId);
+    for (auto uuid : m_playerStorage->playerUuids()) {
+      if (uuid == m_mainPlayerUuid)
+        m_loadedPlayers[uuid] = {false, m_mainPlayer};
+      else
+        m_loadedPlayers[uuid] = {true, m_playerStorage->loadPlayer(uuid)};
+    }
+
+    size_t playerCount = m_playerStorage->playerCount();
+
+    Logger::info("UniverseClient: Joined {} server as client {}; loaded {} {}",
+      m_legacyServer ? "Starbound" : "xSB-2/OpenSB",
+      success->clientId,
+      playerCount,
+      playerCount == 1 ? "player" : "players");
     return {};
   } else if (auto failure = as<ConnectFailurePacket>(packet)) {
     Logger::error("UniverseClient: Join failed: {}", failure->reason);
@@ -194,6 +197,11 @@ void UniverseClient::disconnect() {
 
   reset();
   m_mainPlayer = {};
+  m_loadedPlayers = {};
+  size_t playerCount = m_playerStorage->playerCount();
+  Logger::info("UniverseClient: Unloaded {} {}",
+    playerCount,
+    playerCount == 1 ? "player" : "players");
 }
 
 Maybe<String> UniverseClient::disconnectReason() const {
@@ -293,14 +301,18 @@ void UniverseClient::update(float dt) {
   m_connection->send();
 
   if (Time::monotonicMilliseconds() >= m_storageTriggerDeadline) {
-    if (m_mainPlayer) {
-      m_playerStorage->savePlayer(m_mainPlayer);
-      m_playerStorage->moveToFront(m_mainPlayer->uuid());
-    }
+    // if (m_mainPlayer) {
+    //   m_playerStorage->savePlayer(m_mainPlayer);
+    //   m_playerStorage->moveToFront(m_mainPlayer->uuid());
+    // }
 
     for (auto& player : m_loadedPlayers) {
-      if (player && player != m_mainPlayer)
-        m_playerStorage->savePlayer(player);
+      if (player.second.ptr && player.second.loaded) {
+        m_playerStorage->savePlayer(player.second.ptr);
+        Uuid playerUuid = player.second.ptr->uuid();
+        if (playerUuid == m_mainPlayerUuid)
+          m_playerStorage->moveToFront(playerUuid);
+      }
     }
 
     m_storageTriggerDeadline = Time::monotonicMilliseconds() + assets->json("/client.config:storageTriggerInterval").toUInt();
@@ -611,23 +623,22 @@ void UniverseClient::stopLua() {
   m_scriptContexts.clear();
 }
 
-std::pair<bool, PlayerPtr> UniverseClient::playerIsLoaded(Uuid const& uuid) {
-  std::pair<bool, PlayerPtr> returnVal = {false, nullptr};
-  for (auto& player : m_loadedPlayers) {
-    if (player) {
-      if (player->uuid() == uuid)
-        returnVal = {true, player};
-    }
+bool UniverseClient::playerIsLoaded(Uuid const& uuid) {
+  if (m_loadedPlayers.contains(uuid)) {
+    return m_loadedPlayers[uuid].loaded;
   }
-  return returnVal;
+  return false;
 }
 
 void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) {
-  for (auto& player : m_loadedPlayers) {
+  for (auto& loadedPlayer : m_loadedPlayers) {
+    if (!loadedPlayer.second.loaded) return;
+
+    auto& player = loadedPlayer.second.ptr;
     if (!player) throw PlayerException("Attempted to reload an unloaded player!");
 
     bool playerInWorld = player->inWorld();
-    if (!playerInWorld) return;
+    if (!playerInWorld) break;
 
     bool alreadyLoaded = false;
     auto worldPtr = m_mainPlayer->world();
@@ -667,235 +678,240 @@ void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) 
   }
 }
 
-bool UniverseClient::reloadPlayer(Json const& data, Uuid const& uuid, bool resetInterfaces, bool showIndicator) {
-  auto player = mainPlayer();
-  if (!player) throw PlayerException("Attempted to reload an unloaded player!");
+HashMap<Uuid, PlayerPtr> UniverseClient::controlledPlayers() {
+  HashMap<Uuid, PlayerPtr> returnValue = {};
+  for (auto& player : m_loadedPlayers) {
+    if (player.second.loaded)
+      returnValue[player.first] = player.second.ptr;
+  }
+  return returnValue;
+}
 
-  bool playerInWorld = player->inWorld();
+bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool showIndicator) {
+  if (!m_mainPlayer) throw PlayerException("Attempted to swap from an unloaded primary player!");
+
+  if (m_respawning || !m_loadedPlayers.contains(uuid)) return false; // Don't allow swapping players while respawning!
+  auto swapPlayer = m_loadedPlayers[uuid].ptr;
+
+  if (m_mainPlayer->uuid() == uuid) return false;
+
+  bool playerInWorld = m_mainPlayer->inWorld();
   if (!playerInWorld) return false;
 
-  bool alreadyLoaded = !(data.type() == Json::Type::Object);
+  bool swapPlayerInWorld = swapPlayer->inWorld();
+
   auto worldPtr = m_mainPlayer->world();
   auto world = as<WorldClient>(worldPtr);
 
-  auto entitySpace = connectionEntitySpace(world->connection());
-  bool alreadyHasId = playerInWorld || !world->inWorld();
-  EntityId entityId = alreadyHasId ? player->entityId() : entitySpace.first; // entitySpace.first;
+  EntityId entityId = (!swapPlayerInWorld) ? m_mainPlayer->entityId() : NullEntityId; // entitySpace.first;
 
-  player->setBusyState(PlayerBusyState::None);
-  player->passChatOpen(false);
-
-  // if (alreadyLoaded)
-  //   player->uninit();
+  m_mainPlayer->setBusyState(PlayerBusyState::None);
+  m_mainPlayer->passChatOpen(false);
 
   if (m_playerReloadPreCallback)
     m_playerReloadPreCallback(resetInterfaces);
 
-  ProjectilePtr indicator;
+  ProjectilePtr indicator(nullptr);
 
-  if (playerInWorld) {
-    if (!alreadyLoaded) {
-      if (showIndicator) {
-        // EntityCreatePacket for player entities can be pretty big.
-        // We can show a loading projectile to other players while the create packet uploads.
-        auto projectileDb = Root::singleton().projectileDatabase();
-        auto config = projectileDb->projectileConfig("xsb:playerloading");
-        indicator = projectileDb->createProjectile("stationpartsound", config);
-        indicator->setInitialPosition(player->position());
-        indicator->setInitialDirection({ 1.0f, 0.0f });
-        world->addEntity(indicator);
-      }
-      
-      world->removeEntity(player->entityId(), false);
-    }
-  } else {
-    m_respawning = false;
-    m_respawnTimer.reset();
-  }
-
-  Json originalData = m_playerStorage->savePlayer(player);
-  std::exception_ptr exception;
-
-  Logger::info("[xSB] UniverseClient: {} player [{}].", alreadyLoaded ? "Swapped to loaded secondary" : "Loading primary", uuid.hex());
-
-  if (!alreadyLoaded) {
-    try {
-      auto newData = data.set("movementController", originalData.get("movementController"));
-      player->diskLoad(newData);
-      m_mainPlayerUuid = uuid;
-    }
-    catch (std::exception const& e) {
-      player->diskLoad(originalData);
-      m_mainPlayerUuid = player->uuid();
-      exception = std::current_exception();
+  if (!swapPlayerInWorld) {
+    if (showIndicator) {
+      // The EntityCreatePacket for player entities can be pretty big.
+      // We can show a loading projectile to other players while the create packet uploads.
+      auto projectileDb = Root::singleton().projectileDatabase();
+      auto config = projectileDb->projectileConfig("xsb:playerloading");
+      indicator = projectileDb->createProjectile("stationpartsound", config);
+      indicator->setInitialPosition(m_mainPlayer->position());
+      indicator->setInitialDirection({ 1.0f, 0.0f });
+      world->addEntity(indicator);
     }
   }
 
-  if (!alreadyLoaded)
-    world->addEntity(player, entityId);
+  m_playerStorage->savePlayer(m_mainPlayer);
+  m_playerStorage->savePlayer(swapPlayer);
+
+  Logger::info("[xSB] UniverseClient: {} player '{}' [{}].",
+    swapPlayerInWorld ? "Swapping to loaded secondary" : "Loading primary",
+    swapPlayer->name(),
+    uuid.hex());
+
+  if (!swapPlayerInWorld) {
+    swapPlayer->setClientContext(m_clientContext);
+    swapPlayer->setStatistics(m_statistics);
+    swapPlayer->setUniverseClient(this);
+    world->addEntity(swapPlayer, entityId);
+    swapPlayer->moveTo(m_mainPlayer->position());
+  }
+
+  m_mainPlayer = swapPlayer;
+  m_mainPlayerUuid = uuid;
+  m_worldClient->setMainPlayer(m_mainPlayer);
+  m_teamClient->setMainPlayer(m_mainPlayer);
+  m_systemWorldClient->setUniverseMap(m_mainPlayer->universeMap());
+
+  if (!swapPlayerInWorld) {
+    CelestialCoordinate coordinate = m_systemWorldClient->location();
+    m_mainPlayer->universeMap()->addMappedCoordinate(coordinate);
+    m_mainPlayer->universeMap()->filterMappedObjects(coordinate, m_systemWorldClient->objectKeys());
+    m_loadedPlayers[uuid].loaded = true;
+  }
 
   if (indicator && indicator->inWorld())
     world->removeEntity(indicator->entityId(), false);
-
-  // if (alreadyLoaded)
-  //   player->init(world, entityId, EntityMode::Master);
-
-  CelestialCoordinate coordinate = m_systemWorldClient->location();
-  player->universeMap()->addMappedCoordinate(coordinate);
-  player->universeMap()->filterMappedObjects(coordinate, m_systemWorldClient->objectKeys());
 
   if (m_playerReloadCallback)
     m_playerReloadCallback(resetInterfaces);
 
-  if (exception)
-    std::rethrow_exception(exception);
-
   return true;
 }
 
-PlayerPtr UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool showIndicator) {
-  auto world = as<WorldClient>(m_mainPlayer->world());
+bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool showIndicator) {
+  if (!m_mainPlayer) throw PlayerException("Attempted to load a secondary player from an unloaded primary player!");
 
-  if (m_respawning) return nullptr; // Don't allow loading players while respawning!
+  if (m_respawning || !m_loadedPlayers.contains(uuid)) return false; // Don't allow loading players while respawning!
+  auto playerToLoad = m_loadedPlayers[uuid].ptr;
 
-  // auto entitySpace = connectionEntitySpace(world->connection());
-  // EntityId entityId = NullEntityId;
-  // // FezzedOne: Don't clobber existing entity IDs.
-  // for (EntityId tryId = entitySpace.first; tryId <= entitySpace.second; tryId++) {
-  //   if (!world->entity(tryId)) {
-  //     entityId = tryId;
-  //     break;
-  //   }
-  // }
+  if (m_mainPlayer->uuid() == uuid) return false;
 
-  // if (entityId == NullEntityId) {
-  //   Logger::warn("UniverseClient: Out of client entity space! Not spawning player.");
-  //   return nullptr;
-  // }
+  bool playerInWorld = m_mainPlayer->inWorld();
+  if (!playerInWorld || !playerToLoad->inWorld()) return false;
 
-  // if (m_playerReloadPreCallback)
-  //   m_playerReloadPreCallback(resetInterfaces);
+  auto worldPtr = m_mainPlayer->world();
+  auto world = as<WorldClient>(worldPtr);
 
-  ProjectilePtr indicator;
+  if (m_playerReloadPreCallback)
+    m_playerReloadPreCallback(resetInterfaces);
 
-  m_respawning = false;
-  m_respawnTimer.reset();
+  ProjectilePtr indicator(nullptr);
 
-  PlayerPtr player = nullptr;
-  Json data = Json();
-
-  player = m_playerStorage->loadPlayer(uuid);
-  if (!player) return nullptr;
-
-  data = player->diskStore();
-
-  Json mainPlayerData = m_playerStorage->savePlayer(m_mainPlayer);
-  std::exception_ptr exception;
-
-  Logger::info("[xSB] UniverseClient: Loading secondary player '{}' [{}].", player->name(), uuid.hex());
-
-  try {
-    auto newData = data.set("movementController", mainPlayerData.get("movementController"));
-    player->diskLoad(newData);
-  } catch (std::exception const& e) {
-    player->diskLoad(data);
-    exception = std::current_exception();
+  if (showIndicator) {
+    // The EntityCreatePacket for player entities can be pretty big.
+    // We can show a loading projectile to other players while the create packet uploads.
+    auto projectileDb = Root::singleton().projectileDatabase();
+    auto config = projectileDb->projectileConfig("xsb:playerloading");
+    indicator = projectileDb->createProjectile("stationpartsound", config);
+    indicator->setInitialPosition(m_mainPlayer->position());
+    indicator->setInitialDirection({ 1.0f, 0.0f });
+    world->addEntity(indicator);
   }
 
-  player->setClientContext(m_clientContext);
-  player->setStatistics(m_statistics);
-  player->setUniverseClient(this);
+  m_playerStorage->savePlayer(m_mainPlayer);
+  m_playerStorage->savePlayer(playerToLoad);
 
-  world->addEntity(player);
+  Logger::info("[xSB] UniverseClient: Loading secondary player '{}' [{}].",
+    playerToLoad->name(),
+    uuid.hex());
+
+  playerToLoad->setClientContext(m_clientContext);
+  playerToLoad->setStatistics(m_statistics);
+  playerToLoad->setUniverseClient(this);
+  world->addEntity(playerToLoad);
+  playerToLoad->moveTo(m_mainPlayer->position());
+
+  CelestialCoordinate coordinate = m_systemWorldClient->location();
+  playerToLoad->universeMap()->addMappedCoordinate(coordinate);
+  playerToLoad->universeMap()->filterMappedObjects(coordinate, m_systemWorldClient->objectKeys());
+  m_loadedPlayers[uuid].loaded = true;
 
   if (indicator && indicator->inWorld())
     world->removeEntity(indicator->entityId(), false);
 
-  CelestialCoordinate coordinate = m_systemWorldClient->location();
-  player->universeMap()->addMappedCoordinate(coordinate);
-  player->universeMap()->filterMappedObjects(coordinate, m_systemWorldClient->objectKeys());
+  if (m_playerReloadCallback)
+    m_playerReloadCallback(resetInterfaces);
 
-  // if (m_playerReloadCallback)
-  //   m_playerReloadCallback(resetInterfaces);
+  return true;
+}
 
-  if (exception)
-    std::rethrow_exception(exception);
+bool UniverseClient::unloadPlayer(Uuid const& uuid, bool resetInterfaces, bool showIndicator) {
+  if (!m_mainPlayer) throw PlayerException("Attempted to unload a secondary player from an unloaded primary player!");
 
-  return player;
+  if (m_respawning || !m_loadedPlayers.contains(uuid)) return false; // Don't allow loading players while respawning!
+  auto playerToUnload = m_loadedPlayers[uuid].ptr;
+
+  if (m_mainPlayer->uuid() == uuid) return false;
+
+  bool playerInWorld = m_mainPlayer->inWorld();
+  if (!playerInWorld || !playerToUnload->inWorld()) return false;
+
+  auto worldPtr = m_mainPlayer->world();
+  auto world = as<WorldClient>(worldPtr);
+
+  if (m_playerReloadPreCallback)
+    m_playerReloadPreCallback(resetInterfaces);
+
+  ProjectilePtr indicator(nullptr);
+
+  if (showIndicator) {
+    auto projectileDb = Root::singleton().projectileDatabase();
+    auto config = projectileDb->projectileConfig("xsb:playerloading");
+    indicator = projectileDb->createProjectile("stationpartsound", config);
+    indicator->setInitialPosition(m_mainPlayer->position());
+    indicator->setInitialDirection({ 1.0f, 0.0f });
+    world->addEntity(indicator);
+  }
+
+  m_playerStorage->savePlayer(m_mainPlayer);
+  m_playerStorage->savePlayer(playerToUnload);
+
+  Logger::info("[xSB] UniverseClient: Unloading secondary player '{}' [{}].",
+    playerToUnload->name(),
+    uuid.hex());
+
+  world->removeEntity(playerToUnload->entityId(), false);
+  m_loadedPlayers[uuid].loaded = false;
+
+  if (indicator && indicator->inWorld())
+    world->removeEntity(indicator->entityId(), false);
+
+  if (m_playerReloadCallback)
+    m_playerReloadCallback(resetInterfaces);
+
+  return true;
 }
 
 void UniverseClient::doSwitchPlayer(Uuid const& uuid) {
   // reloadAllPlayers(true, true);
-  auto isAlreadyLoaded = playerIsLoaded(uuid);
+  bool isAlreadyLoaded = playerIsLoaded(uuid);
   if (uuid == mainPlayer()->uuid())
     return;
-  else if (isAlreadyLoaded.first) {
-    auto oldMainPlayer = m_mainPlayer;
-    m_mainPlayer = isAlreadyLoaded.second;
-    m_teamClient->setMainPlayer(m_mainPlayer);
+  else {
+    auto oldUuid = m_mainPlayer->uuid();
     try {
-      reloadPlayer(Json(), uuid, true, true);
-      if (m_mainPlayer->inWorld())
-        as<WorldClient>(m_mainPlayer->world())->setMainPlayer(m_mainPlayer);
-    } catch (std::exception const& e) {
-      m_mainPlayer = oldMainPlayer;
-      m_teamClient->setMainPlayer(oldMainPlayer);
-      if (m_mainPlayer->inWorld())
-        as<WorldClient>(m_mainPlayer->world())->setMainPlayer(m_mainPlayer);
-      throw;
-    }
-    return;
-  } else if (auto data = m_playerStorage->maybeGetPlayerData(uuid)) {
-    if (reloadPlayer(*data, uuid, true, true)) {
+      swapPlayer(uuid, true, true);
       auto dance = Root::singleton().assets()->json("/player.config:swapDance");
       if (dance.isType(Json::Type::String))
-        m_mainPlayer->humanoid()->setDance(dance.toString());
-      return;
+        m_loadedPlayers[uuid].ptr->humanoid()->setDance(dance.toString());
+    } catch (std::exception const& e) {
+      Logger::error("UniverseClient: Exception while attempting to swap player: {}", e.what());
+      swapPlayer(oldUuid, true, true);
     }
   }
-
-  return;
 }
 
 void UniverseClient::doAddPlayer(Uuid const& uuid) {
-  auto isAlreadyLoaded = playerIsLoaded(uuid);
+  bool isAlreadyLoaded = playerIsLoaded(uuid);
   if (uuid == mainPlayer()->uuid())
     return;
-  else if (isAlreadyLoaded.first) {
+  else if (isAlreadyLoaded) {
     return;
   } else {
     // reloadAllPlayers(true, true);
-    if (auto player = loadPlayer(uuid, false, true)) {
-      auto dance = Root::singleton().assets()->json("/player.config:swapDance");
-      if (dance.isType(Json::Type::String))
-        player->humanoid()->setDance(dance.toString());
-      m_loadedPlayers.emplaceAppend(player);
-      return;
+    try {
+      if (loadPlayer(uuid, false, true)) {
+        auto dance = Root::singleton().assets()->json("/player.config:swapDance");
+        if (dance.isType(Json::Type::String))
+          m_loadedPlayers[uuid].ptr->humanoid()->setDance(dance.toString());
+      }
+    } catch (std::exception const& e) {
+      Logger::error("UniverseClient: Exception while attempting to load player: {}", e.what());
     }
   }
-
-  return;
 }
 
 void UniverseClient::doRemovePlayer(Uuid const& uuid) {
   if (uuid == mainPlayer()->uuid())
     return;
   else {
-    for (auto& player : m_loadedPlayers) {
-      if (player) {
-        if (uuid == player->uuid()) {
-          Logger::info("[xSB] UniverseClient: Removing secondary player '{}' [{}].", player->name(), uuid.hex());
-          if (player->inWorld()) {
-            as<WorldClient>(player->world())->removeEntity(player->entityId(), false);
-            player->uninit();
-          }
-          m_playerStorage->savePlayer(player);
-          // player.reset();
-          m_loadedPlayers.remove(player);
-          break;
-        }
-      }
-    }
+    unloadPlayer(uuid, false, true);
     // reloadAllPlayers(true, true);
   }
 
@@ -1011,10 +1027,6 @@ bool UniverseClient::removePlayerUuid(String const& uuidStr) {
     return false;
   }
   return removePlayer(uuid);
-}
-
-List<PlayerPtr> UniverseClient::controlledPlayers() {
-  return m_loadedPlayers;
 }
 
 UniverseClient::ReloadPlayerCallback& UniverseClient::playerReloadPreCallback() {
@@ -1147,14 +1159,13 @@ void UniverseClient::reset() {
   m_warpDelay = GameTimer(assets->json("/client.config:playerWarpDelay").toFloat());
   m_respawnTimer = GameTimer(assets->json("/client.config:playerReviveTime").toFloat());
 
-  if (m_mainPlayer)
-    m_playerStorage->savePlayer(m_mainPlayer);
+  // if (m_mainPlayer)
+  //   m_playerStorage->savePlayer(m_mainPlayer);
 
   for (auto& player : m_loadedPlayers) {
-    if (player && player != m_mainPlayer)
-      m_playerStorage->savePlayer(player);
-    if (player)
-      player.reset();
+    if (player.second.ptr) {
+      m_playerStorage->savePlayer(player.second.ptr);
+    }
   }
 
   m_loadedPlayers = {};

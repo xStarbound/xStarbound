@@ -93,6 +93,10 @@ size_t PlayerStorage::playerCount() const {
   return m_savedPlayersCache.size();
 }
 
+List<Uuid> PlayerStorage::playerUuids() const {
+  return m_savedPlayersCache.keys();
+}
+
 Maybe<Uuid> PlayerStorage::playerUuidAt(size_t index) {
   RecursiveMutexLocker locker(m_mutex);
   if (index < m_savedPlayersCache.size())

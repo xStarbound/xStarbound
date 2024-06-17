@@ -92,10 +92,12 @@ public:
   void startLua();
   void stopLua();
 
-  std::pair<bool, PlayerPtr> playerIsLoaded(Uuid const& uuid);
+  bool playerIsLoaded(Uuid const& uuid);
   void reloadAllPlayers(bool resetInterfaces = false, bool showIndicator = false);
-  bool reloadPlayer(Json const& data, Uuid const& uuid, bool resetInterfaces = false, bool showIndicator = false);
-  PlayerPtr loadPlayer(Uuid const& uuid, bool resetInterfaces = false, bool showIndicator = false);
+  // bool reloadPlayer(Json const& data, Uuid const& uuid, bool resetInterfaces = false, bool showIndicator = false);
+  bool swapPlayer(Uuid const& uuid, bool resetInterfaces = false, bool showIndicator = false);
+  bool loadPlayer(Uuid const& uuid, bool resetInterfaces = false, bool showIndicator = false);
+  bool unloadPlayer(Uuid const& uuid, bool resetInterfaces = false, bool showIndicator = false);
   
   void doSwitchPlayer(Uuid const& uuid);
   bool switchPlayer(Uuid const& uuid);
@@ -115,7 +117,7 @@ public:
   bool removePlayer(String const& name);
   bool removePlayerUuid(String const& uuidStr);
 
-  List<PlayerPtr> controlledPlayers();
+  HashMap<Uuid, PlayerPtr> controlledPlayers();
 
   typedef std::function<void()> Callback;
   typedef std::function<void(bool)> ReloadPlayerCallback;
@@ -141,6 +143,16 @@ private:
     uint16_t maxPlayers;
   };
 
+  struct LoadedPlayer {
+    bool loaded;
+    PlayerPtr ptr;
+
+    ~LoadedPlayer() {
+      loaded = false;
+      ptr.reset();
+    }
+  };
+
   void setPause(bool pause);
 
   void handlePackets(List<PacketPtr> const& packets);
@@ -149,7 +161,7 @@ private:
   PlayerStoragePtr m_playerStorage;
   StatisticsPtr m_statistics;
   PlayerPtr m_mainPlayer;
-  List<PlayerPtr> m_loadedPlayers;
+  HashMap<Uuid, LoadedPlayer> m_loadedPlayers;
 
   bool m_legacyServer;
   bool m_pause;
