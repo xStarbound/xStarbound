@@ -136,8 +136,22 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     m_universeClock = make_shared<Clock>();
     m_clientContext = make_shared<ClientContext>(success->serverUuid, m_mainPlayer->uuid());
     m_teamClient = make_shared<TeamClient>(m_mainPlayer, m_clientContext);
-    m_mainPlayer->setClientContext(m_clientContext);
-    m_mainPlayer->setStatistics(m_statistics);
+
+    for (auto uuid : m_playerStorage->playerUuids()) {
+      if (uuid == m_mainPlayerUuid) {
+        m_loadedPlayers[uuid] = {true, m_mainPlayer};
+      } else {
+        m_loadedPlayers[uuid] = {false, m_playerStorage->loadPlayer(uuid)};
+      }
+    }
+
+    for (auto& loadedPlayer : m_loadedPlayers) {
+      auto& player = loadedPlayer.second.ptr;
+      player->setClientContext(m_clientContext);
+      player->setStatistics(m_statistics);
+      player->setUniverseClient(this);
+    }
+
     // FezzedOne: I'll never know why the gods-damned world client couldn't access the universe client to begin with.
     m_worldClient = make_shared<WorldClient>(m_mainPlayer, this); 
     for (auto& pair : m_luaCallbacks)
@@ -148,13 +162,6 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     m_systemWorldClient = make_shared<SystemWorldClient>(m_universeClock, m_celestialDatabase, m_mainPlayer->universeMap());
 
     m_mainPlayerUuid = m_mainPlayer->uuid();
-
-    for (auto uuid : m_playerStorage->playerUuids()) {
-      if (uuid == m_mainPlayerUuid)
-        m_loadedPlayers[uuid] = {false, m_mainPlayer};
-      else
-        m_loadedPlayers[uuid] = {true, m_playerStorage->loadPlayer(uuid)};
-    }
 
     size_t playerCount = m_playerStorage->playerCount();
 
@@ -681,7 +688,7 @@ void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) 
 HashMap<Uuid, PlayerPtr> UniverseClient::controlledPlayers() {
   HashMap<Uuid, PlayerPtr> returnValue = {};
   for (auto& player : m_loadedPlayers) {
-    if (player.second.loaded)
+    if (player.second.ptr && player.second.loaded)
       returnValue[player.first] = player.second.ptr;
   }
   return returnValue;
@@ -735,9 +742,6 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     uuid.hex());
 
   if (!swapPlayerInWorld) {
-    swapPlayer->setClientContext(m_clientContext);
-    swapPlayer->setStatistics(m_statistics);
-    swapPlayer->setUniverseClient(this);
     world->addEntity(swapPlayer, entityId);
     swapPlayer->moveTo(m_mainPlayer->position());
   }
@@ -801,9 +805,6 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     playerToLoad->name(),
     uuid.hex());
 
-  playerToLoad->setClientContext(m_clientContext);
-  playerToLoad->setStatistics(m_statistics);
-  playerToLoad->setUniverseClient(this);
   world->addEntity(playerToLoad);
   playerToLoad->moveTo(m_mainPlayer->position());
 
