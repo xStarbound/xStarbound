@@ -735,6 +735,8 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
 
   auto worldPtr = m_mainPlayer->world();
   auto world = as<WorldClient>(worldPtr);
+  auto oldEntityId = m_mainPlayer->entityId();
+  auto oldUuid = m_mainPlayer->uuid();
 
   EntityId entityId = (!swapPlayerInWorld) ? m_mainPlayer->entityId() : NullEntityId; // entitySpace.first;
 
@@ -783,6 +785,9 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     m_mainPlayer->universeMap()->addMappedCoordinate(coordinate);
     m_mainPlayer->universeMap()->filterMappedObjects(coordinate, m_systemWorldClient->objectKeys());
     m_loadedPlayers[uuid].loaded = true;
+
+    world->removeEntity(oldEntityId, false);
+    m_loadedPlayers[oldUuid].loaded = false;
   }
 
   if (indicator && indicator->inWorld())
@@ -803,7 +808,7 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
   if (m_mainPlayer->uuid() == uuid) return false;
 
   bool playerInWorld = m_mainPlayer->inWorld();
-  if (!playerInWorld || !playerToLoad->inWorld()) return false;
+  if (!playerInWorld || playerToLoad->inWorld()) return false;
 
   auto worldPtr = m_mainPlayer->world();
   auto world = as<WorldClient>(worldPtr);
@@ -903,10 +908,11 @@ void UniverseClient::doSwitchPlayer(Uuid const& uuid) {
   else {
     auto oldUuid = m_mainPlayer->uuid();
     try {
-      swapPlayer(uuid, true, true);
-      auto dance = Root::singleton().assets()->json("/player.config:swapDance");
-      if (dance.isType(Json::Type::String))
-        m_loadedPlayers[uuid].ptr->humanoid()->setDance(dance.toString());
+      if (swapPlayer(uuid, true, true)) {
+        auto dance = Root::singleton().assets()->json("/player.config:swapDance");
+        if (dance.isType(Json::Type::String))
+          m_loadedPlayers[uuid].ptr->humanoid()->setDance(dance.toString());
+      }
     } catch (std::exception const& e) {
       Logger::error("UniverseClient: Exception while attempting to swap player: {}", e.what());
       swapPlayer(oldUuid, true, true);
