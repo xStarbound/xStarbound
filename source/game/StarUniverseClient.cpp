@@ -763,6 +763,7 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
 
   m_playerStorage->savePlayer(m_mainPlayer);
   m_playerStorage->savePlayer(swapPlayer);
+  m_playerStorage->moveToFront(uuid);
 
   Logger::info("[xSB] UniverseClient: {} player '{}' [{}].",
     swapPlayerInWorld ? "Swapping to loaded secondary" : "Loading primary",
