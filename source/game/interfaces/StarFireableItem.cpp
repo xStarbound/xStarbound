@@ -74,7 +74,7 @@ void FireableItem::init(ToolUserEntity* owner, ToolHand hand) {
         "config", LuaBindings::makeConfigCallbacks(bind(&Item::instanceValue, as<Item>(this), _1, _2)));
     m_scriptComponent->addCallbacks("fireableItem", LuaBindings::makeFireableItemCallbacks(this));
     m_scriptComponent->addCallbacks("item", LuaBindings::makeItemCallbacks(as<Item>(this)));
-    // FezzedOne: Added missing `player`, `npc` and `entity` callbacks.
+    // FezzedOne: Added missing `player` and `entity` callbacks.
     if (auto player = as<Player>(owner)) {
       m_scriptComponent->addCallbacks("player", LuaBindings::makePlayerCallbacks(player));
       m_scriptComponent->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(player->effectsAnimator().get()));
