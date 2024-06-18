@@ -32,6 +32,7 @@
 #include "StarPlayerDeployment.hpp"
 #include "StarPlayerLog.hpp"
 #include "StarPlayerLuaBindings.hpp"
+#include "StarEntityLuaBindings.hpp"
 #include "StarQuestManager.hpp"
 #include "StarAiDatabase.hpp"
 #include "StarStatistics.hpp"
@@ -401,6 +402,8 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
 
     for (auto& p : m_genericScriptContexts) {
       p.second->addActorMovementCallbacks(m_movementController.get());
+      // Added missing `entity` callbacks.
+      p.second->addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(this)));
       p.second->addCallbacks("player", LuaBindings::makePlayerCallbacks(this));
       p.second->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_effectsAnimator.get()));
       p.second->addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_statusController.get()));
