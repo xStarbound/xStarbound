@@ -19,7 +19,8 @@ Chat::Chat(UniverseClientPtr client) : m_client(client) {
   m_chatPrevIndex = 0;
   m_historyOffset = 0;
 
-  auto assets = Root::singleton().assets();
+  auto root = Root::singletonPtr();
+  auto assets = root->assets();
   m_timeChatLastActive = Time::monotonicMilliseconds();
   auto fontConfig = assets->json("/interface/chat/chat.config:config.font");
   m_fontSize = fontConfig.getInt("baseSize");
@@ -90,6 +91,29 @@ Chat::Chat(UniverseClientPtr client) : m_client(client) {
   m_upButton = fetchChild<ButtonWidget>("upButton");
 
   m_chatHistory.appendAll(m_client->playerStorage()->getMetadata("chatHistory").opt().apply(jsonToStringList).value());
+
+  auto messagesFile = root->toStoragePath("messages.json");
+  if (File::isFile(messagesFile)) {
+    try {
+      auto chatMessages = Json::parseJson(File::readFileString(messagesFile)).toArray();
+      for (auto& rawMessage : chatMessages) {
+        if (auto message = rawMessage.optObject()) {
+          String mode = (*message).get("mode").toString(),
+                portrait = (*message).get("portrait").toString(),
+                text = (*message).get("text").toString();
+          m_receivedMessages.prepend({
+            MessageContextModeNames.valueLeft(mode, MessageContext::Mode::Local),
+            portrait,
+            text
+          });
+        }
+      }
+      Logger::info("Read chat messages from '{}'", messagesFile);
+    } catch (std::exception const& e) {
+      m_receivedMessages.clear();
+      Logger::error("Exception while reading chat messages from '{}': {}", messagesFile, e.what());
+    }
+  }
 
   show();
 
@@ -230,6 +254,25 @@ void Chat::clearMessages(Maybe<size_t> numMessages) {
     }
   } else {
     m_receivedMessages.clear();
+  }
+}
+
+void Chat::saveMessages() {
+  auto root = Root::singletonPtr();
+  auto messagesFile = root->toStoragePath("messages.json");
+  try {
+    JsonArray messagesToSave{};
+    for (auto message : m_receivedMessages) {
+      messagesToSave.append(JsonObject{
+        {"mode", MessageContextModeNames.valueRight(message.mode, "Local")},
+        {"portrait", message.portrait},
+        {"text", message.text}
+      });
+    }
+    File::writeFile(Json(messagesToSave).printJson(2), messagesFile);
+    Logger::info("Saved chat messages to '{}'", messagesFile);
+  } catch (std::exception const& e) {
+    Logger::error("Exception while saving chat messages to '{}': {}", messagesFile, e.what());
   }
 }
 

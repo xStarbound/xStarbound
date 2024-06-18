@@ -80,6 +80,8 @@ MainInterface::~MainInterface() {
 }
 
 void MainInterface::clean() {
+  if (m_chat)
+    m_chat->saveMessages();
   m_paneManager.dismissAllPanes();
   m_paneManager.deregisterAllPanes();
 }
