@@ -171,7 +171,7 @@ void WorldClient::reviveMainPlayer() {
           player->revive(m_playerStart);
           player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
           m_entityMap->addEntity(player);
-          player->moveTo(m_mainPlayer->position());
+          player->moveTo(m_mainPlayer->position() + m_mainPlayer->feetOffset());
         }
       }
     }

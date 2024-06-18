@@ -772,7 +772,7 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
 
   if (!swapPlayerInWorld) {
     world->addEntity(swapPlayer, entityId);
-    swapPlayer->moveTo(m_mainPlayer->position());
+    swapPlayer->moveTo(m_mainPlayer->position() + m_mainPlayer->feetOffset());
   }
 
   m_mainPlayer = swapPlayer;
@@ -838,7 +838,7 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     uuid.hex());
 
   world->addEntity(playerToLoad);
-  playerToLoad->moveTo(m_mainPlayer->position());
+  playerToLoad->moveTo(m_mainPlayer->position() + m_mainPlayer->feetOffset());
 
   CelestialCoordinate coordinate = m_systemWorldClient->location();
   playerToLoad->universeMap()->addMappedCoordinate(coordinate);
