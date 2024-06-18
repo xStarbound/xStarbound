@@ -262,11 +262,12 @@ void Chat::saveMessages() {
   auto messagesFile = root->toStoragePath("messages.json");
   try {
     JsonArray messagesToSave{};
-    for (auto message : m_receivedMessages) {
+    size_t messageCount = m_receivedMessages.size();
+    for (size_t n = messageCount - 1; n >= 0; n--) {
       messagesToSave.append(JsonObject{
-        {"mode", MessageContextModeNames.valueRight(message.mode, "Local")},
-        {"portrait", message.portrait},
-        {"text", message.text}
+        {"mode", MessageContextModeNames.valueRight(m_receivedMessages[n].mode, "Local")},
+        {"portrait", m_receivedMessages[n].portrait},
+        {"text", m_receivedMessages[n].text}
       });
     }
     File::writeFile(Json(messagesToSave).printJson(2), messagesFile);
