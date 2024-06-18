@@ -4,7 +4,12 @@
 #include "StarConfigLuaBindings.hpp"
 #include "StarItemLuaBindings.hpp"
 #include "StarFireableItemLuaBindings.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
+#include "StarPlayerLuaBindings.hpp"
+#include "StarEntityLuaBindings.hpp"
 #include "StarItem.hpp"
+#include "StarPlayer.hpp"
+#include "StarNpc.hpp"
 #include "StarWorld.hpp"
 
 namespace Star {
@@ -69,6 +74,12 @@ void FireableItem::init(ToolUserEntity* owner, ToolHand hand) {
         "config", LuaBindings::makeConfigCallbacks(bind(&Item::instanceValue, as<Item>(this), _1, _2)));
     m_scriptComponent->addCallbacks("fireableItem", LuaBindings::makeFireableItemCallbacks(this));
     m_scriptComponent->addCallbacks("item", LuaBindings::makeItemCallbacks(as<Item>(this)));
+    // FezzedOne: Added missing `player`, `npc` and `entity` callbacks.
+    if (auto player = as<Player>(owner)) {
+      m_scriptComponent->addCallbacks("player", LuaBindings::makePlayerCallbacks(player));
+      m_scriptComponent->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(player->effectsAnimator().get()));
+    }
+    m_scriptComponent->addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(owner)));
     m_scriptComponent->init(world());
   }
 }
@@ -79,6 +90,9 @@ void FireableItem::uninit() {
     m_scriptComponent->removeCallbacks("config");
     m_scriptComponent->removeCallbacks("fireableItem");
     m_scriptComponent->removeCallbacks("item");
+    m_scriptComponent->removeCallbacks("player");
+    m_scriptComponent->removeCallbacks("playerAnimator");
+    m_scriptComponent->removeCallbacks("entity");
   }
 
   ToolUserItem::uninit();
