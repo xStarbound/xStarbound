@@ -1848,12 +1848,14 @@ void WorldClient::initWorld(WorldStartPacket const& startPacket) {
     auto& player = entry.second;
     if (player) {
       if (player->uuid() != m_mainPlayer->uuid()) {
-        if (player->isDead())
-          player->revive(startPacket.playerStart);
-        player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
-        m_entityMap->addEntity(player);
-        if (!player->isDead())
+        if (player->isDead()
+          && (player->alwaysRespawnInWorld() || respawnInWorld() || universeClient()->playerOnOwnShip()))
+            player->revive(startPacket.playerStart);
+        if (!player->isDead()) {
+          player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
+          m_entityMap->addEntity(player);
           player->moveTo(startPacket.playerStart);
+        }
       }
     }
   }
