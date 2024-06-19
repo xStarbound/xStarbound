@@ -1178,10 +1178,10 @@ void WorldClient::update(float dt) {
     auto& player = entry.second;
     if (player) {
       if (playerDead(player) && player->uuid() != m_mainPlayer->uuid()
-        && (player->alwaysRespawnInWorld() || respawnInWorld())
+        && (player->alwaysRespawnInWorld() || respawnInWorld() || universeClient()->playerOnOwnShip())
         && !player->inWorld()) {
           // FezzedOne: Secondary players who don't have `"alwaysRespawnInWorld"` active won't automatically respawn
-          // on a world unless that world allows it. The primary player must first warp (or die) to respawn any secondaries.
+          // on a world unless that world allows it. The primary player must first warp (or die) to his ship to respawn any secondaries.
           // Keeps things kinda balanced.
           player->revive(m_playerStart);
           player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);

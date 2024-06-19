@@ -671,7 +671,7 @@ void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) 
     if (!player) throw PlayerException("Attempted to reload an unloaded player!");
 
     bool playerInWorld = player->inWorld();
-    if (!playerInWorld) break;
+    if (!playerInWorld) continue;
 
     bool alreadyLoaded = false;
     auto worldPtr = m_mainPlayer->world();
@@ -731,7 +731,9 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
   bool playerInWorld = m_mainPlayer->inWorld();
   if (!playerInWorld) return false;
 
+  bool swapPlayerLoaded = m_loadedPlayers[uuid].loaded;
   bool swapPlayerInWorld = swapPlayer->inWorld();
+  if (swapPlayerLoaded && (swapPlayer->isDead() || !swapPlayerInWorld)) return false; // Don't allow swapping to a dead player before he's revived!
 
   auto worldPtr = m_mainPlayer->world();
   auto world = as<WorldClient>(worldPtr);
@@ -808,8 +810,9 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
 
   if (m_mainPlayer->uuid() == uuid) return false;
 
+  bool alreadyLoaded = m_loadedPlayers[uuid].loaded;
   bool playerInWorld = m_mainPlayer->inWorld();
-  if (!playerInWorld || playerToLoad->inWorld()) return false;
+  if (alreadyLoaded || !playerInWorld || playerToLoad->inWorld()) return false;
 
   auto worldPtr = m_mainPlayer->world();
   auto world = as<WorldClient>(worldPtr);
@@ -837,8 +840,10 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     playerToLoad->name(),
     uuid.hex());
 
-  world->addEntity(playerToLoad);
-  playerToLoad->moveTo(m_mainPlayer->position() + m_mainPlayer->feetOffset());
+  if (!playerToLoad->isDead()) { // If loading a dead player, don't revive him immediately. Wait until a warp or primary player death.
+    world->addEntity(playerToLoad);
+    playerToLoad->moveTo(m_mainPlayer->position() + m_mainPlayer->feetOffset());
+  }
 
   CelestialCoordinate coordinate = m_systemWorldClient->location();
   playerToLoad->universeMap()->addMappedCoordinate(coordinate);
@@ -863,7 +868,7 @@ bool UniverseClient::unloadPlayer(Uuid const& uuid, bool resetInterfaces, bool s
   if (m_mainPlayer->uuid() == uuid) return false;
 
   bool playerInWorld = m_mainPlayer->inWorld();
-  if (!playerInWorld || !playerToUnload->inWorld()) return false;
+  if (!playerInWorld) return false;
 
   auto worldPtr = m_mainPlayer->world();
   auto world = as<WorldClient>(worldPtr);
@@ -889,7 +894,8 @@ bool UniverseClient::unloadPlayer(Uuid const& uuid, bool resetInterfaces, bool s
     playerToUnload->name(),
     uuid.hex());
 
-  world->removeEntity(playerToUnload->entityId(), false);
+  if (!playerToUnload->inWorld())
+    world->removeEntity(playerToUnload->entityId(), false);
   m_loadedPlayers[uuid].loaded = false;
 
   if (indicator && indicator->inWorld())
