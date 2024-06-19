@@ -1182,14 +1182,15 @@ void WorldClient::update(float dt) {
   for (auto& entry : universeClient()->controlledPlayers()) {
     auto& player = entry.second;
     if (player) {
+      bool alwaysRespawn = player->alwaysRespawnInWorld();
       if (playerDead(player) && player->uuid() != m_mainPlayer->uuid()
         && !(player->isPermaDead() && !m_mainPlayer->isAdmin())
-        && (player->alwaysRespawnInWorld() || respawnInWorld() || universeClient()->playerOnOwnShip())
+        && (alwaysRespawn || respawnInWorld() || universeClient()->playerOnOwnShip())
         && !player->inWorld()) {
           // FezzedOne: Secondary players who don't have `"alwaysRespawnInWorld"` active won't automatically respawn
           // on a world unless that world allows it. The primary player must first warp (or die) to his ship to respawn any secondaries.
           // Keeps things kinda balanced. Permadead players remain dead unless the primary player is an admin.
-          player->revive(m_playerStart);
+          player->revive(alwaysRespawn ? m_mainPlayer->position() + player->feetOffset() : m_playerStart);
           player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
           m_entityMap->addEntity(player);
       }

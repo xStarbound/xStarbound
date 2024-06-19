@@ -776,7 +776,7 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
 
   if (!swapPlayerInWorld) {
     world->addEntity(swapPlayer, entityId);
-    swapPlayer->moveTo(m_mainPlayer->position() + m_mainPlayer->feetOffset());
+    swapPlayer->moveTo(m_mainPlayer->position() + swapPlayer->feetOffset());
   }
 
   m_mainPlayer = swapPlayer;
@@ -846,7 +846,7 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
 
   if (!playerToLoad->isDead()) { // If loading a dead player, don't revive him immediately. Wait until a warp or primary player death.
     world->addEntity(playerToLoad);
-    playerToLoad->moveTo(m_mainPlayer->position() + m_mainPlayer->feetOffset());
+    playerToLoad->moveTo(m_mainPlayer->position() + playerToLoad->feetOffset());
   }
 
   CelestialCoordinate coordinate = m_systemWorldClient->location();
