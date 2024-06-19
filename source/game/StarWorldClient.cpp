@@ -161,16 +161,20 @@ void WorldClient::reviveMainPlayer() {
   if (inWorld()) {
     if (mainPlayerDead()) {
       m_mainPlayer->revive(m_playerStart);
-      m_mainPlayer->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
-      m_entityMap->addEntity(m_mainPlayer);
+      if (!m_mainPlayer->inWorld()) {
+        m_mainPlayer->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
+        m_entityMap->addEntity(m_mainPlayer);
+      }
     }
     for (auto& entry : universeClient()->controlledPlayers()) {
       auto& player = entry.second;
       if (player) {
         if (player->uuid() != m_mainPlayer->uuid()) {
           player->revive(m_playerStart);
-          player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
-          m_entityMap->addEntity(player);
+          if (!player->inWorld()) {
+            player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
+            m_entityMap->addEntity(player);
+          }
           player->moveTo(m_mainPlayer->position() + m_mainPlayer->feetOffset());
         }
       }
@@ -1174,7 +1178,8 @@ void WorldClient::update(float dt) {
     auto& player = entry.second;
     if (player) {
       if (playerDead(player) && player->uuid() != m_mainPlayer->uuid()
-        && (player->alwaysRespawnInWorld() || respawnInWorld())) {
+        && (player->alwaysRespawnInWorld() || respawnInWorld())
+        && !player->inWorld()) {
           // FezzedOne: Secondary players who don't have `"alwaysRespawnInWorld"` active won't automatically respawn
           // on a world unless that world allows it. The primary player must first warp (or die) to respawn any secondaries.
           // Keeps things kinda balanced.
