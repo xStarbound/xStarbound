@@ -123,7 +123,6 @@ Assets::Assets(Settings settings, StringList assetSources) {
 
   auto makeBaseAssetCallbacks = [this]() {
     LuaCallbacks callbacks;
-    // callbacks.registerCallbackWithSignature<StringSet, String>("byExtension", bind(&Assets::scanExtension, this, _1));
     callbacks.registerCallbackWithSignature<Json, String>("json", bind(&Assets::json, this, _1));
 
     callbacks.registerCallback("byExtension", [this](String const& ext) -> StringList {
@@ -162,12 +161,41 @@ Assets::Assets(Settings settings, StringList assetSources) {
     callbacks.registerCallback("scan", [this](Maybe<String> const& a, Maybe<String> const& b) -> StringList {
       return b ? scan(a.value(), *b) : scan(a.value());
     });
+
+    // FezzedOne: Checks if an asset exists. Should be case-insensitive and will return newly added files.
+    // Won't return any assets that haven't yet been loaded.
+    callbacks.registerCallback("exists", [this](Maybe<String> const& path) -> bool {
+      if (path)
+        return m_files.contains(*path);
+      return false;
+    });
+
+    // FezzedOne: Lists all patches for a given asset. Returns `nil` if that asset doesn't (yet) exist.
+    // Won't return any patches that haven't yet been loaded.
+    callbacks.registerCallback("patchSources", [this](String const& path) -> Maybe<StringList> {
+      StringList patchSourceList{};
+      if (auto file = m_files.ptr(path)) {
+        for (auto patchSource : file->patchSources) {
+          patchSourceList.append(patchSource.first);
+        }
+        return patchSourceList;
+      }
+      return {};
+    });
+
+    // FezzedOne: Lists all asset source file paths, regardless of whether they're loaded yet.
+    callbacks.registerCallback("sources", [this]() -> StringList {
+      return m_assetSources;
+    });
+
     return callbacks;
   };
 
   pushGlobalContext("sb", LuaBindings::makeUtilityCallbacks());
   pushGlobalContext("xsb", LuaBindings::makeXsbCallbacks());
   pushGlobalContext("assets", makeBaseAssetCallbacks());
+
+  List<pair<String, AssetSourcePtr>> sources;
 
   auto addSource = [&](String const& sourcePath, AssetSourcePtr source) {
     m_assetSourcePaths.add(sourcePath, source);
@@ -201,7 +229,7 @@ Assets::Assets(Settings settings, StringList assetSources) {
     }
   };
 
-  auto runLoadScripts = [&](String const& groupName, String const& sourcePath, AssetSourcePtr source) {
+  auto runLoadScripts = [&](String const& groupName, String const& sourcePath, AssetSourcePtr source, List<pair<String, AssetSourcePtr>> const& sources) {
     // Runs any load scripts specified in the asset source's `_metadata` file. Not to be confused with `.patch.lua` scripts!
     auto metadata = source->metadata();
     if (auto scripts = metadata.ptr("scripts")) {
@@ -212,7 +240,9 @@ Assets::Assets(Settings settings, StringList assetSources) {
         if (sourceName.type() == Json::Type::String) sourceNameStr = sourceName.toString();
 
         String memoryName = strf("{}::{}", sourceNameStr, groupName);
-        JsonObject memoryMetadata{ {"name", memoryName} };
+        // FezzedOne: Add all metadata keys from the base asset source to any memory asset source derived from it, then change the name accordingly.
+        JsonObject memoryMetadata = source->metadata(); // { {"name", memoryName} };
+        memoryMetadata.set("name", memoryName);
         auto memoryAssets = make_shared<MemoryAssetSource>(memoryName, memoryMetadata);
 
         Logger::info("Running {} preprocessing scripts for asset source '{}': {}", groupName == "onLoad" ? "on-load" : "post-load", sourceNameStr, *scriptGroup);
@@ -222,7 +252,7 @@ Assets::Assets(Settings settings, StringList assetSources) {
 
           /* FezzedOne: Inlined `decorateLuaContext` to fix an optimisation-related segfault on some builds. */
           if (memoryAssets) {
-            // Kae: Re-add the assets callbacks with more functions.
+            // Kae: Re-add the assets callbacks with more callbacks.
             context.remove("assets");
             auto callbacks = makeBaseAssetCallbacks();
             callbacks.registerCallback("add", [this, &source, &memoryAssets](LuaEngine& engine, String const& path, LuaValue const& data) {
@@ -280,6 +310,27 @@ Assets::Assets(Settings settings, StringList assetSources) {
               return erased;
             });
 
+            // FezzedOne: Lists all already *loaded* asset source file paths. Useful in on-load scripts. Does not list memory asset sources.
+            callbacks.registerCallback("loadedSources", [&, this]() -> StringList {
+              StringList loadedSources{};
+              for (auto loadedSource : sources) {
+                loadedSources.append(loadedSource.first);
+              }
+              return loadedSources;
+            });
+
+            // FezzedOne: Returns metadata for a given *loaded* asset source, or `nil`. Memory asset sources will return `nil`.
+            callbacks.registerCallback("sourceMetadata", [&, this](String const& sourcePath) -> Json {
+              Json metadata = Json();
+              for (auto loadedSource : sources) {
+                if (loadedSource.first == sourcePath) {
+                  metadata = loadedSource.second->metadata();
+                  break;
+                }
+              }
+              return metadata;
+            });
+
             context.setCallbacks("assets", callbacks);
           }
           /* End of inlined lambda. */
@@ -301,8 +352,6 @@ Assets::Assets(Settings settings, StringList assetSources) {
     m_assetsCache.clear();
   };
 
-  List<pair<String, AssetSourcePtr>> sources;
-
   for (auto& sourcePath : m_assetSources) {
     Logger::info("Loading assets from: '{}'", sourcePath);
     AssetSourcePtr source;
@@ -314,11 +363,11 @@ Assets::Assets(Settings settings, StringList assetSources) {
     addSource(sourcePath, source);
     sources.append(make_pair(sourcePath, source));
 
-    runLoadScripts("onLoad", sourcePath, source);
+    runLoadScripts("onLoad", sourcePath, source, sources);
   }
 
   for (auto& pair : sources)
-    runLoadScripts("postLoad", pair.first, pair.second);
+    runLoadScripts("postLoad", pair.first, pair.second, sources);
 
   Sha256Hasher digest;
 
