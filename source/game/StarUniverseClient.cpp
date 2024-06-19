@@ -725,8 +725,10 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
 
   if (m_respawning || !m_loadedPlayers.contains(uuid)) return false; // Don't allow swapping players while respawning!
   auto swapPlayer = m_loadedPlayers[uuid].ptr;
+  if (!swapPlayer) throw PlayerException("Attempted to swap to a player that isn't pre-loaded!");
 
-  if (m_mainPlayer->uuid() == uuid) return false;
+  if (m_mainPlayer->uuid() == uuid || (swapPlayer->isPermaDead() && !m_mainPlayer->isAdmin()))
+    return false;
 
   bool playerInWorld = m_mainPlayer->inWorld();
   if (!playerInWorld) return false;
@@ -807,8 +809,10 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
 
   if (m_respawning || !m_loadedPlayers.contains(uuid)) return false; // Don't allow loading players while respawning!
   auto playerToLoad = m_loadedPlayers[uuid].ptr;
+  if (!playerToLoad) throw PlayerException("Attempted to load a secondary player that isn't pre-loaded!");
 
-  if (m_mainPlayer->uuid() == uuid) return false;
+  if (m_mainPlayer->uuid() == uuid || (playerToLoad->isPermaDead() && !m_mainPlayer->isAdmin()))
+    return false;
 
   bool alreadyLoaded = m_loadedPlayers[uuid].loaded;
   bool playerInWorld = m_mainPlayer->inWorld();

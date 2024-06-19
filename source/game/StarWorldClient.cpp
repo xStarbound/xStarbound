@@ -170,12 +170,17 @@ void WorldClient::reviveMainPlayer() {
       auto& player = entry.second;
       if (player) {
         if (player->uuid() != m_mainPlayer->uuid()) {
-          player->revive(m_playerStart);
-          if (!player->inWorld()) {
-            player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
-            m_entityMap->addEntity(player);
+          if (player->inWorld() && player->isPermaDead() && !m_mainPlayer->isAdmin())
+            removeEntity(player->entityId(), false);
+          if (!(player->isPermaDead() && !m_mainPlayer->isAdmin())) {
+            player->revive(m_playerStart);
+            if (!player->inWorld()) {
+              player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
+              m_entityMap->addEntity(player);
+            }
+            
+            player->moveTo(m_mainPlayer->position() + m_mainPlayer->feetOffset());
           }
-          player->moveTo(m_mainPlayer->position() + m_mainPlayer->feetOffset());
         }
       }
     }
@@ -1178,11 +1183,12 @@ void WorldClient::update(float dt) {
     auto& player = entry.second;
     if (player) {
       if (playerDead(player) && player->uuid() != m_mainPlayer->uuid()
+        && !(player->isPermaDead() && !m_mainPlayer->isAdmin())
         && (player->alwaysRespawnInWorld() || respawnInWorld() || universeClient()->playerOnOwnShip())
         && !player->inWorld()) {
           // FezzedOne: Secondary players who don't have `"alwaysRespawnInWorld"` active won't automatically respawn
           // on a world unless that world allows it. The primary player must first warp (or die) to his ship to respawn any secondaries.
-          // Keeps things kinda balanced.
+          // Keeps things kinda balanced. Permadead players remain dead unless the primary player is an admin.
           player->revive(m_playerStart);
           player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
           m_entityMap->addEntity(player);
@@ -1849,6 +1855,7 @@ void WorldClient::initWorld(WorldStartPacket const& startPacket) {
     if (player) {
       if (player->uuid() != m_mainPlayer->uuid()) {
         if (player->isDead()
+          && !(player->isPermaDead() && !m_mainPlayer->isAdmin())
           && (player->alwaysRespawnInWorld() || respawnInWorld() || universeClient()->playerOnOwnShip()))
             player->revive(startPacket.playerStart);
         if (!player->isDead()) {
