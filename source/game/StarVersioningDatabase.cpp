@@ -64,7 +64,7 @@ void VersionedJson::expectIdentifier(String const& expectedIdentifier) const {
 
 DataStream& operator>>(DataStream& ds, VersionedJson& versionedJson) {
   ds.read(versionedJson.identifier);
-  // This is a holdover from when the verison number was optional in
+  // This is a holdover from when the version number was optional in
   // VersionedJson.  We should convert versioned json binary files and the
   // celestial chunk database and world storage to a new format eventually
   versionedJson.version = ds.read<Maybe<VersionNumber>>().value();
