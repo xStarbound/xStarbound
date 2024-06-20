@@ -21,7 +21,7 @@ LuaCallbacks LuaBindings::makeFireableItemCallbacks(FireableItem* fireableItem) 
   callbacks.registerCallbackWithSignature<bool>("windingUp", bind(FireableItemCallbacks::windingUp, fireableItem));
   callbacks.registerCallbackWithSignature<bool>("coolingDown", bind(FireableItemCallbacks::coolingDown, fireableItem));
   callbacks.registerCallbackWithSignature<bool>("ownerFullEnergy", bind(FireableItemCallbacks::ownerFullEnergy, fireableItem));
-  callbacks.registerCallbackWithSignature<bool>("ownerEnergy", bind(FireableItemCallbacks::ownerEnergy, fireableItem));
+  callbacks.registerCallbackWithSignature<float>("ownerEnergy", bind(FireableItemCallbacks::ownerEnergy, fireableItem));
   callbacks.registerCallbackWithSignature<bool>("ownerEnergyLocked", bind(FireableItemCallbacks::ownerEnergyLocked, fireableItem));
   callbacks.registerCallbackWithSignature<bool, float>("ownerConsumeEnergy", bind(FireableItemCallbacks::ownerConsumeEnergy, fireableItem, _1));
   callbacks.registerCallbackWithSignature<Vec2F>("ownerAimPosition", [fireableItem]() {
@@ -74,9 +74,9 @@ void LuaBindings::FireableItemCallbacks::endCooldown(FireableItem* fireableItem)
   fireableItem->setFireTimer(0);
 }
 
-// Returns the item's default cooldown time
+// Returns the item's current cooldown time
 //
-// @return the default cooldown time in seconds
+// @return the current cooldown time in seconds
 float LuaBindings::FireableItemCallbacks::cooldownTime(FireableItem* fireableItem) {
   return fireableItem->cooldownTime();
 }
@@ -146,7 +146,7 @@ bool LuaBindings::FireableItemCallbacks::ownerFullEnergy(FireableItem* fireableI
 // Determine the amount of energy that the item's owner currently has
 //
 // @return the owner's current energy
-bool LuaBindings::FireableItemCallbacks::ownerEnergy(FireableItem* fireableItem) {
+float LuaBindings::FireableItemCallbacks::ownerEnergy(FireableItem* fireableItem) {
   return fireableItem->owner()->energy();
 }
 

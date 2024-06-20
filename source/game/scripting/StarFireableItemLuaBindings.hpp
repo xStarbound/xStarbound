@@ -23,7 +23,7 @@ namespace LuaBindings {
     bool windingUp(FireableItem* fireableItem);
     bool coolingDown(FireableItem* fireableItem);
     bool ownerFullEnergy(FireableItem* fireableItem);
-    bool ownerEnergy(FireableItem* fireableItem);
+    float ownerEnergy(FireableItem* fireableItem);
     bool ownerEnergyLocked(FireableItem* fireableItem);
     bool ownerConsumeEnergy(FireableItem* fireableItem, float energy);
   }
