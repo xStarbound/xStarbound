@@ -767,13 +767,71 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
   callbacks.registerCallback("teamMembers", [player]() -> Json
                              { return player->teamMembers(); });
 
-#ifdef XCLIENT_UNLOCKED
-  callbacks.registerCallback("getSecretProperty", [player](String const& name, Json defaultValue) -> Json
-                             { return player->getSecretProperty(name, defaultValue); });
+  callbacks.registerCallback("controlAimPosition", [player](Vec2F const& newAimPosition)
+                             { player->aim(std::move(newAimPosition)); });
 
-  callbacks.registerCallback("setSecretProperty", [player](String const& name, Json const& value)
-                             { player->setSecretProperty(name, value); });
-#endif
+  callbacks.registerCallback("controlShifting", [player](Maybe<bool> const& shifting)
+                             { if (shifting) player->setShifting(*shifting);
+                               else          player->setShifting(false); });
+
+  callbacks.registerCallback("controlTrigger", [player](Maybe<bool> const& trigger) {
+    if (trigger) {
+      if (*trigger)
+        player->beginTrigger();
+      else
+        player->endTrigger();
+    } else {
+      player->endTrigger();
+    }
+  });
+
+  callbacks.registerCallback("controlFire", [player](Maybe<String> const& fireMode) {
+    if (fireMode) {
+      String mode = (*fireMode).toLower();
+      if (mode == "primary" || mode == "beginPrimary")
+        player->beginPrimaryFire();
+      else if (mode == "endPrimary")
+        player->endPrimaryFire();
+      else if (mode == "alt" || mode == "beginAlt")
+        player->beginAltFire();
+      else if (mode == "endAlt")
+        player->endAltFire();
+    } else {
+      player->endPrimaryFire();
+      player->endAltFire();
+    }
+  });
+
+  callbacks.registerCallback("controlSpecialAction", [player](int specialAction) {
+    player->special(specialAction);
+  });
+
+  callbacks.registerCallback("controlAction", [player](Maybe<String> const& action) {
+    const CaseInsensitiveStringMap<std::function<void()>> playerActions = {
+      {"left", bind(&Player::moveLeft, player)},
+      {"right", bind(&Player::moveRight, player)},
+      {"down", bind(&Player::moveDown, player)},
+      {"up", bind(&Player::moveUp, player)},
+      {"jump", bind(&Player::jump, player)},
+      {"beginTrigger", bind(&Player::beginTrigger, player)},
+      {"endTrigger", bind(&Player::endTrigger, player)},
+      {"beginPrimaryFire", bind(&Player::beginPrimaryFire, player)},
+      {"endPrimaryFire", bind(&Player::endPrimaryFire, player)},
+      {"beginAltFire", bind(&Player::beginAltFire, player)},
+      {"endAltFire", bind(&Player::endAltFire, player)},
+      {"shift", bind(&Player::setShifting, player, true)},
+      {"unshift", bind(&Player::setShifting, player, false)},
+      {"special1", bind(&Player::special, player, 1)},
+      {"special2", bind(&Player::special, player, 2)},
+      {"special3", bind(&Player::special, player, 3)},
+      {"dropItem", bind(&Player::dropItem, player)}
+    };
+    if (action) {
+      if (auto actionBind = playerActions.maybe(*action)) {
+        (*actionBind)();
+      }
+    }
+  });
 
   return callbacks;
 }
