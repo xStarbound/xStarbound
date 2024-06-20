@@ -121,6 +121,10 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
     player->setPersonality(parsePersonality(newPersonality, personalityConfig));
   });
 
+  // FezzedOne: Added these missing callbacks.
+  callbacks.registerCallback(   "favoriteColor", [player]()                       { return player->favoriteColor(); });
+  callbacks.registerCallback("setFavoriteColor", [player](Vec4B const& newColour) { player->setFavoriteColor(newColour); });
+
   // From OpenStarbound/Kae: Callbacks for getting and setting the player difficulty mode.
   callbacks.registerCallback(   "mode", [player]()                       { return PlayerModeNames.getRight(player->modeType());    });
   callbacks.registerCallback("setMode", [player](String const& modeName) { player->setModeType(PlayerModeNames.getLeft(modeName)); });
