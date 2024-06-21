@@ -185,6 +185,9 @@ public:
   typedef std::function<bool(PlayerPtr, StringView)> BroadcastCallback;
   BroadcastCallback& broadcastCallback();
 
+  void setGlobal(Maybe<String> const& jsonPath, Json const& newValue);
+  Json getGlobal(Maybe<String> const& jsonPath) const;
+
 private:
   static const float DropDist;
 
@@ -377,6 +380,8 @@ private:
   List<PhysicsForceRegion> m_forceRegions;
 
   BroadcastCallback m_broadcastCallback;
+
+  JsonObject m_scriptGlobals;
 };
 
 }

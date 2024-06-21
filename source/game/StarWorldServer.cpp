@@ -43,6 +43,7 @@ WorldServer::WorldServer(WorldTemplatePtr const& worldTemplate, IODevicePtr stor
   m_universeSettings = make_shared<UniverseSettings>();
   m_worldId = worldTemplate->worldName();
   m_expiryTimer = GameTimer(0.0f);
+  m_scriptGlobals = JsonObject{};
 
   init(true);
   writeMetadata();
@@ -2526,6 +2527,20 @@ void WorldServer::setupForceRegions() {
     bottomForceRegion.categoryFilter = regionCategoryFilter;
     m_forceRegions.append(bottomForceRegion);
   }
+}
+
+void WorldServer::setGlobal(Maybe<String> const& jsonPath, Json const& newValue) {
+  if (jsonPath)
+    m_scriptGlobals.set(*jsonPath, std::move(newValue));
+  else if (newValue.type() == Json::Type::Object)
+    m_scriptGlobals = newValue.toObject();
+}
+
+Json WorldServer::getGlobal(Maybe<String> const& jsonPath) const {
+  if (jsonPath)
+    return Json(m_scriptGlobals).query(*jsonPath, Json());
+  else
+    return m_scriptGlobals;
 }
 
 }

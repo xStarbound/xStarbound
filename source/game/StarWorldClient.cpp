@@ -51,6 +51,7 @@ WorldClient::WorldClient(PlayerPtr mainPlayer, UniverseClient* universeClient) {
   m_inWorld = false;
 
   m_luaRoot = make_shared<LuaRoot>();
+  m_scriptGlobals = JsonObject{};
 
   m_mainPlayer = mainPlayer;
 
@@ -2512,6 +2513,20 @@ void WorldClient::setupForceRegions() {
     bottomForceRegion.categoryFilter = regionCategoryFilter;
     m_forceRegions.append(bottomForceRegion);
   }
+}
+
+void WorldClient::setGlobal(Maybe<String> const& jsonPath, Json const& newValue) {
+  if (jsonPath)
+    m_scriptGlobals.set(*jsonPath, std::move(newValue));
+  else if (newValue.type() == Json::Type::Object)
+    m_scriptGlobals = newValue.toObject();
+}
+
+Json WorldClient::getGlobal(Maybe<String> const& jsonPath) const {
+  if (jsonPath)
+    return Json(m_scriptGlobals).query(*jsonPath, Json());
+  else
+    return m_scriptGlobals;
 }
 
 }

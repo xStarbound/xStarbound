@@ -262,6 +262,9 @@ public:
   // used to notify the universe server that the celestial planet type has changed
   Maybe<pair<String, String>> pullNewPlanetType();
 
+  void setGlobal(Maybe<String> const& jsonPath, Json const& newValue);
+  Json getGlobal(Maybe<String> const& jsonPath) const;
+
 private:
   struct ClientInfo {
     ClientInfo(ConnectionId clientId, InterpolationTracker const trackerInit);
@@ -360,6 +363,7 @@ private:
   LuaRootPtr m_luaRoot;
 
   StringMap<ScriptComponentPtr> m_scriptContexts;
+  JsonObject m_scriptGlobals;
 
   WorldGeometry m_geometry;
   uint64_t m_currentStep;

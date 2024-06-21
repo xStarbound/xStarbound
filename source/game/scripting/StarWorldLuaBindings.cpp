@@ -237,6 +237,36 @@ namespace LuaBindings {
     addWorldEnvironmentCallbacks(callbacks, world);
     addWorldEntityCallbacks(callbacks, world);
 
+    callbacks.registerCallback("getGlobal", [world](Maybe<String> const& key) -> Json {
+        if (auto worldClient = as<WorldClient>(world))
+          return worldClient->getGlobal(key);
+        else if (auto worldServer = as<WorldServer>(world))
+          return worldServer->getGlobal(key);
+        return Json();
+    });
+
+    callbacks.registerCallback("getGlobals", [world]() -> Json {
+        if (auto worldClient = as<WorldClient>(world))
+          return worldClient->getGlobal(Maybe<String>{});
+        else if (auto worldServer = as<WorldServer>(world))
+          return worldServer->getGlobal(Maybe<String>{});
+        return Json();
+    });
+
+    callbacks.registerCallback("setGlobal", [world](Maybe<String> const& key, Json const& value) {
+        if (auto worldClient = as<WorldClient>(world))
+          worldClient->setGlobal(key, value);
+        else if (auto worldServer = as<WorldServer>(world))
+          worldServer->setGlobal(key, value);
+    });
+
+    callbacks.registerCallback("setGlobals", [world](Json const& value) {
+        if (auto worldClient = as<WorldClient>(world))
+          worldClient->setGlobal(Maybe<String>{}, value);
+        else if (auto worldServer = as<WorldServer>(world))
+          worldServer->setGlobal(Maybe<String>{}, value);
+    });
+
     callbacks.registerCallbackWithSignature<float, Vec2F, Maybe<Vec2F>>("magnitude", bind(&WorldCallbacks::magnitude, world, _1, _2));
     callbacks.registerCallbackWithSignature<Vec2F, Vec2F, Vec2F>("distance", bind(WorldCallbacks::distance, world, _1, _2));
     callbacks.registerCallbackWithSignature<bool, PolyF, Vec2F>("polyContains", bind(WorldCallbacks::polyContains, world, _1, _2));
