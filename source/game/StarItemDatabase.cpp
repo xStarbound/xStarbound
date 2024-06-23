@@ -726,7 +726,7 @@ void ItemDatabase::addBlueprints() {
       if (baseItem->instanceValue("inventoryIcon", false))
         configInfo["inventoryIcon"] = baseItem->instanceValue("inventoryIcon");
 
-      configInfo["rarity"] = RarityNames.getRight(baseItem->rarity());
+      configInfo["xSBrarity"] = RarityNames.getRight(baseItem->rarity());
 
       configInfo["price"] = baseItem->price();
 
