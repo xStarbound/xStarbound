@@ -123,8 +123,9 @@ EnumMap<Key> const KeyNames{
   {Key::LCtrl, "LCtrl"},
   {Key::RAlt, "RAlt"},
   {Key::LAlt, "LAlt"},
-  {Key::RGui, "RGui"},
-  {Key::LGui, "LGui"},
+  // FezzedOne: Should be called `"LMeta"` and `"RMeta"` for consistency's sake.
+  {Key::RGui, "RMeta"},
+  {Key::LGui, "LMeta"},
   {Key::AltGr, "AltGr"},
   {Key::Compose, "Compose"},
   {Key::Help, "Help"},
