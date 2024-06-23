@@ -41,8 +41,9 @@ Json keyModsToJson(KeyMod mod) {
   if ((bool)(mod & KeyMod::RCtrl )) array.emplace_back("RCtrl" );
   if ((bool)(mod & KeyMod::LAlt  )) array.emplace_back("LAlt"  );
   if ((bool)(mod & KeyMod::RAlt  )) array.emplace_back("RAlt"  );
-  if ((bool)(mod & KeyMod::LGui  )) array.emplace_back("LGui"  );
-  if ((bool)(mod & KeyMod::RGui  )) array.emplace_back("RGui"  );
+  // FezzedOne: Fixed wrong key mod names.
+  if ((bool)(mod & KeyMod::LGui  )) array.emplace_back("LMeta" );
+  if ((bool)(mod & KeyMod::RGui  )) array.emplace_back("RMeta" );
   if ((bool)(mod & KeyMod::Num   )) array.emplace_back("Num"   );
   if ((bool)(mod & KeyMod::Caps  )) array.emplace_back("Caps"  );
   if ((bool)(mod & KeyMod::AltGr )) array.emplace_back("AltGr" );
