@@ -78,6 +78,11 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
   callbacks.registerCallbackWithSignature<Maybe<String>, String, Maybe<String>>("materialMiningSound", bind(RootCallbacks::materialMiningSound, root, _1, _2));
   callbacks.registerCallbackWithSignature<Maybe<String>, String, Maybe<String>>("materialFootstepSound", bind(RootCallbacks::materialFootstepSound, root, _1, _2));
 
+  // FezzedOne: Forgot this one. Whoops.
+  callbacks.registerCallback("assetExists", [root](String const& assetPath) -> bool {
+      return root->assets()->assetExists(assetPath);
+    });
+  
   callbacks.registerCallback("materialConfig", [root](String const& materialName) -> Json {
       auto materialId = root->materialDatabase()->materialId(materialName);
       if (auto path = root->materialDatabase()->materialPath(materialId))
