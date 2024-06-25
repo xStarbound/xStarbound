@@ -284,7 +284,7 @@ public:
     SDL_ShowWindow(m_sdlWindow);
     SDL_RaiseWindow(m_sdlWindow);
 
-    // Makes xSB-2 respect Windows' dark mode setting (from OpenSB/Kae).
+    // Makes xStarbound respect Windows' dark mode setting (from OpenSB/Kae).
     // Code from: https://github.com/libsdl-org/SDL/commit/89948787#diff-f2ae5c36a8afc0a9a343a6664ab306da2963213e180af8cd97b12397dcbb9ae7R1478
 #ifdef STAR_SYSTEM_WINDOWS
     if (void* handle = SDL_LoadObject("dwmapi.dll")) {

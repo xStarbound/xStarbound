@@ -135,13 +135,35 @@ Sets whether the monster should display its nametag.
 
 #### `bool` monster.say(`String` line, [`Map<String, String>` tags])
 
-Causes the monster to say the line (rendering a chat bubble), optionally replacing any specified tags in the text. Returns `true` if anything is said (i.e. the line is not empty) and `false` otherwise.
+Spawns a chat bubble over the monster containing the specified `line` of text. Optionally pass in tags to replace text tags. Optionally give config options for the chat message.
+
+Returns whether the chat message was successfully added.
+
+An example showing the available options in `config`:
+```lua
+jobject{
+  drawBorder = true, -- Whether to draw the chat bubble behind the text. Sort of visually borked right now.
+  fontSize = 8, -- Obvious.
+  color = jarray{255, 255, 255}, -- The base colour of the text, before any escape codes are applied.
+  sound = "/sfx/humanoid/avian_chatter_male1.ogg" -- A sound to play when the chat bubble spawns.
+}
+```
 
 ---
 
 #### `bool` monster.sayPortrait(`String` line, `String` portrait, [`Map<String, String>` tags])
 
-Similar to `monster.say`, but uses a portrait chat bubble with the specified portrait image.
+Spawns a portrait chat bubble over the monster. Optionally pass in tags to replace text tags. Optionally give config options for the chat message.
+
+Returns whether the chat message was successfully added.
+
+An example showing the available options in `config`:
+```lua
+{
+  drawMoreIndicator = true, -- Draw an indicator that shows there's more messages coming.
+  sound = "/sfx/humanoid/avian_chatter_male1.ogg" -- A sound to play when the chat bubble spawns.
+}
+```
 
 ---
 
@@ -153,7 +175,7 @@ Sets the monster's current damage team type and number.
 
 #### `void` monster.setUniqueId([`String` uniqueId])
 
-Sets the monster's unique entity id, or clears it if unspecified.
+Sets the monster's unique entity ID, or clears it if unspecified.
 
 ---
 

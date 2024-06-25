@@ -44,6 +44,7 @@
 #include "StarTeamClient.hpp"
 #include "StarImageProcessing.hpp"
 
+
 namespace Star {
 
 EnumMap<Player::State> const Player::StateNames{
@@ -402,7 +403,7 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
 
     for (auto& p : m_genericScriptContexts) {
       p.second->addActorMovementCallbacks(m_movementController.get());
-      // Added missing `entity` callbacks.
+      // FezzedOne: Added missing `entity` callbacks.
       p.second->addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(this)));
       p.second->addCallbacks("player", LuaBindings::makePlayerCallbacks(this));
       p.second->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_effectsAnimator.get()));
@@ -410,11 +411,6 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
       if (m_client)
         p.second->addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client));
       p.second->init(world);
-    }
-
-    // From WasabiRaptor's PR: Spawn any overflowed inventory items.
-    for (auto& p : m_inventory->clearOverflow()) {
-      world->addEntity(ItemDrop::createRandomizedDrop(p,m_movementController->position(),true));
     }
   }
 
@@ -586,6 +582,11 @@ List<Drawable> Player::portrait(PortraitMode mode) const {
     return {};
   m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude());
   return m_humanoid->renderPortrait(mode);
+}
+
+List<Drawable> Player::renderHumanoid(bool withItems, bool withRotation) {
+  m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude());
+  return m_humanoid->render(withItems, withRotation);
 }
 
 bool Player::underwater() const {

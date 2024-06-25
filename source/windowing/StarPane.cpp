@@ -351,10 +351,9 @@ Maybe<String> Pane::cursorOverride(Vec2I const&) {
 LuaCallbacks Pane::makePaneCallbacks() {
   LuaCallbacks callbacks;
 
-  /* FezzedOne: Removed to prevent modders causing segfaults in message handlers. */
-  // callbacks.registerCallback("toWidget", [this]() -> LuaCallbacks {
-  //   return LuaBindings::makeWidgetCallbacks(this, reader());
-  // });
+  callbacks.registerCallback("toWidget", [this]() -> LuaCallbacks {
+    return LuaBindings::makeWidgetCallbacks(this, reader());
+  });
 
   callbacks.registerCallback("dismiss", [this]() { dismiss(); });
 
@@ -394,11 +393,10 @@ LuaCallbacks Pane::makePaneCallbacks() {
   callbacks.registerCallback("getSize", [this]() -> Vec2I         {  return size();  });
   callbacks.registerCallback("setSize", [this](Vec2I const& size) { setSize(size);   });
 
-  callbacks.registerCallback("addWidget", [this](Json const& newWidgetConfig, Maybe<String> const& newWidgetName) -> LuaCallbacks {
+  callbacks.registerCallback("addWidget", [this](Json const& newWidgetConfig, Maybe<String> const& newWidgetName) {
       String name = newWidgetName.value(toString(Random::randu64()));
       WidgetPtr newWidget = reader()->makeSingle(name, newWidgetConfig);
       this->addChild(name, newWidget);
-      return LuaBindings::makeWidgetCallbacks(newWidget.get(), reader());
     });
 
   callbacks.registerCallback("removeWidget", [this](String const& widgetName) -> bool {

@@ -1,5 +1,7 @@
 # `universe`
 
+> **These callbacks are available only on xStarbound and OpenStarbound.**
+
 These callbacks are available in the following script contexts:
 
 - universe server scripts
@@ -61,9 +63,11 @@ Returns whether the specified world is active. The argument must be a valid worl
 
 Returns a list of loaded worlds on the server.
 
-#### `RpcThreadPromise<Json>` universe.sendWorldMessage(`WorldId` worldId, `String` message, `Json...` args)
+#### `RpcPromise<Json>` universe.sendWorldMessage(`WorldId` worldId, `String` message, `Json...` args)
 
-Sends a message to a world's global script context. The world's global script(s) must have a message handler to handle the message, exactly as for `world.sendEntityMessage`. See `message.md` for info on message handlers.
+Sends a message to a world's global script context. The world's global script(s) must have a message handler to handle the message, exactly as for `world.sendEntityMessage`.
+
+See `message.md` for information on message handlers and `RpcPromise` objects.
 
 #### `WorldId` universe.clientWorld(`ClientId` clientId)
 

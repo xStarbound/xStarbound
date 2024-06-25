@@ -4,8 +4,8 @@
 namespace Star {
 
 void VersionOptionParser::printVersion(std::ostream& os) {
-  // FezzedOne: `-version` now correctly returns the xSB-2 version.
-  format(os, "xSB-2<FE> v{} (Starbound v{}, {})\n", xSbVersionString, StarVersionString, StarArchitectureString);
+  // FezzedOne: `-version` now correctly returns the xStarbound version.
+  format(os, "xStarbound v{} (Starbound v{}, {})\n", xSbVersionString, StarVersionString, StarArchitectureString);
   format(os, "Source identifier: {}\n", StarSourceIdentifierString);
 }
 

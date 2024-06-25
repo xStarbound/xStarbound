@@ -91,6 +91,8 @@ public:
   typedef ServerTileSectorArray::Array TileArray;
   typedef ServerTileSectorArray::ArrayPtr TileArrayPtr;
 
+  static void repackWorldFile(String const& fileName, String const& fileType);
+
   static WorldChunks getWorldChunksUpdate(WorldChunks const& oldChunks, WorldChunks const& newChunks);
   static void applyWorldChunksUpdateToFile(String const& file, WorldChunks const& update);
   static WorldChunks getWorldChunksFromFile(String const& file);

@@ -28,7 +28,7 @@ Returns the source entity ID for the status effect, if any.
 
 ---
 
-#### `void` effect.setParentDirectives(`String` directives)
+#### `void` effect.setParentDirectives(`Directives` directives)
 
 Sets image processing directives for the entity the status effect is active on.
 

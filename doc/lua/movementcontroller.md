@@ -2,12 +2,12 @@
 
 The `mcontroller` table contains functions relating to the movement controller.
 
-This section of mcontroller documentation refers to the base `MovementController` lua bindings. The base `MovementController` is used in scripts running on:
+This section of mcontroller documentation refers to the base `MovementController` lua bindings. The base `MovementController` is used in the following script contexts:
 
-- projectiles
-- vehicles
+- projectile scripts
+- vehicle scripts
 
-See `actormovementcontroller.md` for documentation on the `mcontroller` table for `ActorMovementController`s (the ones used by projectiles and the like).
+See `actormovementcontroller.md` for documentation on the `mcontroller` table for `ActorMovementController`s (the ones used by players, monsters and NPCs).
 
 ---
 

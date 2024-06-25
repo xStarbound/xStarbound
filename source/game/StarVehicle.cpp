@@ -553,11 +553,19 @@ Maybe<PhysicsMovingCollision> Vehicle::movingCollision(size_t positionIndex) con
 }
 
 Maybe<LuaValue> Vehicle::callScript(String const& func, LuaVariadic<LuaValue> const& args) {
-  return m_scriptComponent.invoke(func, args);
+  return m_scriptComponent.invoke<LuaValue>(func, args);
+}
+
+Maybe<Json> Vehicle::callScript(String const& func, LuaVariadic<Json> const& args) {
+  return m_scriptComponent.invoke<Json>(func, args);
 }
 
 Maybe<LuaValue> Vehicle::evalScript(String const& code) {
-  return m_scriptComponent.eval(code);
+  return m_scriptComponent.eval<LuaValue>(code);
+}
+
+Maybe<Json> Vehicle::evalScriptJson(String const& code) {
+  return m_scriptComponent.eval<Json>(code);
 }
 
 void Vehicle::setPosition(Vec2F const& position) {

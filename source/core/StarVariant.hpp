@@ -62,7 +62,7 @@ public:
   template <typename T, typename = ValidateType<T>>
   static constexpr VariantTypeIndex typeIndexOf();
 
-  // If the first type has a default constructor, constructs an Variant which
+  // If the first type has a default constructor, constructs a Variant which
   // contains a default constructed value of that type.
   Variant();
 

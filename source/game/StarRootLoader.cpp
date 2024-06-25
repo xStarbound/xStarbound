@@ -30,7 +30,10 @@ Json const BaseAssetsSettings = Json::parseJson(R"JSON(
         "\\.ogg$",
         "\\.wav$",
         "\\.abc$"
-      ]
+      ],
+
+      "luaGcPause" : 1.2,
+      "luaGcStepMultiplier" : 2.0
     }
   )JSON");
 
@@ -151,6 +154,8 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     rootSettings.assetsSettings.missingAudio = assetsSettings.optString("missingAudio");
     rootSettings.assetsSettings.pathIgnore = jsonToStringList(assetsSettings.get("pathIgnore"));
     rootSettings.assetsSettings.digestIgnore = jsonToStringList(assetsSettings.get("digestIgnore"));
+    rootSettings.assetsSettings.luaGcPause = assetsSettings.getFloat("luaGcPause");
+    rootSettings.assetsSettings.luaGcStepMultiplier = assetsSettings.getFloat("luaGcStepMultiplier");
 
     rootSettings.assetDirectories = jsonToStringList(bootConfig.get("assetDirectories"));
 

@@ -823,11 +823,19 @@ bool Monster::aggressive() const {
 }
 
 Maybe<LuaValue> Monster::callScript(String const& func, LuaVariadic<LuaValue> const& args) {
-  return m_scriptComponent.invoke(func, args);
+  return m_scriptComponent.invoke<LuaValue>(func, args);
+}
+
+Maybe<Json> Monster::callScript(String const& func, LuaVariadic<Json> const& args) {
+  return m_scriptComponent.invoke<Json>(func, args);
 }
 
 Maybe<LuaValue> Monster::evalScript(String const& code) {
-  return m_scriptComponent.eval(code);
+  return m_scriptComponent.eval<LuaValue>(code);
+}
+
+Maybe<Json> Monster::evalScriptJson(String const& code) {
+  return m_scriptComponent.eval<Json>(code);
 }
 
 Vec2F Monster::mouthPosition() const {

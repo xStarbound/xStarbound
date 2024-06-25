@@ -399,11 +399,19 @@ Maybe<Json> Projectile::receiveMessage(ConnectionId sendingConnection, String co
 }
 
 Maybe<LuaValue> Projectile::callScript(String const& func, LuaVariadic<LuaValue> const& args) {
-  return m_scriptComponent.invoke(func, args);
+  return m_scriptComponent.invoke<LuaValue>(func, args);
+}
+
+Maybe<Json> Projectile::callScript(String const& func, LuaVariadic<Json> const& args) {
+  return m_scriptComponent.invoke<Json>(func, args);
 }
 
 Maybe<LuaValue> Projectile::evalScript(String const& code) {
-  return m_scriptComponent.eval(code);
+  return m_scriptComponent.eval<LuaValue>(code);
+}
+
+Maybe<Json> Projectile::evalScriptJson(String const& code) {
+  return m_scriptComponent.eval<Json>(code);
 }
 
 String Projectile::projectileType() const {

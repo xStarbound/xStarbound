@@ -93,6 +93,7 @@ WorldClient::WorldClient(PlayerPtr mainPlayer, UniverseClient* universeClient) {
   m_altMusicActive = false;
 
   m_stopLightingThread = false;
+  m_lightingTicked = false;
   m_lightingThread = Thread::invoke("WorldClient::lightingMain", mem_fn(&WorldClient::lightingMain), this);
   m_renderData = nullptr;
   m_globalLightingMultiplier = {};
@@ -110,6 +111,7 @@ WorldClient::~WorldClient() {
 
   m_lightingThread.finish();
   clearWorld();
+  m_luaRoot->shutdown();
 }
 
 UniverseClient* WorldClient::universeClient() const {
@@ -853,7 +855,7 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
       }
 
       auto entity = entityFactory->netLoadEntity(entityCreate->entityType, entityCreate->storeData);
-      entity->readNetState(entityCreate->firstNetState);
+      entity->readNetState(std::move(entityCreate->firstNetState));
       entity->init(this, entityCreate->entityId, EntityMode::Slave);
       m_entityMap->addEntity(entity);
 
@@ -874,13 +876,13 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
           EntityId entityId = entity->entityId();
           if (connectionForEntity(entityId) == entityUpdateSet->forConnection) {
             starAssert(entity->isSlave());
-            entity->readNetState(entityUpdateSet->deltas.value(entityId), interpolationLeadTime);
+            entity->readNetState(std::move(entityUpdateSet->deltas.value(entityId)), interpolationLeadTime);
           }
         });
 
     } else if (auto entityDestroy = as<EntityDestroyPacket>(packet)) {
       if (auto entity = m_entityMap->entity(entityDestroy->entityId)) {
-        entity->readNetState(entityDestroy->finalNetState, m_interpolationTracker.interpolationLeadSteps() * GlobalTimestep);
+        entity->readNetState(std::move(entityDestroy->finalNetState), m_interpolationTracker.interpolationLeadSteps() * GlobalTimestep);
 
         // Before destroying the entity, we should make sure that the entity is
         // using the absolute latest data, so we disable interpolation.
@@ -1172,6 +1174,7 @@ List<PacketPtr> WorldClient::getOutgoingPackets() {
 
 void WorldClient::setLuaCallbacks(String const& groupName, LuaCallbacks const& callbacks) {
   m_luaRoot->addCallbacks(groupName, callbacks);
+  LuaBaseComponent::addBaseCallbacks(groupName, callbacks);
 }
 
 void WorldClient::update(float dt) {
@@ -1923,8 +1926,7 @@ void WorldClient::clearWorld() {
 
   m_damageManager.reset();
 
-  // FezzedOne: Tell the Lua root to shut down properly.
-  m_luaRoot->shutdown();
+  // m_luaRoot->shutdown();
 
   m_particles.reset();
 

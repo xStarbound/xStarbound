@@ -689,7 +689,7 @@ StringList Root::scanForAssetSources(StringList const& directories) {
     dependencySortVisit(move(source));
 
   StringList sourcePaths;
-  // Throw exceptions and close the game if there's an xSB-2 asset version mismatch or the xSB-2 or base game assets aren't found.
+  // Throw exceptions and close the game if there's an xStarbound asset version mismatch or the xStarbound or base game assets aren't found.
   bool xSbAssetsFound = false;
   bool baseAssetsFound = false;
   for (auto const& source : dependencySortedSources) {
@@ -701,13 +701,13 @@ StringList Root::scanForAssetSources(StringList const& directories) {
         xSbAssetsFound = true;
         if (source->version) {
           if (*source->version == xSbAssetVersionString) {
-            Logger::info("Root: Detected xSB-2 assets, version '{}', at '{}'.", *source->version, source->path);
+            Logger::info("Root: Detected xStarbound assets, version '{}', at '{}'.", *source->version, source->path);
           } else {
-            throw StarException(strf("Root: Detected mismatched version '{}' of xSB-2 assets at '{}', expected version '{}'! Make sure xSB-2 is correctly installed and up to date.",
+            throw StarException(strf("Root: Detected mismatched version '{}' of xStarbound assets at '{}', expected version '{}'! Make sure xStarbound is correctly installed and up to date.",
               *source->version, source->path, xSbAssetVersionString));
           }
         } else {
-          throw StarException(strf("Root: Detected non-versioned xSB-2 assets at '{}', expected version '{}'! Make sure xSB-2 is correctly installed and up to date.",
+          throw StarException(strf("Root: Detected non-versioned xStarbound assets at '{}', expected version '{}'! Make sure xStarbound is correctly installed and up to date.",
             source->path, xSbAssetVersionString));
         }
       } else {
@@ -720,10 +720,10 @@ StringList Root::scanForAssetSources(StringList const& directories) {
   }
 
   if (!baseAssetsFound)
-    throw StarException("Root: Base game assets not found! Make sure xSB-2 is correctly installed.");
+    throw StarException("Root: Base game assets not found! Make sure xStarbound is correctly installed.");
 
   if (!xSbAssetsFound)
-    throw StarException("Root: xSB-2 assets not found! Make sure xSB-2 is correctly installed.");
+    throw StarException("Root: xStarbound assets not found! Make sure xStarbound is correctly installed.");
 
   return sourcePaths;
 }

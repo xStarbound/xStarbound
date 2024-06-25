@@ -50,9 +50,13 @@ LuaMethods<Image> LuaUserDataMethods<Image>::make() {
     return processImageOperations(parseImageOperations(directives), image, [](String const& path) -> Image const* {
       if (auto root = RootBase::singletonPtr())
         return root->assets()->image(path).get();
-      else // FezzedOne: This ought to really throw an exception; otherwise `processImageOperations` will segfault on some directive operations.
+      else // FezzedOne: Throws an exception on directives that take image paths if called in an asset preprocessor or patch script.
         throw StarException("Star::Root not loaded");
     });
+  });
+
+  methods.registerMethod("copy", [](Image& image, Vec2U const& min, Vec2U const& size) {
+    return Image(image);
   });
 
   return methods;
@@ -63,36 +67,141 @@ LuaMethods<ByteArray> LuaUserDataMethods<ByteArray>::make() {
   LuaMethods<ByteArray> methods;
 
   methods.registerMethodWithSignature<size_t, ByteArray&>("size", mem_fn(&ByteArray::size));
-  methods.registerMethod("set", [](ByteArray& bytes, String const& byteStr) {
-    bytes = ByteArray::fromCStringWithNull(byteStr.utf8().c_str());
+
+  methods.registerMethod("clear", [](ByteArray& bytes) {
+    bytes.reset();
     return bytes;
   });
 
-  methods.registerMethod("setByte", [](ByteArray& bytes, size_t pos, String const& singleByte) {
-    // FezzedOne: Starts at 1 because that's how Lua does things.
-    size_t byteSize = singleByte.size();
-    if (pos != 0 && (pos - 1) < bytes.size() && byteSize == 1)
-      bytes[pos - 1] = *singleByte.utf8().c_str();
-    else {
-      if (singleByte.size() != 1)
-        throw LuaException(strf("setByte: Specified {} characters", byteSize == 0 ? "too few" : "too many"));
-      else
-        throw LuaException(strf("setByte: Attempted to set byte out of bounds at {}; size of byte array is {}", pos, bytes.size()));
+  methods.registerMethod("set", [](ByteArray& bytes, LuaEngine& engine, LuaValue const& byteSequence) {
+    bytes.reset();
+    if (auto newByteList = engine.luaMaybeTo<List<uint8_t>>(byteSequence)) {
+      const size_t byteLen = newByteList->count();
+      bytes.reserve(byteLen);
+      bytes.append((char*)newByteList->ptr(), byteLen);
+    } else if (auto newByteString = engine.luaMaybeTo<LuaString>(byteSequence)) {
+      const size_t byteStrLen = newByteString->length();
+      bytes.reserve(byteStrLen);
+      bytes.append(newByteString->ptr(), byteStrLen);
+    } else if (auto newByteArray = engine.luaMaybeTo<ByteArray>(byteSequence)) {
+      const size_t byteArrayLen = newByteArray->size();
+      bytes.reserve(byteArrayLen);
+      bytes.append(*newByteArray);
+    } else {
+      throw LuaException("set: Expected an array of 8-bit unsigned integers, a string or a ByteArray.");
     }
     return bytes;
   });
 
-  methods.registerMethod("get", [](ByteArray& bytes) {
-    return String(bytes.ptr(), bytes.size());
+  methods.registerMethod("setByte", [](ByteArray& bytes, LuaEngine& engine, size_t pos, LuaValue const& singleByte) {
+    // FezzedOne: Starts at 1 because that's how Lua does things.
+    if (auto newByteChar = engine.luaMaybeTo<uint8_t>(singleByte)) {
+      if (pos != 0 && (pos - 1) < bytes.size())
+        bytes[pos - 1] = (char)*newByteChar;
+      else {
+        throw LuaException(strf("setByte: Attempted to set byte out of bounds at {}; size of byte array is {}", pos, bytes.size()));
+      }
+    } else if (auto newByteString = engine.luaMaybeTo<LuaString>(singleByte)) {
+      const size_t byteSize = newByteString->length();
+      if (pos != 0 && (pos - 1) < bytes.size() && byteSize == 1)
+        bytes[pos - 1] = *newByteString->ptr();
+      else {
+        if (byteSize != 1)
+          throw LuaException(strf("setByte: Specified {} characters", byteSize == 0 ? "too few" : "too many"));
+        else
+          throw LuaException(strf("setByte: Attempted to set byte out of bounds at {}; size of byte array is {}", pos, bytes.size()));
+      }
+    } else {
+      throw LuaException("setByte: Expected 8-bit unsigned integer or single-character string.");
+    }
+    return bytes;
   });
 
-  methods.registerMethod("getByte", [](ByteArray& bytes, size_t pos) {
+  methods.registerMethod("append", [](ByteArray& bytes, LuaEngine& engine, LuaValue const& newBytes, Maybe<size_t> maybeTimes) {
+    const size_t times = maybeTimes.value(1);
+    if (times > 0) {
+      const char nullByte = '\0';
+      const size_t existingSize = bytes.size();
+      if (auto newByteChar = engine.luaMaybeTo<uint8_t>(newBytes)) {
+        bytes.reserve(existingSize + times);
+        for (size_t n = 0; n < times; n++) {
+          bytes.appendByte(*newByteChar);
+        }
+      } else if (auto newByteList = engine.luaMaybeTo<List<uint8_t>>(newBytes)) {
+        const size_t listSize = newByteList->count();
+        bytes.reserve(existingSize + listSize * times);
+        for (size_t n = 0; n < times; n++) {
+          bytes.append((char*)newByteList->ptr(), listSize);
+        }
+      } else if (auto newByteArray = engine.luaMaybeTo<ByteArray>(newBytes)) {
+        const size_t chunkSize = newByteArray->size();
+        const size_t fullSize = existingSize + chunkSize * times;
+        bytes.reserve(fullSize);
+        for (size_t n = 0; n < times; n++) {
+          bytes.append(*newByteArray);
+        }
+      } else if (auto newByteString = engine.luaMaybeTo<LuaString>(newBytes)) {
+        const size_t chunkSize = newByteString->length();
+        const size_t fullSize = existingSize + chunkSize * times;
+        bytes.reserve(fullSize);
+        for (size_t n = 0; n < times; n++) {
+          bytes.append(newByteString->ptr(), chunkSize);
+        }
+      } else if (newBytes == LuaNil) {
+        bytes.reserve(existingSize + times);
+        for (size_t n = 0; n < times; n++) {
+          bytes.appendByte('\0');
+        }
+      } else {
+        throw LuaException("append: Expected a ByteArray, array of 8-bit unsigned integers, a single 8-bit unsigned integer, a string or nil.");
+      }
+    }
+    return bytes;
+  });
+
+  methods.registerMethod("get", [](ByteArray& bytes, LuaEngine& engine) {
+    return engine.createString(bytes.ptr(), bytes.size());
+  });
+
+  methods.registerMethod("getBytes", [](ByteArray& bytes) {
+    List<uint8_t> byteArray{};
+    const size_t size = bytes.size();
+    for (size_t n = 0; n < size; n++)
+      byteArray.append(bytes[n]);
+    return byteArray;
+  });
+
+  methods.registerMethod("getByte", [](ByteArray& bytes, LuaEngine& engine, size_t pos) {
     // FezzedOne: Starts at 1 because that's how Lua does things.
     if (pos != 0 && (pos - 1) < bytes.size())
-      return String(bytes[pos - 1]);
+      return engine.createString(bytes.ptr() + (pos - 1), 1);
     else {
       throw LuaException(strf("getByte: Attempted to get byte out of bounds at {}; size of byte array is {}", pos, bytes.size()));
     }
+  });
+
+  methods.registerMethod("getByteChar", [](ByteArray& bytes, size_t pos) {
+    // FezzedOne: Starts at 1 because that's how Lua does things.
+    if (pos != 0 && (pos - 1) < bytes.size())
+      return (uint8_t)(*(bytes.ptr() + (pos - 1)));
+    else {
+      throw LuaException(strf("getByte: Attempted to get byte out of bounds at {}; size of byte array is {}", pos, bytes.size()));
+    }
+  });
+
+  methods.registerMethod("getSubBytes", [](ByteArray& bytes, size_t pos, size_t len) {
+    // FezzedOne: Starts at 1 because that's how Lua does things.
+    if (len == 0 && (pos - 1) < bytes.size())
+      return ByteArray();
+    if (pos != 0 && len != 0 && (pos - 1) < bytes.size() && ((pos - 1) + len) <= bytes.size())
+      return ByteArray(bytes.ptr() + (pos - 1), len);
+    else {
+      throw LuaException(strf("getByte: Attempted to get bytes out of bounds from {} to {}; size of byte array is {}", pos, pos + len - 1, bytes.size()));
+    }
+  });
+
+  methods.registerMethod("copy", [](ByteArray& bytes, size_t pos, size_t len) {
+    return ByteArray(bytes);
   });
 
   return methods;

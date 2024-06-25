@@ -46,7 +46,7 @@ namespace LuaBindings {
     List<pair<Vec2I, LiquidLevel>> liquidAlongLine(World* world, Vec2F const& start, Vec2F const& end);
     Maybe<Vec2F> resolvePolyCollision(World* world, PolyF poly, Vec2F const& position, float maximumCorrection, Maybe<CollisionSet> const& collisionSet);
     bool tileIsOccupied(World* world, Vec2I const& arg1, Maybe<bool> const& arg2, Maybe<bool> const& arg3);
-    bool placeObject(World* world, String const& arg1, Vec2I const& arg2, Maybe<int> const& arg3, Json const& arg4);
+    bool placeObject(World* world, String const& arg1, Vec2I const& arg2, Maybe<int> const& arg3, Json const& arg4, /* FE-only. */ Maybe<bool> arg5);
     Maybe<EntityId> spawnItem(World* world, Json const& itemType, Vec2F const& worldPosition, Maybe<size_t> const& inputCount, Json const& inputParameters, Maybe<Vec2F> const& initialVelocity, Maybe<float> const& intangibleTime);
     List<EntityId> spawnTreasure(World* world, Vec2F const& position, String const& pool, float level, Maybe<uint64_t> seed);
     Maybe<EntityId> spawnMonster(World* world, String const& arg1, Vec2F const& arg2, Maybe<JsonObject> const& arg3);
@@ -97,7 +97,7 @@ namespace LuaBindings {
     void setPlayerStart(World* world, Vec2F const& playerStart, Maybe<bool> respawnInWorld);
     List<EntityId> players(World* world);
     LuaString fidelity(World* world, LuaEngine& engine);
-    Maybe<LuaValue> callScriptContext(World* world, String const& contextName, String const& function, LuaVariadic<LuaValue> const& args);
+    Maybe<LuaValue> callScriptContext(World* world, LuaEngine& engine, String const& contextName, String const& function, LuaVariadic<LuaValue> const& args);
   }
 
   namespace WorldDebugCallbacks {
@@ -161,7 +161,7 @@ namespace LuaBindings {
     Json containerSwapItems(World* world, EntityId entityId, Json const& items, size_t offset);
     Json containerSwapItemsNoCombine(World* world, EntityId entityId, Json const& items, size_t offset);
     Json containerItemApply(World* world, EntityId entityId, Json const& items, size_t offset);
-    Maybe<LuaValue> callScriptedEntity(World* world, EntityId entityId, String const& function, LuaVariadic<LuaValue> const& args);
+    Maybe<LuaValue> callScriptedEntity(World* world, LuaEngine& engine, EntityId entityId, String const& function, LuaVariadic<LuaValue> const& args);
     RpcPromise<Vec2F> findUniqueEntity(World* world, String const& uniqueId);
     RpcPromise<Json> sendEntityMessage(World* world, LuaEngine& engine, LuaValue entityId, String const& message, LuaVariadic<Json> args);
     Maybe<bool> loungeableOccupied(World* world, EntityId entityId);
@@ -171,6 +171,7 @@ namespace LuaBindings {
     Maybe<String> stagehandType(World* world, EntityId entityId);
     bool isNpc(World* world, EntityId entityId, Maybe<int> const& damageTeam);
     Maybe<Vec2F> playerAimPosition(World *world, EntityId entityId);
+    Maybe<Vec2F> entityAimPosition(World* world, EntityId entityId);
   }
 
   namespace WorldEnvironmentCallbacks {

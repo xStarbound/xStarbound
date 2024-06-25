@@ -8,9 +8,11 @@ This section of `mcontroller` documentation refers to the `ActorMovementControll
 - NPCs
 - players
 
-The `mcontroller` bindings are available in the following scripts running on players, NPCs and monsters:
+These `mcontroller` bindings are available in the following scripts running on players, NPCs and monsters:
 
+- generic player scripts
 - tech scripts
+- active item scripts
 - companion system scripts
 - status effect scripts
 - status controller scripts

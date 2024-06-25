@@ -5,10 +5,14 @@
 #include "StarLogging.hpp"
 #include "StarListener.hpp"
 #include "StarWorld.hpp"
+#include "StarRoot.hpp"
+#include "StarConfiguration.hpp"
 #include "StarWorldLuaBindings.hpp"
 #include "StarInputLuaBindings.hpp"
 
 namespace Star {
+
+class WorldClient;
 
 STAR_EXCEPTION(LuaComponentException, LuaException);
 
@@ -48,6 +52,7 @@ public:
   void setScript(String script);
   void setScripts(StringList scripts);
 
+  static void addBaseCallbacks(String groupName, LuaCallbacks callbacks);
   void addCallbacks(String groupName, LuaCallbacks callbacks);
   bool removeCallbacks(String const& groupName);
 
@@ -76,7 +81,7 @@ public:
   Maybe<Ret> invoke(String const& name, V&&... args);
 
   template <typename Ret = LuaValue>
-  Maybe<LuaValue> eval(String const& code);
+  Maybe<Ret> eval(String const& code);
 
   // Returns last error, if there has been an error.  Errors can only be
   // cleared by re-initializing the context.
@@ -94,6 +99,8 @@ protected:
   // Checks the initialization state of the script, while also reloading the
   // script and clearing the error state if a root reload has occurred.
   bool checkInitialization();
+  bool checkIfClient(World* worldPtr);
+  static StringMap<LuaCallbacks> m_baseCallbacks;
 
 private:
   StringList m_scripts;
@@ -159,6 +166,7 @@ public:
 protected:
   using Base::setLuaRoot;
   using Base::init;
+  using Base::m_baseCallbacks;
 };
 
 // Component for scripts which can be used as entity message handlers, provides
@@ -202,7 +210,7 @@ Maybe<Ret> LuaBaseComponent::invoke(String const& name, V&&... args) {
 }
 
 template <typename Ret>
-Maybe<LuaValue> LuaBaseComponent::eval(String const& code) {
+Maybe<Ret> LuaBaseComponent::eval(String const& code) {
   if (!checkInitialization())
     return {};
 
@@ -304,7 +312,27 @@ void LuaWorldComponent<Base>::init(World* world) {
   if (Base::initialized())
     uninit();
 
-  Base::setLuaRoot(world->luaRoot());
+  auto config = Root::singleton().configuration();
+  if (config->get("safeScripts").toBool())
+    Base::setLuaRoot(make_shared<LuaRoot>());
+  else
+    Base::setLuaRoot(world->luaRoot());
+
+  auto assets = Root::singleton().assets();
+
+  // FezzedOne: The base callbacks are all client-side. Make sure they're only added client-side.
+  // Also make sure to get the appropriate garbage collection settings.
+  if (Base::checkIfClient(world)) {
+    for (auto const& p : m_baseCallbacks)
+      Base::addCallbacks(p.first, p.second);
+    
+    Json config = assets->json("/client.config");
+    Base::luaRoot()->tuneAutoGarbageCollection(config.getFloat("luaGcPause"), config.getFloat("luaGcStepMultiplier"));
+  } else {
+    Json config = assets->json("/worldserver.config");
+    Base::luaRoot()->tuneAutoGarbageCollection(config.getFloat("luaGcPause"), config.getFloat("luaGcStepMultiplier"));
+  }
+
   Base::addCallbacks("world", LuaBindings::makeWorldCallbacks(world));
   Base::init();
 }

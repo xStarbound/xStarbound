@@ -4,11 +4,11 @@ The `root` table contains functions that reference the game's currently loaded a
 
 ## Paths
 
-Below is a detailed explanation of how paths work in xSB-2 (and stock Starbound).
+Below is a detailed explanation of how paths work on xStarbound (and stock Starbound).
 
 ### File paths
 
-*File paths* are paths within the OS's filesystem. These use your OS's conventions for filesystem paths. Note that relative file paths are relative to the directory containing the running xSB-2 (or stock) executable. Some notes for Linux and Windows:
+*File paths* are paths within the OS's filesystem. These use your OS's conventions for filesystem paths. Note that relative file paths are relative to the directory containing the running xStarbound (or stock) executable. Some notes for Linux and Windows:
 
   - On Linux, file and directory names are case-sensitive by default, only forward slashes (`/`) are parsed as path separators, the special names `.` and `..` are disallowed (but may still be used with their usual special meaning in paths), and on most Linux filesystems, any character other than a null byte (`\0`) or forward slash is allowed in file and directory names.
   - On Windows, file and directory names are case-insensitive by default, both backward (`\`) and forward (`/`) slashes are parsed as path separators, drive letters may need to be specified, several characters are not allowed in file and directory names, and multiple other caveats apply. See [this link](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) for details.
@@ -46,9 +46,9 @@ Below is a detailed explanation of how paths work in xSB-2 (and stock Starbound)
 
 A JSON path may optionally be specified after a colon in a JSON asset path (where it is called a *subpath*), and some callbacks accept a JSON path (marked with a `JsonPath` type) directly. The path string syntax is as follows:
 
-- *`k`:* A JSON object «root» key, where `k` is substituted for the literal key string, without quotes; e.g., `parameters`.
-- *`.k`:* A JSON object «subdirectory» key; e.g., `.animationConfig`. Used to access the value associated with a given key inside an object associated with the given «root» or «subdirectory» key. `k` is substituted as for «root» keys above. A path string may *not* begin with a subdirectory key.
-- *`[x]`:* A JSON array index specifier, where `x` is either an unsigned integer or `-` (refers to the last index in the array). Used to access the value at the specified array index. Indices begin at `0`, not `1`. Path strings *may* begin with an array index, assuming the «root» is an array (as in many JSON patch files).
+- *`k`:* A JSON object "root" key, where `k` is substituted for the literal key string, without quotes; e.g., `parameters`.
+- *`.k`:* A JSON object "subdirectory" key; e.g., `.animationConfig`. Used to access the value associated with a given key inside an object associated with the given "root" or "subdirectory" key. `k` is substituted as for "root" keys above. A path string may *not* begin with a subdirectory key.
+- *`[x]`:* A JSON array index specifier, where `x` is either an unsigned integer or `-` (refers to the last index in the array). Used to access the value at the specified array index. Indices begin at `0`, not `1`. Path strings *may* begin with an array index, assuming the "root" is an array (as in many JSON patch files).
 
 Keys and index specifiers may be freely concatenated as in Lua code; e.g., `"actionOnReap[2].action"` accesses the value of the key `"action"` of an object at the third index of the array `"actionOnReap"` at the "root" of the config.
 
@@ -94,9 +94,10 @@ Tags that aren't replaced are left untouched, potentially allowing angled bracke
 The following path type names are used throughout this documentation to refer to path strings with differing restrictions:
 
 - **`AssetPath<TaggedImage>`:** A standard asset path where a frame specifier and/or directives are permitted and `< >` tags may be replaced. Only used in JSON animation configs. (`?` and `:` allowed.)
-- **`AssetPath<Image>`:** A standard asset path where a frame specifier and/or directives are permitted, as detailed above. (`?` and `:` allowed.)
+- **`AssetPath<Image, Directives>`:** A standard asset path where an image frame specifier and/or directives are permitted, as detailed above. (`?` and `:` allowed.)
+- **`AssetPath<Image>`:** A standard asset path where an image frame specifier is permitted, but *not* directives. (`:`, but *not* `?`, allowed.)
 - **`AssetPath<Json>`:** An asset path that allows a JSON subpath but *not* directives. (`:`, but *not* `?`, allowed.)
-- **`AssetPath<>`:** An asset path that disallows *both* subpaths and directives. (Neither `?` nor `:` allowed.)
+- **`AssetPath<>`:** An asset path that disallows *both* frame specifiers / subpaths and directives. (Neither `?` nor `:` allowed.)
 - **`RawAssetPath`:** A raw asset path where no special meaning is assigned to `?` or `:`. See the *Technical note* above.
 - **`FilePath`:** An OS file path as detailed above.
 
@@ -130,73 +131,68 @@ If the loaded version of the asset was created by an asset preprocessor script, 
 
 Returns a list of file paths to any asset sources that contain JSON or Lua patches to the base asset at the specified asset path, or `nil` if no base asset exists at that path; passing a path containing a subpath or directives will result in a `nil` return.
 
-Patches executed by preprocessor scripts, either directly or via `assets.patch`, will not be listed.
+Patches *directly* executed by preprocessor scripts (not via an invocation of `asset.patch` on a patch file) will not be listed.
 
 ---
 
 #### `Json` root.assetSourceMetadata(`FilePath` assetSourcePath)
 
-Returns the metadata for any asset source whose root directory or `.pak` is at the specified path, or `nil` if there's no asset source there or it lacks a metadata file (called either `.metadata` or `_metadata`). The metadata is in the following format (in JSON):
+Returns the metadata for any asset source whose root directory or `.pak` is at the specified path, `jobject{}` if it lacks a metadata file (called either `.metadata` or `_metadata`), or `nil` if there's no asset source there. An example metadata return value showing all possible keys:
 
-```json
-{
-  "name": "MyMod", // The asset source's internal name; should be a string. Used for `"includes"` and `"requires"` checks.
-  "includes": [], // A list of sources that must be fully loaded (aside from post-load scripts) prior to loading this source.
-  // Sources whose names match `"includes"` entries do not need to be present for this source to load,
-  // but the game will rearrange load order such that any "included" sources get loaded before this source.
-  "requires": [], // A list of sources that *must* be present and fully loaded prior to loading this source.
-  // If any sources whose names are specified in `"requires"` are not found, the game will shut down.
-  // The game will rearrange load order to load any "required" sources before this source.
-  "priority": 1, // The mod's priority value, as any valid JSON number.
-  // Mods are loaded in order of priority, from lowest to highest. Mods sharing the same priority value are loaded in
-  // alphabetical filesystem order (dependent on your OS's locale configuration) unless they "include" or "require" each other.
-  "scripts": { // Asset preprocessor scripts.
-    "onLoad": ["/myscript.lua", "/myotherscript.lua"], // Scripts to executed upon first loading this asset source.
-    "postLoad": [] // Scripts to execute *after* loading all asset sources.
-    // Paths to scripts must be absolute raw asset paths.
-    // Individual scripts are executed in the order specified in the respective array.
+```lua
+jobject{
+  name = "MyMod",
+  includes = jarray{},
+  requires = jarray{},
+  priority = 1,
+  scripts = jobject{
+    onLoad = jarray{"/myscript.lua", "/myotherscript.lua"},
+    postLoad = jarray{}
   },
-  "friendlyName": "My Mod", // The asset source's "friendly" name. Shown on the mods screen if present.
-  "version": "v1.0", // The asset source's version string. Shown on the mods screen.
-  "description": "This is my new mod!", // The asset source's description string. Shown on the mods screen.
-  "author": "FezzedOne", // The asset source's author(s) string. Shown on the mods screen.
-  "tags": "Crafting and Building|User Interface", // The asset source's Steam tags listed as a pipe-separated string.
-  // The Workshop mod uploader automatically sets `"tags"` based on the selected tags in the interface.
-  "link": "steam://url/CommunityFilePage/123456789", // An optional Steam Workshop URL for the mod's page.
-  // `"link"` is added automatically by the Workshop mod uploader. No need to add this to a non-Workshop mod.
-  "permissions": [] // Required in order to use certain callbacks on StarExtensions. Ignored by xSB-2.
+  friendlyName = "My Mod",
+  version = "v1.0",
+  description = "This is my new mod!",
+  author = "FezzedOne",
+  tags = "Crafting and Building|User Interface",
+  steamContentId = "123456789",
+  link = "steam://url/CommunityFilePage/123456789",
+  permissions = jarray{} -- You may see this in StarExtensions mods.
 }
 ```
 
-All JSON keys are optional.
+Analogous to the preprocessing callback `assets.sourceMetadata` (see `assets.md`). See `$doc/preprocessing.md` for more documentation on asset source metadata files.
 
-**Warning:** If a non-Workshop asset source lists a Workshop source in `"requires"`, the game will shut down before the required Workshop source is loaded, since the game loads Workshop sources *after* fully processing all other sources. Because of this, `"includes"` is highly recommended instead of `"requires"` whenever Workshop mods might be involved.
+---
 
-To avoid "asset doesn't exist" errors in patches, consider using a preprocessor script that `pcall`s `assets.json` or `assets.image` to check if a file exists and is, respectively, valid JSON or a valid image before patching it with `assets.patch`.
+#### `bool` root.assetExists(`RawAssetPath` assetPath)
 
-> **Technical notes:** Some minor technical notes
-> - The `"name"` specified in `"metadata"` may technically be any valid JSON value, but mods cannot "require" or "include" a mod whose internal name is not a string.
-> - You might have noticed that preprocessor scripts are executed *twice* if the game loads any Workshop mods. Don't worry though — the slate is wiped clean before the second execution. Preprocessor scripts are also re-executed on any `/reload` or `/serverreload`.
+Returns whether an asset exists at the specified path. Analogous to `assets.exists` (see `assets.md`).
 
 ---
 
 #### `Json` root.assetJson(`AssetPath<Json>` assetPath)
 
-Returns the contents of the specified JSON asset file. Throws an error if the specified asset doesn't exist, the path isn't valid, or any specified subpath doesn't exist or isn't valid.
+Returns the contents of the specified JSON asset file, or if a subpath is specified, the JSON value at that subpath in the asset file.
+
+Throws an error and may log another uncatchable error if the specified asset doesn't exist, the specified asset isn't valid top-level JSON, the path isn't valid, or any specified subpath doesn't exist or isn't valid.
+
+Consider using `root.assetExists`, `root.assetData` and/or `sb.parseJson` to avoid unnecessary error handling.
 
 ---
 
 #### `String` root.assetData(`AssetPath<>` assetPath)
 
-Returns the contents of the specified asset file as a `String` of raw bytes; for a text file, this is the (UTF-8-encoded) text it contains. Throws an error if the specified asset doesn't exist, or the path isn't valid or contains disallowed components.
+Returns the contents of the specified asset file as a `String` of raw bytes; for a text file, this is the (UTF-8-encoded) text it contains. Throws an error (but doesn't also log an uncatchable error) if the specified asset doesn't exist, or the path isn't valid or contains disallowed components.
+
+Consider using `root.assetExists` to avoid unnecessary error handling.
 
 ---
 
-#### `Image` root.image(`AssetPath<Image>` assetPath)
+#### `Image` root.image(`AssetPath<Image, Directives>` assetPath)
 
-Returns the specified asset file as an `Image` object, if it exists, is a valid image and any frame specifier is valid for it. Otherwise, it logs a warning and returns an `Image` object based on `/assetmissing.png` without a frame specifier but with any directives applied. Throws an error if an invalid path is specified.
+Returns the specified asset file as an `Image` object, if it exists, is a valid image and any frame specifier is valid for it. Otherwise, it logs an uncatchable warning and returns an `Image` object based on `/assetmissing.png` without a frame specifier but with any directives applied. Throws an error if an invalid path is specified.
 
-See `image.md` for information on `Image` object methods.
+See `image.md` for information on `Image` object methods. Consider using `root.assetExists` to avoid unnecessary error handling.
 
 ---
 
@@ -210,7 +206,7 @@ See `image.md` for information on `Image` object methods.
 
 #### `Maybe<ByteArray>` root.bytes(`AssetPath<>` assetPath)
 
-Returns the specified asset as a raw `ByteArray`, if it exists. Otherwise returns `nil`.
+Returns the specified asset as a raw `ByteArray`, if it exists. Throws an error (but doesn't also log an uncatchable error) if the specified asset doesn't exist, or the path isn't valid or contains disallowed components.
 
 See `bytes.md` for information on `ByteArray` object methods.
 
@@ -218,15 +214,17 @@ See `bytes.md` for information on `ByteArray` object methods.
 
 #### `ByteArray` root.newBytes()
 
-Returns a raw, blank `ByteArray` of zero length.
+Creates a raw, blank `ByteArray` of zero length.
 
 See `bytes.md` for information on `ByteArray` object methods.
 
 ---
 
-#### `bool` root.saveAssetPathToImage(`String` pathWithDirectives, `String` exportFileName, `Maybe<bool>` byFrame)
+#### `bool` root.saveAssetPathToImage(`AssetPath<Image, Directives>` image, `String` exportFileName, `Maybe<bool>` byFrame)
 
 Takes the image asset at the given asset path, crops it to any frame specified, processes any directives and then saves the output to `$storageDir/sprites/$exportFileName.png`, where `$storageDir` is your player/universe storage directory and `$exportFileName` is the `exportFileName` parameter, minus anything before the last directory separator (`/` on Linux; `\` *and* `/` on Windows), if you've left any slashes in there. If `$storageDir/sprites/` does not exist, it will be created for you.
+
+If no base image asset exists at the specified base path or the frame specifier is invalid, the image will be replaced with `$assets/assetmissing.png` and an uncatchable warning will be logged. If any specified directives are invalid, an invisible image will be saved and an uncatchable warning will, again, be logged.
 
 If `byFrame` is `true`, directives are processed on a frame-by-frame basis for those base image assets that have an associated frames file — this is necessary for generated clothing.
 
@@ -538,12 +536,36 @@ Returns the metadata for the specified dungeon definition.
 
 #### `BehaviorState` root.behavior(`LuaTable` context, `Json` config, `JsonObject` parameters, `Maybe<Blackboard>` blackboard)
 
-Loads a configured behaviour, initialises it and returns the behaviour state as a userdata `BehaviorState` object. Explanation of the parameters:
+Loads a configured behaviour, initialises it and returns the behaviour state as a userdata `BehaviorState` object (see below). Explanation of the parameters:
 
 - `context` is the Lua context to pass to behaviour scripts running in the new `BehaviorState` context; in most cases, this should be `_ENV` or perhaps `_G`. Pass `{}` to start with a blank Lua context (but note that behaviour scripts won't be able to access any callbacks!).
 - `config` can be either the `String` name of a behaviour tree, or an entire `JsonObject` behaviour tree configuration to be built.
 - `parameters` may contain overrides for parameters for the behaviour tree.
 - `blackboard` is an optionally specified existing `Blackboard` object to use for running the behaviour.
+
+---
+
+#### `Json` root.getConfiguration(`String` key)
+
+Gets the value of the specified key in `xclient.config`. Returns `nil` if the key doesn't exist. Will log a warning and return `nil` if any attempt is made to get the value of `"title"`, since that may contain server login info.
+
+---
+
+#### `Json` root.getConfigurationPath(`String` path)
+
+Gets the value at the specified JSON path in `xclient.config`. Uses the same path syntax used in JSON patches. Returns `nil` if nothing exists at the specified path. Will log a warning and return `nil` if any attempt is made to get the value of `"/title"` or anything inside it, since that may contain server login info.
+
+---
+
+#### `Json` root.setConfiguration(`String` key)
+
+Sets the value of the specified key in `xclient.config` to the specified value. Returns `nil` if the key doesn't exist. Will log a warning and return `nil` if any attempt is made to set the value of `"safeScripts"`, for obvious reasons.
+
+---
+
+#### `Json` root.setConfigurationPath(`String` path)
+
+Sets the value at the specified JSON path in `xclient.config` to the specified value. Uses the same path syntax used in JSON patches. Returns `nil` if nothing exists at the specified path. Will log a warning and return `nil` if any attempt is made to set the value of `"/safeScripts"` or anything inside it, for obvious reasons.
 
 ---
 
@@ -619,7 +641,7 @@ Resets the internal state of the behaviour. Will throw an exception if the behav
 
 Note that a value assigned to any key/`NodeType` combination may technically be any valid Lua value (aside from `nil`, of course). The above are just recommendations.
 
-**Warning:** Make sure all data stored in a `Blackboard` is JSON-encodable, since internal exceptions will be thrown if it's not. You can test for JSON encodability by checking the first result of `pcall(sb.printJson, valueToTest)`, where `valueToTest` is the value you wish to check; if you get `true`, it's safe to put in a `Blackboard`.
+> **Note:** Make sure all data stored in a `Blackboard` is JSON-encodable, since internal exceptions will be thrown if it's not. You can test for JSON encodability by checking the first result of `pcall(sb.printJson, valueToTest)`, where `valueToTest` is the value you wish to check; if you get `true`, it's safe to put in a `Blackboard`.
 
 ---
 
@@ -641,24 +663,24 @@ In addition, `NodeParameterType`-specific getters and setters are available:
 
 ### Getters
 
-#### `LuaValue` `[Blackboard]`:getEntity(`String` key)
-#### `LuaValue` `[Blackboard]`:getPosition(`String` key)
-#### `LuaValue` `[Blackboard]`:getVec2(`String` key)
-#### `LuaValue` `[Blackboard]`:getNumber(`String` key)
-#### `LuaValue` `[Blackboard]`:getBool(`String` key)
-#### `LuaValue` `[Blackboard]`:getList(`String` key)
-#### `LuaValue` `[Blackboard]`:getTable(`String` key)
-#### `LuaValue` `[Blackboard]`:getString(`String` key)
+#### `Json` `[Blackboard]`:getEntity(`String` key)
+#### `Json` `[Blackboard]`:getPosition(`String` key)
+#### `Json` `[Blackboard]`:getVec2(`String` key)
+#### `Json` `[Blackboard]`:getNumber(`String` key)
+#### `Json` `[Blackboard]`:getBool(`String` key)
+#### `Json` `[Blackboard]`:getList(`String` key)
+#### `Json` `[Blackboard]`:getTable(`String` key)
+#### `Json` `[Blackboard]`:getString(`String` key)
 
 ### Setters
 
-#### `void` `[Blackboard]`:setEntity(`String` key, `LuaValue` value)
-#### `void` `[Blackboard]`:setPosition(`String` key, `LuaValue` value)
-#### `void` `[Blackboard]`:setVec2(`String` key, `LuaValue` value)
-#### `void` `[Blackboard]`:setNumber(`String` key, `LuaValue` value)
-#### `void` `[Blackboard]`:setBool(`String` key, `LuaValue` value)
-#### `void` `[Blackboard]`:setList(`String` key, `LuaValue` value)
-#### `void` `[Blackboard]`:setTable(`String` key, `LuaValue` value)
-#### `void` `[Blackboard]`:setString(`String` key, `LuaValue` value)
+#### `void` `[Blackboard]`:setEntity(`String` key, `Json` value)
+#### `void` `[Blackboard]`:setPosition(`String` key, `Json` value)
+#### `void` `[Blackboard]`:setVec2(`String` key, `Json` value)
+#### `void` `[Blackboard]`:setNumber(`String` key, `Json` value)
+#### `void` `[Blackboard]`:setBool(`String` key, `Json` value)
+#### `void` `[Blackboard]`:setList(`String` key, `Json` value)
+#### `void` `[Blackboard]`:setTable(`String` key, `Json` value)
+#### `void` `[Blackboard]`:setString(`String` key, `Json` value)
 
 **Note:** `:setNumber` has the same caveat as `:set` done with a `NodeParameterType` of `"number"`.

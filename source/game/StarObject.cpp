@@ -1184,11 +1184,19 @@ List<Vec2I> Object::interactiveSpaces() const {
 }
 
 Maybe<LuaValue> Object::callScript(String const& func, LuaVariadic<LuaValue> const& args) {
-  return m_scriptComponent.invoke(func, args);
+  return m_scriptComponent.invoke<LuaValue>(func, args);
+}
+
+Maybe<Json> Object::callScript(String const& func, LuaVariadic<Json> const& args) {
+  return m_scriptComponent.invoke<Json>(func, args);
 }
 
 Maybe<LuaValue> Object::evalScript(String const& code) {
-  return m_scriptComponent.eval(code);
+  return m_scriptComponent.eval<LuaValue>(code);
+}
+
+Maybe<Json> Object::evalScriptJson(String const& code) {
+  return m_scriptComponent.eval<Json>(code);
 }
 
 Vec2F Object::mouthPosition() const {

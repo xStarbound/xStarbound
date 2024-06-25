@@ -61,13 +61,19 @@ LuaAnimationComponent<Base>::LuaAnimationComponent() {
   animationCallbacks.registerCallback("clearDrawables", [this]() {
       m_drawables.clear();
     });
-  animationCallbacks.registerCallback("addDrawable", [this](Drawable drawable, Maybe<String> renderLayerName) {
+  animationCallbacks.registerCallback("addDrawable", [this](Drawable drawable, Maybe<String> renderLayerName, Maybe<bool> dontScale) {
       Maybe<EntityRenderLayer> renderLayer;
       if (renderLayerName)
         renderLayer = parseRenderLayer(*renderLayerName);
 
-      if (auto image = drawable.part.ptr<Drawable::ImagePart>())
-        image->transformation.scale(0.125f);
+      // FezzedOne: Scaling can fuck up embedded transformations, so add the option to turn it off.
+      bool shouldScale = true;
+      if (dontScale)
+        shouldScale = !(*dontScale);
+      if (shouldScale) {
+        if (auto image = drawable.part.ptr<Drawable::ImagePart>())
+          image->transformation.scale(0.125f);
+      }
 
       m_drawables.append({move(drawable), renderLayer});
     });

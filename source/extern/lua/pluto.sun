@@ -1,0 +1,4 @@
+require .
+name pluto
++lua.cpp
+arg -O3

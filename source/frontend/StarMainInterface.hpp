@@ -138,7 +138,7 @@ public:
     Vec2I position;
   };
 
-    struct QueuedDrawable {
+  struct QueuedDrawable {
     Drawable drawable;
     Vec2F screenPosition;
     float pixelRatio;

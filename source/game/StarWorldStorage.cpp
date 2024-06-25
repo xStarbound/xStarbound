@@ -14,6 +14,60 @@
 
 namespace Star {
 
+/* xStarbound: Automatic world file repacking. */
+void WorldStorage::repackWorldFile(String const& fileName, String const& fileType) {
+  const String repackExtension = ".repack";
+  auto config = Root::singleton().configuration();
+  if (!config->get("disableRepacking").optBool().value(false)) {
+    bool success = false;
+
+    try {
+      double startTime = Time::monotonicTime();
+
+      String outputFilename = fileName + repackExtension;
+
+      BTreeDatabase oldDb;
+      oldDb.setIODevice(File::open(fileName, IOMode::Read));
+      oldDb.open();
+
+      BTreeDatabase newDb;
+      newDb.setBlockSize(oldDb.blockSize());
+      newDb.setContentIdentifier(oldDb.contentIdentifier());
+      newDb.setKeySize(oldDb.keySize());
+      newDb.setAutoCommit(false);
+
+      newDb.setIODevice(File::open(outputFilename, IOMode::ReadWrite | IOMode::Truncate));
+      newDb.open();
+
+      unsigned dummy = 0;
+      oldDb.forAll([&dummy, &newDb](ByteArray key, ByteArray data) {
+        newDb.insert(key, data);
+        ++dummy;
+      });
+
+      oldDb.close();
+      newDb.commit();
+      newDb.close();
+
+      Logger::info("WorldStorage: Automatically repacked {} before load in {}s", fileType, Time::monotonicTime() - startTime);
+      success = true;
+    } catch (const std::exception& e) {
+      Logger::error("WorldStorage: Caught exception while repacking {}, using backup: {}", fileType, e.what());
+    }
+    if (success) {
+      try {
+        unsigned playerBackupFileCount = config->get("playerBackupFileCount").toUInt();
+        // FezzedOne: Back up the shipworld before replacing it with the repacked file, just to be sure.
+        File::backupFileInSequence(fileName, playerBackupFileCount);
+        File::copy(fileName + repackExtension, fileName);
+        File::remove(fileName + repackExtension);
+      } catch (std::exception const& e) {
+        Logger::error("WorldStorage: Caught exception while moving repacked {} '{}': {}", fileType, fileName, e.what());
+      }
+    }
+  }
+}
+
 WorldChunks WorldStorage::getWorldChunksUpdate(WorldChunks const& oldChunks, WorldChunks const& newChunks) {
   WorldChunks update;
   for (auto const& p : oldChunks) {
@@ -41,6 +95,8 @@ void WorldStorage::applyWorldChunksUpdateToFile(String const& file, WorldChunks 
 }
 
 WorldChunks WorldStorage::getWorldChunksFromFile(String const& file) {
+  WorldStorage::repackWorldFile(file, strf("shipworld at '{}'", file));
+
   BTreeDatabase db;
   openDatabase(db, File::open(file, IOMode::Read));
 

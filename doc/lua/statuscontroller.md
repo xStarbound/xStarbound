@@ -5,10 +5,15 @@ The `status` table relates to the status controller attached to an entity. It is
 - monster scripts
 - NPC scripts
 - status effect scripts
+- generic player scripts
 - player companion scripts
+- player deployment scripts
 - quest scripts
 - tech scripts
 - primary status scripts for players, monsters and NPCs
+- active item scripts (but *not* fireable item scripts)
+- pane scripts
+- container interface scripts
 
 ---
 
@@ -32,7 +37,7 @@ Returns the value for the specified stat. Defaults to `0.0` if the stat does not
 
 #### `bool` status.statPositive(`String` statName)
 
-Returns whether the stat value is greater than 0.
+Returns whether the stat value is greater than zero.
 
 ---
 
@@ -80,13 +85,17 @@ Adds the specified value to a resource. Returns any overflow.
 
 #### `bool` status.consumeResource(`String` resourceName, `float` amount)
 
-Tries to consume the specified amount from a resource. Returns whether the full amount was able to be consumes. Does not modify the resource if unable to consume the full amount.
+Tries to consume the specified amount from a resource. Returns whether the full amount was able to be consumed. Does not modify the resource if unable to consume the full amount.
+
+The status controller is also unable to consume a resource if it's locked.
 
 ---
 
 #### `bool` status.overConsumeResource(`String` resourceName, `float` amount)
 
 Tries to consume the specified amount from a resource. If unable to consume the full amount, will consume all the remaining amount. Returns whether it was able to consume any at all of the resource.
+
+The status controller is unable to consume any of the resource if the resource is zero or is locked.
 
 ---
 

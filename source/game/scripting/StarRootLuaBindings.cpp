@@ -258,8 +258,8 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
     });
 
   callbacks.registerCallback("setConfigurationPath", [root](String const& path, Json const& value) -> Json {
-      if (path.beginsWith("/safeScripts")) {
-        Logger::warn("[xSB] root.setConfigurationPath: Attempted to get something in the \"safeScripts\" key, which isn't permitted.");
+      if (path.splitAny("[].").get(0) == "safeScripts") {
+        Logger::warn("[xSB] root.setConfigurationPath: Attempted to set something in the \"safeScripts\" key, which isn't permitted.");
         return Json();
       } else {
         root->configuration()->setPath(path, value);

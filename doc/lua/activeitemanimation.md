@@ -36,4 +36,4 @@ Takes an input position (defaults to `[0, 0]`) relative to the item and returns 
 
 ## Note
 
-`activeItemAnimation.partPoint` and `activeItemAnimation.partPoly` do not actually exist in xSB-2 or in stock Starbound despite being referenced in the stock documentation.
+`activeItemAnimation.partPoint` and `activeItemAnimation.partPoly` do not actually exist on xStarbound or in stock Starbound despite being referenced in the stock documentation.

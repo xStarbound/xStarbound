@@ -10,6 +10,8 @@ std::ostream& operator<<(std::ostream& os, LuaValue const& value) {
     os << (value.get<LuaBoolean>() ? "true" : "false");
   } else if (value.is<LuaInt>()) {
     os << value.get<LuaInt>();
+  } else if (value.is<LuaLightUserData>()) {
+    os << "<lightuserdata ptr:" << reinterpret_cast<uintptr_t*>(value.get<LuaLightUserData>()) << ">";
   } else if (value.is<LuaFloat>()) {
     os << value.get<LuaFloat>();
   } else if (value.is<LuaString>()) {
@@ -115,6 +117,10 @@ LuaString LuaContext::createString(char const* str) {
   return engine().createString(str);
 }
 
+LuaString LuaContext::createString(char const* str, size_t len) {
+  return engine().createString(str, len);
+}
+
 LuaTable LuaContext::createTable() {
   return engine().createTable();
 }
@@ -143,6 +149,11 @@ LuaValue LuaConverter<Json>::from(LuaEngine& engine, Json const& v) {
 Maybe<Json> LuaConverter<Json>::to(LuaEngine&, LuaValue const& v) {
   if (v == LuaNil)
     return Json();
+
+  if (auto u = v.ptr<LuaLightUserData>()) {
+    if (*u == PlutoNull)
+      return Json();
+  }
 
   if (auto b = v.ptr<LuaBoolean>())
     return Json(*b);
@@ -314,7 +325,8 @@ LuaEnginePtr LuaEngine::create(bool safe) {
 
   luaL_requiref(self->m_state, "os", luaopen_os, true);
   if (safe) {
-    StringSet osWhitelist = {"clock", "difftime", "time"};
+    StringSet osWhitelist = {"clock", "difftime", "time", 
+      "nanos", "micros", "millis", "seconds", "unixseconds"};
 
     lua_pushnil(self->m_state);
     while (lua_next(self->m_state, -2) != 0) {
@@ -354,12 +366,25 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   loadBaseLibrary(self->m_state, "string", luaopen_string);
   loadBaseLibrary(self->m_state, "table", luaopen_table);
   loadBaseLibrary(self->m_state, "utf8", luaopen_utf8);
+  loadBaseLibrary(self->m_state, "json", luaopen_json);
+  loadBaseLibrary(self->m_state, "pluto_assert", luaopen_assert);
+  loadBaseLibrary(self->m_state, "bigint", luaopen_bigint);
+  loadBaseLibrary(self->m_state, "cat", luaopen_cat);
+  loadBaseLibrary(self->m_state, "crypto", luaopen_crypto);
+  loadBaseLibrary(self->m_state, "scheduler", luaopen_scheduler);
+  loadBaseLibrary(self->m_state, "url", luaopen_url);
+  loadBaseLibrary(self->m_state, "xml", luaopen_xml);
+  loadBaseLibrary(self->m_state, "vector3", luaopen_vector3);
+  loadBaseLibrary(self->m_state, "base32", luaopen_base32);
+  loadBaseLibrary(self->m_state, "base64", luaopen_base64);
   lua_pop(self->m_state, 5);
 
-  if (!safe) {
+  if (!safe) { // FezzedOne: Dangerous stuff, this.
     loadBaseLibrary(self->m_state, "io", luaopen_io);
     loadBaseLibrary(self->m_state, "package", luaopen_package);
     loadBaseLibrary(self->m_state, "debug", luaopen_debug);
+    loadBaseLibrary(self->m_state, "http", luaopen_http);
+    loadBaseLibrary(self->m_state, "socket", luaopen_socket);
     lua_pop(self->m_state, 3);
   }
 
@@ -371,6 +396,7 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   self->m_scriptDefaultEnvRegistryId = luaL_ref(self->m_state, LUA_REGISTRYINDEX);
   lua_pop(self->m_state, 1);
 
+  self->setGlobal("null", LuaLightUserData(PlutoNull));
   self->setGlobal("jarray", self->createFunction(&LuaDetail::jarrayCreate));
   self->setGlobal("jobject", self->createFunction(&LuaDetail::jobjectCreate));
   self->setGlobal("jremove", self->createFunction(&LuaDetail::jcontRemove));
@@ -483,6 +509,13 @@ LuaString LuaEngine::createString(String const& str) {
   return LuaString(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(m_state)));
 }
 
+LuaString LuaEngine::createString(char const* str, size_t len) {
+  lua_checkstack(m_state, 1);
+
+  lua_pushlstring(m_state, str, len);
+  return LuaString(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(m_state)));
+}
+
 LuaString LuaEngine::createString(char const* str) {
   lua_checkstack(m_state, 1);
 
@@ -559,8 +592,9 @@ void LuaEngine::setAutoGarbageCollection(bool autoGarbageCollection) {
 }
 
 void LuaEngine::tuneAutoGarbageCollection(float pause, float stepMultiplier) {
-  lua_gc(m_state, LUA_GCSETPAUSE, round(pause * 100));
-  lua_gc(m_state, LUA_GCSETSTEPMUL, round(stepMultiplier * 100));
+  lua_gc(m_state, LUA_GCINC, round(pause * 100), round(stepMultiplier * 100), 0);
+  // lua_gc(m_state, LUA_GCSETPAUSE, round(pause * 100));
+  // lua_gc(m_state, LUA_GCSETSTEPMUL, round(stepMultiplier * 100));
 }
 
 size_t LuaEngine::memoryUsage() const {
@@ -713,13 +747,15 @@ int LuaEngine::coresumeWithTraceback(lua_State* state) {
   }
 
   lua_xmove(state, co, args);
-  int status = lua_resume(co, state, args);
+  int results;
+  int status = lua_resume(co, state, args, &results);
+  lua_pop(co, results);
   if (status == LUA_OK || status == LUA_YIELD) {
-    int res = lua_gettop(co);
-    lua_checkstack(state, res + 1);
+    // int res = lua_gettop(co);
+    lua_checkstack(state, results + 1);
     lua_pushboolean(state, 1);
-    lua_xmove(co, state, res);
-    return res + 1;
+    lua_xmove(co, state, results);
+    return results + 1;
   } else {
     lua_checkstack(state, 2);
     lua_pushboolean(state, 0);
@@ -1185,6 +1221,10 @@ void LuaEngine::pushLuaValue(lua_State* state, LuaValue const& luaValue) {
       lua_pushnumber(state, f);
     }
 
+    void operator()(LuaLightUserData const& u) {
+      lua_pushlightuserdata(state, u);
+    }
+
     void operator()(LuaReference const& ref) {
       if (&ref.engine() != engine)
         throw LuaException("lua reference values cannot be shared between engines");
@@ -1218,6 +1258,11 @@ LuaValue LuaEngine::popLuaValue(lua_State* state) {
         result = lua_tonumber(state, -1);
         lua_pop(state, 1);
       }
+      break;
+    }
+    case LUA_TLIGHTUSERDATA: {
+      result = LuaLightUserData(lua_touserdata(state, -1));
+      lua_pop(state, 1);
       break;
     }
     case LUA_TSTRING: {

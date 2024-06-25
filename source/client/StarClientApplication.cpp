@@ -139,7 +139,7 @@ void ClientApplication::startup(StringList const& cmdLineArgs) {
   RootLoader rootLoader({AdditionalAssetsSettings, AdditionalDefaultConfiguration, String("xclient.log"), LogLevel::Info, false, String("xclient.config")});
   m_root = rootLoader.initOrDie(cmdLineArgs).first;
 
-  Logger::info("xSB::xClient v{} [Starbound v{}] ({}) // Source ID: {} // Protocol: {}", xSbVersionString, StarVersionString, StarArchitectureString, StarSourceIdentifierString, StarProtocolVersion);
+  Logger::info("xClient [Starbound v{}] ({}) // Source ID: {} // Protocol: {}", xSbVersionString, StarVersionString, StarArchitectureString, StarSourceIdentifierString, StarProtocolVersion);
 }
 
 void ClientApplication::shutdown() {
@@ -492,6 +492,13 @@ void ClientApplication::changeState(MainAppState newState) {
   }
 
   if (oldState > MainAppState::Title && m_state <= MainAppState::Title) {
+    // FezzedOne: Moved up here just to ensure no unsafe `world` calls can
+    // happen when `uninit` is called on script panes. Even though the main
+    // interface does own a shared pointer to the universe client, but
+    // still.
+    m_cinematicOverlay->stop();
+    m_mainInterface.reset();
+
     if (m_universeClient)
       m_universeClient->disconnect();
 
@@ -500,8 +507,6 @@ void ClientApplication::changeState(MainAppState newState) {
       m_universeServer->join();
       m_universeServer.reset();
     }
-    m_cinematicOverlay->stop();
-    m_mainInterface.reset();
 
     m_voice->clearSpeakers();
 
@@ -860,8 +865,6 @@ void ClientApplication::updateRunning(float dt) {
     if (p2pNetworkingService)
       p2pNetworkingService->setActivityData("In Game", party);
 
-    
-
     if (!m_mainInterface->inputFocus() && !m_cinematicOverlay->suppressInput()) {
       m_player->setShifting(isActionTaken(InterfaceAction::PlayerShifting));
 
@@ -949,7 +952,7 @@ void ClientApplication::updateRunning(float dt) {
     voiceData.setByteOrder(ByteOrder::LittleEndian);
     //voiceData.writeBytes(VoiceBroadcastPrefix.utf8Bytes()); transmitting with SE compat for now
     bool needstoSendVoice = m_voice->send(voiceData, 5000);
-      
+  
     // FezzedOne: Needs to be moved up here to prevent a callback from returning a position of {0, 0} the tick after a world is loaded.  
     updateCamera(dt);
     m_universeClient->update(dt);

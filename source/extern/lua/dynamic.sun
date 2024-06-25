@@ -1,0 +1,18 @@
+name pluto
+dynamic
+
+cpp 17
+
+require vendor/Soup/soup include_dir=.
+
++*.cpp
+-lua.cpp
+-luac.cpp
+
+if linux
+	arg -DLUA_USE_LINUX
+endif
+
+if windows
+	arg -DLUA_BUILD_AS_DLL
+endif

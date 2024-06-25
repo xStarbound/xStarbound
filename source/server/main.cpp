@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 
     auto configuration = root->configuration();
     {
-      Logger::info("xSB::xServer v{} [Starbound v{}] ({}) // Source ID: {} // Protocol: {}", xSbVersionString, StarVersionString, StarArchitectureString, StarSourceIdentifierString, StarProtocolVersion);
+      Logger::info("xServer v{} [Starbound v{}] ({}) // Source ID: {} // Protocol: {}", xSbVersionString, StarVersionString, StarArchitectureString, StarSourceIdentifierString, StarProtocolVersion);
       float updateRate = 1.0f / GlobalTimestep;
       if (auto jUpdateRate = configuration->get("updateRate")) {
         updateRate = jUpdateRate.toFloat();

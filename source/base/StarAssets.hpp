@@ -68,6 +68,12 @@ public:
     // Same, but only ignores the file for the purposes of calculating the
     // digest.
     StringList digestIgnore;
+
+    // FezzedOne: The Lua garbage collector pause value.
+    float luaGcPause;
+
+    // FezzedOne: The Lua garbage collector step multiplier value.
+    float luaGcStepMultiplier;
   };
 
   enum class AssetType {

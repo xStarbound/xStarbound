@@ -1,6 +1,11 @@
 #include "StarLuaComponents.hpp"
 #include "StarUtilityLuaBindings.hpp"
+#include "StarRoot.hpp"
 #include "StarRootLuaBindings.hpp"
+#include "StarAssets.hpp"
+#include "StarWorld.hpp"
+#include "StarWorldClient.hpp"
+#include "StarWorldServer.hpp"
 
 namespace Star {
 
@@ -12,6 +17,8 @@ LuaBaseComponent::LuaBaseComponent() {
 }
 
 LuaBaseComponent::~LuaBaseComponent() {}
+
+StringMap<LuaCallbacks> LuaBaseComponent::m_baseCallbacks = {};
 
 StringList const& LuaBaseComponent::scripts() const {
   return m_scripts;
@@ -28,9 +35,19 @@ void LuaBaseComponent::setScripts(StringList scripts) {
   m_scripts = move(scripts);
 }
 
+void LuaBaseComponent::addBaseCallbacks(String groupName, LuaCallbacks callbacks) {
+  if (!m_baseCallbacks.insert(groupName, callbacks).second)
+    m_baseCallbacks.at(groupName) = callbacks;
+    // throw LuaComponentException::format("Duplicate base callbacks named '{}' in LuaBaseComponent", groupName);
+}
+
 void LuaBaseComponent::addCallbacks(String groupName, LuaCallbacks callbacks) {
-  if (!m_callbacks.insert(groupName, callbacks).second)
-    throw LuaComponentException::format("Duplicate callbacks named '{}' in LuaBaseComponent", groupName);
+  if (!m_callbacks.insert(groupName, callbacks).second) {
+    if (m_baseCallbacks.contains(groupName))
+      return;
+    else
+      throw LuaComponentException::format("Duplicate callbacks named '{}' in LuaBaseComponent", groupName);
+  }
 
   if (m_context)
     m_context->setCallbacks(groupName, callbacks);
@@ -155,6 +172,10 @@ bool LuaBaseComponent::checkInitialization() {
   if (shouldBeInitialized && m_reloadTracker && m_reloadTracker->pullTriggered())
     init();
   return initialized();
+}
+
+bool LuaBaseComponent::checkIfClient(World* worldPtr) {
+  return (bool)as<WorldClient>(worldPtr);
 }
 
 }

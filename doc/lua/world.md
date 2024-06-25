@@ -4,6 +4,7 @@ The `world` table contains bindings that perform actions within a specified worl
 
 The `world` table is available in the following script contexts:
 
+- universe client scripts (server-side, only on xStarbound)
 - world context scripts (server-side)
 - pane scripts (client-side)
 - container interface scripts (client-side)
@@ -27,6 +28,32 @@ The client-sided `world` callbacks are only available to client-sided scripts, w
 ## Generic bindings
 
 The following `world` bindings are available in both client- and server-side scripts.
+
+---
+
+#### `Json` world.getGlobal(`Maybe<String>` key)
+#### `Json` world.getGlobals()
+
+> **Available only on xStarbound.**
+
+Returns a global script variable (if `getGlobal` is called with a specified string key) or a JSON object containing all of them (if `getGlobal` is called with no key, or `getGlobals` is called). Global script variables may be any arbitrary JSON value.
+
+On xClient, these variables are shared across all client-side script contexts where the `world` table is available, and persist until disconnection. On xServer, these variables are shared across all script contexts running on a given world, and persist until that world is unloaded.
+
+**Note:** These callbacks are a safer preferred alternative to using `shared` and smuggling global context variables through metatables and library tables.
+
+---
+
+#### `Json` world.setGlobal(`Maybe<String>` key, `Json` value)
+#### `Json` world.setGlobals(`JsonObject` newGlobals)
+
+> **Available only on xStarbound.**
+
+Sets a global script variable (if `setGlobal` is called with a specified string key instead of `nil`) or all of them as a single JSON object (if `setGlobal` is called with a `nil` key, or `setGlobals` is called). Global script variables may be any arbitrary JSON value. If the entire globals object is being set at once, any value other than a JSON object is ignored.
+
+On xClient, these variables are shared across all client-side script contexts where the `world` table is available, and persist until disconnection. On xServer, these variables are shared across all script contexts running on a given world, and persist until that world is unloaded.
+
+**Note:** These callbacks are a safer preferred alternative to using `shared` and smuggling global context variables through metatables and library tables, which is disallowed on xStarbound when `"safeScripts"` is enabled.
 
 ---
 
@@ -162,7 +189,7 @@ Attempts to place the specified object into the world at the specified position,
 
 #### `EntityId` world.spawnItem(`ItemDescriptor` item, `Vec2F` position, [`unsigned` count], [`Json` parameters], [`Vec2F` velocity], [`float` intangibleTime])
 
-Attempts to spawn the specified item into the world as the specified position. If item is specified as a name, it will optionally apply the specified count and parameters. The item drop entity can also be spawned with an initial velocity and intangible time (delay before it can be picked up) if specified. Returns an `EntityId` of the item drop if successful and `nil` otherwise.
+Attempts to spawn the specified item into the world as the specified position. If item is specified as a name, it will optionally apply the specified count and parameters. The item drop entity can also be spawned with an initial velocity and intangible time (delay before it can be picked up) if specified. Returns an `EntityId` of the item drop if successful and `nil` otherwise. If a `nil` item descriptor is specified, nothing is spawned.
 
 ---
 
@@ -278,23 +305,55 @@ Returns `true` if the tile at the specified position is protected and `false` ot
 
 ---
 
-#### `PlatformerAStar::Path` world.findPlatformerPath(`Vec2F` startPosition, `Vec2F` endPosition, `ActorMovementParameters` movementParameters, `PlatformerAStar::Parameters` searchParameters)
+#### `List<Json>` world.findPlatformerPath(`Vec2F` startPosition, `Vec2F` endPosition, `JsonObject` movementParameters, `JsonObject` searchParameters)
 
 Attempts to synchronously pathfind between the specified positions using the specified movement and pathfinding parameters. Returns the path as a list of nodes as successful, or `nil` if no path is found.
 
+The `movementParameters` are standard actor movement parameters. See `$xSBassets/scripts/pathing.lua` for examples of the `searchParameters`.
+
+> *On xStarbound, enabling `multiJump` in the `airJumpProfile` within `movementParameters` allows the A\* platformer to use mid-air jumps in pathing.*
+
+Example of a returned list of path nodes:
+
+```lua
+jarray{
+    jobject{
+        cost = 12.0 -- The cost of the action. A `float`.
+        action = "Walk" -- The action type. Is one of `"Walk"`, `"Jump"`, `"Arc"`,
+        -- `"Drop"`, `"Swim"`, `"Fly"` or `"Land"`.
+        jumpVelocity = 25.0 -- For jumps (but not mid-air arcs), the jump velocity.
+        source = jobject{ -- The source node where this action is expected to start.
+            position = {346.233, 567.234}.
+            velocity = {0.0, -12.332}
+        },
+        target = jobject{ -- The target node where this action is expected to end.
+            position = {346.233, 557.25}.
+            velocity = {0.0, 0.0}
+        }
+    },
+    ...
+}
+```
+
 ---
 
-#### `PlatformerAStar::PathFinder` world.platformerPathStart(`Vec2F` startPosition, `Vec2F` endPosition, `ActorMovementParameters` movementParameters, `PlatformerAStar::Parameters` searchParameters)
+#### `PathFinder` world.platformerPathStart(`Vec2F` startPosition, `Vec2F` endPosition, `JsonObject` movementParameters, `JsonObject` searchParameters)
 
-Creates and returns a Lua UserData value which can be used for pathfinding over multiple frames. The `PathFinder` returned has the following two methods:
+Creates and returns a Lua userdata value which can be used for pathfinding over multiple frames. 
+
+The `movementParameters` are standard actor movement parameters. See `$xSBassets/scripts/pathing.lua` for examples of the `searchParameters`.
+
+> *On xStarbound, enabling `multiJump` in the `airJumpProfile` within `movementParameters` allows the A\* platformer to use mid-air jumps in pathing.*
+
+The `PathFinder` returned has the following two methods:
 
 ##### `bool` explore([`int` nodeLimit])
 
 Explores the path up to the specified node count limit. Returns `true` if the pathfinding is complete and `false` if it is still incomplete. If nodeLimit is unspecified, this will search up to the configured maximum number of nodes, making it equivalent to world.platformerPathStart.
 
-##### `PlatformerAStar::Path` result()
+##### `List<Json>` result()
 
-Returns the completed path.
+Returns the completed path. This is in the format shown under `world.findPlatformerPath`.
 
 ---
 
@@ -332,7 +391,7 @@ Returns `true` if the specified position is below the world's surface level and 
 
 Returns `true` if the world is terrestrial and the specified position is within its surface layer, and `false` otherwise.
 
-> **Technical note:** A segfault that happens on stock Starbound when this callback is invoked with a negative Y position value has been fixed in xSB-2.
+> **Warning for non-xStarbound modders:** This callback causes an immediate segfault when invoked with a negative Y coordinate on OpenStarbound and stock Starbound. The bug has been fixed on xStarbound.
 
 ---
 
@@ -405,6 +464,9 @@ Returns a list of existing tiles within `radius` of the given position, on the s
 ---
 
 #### `bool` world.placeMaterial(`Vec2I` position, `String` layerName, `String` materialName, [`int` hueShift], [`bool` allowOverlap], [`bool` allowDisconnected])
+#### `bool` world.placeMaterial(`Vec2I` position, `String` layerName, `String` materialName, [`int` hueShift], [`bool` allowOverlap])
+
+> *`allowDisconnected` is only available on xStarbound, and layer names are only available on xStarbound and OpenStarbound.*
 
 Attempts to place the specified material in the specified position and layer. If `allowOverlap` is `true`, the material can be placed in a space occupied by mobile entities, otherwise such placement attempts will fail. If `allowDisconnected` is `true`, the material does not need to be connected to any other tiles to be placed. Returns `true` if the placement succeeds and `false` otherwise.
 
@@ -430,17 +492,21 @@ Attempts to place the specified mod in the specified position and layer. If allo
 
 ---
 
-#### `List<EntityId>` world.entityQuery(`Vec2F` position, `Variant<Vec2F, float` positionOrRadius, [`Json` options])
+#### `List<EntityId>` world.entityQuery(`Vec2F` position, `Variant<Vec2F, float` positionOrRadius, [`LuaTable` options])
 
-Queries for entities in a specified area of the world and returns a list of their entity IDs. Area can be specified either as the `Vec2F` lower left and upper right positions of a rectangle, or as the `Vec2F` center and `float` radius of a circular area. The following additional parameters can be specified in options:
+Queries for entities in a specified area of the world and returns a list of their entity IDs. Area can be specified either as the `Vec2F` lower left and upper right positions of a rectangle, or as the `Vec2F` center and `float` radius of a circular area. The following additional parameters can be specified in the `options` table:
 
-* __withoutEntityId__ - Specifies an `EntityId` that will be excluded from the returned results
-* __includedTypes__ - Specifies a list of one or more `String` entity types that the query will return. In addition to standard entity type names, this list can include "mobile" for all mobile entity types or "creature" for players, monsters and NPCs.
-* __boundMode__ - Specifies the bounding mode for determining whether entities fall within the query area. Valid options are "position", "collisionarea", "metaboundbox". Defaults to "collisionarea" if unspecified.
-* __order__ - A `String` used to specify how the results will be ordered. If this is set to "nearest" the entities will be sorted by ascending distance from the first positional argument. If this is set to "random" the list of results will be shuffled.
-* __callScript__ - Specifies a `String` name of a function that should be called in the script context of all scripted entities matching the query.
-* __callScriptArgs__ - Specifies a list of arguments that will be passed to the function called by callScript.
-* __callScriptResult__ - Specifies a `LuaValue` that the function called by callScript must return; entities whose script calls do not return this value will be excluded from the results. Defaults to `true`.
+- __withoutEntityId__ - Specifies an `EntityId` that will be excluded from the returned results
+- __includedTypes__ - Specifies a list of one or more `String` entity types that the query will return. In addition to standard entity type names, this list can include "mobile" for all mobile entity types or "creature" for players, monsters and NPCs.
+- __boundMode__ - Specifies the bounding mode for determining whether entities fall within the query area. Valid options are `"position"`, `"collisionarea"` and `"metaboundbox"`. Defaults to `"collisionarea"` if unspecified.
+- __order__ - A `String` used to specify how the results will be ordered. If this is set to `"nearest"` the entities will be sorted by ascending distance from the first positional argument. If this is set to `"random"` the list of results will be shuffled. If not specified, the list of entities will be in an undefined order.
+- __callScript__ - Specifies a `String` name of a function that should be called in the script context of all scripted entities matching the query. Accepts Lua dot notation.
+- __callScriptArgs__ - Specifies a list of arguments — `Json` values if `"safeScripts"` is enabled on xStarbound, or `LuaValue`s otherwise — that will be passed to the function called by `callScript`.
+- __callScriptResult__ - Specifies a value — `Json` if `"safeScripts"` is enabled on xStarbound, or a `LuaValue` otherwise — that the function called by callScript must return; entities whose script calls do not return this value will be excluded from the results. Defaults to `true`. On xStarbound, `null` or `json.null` may be passed if you want to make sure the called function returns a `nil` or nothing.
+
+On xStarbound with `"safeScripts"` enabled, all `callScript` arguments and the `callScriptResult` must be valid JSON, and an error will be thrown after the first script call if the returned result isn't convertible to valid JSON before comparison happens.
+
+**Warning:** If `"safeScripts"` is disabled on xStarbound, and regardless of this on other Starbound servers and clients, potentially unsafe Lua values can be passed through `callScriptArgs` and `callScriptResult`. If unsafe passing is allowed, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
 
 ---
 
@@ -620,6 +686,14 @@ Returns the name of the item held in the specified hand of the specified player 
 
 ---
 
+#### `Maybe<Vec2F>` world.entityAimPosition(`EntityId` entityId)
+
+**Only available on xStarbound and OpenStarbound.**
+
+Returns the current aim position of this entity, or `nil` if the entity is not a player or NPC.
+
+---
+
 #### `Maybe<ItemDescriptor>` world.entityHandItemDescriptor(`EntityId` entityId, `String` handName)
 
 Similar to `world.entityHandItem`, but returns the full descriptor of the item rather than the name.
@@ -706,7 +780,7 @@ Attempts to consume items from the specified container that match the specified 
 
 #### `bool` world.containerConsumeAt(`EntityId` entityId, `unsigned` offset, `unsigned` count)
 
-Similar to world.containerConsume but only considers the specified slot within the container.
+Similar to `world.containerConsume`, but only considers the specified slot within the container.
 
 ---
 
@@ -778,27 +852,38 @@ Places the specified items into the specified container slot and returns the pre
 
 #### `ItemDescriptor` world.containerSwapItems(`EntityId` entityId, `ItemDescriptor` items, `unsigned` offset)
 
-A combination of world.containerItemApply and world.containerSwapItemsNoCombine that attempts to combine items before swapping and returns the leftovers if stacking was successful or the previous contents of the container slot if the items did not stack.
+A combination of `world.containerItemApply` and `world.containerSwapItemsNoCombine` that attempts to combine items before swapping and returns the leftovers if stacking was successful or the previous contents of the container slot if the items did not stack.
 
 ---
 
-#### `LuaValue` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`LuaValue` args ...])
+#### `Json` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`Json...` args])
+#### `LuaValue` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`LuaValue...` args])
 
 Attempts to call the specified function name in the context of the specified scripted entity with any specified arguments and returns the result of that call. This method is synchronous and thus can only be used on local master entities, i.e. scripts run on the server may only call scripted entities (on the same world) that are also server-side mastered, and scripts run on the client may only call scripted entities that are client-side mastered on that client.
 
-For more featureful entity messaging, use `world.sendEntityMessage`. To call a world script context, use `world.callScriptContext`.
+On xStarbound with `"safeScripts"` enabled, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
+
+For more featureful entity messaging, use `world.sendEntityMessage`. To call a world script context, use `world.callScriptContext` server-side or set up an appropriate message handler in a server-side script and send an entity message that invokes it client-side.
+
+> **Warning:** If `"safeScripts"` is disabled on xStarbound, and regardless of this on other Starbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value.
+>
+> If unsafe passing is allowed, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
 
 ---
 
 #### `RpcPromise<Json>` world.sendEntityMessage(`Variant<EntityId, String>` entityId, `String` messageType, [`LuaValue` args ...])
 
-Sends an asynchronous message to an entity with the specified entity ID or unique ID with the specified message type and arguments and returns an `RpcPromise` which can be used to receive the result of the message when available. See the message table for information on entity message handling. This function __should not be called in any entity's init function__ as the sending entity will not have been fully loaded.
+Sends an asynchronous message to an entity with the specified entity ID or unique ID with the specified message type and arguments and returns an `RpcPromise` which can be used to receive the result of the message when available. See the message table for information on entity message handling. This function **should not be called in any entity's `init` function**, as the sending entity will not have been fully loaded.
+
+See `message.md` for information on message handlers and `RpcPromise` objects.
 
 ---
 
 #### `RpcPromise<Vec2F>` world.findUniqueEntity(`String` uniqueId)
 
 Attempts to find an entity on the server by unique ID and returns an `RpcPromise` that can be used to get the position of that entity if successful.
+
+See `message.md` for information on `RpcPromise` objects.
 
 ---
 
@@ -874,11 +959,20 @@ The following `world` bindings are available only in server-side scripts.
 
 ---
 
-#### `LuaValue` world.callScriptContext(`String` contextName, `String` functionName, [`LuaValue` args ...])
+#### `Json` world.callScriptContext(`String` contextName, `String` functionName, [`Json...` args])
+#### `LuaValue` world.callScriptContext(`String` contextName, `String` functionName, [`LuaValue...` args])
+
+> **Available only on xStarbound and OpenStarbound.**
 
 Attempts to call the specified function name in the specified world script context (on the same world as the context or entity calling this binding) with any specified arguments and returns the result of that call.
 
+On xStarbound with `"safeScripts"` enabled, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
+
 To message *other* worlds, use `universe.sendWorldMessage` in a world context script (see `universeserver.md`). If you need to message another world from a server-side entity, use `world.callScriptContext` to "pass through" to a `universe.sendWorldMessage` call. Both client- and server-side entities may also use `world.sendEntityMessage` for "passthrough".
+
+> **Warning:** If `"safeScripts"` is disabled on xStarbound, and regardless of this on other Starbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value.
+>
+> If unsafe passing is allowed, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
 
 ---
 
@@ -927,6 +1021,8 @@ Sets the dungeon ID of all tiles within the specified area.
 #### `RpcPromise<Vec2I>` world.enqueuePlacement(`List<Json>` distributionConfigs, [`DungeonId` id])
 
 Enqueues a biome distribution config for placement through world generation. The returned promise is fulfilled with the position of the placement, once it has been placed.
+
+See `message.md` for information on `RpcPromise` objects.
 
 ---
 
@@ -1018,7 +1114,9 @@ Returns the current time for the world's sky.
 
 #### `void` world.setSkyTime(`double` time)
 
-Sets the current time for the world's sky to the specified value.
+Sets the current time for the world's sky to the specified value. If `math.huge` is specified, disables the pegging of the world's clock to the universe clock *without* setting the time; if `-math.huge` is specified, re-enables the clock pegging, which will change the world's sky time to conform with the universe clock on the same tick if there's a mismatch. Clock pegging is automatically (re-)enabled whenever a world is unloaded and reloaded; i.e., it's *not* saved to the world file automatically, so find a way to save what the world's time should be if you wish to do so.
+
+**Note:** This callback is buggy to the point of uselessness on the stock Starbound server and various other servers — any newly set time would just get reverted on the same world tick. xStarbound fixes this bug by keeping track of whether the world's clock is actually overridden and assigning special meanings to the infinity values.
 
 ---
 
@@ -1096,6 +1194,8 @@ Returns the bounds of what is visible in the client window in world tiles.
 
 #### `void` world.setLightMultiplier(`RgbColorMultiplier` colour)
 
+> **Available only on xStarbound.**
+
 Multiplies the RGB colour of all rendered light sources in the world is (client-sidedly) multiplied by the respective value in the given colour multiplier array (red multiplies red, and so on). This is reset every tick, so you should invoke it every tick.
 
 The `colour` parameter is an array of three floats — one each for red, green and blue, respectively. Example:
@@ -1110,6 +1210,8 @@ The callback allows techs and status effects to grant the player "night vision" 
 
 #### `void` world.setShaderParameters(`Maybe<Vec3F>` param1, `Maybe<Vec3F>` param2, `Maybe<Vec3F>` param3, `Maybe<Vec3F>` param4, `Maybe<Vec3F>` param5, `Maybe<Vec3F>` param6)
 
+> **Available only on xStarbound.**
+
 Sets the corresponding scriptable shader parameters to the given values. Any `nil` or unspecified parameter is left unchanged.
 
 The parameters are used in the GLSL shader file `$assets/rendering/effects/world.frag` (see `$src/assets/xSBscripts/rendering/effects/world.frag` for a usage example). Feel free to come up with your own uses for these parameters!
@@ -1120,6 +1222,8 @@ The parameters are used in the GLSL shader file `$assets/rendering/effects/world
 
 #### `void` world.resetShaderParameters()
 
+> **Available only on xStarbound.**
+
 Resets all scriptable shader parameters to `{0.0, 0.0, 0.0}` (in GLSL, `vec3(0.0, 0.0, 0.0)`).
 
 Note that these parameters are automatically reset whenever the player is warped to a new world (including upon player death) or "warp-reset" to the same world (where the world is unloaded and then reloaded on the client).
@@ -1128,11 +1232,15 @@ Note that these parameters are automatically reset whenever the player is warped
 
 #### `Vec3F, Vec3F, Vec3F, Vec3F, Vec3F, Vec3F` world.getShaderParameters()
 
+> **Available only on xStarbound.**
+
 Returns the current values of the scriptable shader parameters. Consider using `table.pack` on the returned values.
 
 ---
 
 #### `List<EntityId>` world.players()
+
+> **Available only on xStarbound and OpenStarbound.**
 
 Returns a list of entity IDs for all player entities currently loaded/rendered by the client.
 
@@ -1140,11 +1248,15 @@ Returns a list of entity IDs for all player entities currently loaded/rendered b
 
 #### `List<EntityId>` world.ownPlayers()
 
+> **Available only on xStarbound.**
+
 Returns a list of entity IDs for all player entities currently mastered by the client (and loaded into the world).
 
 ---
 
 #### `List<EntityId>` world.primaryPlayer()
+
+> **Available only on xStarbound.**
 
 Returns the entity ID of the client's primary player — i.e., the one to and from which client input and output are currently being passed.
 
@@ -1152,10 +1264,14 @@ Returns the entity ID of the client's primary player — i.e., the one to and fr
 
 #### `List<Uuid>` world.ownPlayerUuids()
 
+> **Available only on xStarbound.**
+
 Returns a list of UUIDs for all player entities currently mastered by the client. Includes players not currently loaded in the world (e.g., currently dead players).
 
 ---
 
 #### `List<Uuid>` world.primaryPlayerUuid()
+
+> **Available only on xStarbound.**
 
 Returns the UUID of the client's primary player — i.e., the one to and from which client input and output are currently being passed.

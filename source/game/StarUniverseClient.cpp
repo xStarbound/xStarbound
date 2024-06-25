@@ -25,6 +25,7 @@
 #include "StarWorldTemplate.hpp"
 #include "StarCelestialLuaBindings.hpp"
 #include "StarStatusController.hpp"
+#include "scripting/StarWorldLuaBindings.hpp"
 
 namespace Star {
 
@@ -36,10 +37,6 @@ UniverseClient::UniverseClient(PlayerStoragePtr playerStorage, StatisticsPtr sta
   m_playerToSwitchTo = {};
   m_playersToLoad = {};
   m_loadedPlayers = {};
-  m_mainPlayerUuid = Uuid();
-  m_luaRoot = make_shared<LuaRoot>();
-  auto clientConfig = Root::singleton().assets()->json("/client.config");
-  m_luaRoot->tuneAutoGarbageCollection(clientConfig.getFloat("luaGcPause"), clientConfig.getFloat("luaGcStepMultiplier"));
   reset();
 }
 
@@ -126,8 +123,7 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
   {
     auto protocolRequest = make_shared<ProtocolRequestPacket>(StarProtocolVersion);
     protocolRequest->setCompressionMode(PacketCompressionMode::Enabled);
-    // Signal that we're xSB-2/OpenSB. Vanilla Starbound only compresses packets above 64 bytes - by forcing it we can communicate this.
-    // If you know a less cursed way, please let me know.
+    // Signal that we're xStarbound/OpenSB.
     connection.pushSingle(protocolRequest);
   }
   connection.sendAll(timeout);
@@ -149,7 +145,7 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
   connection.receiveAny(timeout);
   auto packet = connection.pullSingle();
   if (auto challenge = as<HandshakeChallengePacket>(packet)) {
-    Logger::info("UniverseClient: Sending handshake challenge");
+    Logger::info("UniverseClient: Sending handshake response");
     ByteArray passAccountSalt = (password + account).utf8Bytes();
     passAccountSalt.append(challenge->passwordSalt);
     ByteArray passHash = Star::sha256(passAccountSalt);
@@ -194,7 +190,7 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     size_t playerCount = m_playerStorage->playerCount();
 
     Logger::info("UniverseClient: Joined {} server as client {}",
-      m_legacyServer ? "Starbound" : "xSB-2/OpenSB",
+      m_legacyServer ? "Starbound" : "xStarbound/OpenSB",
       success->clientId);
     return {};
   } else if (auto failure = as<ConnectFailurePacket>(packet)) {
@@ -602,7 +598,7 @@ List<ChatReceivedMessage> UniverseClient::pullChatMessages() {
         {"nickname", pm.fromNick},
         {"portrait", pm.portrait},
         {"text", pm.text}
-        // FezzedOne: Note that `"scripted"` should always be assumed `null` or `false` on xSB-2.
+        // FezzedOne: Note that `"scripted"` should always be assumed `null` or `false` on xStarbound.
       };
       try {
         m_worldClient->sendEntityMessage(m_mainPlayer->entityId(), "chatMessage", JsonArray{messageJson});
@@ -633,7 +629,11 @@ void UniverseClient::setLuaCallbacks(String const& groupName, LuaCallbacks const
 }
 
 void UniverseClient::startLua() {
+  if (!m_luaRoot)
+    m_luaRoot = make_shared<LuaRoot>();
   setLuaCallbacks("celestial", LuaBindings::makeCelestialCallbacks(this));
+  if (m_worldClient)
+    setLuaCallbacks("world", LuaBindings::makeWorldCallbacks(as<World>(m_worldClient.get())));
 
   auto assets = Root::singleton().assets();
   for (auto& p : assets->json("/client.config:universeScriptContexts").toObject()) {
@@ -664,6 +664,11 @@ bool UniverseClient::playerIsLoaded(Uuid const& uuid) {
 }
 
 void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) {
+  bool safeScriptsEnabled = false;
+  if (m_playerReloadPreCallback && resetInterfaces)
+    safeScriptsEnabled = Root::singleton().configuration()->get("safeScripts").toBool();
+
+
   for (auto& loadedPlayer : m_loadedPlayers) {
     if (!loadedPlayer.second.loaded) return;
 
@@ -683,8 +688,14 @@ void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) 
     bool alreadyHasId = playerInWorld || !world->inWorld();
     EntityId entityId = alreadyHasId ? player->entityId() : entitySpace.first; // entitySpace.first;
 
-    if (m_playerReloadPreCallback)
+    bool safeScriptsEnabled = false;
+
+    if (m_playerReloadPreCallback) {
+      if (resetInterfaces && safeScriptsEnabled)
+        // FezzedOne: Needed because of `interface.bindRegisteredPane`.
+        stopLua();
       m_playerReloadPreCallback(resetInterfaces);
+    }
 
     ProjectilePtr indicator;
 
@@ -706,8 +717,14 @@ void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) 
     if (indicator && indicator->inWorld())
       world->removeEntity(indicator->entityId(), false);
 
-    if (m_playerReloadCallback)
+    if (m_playerReloadCallback) {
+      if (resetInterfaces && safeScriptsEnabled) {
+        // FezzedOne: Needed because of `interface.bindRegisteredPane`.
+        m_luaRoot = make_shared<LuaRoot>();
+        startLua();
+      }
       m_playerReloadCallback(resetInterfaces);
+    }
   }
 }
 
@@ -747,8 +764,16 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
   m_mainPlayer->setBusyState(PlayerBusyState::None);
   m_mainPlayer->passChatOpen(false);
 
-  if (m_playerReloadPreCallback)
+  bool safeScriptsEnabled = (bool)m_playerReloadPreCallback && 
+                            resetInterfaces &&
+                            Root::singleton().configuration()->get("safeScripts").toBool();
+
+  if (m_playerReloadPreCallback) {
+    if (resetInterfaces && safeScriptsEnabled)
+      // FezzedOne: Needed because of `interface.bindRegisteredPane`.
+      stopLua();
     m_playerReloadPreCallback(resetInterfaces);
+  }
 
   ProjectilePtr indicator(nullptr);
 
@@ -798,8 +823,15 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
   if (indicator && indicator->inWorld())
     world->removeEntity(indicator->entityId(), false);
 
-  if (m_playerReloadCallback)
+
+  if (m_playerReloadCallback) {
+    if (resetInterfaces && safeScriptsEnabled) {
+      // FezzedOne: Needed because of `interface.bindRegisteredPane`.
+      m_luaRoot = make_shared<LuaRoot>();
+      startLua();
+    }
     m_playerReloadCallback(resetInterfaces);
+  }
 
   return true;
 }
@@ -898,7 +930,7 @@ bool UniverseClient::unloadPlayer(Uuid const& uuid, bool resetInterfaces, bool s
     playerToUnload->name(),
     uuid.hex());
 
-  if (!playerToUnload->inWorld())
+  if (playerToUnload->inWorld())
     world->removeEntity(playerToUnload->entityId(), false);
   m_loadedPlayers[uuid].loaded = false;
 
@@ -1214,6 +1246,12 @@ void UniverseClient::reset() {
 
   m_loadedPlayers = {};
   m_connection.reset();
+
+  // FezzedOne: In order to safely inject `world` callbacks into universe client scripts, must reset the Lua root when the world client is reset.
+  auto clientConfig = Root::singleton().assets()->json("/client.config");
+  if (m_luaRoot) m_luaRoot->shutdown();
+  m_luaRoot = make_shared<LuaRoot>();
+  m_luaRoot->tuneAutoGarbageCollection(clientConfig.getFloat("luaGcPause"), clientConfig.getFloat("luaGcStepMultiplier"));
 }
 
 }

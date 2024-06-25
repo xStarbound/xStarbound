@@ -1,6 +1,9 @@
 # `widget`
 
-The `widget` table contains callbacks used to manipulate and get data about widgets in a scripted pane.
+The `widget` table contains callbacks used to manipulate and get data about widgets in a scripted pane. This table is available within the following script contexts:
+
+- pane scripts
+- container interface scripts
 
 The `widgetName` passed into most of these callbacks can contain period separators for getting children. This is *distinct* from the JSON path syntax explained in `root.md`.
 
@@ -335,61 +338,69 @@ Sets the progress overlay on the item slot to the specified value (between 0 and
 
 Binds the canvas widget with the specified name as a `CanvasWidget` userdata object for easy access. The `CanvasWidget` has the following methods:
 
+**Note:** If a `CanvasWidget` object is returned from `interface.bindCanvas` with `ignoreInterfaceScale` set to `true`, all specified and returned positional values will be in actual screen pixels; otherwise, they will be in scaled interface pixels.
+
+**Note:** A removed canvas widget object will "dangle" even if it's removed with `pane.removeWidget` (see `scriptpane.md`). As long as you have a `CanvasWidget` object, you can still safely render stuff with it.
+
 ----
 
-##### `Vec2I` `CanvasWidget`:size()
+##### `Vec2I` `[CanvasWidget]`:size()
 
 Returns the size of the canvas.
 
-##### `void` `CanvasWidget`:clear()
+##### `void` `[CanvasWidget]`:clear()
 
 Clears the canvas.
 
-##### `Vec2I` `CanvasWidget`:mousePosition()
+##### `Vec2I` `[CanvasWidget]`:mousePosition()
 
-Returns the mouse position relative to the canvas.
+Returns the mouse position relative to the canvas. Origin is the canvas's lower left corner.
 
-##### `void` `CanvasWidget`:drawDrawable(`Drawable` drawable, [`Vec2F` position])
+##### `void` `[CanvasWidget]`:drawDrawable(`Drawable` drawable, [`Vec2F` position])
+
+> **Available only on xStarbound and OpenStarbound.**
 
 Draws an arbitrary drawable to the canvas, optionally with a specified position to use as the origin for any position specified in the drawable itself.
 
-##### `void` `CanvasWidget`:drawDrawables(`List<Drawable>` drawables, [`Vec2F` position])
+##### `void` `[CanvasWidget]`:drawDrawables(`List<Drawable>` drawables, [`Vec2F` position])
+
+> **Available only on xStarbound and OpenStarbound.**
 
 Draws an arbitrary list of drawables to the canvas, optionally with a specified position to use as the origin for any positions specified in the drawables themselves.
 
-##### `void` `CanvasWidget`:drawImage(`String` image, `Vec2F` position, [`float` scale], [`Color` color], [`bool` centered])
+##### `void` `[CanvasWidget]`:drawImage(`String` image, `Vec2F` position, [`float` scale], [`Color` colour], [`bool` centered])
 
 Draws an image to the canvas.
 
-##### `void` `CanvasWidget`:drawImageDrawable(`String` image, `Vec2F` position, [`Variant<Vec2F, float>` scale], [`Color` color], [`float` rotation])
+##### `void` `[CanvasWidget]`:drawImageDrawable(`String` image, `Vec2F` position, [`Variant<Vec2F, float>` scale], [`Color` colour], [`float` rotation])
 
 Draws an image to the canvas, centered on `position`, with slightly different options.
 
-##### `void` `CanvasWidget`:drawImageRect(`String` texName, `RectF` texCoords, `RectF` screenCoords, [`Color` color])
+##### `void` `[CanvasWidget]`:drawImageRect(`String` texName, `RectF` texCoords, `RectF` screenCoords, [`Color` colour])
 
 Draws a `Rect` section of a texture to a `Rect` section of the canvas.
 
-##### `void` `CanvasWidget`:drawTiledImage(`String` image, `Vec2F` offset, `RectF` screenCoords, [`float` scale], [`Color` color])
+##### `void` `[CanvasWidget]`:drawTiledImage(`String` image, `Vec2F` offset, `RectF` screenCoords, [`float` scale], [`Color` colour])
 
 Draws an image tiled (and wrapping) within the specified screen area.
 
-##### `void` `CanvasWidget`:drawLine(`Vec2F` start, `Vec2F` end, [`Color` color], [`float` lineWidth])
+##### `void` `[CanvasWidget]`:drawLine(`Vec2F` start, `Vec2F` end, [`Color` colour], [`float` lineWidth])
 
 Draws a line on the canvas.
 
-##### `void` `CanvasWidget`:drawRect(`RectF` rect, `Color` color)
+##### `void` `[CanvasWidget]`:drawRect(`RectF` rect, `Color` colour)
 
 Draws a filled rectangle on the canvas.
 
-##### `void` `CanvasWidget`:drawPoly(`PolyF` poly, `Color` color, [`float` lineWidth])
+##### `void` `CanvasWidget`:drawPoly(`PolyF` poly, `Color` colour, [`float` lineWidth])
 
 Draws a polygon on the canvas.
 
-##### `void` `CanvasWidget`:drawTriangles(`List<PolyF>` triangles, [`Color` color])
+##### `void` `CanvasWidget`:drawTriangles(`List<PolyF>` triangles, [`Color` colour])
 
 Draws a list of filled triangles to the canvas.
 
-##### `void` `CanvasWidget`:drawText(`String` text, `Json` textPositioning, `unsigned` fontSize, [`Color` color], [`float` lineSpacing], [`String` directives])
+##### `void` `CanvasWidget`:drawText(`String` text, `Json` textPositioning, `unsigned` fontSize, [`Color` colour], [`float` lineSpacing], [`Directives` directives])
 
 Draws text on the canvas. `textPositioning` is in the following format:
 
@@ -401,3 +412,5 @@ jobject{
   wrapWidth = nil -- wrap width in pixels or nil
 }
 ```
+
+Use `font` escape codes to specify fonts. See `$doc/directives.md` for information on escape codes.

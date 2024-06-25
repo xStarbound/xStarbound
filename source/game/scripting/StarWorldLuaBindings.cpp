@@ -12,6 +12,7 @@
 #include "StarProjectileDatabase.hpp"
 #include "StarProjectile.hpp"
 #include "StarRoot.hpp"
+#include "StarConfiguration.hpp"
 #include "StarWorldServer.hpp"
 #include "StarWorldClient.hpp"
 #include "StarWorldTemplate.hpp"
@@ -51,6 +52,8 @@ namespace LuaBindings {
 
   template <typename EntityT>
   LuaTable entityQueryImpl(World* world, LuaEngine& engine, LuaTable const& options, Selector<EntityT> selector) {
+    auto config = Root::singleton().configuration();
+    
     Maybe<EntityId> withoutEntityId = options.get<Maybe<EntityId>>("withoutEntityId");
     Maybe<Set<EntityType>> includedTypes;
     if (auto types = options.get<Maybe<LuaTable>>("includedTypes")) {
@@ -74,9 +77,20 @@ namespace LuaBindings {
       });
     }
 
-    Maybe<String> callScript = options.get<Maybe<String>>("callScript");
-    List<LuaValue> callScriptArgs = options.get<Maybe<List<LuaValue>>>("callScriptArgs").value();
-    LuaValue callScriptResult = options.get<Maybe<LuaValue>>("callScriptResult").value(LuaBoolean(true));
+    bool safeScriptsEnabled = config->get("safeScripts").toBool();
+
+    Maybe<String> callScript = options.get<Maybe<String>>("callScript"); 
+    List<LuaValue> callScriptArgs = {}; LuaValue callScriptResult = LuaNil;
+    LuaVariadic<Json> callScriptArgsJson = {}; Json callScriptResultJson = Json();
+    if (callScript) {
+      if (safeScriptsEnabled) {
+        callScriptArgsJson = options.get<Maybe<List<Json>>>("callScriptArgs").value();
+        callScriptResultJson = options.get<Maybe<Json>>("callScriptResult").value();
+      } else {
+        callScriptArgs = options.get<Maybe<List<LuaValue>>>("callScriptArgs").value();
+        callScriptResult = options.get<Maybe<LuaValue>>("callScriptResult").value(LuaBoolean(true));
+      }
+    }
 
     Maybe<Line2F> lineQuery = options.get<Maybe<Line2F>>("line");
     Maybe<PolyF> polyQuery = options.get<Maybe<PolyF>>("poly");
@@ -105,9 +119,16 @@ namespace LuaBindings {
         if (!scriptedEntity || !scriptedEntity->isMaster())
           return false;
 
-        auto res = scriptedEntity->callScript(*callScript, luaUnpack(callScriptArgs));
-        if (!res || *res != callScriptResult)
-          return false;
+        if (safeScriptsEnabled) {
+          // LuaVariadic<Json> jsonArgs = callScriptArgsJson;
+          Maybe<Json> res = scriptedEntity->callScript(*callScript, callScriptArgsJson);
+          if (!res || *res != callScriptResultJson)
+            return false;
+        } else {
+          auto res = scriptedEntity->callScript(*callScript, luaUnpack(callScriptArgs));
+          if (!res || *res != callScriptResult)
+            return false;
+        }
       }
 
       auto position = entity->position();
@@ -285,7 +306,7 @@ namespace LuaBindings {
     callbacks.registerCallbackWithSignature<List<pair<Vec2I, LiquidLevel>>, Vec2F, Vec2F>("liquidAlongLine", bind(WorldCallbacks::liquidAlongLine, world, _1, _2));
     callbacks.registerCallbackWithSignature<Maybe<Vec2F>, PolyF, Vec2F, float, Maybe<CollisionSet>>("resolvePolyCollision", bind(WorldCallbacks::resolvePolyCollision, world, _1, _2, _3, _4));
     callbacks.registerCallbackWithSignature<bool, Vec2I, Maybe<bool>, Maybe<bool>>("tileIsOccupied", bind(WorldCallbacks::tileIsOccupied, world, _1, _2, _3));
-    callbacks.registerCallbackWithSignature<bool, String, Vec2I, Maybe<int>, Json>("placeObject", bind(WorldCallbacks::placeObject, world, _1, _2, _3, _4));
+    callbacks.registerCallbackWithSignature<bool, String, Vec2I, Maybe<int>, Json, /* FE-only. */ Maybe<bool>>("placeObject", bind(WorldCallbacks::placeObject, world, _1, _2, _3, _4, /* FE-only. */ _5));
     callbacks.registerCallbackWithSignature<Maybe<EntityId>, Json, Vec2F, Maybe<size_t>, Json, Maybe<Vec2F>, Maybe<float>>("spawnItem", bind(WorldCallbacks::spawnItem, world, _1, _2, _3, _4, _5, _6));
     callbacks.registerCallbackWithSignature<List<EntityId>, Vec2F, String, float, Maybe<uint64_t>>("spawnTreasure", bind(WorldCallbacks::spawnTreasure, world, _1, _2, _3, _4));
     callbacks.registerCallbackWithSignature<Maybe<EntityId>, String, Vec2F, Maybe<JsonObject>>("spawnMonster", bind(WorldCallbacks::spawnMonster, world, _1, _2, _3));
@@ -488,7 +509,7 @@ namespace LuaBindings {
       callbacks.registerCallbackWithSignature<void, Vec2F, Maybe<bool>>("setPlayerStart", bind(ServerWorldCallbacks::setPlayerStart, world, _1, _2));
       callbacks.registerCallbackWithSignature<List<EntityId>>("players", bind(ServerWorldCallbacks::players, world));
       callbacks.registerCallbackWithSignature<LuaString, LuaEngine&>("fidelity", bind(ServerWorldCallbacks::fidelity, world, _1));
-      callbacks.registerCallbackWithSignature<Maybe<LuaValue>, String, String, LuaVariadic<LuaValue>>("callScriptContext", bind(ServerWorldCallbacks::callScriptContext, world, _1, _2, _3));
+      callbacks.registerCallbackWithSignature<Maybe<LuaValue>, LuaEngine&, String, String, LuaVariadic<LuaValue>>("callScriptContext", bind(ServerWorldCallbacks::callScriptContext, world, _1, _2, _3, _4));
 
       callbacks.registerCallbackWithSignature<double>("skyTime", [serverWorld]() {
           return serverWorld->sky()->epochTime();
@@ -624,7 +645,7 @@ namespace LuaBindings {
     callbacks.registerCallbackWithSignature<Json, EntityId, Json, size_t>("containerSwapItems", bind(WorldEntityCallbacks::containerSwapItems, world, _1, _2, _3));
     callbacks.registerCallbackWithSignature<Json, EntityId, Json, size_t>("containerSwapItemsNoCombine", bind(WorldEntityCallbacks::containerSwapItemsNoCombine, world, _1, _2, _3));
     callbacks.registerCallbackWithSignature<Json, EntityId, Json, size_t>("containerItemApply", bind(WorldEntityCallbacks::containerItemApply, world, _1, _2, _3));
-    callbacks.registerCallbackWithSignature<Maybe<LuaValue>, EntityId, String, LuaVariadic<LuaValue>>("callScriptedEntity", bind(WorldEntityCallbacks::callScriptedEntity, world, _1, _2, _3));
+    callbacks.registerCallbackWithSignature<Maybe<LuaValue>, LuaEngine&, EntityId, String, LuaVariadic<LuaValue>>("callScriptedEntity", bind(WorldEntityCallbacks::callScriptedEntity, world, _1, _2, _3, _4));
     callbacks.registerCallbackWithSignature<RpcPromise<Vec2F>, String>("findUniqueEntity", bind(WorldEntityCallbacks::findUniqueEntity, world, _1));
     callbacks.registerCallbackWithSignature<RpcPromise<Json>, LuaEngine&, LuaValue, String, LuaVariadic<Json>>("sendEntityMessage", bind(WorldEntityCallbacks::sendEntityMessage, world, _1, _2, _3, _4));
     callbacks.registerCallbackWithSignature<Maybe<bool>, EntityId>("loungeableOccupied", bind(WorldEntityCallbacks::loungeableOccupied, world, _1));
@@ -659,6 +680,7 @@ namespace LuaBindings {
         }
         return {};
       });
+    callbacks.registerCallbackWithSignature<Maybe<Vec2F>, EntityId>("entityAimPosition", bind(WorldEntityCallbacks::entityAimPosition, world, _1));
   }
 
   void addWorldEnvironmentCallbacks(LuaCallbacks& callbacks, World* world) {
@@ -924,7 +946,8 @@ namespace LuaBindings {
       String const& objectType,
       Vec2I const& worldPosition,
       Maybe<int> const& objectDirection,
-      Json const& objectParameters) {
+      Json const& objectParameters,
+      /* FE-only. */ Maybe<bool> forcePlacement) {
     auto objectDatabase = Root::singleton().objectDatabase();
 
     try {
@@ -934,7 +957,13 @@ namespace LuaBindings {
 
       Json parameters = objectParameters ? objectParameters : JsonObject();
 
-      auto placedObject = objectDatabase->createForPlacement(world, objectType, worldPosition, direction, parameters);
+      // FE code.
+      bool forcePlace = false;
+      if (forcePlacement)
+        forcePlace = *forcePlacement;
+      //
+
+      auto placedObject = objectDatabase->createForPlacement(world, objectType, worldPosition, direction, parameters, /* FE-only. */ forcePlace);
       if (placedObject) {
         world->addEntity(placedObject);
         return true;
@@ -1198,7 +1227,7 @@ namespace LuaBindings {
                                                  Maybe<Vec3F> const& param4,
                                                  Maybe<Vec3F> const& param5,
                                                  Maybe<Vec3F> const& param6) {
-    Array<Vec3F, 6> newParameterArray = Array<Vec3F, 6>::filled(Vec3F::filled(0.0f));
+    Array<Vec3F, 6> newParameterArray = world->getShaderParameters();
     if (param1) newParameterArray[0] = *param1;
     if (param2) newParameterArray[1] = *param2;
     if (param3) newParameterArray[2] = *param3;
@@ -1305,11 +1334,18 @@ namespace LuaBindings {
     return engine.createString(WorldServerFidelityNames.getRight(as<WorldServer>(world)->fidelity()));
   }
 
-  Maybe<LuaValue> ServerWorldCallbacks::callScriptContext(World* world, String const& contextName, String const& function, LuaVariadic<LuaValue> const& args) {
+  Maybe<LuaValue> ServerWorldCallbacks::callScriptContext(World* world, LuaEngine& engine, String const& contextName, String const& function, LuaVariadic<LuaValue> const& args) {
     auto context = as<WorldServer>(world)->scriptContext(contextName);
     if (!context)
       throw StarException::format("Context '{}' does not exist", contextName);
-    return context->invoke(function, args);
+    if (Root::singleton().configuration()->get("safeScripts").toBool()) {
+      auto jsonArgs = LuaVariadic<Json>{};
+      for (auto& arg : args) {
+        jsonArgs.emplaceAppend(engine.luaTo<Json>(arg));
+      }
+      return engine.luaFrom<Maybe<Json>>(context->invoke<Json>(function, jsonArgs));
+    } else
+      return context->invoke<LuaValue>(function, args);
   }
 
   void WorldDebugCallbacks::debugPoint(Vec2F const& arg1, Color const& arg2) {
@@ -1880,11 +1916,18 @@ namespace LuaBindings {
     return items;
   }
 
-  Maybe<LuaValue> WorldEntityCallbacks::callScriptedEntity(World* world, EntityId entityId, String const& function, LuaVariadic<LuaValue> const& args) {
+  Maybe<LuaValue> WorldEntityCallbacks::callScriptedEntity(World* world, LuaEngine& engine, EntityId entityId, String const& function, LuaVariadic<LuaValue> const& args) {
     auto entity = as<ScriptedEntity>(world->entity(entityId));
     if (!entity || !entity->isMaster())
       throw StarException::format("Entity {} does not exist or is not a local master scripted entity", entityId);
-    return entity->callScript(function, args);
+    if (Root::singleton().configuration()->get("safeScripts").toBool()) {
+      auto jsonArgs = LuaVariadic<Json>{};
+      for (auto& arg : args) {
+        jsonArgs.emplaceAppend(engine.luaTo<Json>(arg));
+      }
+      return engine.luaFrom<Maybe<Json>>(entity->callScript(function, jsonArgs));
+    } else
+      return entity->callScript(function, args);
   }
 
   RpcPromise<Vec2F> WorldEntityCallbacks::findUniqueEntity(World* world, String const& uniqueId) {
@@ -1939,6 +1982,16 @@ namespace LuaBindings {
     }
 
     return false;
+  }
+
+  Maybe<Vec2F> WorldEntityCallbacks::entityAimPosition(World *world, EntityId entityId) {
+    if (auto player = world->get<Player>(entityId)) {
+      return player->aimPosition();
+    } else if (auto npc = world->get<Npc>(entityId)) {
+      return npc->aimPosition();
+    } else {
+      return {};
+    }
   }
 
   float WorldEnvironmentCallbacks::lightLevel(World* world, Vec2F const& position) {

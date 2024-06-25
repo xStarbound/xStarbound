@@ -711,7 +711,7 @@ void UniverseServer::kickErroredPlayers() {
   for (auto const& worldId : m_worlds.keys()) {
     if (auto world = getWorld(worldId)) {
       for (auto clientId : world->erroredClients())
-        m_pendingDisconnections.add(clientId, "Incoming client packet has caused exception");
+        m_pendingDisconnections[clientId] = "A packet from your client has caused a server error";
     }
   }
 }
@@ -741,11 +741,11 @@ void UniverseServer::reapConnections() {
     auto clientContext = m_clients.value(clientId);
     if (!m_connectionServer->connectionIsOpen(clientId)) {
       Logger::info("UniverseServer: Client {} connection lost", clientContext->descriptiveName());
-      doDisconnection(clientId, String("Disconnected due to connection lost"));
+      doDisconnection(clientId, String("You were disconnected due to a bad connection"));
     } else {
       if (clientContext->remoteAddress() && startTime - m_connectionServer->lastActivityTime(clientId) > timeout) {
         Logger::info("UniverseServer: Kicking client {} due to inactivity", clientContext->descriptiveName());
-        doDisconnection(clientId, String("Disconnected due to inactivity"));
+        doDisconnection(clientId, String("You were disconnected due to inactivity"));
       }
     }
   }
@@ -1534,7 +1534,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   connection.setLegacy(legacyClient);
 
   auto protocolResponse = make_shared<ProtocolResponsePacket>();
-  protocolResponse->setCompressionMode(PacketCompressionMode::Enabled); // Signal that we're xSB-2 or OpenStarbound.
+  protocolResponse->setCompressionMode(PacketCompressionMode::Enabled); // Signal that we're xStarbound or OpenStarbound.
   if (protocolRequest->requestProtocolVersion != StarProtocolVersion) {
     Logger::warn("UniverseServer: client connection aborted, unsupported protocol version {}, supported version {}",
         protocolRequest->requestProtocolVersion, StarProtocolVersion);
@@ -1551,7 +1551,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   connection.sendAll(clientWaitLimit);
 
   String remoteAddressString = remoteAddress ? toString(*remoteAddress) : "local";
-  Logger::info("UniverseServer: Awaiting connection info from {}, {} client", remoteAddressString, legacyClient ? "Starbound" : "xSB-2/OpenSB");
+  Logger::info("UniverseServer: Awaiting connection info from {}, {} client", remoteAddressString, legacyClient ? "Starbound" : "xStarbound/OpenSB");
 
   connection.receiveAny(clientWaitLimit);
   auto clientConnect = as<ClientConnectPacket>(connection.pullSingle());
@@ -1694,8 +1694,10 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
 
   Vec3I location = clientContext->shipCoordinate().location();
   if (location != Vec3I()) {
-    auto clientSystem = createSystemWorld(clientContext->shipCoordinate().location());
+    auto clientSystem = createSystemWorld(location);
     clientSystem->addClient(clientId, clientContext->playerUuid(), clientContext->shipUpgrades().shipSpeed, clientContext->shipLocation());
+    // Kae's fix for an issue where the client's celestial chunk isn't immediately loaded.
+    addCelestialRequests(clientId, {makeLeft(location.vec2()), makeRight(location)}); 
     clientContext->setSystemWorld(clientSystem);
   }
 
@@ -2009,6 +2011,8 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::celestialWorldPro
       WorldServerPtr worldServer;
       String storageFile = File::relativeTo(storageDirectory, strf("{}.world", celestialWorldId.filename()));
       if (File::isFile(storageFile)) {
+        WorldStorage::repackWorldFile(storageFile, strf("celestial world {}", celestialWorldId));
+        
         try {
           Logger::info("UniverseServer: Loading celestial world {}", celestialWorldId);
           worldServer = make_shared<WorldServer>(File::open(storageFile, IOMode::ReadWrite));
@@ -2203,7 +2207,7 @@ bool UniverseServer::instanceWorldStoredOrActive(InstanceWorldId const& worldId)
 void UniverseServer::worldDiedWithError(WorldId world) {
   if (world.is<ClientShipWorldId>()) {
     if (auto clientId = getClientForUuid(world.get<ClientShipWorldId>()))
-      m_pendingDisconnections.add(*clientId, "Client ship world has errored");
+      m_pendingDisconnections.add(*clientId, "Your shipworld has caused a server error");
   }
 }
 

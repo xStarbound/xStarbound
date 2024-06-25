@@ -579,7 +579,6 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
 
   callbacks.registerCallback("dropEverything", [player]() { player->dropEverything(); });
 
-  // FezzedOne: Minor compatibility break with xSB-2 v2.0.0 and v2.0.0a to ensure OpenSB compability.
   callbacks.registerCallback("emote", [player](String const &emote, Maybe<float> cooldown, Maybe<bool> gentleRequest) {
       bool isGentleRequest = gentleRequest.value(false);
       if (isGentleRequest) {
@@ -732,7 +731,7 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
     });
 
   // FezzedOne: {NOTE] The OpenSB version needs to be called every tick, and even then, may not work anyway.
-  // The xSB-2 version here "sticks" and is saved to the player file. In any case, calling this version
+  // The xStarbound version here "sticks" and is saved to the player file. In any case, calling this version
   // every tick should not cause issues - just make sure to reset it on `uninit`.
   callbacks.registerCallback("setDamageTeam", [player](Maybe<String> teamType, Maybe<uint16_t> teamNumber) {
       TeamType checkedTeamType = TeamType::Friendly;

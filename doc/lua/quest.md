@@ -1,19 +1,18 @@
 # `quest`
 
-The `quest` table contains functions relating directly to the quest whose script its run in.
+The `quest` table contains functions relating directly to the quest whose script its run in. Available in quest scripts.
 
 ---
 
 #### `String` quest.state()
 
-Returns the current state of the quest.
+Returns the current state of the quest. Possible states:
 
-Possible states:
-* "New"
-* "Offer"
-* "Active"
-* "Complete"
-* "Failed"
+- `"New"`
+- `"Offer"`
+- `"Active"`
+- `"Complete"`
+- `"Failed"`
 
 ---
 

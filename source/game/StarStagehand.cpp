@@ -105,11 +105,19 @@ bool Stagehand::shouldDestroy() const {
 }
 
 Maybe<LuaValue> Stagehand::callScript(String const& func, LuaVariadic<LuaValue> const& args) {
-  return m_scriptComponent.invoke(func, args);
+  return m_scriptComponent.invoke<LuaValue>(func, args);
+}
+
+Maybe<Json> Stagehand::callScript(String const& func, LuaVariadic<Json> const& args) {
+  return m_scriptComponent.invoke<Json>(func, args);
 }
 
 Maybe<LuaValue> Stagehand::evalScript(String const& code) {
-  return m_scriptComponent.eval(code);
+  return m_scriptComponent.eval<LuaValue>(code);
+}
+
+Maybe<Json> Stagehand::evalScriptJson(String const& code) {
+  return m_scriptComponent.eval<Json>(code);
 }
 
 Stagehand::Stagehand() {

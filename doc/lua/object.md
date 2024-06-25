@@ -72,6 +72,8 @@ Enables or disables the object's persistent sound effect, if one is configured.
 
 Breaks the object. If smash is `true` then it will be smashed, causing it to (by default) drop no items.
 
+**Note:** Contrary to popular rumours in the modding community, there is no `object["break"]`. And yes, if it did exist, you would have to call it that way to avoid a collision with the Lua keyword.
+
 ---
 
 #### `float` object.level()
@@ -88,13 +90,31 @@ Returns an absolute world position calculated from the given relative position.
 
 #### `bool` object.say(`String` line, [`Map<String, String>` tags], [`Json` config])
 
-Causes the object to say the line, optionally replacing any specified tags in the text, and using the provided additional chat configuration. Returns `true` if anything is said (i.e. the line is not empty) and `false` otherwise.
+Spawns a chat bubble over the object containing the specified `line` of text, optionally replacing any specified tags in the text, and using the provided additional chat configuration. Returns `true` if any chat bubble is spawned (i.e. the line is not empty) and `false` otherwise.
+
+An example showing the available options in `config`:
+```lua
+jobject{
+  drawBorder = true, -- Whether to draw the chat bubble behind the text. Sort of visually borked right now.
+  fontSize = 8, -- Obvious.
+  color = jarray{255, 255, 255}, -- The base colour of the text, before any escape codes are applied.
+  sound = "/sfx/humanoid/avian_chatter_male1.ogg" -- A sound to play when the chat bubble spawns.
+}
+```
 
 ---
 
 #### `bool` object.sayPortrait(`String` line, `String` portrait, [`Map<String, String>` tags], [`Json` config])
 
-Similar to object.say, but uses a portrait chat bubble with the specified portrait image.
+Similar to `object.say`, but uses a portrait chat bubble with the specified portrait image.
+
+An example showing the available options in `config`:
+```lua
+{
+  drawMoreIndicator = true, -- Draw an indicator that shows there's more messages coming.
+  sound = "/sfx/humanoid/avian_chatter_male1.ogg" -- A sound to play when the chat bubble spawns.
+}
+```
 
 ---
 
@@ -216,7 +236,7 @@ Sets the specified animation parameter for the object's scripted animator.
 
 Sets the object's material spaces to the specified list, or clears them if unspecified. List entries should be in the form of `pair<Vec2I, String>` specifying the relative position and material name of materials to be set. 
 
-**Warning:** Objects should only set material spaces within their occupied tile spaces to prevent Bad Things™ from happening.
+**Warning:** Objects should only set material spaces within their occupied tile spaces to prevent Bad Things™ (i.e., weird collision and tile placement) from happening.
 
 ---
 

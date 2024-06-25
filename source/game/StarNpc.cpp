@@ -255,7 +255,7 @@ RectF Npc::collisionArea() const {
 }
 
 pair<ByteArray, uint64_t> Npc::writeNetState(uint64_t fromVersion) {
-  // client-side npcs error nearby vanilla NPC scripts because callScriptedEntity
+  // Kae (or Bott?): client-side npcs error nearby vanilla NPC scripts because callScriptedEntity
   // for now, scrungle the collision poly to avoid their queries. hacky :(
   if (m_npcVariant.overrides && m_npcVariant.overrides.getBool("overrideNetPoly", false)) {
     if (auto mode = entityMode()) {
@@ -589,11 +589,19 @@ bool Npc::aggressive() const {
 }
 
 Maybe<LuaValue> Npc::callScript(String const& func, LuaVariadic<LuaValue> const& args) {
-  return m_scriptComponent.invoke(func, args);
+  return m_scriptComponent.invoke<LuaValue>(func, args);
+}
+
+Maybe<Json> Npc::callScript(String const& func, LuaVariadic<Json> const& args) {
+  return m_scriptComponent.invoke<Json>(func, args);
 }
 
 Maybe<LuaValue> Npc::evalScript(String const& code) {
-  return m_scriptComponent.eval(code);
+  return m_scriptComponent.eval<LuaValue>(code);
+}
+
+Maybe<Json> Npc::evalScriptJson(String const& code) {
+  return m_scriptComponent.eval<Json>(code);
 }
 
 Vec2F Npc::getAbsolutePosition(Vec2F relativePosition) const {

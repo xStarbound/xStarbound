@@ -1,6 +1,6 @@
-# item
+# `item`
 
-The `item` table is available in all scripted items and contains functions relating to the item itself.
+The `item` table is available in all item scripts and contains functions relating to the item itself.
 
 ---
 
@@ -30,7 +30,7 @@ Returns the max number of this item that will fit in a stack.
 
 #### `bool` item.matches(`ItemDescriptor` desc, [`bool` exactMatch])
 
-Returns whether the item matches the specified item. If exactMatch is `true` then both the items' names and parameters are compared, otherwise only the items' names.
+Returns whether the item matches the specified item. If `exactMatch` is `true` then both the items' names and parameters are compared, otherwise only the items' names.
 
 ---
 
@@ -66,31 +66,69 @@ Returns the short description for the item.
 
 #### `int` item.rarity()
 
-Returns the rarity for the item.
+Returns the rarity for the item. An item's rarity determines the colour of the border around the item's icon in an inventory, container, shop, etc. If an `"xSBrarity"` parameter exists, that is used instead of `"rarity"`. The possible rarities are as follows:
 
-* 0 = common
-* 1 = uncommon
-* 2 = rare
-* 3 = legendary
-* 4 = essential
+- **0**: common (white)
+- **1**: uncommon (green)
+- **2**: rare (bright blue)
+- **3**: legendary (dark purple)
+- **4**: essential (yellow)
+- **5**: colour 1 (black)
+- **6**: colour 2 (grey)
+- **7**: colour 3 (dark green)
+- **8**: colour 4 (bright green)
+- **9**: colour 5 (dark red)
+- **10**: colour 6 (bright red)
+- **11**: colour 7 (dark orange)
+- **12**: colour 8 (bright orange)
+- **13**: colour 9 (gold)
+- **14**: colour 10 (bright yellow)
+- **15**: colour 11 (dark magenta)
+- **16**: colour 12 (bright purple)
+- **17**: colour 13 (deep blue)
+- **18**: colour 14 (fuchsia)
+- **19**: colour 15 (bright cyan)
+- **20**: colour 16 (dark cyan)
 
 ---
 
 #### `String` item.rarityString()
 
-Returns the rarity as a string.
+Returns the rarity as a string. An item's rarity determines the colour of the border around the item's icon in an inventory, container, shop, etc. If an `"xSBrarity"` parameter exists, that is used instead of `"rarity"`. The possible rarities are as follows:
+
+- `"common"` (white)
+- `"uncommon"` (green)
+- `"rare"` (bright blue)
+- `"legendary"` (dark purple)
+- `"essential"` (yellow)
+- `"colour1"` (black)
+- `"colour2"` (grey)
+- `"colour3"` (dark green)
+- `"colour4"` (bright green)
+- `"colour5"` (dark red)
+- `"colour6"` (bright red)
+- `"colour7"` (dark orange)
+- `"colour8"` (bright orange)
+- `"colour9"` (gold)
+- `"colour10"` (bright yellow)
+- `"colour11"` (dark magenta)
+- `"colour12"` (bright purple)
+- `"colour13"` (deep blue)
+- `"colour14"` (fuchsia)
+- `"colour15"` (bright cyan)
+- `"colour16"` (dark cyan)
 
 ---
 
 #### `size_t` item.price()
 
-Returns the item price.
+Returns the item's price.
 
 ---
 
 #### `unsigned` item.fuelAmount()
 
-Returns the item fuel amount.
+Returns the item's fuel amount.
 
 ---
 

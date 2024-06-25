@@ -14,8 +14,12 @@ Statistics::Statistics(String const& storageDirectory, StatisticsServicePtr serv
   readStatistics();
 
   auto assets = Root::singleton().assets();
+  auto clientConfig = assets->json("/client.config");
 
   m_luaRoot = make_shared<LuaRoot>();
+
+  m_luaRoot->tuneAutoGarbageCollection(clientConfig.get("luaGcPause").optFloat().value(1.2f),
+    clientConfig.get("luaGcStepMultiplier").optFloat().value(1.2f));
 }
 
 void Statistics::writeStatistics() {

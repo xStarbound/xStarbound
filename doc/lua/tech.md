@@ -18,6 +18,8 @@ Sets whether the tech should be visible.
 
 #### `void` tech.setParentState(`String` state)
 
+> *The `"SwimIdle"` state is available only on xStarbound.
+
 Set the animation state of the player.
 
 Valid states:
@@ -35,7 +37,7 @@ Valid states:
 
 ---
 
-#### `void` tech.setParentDirectives(`Maybe<String>` directives)
+#### `void` tech.setParentDirectives([`Directives` directives])
 
 Sets the image processing directives for the player. If no directives are specified, clears any existing tech parent directives. Each tech slot has its own parent directives.
 

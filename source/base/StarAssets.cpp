@@ -114,6 +114,8 @@ Assets::Assets(Settings settings, StringList assetSources) {
   // OpenStarbound: Run any asset loading scripts, then load any modified assets and asset patches (both JSON and Lua).
   auto luaEngine = LuaEngine::create();
   m_luaEngine = luaEngine;
+  luaEngine->tuneAutoGarbageCollection(m_settings.luaGcPause, m_settings.luaGcStepMultiplier);
+
   auto pushGlobalContext = [&luaEngine](String const& name, LuaCallbacks && callbacks) {
     auto table = luaEngine->createTable();
     for (auto const& p : callbacks.callbacks())
@@ -257,20 +259,22 @@ Assets::Assets(Settings settings, StringList assetSources) {
             auto callbacks = makeBaseAssetCallbacks();
             callbacks.registerCallback("add", [this, &source, &memoryAssets](LuaEngine& engine, String const& path, LuaValue const& data) {
               ByteArray bytes;
-              bool isImageOrBytes = false;
+              Image imageCopy;
+              bool isImage = false;
               if (auto str = engine.luaMaybeTo<String>(data))
                 bytes = ByteArray(str->utf8Ptr(), str->utf8Size());
               else if (auto image = engine.luaMaybeTo<Image>(data)) {
-                memoryAssets->set(path, std::move(*image));
-                isImageOrBytes = true;
+                imageCopy = *image;
+                isImage = true;
               } else if (auto rawBytes = engine.luaMaybeTo<ByteArray>(data)) {
-                memoryAssets->set(path, std::move(*rawBytes));
-                isImageOrBytes = true;
+                bytes = *rawBytes;
               } else {
                 auto json = engine.luaTo<Json>(data).repr();
                 bytes = ByteArray(json.utf8Ptr(), json.utf8Size());
               }
-              if (!isImageOrBytes)
+              if (isImage)
+                memoryAssets->set(path, imageCopy);
+              else
                 memoryAssets->set(path, bytes);
 
               // FezzedOne: Make sure the asset gets added to the overall file list.
@@ -1036,7 +1040,7 @@ ImageConstPtr Assets::readImage(String const& path) const {
           Logger::warn("Patch '{}' for image '{}' isn't a Lua script, ignoring", patchPath, path);
         }
       }
-      image = make_shared<Image>(std::move(result.get<LuaUserData>().get<Image>()));
+      image = make_shared<Image>(result.get<LuaUserData>().get<Image>());
     }
 
     return image;

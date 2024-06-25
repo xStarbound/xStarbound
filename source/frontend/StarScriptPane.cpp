@@ -19,6 +19,7 @@
 #include "StarItemGridWidget.hpp"
 #include "StarSimpleTooltip.hpp"
 #include "StarImageWidget.hpp"
+#include "StarConfiguration.hpp"
 
 namespace Star {
 
@@ -38,7 +39,16 @@ ScriptPane::ScriptPane(UniverseClientPtr client, Json config, EntityId sourceEnt
 void ScriptPane::displayed() {
   auto world = m_client->worldClient();
   if (world && world->inWorld()) {
-    m_script.setLuaRoot(world->luaRoot());
+    auto config = Root::singleton().configuration();
+    if (config->get("safeScripts").toBool()) {
+      m_script.setLuaRoot(make_shared<LuaRoot>());
+
+      auto assets = Root::singleton().assets();
+      Json clientConfig = assets->json("/client.config");
+
+      m_script.luaRoot()->tuneAutoGarbageCollection(clientConfig.getFloat("luaGcPause"), clientConfig.getFloat("luaGcStepMultiplier"));
+    } else
+      m_script.setLuaRoot(world->luaRoot());
     m_script.addCallbacks("world", LuaBindings::makeWorldCallbacks(world.get()));
   }
   BaseScriptPane::displayed();
@@ -47,10 +57,6 @@ void ScriptPane::displayed() {
 void ScriptPane::dismissed() {
   BaseScriptPane::dismissed();
   m_script.removeCallbacks("world");
-  // m_script.removeCallbacks("player");
-  // m_script.removeCallbacks("playerAnimator");
-  // m_script.removeCallbacks("status");
-  // m_script.removeCallbacks("celestial");
 }
 
 void ScriptPane::tick(float dt) {

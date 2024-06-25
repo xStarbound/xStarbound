@@ -1,12 +1,14 @@
 # `sb` and `xsb`
 
-The `sb` table contains miscellaneous utility functions that don't directly relate to any assets or content of the game, while the `xsb` table contains a single callback for returning the running xSB-2 version.
+The `sb` table contains miscellaneous utility functions that don't directly relate to any assets or content of the game, while the `xsb` table contains a single callback for returning the running xStarbound version. Available in all script contexts.
 
 ---
 
 #### `String` xsb.version()
 
-Returns the currently running version of xSB-2. Returns xServer's version if running on xServer or xClient's version if running on xClient.
+> **This callback and the `xsb` table are available only on xStarbound, for obvious reasons.**
+
+Returns the currently running version of xStarbound. Returns xServer's version if running on xServer or xClient's version if running on xClient.
 
 ---
 
@@ -126,47 +128,47 @@ Creates and returns a `RandomSource` userdata object which can be used as a rand
 
 ---
 
-##### `void` `RandomSource`:init([`unsigned` seed])
+##### `void` `[RandomSource]`:init([`unsigned` seed])
 
 Reinitializes the random source, optionally using the specified seed.
 
-##### `void` `RandomSource`:addEntropy([`unsigned` seed])
+##### `void` `[RandomSource]`:addEntropy([`unsigned` seed])
 
 Adds entropy to the random source, optionally using the specified seed.
 
-##### `uint32_t` `RandomSource`:randu32()
+##### `uint32_t` `[RandomSource]`:randu32()
 
 Returns a random 32-bit unsigned integer value.
 
-##### `uint64_t` `RandomSource`:randu64()
+##### `uint64_t` `[RandomSource]`:randu64()
 
 Returns a random 64-bit unsigned integer value.
 
-##### `int32_t` `RandomSource`:randi32()
+##### `int32_t` `[RandomSource]`:randi32()
 
 Returns a random 32-bit signed integer value.
 
-##### `int64_t` `RandomSource`:randi64()
+##### `int64_t` `[RandomSource]`:randi64()
 
 Returns a random 64-bit signed integer value.
 
-##### `float` `RandomSource`:randf([`float` min], [`float` max])
+##### `float` `[RandomSource]`:randf([`float` min], [`float` max])
 
 Returns a random `float` value within the specified range, or between `0.0` and `1.0` if no range is specified.
 
-##### `double` `RandomSource`:randd([`double` min], [`double` max])
+##### `double` `[RandomSource]`:randd([`double` min], [`double` max])
 
 Returns a random `double` value within the specified range, or between `0.0` and `1.0` if no range is specified.
 
-##### `int64_t` `RandomSource`:randInt([`int64_t` minOrMax], [`int64_t` max])
+##### `int64_t` `[RandomSource]`:randInt([`int64_t` minOrMax], [`int64_t` max])
 
 Returns a random signed integer value between `minOrMax` and `max`, or between `0` and `minOrMax` if no `max` is specified.
 
-##### `uint64_t` `RandomSource`:randUInt([`uint64_t` minOrMax], [`int64_t` max])
+##### `uint64_t` `[RandomSource]`:randUInt([`uint64_t` minOrMax], [`int64_t` max])
 
 Returns a random unsigned integer value between `minOrMax` and `max`, or between `0` and `minOrMax` if no `max` is specified.
 
-##### `bool` `RandomSource`:randb()
+##### `bool` `[RandomSource]`:randb()
 
 Returns a random `bool` value.
 
@@ -197,6 +199,6 @@ The `PerlinSource` has only one method:
 
 ---
 
-##### `float` `PerlinSource`:get(`float` x, [`float` y], [`float` z])
+##### `float` `[PerlinSource]`:get(`float` x, [`float` y], [`float` z])
 
 Returns a `float` value from the Perlin source using 1, 2, or 3 dimensions of input.

@@ -113,7 +113,7 @@ public:
   UniverseClient* getUniverseClient() const;
   Json teamMembers() const;
   void passChatText(String const& chatText);
-  void passChatOpen(bool chatOpen);          
+  void passChatOpen(bool chatOpen);
   String chatText() const;
   bool chatOpen() const;
   void overrideChatIndicator(bool overridden);
@@ -142,6 +142,7 @@ public:
   void revive(Vec2F const& footPosition);
 
   List<Drawable> portrait(PortraitMode mode) const override;
+  List<Drawable> renderHumanoid(bool withItems, bool withRotation);
   bool underwater() const;
 
   void setShifting(bool shifting);
@@ -347,7 +348,7 @@ public:
 
   void setIdentity(HumanoidIdentity identity);
   // FezzedOne: Need to overload this function to accept `Json` to avoid an unnecessary conversion, of course.
-  void setIdentity(Json const &newIdentity);
+  void setIdentity(Json const &newIdentity); 
 
   void setAdmin(bool isAdmin);
   bool isAdmin() const override;
@@ -603,6 +604,9 @@ private:
   UniverseClient* m_client; // required for celestial callbacks in scripts
   StringMap<GenericScriptComponentPtr> m_genericScriptContexts;
   JsonObject m_genericProperties;
+
+  bool m_toBeRemoved;                 // FezzedOne: Whether this player is going to be removed this tick.
+  // Set to `true` by `Player::uninit` and `false` by `Player::init`.
 
   bool m_ignoreExternalWarps;         // FezzedOne: Whether to ignore external warp requests.
   bool m_ignoreExternalRadioMessages; // FezzedOne: Whether to ignore external radio messages.

@@ -64,7 +64,9 @@ public:
   Maybe<Json> receiveMessage(ConnectionId sendingConnection, String const& message, JsonArray const& args) override;
 
   Maybe<LuaValue> callScript(String const& func, LuaVariadic<LuaValue> const& args) override;
+  Maybe<Json> callScript(String const& func, LuaVariadic<Json> const& args) override;
   Maybe<LuaValue> evalScript(String const& code) override;
+  Maybe<Json> evalScriptJson(String const& code) override;
 
   String projectileType() const;
 

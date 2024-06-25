@@ -1,6 +1,13 @@
 # `localAnimator`
 
-The `localAnimator` table provides bindings used by client-side animation scripts on monsters, objects, vehicles, active items and player deployment scripts to set drawables/lights and perform rendering actions. Also see the client-side `world.setShaderParameters`, `world.getShaderParameters` and `world.resetShaderParameters` bindings in `world.md`. Note that, unlike other contexts, drawables rendered by player deployment scripts only show up for the client controlling that player.
+The `localAnimator` table provides bindings used by client-side animation scripts in the following contexts:
+
+- client-side monster, object, vehicle and active item animation scripts
+- player deployment scripts
+
+... to set up drawables/lights and perform rendering actions.
+
+Also see the client-side `world.setShaderParameters`, `world.getShaderParameters` and `world.resetShaderParameters` bindings in `world.md`. Note that, unlike other contexts, drawables rendered by player deployment scripts only show up for the client controlling that player.
 
 **Note:** All `Vec2F` positions are in world *tiles* (8 world pixels apiece), not world pixels or interface pixels.
 
@@ -60,7 +67,7 @@ Adds the specified light source to the animator's list of light sources to be re
 
 * `Vec2F` __position__ - World position. Required.
 * `Color` __color__ - Required.
-* [`bool` __pointLight__] - If `true`, this is a point light source; otherwise it's a regular «splotch» light source.
+* [`bool` __pointLight__] - If `true`, this is a point light source; otherwise it's a regular "splotch" light source.
 * [`float` __pointBeam__]
 * [`float` __beamAngle__] - In radians.
 * [`float` __beamAmbience__]

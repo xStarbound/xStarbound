@@ -1,6 +1,22 @@
 # `player`
 
-The `player` table contains functions with privileged access to the player. This table is available in all script contexts which run on a client-mastered player (with the current exception of scripted items that aren't active items); as such, a modder may check for the existence of this table in scripts running on active items, status effects, etc., to determine whether the entity that is wielding the item, is affected by the status effect, etc., is a player.
+The `player` table contains functions with privileged access to the player. On xStarbound, this table is available in all script contexts which run on a client-mastered player. On other clients, this availability is more limited.
+
+Availability of player callbacks is as follows:
+
+- generic player scripts
+- player deployment scripts
+- player companion scripts
+- active item scripts running on a player
+- fireable item scripts running on a player (only on xStarbound)
+- status controller and effect scripts running on a player (only on xStarbound)
+- quest scripts
+- tech scripts (only on xStarbound)
+- pane scripts
+
+As such, a modder on xStarbound may check for the existence of this table in scripts running on active items, status effects, etc., to determine whether the entity that is wielding the item, is affected by the status effect, etc., is a player.
+
+> **Primary and secondary players:** On xStarbound, player callbacks normally apply to the (parent) player on which the script is running. As an exception, player callbacks invoked in pane scripts always apply to the primary player, as that is the only player which is associated with the game interface. Use entity messages or global variables if you wish to communicate with or invoke anything on secondary players in a pane script.
 
 ---
 
@@ -62,6 +78,8 @@ Removes the specified object from the player's scanned objects.
 #### `void` player.interact(`String` interactionType, `Json` config, [`EntityId` sourceEntityId])
 
 Triggers an interact action on the player as if the player had initiated an interaction and the result had returned the specified interaction type and configuration. Can be used to e.g. open GUI windows normally triggered by player interaction with entities.
+
+If the interaction would open any GUI for a secondary player, the interaction is "queued" until that player becomes primary or cleared upon disconnection.
 
 ---
 
@@ -169,7 +187,7 @@ Triggers an immediate clean-up of the player's inventory, removing item stacks w
 
 #### `void` player.giveItem(`ItemDescriptor` item)
 
-Adds the specified item to the player's inventory.
+Adds the specified item to the player's inventory. If a `nil` item descriptor is specified, no item is added.
 
 ---
 
@@ -181,13 +199,13 @@ Returns `true` if the player's inventory contains an item matching the specified
 
 #### `unsigned` player.hasCountOfItem(`ItemDescriptor` item, [`bool` exactMatch])
 
-Returns the total number of items in the player's inventory matching the specified descriptor. If `exactMatch` is `true`, the parameters as well as the item name must match.
+Returns the total number of items in the player's inventory matching the specified descriptor. If `exactMatch` is `true`, the parameters as well as the item name must match. Returns `0` if a `nil` descriptor is specified.
 
 ---
 
 #### `ItemDescriptor` player.consumeItem(`ItemDescriptor` item, [`bool` consumePartial], [`bool` exactMatch])
 
-Attempts to consume the specified item from the player's inventory and returns the item consumed if successful. If `consumePartial` is `true`, matching stacks totalling fewer items than the requested count may be consumed; otherwise, the operation will only be performed if the full count can be consumed. If `exactMatch` is `true`, the parameters as well as the item name must match.
+Attempts to consume the specified item from the player's inventory and returns the item consumed if successful. If `consumePartial` is `true`, matching stacks totalling fewer items than the requested count may be consumed; otherwise, the operation will only be performed if the full count can be consumed. If `exactMatch` is `true`, the parameters as well as the item name must match. Does nothing if a `nil` descriptor is specified.
 
 ---
 
@@ -264,7 +282,7 @@ Returns the contents of the specified essential slot, or `nil` if the slot is em
 
 #### `void` player.giveEssentialItem(`EssentialItem` slot, `ItemDescriptor` item)
 
-Sets the contents of the specified essential slot to the specified item. See above for valid `EssentialItem` values.
+Sets the contents of the specified essential slot to the specified item; if the descriptor is `nil`, clears the slot. See above for valid `EssentialItem` values.
 
 ---
 
@@ -289,9 +307,9 @@ Returns the contents of the specified equipment slot, or `nil` if the slot is em
 
 ---
 
-#### `void` player.setEquippedItem(`String` slotName, `Json` item)
+#### `void` player.setEquippedItem(`String` slotName, `ItemDescriptor` item)
 
-Sets the item in the specified equipment slot to the specified item. See above for valid `EquipmentSlot` values.
+Sets the item in the specified equipment slot to the specified item; will clear the slot if the specified item descriptor is `nil`. See above for valid `EquipmentSlot` values.
 
 ---
 
@@ -301,7 +319,7 @@ Returns the contents of the player's swap (cursor) slot, or `nil` if the slot is
 
 ---
 
-#### `void` player.setSwapSlotItem(`Json` item)
+#### `void` player.setSwapSlotItem(`ItemDescriptor` item)
 
 Sets the item in the player's swap (cursor) slot to the specified item, or clears the slot if `nil` is specified.
 
@@ -427,6 +445,12 @@ If the player is currently lounging, returns the entity ID of what the player is
 
 ---
 
+#### `bool` player.stopLounging()
+
+Makes the player stop lounging.
+
+---
+
 #### `double` player.playTime()
 
 Returns the total played time for the player.
@@ -448,6 +472,8 @@ Sets whether the player is marked as having completed the intro instance.
 #### `void` player.warp(`String` warpAction, [`String` animation], [`bool` deploy])
 
 Immediately warps the player to the specified warp target, optionally using the specified warp animation and deployment.
+
+Only warps the *primary* player immediately. Any attempt to warp a secondary player will be "queued" until that player becomes primary or cleared upon disconnection.
 
 ---
 
@@ -471,7 +497,9 @@ Displays a confirmation dialog to the player with the specified dialog configura
 
 #### `void` player.playCinematic(`Json` cinematic, [`bool` unique])
 
-Triggers the specified cinematic to be displayed for the player. If unique is `true` the cinematic will only be shown to that player once.
+Triggers the specified cinematic to be displayed for the player. If `unique` is `true`, the cinematic will only be shown to that player once.
+
+If invoked on a secondary player, the cinematic is "queued" until that player becomes primary or cleared upon disconnection.
 
 ---
 
@@ -549,7 +577,7 @@ Returns a list of names of the collectables the player has unlocked in the speci
 
 ## Identity callbacks
 
-The following callbacks can be used to get or alter the player's current humanoid identity.
+The following callbacks can be used to get or alter the player's current humanoid identity. These are available on xStarbound, OpenStarbound and StarExtensions, but only xStarbound has the full complement described below.
 
 ---
 
@@ -570,7 +598,11 @@ Gets the player's identity.
 
 In addition to the identity callbacks above, the following getters and setters may be used to get and set various items in the player's humanoid identity.
 
-**Notes:** Any `nil` or unspecified value is ignored, *unless* it's an image path, in which case the image path is cleared. Invalid species names and genders — for reference, valid genders are `"male"` and `"female"` — are ignored and will log an error.
+**Notes:** A few notes:
+
+- Any `nil` or unspecified value is ignored, *unless* it's an image path, in which case the image path is cleared.
+- Invalid species names and genders — for reference, valid genders are `"male"` and `"female"` — are ignored and will log an error.
+- The "favourite colour" is the one used for the beams and highlights of "beam" items like the matter manipulator. The beams, but not the highlights, are affected by the alpha (fourth) value.
 
 **Personality:** A `Personality` table looks like this:
 
@@ -605,6 +637,7 @@ The following humanoid identity getters are available:
 #### `String` player.imagePath()
 #### `String` player.gender()
 #### `Personality` player.personality()
+#### `Vec4B` player.favoriteColor()
 
 **Note:** `player.hair`, `player.facialHair` and `player.facialMask` return their items in "group, type, directives" order.
 
@@ -628,6 +661,13 @@ The following humanoid identity setters are available:
 #### `void` player.setImagePath(`Maybe<String>` imagePath)
 #### `void` player.setGender(`String` gender)
 #### `void` player.setPersonality(`Personality` personalityConfig)
+#### `void` player.setFavoriteColor(`Vec4B` favouriteColour)
+
+---
+
+## xStarbound callbacks
+
+The following `player` callbacks are available on xStarbound but *not* on stock Starbound. Many of these are available with StarExtensions or OpenStarbound.
 
 ---
 
@@ -673,7 +713,9 @@ Sets the player's interaction radius in world tile lengths.
 
 #### `void` player.queueStatusMessage(`String` newMessage)
 
-Queues a status message, visible at the bottom of the screen.
+Queues a status message, visible at the bottom of the screen. Status messages queued with this callback on a secondary player will not be shown until that player becomes primary, and will be cleared upon disconnection.
+
+Also see `interface.queueMessage` in `interface.md`.
 
 ---
 
@@ -687,9 +729,11 @@ Spawns a networked chat bubble. Parameters:
 - `bubbleConfig`: If not `nil`, is an optional bubble config in the form of a JSON map, with parameters optionally specified as follows:
   - `drawMoreIndicator` (`bool`): Portrait bubbles only. If `true`, adds a 'more after this' indicator to a portrait bubble.
   - `sound` (`String`): If present, plays the specified sound asset when the chat bubble is spawned.
-  - `drawBorder` (`bool`): Non-portrait bubbles only. If `true`, draws a normal chat bubble; if `false`, renders the chat bubble invisible. Defaults to `true`.
+  - `drawBorder` (`bool`): Non-portrait bubbles only. If `true`, draws a normal chat bubble; if `false`, renders the chat bubble invisible and may be visually borked. Defaults to `true`.
   - `fontSize` (`uint64_t`): Non-portrait bubbles only. The font size of the text in the chat bubble (or "bubble"). Defaults to the `"fontSize"` in `/interface/windowconfig/chatbubbles.config` (`8` in vanilla).
   - `color` (`Color`): Non-portrait bubbles only. The base colour of the text (before any modifications by colour codes) in the chat bubble. Defaults to the `"textColor"` in `/interface/windowconfig/chatbubbles.config` (`"white"` in vanilla).
+
+The chat bubble is spawned over the player this callback is invoked on, no matter whether the player is primary or secondary, unless a different `sourceEntityId` is specified.
 
 ---
 
@@ -715,11 +759,15 @@ Gets the player's chat bubble config. This affects all chat bubbles the player n
 
 #### `void` player.sendChat(`String` text, `String` sendMode, `Maybe<bool>` suppressBubble)
 
-Sends a chat message. Arguments are as follows:
+Sends a chat message, *skipping* client-side command processing. Arguments are as follows:
 
 - `text`: The text to send.
 - `sendMode`: If specified, may be any one of `"Local"`, `"Broadcast"` or `"Party"` (anything else resolves to `"Local"`). Defaults to `"Local"`.
 - `suppressBubble`: If `true`, no chat bubble is spawned when the chat message is sent.
+
+The message will be sent immediately regardless of whether the player is primary or secondary, but the chat bubble will always spawn above the *primary* player.
+
+Identical in functionality to `chat.send` (see `interface.md`).
 
 ---
 
@@ -732,6 +780,8 @@ Adds a set of effect emitters to the player this tick. The argument is an array 
 #### `void` player.dropEverything()
 
 Forces the player to drop all inventory items. Don't know why anyone would ever want to use this though.
+
+If this callback is called in any held item's script, `init` or `update` will finish running and `uninit` will run, but item drops will not have any state saved by `item` callbacks after this callback is invoked.
 
 ---
 
@@ -896,13 +946,13 @@ Gets whether shipworld updates are ignored. This setting is saved in the player 
 
 #### `String` player.getChatText()
 
-Gets any text currently in the chat box. Also see `interface.md`.
+Gets any text currently in the chat box. Does *not* return `""` if the chat box isn't focussed but contains any text. Nearly identical to `chat.input` (see `interface.md`).
 
 ---
 
 #### `bool` player.chatHasFocus()
 
-Gets whether the chat box is focussed. Also see `interface.md`.
+Gets whether the chat box is focussed.
 
 ---
 
@@ -942,7 +992,7 @@ Sets the player's damage team, overriding any server requests. `teamType` may be
 
 To *get* the player's current damage team, use `entity.team`.
 
-**Note:** Unlike OpenStarbound's equivalent, xSB-2's changes to the player damage team are persistent. The team config is saved under `"team"` in the player save, while whether the team config has been overridden by xSB-2 is saved under `"damageTeamOverridden"` in the player's `"xSbProperties"`.
+**Note:** Unlike OpenStarbound's equivalent, xClient's changes to the player damage team are persistent. The team config is saved under `"team"` in the player save, while whether the team config has been overridden by xClient is saved under `"damageTeamOverridden"` in the player's `"xSbProperties"`.
 
 ---
 
@@ -967,7 +1017,7 @@ Any other string will set the state to `"idle"`. If `nil` or no argument is pass
 
 #### `void` player.overrideCameraPosition(`Maybe<Vec2F>` newCameraPosition)
 
-Overrides the player client's camera position. Must be applied every tick like `mcontroller.controlParameters()` to keep the camera position overridden. Unlike StarExtensions' `camera.override()`, this override does not prevent the camera shift key from being used. Also see `interface.overrideCameraPosition` in `interface.md`.
+Overrides the player client's camera position. Must be applied every tick like `mcontroller.controlParameters()` to keep the camera position overridden. Unlike `interface.overrideCameraPosition` (see `interface.md`), this override does not prevent the **Camera Look** key from being used and only takes effect if called in a script running on the primary player.
 
 ---
 
@@ -1028,3 +1078,87 @@ local teamMembers = jarray{
     ...
 }
 ```
+
+---
+
+#### `void` player.controlAimPosition(`Vec2F` newAimPosition)
+
+Makes the player aim at the specified world position.
+
+For a primary player, the aim position set by this callback will be reset to the cursor's world position on the next tick unless this callback is called again.
+
+For a secondary player, the aim position will remain set until the primary player warps or dies, the aim position is changed via this callback again, or the secondary player becomes primary.
+
+---
+
+#### `void` player.controlShifting(`Maybe<bool>` shifting)
+
+If `true` is passed, makes the player begin "shifting" exactly as if the **Walk** key (<kbd>Shift</kbd> by default) were held. If `false` or `nil` is passed, or the parameter is unspecified, makes the player stop "shifting".
+
+A primary player's "shifting" state will be reset to the state of the **Walk** key on the next tick.
+
+For a secondary player, the "shifting" state will remain set until the primary player warps or dies, the state is changed via a callback again, or the secondary player becomes primary.
+
+---
+
+#### `void` player.controlTrigger(`Maybe<bool>` triggering)
+
+If `true` is passed, makes the player begin "triggering" whatever is at his or her currently set aim position exactly as if the **Interact** key (<kbd>E</kbd> by default) or middle mouse button were pressed.
+
+If `false` or `nil` is passed, or the parameter is unspecified, makes the player stop "triggering", exactly as if the **Interact** key or the middle mouse button were released.
+
+A primary player's "triggering" state will be reset to the state of the **Walk** key on the next tick.
+
+For a secondary player, the "triggering" state will remain set until the primary player warps or dies, the state is changed via a callback again, or the secondary player becomes primary.
+
+---
+
+#### `void` player.controlFire(`Maybe<String>` fireMode)
+
+If `"primary"`/`"beginPrimary"` or `"alt"`/`"beginAlt"` is passed, makes the player begin primary or alt fire, respectively, exactly as if the left or right mouse button were pressed, respectively.
+
+If `"primary"`/`"beginPrimary"` or `"alt"`/`"beginAlt"` is passed, makes the player end primary or alt fire, respectively, exactly as if the left or right mouse button were released, respectively.
+
+If `nil` is passed, or the parameter is unspecified, makes the player end primary *and* alt fire immediately, exactly as if both mouse buttons were released.
+
+A primary player's primary/alt firing state will be reset to the state of the mouse buttons on the next tick.
+
+For a secondary player, the primary/alt firing state will remain set until the primary player warps or dies, the state is changed via a callback again, or the secondary player becomes primary.
+
+The `fireMode` parameter is case-insensitive.
+
+---
+
+#### `void` player.controlSpecialAction(`int` specialAction)
+
+Makes the player activate the specified special action — one of `1`, `2` or `3` — this tick, exactly as if the **Special 1**, **2** or **3** key were pressed, respectively.
+
+**Note:** The **Special 1** keybind is bound to <kbd>F</kbd> by default, and is used to toggle the vanilla sphere techs. **Special 2** and **3** are unbound by default.
+
+---
+
+#### `void` player.controlAction(`Maybe<String>` action)
+
+Used to make the player perform various special actions, depending on the specified string:
+
+- **`"left"`:** The player moves left this tick.
+- **`"right"`:** The player moves right this tick.
+- **`"down"`:** The player moves down this tick.
+- **`"up"`:** The player moves up this tick.
+- **`"jump"`:** The player jumps (or continues jumping) this tick.
+- **`"beginTrigger"`:** The player begins a trigger action.
+- **`"endTrigger"`:** The player ends a trigger action.
+- **`"beginPrimaryFire"`:** The player begins primary fire.
+- **`"endPrimaryFire"`:** The player ends primary fire.
+- **`"beginAltFire"`:** The player begins alternate fire.
+- **`"endAltFire"`:** The player ends alternate fire.
+- **`"shift"`:** The player starts "shifting".
+- **`"unshift"`:** The player stops "shifting".
+- **`"special1"`:** The player activates special action 1 this tick.
+- **`"special2"`:** The player activates special action 2 this tick.
+- **`"special3"`:** The player activates special action 3 this tick.
+- **`"dropItem"`:** The player drops the currently held item, throwing it toward the player's currently set aim position.
+
+The `action` is case-insensitive. If `nil` or any other string is specified, or no parameter is specified, the callback does nothing.
+
+**Note:** If `player.controlAction("dropItem")` is called in the dropped item's script, `init` or `update` will finish running and `uninit` will run, but the item drop will not have any state saved by `item` callbacks after this callback is invoked.

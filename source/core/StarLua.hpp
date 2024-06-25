@@ -40,12 +40,15 @@ typedef Empty LuaNilType;
 typedef bool LuaBoolean;
 typedef lua_Integer LuaInt;
 typedef lua_Number LuaFloat;
+typedef void* LuaLightUserData;
 class LuaString;
 class LuaTable;
 class LuaFunction;
 class LuaThread;
 class LuaUserData;
-typedef Variant<LuaNilType, LuaBoolean, LuaInt, LuaFloat, LuaString, LuaTable, LuaFunction, LuaThread, LuaUserData> LuaValue;
+typedef Variant<LuaNilType, LuaBoolean, LuaInt, LuaFloat, LuaLightUserData, LuaString, LuaTable, LuaFunction, LuaThread, LuaUserData> LuaValue;
+
+const void* const PlutoNull = reinterpret_cast<void*>(static_cast<uintptr_t>(0xF01D));
 
 // Used to wrap multiple return values from calling a lua function or to pass
 // multiple values as arguments to a lua function from a container.  If this is
@@ -365,6 +368,7 @@ public:
 
   LuaString createString(String const& str);
   LuaString createString(char const* str);
+  LuaString createString(char const* str, size_t len);
 
   LuaTable createTable();
 
@@ -540,6 +544,7 @@ public:
 
   LuaString createString(String const& str);
   LuaString createString(char const* str);
+  LuaString createString(char const* str, size_t len);
 
   LuaTable createTable(int narr = 0, int nrec = 0);
 
@@ -775,6 +780,20 @@ struct LuaIntConverter {
   }
 };
 
+template <typename T>
+struct LuaLightUserDataConverter {
+  static LuaValue from(LuaEngine&, T v) {
+    return LuaLightUserData(v);
+  }
+
+  static Maybe<T> to(LuaEngine&, LuaValue const& v) {
+    if (auto n = v.ptr<LuaLightUserData>())
+      return *n;
+    return {};
+  }
+};
+
+
 template <>
 struct LuaConverter<char> : LuaIntConverter<char> {};
 
@@ -804,6 +823,9 @@ struct LuaConverter<long long> : LuaIntConverter<long long> {};
 
 template <>
 struct LuaConverter<unsigned long long> : LuaIntConverter<unsigned long long> {};
+
+template <>
+struct LuaConverter<void*> : LuaLightUserDataConverter<void*> {};
 
 template <typename T>
 struct LuaFloatConverter {
@@ -2015,14 +2037,16 @@ Maybe<LuaDetail::LuaFunctionReturn> LuaEngine::resumeThread(int handleIndex, Arg
 
   size_t argSize = pushArguments(threadState, args...);
   incrementRecursionLevel();
-  int res = lua_resume(threadState, nullptr, argSize);
+  int returnValues;
+  int res = lua_resume(threadState, nullptr, argSize, &returnValues);
+  // lua_pop(threadState, nresults);
   decrementRecursionLevel();
   if (res != LUA_OK && res != LUA_YIELD) {
     propagateErrorWithTraceback(threadState, m_state);
     handleError(m_state, res);
   }
 
-  int returnValues = lua_gettop(threadState);
+  // int returnValues = lua_gettop(threadState);
   if (returnValues == 0) {
     return LuaDetail::LuaFunctionReturn();
   } else if (returnValues == 1) {

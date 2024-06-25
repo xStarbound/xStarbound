@@ -19,6 +19,7 @@
 #include "StarLiquidsDatabase.hpp"
 #include "StarChatProcessor.hpp"
 #include "StarAssets.hpp"
+#include "StarConfiguration.hpp"
 #include "StarWorldLuaBindings.hpp"
 #include "StarUniverseServerLuaBindings.hpp"
 
@@ -696,12 +697,14 @@ String CommandProcessor::entityEval(ConnectionId connectionId, String const& lua
   // if (auto errorMsg = localCheck(connectionId, "execute server entity script"))
   //   return *errorMsg;
 
+  auto config = Root::singleton().configuration();
+
   if (auto errorMsg = adminCheck(connectionId, "execute server entity script"))
     return *errorMsg;
 
   String message;
   bool done = m_universe->executeForClient(connectionId,
-      [&lua, &message](WorldServer* world, PlayerPtr const& player) {
+      [&config, &lua, &message](WorldServer* world, PlayerPtr const& player) {
         auto queryRect = RectF::withCenter(player->aimPosition(), Vec2F{2, 2});
         auto entities = world->query<ScriptedEntity>(queryRect);
         if (entities.empty()) {
@@ -717,10 +720,17 @@ String CommandProcessor::entityEval(ConnectionId connectionId, String const& lua
             targetEntity = entity;
         }
 
-        if (auto res = targetEntity->evalScript(lua))
-          message = toString(*res);
-        else
-          message = "Error evaluating script in entity context, check log";
+        if (config->get("safeScripts").toBool()) {
+          if (auto res = targetEntity->evalScriptJson(lua))
+            message = res->repr();
+          else
+            message = "Error evaluating script in entity context, check log";
+        } else {
+          if (auto res = targetEntity->evalScript(lua))
+            message = toString(*res);
+          else
+            message = "Error evaluating script in entity context, check log";
+        }
       });
 
   return done ? message : "Failed to evaluate script";

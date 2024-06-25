@@ -47,7 +47,7 @@ void PortraitWidget::renderImpl() {
 
     List<Drawable> portrait = humanoid ? humanoid->render(false, false) : m_entity->portrait(m_portraitMode);
     for (auto& i : portrait) {
-      i.scale(humanoid ? m_scale * 8.0f : m_scale);
+      i.scale(humanoid ? m_scale * TilePixels : m_scale);
       context()->drawInterfaceDrawable(i, Vec2F(screenPosition() + offset));
     }
   } else {

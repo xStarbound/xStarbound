@@ -6,7 +6,7 @@ The `activeItem` table contains bindings which provide functionality for an acti
 
 #### `EntityId` activeItem.ownerEntityId()
 
-Returns the entity id of the owner entity.
+Returns the entity ID of the owner entity.
 
 ---
 
@@ -166,9 +166,16 @@ Sets an instance value (parameter) of the item.
 
 ---
 
-#### `LuaValue` activeItem.callOtherHandScript(`String` functionName, [`LuaValue` args ...])
+#### `Json` activeItem.callOtherHandScript(`String` functionName, [`Json...` args])
+#### `LuaValue` activeItem.callOtherHandScript(`String` functionName, [`LuaValue...` args])
 
-Attempts to call the specified function name with the specified argument values in the context of an ActiveItem held in the opposing hand and synchronously returns the result if successful.
+Attempts to call the specified function name with the specified argument values in the context of an active item held in the opposing hand and synchronously returns the result if successful.
+
+On xStarbound with `"safeScripts"` enabled, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
+
+> **Warning:** If `"safeScripts"` is disabled on xStarbound, and regardless of this on other Starbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value.
+>
+> If unsafe passing is allowed, you should avoid passing Lua bindings or anything that can call them. Calling active item bindings after the active item has been removed from the game *will* almost certainly cause segfaults or memory corruption!
 
 ---
 
@@ -186,4 +193,4 @@ Triggers the owner to perform the specified emote.
 
 #### `void` activeItem.setCameraFocusEntity([`EntityId` entity])
 
-If the owner is a player, sets that player's camera to be centered on the position of the specified entity, or recenters the camera on the player's position if no entity id is specified.
+If the owner is a player, sets that player's camera to be centered on the position of the specified entity, or recenters the camera on the player's position if no entity ID is specified.

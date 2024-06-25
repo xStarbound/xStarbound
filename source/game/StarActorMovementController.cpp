@@ -1392,9 +1392,10 @@ bool PathController::validateEdge(ActorMovementController& movementController, P
   auto opened = objects.filtered([&](EntityPtr const& e) -> bool {
       if (auto object = as<Object>(e)) {
         if (object->isMaster()) {
-          auto arg = m_world->luaRoot()->luaEngine().createString("closedDoor");
-          auto res = object->callScript("hasCapability", LuaVariadic<LuaValue>{arg});
-          if (res && res->is<LuaBoolean>() && res->get<LuaBoolean>()){
+          auto arg = Json("closedDoor"); // m_world->luaRoot()->luaEngine().createString("closedDoor");
+          auto res = object->callScript("hasCapability", LuaVariadic<Json>{arg});
+          // FezzedOne: Removed completely unnecessary Lua smuggling here.
+          if (res && res->type() == Json::Type::Bool && res->toBool()) { //  res->is<LuaBoolean>() && res->get<LuaBoolean>()
             m_world->sendEntityMessage(e->entityId(), "openDoor");
             return true;
           }

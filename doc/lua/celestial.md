@@ -9,7 +9,9 @@ The `celestial` table contains functions that relate to the client sky, flying t
 
 A variant of `celestial` containing only `celestial.parameters` is avaiilable to JSON versioning scripts (see below).
 
-**Warning:** The celestial database will **NOT** be fully loaded when a celestial callback is first invoked in a given context! Some callbacks — noted below — return `nil` or a dummy value when the celestial database isn't loaded. If you use these callbacks in a script, make sure to put them behind a conditional check or coroutine in `update` that waits until `celestial.planetName(celestial.currentSystem())` stops returning `nil`.
+> **Note:** The celestial database will **not** be fully loaded for a few ticks when a celestial callback is first invoked on an unloaded chunk!
+>
+> Some callbacks — noted below — return `nil` or a dummy value when the celestial database isn't loaded. If you use these callbacks in a script, consider putting them behind a conditional check or coroutine in `update` that waits until `celestial.planetName(systemInTargetChunk)` stops returning `nil`.
 
 #### `bool` celestial.skyFlying()
 

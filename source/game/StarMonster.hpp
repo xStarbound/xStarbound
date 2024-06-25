@@ -118,7 +118,9 @@ public:
   bool aggressive() const override;
 
   Maybe<LuaValue> callScript(String const& func, LuaVariadic<LuaValue> const& args) override;
+  Maybe<Json> callScript(String const& func, LuaVariadic<Json> const& args) override;
   Maybe<LuaValue> evalScript(String const& code) override;
+  Maybe<Json> evalScriptJson(String const& code) override;
 
   virtual Vec2F mouthPosition() const override;
   virtual Vec2F mouthPosition(bool ignoreAdjustments) const override;

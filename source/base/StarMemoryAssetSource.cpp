@@ -2,6 +2,7 @@
 #include "StarDataStreamDevices.hpp"
 #include "StarDataStreamExtra.hpp"
 #include "StarImage.hpp"
+#include "StarLogging.hpp"
 
 namespace Star {
 
@@ -120,8 +121,16 @@ ImageConstPtr MemoryAssetSource::image(String const& path) {
     throw AssetSourceException::format("Requested file '{}' does not exist in memory", path);
   else if (auto imagePtr = p->ptr<ImagePtr>())
     return *imagePtr;
-  else // FezzedOne: Without this, preprocessing scripts can't read assets in memory.
-    return make_shared<Image>(Image::readPng(open(path)));
+  else { // FezzedOne: Without this, preprocessing scripts can't read assets in memory.
+    ImagePtr image;
+    try {
+      return make_shared<Image>(Image::readPng(open(path)));
+      /* FezzedOne: Will throw an exception on raw `Image` objects converted to byte arrays,
+        because the byte array is expected to be a valid PNG, not a raw memory dump. */
+    } catch (ImageException const& e) {
+      throw AssetSourceException::format("Exception caught reading requested file '{}' from memory as a PNG image: {}", path, e.what());
+    }
+  }
 }
 
 }

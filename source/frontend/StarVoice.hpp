@@ -73,7 +73,7 @@ public:
     EntityId entityId = 0;
 
     Vec2F position = Vec2F();
-    String name = "Unnamed";
+    String name = "<unnamed>";
 
     OpusDecoderPtr decoderMono;
     OpusDecoderPtr decoderStereo;

@@ -206,7 +206,7 @@ public:
   // and sets its position and direction and returns it, otherwise returns
   // null.
   ObjectPtr createForPlacement(World const* world, String const& objectName, Vec2I const& position,
-      Direction direction, Json const& parameters = JsonObject()) const;
+      Direction direction, Json const& parameters = JsonObject(), bool forcePlacement = false) const;
 
   List<Drawable> cursorHintDrawables(World const* world, String const& objectName, Vec2I const& position,
       Direction direction, Json parameters = {}) const;

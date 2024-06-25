@@ -72,17 +72,17 @@ Returns the maximum energy of the NPC. Equivalent: `status.maxResource("energy")
 
 #### `bool` npc.say(`String` line, [`Map<String,String>` tags], [`Json` config])
 
-Makes the npc say a string. Optionally pass in tags to replace text tags. Optionally give config options for the chat message.
+Spawns a chat bubble over the NPC containing the specified `line` of text and makes the NPC emote talking. Optionally pass in tags to replace text tags. Optionally give config options for the chat message.
 
 Returns whether the chat message was successfully added.
 
-An example showing the available options:
+An example showing the available options in `config`:
 ```lua
 jobject{
-  drawBorder = true,
-  fontSize = 8,
-  color = jarray{255, 255, 255},
-  sound = "/sfx/humanoid/avian_chatter_male1.ogg"
+  drawBorder = true, -- Whether to draw the chat bubble behind the text. Sort of visually borked right now.
+  fontSize = 8, -- Obvious.
+  color = jarray{255, 255, 255}, -- The base colour of the text, before any escape codes are applied.
+  sound = "/sfx/humanoid/avian_chatter_male1.ogg" -- A sound to play when the chat bubble spawns.
 }
 ```
 
@@ -90,14 +90,15 @@ jobject{
 
 #### `bool` npc.sayPortrait(`String` line, `String` portrait, [`Map<String,String>` tags], [`Json` config])
 
-Makes the npc say a line, with a portrait chat bubble. Optionally pass in tags to replace text tags. Optionally give config options for the chat message.
+Spawns a portrait chat bubble over the NPC and makes the NPC emote talking. Optionally pass in tags to replace text tags. Optionally give config options for the chat message.
+
 Returns whether the chat message was successfully added.
 
-Available options:
-```
+An example showing the available options in `config`:
+```lua
 {
-  drawMoreIndicator = true,
-  sound = "/sfx/humanoid/avian_chatter_male1.ogg"
+  drawMoreIndicator = true, -- Draw an indicator that shows there's more messages coming.
+  sound = "/sfx/humanoid/avian_chatter_male1.ogg" -- A sound to play when the chat bubble spawns.
 }
 ```
 
@@ -293,6 +294,8 @@ Sets a unique ID for this NPC that can be used to access it. If `nil` is specifi
 
 #### `void` npc.setIdentity(`Json` identity)
 
+> **Available only on xStarbound.**
+
 Sets the NPC's humanoid identity. The new identity will be merged with the current one; as a special case, if the `"imagePath"` key (and *only* that key) has been explicitly set to a `nil` value, *and* either the table was created with `jobject` or its metatable's `"__nils"` table otherwise contains `"imagePath"` (e.g., the metatable is `{["__nils"] = {imagePath = 0}}`), the `"imagePath"` will be set to `null`. Will log an error and leave the species unchanged if the new identity includes a `"species"` that doesn't exist in the loaded assets.
 
 ---
@@ -304,6 +307,8 @@ Returns the NPC's full parameters.
 ---
 
 #### `void` npc.setOverrideState(`Maybe<String>` newState)
+
+> **Available only on xStarbound.**
 
 Overrides the NPC's humanoid animation state. Available states are:
 
