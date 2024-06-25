@@ -1119,6 +1119,7 @@ command("gamemode", handleGameMode)
 
 local function handleClearingChat(_)
     chat.clear()
+    return "^gray;<Cleared chat.>^reset;"
 end
 
 command("clear", handleClearingChat)
