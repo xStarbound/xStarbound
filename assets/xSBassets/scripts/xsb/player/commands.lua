@@ -105,7 +105,7 @@ Run client-side Lua code: ^cyan;/run^reset; (^cyan;"safeScripts"^reset; must be 
     end
 end
 
-command("xsb", xsbGuide)
+command("xclient", xsbGuide)
 
 -- /identity --
 
