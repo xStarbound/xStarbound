@@ -1059,9 +1059,11 @@ PanePtr MainInterface::createEscapeDialog() {
 
   escapeDialogReader.construct(assets->json("/interface.config:escapeDialog"), escapeDialogPtr);
 
-  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(strf("^font=iosevka-bold,set;^#822;xClient^reset,font=iosevka,set; {} (Starbound {} / {})",
-    xSbVersionString, StarVersionString, StarArchitectureString));
-  escapeDialog->fetchChild<LabelWidget>("lblcopyright")->setText("^font=iosevka,set;By ^#800;FezzedOne^reset;, xStarbound and OpenStarbound\ncontributors, and Chucklefish");
+  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(
+    strf("^font=iosevka-extrabold,set;^#822;xClient^reset,#999,font=iosevka-semibold,set; {} (Starbound {} / {})\n{}",
+    xSbVersionString, StarVersionString, StarArchitectureString,
+    "^font=iosevka-semibold,set;By ^#800;FezzedOne^reset,#999;, xStarbound and OpenStarbound\ncontributors, and Chucklefish"));
+  escapeDialog->fetchChild<LabelWidget>("lblcopyright")->setText("");
   return escapeDialog;
 }
 
