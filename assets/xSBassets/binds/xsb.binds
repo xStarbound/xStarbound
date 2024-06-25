@@ -6,7 +6,7 @@
       "voice": { "name": "Voice" },
       "building": { "name": "Building" }
     },
-    "name": "^#f22;xSB-2",
+    "name": "^#f22;xClient",
     "binds": {
       "zoomIn": {
         "default": [{

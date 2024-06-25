@@ -253,7 +253,7 @@ function PathMover:new(options)
           maxNodesToSearch = 70000,
           maxLandingVelocity = -10.0,
           liquidJumpCost = 15,
-          airJumpCost = 15, -- New A* parameter added in xSB-2.
+          airJumpCost = 15, -- New A* parameter added in xStarbound.
           tryFlying = false,
           tryBiggerJumps = false,
           alwaysFly = false,

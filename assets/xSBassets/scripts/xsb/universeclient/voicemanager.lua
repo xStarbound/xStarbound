@@ -135,8 +135,11 @@ local function drawIndicators()
 		if speakerId == hoveredSpeakerId then
 			hoveredSpeaker = speaker
 		else
-			speakerCount = speakerCount + 1
-			speakers[speakerCount] = speaker
+			-- FezzedOne: Added an entity existence check so that old speakers don't show up forever.
+			if (not showAllSpeakers) or world.entityExists(speaker.entityId) then
+				speakerCount = speakerCount + 1
+				speakers[speakerCount] = speaker
+			end
 		end
 	end
 

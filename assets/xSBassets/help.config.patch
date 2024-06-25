@@ -4,7 +4,7 @@
   "debugHelpText" : "Debug commands are: {}",
 
   "basicCommands" : {
-    "xsb": "Usage /xsb <subcommand>. Returns the running version of xClient and provides basic help for xSB-2's client and server commands. Client-side; requires xClient.",
+    "xclient": "Usage /xclient <subcommand>. Returns the running version of xClient and provides basic help for xStarbound's client and server commands. Client-side; requires xClient.",
     "xserver": "Usage /xserver. Returns the running version of xServer or xClient on the server or host.",
     "identity": "Usage /identity [subcommand]. Changes the player's identity. Invoke without a subcommand for help. Client-side; requires xClient. Changing the character's species with this command does not change his or her ship, and may cause some issues with mods.",
     "description": "Usage /description <new description>. Views or changes the player's description; invoke without an argument to view the current description. Descriptions containing spaces (i.e., most of them) must either be quoted or have the spaces escaped. This description shows up when anyone else uses a scanning or inspection tool on the player on xClient, OpenStarbound, starlight and StarExtensions clients, and also shows up with certain modded tools on vanilla clients.",

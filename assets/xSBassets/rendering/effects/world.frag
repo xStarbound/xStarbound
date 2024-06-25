@@ -11,7 +11,7 @@ uniform sampler2D lightMap;
 uniform sampler2D tileLightMap;
 uniform float lightMapMultiplier;
 
-// xSB-2: Custom shader parameters.
+// xStarbound: Custom shader parameters.
 uniform vec3 param1;
 uniform vec3 param2;
 uniform vec3 param3;

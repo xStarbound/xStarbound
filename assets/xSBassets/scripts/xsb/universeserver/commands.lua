@@ -55,14 +55,14 @@ function commands.xserver(cid, _)
     local multiplayer = #universe.clientIds() ~= 1
     if hostType == "ownClient" then
         if multiplayer then
-            return "^#f33;<xSB-2::xClient v" .. xsb.version() .. " as host>^reset;"
+            return "^#f33;<xClient v" .. xsb.version() .. " as host>^reset;"
         else
-            return "^#f33;<xSB-2::xClient v" .. xsb.version() .. ">^reset;"
+            return "^#f33;<xClient v" .. xsb.version() .. ">^reset;"
         end
     elseif hostType == "otherClient" then
-        return "^#f33;<hosted on xSB-2::xClient v" .. xsb.version() .. ">^reset;"
+        return "^#f33;<hosted on xClient v" .. xsb.version() .. ">^reset;"
     else
-        return "^#f33;<xSB-2::xServer v" .. xsb.version() .. ">^reset;"
+        return "^#f33;<xServer v" .. xsb.version() .. ">^reset;"
     end
 end
 

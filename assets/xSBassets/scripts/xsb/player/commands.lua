@@ -54,13 +54,13 @@ end
 command("run", executeLuaSource)
 command("exec", executeLuaSource)
 
--- /xsb --
+-- /xclient --
 
 local function xsbGuide(subCommand)
     if subCommand == "" then
         local guideTextLines = {
-            "^#f33;<xSB-2::xClient v" .. xsb.version() .. ">^reset;",
-            "Run ^cyan;/xsb^reset; with one of the following for command help:",
+            "^#f33;<xClient v" .. xsb.version() .. ">^reset;",
+            "Run ^cyan;/xclient^reset; with one of the following for command help:",
             "^cyan;character^reset;, ^cyan;voice^reset;, ^cyan;server^reset;, ^cyan;misc^reset;",
         }
         local guideText = ""
@@ -72,6 +72,10 @@ local function xsbGuide(subCommand)
         return [===[^#f33;<character commands>^reset;
 Swap character by name: ^cyan;/swap [name or part of name]^reset;
 Swap character by UUID: ^cyan;/swapuuid [UUID]^reset;
+Add loaded character by name: ^cyan;/add [name or part of name]^reset;
+Add loaded character by UUID: ^cyan;/adduuid [UUID]^reset;
+Remove loaded character by name: ^cyan;/remove [name or part of name]^reset;
+Remove loaded character by UUID: ^cyan;/removeuuid [UUID]^reset;
 Edit humanoid identity: ^cyan;/identity^reset; (run for subcommands)
 View character's game mode: ^cyan;/gamemode^reset; (nothing after the command)
 Change character's game mode: ^cyan;/gamemode [casual/survival/hardcore]^reset; (requires ^cyan;/admin^reset;)
@@ -95,6 +99,7 @@ List all players on the server: ^cyan;/who^reset;
 List players on the same world as you: ^cyan;/world^reset;]===]
     elseif subCommand == "misc" then
         return [===[^#f33;<misc commands>^reset;
+Clear the chat box: ^cyan;/clear^reset;
 Export generated directive sprites as PNGs: ^cyan;/render^reset; (run for subcommands)
 Run client-side Lua code: ^cyan;/run^reset; (^cyan;"safeScripts"^reset; must be disabled on client)]===]
     end
@@ -603,7 +608,7 @@ local renderHelp =
 
 ^#f88;<note on special parameters>
 
-^orange;$sprites^reset;: The ^cyan;sprites/^reset; folder inside your configured player/universe storage folder; this folder will be created by xSB-2 upon invoking any ^cyan;/render^reset; subcommand if it doesn't already exist.
+^orange;$sprites^reset;: The ^cyan;sprites/^reset; folder inside your configured player/universe storage folder; this folder will be created by xStarbound upon invoking any ^cyan;/render^reset; subcommand if it doesn't already exist.
 ^orange;<male/female/default>^reset;: By default, the base asset for the character's gender is used for rendering by all subcommands, but a gender may optionally be specified after a subcommand to override this. ^cyan;default^reset; uses the player's gender; this is only necessary if you're specifying the parameter below.
 ^orange;<hair/facialhair/facialmask>^reset;: If specified, uses the hair, facial hair or facial mask as the base for rendering a hat's mask.
 ^orange;<frames/noframes>^reset;: If ^cyan;frames^reset; is optionally specified, the passed directives are rendered by frame; this is necessary for, e.g., most generated clothing drawables except hats. ^cyan;noframes^reset; is the default and normally doesn't need to be explicitly specified, but is there if you end up needing to use a subcommand name as a reference item ID.
@@ -1109,3 +1114,11 @@ local function handleGameMode(rawArgs)
 end
 
 command("gamemode", handleGameMode)
+
+-- /clear --
+
+local function handleClearingChat(_)
+    chat.clear()
+end
+
+command("clear", handleClearingChat)

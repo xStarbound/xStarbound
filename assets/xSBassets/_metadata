@@ -1,11 +1,11 @@
 {
-  "author" : "FezzedOne and xSB-2/OpenSB contributors",
+  "author" : "FezzedOne and xSB/OpenSB contributors",
   "name" : "xSBassets",
   "priority" : -9999,
-  "friendlyName" : "xSB-2 Assets",
+  "friendlyName" : "xStarbound Assets",
   "requires" : ["base"],
   "scripts": {
     "postLoad": ["/titlebar.lua"]
   },
-  "version" : "2.5"
+  "version" : "3.0"
 }
