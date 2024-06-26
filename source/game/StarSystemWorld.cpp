@@ -272,7 +272,31 @@ SystemObjectConfig SystemWorld::systemObjectConfig(String const& name, Uuid cons
 }
 
 Json SystemWorld::systemObjectTypeConfig(String const& name) {
-  return Root::singleton().assets()->json(strf("/system_objects.config:{}", name));
+  try {
+    return Root::singleton().assets()->json(strf("/system_objects.config:{}", name));
+  } catch (AssetException const& e) {
+    Logger::error("Exception caught while loading config for system object type '{}', loading default: {}", name, e.what());
+    return JsonObject{
+      {"warpAction", "OwnShip"},
+      {"threatLevel", 1},
+      {"skyParameters", JsonObject{
+        {"seed", 0},
+        {"horizonClouds", false},
+        {"horizonImages", JsonArray{}},
+      }},
+      {"permanent", true},
+      {"moving", false},
+      {"speed", 0.0f},
+      {"orbitRange", JsonArray{10, 10}},
+      {"lifeTime", JsonArray{0, 0}},
+      {"parameters", JsonObject{
+        {"icon", "/interface/xpress.png?multiply=ff2222"},
+        {"displayName", "<missing object type>"},
+        {"description", "<missing object type>"},
+        {"bookmarkIcon", "default"}
+      }}
+    };
+  }
 }
 
 Maybe<Vec2F> SystemWorld::systemLocationPosition(SystemLocation const& location) const {
