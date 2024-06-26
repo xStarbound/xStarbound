@@ -246,22 +246,22 @@ SystemObjectConfig SystemWorld::systemObjectConfig(String const& name, Uuid cons
 
   SystemObjectConfig object;
   auto config = systemObjectTypeConfig(name);
-  auto orbitRange = jsonToVec2F(config.get("orbitRange"));
-  auto lifeTimeRange = jsonToVec2F(config.get("lifeTime"));
+  auto orbitRange = jsonToVec2F(config.get("orbitRange", JsonArray{0.0f, 0.0f}));
+  auto lifeTimeRange = jsonToVec2F(config.get("lifeTime", JsonArray{0.0f, 0.0f}));
 
   object.name = name;
 
-  object.moving = config.getBool("moving");
-  object.speed = config.getFloat("speed");
+  object.moving = config.getBool("moving", false);
+  object.speed = config.getFloat("speed", 0.0f);
   object.orbitDistance = Random::randf(orbitRange[0], orbitRange[1]);
   object.lifeTime = Random::randf(lifeTimeRange[0], lifeTimeRange[1]);
 
   object.permanent = config.getBool("permanent", false);
 
-  object.warpAction = parseWarpAction(config.getString("warpAction"));
+  object.warpAction = parseWarpAction(config.getString("warpAction", "OwnShip"));
   object.threatLevel = config.optFloat("threatLevel");
-  object.skyParameters = SkyParameters(config.get("skyParameters"));
-  object.parameters = config.getObject("parameters");
+  object.skyParameters = SkyParameters(config.get("skyParameters", Json()));
+  object.parameters = config.getObject("parameters", JsonObject{});
 
   if (config.contains("generatedParameters")) {
     for (auto p : config.getObject("generatedParameters"))
