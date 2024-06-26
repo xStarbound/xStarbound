@@ -868,7 +868,7 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
       if (m_interpolationTracker.interpolationEnabled()) {
         entity->enableInterpolation(m_interpolationTracker.extrapolationHint());
 
-        // Delay appearance of new slaved entities to match with interplation
+        // Delay appearance of new slaved entities to match with interpolation
         // state.
         m_startupHiddenEntities.add(entityCreate->entityId);
         timer(round(m_interpolationTracker.interpolationLeadSteps()), [this, entityId = entityCreate->entityId](World*) {
