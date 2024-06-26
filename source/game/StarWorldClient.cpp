@@ -179,7 +179,13 @@ void WorldClient::reviveMainPlayer() {
             player->revive(m_playerStart);
             if (!player->inWorld()) {
               player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
-              m_entityMap->addEntity(player);
+              try {
+                m_entityMap->addEntity(player);
+              } catch (EntityMapException const& e) {
+                Logger::warn("WorldClient: Player with duplicate UUID {} is already in world; not spawning player!", player->uuid().hex());
+                player->uninit();
+                continue;
+              }
             }
             
             player->moveTo(m_mainPlayer->position() + m_mainPlayer->feetOffset());
@@ -1196,7 +1202,11 @@ void WorldClient::update(float dt) {
           // Keeps things kinda balanced. Permadead players remain dead unless the primary player is an admin.
           player->revive(alwaysRespawn ? m_mainPlayer->position() + player->feetOffset() : m_playerStart);
           player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
-          m_entityMap->addEntity(player);
+          try {
+            m_entityMap->addEntity(player);
+          } catch (EntityMapException const& e) {
+            player->uninit();
+          }
       }
     }
   }
@@ -1865,8 +1875,13 @@ void WorldClient::initWorld(WorldStartPacket const& startPacket) {
             player->revive(startPacket.playerStart);
         if (!player->isDead()) {
           player->init(this, m_entityMap->reserveEntityId(), EntityMode::Master);
-          m_entityMap->addEntity(player);
-          player->moveTo(startPacket.playerStart);
+          try {
+            m_entityMap->addEntity(player);
+            player->moveTo(startPacket.playerStart);
+          } catch (EntityMapException const& e) {
+            Logger::warn("WorldClient: Player with duplicate UUID {} is already in world; not spawning player!", player->uuid().hex());
+            player->uninit();
+          }
         }
       }
     }

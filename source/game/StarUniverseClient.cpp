@@ -1,4 +1,5 @@
 #include "StarUniverseClient.hpp"
+#include "StarEntityMap.hpp"
 #include "StarLexicalCast.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarLogging.hpp"
@@ -800,8 +801,14 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     uuid.hex());
 
   if (!swapPlayerInWorld) {
-    world->addEntity(swapPlayer, entityId);
-    swapPlayer->moveTo(m_mainPlayer->position() + swapPlayer->feetOffset());
+    try {
+      world->addEntity(swapPlayer, entityId);
+      swapPlayer->moveTo(m_mainPlayer->position() + swapPlayer->feetOffset());
+    } catch (EntityMapException const& e) {
+      Logger::warn("Player with UUID {} is already in world; not swapping!");
+      swapPlayer->uninit();
+      return false;
+    }
   }
 
   m_mainPlayer = swapPlayer;
@@ -877,8 +884,14 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     uuid.hex());
 
   if (!playerToLoad->isDead()) { // If loading a dead player, don't revive him immediately. Wait until a warp or primary player death.
-    world->addEntity(playerToLoad);
-    playerToLoad->moveTo(m_mainPlayer->position() + playerToLoad->feetOffset());
+    try {
+      world->addEntity(playerToLoad);
+      playerToLoad->moveTo(m_mainPlayer->position() + playerToLoad->feetOffset());
+    } catch (EntityMapException const& e) {
+      Logger::warn("Player with UUID {} is already in world; not adding!");
+      playerToLoad->uninit();
+      return false;
+    }
   }
 
   CelestialCoordinate coordinate = m_systemWorldClient->location();
