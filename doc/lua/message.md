@@ -247,6 +247,10 @@ Sets the toggled controls for a specified lounging position on a vehicle. Contro
 
 See above for the possible controls.
 
+#### `void` `"aim"` [vehicle] (`uint64_t` loungePosition, `float` xPosition, `float` yPosition)
+
+Sets the aim position a specified lounging position on a vehicle, as for a turret or similar. This message is sent by a player or NPC lounging in and controlling a vehicle.
+
 #### `void` `"startCrafting"` [container object] ()
 
 Tells the container to start crafting. This is used for furnaces and other similar "smelters" or "extractors" that handle their crafting server-side. 
