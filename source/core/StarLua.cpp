@@ -1383,6 +1383,8 @@ LuaTable LuaDetail::insertJsonMetatable(LuaEngine& engine, LuaTable const& table
 
   auto mt = engine.createTable();
   auto nils = engine.createTable();
+  if (auto oldMt = mt.getMetatable()) // Retain Pluto's table methods in the metatable.
+    mt.rawSet("__index", oldMt->rawGet("__index"));
   mt.rawSet("__nils", nils);
   mt.rawSet("__newindex", engine.createFunction(newIndexMetaMethod));
   mt.rawSet("__typehint", type == Json::Type::Array ? 1 : 2);
@@ -1410,6 +1412,8 @@ LuaTable LuaDetail::jsonContainerToTable(LuaEngine& engine, Json const& containe
 
   auto mt = engine.createTable();
   auto nils = engine.createTable();
+  if (auto oldMt = mt.getMetatable()) // Retain Pluto's table methods in the metatable.
+    mt.rawSet("__index", oldMt->rawGet("__index"));
   mt.rawSet("__nils", nils);
   mt.rawSet("__newindex", engine.createFunction(newIndexMetaMethod));
   if (container.isType(Json::Type::Array))
