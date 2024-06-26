@@ -25,6 +25,8 @@ Lastly, world server scripts can receive world messages, but cannot receive enti
 
 #### `void` message.setHandler(`Variant<String, JsonObject>` message, `LuaFunction` handler)
 
+> *On stock Starbound, `message` can only be a `String`, making the extra JSON options not available.*
+
 Once invoked, messages of the specified message type received by this script context will call the specified function. These messages can be networked.
 
 `message` may be either a string or a JSON message specifier, which has the following format:
