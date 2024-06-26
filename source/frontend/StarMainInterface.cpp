@@ -1557,6 +1557,7 @@ void MainInterface::renderCursor() {
   else
     needsToDrawCursor = !m_guiContext->trySetCursor(cursorDrawable, cursorOffset, cursorScale);
   if (needsToDrawCursor) m_guiContext->drawDrawable(cursorDrawable, Vec2F(cursorPos), cursorScale);
+  m_guiContext->applicationController()->setCursorVisible(!needsToDrawCursor);
 
   if (m_cursorTooltip) {
     auto assets = Root::singleton().assets();
