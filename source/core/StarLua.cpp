@@ -346,14 +346,16 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   auto loadBaseLibrary = [](lua_State* state, char const* modname, lua_CFunction openf) {
     luaL_requiref(state, modname, openf, true);
     
-    // set __metatable metamethod to false
-    // otherwise scripts can access and mutate the metatable, allowing passing values
-    // between script contexts, breaking the sandbox
-    lua_newtable(state);
-    lua_pushliteral(state, "__metatable");
-    lua_pushboolean(state, 0);
-    lua_rawset(state, -3);
-    lua_setmetatable(state, -2);
+    /* FezzedOne: Not needed anymore. Actually causes a weird edge case with the DigitalStorage mod. {
+      // set __metatable metamethod to false
+      // otherwise scripts can access and mutate the metatable, allowing passing values
+      // between script contexts, breaking the sandbox
+      lua_newtable(state);
+      lua_pushliteral(state, "__metatable");
+      lua_pushboolean(state, 0);
+      lua_rawset(state, -3);
+      lua_setmetatable(state, -2);
+    } */
   };
 
   loadBaseLibrary(self->m_state, "coroutine", luaopen_coroutine);
