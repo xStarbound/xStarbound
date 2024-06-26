@@ -805,7 +805,7 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
       world->addEntity(swapPlayer, entityId);
       swapPlayer->moveTo(m_mainPlayer->position() + swapPlayer->feetOffset());
     } catch (EntityMapException const& e) {
-      Logger::warn("Player with UUID {} is already in world; not swapping!");
+      Logger::warn("Player with UUID {} is already in world; not swapping!", uuid.hex());
       swapPlayer->uninit();
       return false;
     }
@@ -888,7 +888,7 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
       world->addEntity(playerToLoad);
       playerToLoad->moveTo(m_mainPlayer->position() + playerToLoad->feetOffset());
     } catch (EntityMapException const& e) {
-      Logger::warn("Player with UUID {} is already in world; not adding!");
+      Logger::warn("Player with UUID {} is already in world; not adding!", uuid.hex());
       playerToLoad->uninit();
       return false;
     }
