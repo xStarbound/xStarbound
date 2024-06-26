@@ -1,5 +1,7 @@
 # `assets`
 
+> **Only available on xStarbound and OpenStarbound.**
+
 The `assets` table is available in the following script contexts:
 
 - asset preprocessor scripts
@@ -54,17 +56,23 @@ If only `beginOrEnd` is specified, returns a list of all loaded assets whose ass
 
 #### `List<FilePath>` assets.sources()
 
+> **Only available on xStarbound.**
+
 Returns a list of all asset sources detected by the game, regardless of whether they're loaded. Does not include memory asset sources.
 
 ----
 
 #### `Maybe<List<FilePath>>` assets.patchSources(`RawAssetPath` path)
 
-Returns a list of file paths to all *loaded* patch sources for the specified asset; if the specified asset doesn't exist or isn't loaded, returns `nil`.
+> **Only available on xStarbound.**
+
+Returns a list of file paths to all *loaded* patch sources for the specified asset; if the specified asset doesn't exist or isn't loaded, returns `nil`. The output immediately reflects changes made by `assets.patch`, even if the memory source containing the patch isn't yet finalised.
 
 ----
 
 #### `bool` assets.exists(`RawAssetPath` path)
+
+> **Only available on xStarbound.**
 
 Returns whether any asset exists and is loaded at this path. Any changes made via `assets.add` or `assets.erase` show up immediately for this callback, so it's fine to check if an asset made in the same preprocessor script exists.
 
@@ -104,6 +112,8 @@ Consider using `assets.exists` to avoid unnecessary error handling.
 
 #### `String` assets.rawBytes(`AssetPath` path)
 
+> **Only available on xStarbound.**
+
 Returns the contents of the specified asset file as a raw `ByteArray` (see `bytes.md`). Throws an error if no asset exists at the specified path or the asset isn't yet loaded.
 
 Consider using `assets.exists` to avoid unnecessary error handling.
@@ -112,11 +122,15 @@ Consider using `assets.exists` to avoid unnecessary error handling.
 
 #### `Image` assets.newImage(`Vec2U` size)
 
+> **Only available on xStarbound.**
+
 Creates a new `Image` object (see `image.md` for methods) with the specified size in pixels. All pixels are initially set to `{0, 0, 0, 0}` [`#00000000`]. 0×0-pixel image objects can be created, but they're of no real use.
 
 ----
 
 #### `ByteArray` assets.newBytes()
+
+> **Only available on xStarbound.**
 
 Creates a raw, blank `ByteArray` (see `bytes.md` for methods) of zero length.
 
@@ -130,13 +144,17 @@ The following `assets` callbacks are available only to preprocessor scripts:
 
 #### `List<FilePath>` assets.loadedSources()
 
-Returns a list of all *loaded* asset sources. Includes all memory asset sources loaded prior to the preprocessor scripts for this asset source — i.e., it won't include the memory asset source being worked on by a preprocessor script, since it isn't finalised yet.
+> **Only available on xStarbound.**
+
+Returns a list of all *loaded* asset sources. Includes all memory asset sources loaded *prior* to the preprocessor scripts for this asset source — i.e., it won't include the memory asset source being worked on by a preprocessor script, since it isn't finalised yet.
 
 **Note:** A memory asset source will not be added when finalised if it ends up containing no added files.
 
 ----
 
 #### `Maybe<JsonObject>` assets.sourceMetadata(`FilePath` assetSource)
+
+> **Only available on xStarbound.**
 
 Returns the metadata for any *loaded* asset source whose root directory or `.pak` is at the specified path, `jobject{}` if it lacks a metadata file (called either `.metadata` or `_metadata`), or `nil` if there's no asset source there. An example metadata return value showing all possible keys:
 
@@ -169,6 +187,8 @@ Analogous to the post-preprocessing callback `root.assetSourceMetadata` (see `ro
 
 #### `void` assets.add(`RawAssetPath` path, `Variant<String, Image, ByteArray, Json>` data)
 
+> *May not currently work properly on OpenStarbound.*
+
 Adds the specified asset data to the specified path in a memory asset source based on the working asset source. Note that strings will get converted to UTF-8 text file assets; if the string is valid JSON, it's a valid JSON asset.
 
 In an on-load preprocessor script, the resulting memory asset source will be loaded right after the working asset source in terms of precedence.
@@ -181,7 +201,9 @@ In a post-load script, the resulting memory asset source will be loaded after al
 
 Deletes the asset at the specified path, immediately telling the engine that there's no asset there. This works on both base assets and loaded memory assets. Returns whether the asset is deleted.
 
-If all memory assets previously add in a memory asset source associated with this script's working asset source are deleted such that there are no assets in it by the time the preprocessor script finishes, the memory asset source will not be loaded or added to the list of asset sources because it has nothing in it.
+If all memory assets previously added in a memory asset source associated with this script's working asset source are deleted, such that there are no assets in it by the time the preprocessor script finishes, the memory asset source will not be loaded or added to the list of asset sources because it has nothing in it.
+
+> **Technical note:** If a patch file is added via `assets.patch` and then all files, including the patch file, in the memory asset source are removed so that it is "unloaded", the asset source will technically still be loaded even though it won't be listed by `assets.loadedSources` or `root.assetSources` (see `root.md`). The patch source will still show up when `root.assetPatchSources` (see `root.md`) or `assets.patchSources` is invoked on the patched file though.
 
 ----
 

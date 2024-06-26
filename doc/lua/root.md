@@ -109,17 +109,23 @@ The following `root` callbacks are available:
 
 #### `List<FilePath>` root.assetSources()
 
+> **Only available on xStarbound, OpenStarbound and StarExtensions.**
+
 Returns a list of file paths for all loaded asset sources. If the game loads any assets created by preprocessor scripts, file paths to any asset sources that contained those scripts, with `::onLoad` (for any assets created by on-load scripts) or `::postLoad` (for any assets created by post-load scripts), will be added to this list.
 
 ---
 
 #### `List<AssetPath<>>` root.assetsByExtension(`String` extension)
 
+> **Only available on xStarbound, OpenStarbound and StarExtensions.**
+
 Returns a list of all assets that have a given file extension. Extension matches are case-insensitive; any initial period in the specified extension is optional.
 
 ---
 
 #### `Maybe<FilePath>` root.assetSource(`AssetPath<>` assetPath)
+
+> **Only available on xStarbound, OpenStarbound and StarExtensions.**
 
 Returns the file path to the asset source containing the loaded version of the asset at the specified asset path, or `nil` if no asset exists at that path; passing a path containing a subpath or directives will result in a `nil` return.
 
@@ -129,6 +135,8 @@ If the loaded version of the asset was created by an asset preprocessor script, 
 
 #### `Maybe<List<FilePath>>` root.assetPatchSources(`AssetPath<>` assetPath)
 
+> **Only available on xStarbound, OpenStarbound and StarExtensions.**
+
 Returns a list of file paths to any asset sources that contain JSON or Lua patches to the base asset at the specified asset path, or `nil` if no base asset exists at that path; passing a path containing a subpath or directives will result in a `nil` return.
 
 Patches *directly* executed by preprocessor scripts (not via an invocation of `asset.patch` on a patch file) will not be listed.
@@ -136,6 +144,8 @@ Patches *directly* executed by preprocessor scripts (not via an invocation of `a
 ---
 
 #### `Json` root.assetSourceMetadata(`FilePath` assetSourcePath)
+
+> **Only available on xStarbound.**
 
 Returns the metadata for any asset source whose root directory or `.pak` is at the specified path, `jobject{}` if it lacks a metadata file (called either `.metadata` or `_metadata`), or `nil` if there's no asset source there. An example metadata return value showing all possible keys:
 
@@ -166,6 +176,8 @@ Analogous to the preprocessing callback `assets.sourceMetadata` (see `assets.md`
 
 #### `bool` root.assetExists(`RawAssetPath` assetPath)
 
+> **Only available on xStarbound.**
+
 Returns whether an asset exists at the specified path. Analogous to `assets.exists` (see `assets.md`).
 
 ---
@@ -190,6 +202,8 @@ Consider using `root.assetExists` to avoid unnecessary error handling.
 
 #### `Image` root.image(`AssetPath<Image, Directives>` assetPath)
 
+> **Only available on xStarbound.**
+
 Returns the specified asset file as an `Image` object, if it exists, is a valid image and any frame specifier is valid for it. Otherwise, it logs an uncatchable warning and returns an `Image` object based on `/assetmissing.png` without a frame specifier but with any directives applied. Throws an error if an invalid path is specified.
 
 See `image.md` for information on `Image` object methods. Consider using `root.assetExists` to avoid unnecessary error handling.
@@ -197,6 +211,8 @@ See `image.md` for information on `Image` object methods. Consider using `root.a
 ---
 
 #### `Image` root.newImage(`Vec2U` size)
+
+> **Only available on xStarbound.**
 
 Creates a new `Image` object with the specified size in pixels. All pixels are initially set to `{0, 0, 0, 0}` [`#00000000`]. 0×0-pixel image objects can be created, but they're of no real use.
 
@@ -206,6 +222,8 @@ See `image.md` for information on `Image` object methods.
 
 #### `Maybe<ByteArray>` root.bytes(`AssetPath<>` assetPath)
 
+> **Only available on xStarbound.**
+
 Returns the specified asset as a raw `ByteArray`, if it exists. Throws an error (but doesn't also log an uncatchable error) if the specified asset doesn't exist, or the path isn't valid or contains disallowed components.
 
 See `bytes.md` for information on `ByteArray` object methods.
@@ -214,6 +232,8 @@ See `bytes.md` for information on `ByteArray` object methods.
 
 #### `ByteArray` root.newBytes()
 
+> **Only available on xStarbound.**
+
 Creates a raw, blank `ByteArray` of zero length.
 
 See `bytes.md` for information on `ByteArray` object methods.
@@ -221,6 +241,8 @@ See `bytes.md` for information on `ByteArray` object methods.
 ---
 
 #### `bool` root.saveAssetPathToImage(`AssetPath<Image, Directives>` image, `String` exportFileName, `Maybe<bool>` byFrame)
+
+> **Only available on xStarbound.**
 
 Takes the image asset at the given asset path, crops it to any frame specified, processes any directives and then saves the output to `$storageDir/sprites/$exportFileName.png`, where `$storageDir` is your player/universe storage directory and `$exportFileName` is the `exportFileName` parameter, minus anything before the last directory separator (`/` on Linux; `\` *and* `/` on Windows), if you've left any slashes in there. If `$storageDir/sprites/` does not exist, it will be created for you.
 
@@ -235,6 +257,8 @@ This callback is useful for recovering sprites from directive strings.
 ---
 
 #### `void` root.exportImage(`Image` image, `String` exportFileName)
+
+> **Only available on xStarbound.**
 
 Exports the given `Image` object as a PNG image to `$storage/sprites/$exportFileName.png`, where `$storage` is your player/universe storage directory and `$exportFileName` is the file name you specified, minus anything before the last directory separator (`/` on Linux; `\` *and* `/` on Windows), if you've left any slashes in there. If `$storageDir/sprites/` does not exist, it will be created for you.
 
@@ -541,11 +565,13 @@ Loads a configured behaviour, initialises it and returns the behaviour state as 
 - `context` is the Lua context to pass to behaviour scripts running in the new `BehaviorState` context; in most cases, this should be `_ENV` or perhaps `_G`. Pass `{}` to start with a blank Lua context (but note that behaviour scripts won't be able to access any callbacks!).
 - `config` can be either the `String` name of a behaviour tree, or an entire `JsonObject` behaviour tree configuration to be built.
 - `parameters` may contain overrides for parameters for the behaviour tree.
-- `blackboard` is an optionally specified existing `Blackboard` object to use for running the behaviour.
+- `blackboard` is an optionally specified existing `Blackboard` object (see below) to use for running the behaviour.
 
 ---
 
 #### `Json` root.getConfiguration(`String` key)
+
+> **Only available on xStarbound, OpenStarbound and StarExtensions.**
 
 Gets the value of the specified key in `xclient.config`. Returns `nil` if the key doesn't exist. Will log a warning and return `nil` if any attempt is made to get the value of `"title"`, since that may contain server login info.
 
@@ -553,17 +579,23 @@ Gets the value of the specified key in `xclient.config`. Returns `nil` if the ke
 
 #### `Json` root.getConfigurationPath(`String` path)
 
+> **Only available on xStarbound, OpenStarbound and StarExtensions.**
+
 Gets the value at the specified JSON path in `xclient.config`. Uses the same path syntax used in JSON patches. Returns `nil` if nothing exists at the specified path. Will log a warning and return `nil` if any attempt is made to get the value of `"/title"` or anything inside it, since that may contain server login info.
 
 ---
 
 #### `Json` root.setConfiguration(`String` key)
 
+> **Only available on xStarbound, OpenStarbound and StarExtensions.**
+
 Sets the value of the specified key in `xclient.config` to the specified value. Returns `nil` if the key doesn't exist. Will log a warning and return `nil` if any attempt is made to set the value of `"safeScripts"`, for obvious reasons.
 
 ---
 
 #### `Json` root.setConfigurationPath(`String` path)
+
+> **Only available on xStarbound, OpenStarbound and StarExtensions.**
 
 Sets the value at the specified JSON path in `xclient.config` to the specified value. Uses the same path syntax used in JSON patches. Returns `nil` if nothing exists at the specified path. Will log a warning and return `nil` if any attempt is made to set the value of `"/safeScripts"` or anything inside it, for obvious reasons.
 
