@@ -13,7 +13,7 @@ Compiled builds for Linux and Windows should be available in the usual place on 
   - To replace the old, potentially crash-prone sandbox-breaking code used by certain mods, new Lua callbacks for safely saving and reading variables in global variable tables with the same expected cross-context scopes.
   - **Note:** This causes some mod compatibility issues; see below for affected mods. A patch to fix them will be released soon.
 - Full, up-to-date Lua API documentation. (Aside from a lot of engine calls into Lua scripts.)
-- Control multiple characters on a single client! By FezzedOne. Replaces OpenStarbound's character swapping feature.
+- Control multiple characters on a single client! Is fully multiplayer-compatible. By FezzedOne. Replaces OpenStarbound's character swapping feature.
   - `/add` and `/adduuid`: Loads and adds a player character from your saves.
   - `/swap` and `/swapuuid`: Swaps to a different character. If the character isn't loaded, replaces your current character.
   - `/remove` and `/removeuuid`: Removes a character you're not currently controlling.
