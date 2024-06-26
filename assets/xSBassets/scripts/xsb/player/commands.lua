@@ -1137,16 +1137,17 @@ local invalidHardwareCursorHelp = [===[Invalid syntax. Usage:
 ^cyan;/cursor [on/off]^reset;: Sets whether OS cursor rendering is enabled.
 You may want to disable the OS cursor if your cursor is invisible or you have other cursor rendering issues.]===]
 
-local function handledHardwareCursor(rawArgs)
+local function handleHardwareCursor(rawArgs)
+    sb.logInfo("[xSB::Debug] /cursor command invoked.")
     local args = chat.parseArguments(rawArgs)
     if not args[1] then
         local hardwareCursorEnabled = (not root.getConfiguration("disableHardwareCursor")) and "enabled" or "disabled"
-        return "HardwareCursor is ^orange;" .. hardwareCursorEnabled .. "^reset;"
+        return "OS cursor rendering is ^orange;" .. hardwareCursorEnabled .. "^reset;"
     elseif args[1] == "on" or args[1] == "off" then
         -- FezzedOne: Using Pluto's ternary operator here; ignore any IDE warnings.
         root.setConfiguration("disableHardwareCursor", args[1] == "on" ? false : true)
         local hardwareCursorEnabled = (not root.getConfiguration("disableHardwareCursor")) and "enabled" or "disabled"
-        return "HardwareCursor is now ^orange;" .. hardwareCursorEnabled .. "^reset;"
+        return "OS cursor rendering is now ^orange;" .. hardwareCursorEnabled .. "^reset;"
     elseif args[1] == "help" then
         return hardwareCursorHelp
     else

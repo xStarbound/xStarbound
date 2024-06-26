@@ -444,9 +444,13 @@ void TitleScreen::renderCursor() {
   cursorPos[0] -= cursorOffset[0] * cursorScale;
   cursorPos[1] -= (cursorSize[1] - cursorOffset[1]) * cursorScale;
 
-  bool hardwareCursorDisabled = Root::singleton().configuration()->get("disableHardwareCursor").optBool().value(false);
-  if (hardwareCursorDisabled || !m_guiContext->trySetCursor(cursorDrawable, cursorOffset, cursorScale))
-    m_guiContext->drawDrawable(cursorDrawable, Vec2F(cursorPos), cursorScale);
+  bool needsToDrawCursor = false,
+       hardwareCursorDisabled = Root::singleton().configuration()->get("disableHardwareCursor").optBool().value(false);
+  if (hardwareCursorDisabled)
+    needsToDrawCursor = true;
+  else
+    needsToDrawCursor = !m_guiContext->trySetCursor(cursorDrawable, cursorOffset, cursorScale);
+  if (needsToDrawCursor) m_guiContext->drawDrawable(cursorDrawable, Vec2F(cursorPos), cursorScale);
 }
 
 float TitleScreen::interfaceScale() const {
