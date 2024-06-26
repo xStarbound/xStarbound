@@ -114,7 +114,8 @@ Uuid SystemWorldClient::spawnObject(String typeName, Maybe<Vec2F> position, Mayb
 
 bool SystemWorldClient::handleIncomingPacket(PacketPtr packet) {
   if (auto updatePacket = as<SystemWorldUpdatePacket>(packet)) {
-    auto location = m_ship->systemLocation();
+    // FezzedOne: Removed useless code that causes a segfault when connecting to a server with mismatched mods.
+    // auto location = m_ship->systemLocation();
     for (auto p : updatePacket->shipUpdates) {
       if (m_ship && p.first == m_ship->uuid())
         m_ship->readNetState(p.second, SystemWorldTimestep);
