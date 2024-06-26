@@ -84,7 +84,8 @@ void ErrorScreen::renderCursor() {
 
   cursorPos[0] -= cursorOffset[0] * cursorScale;
   cursorPos[1] -= (cursorSize[1] - cursorOffset[1]) * cursorScale;
-  if (!m_guiContext->trySetCursor(cursorDrawable, cursorOffset, cursorScale))
+  bool hardwareCursorDisabled = Root::singleton().configuration()->get("disableHardwareCursor").optBool().value(false);
+  if (hardwareCursorDisabled || !m_guiContext->trySetCursor(cursorDrawable, cursorOffset, cursorScale))
     m_guiContext->drawDrawable(cursorDrawable, Vec2F(cursorPos), cursorScale);
 }
 

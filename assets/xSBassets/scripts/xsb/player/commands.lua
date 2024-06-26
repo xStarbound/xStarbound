@@ -101,6 +101,7 @@ List players on the same world as you: ^cyan;/world^reset;]===]
         return [===[^#f33;<misc commands>^reset;
 Clear the chat box: ^cyan;/clear^reset;
 Export generated directive sprites as PNGs: ^cyan;/render^reset; (run for subcommands)
+Disable OS cursor rendering: ^cyan;/cursor off^reset; (run ^cyan;/cursor help^reset; for more info)
 Run client-side Lua code: ^cyan;/run^reset; (^cyan;"safeScripts"^reset; must be disabled on client)]===]
     end
 end
@@ -1123,3 +1124,34 @@ local function handleClearingChat(_)
 end
 
 command("clear", handleClearingChat)
+
+-- /cursor --
+
+local hardwareCursorHelp = [===[^#f33;</cursor>^reset;
+^cyan;/cursor^reset;: Returns whether OS cursor rendering is enabled.
+^cyan;/cursor [on/off]^reset;: Sets whether OS cursor rendering is enabled.
+You may want to disable the OS cursor if your cursor is invisible or you have other cursor rendering issues.]===]
+
+local invalidHardwareCursorHelp = [===[Invalid syntax. Usage:
+^cyan;/cursor^reset;: Returns whether OS cursor rendering is enabled.
+^cyan;/cursor [on/off]^reset;: Sets whether OS cursor rendering is enabled.
+You may want to disable the OS cursor if your cursor is invisible or you have other cursor rendering issues.]===]
+
+local function handledHardwareCursor(rawArgs)
+    local args = chat.parseArguments(rawArgs)
+    if not args[1] then
+        local hardwareCursorEnabled = (not root.getConfiguration("disableHardwareCursor")) and "enabled" or "disabled"
+        return "HardwareCursor is ^orange;" .. hardwareCursorEnabled .. "^reset;"
+    elseif args[1] == "on" or args[1] == "off" then
+        -- FezzedOne: Using Pluto's ternary operator here; ignore any IDE warnings.
+        root.setConfiguration("disableHardwareCursor", args[1] == "on" ? false : true)
+        local hardwareCursorEnabled = (not root.getConfiguration("disableHardwareCursor")) and "enabled" or "disabled"
+        return "HardwareCursor is now ^orange;" .. hardwareCursorEnabled .. "^reset;"
+    elseif args[1] == "help" then
+        return hardwareCursorHelp
+    else
+        return invalidHardwareCursorHelp
+    end
+end
+
+command("cursor", handleHardwareCursor)

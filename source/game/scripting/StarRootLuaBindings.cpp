@@ -230,6 +230,7 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
     });
 
   callbacks.registerCallback("getConfiguration", [root](String const& key) -> Json {
+      if (key == "") return Json();
       if (key == "title") {
         Logger::warn("[xSB] root.getConfiguration: Attempted to get the \"title\" key, which isn't permitted.");
         return Json();
@@ -239,6 +240,7 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
     });
 
   callbacks.registerCallback("getConfigurationPath", [root](String const& path) -> Json {
+      if (path == "") return Json();
       if (path.beginsWith("/title")) {
         Logger::warn("[xSB] root.getConfigurationPath: Attempted to get something in the \"title\" key, which isn't permitted.");
         return Json();
@@ -248,6 +250,7 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
     });
 
   callbacks.registerCallback("setConfiguration", [root](String const& key, Json const& value) -> Json {
+      if (key == "") return Json();
       if (key == "safeScripts") {
         Logger::warn("[xSB] root.setConfiguration: Attempted to set the \"safeScripts\" key, which isn't permitted.");
         return Json();
@@ -258,6 +261,7 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
     });
 
   callbacks.registerCallback("setConfigurationPath", [root](String const& path, Json const& value) -> Json {
+      if (path == "") return Json();
       if (path.splitAny("[].").get(0) == "safeScripts") {
         Logger::warn("[xSB] root.setConfigurationPath: Attempted to set something in the \"safeScripts\" key, which isn't permitted.");
         return Json();

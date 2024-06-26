@@ -589,7 +589,7 @@ Gets the value at the specified JSON path in `xclient.config`. Uses the same pat
 
 > **Only available on xStarbound, OpenStarbound and StarExtensions.**
 
-Sets the value of the specified key in `xclient.config` to the specified value. Returns `nil` if the key doesn't exist. Will log a warning and return `nil` if any attempt is made to set the value of `"safeScripts"`, for obvious reasons.
+Sets the value of the specified key in `xclient.config` to the specified value, returning the newly set value if successful. Returns `nil` if the key doesn't exist. Will log a warning and return `nil` if any attempt is made to set the value of `"safeScripts"`, for obvious reasons.
 
 ---
 
@@ -597,7 +597,7 @@ Sets the value of the specified key in `xclient.config` to the specified value. 
 
 > **Only available on xStarbound, OpenStarbound and StarExtensions.**
 
-Sets the value at the specified JSON path in `xclient.config` to the specified value. Uses the same path syntax used in JSON patches. Returns `nil` if nothing exists at the specified path. Will log a warning and return `nil` if any attempt is made to set the value of `"/safeScripts"` or anything inside it, for obvious reasons.
+Sets the value at the specified JSON path in `xclient.config` to the specified value, returning the newly set value if successful. Uses the same path syntax used in JSON patches. Returns `nil` if nothing exists at the specified path. Will log a warning and return `nil` if any attempt is made to set the value of `"/safeScripts"` or anything inside it, for obvious reasons.
 
 ---
 
