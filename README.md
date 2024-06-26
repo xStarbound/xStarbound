@@ -18,8 +18,8 @@ Compiled builds for Linux and Windows should be available in the usual place on 
   - `/swap` and `/swapuuid`: Swaps to a different character. If the character isn't loaded, replaces your current character.
   - `/remove` and `/removeuuid`: Removes a character you're not currently controlling.
   - There are some game balance restrictions — dead characters won't respawn until you beam to your ship. The restrictions can be disabled via the Lua API on a per-character basis.
-- xStarbound automatically repacks shipworld and celestial world files when loading them, saving you quite a bit of disk space and, for xClient, reducing server lag caused by shipworlds.
-  - Shipworld repacking is client-side; celestial world repacking is server-side. By FezzedOne.
+- xStarbound automatically repacks shipworld and celestial world files when loading them, saving you quite a bit of disk space and, for xClient, reducing server lag caused by shipworlds. By FezzedOne.
+  - Shipworld repacking is client-side; celestial world repacking is server-side.
   - Disable this automatic repacking by adding `"disableRepacking": true` to `xclient.config` or `xserver.config`.
 - Additional Lua callbacks to make player characters fully scriptable, just like NPCs!
 - The UI scale can now be adjusted in the graphics settings dialogue, complete with configurable keybinds and support for fractional scales (FezzedOne). There are also keybinds for changing the in-game camera zoom (Kae). Both the UI scale and zoom level are scriptable (FezzedOne). UI scaling mods are no longer needed (and in fact no longer do anything) in xStarbound!
