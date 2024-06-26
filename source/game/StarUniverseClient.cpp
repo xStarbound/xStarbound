@@ -800,6 +800,7 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     swapPlayer->name(),
     uuid.hex());
 
+  bool dupeError = false;
   if (!swapPlayerInWorld) {
     try {
       world->addEntity(swapPlayer, entityId);
@@ -807,29 +808,30 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     } catch (EntityMapException const& e) {
       Logger::warn("Player with UUID {} is already in world; not swapping!", uuid.hex());
       swapPlayer->uninit();
-      return false;
+      dupeError = true;
     }
   }
 
-  m_mainPlayer = swapPlayer;
-  m_mainPlayerUuid = uuid;
-  m_worldClient->setMainPlayer(m_mainPlayer);
-  m_teamClient->setMainPlayer(m_mainPlayer);
-  m_systemWorldClient->setUniverseMap(m_mainPlayer->universeMap());
+  if (!dupeError) {
+    m_mainPlayer = swapPlayer;
+    m_mainPlayerUuid = uuid;
+    m_worldClient->setMainPlayer(m_mainPlayer);
+    m_teamClient->setMainPlayer(m_mainPlayer);
+    m_systemWorldClient->setUniverseMap(m_mainPlayer->universeMap());
 
-  if (!swapPlayerInWorld) {
-    CelestialCoordinate coordinate = m_systemWorldClient->location();
-    m_mainPlayer->universeMap()->addMappedCoordinate(coordinate);
-    m_mainPlayer->universeMap()->filterMappedObjects(coordinate, m_systemWorldClient->objectKeys());
-    m_loadedPlayers[uuid].loaded = true;
+    if (!swapPlayerInWorld) {
+      CelestialCoordinate coordinate = m_systemWorldClient->location();
+      m_mainPlayer->universeMap()->addMappedCoordinate(coordinate);
+      m_mainPlayer->universeMap()->filterMappedObjects(coordinate, m_systemWorldClient->objectKeys());
+      m_loadedPlayers[uuid].loaded = true;
 
-    world->removeEntity(oldEntityId, false);
-    m_loadedPlayers[oldUuid].loaded = false;
+      world->removeEntity(oldEntityId, false);
+      m_loadedPlayers[oldUuid].loaded = false;
+    }
   }
 
   if (indicator && indicator->inWorld())
     world->removeEntity(indicator->entityId(), false);
-
 
   if (m_playerReloadCallback) {
     if (resetInterfaces && safeScriptsEnabled) {
@@ -840,7 +842,7 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     m_playerReloadCallback(resetInterfaces);
   }
 
-  return true;
+  return !dupeError;
 }
 
 bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool showIndicator) {
@@ -883,6 +885,7 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     playerToLoad->name(),
     uuid.hex());
 
+  bool dupeError = false;
   if (!playerToLoad->isDead()) { // If loading a dead player, don't revive him immediately. Wait until a warp or primary player death.
     try {
       world->addEntity(playerToLoad);
@@ -890,14 +893,16 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     } catch (EntityMapException const& e) {
       Logger::warn("Player with UUID {} is already in world; not adding!", uuid.hex());
       playerToLoad->uninit();
-      return false;
+      dupeError = true;
     }
   }
 
-  CelestialCoordinate coordinate = m_systemWorldClient->location();
-  playerToLoad->universeMap()->addMappedCoordinate(coordinate);
-  playerToLoad->universeMap()->filterMappedObjects(coordinate, m_systemWorldClient->objectKeys());
-  m_loadedPlayers[uuid].loaded = true;
+  if (!dupeError) {
+    CelestialCoordinate coordinate = m_systemWorldClient->location();
+    playerToLoad->universeMap()->addMappedCoordinate(coordinate);
+    playerToLoad->universeMap()->filterMappedObjects(coordinate, m_systemWorldClient->objectKeys());
+    m_loadedPlayers[uuid].loaded = true;
+  }
 
   if (indicator && indicator->inWorld())
     world->removeEntity(indicator->entityId(), false);
@@ -905,7 +910,7 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
   if (m_playerReloadCallback)
     m_playerReloadCallback(resetInterfaces);
 
-  return true;
+  return !dupeError;
 }
 
 bool UniverseClient::unloadPlayer(Uuid const& uuid, bool resetInterfaces, bool showIndicator) {
