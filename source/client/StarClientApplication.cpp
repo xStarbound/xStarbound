@@ -731,23 +731,23 @@ void ClientApplication::setError(String const& error, std::exception const& e) {
 void ClientApplication::updateMods(float dt) {
   m_cinematicOverlay->update(dt);
   auto ugcService = appController()->userGeneratedContentService();
-  if (ugcService) {
+  if (ugcService && !m_skipWorkshop) {
     if (ugcService->triggerContentDownload()) {
       StringList modDirectories;
       for (auto contentId : ugcService->subscribedContentIds()) {
         if (auto contentDirectory = ugcService->contentDownloadDirectory(contentId)) {
-          Logger::info("Loading mods from user generated content with id '{}' from directory '{}'", contentId, *contentDirectory);
+          Logger::info("Loading Steam Workshop item with ID '{}' from directory '{}'", contentId, *contentDirectory);
           modDirectories.append(*contentDirectory);
         } else {
-          Logger::warn("User generated content with id '{}' is not available", contentId);
+          Logger::warn("Steam Workshop item with ID '{}' is not available", contentId);
         }
       }
 
       if (modDirectories.empty()) {
-        Logger::info("No subscribed user generated content");
+        Logger::info("No subscribed Steam Workshop content");
         changeState(MainAppState::Splash);
       } else {
-        Logger::info("Reloading to include all user generated content");
+        Logger::info("Reloading to include all Steam Workshop content");
         Root::singleton().reloadWithMods(modDirectories);
 
         auto configuration = m_root->configuration();
@@ -763,6 +763,8 @@ void ClientApplication::updateMods(float dt) {
       }
     }
   } else {
+    if (ugcService)
+      Logger::info("Skipping Steam workshop content");
     changeState(MainAppState::Splash);
   }
 }

@@ -109,6 +109,7 @@ RootLoader::RootLoader(Defaults defaults) {
   addSwitch("runtimeconfig",
       strf("Sets the path to the runtime configuration storage file relative to root directory, defaults to {}", /* FezzedOne: Fixed spelling error. */
         defaults.runtimeConfigFile ? *defaults.runtimeConfigFile : "no storage file"));
+  addSwitch("noworkshop", strf("Do not load Steam Workshop content"));
   m_defaults = move(defaults);
 }
 

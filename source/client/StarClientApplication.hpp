@@ -117,6 +117,8 @@ private:
 
   Maybe<PendingMultiPlayerConnection> m_pendingMultiPlayerConnection;
   Maybe<HostAddressWithPort> m_currentRemoteJoin;
+
+  bool m_skipWorkshop = false;
 };
 
 }
