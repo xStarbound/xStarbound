@@ -18,7 +18,7 @@ Sets whether the tech should be visible.
 
 #### `void` tech.setParentState(`String` state)
 
-> *The `"SwimIdle"` state is available only on xStarbound.
+> *The `"SwimIdle"` state is available only on xStarbound and OpenStarbound.
 
 Set the animation state of the player.
 
