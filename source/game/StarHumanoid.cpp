@@ -266,9 +266,9 @@ Humanoid::Humanoid(Json const& config) {
   m_legsArmorOffset = jsonToVec2F(config.get("legsArmorOffset")) / TilePixels;
   m_backArmorOffset = jsonToVec2F(config.get("backArmorOffset")) / TilePixels;
   m_headRotationMultiplier = config.getFloat("headRotationMultiplier", 0.375f);
-  Json maximumHeadRotationOffset = config.get("maximumHeadRotationOffset", JsonArray{0.0f, -1.0f});
+  Json maximumHeadRotationOffset = config.get("maximumHeadRotationOffset", JsonArray{-2.0f, -1.0f});
   m_maximumHeadRotationOffset = jsonToVec2F(maximumHeadRotationOffset) / TilePixels;
-  Json headCenterPosition = config.get("headRotationCenter", JsonArray{0.0f, 0.0f});
+  Json headCenterPosition = config.get("headRotationCenter", JsonArray{0.0f, 2.0f});
   m_headCenterPosition = jsonToVec2F(headCenterPosition) / TilePixels;
 
   m_bodyHidden = config.getBool("bodyHidden", false);
@@ -636,8 +636,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
     headPosition += m_headLayOffset;
 
   Vec2F headRotationOffset = Vec2F(0.0f, 0.0f);
-  if (aimAngleToUse)
-    headRotationOffset = Vec2F::filled(abs(*aimAngleToUse) / (0.5f * Constants::pi)).piecewiseMultiply(m_maximumHeadRotationOffset);
+  if (aimAngleToUse) {
+    headRotationOffset = Vec2F::filled(*aimAngleToUse / (0.5f * Constants::pi)).piecewiseMultiply(m_maximumHeadRotationOffset);
+    headRotationOffset[1] = std::abs(headRotationOffset[1]) * (m_maximumHeadRotationOffset[1] < 0.0f ? -1.0f : 1.0f);
+  }
 
   if (!m_headFrameset.empty() && !m_bodyHidden) {
     String image = strf("{}:normal", m_headFrameset);
