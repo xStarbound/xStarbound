@@ -626,8 +626,11 @@ void WorldServer::setExpiryTime(float expiryTime) {
 
 void WorldServer::update(float dt) {
   ++m_currentStep;
+
+  constexpr double conversionFactor = 60.0;
   for (auto const& pair : m_clientInfo)
-    pair.second->interpolationTracker.update(m_currentStep);
+    // FezzedOne: The interpolation tracker is updated in seconds, not steps. So to fix that, convert seconds to (standardised) steps.
+    pair.second->interpolationTracker.update(Time::monotonicTime() * conversionFactor);
 
   List<WorldAction> triggeredActions;
   eraseWhere(m_timers, [&triggeredActions](pair<int, WorldAction>& timer) {

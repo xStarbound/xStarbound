@@ -1242,8 +1242,9 @@ void WorldClient::update(float dt) {
   m_mainPlayer->effectsAnimator()->setGlobalTag("\0SE_VOICE_SIGNING_KEY"s, publicKeyString);
 
   ++m_currentStep;
-  //m_interpolationTracker.update(m_currentStep);
-  m_interpolationTracker.update(Time::monotonicTime());
+  // FezzedOne: The interpolation tracker is updated in seconds, not steps. So to fix that, convert seconds to (standardised) steps.
+  constexpr double conversionFactor = 60.0;
+  m_interpolationTracker.update(Time::monotonicTime() * conversionFactor);
 
   List<WorldAction> triggeredActions;
   eraseWhere(m_timers, [&triggeredActions](pair<int, WorldAction>& timer) {
