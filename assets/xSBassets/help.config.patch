@@ -25,7 +25,8 @@
     "add": "Usage /add [name or part of name]. Adds the first character whose name contains the specified argument, if any such character exists, to the loaded secondary characters, then immediately spawns the character at the primary character's position. Spaces and the like must be appropriately escaped or quoted.",
     "adduuid": "Usage /adduuid [UUID]. If the character exists, adds the character with the specified UUID to the loaded secondary characters, then immediately spawns the character, at the primary character's position. The UUID specified must be the character's real UUID, not the vanity UUID.",
     "remove": "Usage /remove [name or part of name]. Removes the first character whose name contains the specified argument, if any such character exists, from the loaded secondary characters, then immediately despawns and saves the character. Spaces and the like must be appropriately escaped or quoted.",
-    "removeuuid": "Usage /removeuuid [UUID]. Removes the character with the specified UUID from the loaded secondary characters, then immediately despawns and saves the character, if the character exists. The UUID specified must be the character's real UUID, not the vanity UUID."
+    "removeuuid": "Usage /removeuuid [UUID]. Removes the character with the specified UUID from the loaded secondary characters, then immediately despawns and saves the character, if the character exists. The UUID specified must be the character's real UUID, not the vanity UUID.",
+    "timescale": "Usage /timescale [factor]. Changes xClient's timescale, which determines the rate at which everything happens in game (only affecting client-side stuff in multiplayer). 1.0 is the default. Higher is faster, lower is slower."
   },
 
   "adminCommands" : {
