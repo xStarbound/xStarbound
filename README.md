@@ -75,7 +75,7 @@ Read this to see if xStarbound is compatible with your mods.
 - [Arcana](https://steamcommunity.com/workshop/filedetails/?id=2359135864).
 - [Avali (Triage) Race Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=729558042).
 - [Elithian Races Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=850109963).
-- [Frackin' Universe](https://steamcommunity.com/sharedfiles/filedetails/?id=729480149) ([GitHub](https://github.com/sayterdarkwynd/FrackinUniverse)).
+- [Frackin' Universe](https://steamcommunity.com/sharedfiles/filedetails/?id=729480149) ([GitHub](https://github.com/sayterdarkwynd/FrackinUniverse)). *Requires Frackin' Patch (can be found on the download page) to fix a minor compatibility issue.*
 - [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — the keybind is not supported by xStarbound solely due to an explicit StarExtensions check.
 - [Maple32](https://steamcommunity.com/sharedfiles/filedetails/?id=2568667104&searchtext=maple32).
 - [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034).
@@ -97,7 +97,6 @@ Read this to see if xStarbound is compatible with your mods.
 - [Project Knightfall](https://steamcommunity.com/sharedfiles/filedetails/?id=2010883172) ([GitHub](https://github.com/Nitrosteel/Project-Knightfall)) — some added UIs have minor issues with xStarbound's Lua sandbox.
 - [Русификатор Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2980671752) — technically fully compatible, but the mod it patches isn't compatible anyway.
 - [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — not compatible with xStarbound's Lua sandbox. If you use this mod, you need to disable `"safeScripts"`.
-- [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — has issues with xStarbound's Lua sandbox. You may need to disable `"safeScripts"` if you're experiencing any problems with this mod's UIs or items. Ignore any libellous startup messages.
 - [Starloader](https://steamcommunity.com/sharedfiles/filedetails/?id=2936533996) ([GitHub](https://github.com/Starbound-Neon/StarLoader)) — fully compatible as long as `"safeScripts"` is disabled in your `xclient.config` (but be careful with that!).
 - [Unitilities | Lua Modding Library](https://steamcommunity.com/sharedfiles/filedetails/?id=2826961297) — the Hasibound-specific functionality is not supported by xStarbound.
 - Other UI scaling mods — these won't do anything and are redundant. Mods that do other stuff besides scaling the UI should work.
@@ -114,7 +113,8 @@ Read this to see if xStarbound is compatible with your mods.
 - [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) and its [two](https://steamcommunity.com/sharedfiles/filedetails/?id=2954344118) [counterparts](https://steamcommunity.com/sharedfiles/filedetails/?id=2954354494) — their PNG compression does not play well with xClient's hardware cursor, making it invisible.
 - [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — this mod explicitly checks for StarExtensions, so the keybinds do not work, although some of the added hidden chat commands do.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
-- [StarCustomChat](https://github.com/KrashV/StarCustomChat) — not compatible with xStarbound's callbacks and has serious issues with xStarbound's Lua sandbox anyway.
+- [Stardust Core / Stardust Suite / MetaGUI](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — mod UIs are buggy and has compatibility issues with xStarbound's Pluto interpreter and sandboxing. Disabling `"safeScripts"` on xClient should help with compatibility. This extends to any mod that uses MetaGUI for its UIs.
+- [StarCustomChat](https://github.com/KrashV/StarCustomChat) — not fully compatible with xStarbound's callbacks and has serious issues with xStarbound's Lua sandbox anyway.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load on xClient and may cause crashes! However, *xServer* fully supports the server-side part of SE's «overground» tile placement feature.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xStarbound has differently named callbacks) and is redundant anyway because xStarbound already fully supports this feature.
