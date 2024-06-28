@@ -137,7 +137,12 @@ Json const AdditionalDefaultConfiguration = Json::parseJson(R"JSON(
 
 void ClientApplication::startup(StringList const& cmdLineArgs) {
   RootLoader rootLoader({AdditionalAssetsSettings, AdditionalDefaultConfiguration, String("xclient.log"), LogLevel::Info, false, String("xclient.config")});
-  m_root = rootLoader.initOrDie(cmdLineArgs).first;
+  auto rootAndOptions = rootLoader.initOrDie(cmdLineArgs);
+  m_root = std::move(rootAndOptions.first);
+  auto& options = rootAndOptions.second;
+  // FezzedOne: Skip loading Steam Workshop mods if `-noworkshop` is passed.
+  if (options.switches.contains("noworkshop"))
+    m_skipWorkshop = true;
 
   Logger::info("xClient [Starbound v{}] ({}) // Source ID: {} // Protocol: {}", xSbVersionString, StarVersionString, StarArchitectureString, StarSourceIdentifierString, StarProtocolVersion);
 }
