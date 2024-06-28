@@ -1,0 +1,8 @@
+{
+    "displayWeathers": {
+        "clear": {
+            "displayName": "Clear",
+            "icon": "/interface/statuses/glow.png?hueshift=-30"
+        }
+    }
+}

@@ -5,7 +5,7 @@
   "friendlyName" : "xStarbound Assets",
   "requires" : ["base"],
   "scripts": {
-    "postLoad": ["/titlebar.lua"]
+    "postLoad": ["/titlebar.lua", "/morePlanetInfo-compat.lua"]
   },
   "version" : "3.0"
 }
