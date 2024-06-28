@@ -751,7 +751,7 @@ int LuaEngine::coresumeWithTraceback(lua_State* state) {
   lua_xmove(state, co, args);
   int results;
   int status = lua_resume(co, state, args, &results);
-  lua_pop(co, results);
+  // lua_pop(co, results);
   if (status == LUA_OK || status == LUA_YIELD) {
     // int res = lua_gettop(co);
     lua_checkstack(state, results + 1);
