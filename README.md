@@ -75,7 +75,7 @@ Read this to see if xStarbound is compatible with your mods.
 - [Arcana](https://steamcommunity.com/workshop/filedetails/?id=2359135864).
 - [Avali (Triage) Race Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=729558042).
 - [Elithian Races Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=850109963).
-- [Frackin' Universe](https://steamcommunity.com/sharedfiles/filedetails/?id=729480149) ([GitHub](https://github.com/sayterdarkwynd/FrackinUniverse)). *Requires Frackin' Patch (can be found on the download page) to fix a minor compatibility issue.*
+- [Frackin' Universe](https://steamcommunity.com/sharedfiles/filedetails/?id=729480149) ([GitHub](https://github.com/sayterdarkwynd/FrackinUniverse)).
 - [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — the keybind is not supported by xStarbound solely due to an explicit StarExtensions check.
 - [Maple32](https://steamcommunity.com/sharedfiles/filedetails/?id=2568667104&searchtext=maple32).
 - [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034).
