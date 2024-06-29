@@ -834,7 +834,7 @@
 //#define PLUTO_FORCE_JUMPTABLE
 
 // If defined, Pluto won't imbue tables with a metatable by default.
-//#define PLUTO_NO_DEFAULT_TABLE_METATABLE
+#define PLUTO_NO_DEFAULT_TABLE_METATABLE
 
 /*
 ** {====================================================================
