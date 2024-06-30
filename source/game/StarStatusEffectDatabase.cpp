@@ -27,17 +27,17 @@ UniqueStatusEffectConfig StatusEffectDatabase::uniqueEffectConfig(UniqueStatusEf
   if (auto uniqueEffect = m_uniqueEffects.maybe(effect))
     return uniqueEffect.take();
   Logger::warn("StatusEffectDatabase: No such unique status effect '{}'", effect);
-  return UniqueStatusEffectConfig{
-    .name = "",
-    .blockingStat = {},
-    .effectConfig = JsonObject(),
-    .defaultDuration = 0.0f,
-    .scripts = {},
-    .scriptDelta = 1,
-    .animationConfig = {},
-    .label = "<invalid status effect>",
-    .description = "<invalid status effect>",
-    .icon = String("/interface/inventory/techdisabled.png"),
+  return UniqueStatusEffectConfig{ // FezzedOne: Needed to change this for MSVC compatibility. Ugh.
+    "",
+    {},
+    JsonObject(),
+    0.0f,
+    {},
+    1,
+    {},
+    "<invalid status effect>",
+    "<invalid status effect>",
+    String("/interface/inventory/techdisabled.png"),
   };
   // throw StatusEffectDatabaseException::format("No such unique stat effect '{}'", effect);
 }

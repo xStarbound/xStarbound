@@ -35,20 +35,20 @@ TechConfig TechDatabase::tech(String const& techName) const {
   else {
     // FezzedOne: Get rid of «missing tech» crashes by substituting a «dummy» tech.
     // Logger::error("TechDatabase: No such tech '{}'", techName); /* Too spammy. */
-    return TechConfig{
-      .name = techName,
-      .path = "",
-      .parameters = Json(),
+    return TechConfig{ // FezzedOne: Needed to change this for MSVC compatibility. Ugh.
+      techName,
+      "",
+      Json(),
 
-      .type = TechType::Head,
+      TechType::Head,
 
-      .scripts = StringList{},
-      .animationConfig = Maybe<String>{},
+      StringList{},
+      Maybe<String>{},
 
-      .description = "^red;<missing tech>^reset;",
-      .shortDescription = "^red;<missing tech>^reset;",
-      .rarity = Rarity::Colour5,
-      .icon = "/interface/inventory/techdisabled.png"
+      "^red;<missing tech>^reset;",
+      "^red;<missing tech>^reset;",
+      Rarity::Colour5,
+      "/interface/inventory/techdisabled.png"
     };
   }
 }
