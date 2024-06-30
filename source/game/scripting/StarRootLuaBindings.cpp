@@ -488,7 +488,7 @@ Json LuaBindings::RootCallbacks::itemConfig(Root* root, Json const& descJson, Ma
 }
 
 Json LuaBindings::RootCallbacks::createItem(Root* root, Json const& descriptor, Maybe<float> const& level, Maybe<uint64_t> const& seed) {
-  // FezzedOne: Fixed lack of a `nullptr` check here.
+  // FezzedOne: Fixed null pointer dereference here.
   if (auto item = root->itemDatabase()->item(ItemDescriptor(descriptor), level, seed))
     return item->descriptor().toJson();
   else
