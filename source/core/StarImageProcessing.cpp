@@ -639,7 +639,11 @@ List<ImageOperation> parseImageOperations(StringView params) {
 }
 
 String printImageOperations(List<ImageOperation> const& list) {
-  return StringList(list.transformed(imageOperationToString)).join("?");
+  String opsToPrint = StringList(list.transformed(imageOperationToString)).join("?");
+  if (opsToPrint.empty()) // FezzedOne: Make sure image operations always get a `?` prefix.
+    return "";
+  else
+    return "?" + opsToPrint;
 }
 
 void addImageOperationReferences(ImageOperation const& operation, StringList& out) {
