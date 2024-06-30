@@ -424,6 +424,8 @@ Returns true if the given treasure pool exists and false otherwise. Can be used 
 
 Generates an instance of the specified treasure pool, level and seed and returns the contents as a list of item descriptors.
 
+**Note:** xStarbound v3.0.1 fixes a stock Starbound bug where any `null` item descriptors (i.e., empty treasure slots) returned by this callback immediately cause a segfault; instead, on xStarbound, explicit `nil`s are returned for any such items.
+
 ---
 
 #### `String` root.materialMiningSound(`String` materialName, [`String` modName])

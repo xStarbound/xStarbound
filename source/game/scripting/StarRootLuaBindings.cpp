@@ -549,7 +549,13 @@ bool LuaBindings::RootCallbacks::isTreasurePool(Root* root, String const& pool) 
 JsonArray LuaBindings::RootCallbacks::createTreasure(
     Root* root, String const& pool, float level, Maybe<uint64_t> seed) {
   auto treasure = root->treasureDatabase()->createTreasure(pool, level, seed.value(Random::randu64()));
-  return treasure.transformed([](ItemPtr const& item) { return item->descriptor().toJson(); });
+  return treasure.transformed([](ItemPtr const& item) {
+    // FezzedOne: Fixed lack of a `nullptr` check here.
+    if (item)
+      return item->descriptor().toJson();
+    else
+      return Json();
+  });
 }
 
 Maybe<String> LuaBindings::RootCallbacks::materialMiningSound(
