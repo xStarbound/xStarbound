@@ -173,9 +173,9 @@ NAMESPACE_SOUP
 			str.append(": ");
 #if defined(_MSC_VER) // FezzedOne: Check if the retarded MS STL is being used.
 			if (current_lookup_is_ipv6)
-				str.append<std::string>(ObfusString<5>("AAAA"))
+				str.append<std::string>(ObfusString<5>("AAAA"));
 			else
-				str.append<std::string>(ObfusString<2>("A"))
+				str.append<std::string>(ObfusString<2>("A"));
 #else
 			str.append(current_lookup_is_ipv6 ? ObfusString("AAAA") : ObfusString("A"));
 #endif
