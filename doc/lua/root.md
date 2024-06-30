@@ -368,7 +368,9 @@ Generates an item from the specified descriptor, level and seed and returns a JS
 
 #### `ItemDescriptor` root.createItem(`ItemDescriptor` descriptor, [`float` level], [`unsigned` seed])
 
-Generates an item from the specified descriptor, level and seed and returns a new item descriptor for the resulting item.
+Generates an item from the specified descriptor, level and seed and returns a new item descriptor for the resulting item, or `nil` if a null item descriptor is specified. A null item descriptor is one which is `nil` or whose name is `""`.
+
+> **Note:** xStarbound v3.0.1 fixes a stock Starbound bug where any `null` item descriptor (i.e., empty treasure slots) returned by this callback immediately causes a segfault; instead, on xStarbound, an explicit `nil` is returned for any such item.
 
 ---
 
@@ -424,7 +426,7 @@ Returns true if the given treasure pool exists and false otherwise. Can be used 
 
 Generates an instance of the specified treasure pool, level and seed and returns the contents as a list of item descriptors.
 
-**Note:** xStarbound v3.0.1 fixes a stock Starbound bug where any `null` item descriptors (i.e., empty treasure slots) returned by this callback immediately cause a segfault; instead, on xStarbound, explicit `nil`s are returned for any such items.
+> **Note:** xStarbound v3.0.1 fixes a stock Starbound bug where any `null` item descriptors (i.e., empty treasure slots) returned by this callback immediately cause a segfault; instead, on xStarbound, explicit `nil`s are returned for any such items.
 
 ---
 

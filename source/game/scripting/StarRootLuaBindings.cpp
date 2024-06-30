@@ -173,7 +173,10 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
 
   callbacks.registerCallback("createBiome", [root](String const& biomeName, uint64_t seed, float verticalMidPoint, float threatLevel) {
       try {
-        return root->biomeDatabase()->createBiome(biomeName, seed, verticalMidPoint, threatLevel)->toJson();
+        if (auto biome = root->biomeDatabase()->createBiome(biomeName, seed, verticalMidPoint, threatLevel))
+          return biome->toJson();
+        else
+          return Json();
       } catch (BiomeException const&) {
         return Json();
       }
@@ -485,8 +488,11 @@ Json LuaBindings::RootCallbacks::itemConfig(Root* root, Json const& descJson, Ma
 }
 
 Json LuaBindings::RootCallbacks::createItem(Root* root, Json const& descriptor, Maybe<float> const& level, Maybe<uint64_t> const& seed) {
-  auto item = root->itemDatabase()->item(ItemDescriptor(descriptor), level, seed);
-  return item->descriptor().toJson();
+  // FezzedOne: Fixed lack of a `nullptr` check here.
+  if (auto item = root->itemDatabase()->item(ItemDescriptor(descriptor), level, seed))
+    return item->descriptor().toJson();
+  else
+    return Json();
 }
 
 Json LuaBindings::RootCallbacks::tenantConfig(Root* root, String const& tenantName) {
@@ -550,7 +556,7 @@ JsonArray LuaBindings::RootCallbacks::createTreasure(
     Root* root, String const& pool, float level, Maybe<uint64_t> seed) {
   auto treasure = root->treasureDatabase()->createTreasure(pool, level, seed.value(Random::randu64()));
   return treasure.transformed([](ItemPtr const& item) {
-    // FezzedOne: Fixed lack of a `nullptr` check here.
+    // FezzedOne: Fixed null pointer dereference here.
     if (item)
       return item->descriptor().toJson();
     else
