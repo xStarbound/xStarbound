@@ -283,10 +283,10 @@ Assets::Assets(Settings settings, StringList assetSources) {
                 descriptor.sourceName = path;
                 descriptor.source = memoryAssets;
               } else {
-                m_files[path] = {
-                  .sourceName = path,
-                  .source = memoryAssets,
-                  .patchSources = {},
+                m_files[path] = { // FezzedOne: Fixed MSVC compatibility.
+                  path,
+                  memoryAssets,
+                  {},
                 };
               }
               m_filesByExtension[AssetPath::extension(path).toLower()].insert(path);
