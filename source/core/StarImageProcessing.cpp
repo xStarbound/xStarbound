@@ -862,6 +862,10 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
       image = scaleNearest(image, op->scale);
 
   } else if (auto op = operation.ptr<CropImageOperation>()) {
+    auto min = op->subset.min();
+    auto size = op->subset.size();
+     min[0] =  min[0] < 0 ? 0 :  min[0];  min[1] = min[1]  < 0 ? 0 :  min[1];
+    size[0] = size[0] < 0 ? 0 : size[0]; size[1] = size[1] < 0 ? 0 : size[1];
     image = image.subImage(Vec2U(op->subset.min()), Vec2U(op->subset.size()));
 
   } else if (auto op = operation.ptr<FlipImageOperation>()) {
