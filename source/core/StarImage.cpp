@@ -423,7 +423,7 @@ Image Image::subImage(Vec2U const& pos, Vec2U const& size) const {
   //   Logger::warn("Image::subImage: Call with pos {} size {} out of image bounds ({}, {}), cropping to bounds", pos, size, m_width, m_height);
   // throw ImageException(strf("call to subImage with pos {} size {} out of image bounds ({}, {})", pos, size, m_width, m_height));
   Vec2U baseSizePos = (pos + size).piecewiseMin(Vec2U(m_width, m_height));
-  Vec2U adjPos = pos.piecewiseMin(Vec2U(m_width == 0 ? 0 : m_width - 1, m_height == 0 ? 0 : m_height - 1));
+  Vec2U adjPos = pos.piecewiseMin(Vec2U(m_width, m_height));
   Vec2U adjSize = baseSizePos - adjPos;
 
   Image sub(adjSize[0], adjSize[1], m_pixelFormat);
