@@ -866,7 +866,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     auto size = op->subset.size();
      min[0] =  min[0] < 0 ? 0 :  min[0];  min[1] = min[1]  < 0 ? 0 :  min[1];
     size[0] = size[0] < 0 ? 0 : size[0]; size[1] = size[1] < 0 ? 0 : size[1];
-    image = image.subImage(Vec2U(op->subset.min()), Vec2U(op->subset.size()));
+    image = image.subImage(Vec2U(min), Vec2U(size));
 
   } else if (auto op = operation.ptr<FlipImageOperation>()) {
     if (op->mode == FlipImageOperation::FlipX || op->mode == FlipImageOperation::FlipXY) {
