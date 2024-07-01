@@ -8,12 +8,12 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "FezzedOne and other contributors / Chucklefish LTD"
       VALUE "FileDescription", "xClient"
-      VALUE "FileVersion", "3.0.1"
+      VALUE "FileVersion", "3.0.1r1"
       VALUE "InternalName", "xclient"
       VALUE "LegalCopyright", "FezzedOne and other contributors / Chucklefish LTD"
       VALUE "OriginalFilename", "xclient.exe"
       VALUE "ProductName", "xClient"
-      VALUE "ProductVersion", "3.0.1"
+      VALUE "ProductVersion", "3.0.1r1"
     END
   END
 
