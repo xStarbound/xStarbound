@@ -72,6 +72,7 @@ Read this to see if xStarbound is compatible with your mods.
 
 **Compatible:** Any mod not listed in the «partially compatible» or «not compatible» category should be compatible. Major mods that have been tested to be compatible:
 
+- [Arcana](https://steamcommunity.com/workshop/filedetails/?id=2359135864) — use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) to satisfy this mod's «Stardust Core Lite» dependency (see that mod below for why).
 - [Avali (Triage) Race Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=729558042).
 - [Elithian Races Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=850109963).
 - [Frackin' Universe](https://steamcommunity.com/sharedfiles/filedetails/?id=729480149) ([GitHub](https://github.com/sayterdarkwynd/FrackinUniverse)).
@@ -92,7 +93,6 @@ Read this to see if xStarbound is compatible with your mods.
 - [1x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=1782208070) — won't do anything and is redundant.
 - [3x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=2681858844) — ditto.
 - [4x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=2870596125) — ditto.
-- [Arcana](https://steamcommunity.com/workshop/filedetails/?id=2359135864) — depends on Stardust Core, which is incompatible with xStarbound's Lua sandbox, for its UIs. If you experience any UI issues, disable `"safeScripts"` in your `xclient.config`.
 - [Bottinator22's mods](https://steamcommunity.com/profiles/76561197964469434/myworkshopfiles/?appid=211820) — these have issues with xStarbound's Lua sandbox. You'll probably have to disable `"safeScripts"` if you use any of these mods.
 - [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) and its [two](https://steamcommunity.com/sharedfiles/filedetails/?id=2954344118) [counterparts](https://steamcommunity.com/sharedfiles/filedetails/?id=2954354494) — their PNG compression does not play well with xClient's hardware cursor, potentially making it invisible. Use `/cursor off` if you want to use these mods.
 - [Project Knightfall](https://steamcommunity.com/sharedfiles/filedetails/?id=2010883172) ([GitHub](https://github.com/Nitrosteel/Project-Knightfall)) — some added UIs have minor issues with xStarbound's Lua sandbox.
