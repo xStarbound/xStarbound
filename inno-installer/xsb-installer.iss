@@ -2,7 +2,7 @@
 
 #define XSBName "xStarbound"
 ; Note: Tick this version number every update. Use the higher of the asset version and binary version.
-#define XSBVersion "3.0.1r1"
+#define XSBVersion "3.0.1r2"
 #define XSBPublisher "FezzedOne and other contributors"
 #define XSBGitHubURL "https://github.com/FezzedOne/xSB-2"
 ; Set this to the location of your xStarbound source code folder.

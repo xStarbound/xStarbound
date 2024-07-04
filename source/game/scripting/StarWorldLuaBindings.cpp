@@ -85,7 +85,7 @@ namespace LuaBindings {
     if (callScript) {
       if (safeScriptsEnabled) {
         callScriptArgsJson = options.get<Maybe<List<Json>>>("callScriptArgs").value();
-        callScriptResultJson = options.get<Maybe<Json>>("callScriptResult").value();
+        callScriptResultJson = options.get<Maybe<Json>>("callScriptResult").value(Json{true});
       } else {
         callScriptArgs = options.get<Maybe<List<LuaValue>>>("callScriptArgs").value();
         callScriptResult = options.get<Maybe<LuaValue>>("callScriptResult").value(LuaBoolean(true));
