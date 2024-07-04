@@ -122,7 +122,7 @@ namespace LuaBindings {
         if (safeScriptsEnabled) {
           // LuaVariadic<Json> jsonArgs = callScriptArgsJson;
           Maybe<Json> res = scriptedEntity->callScript(*callScript, callScriptArgsJson);
-          if (!res || *res == Json() || *res != callScriptResultJson)
+          if (!res || *res != callScriptResultJson)
             return false;
         } else {
           auto res = scriptedEntity->callScript(*callScript, luaUnpack(callScriptArgs));
