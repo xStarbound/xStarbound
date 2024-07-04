@@ -527,15 +527,15 @@ Returns a list of orbit bookmarks in the specified system.
 
 ---
 
-#### `bool` player.addOrbitBookmark(`Json` systemCoordinate, `Json` bookmarkConfig)
+#### `void` player.addOrbitBookmark(`Json` systemCoordinate, `Json` bookmarkConfig)
 
-Adds the specified bookmark to the player's bookmark list and returns `true` if the bookmark was successfully added (and was not already known) and `false` otherwise.
+Adds the specified bookmark to the player's bookmark list.
 
 ---
 
-#### `bool` player.removeOrbitBookmark(`Json` systemCoordinate, `Json` bookmarkConfig)
+#### `void` player.removeOrbitBookmark(`Json` systemCoordinate, `Json` bookmarkConfig)
 
-Removes the specified bookmark from the player's bookmark list and returns `true` if the bookmark was successfully removed and `false` otherwise.
+Removes the specified bookmark from the player's bookmark list.
 
 ---
 
@@ -545,13 +545,13 @@ Lists all of the player's teleport bookmarks.
 
 ---
 
-#### `bool` player.addTeleportBookmark(`Json` bookmarkConfig)
+#### `void` player.addTeleportBookmark(`Json` bookmarkConfig)
 
-Adds the specified bookmark to the player's bookmark list and returns `true` if the bookmark was successfully added (and was not already known) and `false` otherwise.
+Adds the specified bookmark to the player's bookmark list.
 
 ---
 
-#### `bool` player.removeTeleportBoookmark(`Json` bookmarkConfig)
+#### `void` player.removeTeleportBoookmark(`Json` bookmarkConfig)
 
 Removes the specified teleport bookmark.
 
