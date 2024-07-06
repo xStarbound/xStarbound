@@ -1117,7 +1117,7 @@ For a secondary player, the "triggering" state will remain set until the primary
 
 If `"primary"`/`"beginPrimary"` or `"alt"`/`"beginAlt"` is passed, makes the player begin primary or alt fire, respectively, exactly as if the left or right mouse button were pressed, respectively.
 
-If `"primary"`/`"beginPrimary"` or `"alt"`/`"beginAlt"` is passed, makes the player end primary or alt fire, respectively, exactly as if the left or right mouse button were released, respectively.
+If `"endPrimary"` or `"endAlt"` is passed, makes the player end primary or alt fire, respectively, exactly as if the left or right mouse button were released, respectively.
 
 If `nil` is passed, or the parameter is unspecified, makes the player end primary *and* alt fire immediately, exactly as if both mouse buttons were released.
 
