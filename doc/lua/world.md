@@ -1254,7 +1254,7 @@ Returns a list of entity IDs for all player entities currently mastered by the c
 
 ---
 
-#### `List<EntityId>` world.primaryPlayer()
+#### `EntityId` world.primaryPlayer()
 
 > **Available only on xStarbound.**
 
