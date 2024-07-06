@@ -1115,9 +1115,11 @@ For a secondary player, the "triggering" state will remain set until the primary
 
 #### `void` player.controlFire(`Maybe<String>` fireMode)
 
-If `"primary"`/`"beginprimary"` or `"alt"`/`"beginalt"` is passed, makes the player begin primary or alt fire, respectively, exactly as if the left or right mouse button were pressed, respectively.
+> **Note:** `"beginPrimary"`, `"beginAlt"`, `"endPrimary"` and `"endAlt"` currently do not work because of a case-sensitivity bug that will be fixed in the next point release. In the meantime, use `player.controlAction`.
 
-If `"endprimary"` or `"endalt"` is passed, makes the player end primary or alt fire, respectively, exactly as if the left or right mouse button were released, respectively.
+If `"primary"`/`"beginPrimary"` or `"alt"`/`"beginAlt"` is passed, makes the player begin primary or alt fire, respectively, exactly as if the left or right mouse button were pressed, respectively.
+
+If `"endPrimary"` or `"endAlt"` is passed, makes the player end primary or alt fire, respectively, exactly as if the left or right mouse button were released, respectively.
 
 If `nil` is passed, or the parameter is unspecified, makes the player end primary *and* alt fire immediately, exactly as if both mouse buttons were released.
 
