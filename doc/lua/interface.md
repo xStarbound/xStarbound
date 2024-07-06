@@ -395,39 +395,33 @@ Sets the specified bind ID in the specified category to the specified list of bi
 jarray{ -- Array of binds.
   jobject{
     type = "key", -- A keybind.
-    value = jobject{
-      key = "W", -- The key that must be pressed to activate the bind.
-      -- See the `Key` names below for valid key names.
-      mods = jarray{"LShift"} -- Here, *at least* the specified modifiers 
-      -- must be pressed or held to count. Extra modifiers are okay, and
-      -- the state of the three lock keys is *completely* ignored even if
-      -- they are specified in the modifiers array. Optional; if
-      -- unspecified, defaults to an empty `jarray{}`. See the `KeyMod`
-      -- names below for valid key modifier names.
-    }
+    value = "W", -- The key that must be pressed to activate the bind.
+    -- See the `Key` names below for valid key names.
+    mods = jarray{"LShift"} -- Here, *at least* the specified modifiers 
+    -- must be pressed or held to count. Extra modifiers are okay, and
+    -- the state of the three lock keys is *completely* ignored even if
+    -- they are specified in the modifiers array. Optional; if
+    -- unspecified, defaults to an empty `jarray{}`. See the `KeyMod`
+    -- names below for valid key modifier names.
   },
   { 
     type = "mouse", -- A mouse bind.
-    value = jobject{
-      mouseButton = "MouseMiddle", -- The mouse button that must be
-      -- clicked to activate the bind. See the `MouseButton` names below
-      -- for valid mouse button names.
-      mods = jarray{"LShift"} -- Same as above.
-    }
+    value = "MouseMiddle", -- The mouse button that must be
+    -- clicked to activate the bind. See the `MouseButton` names below
+    -- for valid mouse button names.
+    mods = jarray{"LShift"} -- Same as above.
   },
   {
     type = "controller", -- A controller button bind. Binds of this type
     -- are currently useless because xClient does not check controller
     -- button presses at all.
-    value = jobject{
-      button = "Y" -- The controller button that must be pressed to
-      -- activate the bind. See the `ControllerButton` names below
-      -- for valid controller button names.
-      controller = 0 -- The controller which must be used to activate
-      -- the bind. Starts from 0. If you have multiple controllers
-      -- plugged in, their order is dependent on your system
-      -- configuration.
-    }
+    value = "Y" -- The controller button that must be pressed to
+    -- activate the bind. See the `ControllerButton` names below
+    -- for valid controller button names.
+    controller = 0 -- The controller which must be used to activate
+    -- the bind. Starts from 0. If you have multiple controllers
+    -- plugged in, their order is dependent on your system
+    -- configuration.
   }
 }
 ```
