@@ -377,7 +377,7 @@ Returns whether the specified mouse button is being held this tick.
 
 #### `Maybe<List<Vec2I>>` input.mouseUp(`MouseButton` mouseButton)
 
-Returns whether the specified mouse button is released this tick. If so, a list of game screen positions where the mouse button is released this tick (one for each release) is returned. Otherwise, `nil` is returned.
+Returns whether the specified mouse button is released at least once this tick. If so, a list of game screen positions where the mouse button is released this tick (one for each release) is returned. Otherwise, `nil` is returned.
 
 ----
 
