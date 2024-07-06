@@ -358,7 +358,7 @@ Returns whether the specified key is released this tick. If so, the number of ti
 
 ----
 
-#### `Maybe<uint32_t>` input.mouseDown(`MouseButton` mouseButton)
+#### `Maybe<List<Vec2I>>` input.mouseDown(`MouseButton` mouseButton)
 
 Returns whether the specified mouse button is initially pressed (i.e., clicked, but not held!) at least once this tick. If so, a list of game screen cursor positions (with their origin at the lower left corner of the game window) where the specified button is initially clicked (one for each time the button is clicked) is returned. Otherwise, `nil` is returned.
 
@@ -375,9 +375,9 @@ Returns whether the specified mouse button is being held this tick.
 
 ----
 
-#### `Maybe<uint32_t>` input.keyUp(`MouseButton` mouseButton)
+#### `Maybe<List<Vec2I>>` input.mouseUp(`MouseButton` mouseButton)
 
-Returns whether the specified mouse button is released this tick. If so, the number of times the mouse button is released this tick is returned; otherwise, `nil` is returned.
+Returns whether the specified mouse button is released this tick. If so, a list of game screen positions where the mouse button is released this tick (one for each release) is returned. Otherwise, `nil` is returned.
 
 ----
 
