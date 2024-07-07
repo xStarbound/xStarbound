@@ -791,13 +791,13 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
   callbacks.registerCallback("controlFire", [player](Maybe<String> const& fireMode) {
     if (fireMode) {
       String mode = (*fireMode).toLower();
-      if (mode == "primary" || mode == "beginPrimary")
+      if (mode == "primary" || mode == "beginprimary")
         player->beginPrimaryFire();
-      else if (mode == "endPrimary")
+      else if (mode == "endprimary")
         player->endPrimaryFire();
-      else if (mode == "alt" || mode == "beginAlt")
+      else if (mode == "alt" || mode == "beginalt")
         player->beginAltFire();
-      else if (mode == "endAlt")
+      else if (mode == "endalt")
         player->endAltFire();
     } else {
       player->endPrimaryFire();
