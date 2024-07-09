@@ -113,4 +113,8 @@ SET (star_frontend_SOURCES
   )
 
 ADD_LIBRARY (star_frontend OBJECT ${star_frontend_SOURCES} ${star_frontend_HEADERS})
+TARGET_LINK_LIBRARIES (star_frontend
+        PUBLIC
+        ${STAR_EXT_LIBS}
+)
 TARGET_PRECOMPILE_HEADERS (star_frontend REUSE_FROM star_core)
