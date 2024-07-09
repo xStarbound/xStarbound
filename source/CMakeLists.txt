@@ -650,9 +650,11 @@ SET (STAR_GAME_INCLUDES
   )
 ADD_SUBDIRECTORY (game)
 
-# Googletest based tests # Don't need to compile these.
-# ENABLE_TESTING()
-# ADD_SUBDIRECTORY (test)
+# Googletest based tests
+IF (BUILD_TESTING)
+  ENABLE_TESTING ()
+  ADD_SUBDIRECTORY (test)
+ENDIF ()
 
 IF (NOT QT_GUIS_ONLY)
 
