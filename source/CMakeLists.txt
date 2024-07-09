@@ -1,5 +1,41 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.16)
 
+# Build options
+INCLUDE (CMakeDependentOption)
+OPTION (STAR_BUILD_GUI "Build GUI utilities and Client" ON)
+CMAKE_DEPENDENT_OPTION (STAR_BUILD_QT_TOOLS "Build GUI utilities that require Qt" OFF "STAR_BUILD_GUI" OFF)
+CMAKE_DEPENDENT_OPTION (STAR_ENABLE_STEAM_INTEGRATION "Use Steam platform services" OFF "STAR_BUILD_GUI" OFF)
+CMAKE_DEPENDENT_OPTION (STAR_ENABLE_DISCORD_INTEGRATION "Use Discord platform services" OFF "STAR_BUILD_GUI" OFF)
+
+OPTION (STAR_LUA_APICHECK "Use Lua API checks" OFF)
+CMAKE_DEPENDENT_OPTION (STAR_USE_JEMALLOC "Use jemalloc allocators" OFF "NOT STAR_USE_MIMALLOC" OFF)
+CMAKE_DEPENDENT_OPTION (STAR_USE_MIMALLOC "Use mi-malloc allocators" OFF "NOT STAR_USE_JEMALLOC" OFF)
+
+OPTION (BUILD_TESTING "Build unit and game tests (NOTE: game tests require all game asset packs to run)" OFF)
+
+# Only request vcpkg dependencies if required to decrease build time
+# VCPKG_MANIFEST_FEATURES must be set before calling PROJECT().
+# See vcpkg.json to see which dependencies each feature pulls in.
+IF (STAR_BUILD_GUI)
+  LIST (APPEND VCPKG_MANIFEST_FEATURES gui)
+ENDIF ()
+
+IF (STAR_BUILD_QT_TOOLS)
+  LIST (APPEND VCPKG_MANIFEST_FEATURES qttools)
+ENDIF ()
+
+IF (STAR_USE_JEMALLOC)
+  LIST (APPEND VCPKG_MANIFEST_FEATURES jemalloc)
+ENDIF ()
+
+IF (STAR_USE_MIMALLOC)
+  LIST (APPEND VCPKG_MANIFEST_FEATURES mimalloc)
+ENDIF ()
+
+IF (BUILD_TESTING)
+  LIST (APPEND VCPKG_MANIFEST_FEATURES tests)
+ENDIF ()
+
 # Find CCache
 FIND_PROGRAM(CCACHE_PATH ccache)
 IF (CCACHE_PATH)
@@ -93,16 +129,10 @@ IF (NOT DEFINED STAR_COMPILER)
 ENDIF ()
 
 # Enable OPTIONs based on the discovered system / environment...
-
-IF (STAR_COMPILER STREQUAL "gnu")
-  OPTION (STAR_ENABLE_STATIC_LIBGCC_LIBSTDCXX "Statically link libgcc and libstdc++" OFF)
-  OPTION (STAR_ENABLE_GCC_PROFILING "Enable gcc/g++ profiling via the -pg flag" OFF)
-  OPTION (STAR_ENABLE_GLIBCXX_DEBUG "Enable _GLIBCXX_DEBUG for g++" OFF)
-ENDIF ()
-
-IF (STAR_COMPILER STREQUAL "msvc")
-  OPTION (STAR_ENABLE_STATIC_MSVC_RUNTIME "Statically link with the CRT" OFF)
-ENDIF ()
+CMAKE_DEPENDENT_OPTION (STAR_ENABLE_STATIC_LIBGCC_LIBSTDCXX "Statically link libgcc and libstdc++" OFF "STAR_COMPILER STREQUAL gnu" OFF)
+CMAKE_DEPENDENT_OPTION (STAR_ENABLE_GCC_PROFILING "Enable gcc/g++ profiling via the -pg flag" OFF "STAR_COMPILER STREQUAL gnu" OFF)
+CMAKE_DEPENDENT_OPTION (STAR_ENABLE_GLIBCXX_DEBUG "Enable _GLIBCXX_DEBUG for g++" OFF "STAR_COMPILER STREQUAL gnu" OFF)
+CMAKE_DEPENDENT_OPTION (STAR_ENABLE_STATIC_MSVC_RUNTIME "Statically link with the CRT" OFF "STAR_COMPILER STREQUAL msvc" OFF)
 
 # FezzedOne: More MinGW stuff.
 IF (STAR_COMPILER STREQUAL "gnu" AND STAR_SYSTEM STREQUAL "windows" AND STAR_CROSS_COMPILE)
@@ -123,17 +153,6 @@ IF (STAR_COMPILER STREQUAL "gnu" AND STAR_SYSTEM STREQUAL "windows" AND STAR_CRO
   SET (CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
   SET (CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 ENDIF()
-
-OPTION (STAR_BUILD_GUI "Build GUI utilities and Client" ON)
-
-IF (STAR_BUILD_GUI)
-  OPTION (STAR_BUILD_QT_TOOLS "Build GUI utilities that require Qt" OFF)
-  OPTION (STAR_ENABLE_STEAM_INTEGRATION "Use Steam platform services" OFF)
-  OPTION (STAR_ENABLE_DISCORD_INTEGRATION "Use Discord platform services" OFF)
-ENDIF ()
-
-OPTION (STAR_LUA_APICHECK "Use lua api checks" OFF)
-OPTION (STAR_USE_JEMALLOC "Use jemalloc allocators" OFF)
 
 # Report all the discovered system / environment settings and all options.
 
@@ -463,6 +482,9 @@ ELSEIF (STAR_SYSTEM_FREEBSD)
 ENDIF ()
 
 # Find all required external libraries, based on build settings...
+IF (STAR_USE_JEMALLOC AND STAR_USE_MIMALLOC)
+  MESSAGE (FATAL_ERROR "Please only specify ONE memory allocator to be used: either STAR_USE_JEMALLOC or STAR_USE_MIMALLOC.")
+ENDIF ()
 
 IF (STAR_USE_JEMALLOC)
   # Assumes jemalloc was configured with a "je_" function prefix
@@ -483,7 +505,19 @@ ENDIF()
 FIND_PACKAGE (ZLIB REQUIRED)
 FIND_PACKAGE (PNG REQUIRED)
 FIND_PACKAGE (Freetype REQUIRED)
-FIND_PACKAGE (OggVorbis REQUIRED)
+# Prefer CMake config package. Some distros may only install the pkgconfig file though.
+FIND_PACKAGE (Ogg CONFIG QUIET)
+FIND_PACKAGE (Vorbis CONFIG QUIET)
+FIND_PACKAGE (Opus CONFIG QUIET)
+IF (NOT TARGET Ogg::ogg)
+  FIND_PACKAGE (Ogg MODULE REQUIRED)
+ENDIF ()
+IF (NOT TARGET Vorbis::vorbis)
+  FIND_PACKAGE (Vorbis MODULE REQUIRED)
+ENDIF ()
+IF (NOT TARGET Opus::opus)
+  FIND_PACKAGE (Opus MODULE REQUIRED)
+ENDIF ()
 
 IF (STAR_CROSS_COMPILE)
   INCLUDE_DIRECTORIES (SYSTEM
@@ -494,39 +528,33 @@ IF (STAR_CROSS_COMPILE)
   )
 
   SET (STAR_EXT_LIBS ${STAR_EXT_LIBS}
-      ${VORBISFILE_LIBRARY}
-      ${VORBIS_LIBRARY}
-      ${OGG_LIBRARY}
-      ${FREETYPE_LIBRARY}
+      Vorbis::vorbisfile
+      Vorbis::vorbis
+      Opus::opus
+      Ogg::ogg
+      Freetype::Freetype
       "/usr/x86_64-w64-mingw32/lib/libbrotlidec.a"
       "/usr/x86_64-w64-mingw32/lib/libbrotlienc.a"
       "/usr/x86_64-w64-mingw32/lib/libbrotlicommon.a"
       "/usr/x86_64-w64-mingw32/lib/libbz2.a"
-      ${PNG_LIBRARY}
-      ${ZLIB_LIBRARY}
-      opus
+      PNG::PNG
+      ZLIB::ZLIB
   )
 ELSE()
-  INCLUDE_DIRECTORIES (SYSTEM
-      ${ZLIB_INCLUDE_DIR}
-      ${PNG_INCLUDE_DIR}
-      ${FREETYPE_INCLUDE_DIRS}
-      ${OGGVORBIS_INCLUDE_DIR}
-  )
 
   SET (STAR_EXT_LIBS ${STAR_EXT_LIBS}
-      ${VORBISFILE_LIBRARY}
-      ${VORBIS_LIBRARY}
-      ${OGG_LIBRARY}
-      ${FREETYPE_LIBRARY}
-      ${PNG_LIBRARY}
-      ${ZLIB_LIBRARY}
-      opus
+      Vorbis::vorbisfile
+      Vorbis::vorbis
+      Ogg::ogg
+      Freetype::Freetype
+      PNG::PNG
+      ZLIB::ZLIB
+      Opus::opus
   )
 ENDIF()
 
 IF (STAR_BUILD_GUI)
-  FIND_PACKAGE (SDL2 REQUIRED)
+  FIND_PACKAGE (SDL2 CONFIG REQUIRED)
   INCLUDE_DIRECTORIES (SYSTEM ${SDL2_INCLUDE_DIR})
   IF (STAR_CROSS_COMPILE)
     SET (STAR_EXT_GUI_LIBS "${PROJECT_SOURCE_DIR}/../lib/mingw/SDL2.dll" "${PROJECT_SOURCE_DIR}/../lib/mingw/glew32.dll")
@@ -535,15 +563,17 @@ IF (STAR_BUILD_GUI)
     #   # SDL2 should be dynamically linked.
     #   SET (STAR_EXT_GUI_LIBS "-Wl,-Bdynamic" ${SDL2_LIBRARY})
     # ELSE()
-      SET (STAR_EXT_GUI_LIBS ${SDL2_LIBRARY})
+      SET (STAR_EXT_GUI_LIBS $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
     # ENDIF()
   ENDIF()
 
   FIND_PACKAGE (OpenGL REQUIRED)
-  FIND_PACKAGE (GLEW REQUIRED)
+  FIND_PACKAGE (GLEW CONFIG)
+  IF (NOT TARGET GLEW::GLEW)
+    FIND_PACKAGE (GLEW MODULE REQUIRED)
+  ENDIF ()
 
-  INCLUDE_DIRECTORIES (SYSTEM ${GLEW_INCLUDE_DIR} ${SDL2_INCLUDE_DIR})
-  SET (STAR_EXT_GUI_LIBS ${STAR_EXT_GUI_LIBS} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
+  SET (STAR_EXT_GUI_LIBS ${STAR_EXT_GUI_LIBS} ${OPENGL_LIBRARY} GLEW::GLEW)
 
   IF (STAR_ENABLE_STEAM_INTEGRATION)
     FIND_PACKAGE (SteamApi REQUIRED)

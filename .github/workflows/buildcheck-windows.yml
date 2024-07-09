@@ -17,6 +17,13 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
@@ -25,11 +32,10 @@ jobs:
         run: |
           mkdir "${{ github.workspace }}\dist"
           copy "${{ github.workspace }}\scripts\steam_appid.txt" "${{ github.workspace }}\dist\"
-          copy "${{ github.workspace }}\lib\windows\*.dll" "${{ github.workspace }}\dist\"
           copy "${{ github.workspace }}\scripts\windows\xsbinit.config" "${{ github.workspace }}\dist\"
 
       - name: Configure CMake
-        run: cmake -G "Visual Studio 17 2022" -A "X64" -S "${{ github.workspace }}/source" -B "${{ github.workspace }}/cmake-build" -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/dist" -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreadedDebugDLL" -DCMAKE_VERBOSE_MAKEFILE=YES -DBUILD_TESTING=YES -DSTAR_USE_JEMALLOC=OFF -DSTAR_BUILD_QT_TOOLS=OFF -DSTAR_ENABLE_STEAM_INTEGRATION=ON -DSTAR_ENABLE_DISCORD_INTEGRATION=ON -DCMAKE_INCLUDE_PATH="${{ github.workspace }}\lib\windows\include" -DCMAKE_LIBRARY_PATH="${{ github.workspace }}\lib\windows"
+        run: cmake -G "Visual Studio 17 2022" -A "X64" -S "${{ github.workspace }}/source" -B "${{ github.workspace }}/cmake-build" -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/dist" -DCMAKE_TOOLCHAIN_FILE="${Env:VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreadedDebugDLL" -DCMAKE_VERBOSE_MAKEFILE=YES -DBUILD_TESTING=YES -DSTAR_USE_JEMALLOC=OFF -DSTAR_BUILD_QT_TOOLS=OFF -DSTAR_ENABLE_STEAM_INTEGRATION=ON -DSTAR_ENABLE_DISCORD_INTEGRATION=ON -DCMAKE_INCLUDE_PATH="${{ github.workspace }}\lib\windows\include" -DCMAKE_LIBRARY_PATH="${{ github.workspace }}\lib\windows"
 
       - name: Build Debug
         run: cmake --build "${{ github.workspace }}/cmake-build" --config "Debug" --parallel
@@ -62,7 +68,7 @@ jobs:
       - name: Configure CMake
         run: cmake -G "Visual Studio 17 2022" -A "X64" -S "${{ github.workspace }}/source" -B "${{ github.workspace }}/cmake-build" -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/dist" -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreadedDLL" -DCMAKE_VERBOSE_MAKEFILE=YES -DSTAR_USE_JEMALLOC=OFF -DSTAR_BUILD_QT_TOOLS=OFF -DSTAR_ENABLE_STEAM_INTEGRATION=ON -DSTAR_ENABLE_DISCORD_INTEGRATION=ON -DCMAKE_INCLUDE_PATH="${{ github.workspace }}\lib\windows\include" -DCMAKE_LIBRARY_PATH="${{ github.workspace }}\lib\windows"
 
-      - name: Build Debug
+      - name: Build Release
         run: cmake --build "${{ github.workspace }}/cmake-build" --config "Release" --parallel
 
       - name: Upload Artifact

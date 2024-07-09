@@ -1,3 +1,5 @@
+FIND_PACKAGE (GTest REQUIRED)
+
 INCLUDE_DIRECTORIES (
     ${STAR_EXTERN_INCLUDES}
     ${STAR_CORE_INCLUDES}
@@ -6,14 +8,7 @@ INCLUDE_DIRECTORIES (
     ${STAR_GAME_INCLUDES}
   )
 
-# Add top-level test directory so  gtest-all.cc can find its own include file
-INCLUDE_DIRECTORIES (.)
-
 SET (star_core_tests_SOURCES
-      gtest/gtest-all.cc
-
-      core_tests_main.cpp
-
       algorithm_test.cpp
       block_allocator_test.cpp
       blocks_along_line_test.cpp
@@ -58,12 +53,14 @@ SET (star_core_tests_SOURCES
 ADD_EXECUTABLE (core_tests
   $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core>
   ${star_core_tests_SOURCES})
-TARGET_LINK_LIBRARIES (core_tests ${STAR_EXT_LIBS})
+TARGET_LINK_LIBRARIES (core_tests
+        ${STAR_EXT_LIBS}
+        GTest::gtest_main
+        GTest::gtest
+    )
 ADD_TEST (NAME core_tests WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/core_tests)
 
 SET (star_game_tests_SOURCES
-      gtest/gtest-all.cc
-
       game_tests_main.cpp
 
       StarTestUniverse.cpp
@@ -81,7 +78,10 @@ SET (star_game_tests_SOURCES
 ADD_EXECUTABLE (game_tests
   $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
   ${star_game_tests_SOURCES})
-TARGET_LINK_LIBRARIES (game_tests ${STAR_EXT_LIBS})
+TARGET_LINK_LIBRARIES (game_tests
+        ${STAR_EXT_LIBS}
+        GTest::gtest
+    )
 
 IF (EXISTS "${CMAKE_SOURCE_DIR}/../assets/packed.pak" AND EXISTS "${CMAKE_SOURCE_DIR}/../xsb-assets/packed.pak")
     ADD_TEST (NAME game_tests WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/game_tests)
