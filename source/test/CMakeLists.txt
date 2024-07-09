@@ -82,4 +82,11 @@ ADD_EXECUTABLE (game_tests
   $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
   ${star_game_tests_SOURCES})
 TARGET_LINK_LIBRARIES (game_tests ${STAR_EXT_LIBS})
-ADD_TEST (NAME game_tests WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/game_tests)
+
+IF (EXISTS "${CMAKE_SOURCE_DIR}/../assets/packed.pak" AND EXISTS "${CMAKE_SOURCE_DIR}/../xsb-assets/packed.pak")
+    ADD_TEST (NAME game_tests WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/game_tests)
+ELSE ()
+    MESSAGE (AUTHOR_WARNING "Skipped adding game_tests to CTest configuration.\n"
+            "Make sure the packed asset files are present in both assets/ and xsb-assets/ in the main project directory!\n"
+            "You can still run the game tests manually though, or reconfigure the project after adding the paks.")
+ENDIF ()
