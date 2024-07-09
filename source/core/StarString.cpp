@@ -723,13 +723,14 @@ bool String::contains(String const& s, CaseSensitivity cs) const {
 bool String::regexMatch(String const& regex, bool full, bool caseSensitive) const {
 #ifdef STAR_COMPILER_GNU
   #ifdef STAR_SYSTEM_FAMILY_UNIX
-  // Note that the `full` argument is ignored.
+  String adjustedRegex = full ? ("^" + regex + "$") : regex; // FezzedOne: Looks slightly hacky, but doubled `^` and `$` modifiers are ignored in POSIX regexes.
+
   regex_t cmpRegex;
   int value;
 
   // Parse the regex.
-  if (caseSensitive) value = regcomp(&cmpRegex, regex.utf8().c_str(), REG_EXTENDED);
-  else value = regcomp(&cmpRegex, regex.utf8().c_str(), REG_EXTENDED | REG_ICASE);
+  if (caseSensitive) value = regcomp(&cmpRegex, adjustedRegex.utf8().c_str(), REG_EXTENDED);
+  else value = regcomp(&cmpRegex, adjustedRegex.utf8().c_str(), REG_EXTENDED | REG_ICASE);
   if (value) {
     // We've run into an error.
     size_t errorLen = regerror(value, &cmpRegex, NULL, 0);
@@ -738,7 +739,12 @@ bool String::regexMatch(String const& regex, bool full, bool caseSensitive) cons
     regfree(&cmpRegex);
     std::string errorStr = std::string(error);
     delete[] error;
-    throw StringException(strf("error handling regex '{}' in String::regexMatch: {}", regex, String(errorStr)));
+    if (full)
+      throw StringException(strf("error handling regex '{}' (adjusted to '{}') in String::regexMatch: {}",
+        regex, adjustedRegex, String(errorStr)));
+    else
+      throw StringException(strf("error handling regex '{}' in String::regexMatch: {}",
+        regex, String(errorStr)));
   }
 
   // Execute the regex.
@@ -748,7 +754,12 @@ bool String::regexMatch(String const& regex, bool full, bool caseSensitive) cons
   regfree(&cmpRegex);
   if (value == 0) return true;
   else if (value == REG_NOMATCH) return false;
-  else throw StringException(strf("unknown error handling regex '{}' in String::regexMatch", regex));
+  else {
+    if (full)
+      throw StringException(strf("unknown error handling regex '{}' (adjusted to '{}') in String::regexMatch", adjustedRegex, regex));
+    else
+      throw StringException(strf("unknown error handling regex '{}' in String::regexMatch", regex));
+  }
   #else
   if (full) {
     if (caseSensitive)
