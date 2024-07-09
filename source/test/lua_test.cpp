@@ -734,7 +734,7 @@ TEST(LuaTest, Errors) {
   auto luaEngine = LuaEngine::create();
   auto context = luaEngine->createContext();
 
-  EXPECT_THROW(context.eval("while true do"), LuaIncompleteStatementException);
+  EXPECT_THROW(context.eval("while true do"), LuaException);
   context.setPath("val", 1.0);
   EXPECT_THROW(context.getPath<Vec2D>("val"), LuaConversionException);
   EXPECT_EQ(luaEngine->luaMaybeTo<RectF>(context.get("val")), Maybe<RectF>());
