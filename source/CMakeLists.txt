@@ -12,6 +12,7 @@ CMAKE_DEPENDENT_OPTION (STAR_USE_JEMALLOC "Use jemalloc allocators" OFF "NOT STA
 CMAKE_DEPENDENT_OPTION (STAR_USE_MIMALLOC "Use mi-malloc allocators" OFF "NOT STAR_USE_JEMALLOC" OFF)
 
 OPTION (BUILD_TESTING "Build unit and game tests (NOTE: game tests require all game asset packs to run)" OFF)
+CMAKE_DEPENDENT_OPTION (STAR_MEMORY_SANITIZER "Build executables with memory sanitizers enabled" OFF "BUILD_TESTING" OFF)
 
 # Only request vcpkg dependencies if required to decrease build time
 # VCPKG_MANIFEST_FEATURES must be set before calling PROJECT().
@@ -296,21 +297,28 @@ IF (STAR_COMPILER_GNU)
     SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
   ENDIF ()
 
-  SET (CMAKE_C_FLAGS_DEBUG "-g -Og -fsanitize=address")
-  SET (CMAKE_CXX_FLAGS_DEBUG "-g -Og -fsanitize=address")
-  set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+  SET (CMAKE_C_FLAGS_DEBUG "-g -Og")
+  SET (CMAKE_CXX_FLAGS_DEBUG "-g -Og")
 
   # FezzedOne: Need to define `FLOAT_APPROX` for Opus whenever `-Ofast` is used.
 
   SET (CMAKE_C_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast")
   SET (CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast")
 
-  SET (CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast -fsanitize=address")
-  SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast -fsanitize=address")
-  set (CMAKE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+  SET (CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast")
+  SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast")
 
   SET (CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast")
   SET (CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast")
+
+  IF (STAR_MEMORY_SANITIZER)
+    SET (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+    SET (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+    set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+    SET (CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fno-omit-frame-pointer -fsanitize=address")
+    SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -fno-omit-frame-pointer -fsanitize=address")
+    SET (CMAKE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=address")
+  ENDIF ()
 
 ELSEIF (STAR_COMPILER_CLANG)
   IF (STAR_SYSTEM_LINUX)
@@ -348,6 +356,15 @@ ELSEIF (STAR_COMPILER_CLANG)
 
   SET (CMAKE_C_FLAGS_RELEASE "-DNDEBUG -O3") # -DFLOAT_APPROX -Ofast
   SET (CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3") # -DFLOAT_APPROX -Ofast
+
+  IF (STAR_MEMORY_SANITIZER)
+    SET (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+    SET (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+    set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fsanitize=address")
+    SET (CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fno-omit-frame-pointer -fsanitize=address")
+    SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -fno-omit-frame-pointer -fsanitize=address")
+    SET (CMAKE_LINKER_FLAGS_RELWITHDEBINFO "${CMAKE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=address")
+  ENDIF ()
 
 ELSEIF (STAR_COMPILER_MSVC)
   # /MP      - Multi-processor building
@@ -413,6 +430,13 @@ ELSEIF (STAR_COMPILER_MSVC)
   ADD_DEFINITIONS (/DUNICODE)
   ADD_DEFINITIONS (/D_UNICODE)
   ADD_DEFINITIONS (/DNOMINMAX)
+
+  IF (STAR_MEMORY_SANITIZER)
+    SET (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /fsanitize=address")
+    SET (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /fsanitize=address")
+    SET (CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} /fsanitize=address")
+    SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /fsanitize=address")
+  ENDIF ()
 
 ELSE ()
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pthread -D_REENTRANT")
