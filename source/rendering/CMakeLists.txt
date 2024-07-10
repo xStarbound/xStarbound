@@ -1,40 +1,37 @@
-INCLUDE_DIRECTORIES (
-    ${STAR_EXTERN_INCLUDES}
-    ${STAR_CORE_INCLUDES}
-    ${STAR_BASE_INCLUDES}
-    ${STAR_GAME_INCLUDES}
-    ${STAR_PLATFORM_INCLUDES}
-    ${STAR_APPLICATION_INCLUDES}
-    ${STAR_RENDERING_INCLUDES}
-  )
-
-SET (star_rendering_HEADERS
-      StarAnchorTypes.hpp
-      StarAssetTextureGroup.hpp
-      StarDrawablePainter.hpp
-      StarEnvironmentPainter.hpp
-      StarFontTextureGroup.hpp
-      StarTextPainter.hpp
-      StarTilePainter.hpp
-      StarWorldCamera.hpp
-      StarWorldPainter.hpp
-    )
-
-SET (star_rendering_SOURCES
-      StarAnchorTypes.cpp
-      StarAssetTextureGroup.cpp
-      StarDrawablePainter.cpp
-      StarEnvironmentPainter.cpp
-      StarFontTextureGroup.cpp
-      StarTextPainter.cpp
-      StarTilePainter.cpp
-      StarWorldCamera.cpp
-      StarWorldPainter.cpp
-    )
-
-ADD_LIBRARY (star_rendering OBJECT ${star_rendering_SOURCES} ${star_rendering_HEADERS})
-TARGET_LINK_LIBRARIES (star_rendering
-        PUBLIC
-        ${STAR_EXT_LIBS}
+add_library(star_rendering STATIC
+        StarAnchorTypes.cpp
+        StarAnchorTypes.hpp
+        StarAssetTextureGroup.cpp
+        StarAssetTextureGroup.hpp
+        StarDrawablePainter.cpp
+        StarDrawablePainter.hpp
+        StarEnvironmentPainter.cpp
+        StarEnvironmentPainter.hpp
+        StarFontTextureGroup.cpp
+        StarFontTextureGroup.hpp
+        StarTextPainter.cpp
+        StarTextPainter.hpp
+        StarTilePainter.cpp
+        StarTilePainter.hpp
+        StarWorldCamera.cpp
+        StarWorldCamera.hpp
+        StarWorldPainter.cpp
+        StarWorldPainter.hpp
 )
-TARGET_PRECOMPILE_HEADERS (star_rendering REUSE_FROM star_core)
+
+target_include_directories(star_rendering
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(star_rendering
+        PUBLIC
+        Star::Application
+        Star::Game
+        Star::Base
+)
+
+target_precompile_headers(star_rendering REUSE_FROM star_core)
+
+add_library(Star::Rendering ALIAS star_rendering)
+

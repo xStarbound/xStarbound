@@ -1,44 +1,45 @@
-INCLUDE_DIRECTORIES (
-    ${STAR_EXTERN_INCLUDES}
-    ${STAR_CORE_INCLUDES}
-    ${STAR_BASE_INCLUDES}
-  )
+add_library(star_base STATIC
+        StarAnimatedPartSet.cpp
+        StarAnimatedPartSet.hpp
+        StarAssetSource.hpp
+        StarAssets.cpp
+        StarAssets.hpp
+        StarBlocksAlongLine.hpp
+        StarCellularLightArray.hpp
+        StarCellularLighting.cpp
+        StarCellularLighting.hpp
+        StarCellularLiquid.hpp
+        StarConfiguration.cpp
+        StarConfiguration.hpp
+        StarDirectoryAssetSource.cpp
+        StarDirectoryAssetSource.hpp
+        StarMemoryAssetSource.cpp
+        StarMemoryAssetSource.hpp
+        StarMixer.cpp
+        StarMixer.hpp
+        StarPackedAssetSource.cpp
+        StarPackedAssetSource.hpp
+        StarRootBase.cpp
+        StarRootBase.hpp
+        StarVersionOptionParser.cpp
+        StarVersionOptionParser.hpp
+        StarWorldGeometry.cpp
+        StarWorldGeometry.hpp
+        scripting/StarImageLuaBindings.cpp
+        scripting/StarImageLuaBindings.hpp
+)
 
-SET (star_base_HEADERS
-    StarAnimatedPartSet.hpp
-    StarAssets.hpp
-    StarAssetSource.hpp
-    StarBlocksAlongLine.hpp
-    StarCellularLightArray.hpp
-    StarCellularLighting.hpp
-    StarCellularLiquid.hpp
-    StarConfiguration.hpp
-    StarDirectoryAssetSource.hpp
-    StarMemoryAssetSource.hpp
-    StarMixer.hpp
-    StarPackedAssetSource.hpp
-    StarRootBase.hpp
-    StarVersionOptionParser.hpp
-    StarWorldGeometry.hpp
+target_include_directories(star_base
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripting
+)
 
-    scripting/StarImageLuaBindings.hpp
-  )
+target_link_libraries(star_base
+        PUBLIC
+        Star::Core
+)
 
-SET (star_base_SOURCES
-    StarAnimatedPartSet.cpp
-    StarAssets.cpp
-    StarCellularLighting.cpp
-    StarConfiguration.cpp
-    StarDirectoryAssetSource.cpp
-    StarMemoryAssetSource.cpp
-    StarMixer.cpp
-    StarPackedAssetSource.cpp
-    StarRootBase.cpp
-    StarVersionOptionParser.cpp
-    StarWorldGeometry.cpp
+target_precompile_headers(star_base REUSE_FROM star_core)
 
-    scripting/StarImageLuaBindings.cpp
-  )
-
-ADD_LIBRARY (star_base OBJECT ${star_base_SOURCES} ${star_base_HEADERS})
-TARGET_PRECOMPILE_HEADERS (star_base REUSE_FROM star_core)
+add_library(Star::Base ALIAS star_base)

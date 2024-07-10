@@ -1,7 +1,7 @@
 #include <QApplication>
 #include <QMessageBox>
 
-#include "steam/steam_api.h"
+#include "steam_api.h"
 
 #include "StarModUploader.hpp"
 #include "StarStringConversion.hpp"

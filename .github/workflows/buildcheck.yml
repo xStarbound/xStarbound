@@ -32,17 +32,18 @@ jobs:
         run: |
           mkdir "${{ github.workspace }}\dist"
           copy "${{ github.workspace }}\scripts\steam_appid.txt" "${{ github.workspace }}\dist\"
-          copy "${{ github.workspace }}\lib\windows\*.dll" "${{ github.workspace }}\dist\"
           copy "${{ github.workspace }}\scripts\windows\xsbinit.config" "${{ github.workspace }}\dist\"
 
       - name: Configure CMake
-        run: cmake -G "Visual Studio 17 2022" -A "X64" -S "${{ github.workspace }}/source" -B "${{ github.workspace }}/cmake-build" -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/dist" -DCMAKE_TOOLCHAIN_FILE="${Env:VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreadedDebugDLL" -DCMAKE_VERBOSE_MAKEFILE=YES -DBUILD_TESTING=YES -DSTAR_USE_JEMALLOC=OFF -DSTAR_BUILD_QT_TOOLS=OFF -DSTAR_ENABLE_STEAM_INTEGRATION=ON -DSTAR_ENABLE_DISCORD_INTEGRATION=ON -DCMAKE_INCLUDE_PATH="${{ github.workspace }}\lib\windows\include" -DCMAKE_LIBRARY_PATH="${{ github.workspace }}\lib\windows"
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+        run: cmake --preset "windows-x64"
 
       - name: Build Debug
-        run: cmake --build "${{ github.workspace }}/cmake-build" --config "Debug" --parallel
+        run: cmake --build --preset "windows-x64-debug"
 
       - name: Run Unit Tests
-        run: ctest --test-dir "${{ github.workspace }}/cmake-build" --verbose --build-config "Debug"
+        run: ctest --preset "windows-x64"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -70,16 +71,15 @@ jobs:
         run: |
           mkdir "${{ github.workspace }}\dist"
           copy "${{ github.workspace }}\scripts\steam_appid.txt" "${{ github.workspace }}\dist\"
-          copy "${{ github.workspace }}\lib\windows\*.dll" "${{ github.workspace }}\dist\"
           copy "${{ github.workspace }}\scripts\windows\xsbinit.config" "${{ github.workspace }}\dist\"
 
       - name: Configure CMake
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: cmake -G "Visual Studio 17 2022" -A "X64" -S "${{ github.workspace }}/source" -B "${{ github.workspace }}/cmake-build" -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/dist" -DCMAKE_TOOLCHAIN_FILE="${Env:VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreadedDLL" -DCMAKE_VERBOSE_MAKEFILE=YES -DSTAR_USE_JEMALLOC=OFF -DSTAR_BUILD_QT_TOOLS=OFF -DSTAR_ENABLE_STEAM_INTEGRATION=ON -DSTAR_ENABLE_DISCORD_INTEGRATION=ON -DCMAKE_INCLUDE_PATH="${{ github.workspace }}\lib\windows\include" -DCMAKE_LIBRARY_PATH="${{ github.workspace }}\lib\windows"
+        run: cmake --preset "windows-x64"
 
       - name: Build Release
-        run: cmake --build "${{ github.workspace }}/cmake-build" --config "Release" --parallel
+        run: cmake --build --preset "windows-x64-release"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -95,7 +95,7 @@ jobs:
       - name: Install Build Dependencies
         run: |
           sudo apt update
-          sudo apt install build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev ninja-build
+          sudo apt install ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
@@ -111,20 +111,19 @@ jobs:
       - name: Copy Auxiliary Files
         run: |
           mkdir "${{ github.workspace }}/dist"
-          cp "${{ github.workspace }}/lib/linux/libsteam_api.so" "${{ github.workspace }}/dist/"
           cp "${{ github.workspace }}/scripts/steam_appid.txt" "${{ github.workspace }}/dist/"
           cp "${{ github.workspace }}/scripts/linux/xsbinit.config" "${{ github.workspace }}/dist/"
 
       - name: Configure CMake
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: cmake -G "Ninja Multi-Config" -S "${{ github.workspace }}/source" -B "${{ github.workspace }}/cmake-build" -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/dist" -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-linux -DCMAKE_VERBOSE_MAKEFILE=YES -DBUILD_TESTING=YES -DSTAR_USE_JEMALLOC=OFF -DSTAR_BUILD_QT_TOOLS=OFF -DSTAR_ENABLE_STEAM_INTEGRATION=ON -DSTAR_ENABLE_DISCORD_INTEGRATION=OFF -DCMAKE_INCLUDE_PATH="${{ github.workspace }}/lib/linux/include" -DCMAKE_LIBRARY_PATH="${{ github.workspace }}/lib/linux"
+        run: cmake --preset "linux-vcpkg-x86_64"
 
       - name: Build Debug
-        run: cmake --build "${{ github.workspace }}/cmake-build" --config "Debug" --parallel
+        run: cmake --build --preset "linux-vcpkg-x86_64-debug"
 
       - name: Run Unit Tests
-        run: ctest --test-dir "${{ github.workspace }}/cmake-build" --verbose --build-config "Debug"
+        run: ctest --preset "linux-vcpkg-x86_64"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -140,7 +139,7 @@ jobs:
       - name: Install Build Dependencies
         run: |
           sudo apt update
-          sudo apt install build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev ninja-build
+          sudo apt install ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
@@ -156,17 +155,16 @@ jobs:
       - name: Copy Auxiliary Files
         run: |
           mkdir "${{ github.workspace }}/dist"
-          cp "${{ github.workspace }}/lib/linux/libsteam_api.so" "${{ github.workspace }}/dist/"
           cp "${{ github.workspace }}/scripts/steam_appid.txt" "${{ github.workspace }}/dist/"
           cp "${{ github.workspace }}/scripts/linux/xsbinit.config" "${{ github.workspace }}/dist/"
 
       - name: Configure CMake
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: cmake -G "Ninja Multi-Config" -S "${{ github.workspace }}/source" -B "${{ github.workspace }}/cmake-build" -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/dist" -DCMAKE_TOOLCHAIN_FILE="${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-linux -DCMAKE_VERBOSE_MAKEFILE=YES -DBUILD_TESTING=NO -DSTAR_USE_JEMALLOC=OFF -DSTAR_BUILD_QT_TOOLS=OFF -DSTAR_ENABLE_STEAM_INTEGRATION=ON -DSTAR_ENABLE_DISCORD_INTEGRATION=OFF -DCMAKE_INCLUDE_PATH="${{ github.workspace }}/lib/linux/include" -DCMAKE_LIBRARY_PATH="${{ github.workspace }}/lib/linux"
+        run: cmake --preset "linux-vcpkg-x86_64"
 
       - name: Build Release
-        run: cmake --build "${{ github.workspace }}/cmake-build" --config "Release" --parallel
+        run: cmake --build --preset "linux-vcpkg-x86_64-release"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

@@ -1,11 +1,15 @@
-INCLUDE_DIRECTORIES (
-    ${STAR_EXTERN_INCLUDES}
-    ${STAR_CORE_INCLUDES}
-    ${STAR_PLATFORM_INCLUDES}
-  )
+add_library(star_platform INTERFACE)
 
-SET (star_platform_HEADERS
-    StarP2PNetworkingService.hpp
-    StarStatisticsService.hpp
-    StarUserGeneratedContentService.hpp
-  )
+target_sources(star_platform
+        PUBLIC
+        StarP2PNetworkingService.hpp
+        StarStatisticsService.hpp
+        StarUserGeneratedContentService.hpp
+)
+
+target_include_directories(star_platform
+        INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+add_library(Star::Platform ALIAS star_platform)

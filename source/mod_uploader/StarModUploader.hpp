@@ -9,7 +9,7 @@
 #include <QPushButton>
 #include <QCheckBox>
 
-#include "steam/steam_api.h"
+#include "steam_api.h"
 
 #include "StarDirectoryAssetSource.hpp"
 #include "StarSPlainTextEdit.hpp"

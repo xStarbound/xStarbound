@@ -1,19 +1,17 @@
-INCLUDE_DIRECTORIES (
-    ${STAR_EXTERN_INCLUDES}
-    ${STAR_CORE_INCLUDES}
-  )
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Widgets)
 
-FIND_PACKAGE (Qt5Core)
-FIND_PACKAGE (Qt5Widgets)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
 
-SET (CMAKE_INCLUDE_CURRENT_DIR ON)
-SET (CMAKE_AUTOMOC ON)
+add_executable(json_tool WIN32
+        json_tool.cpp
+        editor_gui.cpp
+)
 
-ADD_EXECUTABLE (json_tool WIN32
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core>
-  json_tool.cpp editor_gui.cpp)
-QT5_USE_MODULES (json_tool Widgets Gui Core)
-TARGET_LINK_LIBRARIES (json_tool ${STAR_EXT_LIBS})
-
-SET (CMAKE_AUTOMOC OFF)
-SET (CMAKE_INCLUDE_CURRENT_DIR OFF)
+target_link_libraries(json_tool
+        Star::Core
+        Qt${QT_VERSION_MAJOR}::Core
+        Qt${QT_VERSION_MAJOR}::Gui
+        Qt${QT_VERSION_MAJOR}::Widgets
+)

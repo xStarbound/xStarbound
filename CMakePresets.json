@@ -1,0 +1,938 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "generator-visual-studio",
+      "displayName": "Visual Studio 2022 Generator",
+      "description": "Creates a Visual Studio 2022 solution.",
+      "generator": "Visual Studio 17 2022",
+      "hidden": true
+    },
+    {
+      "name": "generator-ninja",
+      "displayName": "Ninja Multi-Config Generator",
+      "description": "Uses Ninja as the build processor, which can build multiple configuration per build directory.",
+      "generator": "Ninja Multi-Config",
+      "hidden": true
+    },
+    {
+      "name": "generator-xcode",
+      "displayName": "Xcode Generator",
+      "description": "Creates an code project for building on macOS.",
+      "generator": "Xcode",
+      "hidden": true
+    },
+    {
+      "name": "generator-make",
+      "displayName": "UNIX Makefile Generator",
+      "description": "Classic single-configuration build processor. Only use if Ninja is unavailable.",
+      "generator": "UNIX Makefiles",
+      "hidden": true
+    },
+    {
+      "name": "vcpkg-environment",
+      "displayName": "vcpkg parameters",
+      "description": "Sets up common vcpkg parameters for CMake",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_VERBOSE_MAKEFILE": "ON"
+      }
+    },
+    {
+      "name": "os-linux-x86_64",
+      "displayName": "Linux x86_64",
+      "description": "Sets vcpkg triplet for building on Linux, 64-bit x86",
+      "binaryDir": "${sourceDir}/cmake-build-linux-x86_64",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-linux",
+        "VCPKG_HOST_TRIPLET": "x64-linux",
+        "VCPKG_TARGET_ARCHITECTURE": "x64",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{VCPKG_INSTALLATION_ROOT}/scripts/toolchains/linux.cmake"
+      }
+    },
+    {
+      "name": "os-linux-i386",
+      "displayName": "Linux i386",
+      "description": "Sets vcpkg triplet for building on Linux, 32-bit x86",
+      "binaryDir": "${sourceDir}/cmake-build-linux-i386",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x86-linux",
+        "VCPKG_HOST_TRIPLET": "x86-linux",
+        "VCPKG_TARGET_ARCHITECTURE": "x86",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{VCPKG_INSTALLATION_ROOT}/scripts/toolchains/linux.cmake"
+      }
+    },
+    {
+      "name": "os-linux-aarch64",
+      "displayName": "Linux ARM64",
+      "description": "Sets vcpkg triplet for building on Linux, 64-bit ARM",
+      "binaryDir": "${sourceDir}/cmake-build-linux-aarch64",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "arm64-linux",
+        "VCPKG_HOST_TRIPLET": "arm64-linux",
+        "VCPKG_TARGET_ARCHITECTURE": "arm64",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{VCPKG_INSTALLATION_ROOT}/scripts/toolchains/linux.cmake"
+      }
+    },
+    {
+      "name": "os-windows-x64",
+      "displayName": "Windows",
+      "description": "Sets vcpkg triplet for building on Windows, 64-bit x86",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/cmake-build-windows-x64",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_HOST_TRIPLET": "x64-windows",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+      }
+    },
+    {
+      "name": "os-windows-x86",
+      "displayName": "Windows",
+      "description": "Sets vcpkg triplet for building on Windows, 32-bit x86",
+      "architecture": "x86",
+      "binaryDir": "${sourceDir}/cmake-build-windows-x86",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x86-windows",
+        "VCPKG_HOST_TRIPLET": "x86-windows",
+        "CMAKE_MSVC_RUNTIME_LIBRARY": "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+      }
+    },
+    {
+      "name": "os-macos-x86_64",
+      "displayName": "macOS",
+      "description": "Sets vcpkg triplet for building on macOS, 64-bit x86",
+      "binaryDir": "${sourceDir}/cmake-build-macos-x86_64",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-osx",
+        "VCPKG_HOST_TRIPLET": "x64-osx",
+        "VCPKG_TARGET_ARCHITECTURE": "x64",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{VCPKG_INSTALLATION_ROOT}/scripts/toolchains/osx.cmake"
+      }
+    },
+    {
+      "name": "os-macos-arm64",
+      "displayName": "macOS",
+      "description": "Sets vcpkg triplet for building on macOS, 64-bit ARM",
+      "binaryDir": "${sourceDir}/cmake-build-macos-arm64",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "arm64-osx",
+        "VCPKG_HOST_TRIPLET": "arm64-osx",
+        "VCPKG_TARGET_ARCHITECTURE": "arm64",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{VCPKG_INSTALLATION_ROOT}/scripts/toolchains/osx.cmake"
+      }
+    },
+    {
+      "name": "windows-x64",
+      "displayName": "Windows 64-bit x86",
+      "inherits": [
+        "generator-visual-studio",
+        "vcpkg-environment",
+        "os-windows-x64"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_BUILD_GUI": "ON",
+        "STAR_BUILD_QT_TOOLS": "ON",
+        "BUILD_TESTING": "ON"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Windows"
+          }
+        ]
+      }
+    },
+    {
+      "name": "windows-x86",
+      "displayName": "Windows 32-bit x86",
+      "inherits": [
+        "generator-visual-studio",
+        "vcpkg-environment",
+        "os-windows-x86"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_BUILD_GUI": "ON",
+        "STAR_BUILD_QT_TOOLS": "ON",
+        "BUILD_TESTING": "ON"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Windows"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-system-x86_64",
+      "displayName": "Linux System 64-bit x86",
+      "inherits": [
+        "generator-ninja",
+        "os-linux-x86_64"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_BUILD_GUI": "ON",
+        "STAR_BUILD_QT_TOOLS": "ON",
+        "BUILD_TESTING": "ON"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-system-i386",
+      "displayName": "Linux System 32-bit x86",
+      "inherits": [
+        "generator-ninja",
+        "os-linux-i386"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_BUILD_GUI": "ON",
+        "STAR_BUILD_QT_TOOLS": "ON",
+        "BUILD_TESTING": "ON"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-system-aarch64",
+      "displayName": "Linux System 64-bit ARM",
+      "inherits": [
+        "generator-ninja",
+        "os-linux-aarch64"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_BUILD_GUI": "ON",
+        "STAR_BUILD_QT_TOOLS": "ON"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-vcpkg-x86_64",
+      "displayName": "Linux vcpkg 64-bit x86",
+      "inherits": [
+        "generator-ninja",
+        "vcpkg-environment",
+        "os-linux-x86_64"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_BUILD_GUI": "ON",
+        "STAR_BUILD_QT_TOOLS": "ON",
+        "BUILD_TESTING": "ON"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-vcpkg-i386",
+      "displayName": "Linux vcpkg 32-bit x86",
+      "inherits": [
+        "generator-ninja",
+        "vcpkg-environment",
+        "os-linux-i386"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_BUILD_GUI": "ON",
+        "STAR_BUILD_QT_TOOLS": "ON",
+        "BUILD_TESTING": "ON"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-vcpkg-aarch64",
+      "displayName": "Linux vcpkg 64-bit ARM",
+      "inherits": [
+        "generator-ninja",
+        "vcpkg-environment",
+        "os-linux-aarch64"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_BUILD_GUI": "ON",
+        "STAR_BUILD_QT_TOOLS": "ON",
+        "BUILD_TESTING": "ON"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-serveronly-system-x86_64",
+      "displayName": "Linux Server 64-bit x86",
+      "inherits": [
+        "generator-ninja",
+        "os-linux-x86_64"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
+        "STAR_BUILD_GUI": "OFF",
+        "STAR_BUILD_QT_TOOLS": "OFF"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-serveronly-system-i386",
+      "displayName": "Linux Server 64-bit x86",
+      "inherits": [
+        "generator-ninja",
+        "os-linux-i386"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
+        "STAR_BUILD_GUI": "OFF",
+        "STAR_BUILD_QT_TOOLS": "OFF"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-serveronly-system-aarch64",
+      "displayName": "Linux Server 64-bit ARM",
+      "inherits": [
+        "generator-ninja",
+        "os-linux-aarch64"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
+        "STAR_BUILD_GUI": "OFF",
+        "STAR_BUILD_QT_TOOLS": "OFF"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "macos-x86_64",
+      "displayName": "macOS 64-bit x86",
+      "inherits": [
+        "generator-xcode",
+        "vcpkg-environment",
+        "os-macos-x86_64"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_BUILD_GUI": "ON",
+        "STAR_BUILD_QT_TOOLS": "ON",
+        "BUILD_TESTING": "ON"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Darwin"
+          }
+        ]
+      }
+    },
+    {
+      "name": "macos-arm64",
+      "displayName": "macOS 64-bit ARM",
+      "inherits": [
+        "generator-xcode",
+        "vcpkg-environment",
+        "os-macos-arm64"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_BUILD_GUI": "ON",
+        "STAR_BUILD_QT_TOOLS": "ON"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Darwin"
+          }
+        ]
+      }
+    },
+    {
+      "name": "macos-server-x86_64",
+      "displayName": "macOS Server 64-bit x86",
+      "inherits": [
+        "generator-xcode",
+        "vcpkg-environment",
+        "os-macos-x86_64"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
+        "STAR_BUILD_GUI": "OFF",
+        "STAR_BUILD_QT_TOOLS": "OFF"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Darwin"
+          }
+        ]
+      }
+    },
+    {
+      "name": "macos-server-arm64",
+      "displayName": "macOS Server 64-bit ARM",
+      "inherits": [
+        "generator-xcode",
+        "vcpkg-environment",
+        "os-macos-arm64"
+      ],
+      "cacheVariables": {
+        "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
+        "STAR_BUILD_GUI": "OFF",
+        "STAR_BUILD_QT_TOOLS": "OFF"
+      },
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Darwin"
+          }
+        ]
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-x64-release",
+      "displayName": "Windows x64 - Release",
+      "configurePreset": "windows-x64",
+      "configuration": "Release",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Windows"
+          }
+        ]
+      }
+    },
+    {
+      "name": "windows-x64-debug",
+      "displayName": "Windows x64 - Debug",
+      "configurePreset": "windows-x64",
+      "configuration": "Debug",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Windows"
+          }
+        ]
+      }
+    },
+    {
+      "name": "windows-x86-release",
+      "displayName": "Windows x86 - Release",
+      "configurePreset": "windows-x86",
+      "configuration": "Release",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Windows"
+          }
+        ]
+      }
+    },
+    {
+      "name": "windows-x86-debug",
+      "displayName": "Windows x86 - Debug",
+      "configurePreset": "windows-x86",
+      "configuration": "Debug",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Windows"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-system-x86_64-release",
+      "displayName": "Linux System x86_64 - Release",
+      "configurePreset": "linux-system-x86_64",
+      "configuration": "Release",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-system-x86_64-debug",
+      "displayName": "Linux System x86_64 - Debug",
+      "configurePreset": "linux-vcpkg-x86_64",
+      "configuration": "Debug",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-vcpkg-x86_64-release",
+      "displayName": "Linux vcpkg x86_64 - Release",
+      "configurePreset": "linux-vcpkg-x86_64",
+      "configuration": "Release",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-vcpkg-x86_64-debug",
+      "displayName": "Linux vcpkg x86_64 - Debug",
+      "configurePreset": "linux-vcpkg-x86_64",
+      "configuration": "Debug",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-vcpkg-i386-release",
+      "displayName": "Linux vcpkg i386 - Release",
+      "configurePreset": "linux-vcpkg-i386",
+      "configuration": "Release",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "linux-vcpkg-i386-debug",
+      "displayName": "Linux vcpkg i386 - Debug",
+      "configurePreset": "linux-vcpkg-i386",
+      "configuration": "Debug",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Linux"
+          }
+        ]
+      }
+    },
+    {
+      "name": "macos-x86_64-release",
+      "displayName": "macOS 64-bit x86 - Release",
+      "configurePreset": "macos-x86_64",
+      "configuration": "Release",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Darwin"
+          }
+        ]
+      }
+    },
+    {
+      "name": "macos-x86_64-debug",
+      "displayName": "macOS 64-bit x86 - Debug",
+      "configurePreset": "macos-x86_64",
+      "configuration": "Debug",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Darwin"
+          }
+        ]
+      }
+    },
+    {
+      "name": "macos-arm64-release",
+      "displayName": "macOS 64-bit ARM - Release",
+      "configurePreset": "macos-arm64",
+      "configuration": "Release",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Darwin"
+          }
+        ]
+      }
+    },
+    {
+      "name": "macos-arm64-debug",
+      "displayName": "macOS 64-bit ARM - Debug",
+      "configurePreset": "macos-arm64",
+      "configuration": "Debug",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Darwin"
+          }
+        ]
+      }
+    },
+    {
+      "name": "macos-server-x86_64-release",
+      "displayName": "macOS Server 64-bit x86 - Release",
+      "configurePreset": "macos-server-x86_64",
+      "configuration": "Release",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Darwin"
+          }
+        ]
+      }
+    },
+    {
+      "name": "macos-server-x86_64-debug",
+      "displayName": "macOS Server 64-bit x86 - Debug",
+      "configurePreset": "macos-server-x86_64",
+      "configuration": "Debug",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Darwin"
+          }
+        ]
+      }
+    },
+    {
+      "name": "macos-server-arm64-release",
+      "displayName": "macOS Server 64-bit ARM - Release",
+      "configurePreset": "macos-server-arm64",
+      "configuration": "Release",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Darwin"
+          }
+        ]
+      }
+    },
+    {
+      "name": "macos-server-arm64-debug",
+      "displayName": "macOS Server 64-bit ARM - Debug",
+      "configurePreset": "macos-server-arm64",
+      "configuration": "Debug",
+      "condition": {
+        "type": "allOf",
+        "conditions": [
+          {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Darwin"
+          }
+        ]
+      }
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-x64",
+      "configurePreset": "windows-x64",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "verbose"
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      }
+    },
+    {
+      "name": "windows-x86",
+      "configurePreset": "windows-x86",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "verbose"
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      }
+    },
+    {
+      "name": "linux-system-x86_64",
+      "configurePreset": "linux-system-x86_64",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "verbose"
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      }
+    },
+    {
+      "name": "linux-vcpkg-x86_64",
+      "configurePreset": "linux-vcpkg-x86_64",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "verbose"
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      }
+    },
+    {
+      "name": "linux-system-i386",
+      "configurePreset": "linux-system-i386",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "verbose"
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      }
+    },
+    {
+      "name": "linux-vcpkg-i386",
+      "configurePreset": "linux-vcpkg-i386",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "verbose"
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      }
+    },
+    {
+      "name": "linux-system-aarch64",
+      "configurePreset": "linux-system-aarch64",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "verbose"
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      }
+    },
+    {
+      "name": "linux-vcpkg-aarch64",
+      "configurePreset": "linux-vcpkg-aarch64",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "verbose"
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      }
+    },
+    {
+      "name": "macos-x86_64",
+      "configurePreset": "macos-x86_64",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "verbose"
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      }
+    },
+    {
+      "name": "macos-arm64",
+      "configurePreset": "macos-arm64",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true,
+        "verbosity": "verbose"
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      }
+    }
+  ]
+}

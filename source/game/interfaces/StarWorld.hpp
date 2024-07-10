@@ -7,7 +7,7 @@
 #include "StarForceRegions.hpp"
 #include "StarWorldGeometry.hpp"
 #include "StarTileModification.hpp"
-#include "StarLuaRoot.hpp"
+#include "scripting/StarLuaRoot.hpp"
 #include "StarRpcPromise.hpp"
 
 namespace Star {

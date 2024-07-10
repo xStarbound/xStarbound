@@ -1,0 +1,54 @@
+{
+  "name": "xstarbound",
+  "version": "1.0.0",
+  "default-features": [
+    "gui"
+  ],
+  "dependencies": [
+    "freetype",
+    "zlib",
+    "libpng",
+    "libogg",
+    "libvorbis",
+    "opus"
+  ],
+  "features": {
+    "gui": {
+      "description": "Build client GUI",
+      "dependencies": [
+        "sdl2",
+        "glew"
+      ]
+    },
+    "qttools": {
+      "description": "Build Qt-based tools",
+      "dependencies": [
+        {
+          "name": "qtbase",
+          "default-features": false,
+          "features": [
+            "widgets"
+          ]
+        }
+      ]
+    },
+    "jemalloc": {
+      "description": "Use jemalloc memory allocator",
+      "dependencies": [
+        "jemalloc"
+      ]
+    },
+    "mimalloc": {
+      "description": "Use jemalloc memory allocator",
+      "dependencies": [
+        "jemalloc"
+      ]
+    },
+    "tests": {
+      "description": "Build unit tests",
+      "dependencies": [
+        "gtest"
+      ]
+    }
+  }
+}
