@@ -17,7 +17,7 @@ assignees: FezzedOne
 2. [...]
 3. [...]
 
--# Delete this text and everything below it before posting your issue!
+< Delete this text and everything below it before posting your issue! >
 
 ## Logs and screenshots
 
