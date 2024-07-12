@@ -167,7 +167,7 @@ Adds a list of effects to the specified effect category.
 
 #### `void` status.setPersistentEffects(`String` effectCategory, `JsonArray` effects)
 
-Sets the list of effects of the specified effect category. Replaces the current list active effects.
+Sets the list of effects of the specified effect category. Replaces the current list of active effects.
 
 ---
 
