@@ -779,17 +779,18 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
     CustomBarIndex wrapped = (slotIndex - 1) % (unsigned)inventory->customBarIndexes();
 
     bool validHand = true;
+    LuaValue returnValue = LuaNil;
     if (handName == "primary")
-      return fromInventorySlot(engine, inventory->customBarPrimarySlot(wrapped));
+      returnValue = fromInventorySlot(engine, inventory->customBarPrimarySlot(wrapped));
     else if (handName == "alt")
-      return fromInventorySlot(engine, inventory->customBarSecondarySlot(wrapped));
+      returnValue = fromInventorySlot(engine, inventory->customBarSecondarySlot(wrapped));
     else
       Logger::warn("player.actionBarSlotLink: Invalid hand '{}' specified!", handName);
 
     if (swappedGroup)
       player->inventory()->setCustomBarGroup(currentCustomBarGroup);
 
-    return LuaNil;
+    return returnValue;
   });
 
   callbacks.registerCallback("setActionBarSlotLink", [player](Variant<int, Vec2I> slot, String const& handName, LuaValue const& rawInventorySlot) {
