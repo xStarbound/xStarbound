@@ -104,4 +104,7 @@ StarException StarException::format(fmt::format_string<Args...> fmt, Args const&
 
 }
 
+// Downstream code may not include this header, missing implementations for the above strf() templates.
+#include "StarFormat.hpp"
+
 #endif
