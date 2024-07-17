@@ -37,6 +37,18 @@ static bool isIndexBasedTable(lua_State* L, int i)
 		}
 		lua_pop(L, 2);
 	}
+	// FezzedOne: If no integer keys are found, check for a Starbound type hint.
+	if (const auto type = luaL_getmetafield(L, -2, "__typehint")) {
+		if (lua_isinteger(L, -2)) {
+			const auto typeHint = lua_tointeger(L, -2);
+			lua_pop(L, 2);
+			if (typeHint == 1) return true;
+			else if (typeHint == 2) return false;
+		} else {
+			lua_pop(L, 1);
+		}
+	}
+	// FezzedOne: If any integer keys are found, but no Starbound type hint is found, assume this is an array.
 	lua_pop(L, 1);
 	return true;
 }
@@ -152,6 +164,19 @@ static void pushFromJson(lua_State* L, const soup::JsonNode& node, int flags)
 	case soup::JSON_ARRAY:
 		{
 			lua_newtable(L);
+			// FezzedOne: Set the correct Starbound type hint for any JSON arrays so that empty arrays are handled appropriately.
+			if (lua_getmetatable(L, -1)) { // Existing metatable (i.e., if Pluto's table `__index` methods are enabled).
+				lua_pushstring(L, "__typehint");
+				lua_pushinteger(L, 1);
+				lua_rawset(L, -3);
+				lua_pop(L, 1);
+			} else { // New metatable.
+				lua_newtable(L);
+				lua_pushstring(L, "__typehint");
+				lua_pushinteger(L, 1);
+				lua_rawset(L, -3);
+				lua_setmetatable(L, -1);
+			}
 			lua_Integer i = 1;
 			for (const auto& child : node.reinterpretAsArr().children)
 			{
