@@ -172,19 +172,16 @@ TEST(StringTest, utf8) {
   EXPECT_EQ(s2, String("日本語日本語日本語"));
   EXPECT_EQ(String("日本語日本語日本語").reverse(), String("語本日語本日語本日"));
 
-  EXPECT_EQ(String("foo_bar_baz_baf").regexMatch("foo.*baf"), true);
-  EXPECT_EQ(String("日本語日本語日本語").regexMatch("日.*本語"), true);
-  EXPECT_EQ(String("12345678").regexMatch("[[:digit:]]{1,8}"), true);
-  EXPECT_EQ(String("81234567").regexMatch("[[:digit:]]{1,7}"), false);
-  EXPECT_EQ(String("12345678").regexMatch("[[:digit:]]{1,7}"), false);
-  EXPECT_EQ(String("12345678").regexMatch("[[:digit:]]{1,8}", false), true);
-  EXPECT_EQ(String("81234567").regexMatch("[[:digit:]]{1,7}", false), true);
-  EXPECT_EQ(String("12345678").regexMatch("[[:digit:]]{1,7}", false), true);
+  EXPECT_TRUE(String("foo_bar_baz_baf").regexMatch("foo.*baf"));
+  EXPECT_TRUE(String("日本語日本語日本語").regexMatch("日.*本語"));
+  EXPECT_TRUE(String("12345678").regexMatch("[[:digit:]]{1,8}"));
+  EXPECT_FALSE(String("81234567").regexMatch("[[:digit:]]{1,7}"));
+  EXPECT_FALSE(String("12345678").regexMatch("[[:digit:]]{1,7}"));
+  EXPECT_TRUE(String("12345678").regexMatch("[[:digit:]]{1,8}", false));
+  EXPECT_TRUE(String("81234567").regexMatch("[[:digit:]]{1,7}", false));
+  EXPECT_TRUE(String("12345678").regexMatch("[[:digit:]]{1,7}", false));
 
-  EXPECT_EQ(String("𠜎𠜱𠝹𠱓𠱸𠲖𠳏𠳕𠴕𠵼𠵿𠸎𠸏𠹷𠺝𠺢𠻗𠻹𠻺𠼭𠼮𠽌𠾴𠾼𠿪𡁜𡁯𡁵𡁶𡁻𡃁𡃉𡇙𢃇𢞵𢫕𢭃𢯊𢱑𢱕𢳂𢴈𢵌𢵧𢺳𣲷𤓓𤶸𤷪"
-                   "𥄫𦉘𦟌𦧲𦧺𧨾𨅝𨈇𨋢𨳊𨳍𨳒𩶘")
-                .size(),
-      62u);
+  EXPECT_EQ(String("𠜎𠜱𠝹𠱓𠱸𠲖𠳏𠳕𠴕𠵼𠵿𠸎𠸏𠹷𠺝𠺢𠻗𠻹𠻺𠼭𠼮𠽌𠾴𠾼𠿪𡁜𡁯𡁵𡁶𡁻𡃁𡃉𡇙𢃇𢞵𢫕𢭃𢯊𢱑𢱕𢳂𢴈𢵌𢵧𢺳𣲷𤓓𤶸𤷪𥄫𦉘𦟌𦧲𦧺𧨾𨅝𨈇𨋢𨳊𨳍𨳒𩶘").size(), 62u);
 }
 
 TEST(StringTest, tags) {
@@ -231,5 +228,5 @@ TEST(StringTest, RegexSearch) {
   EXPECT_FALSE(String("foo bar").regexMatch("FOO", false, true));
   EXPECT_TRUE(String("foo bar").regexMatch("^fo*", false, true));
   EXPECT_FALSE(String("foo bar").regexMatch("^fo*", true, true));
-  EXPECT_TRUE(String("0123456").regexMatch("\\d{0,9}", true, true));
+  EXPECT_TRUE(String("0123456").regexMatch("[[:digit:]]{0,9}", true, true));
 }

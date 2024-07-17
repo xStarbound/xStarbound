@@ -1,84 +1,102 @@
-INCLUDE_DIRECTORIES (
-    ${STAR_EXTERN_INCLUDES}
-    ${STAR_CORE_INCLUDES}
-    ${STAR_BASE_INCLUDES}
-    ${STAR_PLATFORM_INCLUDES}
-    ${STAR_GAME_INCLUDES}
-  )
+add_executable(asset_packer
+        asset_packer.cpp
+)
+target_link_libraries(asset_packer
+        Star::Base
+)
 
-ADD_EXECUTABLE (asset_packer
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base>
-  asset_packer.cpp)
-TARGET_LINK_LIBRARIES (asset_packer ${STAR_EXT_LIBS})
+add_executable(asset_unpacker
+        asset_unpacker.cpp
+)
+target_link_libraries(asset_unpacker
+        Star::Base
+)
 
-ADD_EXECUTABLE (asset_unpacker
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base>
-  asset_unpacker.cpp)
-TARGET_LINK_LIBRARIES (asset_unpacker ${STAR_EXT_LIBS})
+add_executable(dump_versioned_json
+        dump_versioned_json.cpp
+)
+target_link_libraries(dump_versioned_json
+        Star::Game
+)
 
-ADD_EXECUTABLE (dump_versioned_json
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-  dump_versioned_json.cpp)
-TARGET_LINK_LIBRARIES (dump_versioned_json ${STAR_EXT_LIBS})
+add_executable(game_repl
+        game_repl.cpp
+)
+target_link_libraries(game_repl
+        Star::Game
+)
 
-ADD_EXECUTABLE (game_repl
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-  game_repl.cpp)
-TARGET_LINK_LIBRARIES (game_repl ${STAR_EXT_LIBS})
+add_executable(make_versioned_json
+        make_versioned_json.cpp
+)
+target_link_libraries(make_versioned_json
+        Star::Game
+)
 
-ADD_EXECUTABLE (make_versioned_json
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-  make_versioned_json.cpp)
-TARGET_LINK_LIBRARIES (make_versioned_json ${STAR_EXT_LIBS})
+add_executable(planet_mapgen
+        planet_mapgen.cpp
+)
+target_link_libraries(planet_mapgen
+        Star::Game
+)
 
-ADD_EXECUTABLE (planet_mapgen
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-  planet_mapgen.cpp)
-TARGET_LINK_LIBRARIES (planet_mapgen ${STAR_EXT_LIBS})
+add_executable(render_terrain_selector
+        render_terrain_selector.cpp
+)
+target_link_libraries(render_terrain_selector
+        Star::Game
+)
 
-ADD_EXECUTABLE (render_terrain_selector
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-  render_terrain_selector.cpp)
-TARGET_LINK_LIBRARIES (render_terrain_selector ${STAR_EXT_LIBS})
+add_executable(update_tilesets
+        update_tilesets.cpp
+        tileset_updater.cpp
+)
+target_link_libraries(update_tilesets
+        Star::Game
+)
 
-ADD_EXECUTABLE (update_tilesets
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-  update_tilesets.cpp tileset_updater.cpp)
-TARGET_LINK_LIBRARIES (update_tilesets ${STAR_EXT_LIBS})
+add_executable(fix_embedded_tilesets
+        fix_embedded_tilesets.cpp
+)
 
-ADD_EXECUTABLE (fix_embedded_tilesets
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-  fix_embedded_tilesets.cpp)
-TARGET_LINK_LIBRARIES (fix_embedded_tilesets ${STAR_EXT_LIBS})
+target_link_libraries(fix_embedded_tilesets
+        Star::Game
+)
 
-ADD_EXECUTABLE (world_benchmark
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-  world_benchmark.cpp)
-TARGET_LINK_LIBRARIES (world_benchmark ${STAR_EXT_LIBS})
+add_executable(world_benchmark
+        world_benchmark.cpp
+)
 
-ADD_EXECUTABLE (generation_benchmark
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-  generation_benchmark.cpp)
-TARGET_LINK_LIBRARIES (generation_benchmark ${STAR_EXT_LIBS})
+target_link_libraries(world_benchmark
+        Star::Game
+)
 
-ADD_EXECUTABLE (dungeon_generation_benchmark
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-  dungeon_generation_benchmark.cpp)
-TARGET_LINK_LIBRARIES (dungeon_generation_benchmark ${STAR_EXT_LIBS})
+add_executable(generation_benchmark
+        generation_benchmark.cpp
+)
+target_link_libraries(generation_benchmark
+        Star::Game
+)
+
+add_executable(dungeon_generation_benchmark
+        dungeon_generation_benchmark.cpp
+)
+target_link_libraries(dungeon_generation_benchmark
+        Star::Game
+)
 
 # xSB-2 v2.5 breaks `word_count`. Might as well get rid of it and `map_grep`.
-# ADD_EXECUTABLE (map_grep
-#   $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-#   map_grep.cpp)
-# TARGET_LINK_LIBRARIES (map_grep ${STAR_EXT_LIBS})
+# add_executable(map_grep map_grep.cpp)
+# target_link_libraries (map_grep Star::Game)
 
-# ADD_EXECUTABLE (word_count
-#   $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base> $<TARGET_OBJECTS:star_game>
-#   word_count.cpp)
-# TARGET_LINK_LIBRARIES (word_count ${STAR_EXT_LIBS})
+# add_executable (word_count word_count.cpp)
+# target_link_libraries (word_count Star::Game)
 
 # Kae's `btree_repacker`.
-ADD_EXECUTABLE (btree_repacker
-  $<TARGET_OBJECTS:star_extern> $<TARGET_OBJECTS:star_core> $<TARGET_OBJECTS:star_base>
-  btree_repacker.cpp)
-TARGET_LINK_LIBRARIES (btree_repacker ${STAR_EXT_LIBS})
+add_executable(btree_repacker
+        btree_repacker.cpp
+)
+
+target_link_libraries(btree_repacker
+        Star::Base
+)

@@ -1,64 +1,39 @@
-INCLUDE_DIRECTORIES (
-    ${STAR_EXTERN_INCLUDES}
-    ${STAR_CORE_INCLUDES}
-    ${STAR_PLATFORM_INCLUDES}
-    ${STAR_APPLICATION_INCLUDES}
-  )
+if(STAR_ENABLE_STEAM_INTEGRATION)
+    add_subdirectory(steam)
+endif()
 
-SET (star_application_HEADERS
-    StarApplication.hpp
-    StarApplicationController.hpp
-    StarMainApplication.hpp
-    StarRenderer.hpp
-  )
+add_library(star_application STATIC
+        StarApplication.cpp
+        StarApplication.hpp
+        StarApplicationController.hpp
+        StarMainApplication.hpp
+        StarMainApplication_sdl.cpp
+        StarP2PNetworkingService_pc.cpp
+        StarP2PNetworkingService_pc.hpp
+        StarPlatformServices_pc.cpp
+        StarPlatformServices_pc.hpp
+        StarRenderer.cpp
+        StarRenderer.hpp
+        StarRenderer_opengl20.cpp
+        StarRenderer_opengl20.hpp
+        StarTextureAtlas.hpp
+        $<$<TARGET_EXISTS:Star::ApplicationSteam>:$<TARGET_OBJECTS:Star::ApplicationSteam>>
+)
 
-SET (star_application_SOURCES
-    StarApplication.cpp
-    StarRenderer.cpp
-  )
+target_include_directories(star_application
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
-SET (star_application_HEADERS ${star_application_HEADERS}
-    StarP2PNetworkingService_pc.hpp
-    StarPlatformServices_pc.hpp
-    StarRenderer_opengl20.hpp
-  )
+target_link_libraries(star_application
+        PUBLIC
+        Star::Platform
+        Star::Core
+        $<$<TARGET_EXISTS:Discord::SDK>:Discord::SDK>
+        $<$<TARGET_EXISTS:Star::ApplicationSteam>:Star::ApplicationSteam>
+        ${STAR_EXT_GUI_LIBS}
+)
 
-SET (star_application_SOURCES ${star_application_SOURCES}
-    StarMainApplication_sdl.cpp
-    StarP2PNetworkingService_pc.cpp
-    StarPlatformServices_pc.cpp
-    StarRenderer_opengl20.cpp
-  )
+target_precompile_headers(star_application REUSE_FROM star_core)
 
-IF (STAR_ENABLE_STEAM_INTEGRATION)
-  SET (star_application_HEADERS ${star_application_HEADERS}
-      StarDesktopService_pc_steam.hpp
-      StarStatisticsService_pc_steam.hpp
-      StarUserGeneratedContentService_pc_steam.hpp
-    )
-  SET (star_application_SOURCES ${star_application_SOURCES}
-      StarDesktopService_pc_steam.cpp
-      StarStatisticsService_pc_steam.cpp
-      StarUserGeneratedContentService_pc_steam.cpp
-    )
-ENDIF ()
-
-IF (STAR_ENABLE_DISCORD_INTEGRATION)
-  SET (star_application_SOURCES ${star_application_SOURCES}
-      discord/activity_manager.cpp
-      discord/application_manager.cpp
-      discord/core.cpp
-      discord/image_manager.cpp
-      discord/lobby_manager.cpp
-      discord/network_manager.cpp
-      discord/overlay_manager.cpp
-      discord/relationship_manager.cpp
-      discord/storage_manager.cpp
-      discord/store_manager.cpp
-      discord/types.cpp
-      discord/user_manager.cpp
-    )
-ENDIF ()
-
-ADD_LIBRARY (star_application OBJECT ${star_application_SOURCES} ${star_application_HEADERS})
-TARGET_PRECOMPILE_HEADERS (star_application REUSE_FROM star_core)
+add_library(Star::Application ALIAS star_application)

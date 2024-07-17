@@ -1,78 +1,74 @@
-INCLUDE_DIRECTORIES (
-    ${STAR_EXTERN_INCLUDES}
-    ${STAR_CORE_INCLUDES}
-    ${STAR_BASE_INCLUDES}
-    ${STAR_GAME_INCLUDES}
-    ${STAR_PLATFORM_INCLUDES}
-    ${STAR_APPLICATION_INCLUDES}
-    ${STAR_RENDERING_INCLUDES}
-    ${STAR_WINDOWING_INCLUDES}
-  )
-
-SET (star_windowing_HEADERS
-        StarButtonGroup.hpp
-        StarButtonWidget.hpp
-        StarCanvasWidget.hpp
-        StarFlowLayout.hpp
-        StarFuelWidget.hpp
-        StarGuiContext.hpp
-        StarGuiReader.hpp
-        StarGuiTypes.hpp
-        StarImageWidget.hpp
-        StarImageStretchWidget.hpp
-        StarItemGridWidget.hpp
-        StarItemSlotWidget.hpp
-        StarKeyBindings.hpp
-        StarLabelWidget.hpp
-        StarLargeCharPlateWidget.hpp
-        StarLayout.hpp
-        StarListWidget.hpp
-        StarPane.hpp
-        StarPaneManager.hpp
-        StarPortraitWidget.hpp
-        StarProgressWidget.hpp
-        StarScrollArea.hpp
-        StarSliderBar.hpp
-        StarStackWidget.hpp
-        StarTabSet.hpp
-        StarTextBoxWidget.hpp
-        StarVerticalLayout.hpp
-        StarWidget.hpp
-        StarWidgetLuaBindings.hpp
-        StarWidgetParsing.hpp
-    )
-
-SET (star_windowing_SOURCES
+add_library (star_windowing STATIC
         StarButtonGroup.cpp
+        StarButtonGroup.hpp
         StarButtonWidget.cpp
+        StarButtonWidget.hpp
         StarCanvasWidget.cpp
+        StarCanvasWidget.hpp
         StarFlowLayout.cpp
+        StarFlowLayout.hpp
         StarFuelWidget.cpp
+        StarFuelWidget.hpp
         StarGuiContext.cpp
+        StarGuiContext.hpp
         StarGuiReader.cpp
+        StarGuiReader.hpp
         StarGuiTypes.cpp
-        StarImageWidget.cpp
+        StarGuiTypes.hpp
         StarImageStretchWidget.cpp
+        StarImageStretchWidget.hpp
+        StarImageWidget.cpp
+        StarImageWidget.hpp
         StarItemGridWidget.cpp
+        StarItemGridWidget.hpp
         StarItemSlotWidget.cpp
+        StarItemSlotWidget.hpp
         StarKeyBindings.cpp
-        StarLayout.cpp
+        StarKeyBindings.hpp
         StarLabelWidget.cpp
+        StarLabelWidget.hpp
         StarLargeCharPlateWidget.cpp
+        StarLargeCharPlateWidget.hpp
+        StarLayout.cpp
+        StarLayout.hpp
         StarListWidget.cpp
+        StarListWidget.hpp
         StarPane.cpp
+        StarPane.hpp
         StarPaneManager.cpp
+        StarPaneManager.hpp
         StarPortraitWidget.cpp
+        StarPortraitWidget.hpp
         StarProgressWidget.cpp
+        StarProgressWidget.hpp
         StarScrollArea.cpp
+        StarScrollArea.hpp
         StarSliderBar.cpp
+        StarSliderBar.hpp
         StarStackWidget.cpp
+        StarStackWidget.hpp
         StarTabSet.cpp
+        StarTabSet.hpp
         StarTextBoxWidget.cpp
+        StarTextBoxWidget.hpp
         StarVerticalLayout.cpp
+        StarVerticalLayout.hpp
         StarWidget.cpp
+        StarWidget.hpp
         StarWidgetLuaBindings.cpp
+        StarWidgetLuaBindings.hpp
         StarWidgetParsing.cpp
-    )
+        StarWidgetParsing.hpp
+)
 
-ADD_LIBRARY (star_windowing OBJECT ${star_windowing_SOURCES} ${star_windowing_HEADERS})
+target_include_directories(star_windowing
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(star_windowing
+        PUBLIC
+        Star::Rendering
+)
+
+add_library(Star::Windowing ALIAS star_windowing)

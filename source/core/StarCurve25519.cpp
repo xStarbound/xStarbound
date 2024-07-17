@@ -1,9 +1,7 @@
 #include "StarCurve25519.hpp"
 #include "StarRandom.hpp"
-#include "StarLogging.hpp"
 
-#include "curve25519/include/curve25519_dh.h"
-#include "curve25519/include/ed25519_signature.h"
+#include "ed25519_signature.h"
 
 namespace Star::Curve25519 {
 

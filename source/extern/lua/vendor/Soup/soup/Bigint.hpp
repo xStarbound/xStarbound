@@ -183,8 +183,8 @@ NAMESPACE_SOUP
 		[[nodiscard]] bool isDivisorOf(const Bigint& dividend) const SOUP_EXCAL;
 		void operator<<=(const size_t b) SOUP_EXCAL;
 	private:
-		SOUP_FORCEINLINE void leftShiftSmall(const unsigned int b) SOUP_EXCAL;
-		SOUP_FORCEINLINE void leftShiftOne() SOUP_EXCAL;
+		void leftShiftSmall(const unsigned int b) SOUP_EXCAL;
+		void leftShiftOne() SOUP_EXCAL;
 	public:
 		void operator>>=(size_t b) noexcept;
 		void operator|=(const Bigint& b) SOUP_EXCAL;

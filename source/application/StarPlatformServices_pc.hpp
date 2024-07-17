@@ -9,11 +9,11 @@
 #include "StarDesktopService.hpp"
 
 #ifdef STAR_ENABLE_STEAM_INTEGRATION
-#include "steam/steam_api.h"
+#include "steam_api.h"
 #endif
 
 #ifdef STAR_ENABLE_DISCORD_INTEGRATION
-#include "discord/discord.h"
+#include "discord.h"
 #endif
 
 namespace Star {

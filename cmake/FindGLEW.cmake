@@ -27,41 +27,49 @@
 # GLEW_INCLUDE_DIR
 # GLEW_LIBRARY
 
-IF (WIN32)
-    FIND_PATH( GLEW_INCLUDE_DIR GL/glew.h
-        $ENV{PROGRAMFILES}/GLEW/include
-        ${PROJECT_SOURCE_DIR}/src/nvgl/glew/include
-        DOC "The directory where GL/glew.h resides")
-    FIND_LIBRARY( GLEW_LIBRARY
-        NAMES glew GLEW glew32 glew32s
-        PATHS
-        $ENV{PROGRAMFILES}/GLEW/lib
-        ${PROJECT_SOURCE_DIR}/src/nvgl/glew/bin
-        ${PROJECT_SOURCE_DIR}/src/nvgl/glew/lib
-        DOC "The GLEW library")
-ELSE (WIN32)
-    FIND_PATH( GLEW_INCLUDE_DIR GL/glew.h
-        /usr/include
-        /usr/local/include
-        /sw/include
-        /opt/local/include
-        DOC "The directory where GL/glew.h resides")
-    FIND_LIBRARY( GLEW_LIBRARY
-        NAMES GLEW glew
-        PATHS
-        /usr/lib64
-        /usr/lib
-        /usr/local/lib64
-        /usr/local/lib
-        /sw/lib
-        /opt/local/lib
-        DOC "The GLEW library")
-ENDIF (WIN32)
+if(WIN32)
+    find_path(GLEW_INCLUDE_DIR GL/glew.h
+            $ENV{PROGRAMFILES}/GLEW/include
+            ${PROJECT_SOURCE_DIR}/src/nvgl/glew/include
+            DOC "The directory where GL/glew.h resides")
+    find_library(GLEW_LIBRARY
+            NAMES glew GLEW glew32 glew32s
+            PATHS
+            $ENV{PROGRAMFILES}/GLEW/lib
+            ${PROJECT_SOURCE_DIR}/src/nvgl/glew/bin
+            ${PROJECT_SOURCE_DIR}/src/nvgl/glew/lib
+            DOC "The GLEW library")
+else()
+    find_path(GLEW_INCLUDE_DIR GL/glew.h
+            /usr/include
+            /usr/local/include
+            /sw/include
+            /opt/local/include
+            DOC "The directory where GL/glew.h resides")
+    find_library(GLEW_LIBRARY
+            NAMES GLEW glew
+            PATHS
+            /usr/lib64
+            /usr/lib
+            /usr/local/lib64
+            /usr/local/lib
+            /sw/lib
+            /opt/local/lib
+            DOC "The GLEW library")
+endif()
 
-IF (GLEW_INCLUDE_DIR)
-    SET( GLEW_FOUND 1 CACHE STRING "Set to 1 if GLEW is found, 0 otherwise")
-ELSE (GLEW_INCLUDE_DIR)
-    SET( GLEW_FOUND 0 CACHE STRING "Set to 1 if GLEW is found, 0 otherwise")
-ENDIF (GLEW_INCLUDE_DIR)
+if(GLEW_INCLUDE_DIR)
+    set(GLEW_FOUND 1 CACHE STRING "Set to 1 if GLEW is found, 0 otherwise")
+else()
+    set(GLEW_FOUND 0 CACHE STRING "Set to 1 if GLEW is found, 0 otherwise")
+endif()
 
-MARK_AS_ADVANCED( GLEW_FOUND )
+if(NOT TARGET GLEW::GLEW)
+    add_library(GLEW::GLEW UNKNOWN IMPORTED)
+    set_target_properties(GLEW::GLEW PROPERTIES
+            IMPORTED_LOCATION "${GLEW_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${GLEW_INCLUDE_DIR}"
+    )
+endif()
+
+mark_as_advanced(GLEW_FOUND)

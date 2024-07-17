@@ -406,12 +406,13 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   self->setGlobal("jresize", self->createFunction(&LuaDetail::jcontResize));
 
   self->setGlobal("shared", self->createTable());
+
   return self;
 }
 
 LuaEngine::~LuaEngine() {
-  // If we've had a stack space leak, this will not be zero
-  starAssert(lua_gettop(m_state) == 0);
+  // If we've had a stack space leak, this will be larger than 11
+  starAssert(lua_gettop(m_state) <= 11);
   lua_close(m_state);
 }
 

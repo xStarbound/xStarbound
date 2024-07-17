@@ -1,0 +1,187 @@
+name: Build Check
+
+on:
+  push:
+    branches:
+      - "*"
+    tags:
+      - "*"
+
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  windows-debug:
+    name: Windows x64 Debug (with Tests)
+    runs-on: windows-latest
+
+    steps:
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Copy Auxiliary Files
+        run: |
+          mkdir "${{ github.workspace }}\dist"
+          copy "${{ github.workspace }}\scripts\steam_appid.txt" "${{ github.workspace }}\dist\"
+          copy "${{ github.workspace }}\scripts\windows\xsbinit.config" "${{ github.workspace }}\dist\"
+
+      - name: Configure CMake
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+        run: |
+          cmake --preset "windows-x64"
+          # Clean up vcpkg temp dirs to save space
+          Remove-Item $Env:VCPKG_INSTALLATION_ROOT\buildtrees\ -Force -Recurse -ErrorAction Continue
+          Remove-Item $Env:VCPKG_INSTALLATION_ROOT\downloads\ -Force -Recurse -ErrorAction Continue
+
+      - name: Build Debug
+        run: cmake --build --preset "windows-x64-debug"
+
+      - name: Run Unit Tests
+        run: ctest --preset "windows-x64"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64-debug
+          path: dist/*
+
+  windows-release:
+    name: Windows x64 Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Copy Auxiliary Files
+        run: |
+          mkdir "${{ github.workspace }}\dist"
+          copy "${{ github.workspace }}\scripts\steam_appid.txt" "${{ github.workspace }}\dist\"
+          copy "${{ github.workspace }}\scripts\windows\xsbinit.config" "${{ github.workspace }}\dist\"
+
+      - name: Configure CMake
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+        run: | 
+          cmake --preset "windows-x64"
+          # Clean up vcpkg temp dirs to save space
+          Remove-Item $Env:VCPKG_INSTALLATION_ROOT\buildtrees\ -Force -Recurse -ErrorAction Continue
+          Remove-Item $Env:VCPKG_INSTALLATION_ROOT\downloads\ -Force -Recurse -ErrorAction Continue
+
+      - name: Build Release
+        run: cmake --build --preset "windows-x64-release"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64-release
+          path: dist/*
+
+  linux-debug:
+    name: Linux x86_64 Debug (with Tests)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Build Dependencies
+        run: |
+          sudo apt update
+          sudo apt install ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Copy Auxiliary Files
+        run: |
+          mkdir "${{ github.workspace }}/dist"
+          cp "${{ github.workspace }}/scripts/steam_appid.txt" "${{ github.workspace }}/dist/"
+          cp "${{ github.workspace }}/scripts/linux/xsbinit.config" "${{ github.workspace }}/dist/"
+
+      - name: Configure CMake
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+        run: |
+          cmake --preset "linux-vcpkg-x86_64"
+          # Clean up vcpkg temp dirs to save space
+          rm -Rf "${VCPKG_INSTALLATION_ROOT}/buildtrees/"* "${VCPKG_INSTALLATION_ROOT}/downloads/"* 
+
+      - name: Build Debug
+        run: cmake --build --preset "linux-vcpkg-x86_64-debug"
+
+      - name: Run Unit Tests
+        run: ctest --preset "linux-vcpkg-x86_64"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x86_64-debug
+          path: dist/*
+
+  linux-release:
+    name: Linux x86_64 Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Build Dependencies
+        run: |
+          sudo apt update
+          sudo apt install ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Copy Auxiliary Files
+        run: |
+          mkdir "${{ github.workspace }}/dist"
+          cp "${{ github.workspace }}/scripts/steam_appid.txt" "${{ github.workspace }}/dist/"
+          cp "${{ github.workspace }}/scripts/linux/xsbinit.config" "${{ github.workspace }}/dist/"
+
+      - name: Configure CMake
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+        run: |
+          cmake --preset "linux-vcpkg-x86_64"
+          # Clean up vcpkg temp dirs to save space
+          rm -Rf "${VCPKG_INSTALLATION_ROOT}/buildtrees/"* "${VCPKG_INSTALLATION_ROOT}/downloads/"* 
+
+      - name: Build Release
+        run: cmake --build --preset "linux-vcpkg-x86_64-release"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x86_64-release
+          path: dist/*

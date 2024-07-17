@@ -36,7 +36,7 @@ public:
   }
 };
 
-GTEST_API_ int main(int argc, char** argv) {
+int main(int argc, char** argv) {
   testing::InitGoogleTest(&argc, argv);
   testing::AddGlobalTestEnvironment(new TestEnvironment(RootLoader({{}, {}, {}, LogLevel::Error, true, {}}).commandParseOrDie(argc, argv).first));
   return RUN_ALL_TESTS();

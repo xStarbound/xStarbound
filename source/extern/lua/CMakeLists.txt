@@ -1,0 +1,94 @@
+# libsoup
+add_subdirectory(vendor/Soup)
+
+add_library(pluto
+        lapi.cpp
+        lapi.h
+        lassertlib.cpp
+        lauxlib.cpp
+        lauxlib.h
+        lbase32.cpp
+        lbase64.cpp
+        lbaselib.cpp
+        lbigint.cpp
+        lcatlib.cpp
+        lcode.cpp
+        lcode.h
+        lcorolib.cpp
+        lcryptolib.cpp
+        lcryptolib.hpp
+        lctype.cpp
+        lctype.h
+        ldblib.cpp
+        ldebug.cpp
+        ldebug.h
+        ldo.cpp
+        ldo.h
+        ldump.cpp
+        lerrormessage.hpp
+        lfunc.cpp
+        lfunc.h
+        lgc.cpp
+        lgc.h
+        lhttplib.cpp
+        linit.cpp
+        liolib.cpp
+        ljson.cpp
+        ljson.hpp
+        ljumptab.h
+        ljumptabgcc.h
+        llex.cpp
+        llex.h
+        llimits.h
+        lmathlib.cpp
+        lmem.cpp
+        lmem.h
+        loadlib.cpp
+        lobject.cpp
+        lobject.h
+        lopcodes.cpp
+        lopcodes.h
+        lopnames.h
+        loslib.cpp
+        lparser.cpp
+        lparser.h
+        lprefix.h
+        lschedulerlib.cpp
+        lsocketlib.cpp
+        lstarlib.cpp
+        lstate.cpp
+        lstate.h
+        lstring.cpp
+        lstring.h
+        lstrlib.cpp
+        lsuggestions.hpp
+        ltable.cpp
+        ltable.h
+        ltablib.cpp
+        ltm.cpp
+        ltm.h
+        lua.h
+        lua.hpp
+        luaconf.h
+        lualib.h
+        lundump.cpp
+        lundump.h
+        lurllib.cpp
+        lutf8lib.cpp
+        lvector3lib.cpp
+        lvm.cpp
+        lvm.h
+        lxml.cpp
+        lzio.cpp
+        lzio.h
+)
+
+target_include_directories(pluto
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(pluto
+        PUBLIC
+        soup
+)

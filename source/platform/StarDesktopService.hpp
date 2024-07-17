@@ -1,6 +1,8 @@
 #ifndef STAR_DESKTOP_SERVICE_HPP
 #define STAR_DESKTOP_SERVICE_HPP
 
+#include "StarString.hpp"
+
 namespace Star {
 
 STAR_CLASS(DesktopService);
