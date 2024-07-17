@@ -764,18 +764,35 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
   // [end]
 
   // FezzedOne: From OpenStarbound. {
-  callbacks.registerCallback("actionBarSlotLink", [player](LuaEngine& engine, int slot, String const& handName) {
+  callbacks.registerCallback("actionBarSlotLink", [player](LuaEngine& engine, Variant<int, Vec2I> slot, String const& handName) {
     auto inventory = player->inventory();
-    CustomBarIndex wrapped = (slot - 1) % (unsigned)inventory->customBarIndexes();
+    auto currentCustomBarGroup = player->inventory()->customBarGroup();
+    int slotIndex; bool swappedGroup = false;
+    if (auto index = slot.ptr<int>()) {
+      slotIndex = *index;
+    } else {
+      swappedGroup = true;
+      auto& vector = *slot.ptr<Vec2I>();
+      player->inventory()->setCustomBarGroup((vector[0] - 1) % (unsigned)player->inventory()->customBarGroups());
+      slotIndex = vector[1];
+    }
+    CustomBarIndex wrapped = (slotIndex - 1) % (unsigned)inventory->customBarIndexes();
+
+    bool validHand = true;
     if (handName == "primary")
       return fromInventorySlot(engine, inventory->customBarPrimarySlot(wrapped));
     else if (handName == "alt")
       return fromInventorySlot(engine, inventory->customBarSecondarySlot(wrapped));
     else
-      throw StarException(strf("Unknown tool hand '{}'", handName));
+      Logger::warn("player.actionBarSlotLink: Invalid hand '{}' specified!", handName);
+
+    if (swappedGroup)
+      player->inventory()->setCustomBarGroup(currentCustomBarGroup);
+
+    return LuaNil;
   });
 
-  callbacks.registerCallback("setActionBarSlotLink", [player](Variant<int, Vector<int, 2>> slot, String const& handName, LuaValue const& rawInventorySlot) {
+  callbacks.registerCallback("setActionBarSlotLink", [player](Variant<int, Vec2I> slot, String const& handName, LuaValue const& rawInventorySlot) {
     auto inventorySlot = toInventorySlot(rawInventorySlot);
     auto inventory = player->inventory();
     auto currentCustomBarGroup = player->inventory()->customBarGroup();
@@ -784,7 +801,7 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
       slotIndex = *index;
     } else {
       swappedGroup = true;
-      auto& vector = *slot.ptr<Vector<int, 2>>();
+      auto& vector = *slot.ptr<Vec2I>();
       player->inventory()->setCustomBarGroup((vector[0] - 1) % (unsigned)player->inventory()->customBarGroups());
       slotIndex = vector[1];
     }
@@ -798,13 +815,10 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
     else if (handName == "alt")
       inventory->setCustomBarSecondarySlot(wrapped, inventorySlot);
     else
-      validHand = false;
+      Logger::warn("player.setActionBarSlotLink: Invalid hand '{}' specified!", handName);
 
     if (swappedGroup)
       player->inventory()->setCustomBarGroup(currentCustomBarGroup);
-
-    if (!validHand)
-      throw StarException(strf("Unknown tool hand '{}'", handName));
   });
   
   callbacks.registerCallback("itemBagSize", [player](String const& bagName) -> Maybe<size_t> {
