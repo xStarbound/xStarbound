@@ -1066,7 +1066,7 @@ An `InventorySlot` may be any of the following Lua values:
 - `"chestCosmetic"`: Chest vanity slot.
 - `"legsCosmetic"`: Legs vanity slot.
 - `"backCosmetic"`: Back vanity slot.
-- `{bag, slot}`: Inventory slot. `bag` is the `String` name of the inventory bag and `slot` is the `int` slot index (beginning `0`, not `1`!).
+- `{bag, slot}`: Inventory slot. `bag` is the `String` name of the inventory bag and `slot` is the `int` slot index (beginning at `0`, not `1`!).
 - `nil`: No inventory slot. For `player.actionBarSlotLink` and `player.setActionBarSlotLink`, this means an unlinked action bar slot.
 
 The arguments are specified as follows:
