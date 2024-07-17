@@ -165,18 +165,13 @@ static void pushFromJson(lua_State* L, const soup::JsonNode& node, int flags)
 		{
 			lua_newtable(L);
 			// FezzedOne: Set the correct Starbound type hint for any JSON arrays so that empty arrays are handled appropriately.
-			if (lua_getmetatable(L, -1)) { // Existing metatable (i.e., if Pluto's table `__index` methods are enabled).
-				lua_pushstring(L, "__typehint");
-				lua_pushinteger(L, 1);
-				lua_rawset(L, -3);
-				lua_pop(L, 1);
-			} else { // New metatable.
+			if (!lua_getmetatable(L, -1))
 				lua_newtable(L);
-				lua_pushstring(L, "__typehint");
-				lua_pushinteger(L, 1);
-				lua_rawset(L, -3);
-				lua_setmetatable(L, -1);
-			}
+			lua_pushstring(L, "__typehint");
+			const lua_Integer arrayHint = 1;
+			lua_pushinteger(L, arrayHint);
+			lua_rawset(L, -3);
+			lua_setmetatable(L, -1);
 			lua_Integer i = 1;
 			for (const auto& child : node.reinterpretAsArr().children)
 			{
