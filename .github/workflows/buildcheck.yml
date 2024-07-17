@@ -37,7 +37,11 @@ jobs:
       - name: Configure CMake
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: cmake --preset "windows-x64"
+        run: |
+          cmake --preset "windows-x64"
+          # Clean up vcpkg temp dirs to save space
+          Remove-Item $Env:VCPKG_INSTALLATION_ROOT\buildtrees\ -Force -Recurse -ErrorAction Continue
+          Remove-Item $Env:VCPKG_INSTALLATION_ROOT\downloads\ -Force -Recurse -ErrorAction Continue
 
       - name: Build Debug
         run: cmake --build --preset "windows-x64-debug"
@@ -76,7 +80,11 @@ jobs:
       - name: Configure CMake
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: cmake --preset "windows-x64"
+        run: | 
+          cmake --preset "windows-x64"
+          # Clean up vcpkg temp dirs to save space
+          Remove-Item $Env:VCPKG_INSTALLATION_ROOT\buildtrees\ -Force -Recurse -ErrorAction Continue
+          Remove-Item $Env:VCPKG_INSTALLATION_ROOT\downloads\ -Force -Recurse -ErrorAction Continue
 
       - name: Build Release
         run: cmake --build --preset "windows-x64-release"
@@ -117,7 +125,10 @@ jobs:
       - name: Configure CMake
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: cmake --preset "linux-vcpkg-x86_64"
+        run: |
+          cmake --preset "linux-vcpkg-x86_64"
+          # Clean up vcpkg temp dirs to save space
+          rm -Rf "${VCPKG_INSTALLATION_ROOT}/buildtrees/"* "${VCPKG_INSTALLATION_ROOT}/downloads/"* 
 
       - name: Build Debug
         run: cmake --build --preset "linux-vcpkg-x86_64-debug"
@@ -161,7 +172,10 @@ jobs:
       - name: Configure CMake
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: cmake --preset "linux-vcpkg-x86_64"
+        run: |
+          cmake --preset "linux-vcpkg-x86_64"
+          # Clean up vcpkg temp dirs to save space
+          rm -Rf "${VCPKG_INSTALLATION_ROOT}/buildtrees/"* "${VCPKG_INSTALLATION_ROOT}/downloads/"* 
 
       - name: Build Release
         run: cmake --build --preset "linux-vcpkg-x86_64-release"
