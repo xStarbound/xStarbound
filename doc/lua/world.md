@@ -1275,3 +1275,75 @@ Returns a list of UUIDs for all player entities currently mastered by the client
 > **Available only on xStarbound.**
 
 Returns the UUID of the client's primary player — i.e., the one to and from which client input and output are currently being passed.
+
+---
+
+#### `bool` world.swapPlayer(`Uuid` playerUuid)
+
+> **Available only on xStarbound v3.1+.**
+
+Attempts to swap the primary player to the player with the specified UUID, as if `/swapuuid` had been used; does not log a chat message. Returns `true` if the swap was successful, or `false` otherwise. The actual swap does not happen until the next game tick.
+
+---
+
+#### `bool` world.addPlayer(`Uuid` playerUuid)
+
+> **Available only on xStarbound v3.1+.**
+
+Attempts to add a secondary player with the specified UUID, as if `/adduuid` had been used; does not log a chat message. Returns `true` if the swap was successful, or `false` otherwise.
+
+---
+
+#### `bool` world.removePlayer(`Uuid` playerUuid)
+
+> **Available only on xStarbound v3.1+.**
+
+Attempts to remove a secondary player with the specified UUID, as if `/removeuuid` had been used; does not log a chat message. Returns `true` if the swap was successful, or `false` otherwise.
+
+---
+
+#### `JsonObject` world.ownPlayerNames()
+
+> **Available only on xStarbound v3.1+.**
+
+Returns a map of player UUIDs to player names in the client's saves. Only saves that have been validated during pre-loading (and thus are successfully loadable) will be listed.
+
+---
+
+#### `JsonObject` world.ownPlayerSaves()
+
+> **Available only on xStarbound v3.1+.**
+
+Returns a map of player UUIDs to player save data objects (`JsonObject`) in the client's saves. Only saves that have been validated during pre-loading (and thus are successfully loadable) will be listed.
+
+> **Note:** This callback returns a *lot* of data and may cause a frame spike when invoked. Consider using `world.ownPlayerSave` (in the singular) instead if you only want to load a specific save.
+
+---
+
+#### `Maybe<JsonObject>` world.ownPlayerSave(`Uuid` playerUuid)
+
+> **Available only on xStarbound v3.1+.**
+
+Returns the player save data for the player with the specified UUID, or `nil` if the player save does not exist on the client or is invalid.
+
+> **Note:** This callback may return a *lot* of data and cause a frame spike when invoked. Try to avoid invoking it every tick.
+
+---
+
+#### `Maybe<bool>` world.playerDead(`Uuid` playerUuid)
+
+> **Available only on xStarbound v3.1+.**
+
+Returns whether the player with the specified UUID is currently dead — `true` if dead, `false` if alive. A dead player will not respawn unless the current world allows for dead players to respawn or the dead player has `"alwaysRespawnOnWorld"` active.
+
+Note that permadead players will only respawn if the *primary* player is an admin and any other respawning conditions are met for the permadead player as a *secondary*.
+
+Will return `nil` if the player doesn't exist, the player save failed validation (and thus is not loadable) or the specified UUID is invalid.
+
+---
+
+#### `Maybe<bool>` world.playerLoaded(`Uuid` playerUuid)
+
+> **Available only on xStarbound v3.1+.**
+
+Returns whether the player with the specified UUID is currently loaded and active. Note that this callback will return `false` instead of throwing an error if the specified UUID is invalid.

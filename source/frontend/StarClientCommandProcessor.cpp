@@ -422,7 +422,7 @@ String ClientCommandProcessor::swap(String const& argumentsString) {
     return "Not enough arguments to /swap";
 
   if (m_universeClient->switchPlayer(arguments[0]))
-    return "Attempted to swap player";
+    return "Player swapped";
   else
     return "Player not swapped";
 }
@@ -434,7 +434,7 @@ String ClientCommandProcessor::swapUuid(String const& argumentsString) {
     return "Not enough arguments to /swapuuid";
 
   if (m_universeClient->switchPlayerUuid(arguments[0]))
-    return "Attempted to swap player";
+    return "Player swapped";
   else
     return "Player not swapped";
 }
@@ -446,7 +446,7 @@ String ClientCommandProcessor::add(String const& argumentsString) {
     return "Not enough arguments to /add";
 
   if (m_universeClient->addPlayer(arguments[0]))
-    return "Attempted to add player";
+    return "Player added";
   else
     return "Player not added";
 }
@@ -458,7 +458,7 @@ String ClientCommandProcessor::addUuid(String const& argumentsString) {
     return "Not enough arguments to /adduuid";
 
   if (m_universeClient->addPlayerUuid(arguments[0]))
-    return "Attempted to add player";
+    return "Player added";
   else
     return "Player not added";
 }
@@ -470,7 +470,7 @@ String ClientCommandProcessor::remove(String const& argumentsString) {
     return "Not enough arguments to /remove";
 
   if (m_universeClient->removePlayer(arguments[0]))
-    return "Attempted to remove player";
+    return "Player removed";
   else
     return "Player not removed";
 }
@@ -482,7 +482,7 @@ String ClientCommandProcessor::removeUuid(String const& argumentsString) {
     return "Not enough arguments to /removeuuid";
 
   if (m_universeClient->removePlayerUuid(arguments[0]))
-    return "Attempted to remove player";
+    return "Player removed";
   else
     return "Player not removed";
 }

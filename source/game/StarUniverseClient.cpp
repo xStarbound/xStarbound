@@ -108,9 +108,10 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
       m_loadedPlayers[uuid] = {true, m_mainPlayer};
     } else {
       m_playerStorage->backupCycle(uuid);
-      auto playerToLoad = m_playerStorage->loadPlayer(uuid);
-      m_playerStorage->savePlayer(playerToLoad);
-      m_loadedPlayers[uuid] = {false, playerToLoad};
+      if (auto playerToLoad = m_playerStorage->loadPlayer(uuid)) {
+        m_playerStorage->savePlayer(playerToLoad);
+        m_loadedPlayers[uuid] = {false, playerToLoad};
+      }
     }
   }
 
@@ -173,10 +174,11 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
       loadedCount == 1 ? "player" : "players");
 
     for (auto& loadedPlayer : m_loadedPlayers) {
-      auto& player = loadedPlayer.second.ptr;
-      player->setClientContext(m_clientContext);
-      player->setStatistics(m_statistics);
-      player->setUniverseClient(this);
+      if (auto& player = loadedPlayer.second.ptr) {
+        player->setClientContext(m_clientContext);
+        player->setStatistics(m_statistics);
+        player->setUniverseClient(this);
+      }
     }
 
     // FezzedOne: I'll never know why the gods-damned world client couldn't access the universe client to begin with.
@@ -740,6 +742,55 @@ HashMap<Uuid, PlayerPtr> UniverseClient::controlledPlayers() {
   return returnValue;
 }
 
+JsonObject UniverseClient::preLoadedPlayers() {
+  JsonObject players{};
+  for (auto& playerEntry : m_loadedPlayers) {
+    Json playerSaveData{};
+    if (auto& player = playerEntry.second.ptr)
+      playerSaveData = player->diskStore();
+    players[playerEntry.first.hex()] = playerSaveData;
+  }
+  return players;
+}
+
+JsonObject UniverseClient::preLoadedPlayerNames() {
+  JsonObject players{};
+  for (auto& playerEntry : m_loadedPlayers) {
+    Json playerName{};
+    if (auto& player = playerEntry.second.ptr)
+      playerName = player->name();
+    players[playerEntry.first.hex()] = playerName;
+  }
+  return players;
+}
+
+Json UniverseClient::playerSaveData(Uuid const& playerUuid) {
+  if (m_loadedPlayers.contains(playerUuid)) {
+    if (auto& player = m_loadedPlayers[playerUuid].ptr) {
+      return player->diskStore();
+    }
+  }
+  return Json();
+}
+
+Maybe<bool> UniverseClient::playerDead(Uuid const& playerUuid) {
+  if (m_loadedPlayers.contains(playerUuid)) {
+    auto& playerEntry = m_loadedPlayers[playerUuid];
+    if (auto& player = playerEntry.ptr) {
+      return player->isDead();
+    }
+  }
+  return {};
+}
+
+bool UniverseClient::playerLoaded(Uuid const& playerUuid) {
+  if (m_loadedPlayers.contains(playerUuid)) {
+    auto& playerEntry = m_loadedPlayers[playerUuid];
+    return (bool)playerEntry.ptr && playerEntry.loaded;
+  }
+  return false;
+}
+
 bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool showIndicator) {
   if (!m_mainPlayer) throw PlayerException("Attempted to swap from an unloaded primary player!");
 
@@ -1019,7 +1070,10 @@ bool UniverseClient::switchPlayer(Uuid const& uuid) {
     return false;
   else {
     m_playerToSwitchTo = uuid;
-    return true;
+    if (m_loadedPlayers.contains(uuid))
+      return (bool)m_loadedPlayers[uuid].ptr;
+    else
+      return false;
   }
 
   return false;
@@ -1056,7 +1110,10 @@ bool UniverseClient::addPlayer(Uuid const& uuid) {
     return false;
   else {
     m_playersToLoad.append(uuid);
-    return true;
+    if (m_loadedPlayers.contains(uuid))
+      return (bool)m_loadedPlayers[uuid].ptr && !m_loadedPlayers[uuid].loaded;
+    else
+      return false;
   }
 
   return false;
@@ -1093,7 +1150,10 @@ bool UniverseClient::removePlayer(Uuid const& uuid) {
     return false;
   else {
     m_playersToRemove.append(uuid);
-    return true;
+    if (m_loadedPlayers.contains(uuid))
+      return m_loadedPlayers[uuid].loaded;
+    else
+      return false;
   }
 
   return false;

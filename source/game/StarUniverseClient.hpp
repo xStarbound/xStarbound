@@ -118,6 +118,11 @@ public:
   bool removePlayerUuid(String const& uuidStr);
 
   HashMap<Uuid, PlayerPtr> controlledPlayers();
+  JsonObject preLoadedPlayers();
+  JsonObject preLoadedPlayerNames();
+  Json playerSaveData(Uuid const& playerUuid);
+  Maybe<bool> playerDead(Uuid const& playerUuid);
+  bool playerLoaded(Uuid const& playerUuid);
 
   typedef std::function<void()> Callback;
   typedef std::function<void(bool)> ReloadPlayerCallback;

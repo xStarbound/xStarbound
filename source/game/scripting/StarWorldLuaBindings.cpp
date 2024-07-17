@@ -493,6 +493,59 @@ namespace LuaBindings {
       callbacks.registerCallback("primaryPlayerUuid", [clientWorld]() {
         return clientWorld->mainPlayer()->uuid().hex();
       });
+
+      callbacks.registerCallback("swapPlayer", [clientWorld](String const& uuid) {
+        return clientWorld->universeClient()->switchPlayerUuid(uuid);
+      });
+
+      callbacks.registerCallback("addPlayer", [clientWorld](String const& uuid) {
+        return clientWorld->universeClient()->addPlayerUuid(uuid);
+      });
+
+      callbacks.registerCallback("removePlayer", [clientWorld](String const& uuid) {
+        return clientWorld->universeClient()->removePlayerUuid(uuid);
+      });
+
+      callbacks.registerCallback("ownPlayerSaves", [clientWorld]() {
+        return clientWorld->universeClient()->preLoadedPlayers();
+      });
+
+      callbacks.registerCallback("ownPlayerNames", [clientWorld]() {
+        return clientWorld->universeClient()->preLoadedPlayerNames();
+      });
+
+      callbacks.registerCallback("ownPlayerSave", [clientWorld](String const& uuidStr) -> Json {
+        Uuid uuid = Uuid();
+        try {
+          uuid = Uuid(uuidStr);
+          return clientWorld->universeClient()->playerSaveData(uuid);
+        } catch (UuidException const& e) {
+          return Json();
+        }
+        return Json();
+      });
+
+      callbacks.registerCallback("playerDead", [clientWorld](String const& uuidStr) -> Maybe<bool> {
+        Uuid uuid = Uuid();
+        try {
+          uuid = Uuid(uuidStr);
+          return clientWorld->universeClient()->playerDead(uuid);
+        } catch (UuidException const& e) {
+          return {};
+        }
+        return {};
+      });
+
+      callbacks.registerCallback("playerLoaded", [clientWorld](String const& uuidStr) -> bool {
+        Uuid uuid = Uuid();
+        try {
+          uuid = Uuid(uuidStr);
+          return clientWorld->universeClient()->playerLoaded(uuid);
+        } catch (UuidException const& e) {
+          return false;
+        }
+        return false;
+      });
     }
 
     if (auto serverWorld = as<WorldServer>(world)) {
