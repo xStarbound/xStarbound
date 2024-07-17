@@ -28,7 +28,7 @@ ContainerObject::ContainerObject(ObjectConfigConstPtr config, Json const& parame
   m_itemsUpdated = true;
   m_runUpdatedCallback = true;
 
-  m_items = make_shared<ItemBag>(configValue("slotCount").toInt());
+  m_items = make_shared<ItemBag>(configValue("slotCount").toUInt());
 
   m_netGroup.addNetElement(&m_opened);
   m_netGroup.addNetElement(&m_crafting);

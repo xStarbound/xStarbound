@@ -15,6 +15,45 @@
 
 namespace Star {
 
+LuaValue fromInventorySlot(LuaEngine& engine, Maybe<InventorySlot> maybeSlot) {
+  if (maybeSlot) {
+    auto& slot = *maybeSlot;
+    if (auto equipment = slot.ptr<EquipmentSlot>())
+      return engine.createString(EquipmentSlotNames.getRight(*equipment));
+    else if (auto bag = slot.ptr<BagSlot>()) {
+      auto table = engine.createTable(2, 0);
+      table.set(1, bag->first);
+      table.set(2, bag->second);
+      return table;
+    }
+    else if (slot.is<SwapSlot>())
+      return engine.createString("swap");
+    else if (slot.is<TrashSlot>())
+      return engine.createString("trash");
+    else return LuaNil;
+  } else {
+    return LuaNil;
+  }
+}
+
+Maybe<InventorySlot> toInventorySlot(LuaValue const& luaValue) {
+  if (auto str = luaValue.ptr<LuaString>()) {
+    auto string = str->toString();
+    if (string.equalsIgnoreCase("swap"))
+      return {SwapSlot()};
+    else if (string.equalsIgnoreCase("trash"))
+      return {TrashSlot()};
+    else if (auto equipment = EquipmentSlotNames.leftPtr(str->toString()))
+      return {*equipment};
+    else
+      return {};
+  }
+  else if (auto table = luaValue.ptr<LuaTable>())
+    return {BagSlot(table->get<LuaString>(1).toString(), (uint8_t)table->get<unsigned>(2))};
+  else
+    return {};
+}
+
 LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
   LuaCallbacks callbacks;
 
@@ -723,6 +762,91 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
     }
   });
   // [end]
+
+  // FezzedOne: From OpenStarbound. {
+  callbacks.registerCallback("actionBarSlotLink", [player](LuaEngine& engine, int slot, String const& handName) {
+    auto inventory = player->inventory();
+    CustomBarIndex wrapped = (slot - 1) % (unsigned)inventory->customBarIndexes();
+    if (handName == "primary")
+      return fromInventorySlot(engine, inventory->customBarPrimarySlot(wrapped));
+    else if (handName == "alt")
+      return fromInventorySlot(engine, inventory->customBarSecondarySlot(wrapped));
+    else
+      throw StarException(strf("Unknown tool hand '{}'", handName));
+  });
+
+  callbacks.registerCallback("setActionBarSlotLink", [player](Variant<int, Vector<int, 2>> slot, String const& handName, LuaValue const& rawInventorySlot) {
+    auto inventorySlot = toInventorySlot(rawInventorySlot);
+    auto inventory = player->inventory();
+    auto currentCustomBarGroup = player->inventory()->customBarGroup();
+    int slotIndex; bool swappedGroup = false;
+    if (auto index = slot.ptr<int>()) {
+      slotIndex = *index;
+    } else {
+      swappedGroup = true;
+      auto& vector = *slot.ptr<Vector<int, 2>>();
+      player->inventory()->setCustomBarGroup((vector[0] - 1) % (unsigned)player->inventory()->customBarGroups());
+      slotIndex = vector[1];
+    }
+    CustomBarIndex wrapped = (slotIndex - 1) % (unsigned)inventory->customBarIndexes();
+    if (inventorySlot && !inventory->slotValid(*inventorySlot))
+      inventorySlot = {};
+
+    bool validHand = true;
+    if (handName == "primary")
+      inventory->setCustomBarPrimarySlot(wrapped, inventorySlot);
+    else if (handName == "alt")
+      inventory->setCustomBarSecondarySlot(wrapped, inventorySlot);
+    else
+      validHand = false;
+
+    if (swappedGroup)
+      player->inventory()->setCustomBarGroup(currentCustomBarGroup);
+
+    if (!validHand)
+      throw StarException(strf("Unknown tool hand '{}'", handName));
+  });
+  
+  callbacks.registerCallback("itemBagSize", [player](String const& bagName) -> Maybe<size_t> {
+    if (auto bag = player->inventory()->bagContents(bagName))
+      return bag->size();
+    else
+      return {};
+  });
+  
+  callbacks.registerCallback("itemAllowedInBag", [player](String const& bagName, Json const& item) {
+    auto inventory = player->inventory();
+    auto itemDatabase = Root::singleton().itemDatabase();
+    if (!inventory->bagContents(bagName))
+      return false;
+    else
+      return inventory->itemAllowedInBag(itemDatabase->item(ItemDescriptor(item)), bagName);
+  });
+  
+  callbacks.registerCallback("item", [player](LuaValue const& rawSlot) -> Maybe<Json> {
+    auto maybeSlot = toInventorySlot(rawSlot);
+    if (maybeSlot) {
+      auto& slot = *maybeSlot;
+      if (!player->inventory()->slotValid(slot)) return {};
+      if (auto item = player->inventory()->itemsAt(slot))
+        return itemSafeDescriptor(item).toJson();
+      else
+        return {};
+    } else {
+      return {};
+    }
+  });
+
+  callbacks.registerCallback("setItem", [player](LuaValue const& rawSlot, Json const& item) {
+    auto maybeSlot = toInventorySlot(rawSlot);
+    if (maybeSlot) {
+      auto& slot = *maybeSlot;
+      if (!player->inventory()->slotValid(slot)) return;
+      auto itemDatabase = Root::singleton().itemDatabase();
+      player->inventory()->setItem(slot, itemDatabase->item(ItemDescriptor(item)));
+    }
+  });
+  // }
 
   // FezzedOne: Added `"say"`, functionally identical to `"addChatBubble"`, for OpenSB compability.
   // Can be invoked with only a `bubbleMessage`, emulating OpenSB behaviour.

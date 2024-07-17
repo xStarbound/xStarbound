@@ -1023,19 +1023,19 @@ Overrides the player client's camera position. Must be applied every tick like `
 
 #### `unsigned` player.actionBarGroup()
 
-Returns the player's active action bar group.
+Returns the player's active action bar group. The group index begins at `1`, not `0`.
 
 ---
   
 #### `void` player.setActionBarGroup(`unsigned` barId)
   
-Sets the player's active action bar group.
+Sets the player's active action bar group. The group index begins at `1`, not `0`.
 
 ---
   
 #### `Variant<unsigned, EssentialItem>` player.selectedActionBarSlot()
 
-Returns the player's selected action bar slot. An `EssentialItem` is one of the following strings:
+Returns the player's selected action bar slot. The slot index begins at `1`, not `0`. An `EssentialItem` is one of the following strings:
 
 - `"beamaxe"`
 - `"wiretool"`
@@ -1046,7 +1046,79 @@ Returns the player's selected action bar slot. An `EssentialItem` is one of the 
   
 #### `void` player.setSelectedActionBarSlot(`Variant<unsigned, EssentialItem>` slot)
   
-Sets the player's selected action bar slot. See above for valid `EssentialItem` values.
+Sets the player's selected action bar slot. The slot index begins at `1`, not `0`. See above for valid `EssentialItem` values.
+
+---
+
+#### `InventorySlot` player.actionBarSlotLink(`Variant<int, Vec2I>` slotIndex, `String` hand)
+
+Returns the action bar slot link (as an `InventorySlot`), if any, at the specified action bar group/slot/hand combination.
+
+An `InventorySlot` may be any of the following Lua values:
+
+- `"swap"`: Swap slot.
+- `"trash"`: Trash slot.
+- `"head"`: Head armour (helmet) slot.
+- `"chest"`: Chest armour slot.
+- `"legs"`: Legs armour slot.
+- `"back"`: Back armour slot.
+- `"headCosmetic"`: Head vanity slot.
+- `"chestCosmetic"`: Chest vanity slot.
+- `"legsCosmetic"`: Legs vanity slot.
+- `"backCosmetic"`: Back vanity slot.
+- `{bag, slot}`: Inventory slot. `bag` is the `String` name of the inventory bag and `slot` is the `int` slot index (beginning `0`, not `1`!).
+- `nil`: No inventory slot. For `player.actionBarSlotLink` and `player.setActionBarSlotLink`, this means an unlinked action bar slot.
+
+The arguments are specified as follows:
+
+- The `slotIndex` may be either an integer or an array of two integers:
+  - If it's an *integer*, the lone integer is the specified slot index of the player's *currently selected* action bar group.
+  - If it's an *array*, the first value is the specified action bar group; the second is the slot index for that group. Group and slot indices begin at `1`, not `0`.
+- The hand may be either `"primary"` or `"alt"`.
+
+---
+
+#### `void` player.setActionBarSlotLink(`Variant<int, Vec2I>` slotIndex, `String` hand, `InventorySlot` slotLink)
+
+Sets or clears the action bar slot link (as an `InventorySlot`) at the specified action bar group/slot/hand combination.
+
+The arguments are specified as follows:
+
+- `slotIndex` is as for `player.actionBarSlotLink` above.
+- `hand` is as for `player.actionBarSlotLink` above.
+- `slotLink` is an inventory slot specifier; see above for valid `InventorySlot` values.
+
+The following caveats apply to item slot links:
+
+- Linking a *two-handed* item to a *primary* slot sets *both* the primary and alt hands at the specified group/slot combination. (Technically, the alternate slot isn't actually set to the primary item, but acts as if it were.)
+- Any attempt to link a *two-handed* item to an *alternate* slot is ignored.
+- Linking a *one-handed* item to an *alternate* slot while the *primary* slot has a *two-handed* item in it clears the *primary* slot in addition to filling the *alternate* slot.
+- If the specified item slot has a one-handed item in it *and* matches the slot linked to the *other* hand, the links are swapped.
+- A `nil` slot link or a link to an empty inventory slot clears any link at the specified group/slot/hand combination.
+
+---
+
+#### `size_t` player.itemBagSize(`String` bagName)
+
+Returns the number of slots in the specified inventory bag.
+
+---
+
+#### `size_t` player.itemAllowedInBag(`String` bagName, `ItemDescriptor` item)
+
+Returns whether the specified item is allowed to go in the specified inventory bag.
+
+---
+
+#### `ItemDescriptor` player.item(`InventorySlot` slot)
+
+Returns the item in the specified inventory slot, if any. See `player.actionBarSlotLink` above for valid `InventorySlot` values.
+
+---
+
+#### `bool` player.setItem(`InventorySlot` slot, `ItemDescriptor` item)
+
+Sets the specified inventory slot to the specified item, or clears the slot if the item is `nil`. See `player.actionBarSlotLink` above for valid `InventorySlot` values. Will fail if the specified item is not allowed to go in the specified slot. Returns `true` if successful or `false` otherwise.
 
 ---
 

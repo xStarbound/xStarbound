@@ -228,7 +228,7 @@ ItemPtr PlayerInventory::addToBags(ItemPtr items) {
     if (!items)
       break;
 
-    for (uint8_t i = 0; i < pair.second->size(); ++i) {
+    for (size_t i = 0; i < pair.second->size(); ++i) {
       if (!pair.second->at(i)) {
         pair.second->setItem(i, take(items));
         autoAddToCustomBar(BagSlot(pair.first, i));
@@ -580,7 +580,7 @@ bool PlayerInventory::clearSwap() {
   };
 
   auto tryBag = [&](String const& bagType) {
-    for (uint8_t i = 0; i < m_bags[bagType]->size(); ++i) {
+    for (size_t i = 0; i < m_bags[bagType]->size(); ++i) {
       if (!m_swapSlot || !itemAllowedInBag(m_swapSlot, bagType))
         break;
       trySlot(BagSlot(bagType, i));
@@ -780,6 +780,17 @@ List<ItemPtr> PlayerInventory::clearOverflow(){
   auto list = m_inventoryLoadOverflow;
   m_inventoryLoadOverflow.clear();
   return list;
+}
+
+bool PlayerInventory::slotValid(InventorySlot const& slot) const {
+  if (auto bagSlot = slot.ptr<BagSlot>()) {
+    if (auto bag = m_bags.get(bagSlot->first)) {
+      if ((size_t)bagSlot->second >= bag->size())
+        return false;
+    }
+    else return false;
+  }
+  return true;
 }
 
 void PlayerInventory::load(Json const& store) {

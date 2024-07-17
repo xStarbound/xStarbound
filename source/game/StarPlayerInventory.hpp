@@ -170,6 +170,9 @@ public:
   // From WasabiRaptor's PR: Take overflowed inventory items.
   List<ItemPtr> clearOverflow();
 
+  // From OpenStarbound: Check if an inventory slot is valid.
+  bool slotValid(InventorySlot const& slot) const;
+
   void load(Json const& store);
   Json store() const;
 
