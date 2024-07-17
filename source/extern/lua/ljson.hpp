@@ -164,14 +164,6 @@ static void pushFromJson(lua_State* L, const soup::JsonNode& node, int flags)
 	case soup::JSON_ARRAY:
 		{
 			lua_newtable(L);
-			// FezzedOne: Set the correct Starbound type hint for any JSON arrays so that empty arrays are handled appropriately.
-			if (!lua_getmetatable(L, -1))
-				lua_newtable(L);
-			lua_pushstring(L, "__typehint");
-			const lua_Integer arrayHint = 1;
-			lua_pushinteger(L, arrayHint);
-			lua_rawset(L, -3);
-			lua_setmetatable(L, -1);
 			lua_Integer i = 1;
 			for (const auto& child : node.reinterpretAsArr().children)
 			{
@@ -179,6 +171,15 @@ static void pushFromJson(lua_State* L, const soup::JsonNode& node, int flags)
 				pushFromJson(L, *child, flags);
 				lua_settable(L, -3);
 			}
+
+			// FezzedOne: Set the correct Starbound type hint for any JSON arrays so that empty arrays are handled appropriately.
+			if (!lua_getmetatable(L, -1))
+				lua_newtable(L);
+			lua_pushstring(L, "__typehint");
+			const lua_Integer arrayHint = 1;
+			lua_pushinteger(L, arrayHint);
+			lua_rawset(L, -3);
+			lua_setmetatable(L, -2);
 		}
 		break;
 
