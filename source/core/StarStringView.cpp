@@ -359,7 +359,7 @@ StringView StringView::substr(size_t position, size_t n) const {
     ++it;
   }
 
-  const char* start = it.base();
+  auto start = it.base();
 
   for (size_t i = 0; i != n; ++i) {
     if (it == itEnd)
