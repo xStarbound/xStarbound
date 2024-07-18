@@ -368,7 +368,7 @@ StringView StringView::substr(size_t position, size_t n) const {
     ++it;
   }
 
-  return StringView(itStart, it.base() - start);
+  return StringView(start, it.base() - itStart);
 }
 
 int StringView::compare(size_t selfOffset, size_t selfLen, StringView other,
