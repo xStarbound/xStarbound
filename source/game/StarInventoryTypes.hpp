@@ -20,6 +20,7 @@ enum class EquipmentSlot : uint8_t {
 extern EnumMap<EquipmentSlot> const EquipmentSlotNames;
 
 typedef pair<String, size_t> BagSlot;
+typedef pair<String, uint8_t> BagSlotCompat;
 
 strong_typedef(Empty, SwapSlot);
 strong_typedef(Empty, TrashSlot);
@@ -27,6 +28,8 @@ strong_typedef(Empty, TrashSlot);
 // Any manageable location in the player inventory can be pointed to by an
 // InventorySlot
 typedef Variant<EquipmentSlot, BagSlot, SwapSlot, TrashSlot> InventorySlot;
+// FezzedOne: Network compatibility shim.
+typedef Variant<EquipmentSlot, BagSlotCompat, SwapSlot, TrashSlot> InventorySlotCompat;
 
 InventorySlot jsonToInventorySlot(Json const& json);
 Json jsonFromInventorySlot(InventorySlot const& slot);

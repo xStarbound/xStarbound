@@ -192,6 +192,8 @@ public:
 
 private:
   typedef pair<Maybe<InventorySlot>, Maybe<InventorySlot>> CustomBarLink;
+  // FezzedOne: Network compatibility shim.
+  typedef pair<Maybe<InventorySlotCompat>, Maybe<InventorySlotCompat>> CustomBarLinkCompat;
 
   static bool checkInventoryFilter(ItemPtr const& items, String const& filterName);
 
@@ -224,7 +226,8 @@ private:
   uint8_t m_networkedCustomBarGroups;
   uint8_t m_networkedCustomBarIndexes;
   NetElementUInt m_customBarGroupNetState;
-  MultiArray<NetElementData<CustomBarLink>, 2> m_customBarNetState;
+  // FezzedOne: Needs a shim for network compatibility now.
+  MultiArray<NetElementData<CustomBarLinkCompat>, 2> m_customBarNetState;
   NetElementData<SelectedActionBarLocation> m_selectedActionBarNetState;
 
   // From WasabiRaptor's PR: Extra inventory items that don't fit.

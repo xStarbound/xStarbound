@@ -1229,7 +1229,7 @@ void PlayerInventory::netElementsNeedStore() {
   m_customBarNetState.forEach([&](auto const& index, auto& cbl) {
       // FezzedOne: Spoof *all* slots as empty. This prevents the case where an action bar slot linked to an
       // inventory slot the server can't see causes the server to segfault.
-      m_customBarNetState.at(index).set(CustomBarLink{{}, {}});
+      m_customBarNetState.at(index).set(CustomBarLinkCompat{{}, {}});
     });
 
   // FezzedOne: Spoof the selected custom bar slot.
