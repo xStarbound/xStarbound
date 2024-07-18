@@ -66,14 +66,14 @@ set_target_properties(discord_game_sdk PROPERTIES
         INTERFACE_LINK_LIBRARIES "Discord::GameSDKLibrary"
 )
 
-# target_include_directories(discord_sdk
-#         PUBLIC
-#         ${CMAKE_CURRENT_SOURCE_DIR}
-# )
+target_include_directories(discord_sdk
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
-# target_link_libraries(discord_sdk
-#         INTERFACE
-#         Discord::GameSDKLibrary
-# )
+target_link_libraries(discord_sdk
+        INTERFACE
+        Discord::GameSDKLibrary
+)
 
 add_library(Discord::SDK ALIAS discord_sdk)
