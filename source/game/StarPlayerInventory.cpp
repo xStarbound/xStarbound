@@ -88,7 +88,7 @@ PlayerInventory::PlayerInventory() {
   m_networkedCustomBarIndexes = config.getUInt("networkedCustomBarIndexes");
   addNetElement(&m_customBarGroupNetState);
   m_customBarNetState.resize(m_networkedCustomBarGroups, m_networkedCustomBarIndexes);
-  m_customBarNetState.forEach([this](Array2S const&, NetElementData<CustomBarLink>& e) {
+  m_customBarNetState.forEach([this](Array2S const&, NetElementData<CustomBarLinkCompat>& e) {
       addNetElement(&e);
     });
 
