@@ -363,7 +363,7 @@ StringView StringView::substr(size_t position, size_t n) const {
 
   for (size_t i = 0; i != n; ++i) {
     if (it == itEnd)
-      return StringView(start, it.base() - start - 1);
+      return StringView(start, it.base() - start);
     ++it;
   }
 
