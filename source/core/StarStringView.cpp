@@ -359,15 +359,16 @@ StringView StringView::substr(size_t position, size_t n) const {
     ++it;
   }
 
-  const char* start = (const char*)it.base();
+  auto itStart = it.base();
+  const char* start = &*it.base();
 
   for (size_t i = 0; i != n; ++i) {
     if (it == itEnd)
-      return StringView(start, (const char*)it.base() - start);
+      break;
     ++it;
   }
 
-  return StringView(start, (const char*)it.base() - start);
+  return StringView(itStart, it.base() - start);
 }
 
 int StringView::compare(size_t selfOffset, size_t selfLen, StringView other,
