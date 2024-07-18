@@ -61,14 +61,19 @@ add_library(discord_sdk STATIC
         voice_manager.h
 )
 
-target_include_directories(discord_sdk
-        PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
+set_target_properties(steamworks_sdk PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/"
+        INTERFACE_LINK_LIBRARIES "Discord::GameSDKLibrary"
 )
 
-target_link_libraries(discord_sdk
-        INTERFACE
-        Discord::GameSDKLibrary
-)
+# target_include_directories(discord_sdk
+#         PUBLIC
+#         ${CMAKE_CURRENT_SOURCE_DIR}
+# )
+
+# target_link_libraries(discord_sdk
+#         INTERFACE
+#         Discord::GameSDKLibrary
+# )
 
 add_library(Discord::SDK ALIAS discord_sdk)
