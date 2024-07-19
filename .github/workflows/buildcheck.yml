@@ -32,7 +32,6 @@ jobs:
         run: |
           mkdir "${{ github.workspace }}\dist"
           copy "${{ github.workspace }}\scripts\steam_appid.txt" "${{ github.workspace }}\dist\"
-          copy "${{ github.workspace }}\source\extern\steam\lib\windows\steam_api64.dll" "${{ github.workspace }}\dist\"
           copy "${{ github.workspace }}\scripts\windows\xsbinit.config" "${{ github.workspace }}\dist\"
 
       - name: Configure CMake
@@ -76,7 +75,6 @@ jobs:
         run: |
           mkdir "${{ github.workspace }}\dist"
           copy "${{ github.workspace }}\scripts\steam_appid.txt" "${{ github.workspace }}\dist\"
-          copy "${{ github.workspace }}\source\extern\steam\lib\windows\steam_api64.dll" "${{ github.workspace }}\dist\"
           copy "${{ github.workspace }}\scripts\windows\xsbinit.config" "${{ github.workspace }}\dist\"
 
       - name: Configure CMake
@@ -122,7 +120,6 @@ jobs:
         run: |
           mkdir "${{ github.workspace }}/dist"
           cp "${{ github.workspace }}/scripts/steam_appid.txt" "${{ github.workspace }}/dist/"
-          cp "${{ github.workspace }}/source/extern/steam/lib/linux/x86_64/libsteam_api.so" "${{ github.workspace }}/dist/"
           cp "${{ github.workspace }}/scripts/linux/xsbinit.config" "${{ github.workspace }}/dist/"
 
       - name: Configure CMake
@@ -170,7 +167,6 @@ jobs:
         run: |
           mkdir "${{ github.workspace }}/dist"
           cp "${{ github.workspace }}/scripts/steam_appid.txt" "${{ github.workspace }}/dist/"
-          cp "${{ github.workspace }}/source/extern/steam/lib/linux/x86_64/libsteam_api.so" "${{ github.workspace }}/dist/"
           cp "${{ github.workspace }}/scripts/linux/xsbinit.config" "${{ github.workspace }}/dist/"
 
       - name: Configure CMake
