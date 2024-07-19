@@ -51,8 +51,8 @@
       "binaryDir": "${sourceDir}/cmake-build-linux-x86_64",
       "hidden": true,
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-linux",
-        "VCPKG_HOST_TRIPLET": "x64-linux",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-mixed",
+        "VCPKG_HOST_TRIPLET": "x64-linux-mixed",
         "VCPKG_TARGET_ARCHITECTURE": "x64",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{VCPKG_INSTALLATION_ROOT}/scripts/toolchains/linux.cmake"
       }

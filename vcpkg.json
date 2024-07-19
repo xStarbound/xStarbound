@@ -27,9 +27,18 @@
           "name": "qtbase",
           "default-features": false,
           "features": [
-            "widgets"
+            "widgets",
+            {
+              "name": "xcb",
+              "platform": "linux"
+            },
+            {
+              "name": "fontconfig",
+              "platform": "linux"
+            }
           ]
-        }
+        },
+        "qtsvg"
       ]
     },
     "jemalloc": {

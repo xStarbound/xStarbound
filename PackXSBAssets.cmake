@@ -20,3 +20,11 @@ if(PACKAGE_XSB_ASSETS)
             DEPENDS "${PROJECT_SOURCE_DIR}/xsb-assets/packed.pak"
     )
 endif()
+
+# Add install script even if the packaging isn't done at build time. The packed.pak
+# may be created outside the build before installing.
+install(FILES ${PROJECT_SOURCE_DIR}/xsb-assets/packed.pak
+        DESTINATION ${STAR_INSTALL_DATADIR}/xsb-assets/
+        COMPONENT Assets
+        OPTIONAL # Silently ignore if the asset pack is missing.
+)

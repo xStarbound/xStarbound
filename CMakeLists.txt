@@ -5,7 +5,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 # Build options
 include(CMakeDependentOption)
 option(STAR_BUILD_GUI "Build GUI utilities and Client" ON)
-cmake_dependent_option(STAR_BUILD_QT_TOOLS "Build GUI utilities that require Qt" OFF "STAR_BUILD_GUI" OFF)
+cmake_dependent_option(STAR_BUILD_QT_TOOLS "Build GUI utilities. Requires Qt 6.7 or higher" OFF "STAR_BUILD_GUI" OFF)
 cmake_dependent_option(STAR_ENABLE_STEAM_INTEGRATION "Use Steam platform services" OFF "STAR_BUILD_GUI" OFF)
 cmake_dependent_option(STAR_ENABLE_DISCORD_INTEGRATION "Use Discord platform services" OFF "STAR_BUILD_GUI" OFF)
 
@@ -20,6 +20,9 @@ cmake_dependent_option(STAR_MEMORY_SANITIZER "Build executables with memory sani
 # In this case, asset_packer must be build for the HOST system architecture. We can't do that easily within CMake though
 # as we do not know if the host system has the appropriate dependencies as asset_packer needs basically a full Starbound build.
 option(PACKAGE_XSB_ASSETS "Adds a command to create a packed.pak from xsb-assets to the ALL target and installs it." OFF)
+
+option(STAR_INSTALL_TOOLS "Install user and modding tools (asset_packer, planet_mapgen etc.)" ON)
+option(STAR_INSTALL_EXTRA_TOOLS "Install extra development tools (benchmarks etc.)" OFF)
 
 set(STAR_GAME_RESOURCE_BASE_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE FILEPATH "Location of the game assets to be used for running inside the build dir. Defaults to project root.")
 
@@ -170,6 +173,11 @@ message(STATUS "Little Endian: ${STAR_LITTLE_ENDIAN}")
 message(STATUS "System: ${STAR_SYSTEM}")
 message(STATUS "System family: ${STAR_SYSTEM_FAMILY}")
 message(STATUS "C/C++ compiler: ${STAR_COMPILER}")
+if(VCPKG_MANIFEST_MODE)
+    message(STATUS "vcpkg: Building in Manifest mode, not using host system libraries.")
+else()
+    message(STATUS "vcpkg: Disabled, using host system libraries.")
+endif()
 
 if(DEFINED STAR_ENABLE_STATIC_LIBGCC_LIBSTDCXX)
     message(STATUS "Statically linking to libgcc / libstdc++: ${STAR_ENABLE_STATIC_LIBGCC_LIBSTDCXX}")
@@ -512,6 +520,9 @@ if(STAR_USE_JEMALLOC AND STAR_USE_MIMALLOC)
     message(FATAL_ERROR "Please only specify ONE memory allocator to be used: either STAR_USE_JEMALLOC or STAR_USE_MIMALLOC.")
 endif()
 
+# Need to set install dirs before finding Qt.
+include(Install.cmake)
+
 if(STAR_USE_JEMALLOC)
     # Assumes jemalloc was configured with a "je_" function prefix
     find_package(JeMalloc REQUIRED)
@@ -601,21 +612,11 @@ if(STAR_BUILD_GUI)
 
     set(STAR_EXT_GUI_LIBS ${STAR_EXT_GUI_LIBS} ${OPENGL_LIBRARY} GLEW::GLEW)
 
+    if(STAR_BUILD_QT_TOOLS)
+        find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
+        qt_standard_project_setup()
+    endif()
 endif()
-
-if(STAR_SYSTEM_WINDOWS)
-    set(STAR_CONFIG_FILE_TEMPLATE "${PROJECT_SOURCE_DIR}/scripts/windows/xsbinit.config.in")
-elseif(STAR_SYSTEM_MACOS)
-    set(STAR_CONFIG_FILE_TEMPLATE "${PROJECT_SOURCE_DIR}/scripts/osx/xsbinit.config.in")
-elseif(STAR_SYSTEM_LINUX OR STAR_SYSTEM_FAMILY_UNIX)
-    set(STAR_CONFIG_FILE_TEMPLATE "${PROJECT_SOURCE_DIR}/scripts/linux/xsbinit.config.in")
-endif()
-
-# Create configuration files for installation & development
-set(XSB_RES_BASE_DIR "..")
-configure_file(${STAR_CONFIG_FILE_TEMPLATE} ${PROJECT_BINARY_DIR}/xsbinit.config @ONLY)
-set(XSB_RES_BASE_DIR "${STAR_GAME_RESOURCE_BASE_DIR}")
-configure_file(${STAR_CONFIG_FILE_TEMPLATE} ${PROJECT_BINARY_DIR}/xsbinit.config.build @ONLY)
 
 # Set basic build flags, include all the relevant source directories, based on
 # build settings...
@@ -631,3 +632,4 @@ if(BUILD_TESTING)
     enable_testing()
     add_subdirectory(source/test)
 endif()
+

@@ -4,5 +4,8 @@
     "kind": "git",
     "baseline": "230d85084ca006926d51c3d332c94298fb3bd56c",
     "repository": "https://github.com/microsoft/vcpkg"
-  }
+  },
+  "overlay-triplets": [
+    "cmake/vcpkg/triplets"
+  ]
 }
