@@ -183,6 +183,12 @@ The basic process for building on other OSes:
 4. If you're using Git, run `git clone https://github.com/FezzedOne/xStarbound.git` in a terminal or command prompt, or use a graphical Git utility to download the repo.
 5. In the xStarbound directory, run `cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/`. On some OSes, you may need to add the full path to your CMake executable to the beginning of the command. If necessary, add `-DCMAKE_C_COMPILER=<path to C++ compiler> -DCMAKE_CXX_COMPILER=<path to C++ compiler>`. Note that a CMake build preset already exists for modern macOS; consider using that if you have build issues.
 
+### Packaging and Installing xSB Assets
+
+The build system can automatically take care of packaging the additional xSB assets and install the resulting .pak file automatically. To enable asset packing, pass `-DPACKAGE_XSB_ASSETS=ON` to the CMake command, e.g. after the `--preset` argument. This will create a directory `xsb-assets` in the project's main dir, and package the resources in `assets/xSBassets` into a `packed.pak` file.
+
+It is important to note that automatic packaging will _only_ work if the built binaries (specifically asset_packer[.exe]) run on the host system. If you are cross-compiling, e.g. for a different CPU architecture (building for ARM64 on a x64 OS) or a different OS (building with MinGW on Linux, or with WSL on Windows), this feature cannot be used. In this case, you have to manually package the assets with an asset_packer that runs locally, and copy the resulting file to `xsb-assets/packed.pak` _before installing the project_. Due to how CPack works, this is only feasible when packaging manually from the install dir.
+
 ## Discord
 
 For support, suggestions or just plain old chit-chat, check out the [xStarbound Discord server](https://discord.gg/GJ5RTkyFCX).

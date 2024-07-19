@@ -16,6 +16,11 @@ cmake_dependent_option(STAR_USE_MIMALLOC "Use mi-malloc allocators" OFF "NOT STA
 option(BUILD_TESTING "Build unit and game tests (NOTE: game tests require all game asset packs to run)" OFF)
 cmake_dependent_option(STAR_MEMORY_SANITIZER "Build executables with memory sanitizers enabled" OFF "BUILD_TESTING" OFF)
 
+# Beware: This will NOT work when cross-compiling to an incompatible architecture (e.g. aarch64 on x86_64) or a different OS (e.g. MinGW)!
+# In this case, asset_packer must be build for the HOST system architecture. We can't do that easily within CMake though
+# as we do not know if the host system has the appropriate dependencies as asset_packer needs basically a full Starbound build.
+option(PACKAGE_XSB_ASSETS "Adds a command to create a packed.pak from xsb-assets to the ALL target and installs it." OFF)
+
 # Only request vcpkg dependencies if required to decrease build time
 # VCPKG_MANIFEST_FEATURES must be set before calling PROJECT().
 # See vcpkg.json to see which dependencies each feature pulls in.
@@ -457,11 +462,6 @@ else()
 endif()
 
 # Set other global build settings based on environment...
-
-# if (STAR_SYSTEM_LINUX AND STAR_COMPILER_CLANG)
-#   set (CMAKE_MODULE_LINKER_FLAGS "-no-pie")
-# endif ()
-
 if(STAR_SYSTEM_MACOS)
     set(CMAKE_MODULE_LINKER_FLAGS "-flat_namespace -undefined suppress")
 elseif(STAR_SYSTEM_WINDOWS)
@@ -658,6 +658,5 @@ endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
 if(BUILD_TESTING)
     # Needs to reside at the top-level CMakeLists.txt!
     enable_testing()
+    add_subdirectory(source/test)
 endif()
-
-add_subdirectory(source)

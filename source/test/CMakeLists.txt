@@ -70,8 +70,13 @@ target_link_libraries(game_tests
         GTest::gtest
 )
 
-if(EXISTS "${PROJECT_SOURCE_DIR}/assets/packed.pak" AND EXISTS "${PROJECT_SOURCE_DIR}/xsb-assets/packed.pak")
+if(EXISTS "${PROJECT_SOURCE_DIR}/assets/packed.pak" AND (EXISTS "${PROJECT_SOURCE_DIR}/xsb-assets/packed.pak" OR TARGET package_xsb_assets))
     add_test(NAME game_tests WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/game_tests)
+
+    # Make sure the xSB assets are packaged when building the test, e.g. if the dev does not build the ALL target.
+    if(TARGET package_xsb_assets)
+        add_dependencies(game_tests package_xsb_assets)
+    endif()
 else()
     message(AUTHOR_WARNING "Skipped adding game_tests to CTest configuration.\n"
             "Make sure the packed asset files are present in both assets/ and xsb-assets/ in the main project directory!\n"
