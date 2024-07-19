@@ -126,130 +126,62 @@ This repository is already set up for easy building. Follow the appropriate inst
 
 ### Linux
 
-The xStarbound binaries can be built against either the Steam Runtime or the native system libraries; the `mod_uploader` may optionally be built separately. All prebuilt Linux binaries starting with v2.3.6.1r1 on this repo have been built against the Steam Runtime to ensure cross-distro compatibility.
+On Linux, the xStarbound binaries are by default built against the system libraries. To build xStarbound on any reasonably up-to-date Linux install:
 
-**With Steam Runtime:** To build against the Steam Runtime:
+1. If you're on SteamOS, run `sudo steamos-readonly disable`.
+2. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's «base development» package.
+3. Install CMake, Git and the required build libraries for xStarbound:
+   - *Arch-based distros (CachyOS, Endeavour, etc.):* `sudo pacman -S cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland` (you may need to `-Syu` first)
+   - *RPM/`yum`-based distros:* `sudo yum install cmake git ninja-build mesa mesa-libGLU libXrender libXi libxkbcommon egl-wayland`
+   - *Debian/`apt`-based distros:* `sudo apt install cmake git ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev`
+   - *Gentoo:* `sudo emerge -a dev-vcs/git dev-build/cmake dev-build/ninja media-libs/mesa virtual/glu x11-misc/xcb x11-libs/libGLw x11-libs/libXrender x11-libs/libXi x11-libs/libxkbcommon gui-libs/egl-wayland`
+   - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland; sudo steamos-readonly enable`
+4. If you're on SteamOS, run `sudo steamos-readonly enable`.
+5. `git clone https://github.com/FezzedOne/xStarbound.git`
+6. `cd xStarbound/`
+7. `cmake --preset "linux-vcpkg-x86_64"`
+8. `mkdir -p dist/`
+9. `cp source/extern/steam/lib/linux/x86_64/libsteam_api.so dist/`
+10. `cp scripts/linux/xclient.sh scripts/linux/xserver.sh scripts/linux/mod_uploader.sh dist/`
+11. `scripts/linux/setup.sh 4` (increase that `4` to `8` or more if you've got a beefy system!)
+12. Executables should appear in `$src/dist` if built successfully.
+13. `chmod a+x dist/xclient dist/xclient.sh dist/xserver dist/xserver.sh dist/mod_uploader dist/mod_uploader.sh dist/btree_repacker`
+14. `mkdir -p ${sbInstall}/xsb-linux; cp dist/* ${sbInstall}/xsb-linux/`
+15. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
+16. Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient.sh`.
 
-1. Install Toolbox and Git — your distro's packages should be called `toolbox` and `git`, respectively.
-2. `toolbox create -i registry.gitlab.steamos.cloud/steamrt/scout/sdk scout`
-3. `git clone --recurse-submodules https://github.com/FezzedOne/xStarbound.git`
-4. `toolbox enter scout`
-5. *In the Toolbox shell:* `cd xStarbound/`
-6. *In the Toolbox shell:* `scripts/linux/setup-runtime.sh 4` (increase that `4` to `8` or more if you've got a beefy system!)
-7. `mkdir -p ${sbInstall}/xsb-linux; cp dist/* ${sbInstall}/xsb-linux/`
-8. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
-9.  Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-linux/xclient`.
+> **Important:** If you're getting library linking errors while attempting to build or run xStarbound (this is likely on Debian-based distros, Slackware and CentOS due to their older libraries), you'll need to either figure out how to build xStarbound against the Steam runtime (hint: update CMake somehow!) or find a way to update your system libraries.
 
-> **Note:** All extra libraries required by xStarbound should already be set up in the repo — there's no need for `apt-get` commands in the Toolbox environment.
+### Windows 10 or 11
 
-**With system libraries:** *Not recommended on non-Arch-based distros!* To build against system libraries on any reasonably up-to-date Linux distro:
+To build and install xStarbound on Windows 10 or 11:
 
-1. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's «base development» package.
-2. Install CMake and Git:
-   - *Arch-based distros:* `sudo pacman -S cmake git` (you may need to `-Syu` first)
-   - *RPM/`yum`-based distros:* `sudo yum install cmake git`
-   - *Debian/`apt-get`-based distros:* `sudo apt-get install cmake git` (on Mint, replace `apt-get` with `apt`)
-   - *Gentoo:* `sudo emerge -a dev-vcs/git dev-build/cmake`
-   - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu cmake git; sudo steamos-readonly enable`
-3. `git clone --recurse-submodules https://github.com/FezzedOne/xStarbound.git`
-4. `cd xStarbound/`
-5. `scripts/linux/setup.sh 4` (increase that `4` to `8` or more if you've got a beefy system!)
-6. Executables, required `.so` libaries and the required `sbinit.config` should appear in `$src/dist` if built successfully.
-7. `mkdir -p ${sbInstall}/xsb-linux; cp dist/* ${sbInstall}/xsb-linux/`
-8. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
-9.  Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-linux/xclient`.
-
-> **Important:** If you're getting library linking errors while attempting to build or run xStarbound (this is likely on Debian-based distros, Slackware and CentOS due to their older libraries), you'll need to either build xStarbound against the Steam runtime or find a way to update your system libraries.
-
-**Building the mod uploader:** The Linux `mod_uploader` (needed to upload mods to the Steam Workshop) must be built separately and *cannot* be built in the Steam runtime. You *must* own Starbound on Steam in order to be able to use the `mod_uploader`. To build the `mod_uploader`:
-
-1. Install CMake and Git; see above for package names on popular distros.
-2. Install Steam if you don't already have it installed; see [these instructions](https://www.xda-developers.com/how-run-steam-linux/) if you don't know how.
-3. Install `libpng` 16.x and the Qt5 libraries and headers:
-   - *Arch-based distros:* `sudo pacman -S qt5-base libpng` (you may need to `-Syu` first)
-   - *RPM/`yum`-based distros:* `sudo yum install qt5-qtbase qt5-qtbase-devel libpng`
-   - *Debian/`apt-get`-based distros:* `sudo apt-get install qtbase5-dev libpng16-16` (on Mint, replace `apt-get` with `apt`)
-   - *Gentoo:* `sudo emerge -a @qt5-essentials media-libs/libpng`
-   - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu qt5-base libpng; sudo steamos-readonly enable`
-4. `cd path/to/xStarbound/`
-5. `scripts/linux/setup-qt.sh 4` (increase that `4` to `8` or more if you've got a beefy system!)
-6. Once built, `cp` the `mod_uploader` in `$src/dist` to anywhere convenient, optionally renaming it.
-
-To use the `mod_uploader`, start Steam and then start the `mod_uploader` binary manually — Linux Steam does not have an option to use it through the game library. Once started, you can upload mods normally.
-
-> **Note:** If you get a «`libpng` not found» linker error while building, change the `libpng` path in `$src/scripts/linux/setup-qt.sh` to wherever `libpng16.so.16` is installed on your system.
-
-### SteamOS
-
-To build on SteamOS:
-
-1. Run the following commands:
-
-    ```sh
-    sudo steamos-readonly disable
-    sudo pacman -S toolbox git
-    sudo steamos-readonly enable
-    ```
-
-2. Follow the Steam Runtime instructions starting at step 3.
-
-You will need to re-run the commands in step 1 every time you update SteamOS (and want to rebuild xStarbound).
-
-### Windows
-
-To build and install on Windows 10 or 11:
-
-1. Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/whatsnew/) and [CMake](https://cmake.org/download/). For Visual Studio, make sure to install C++ support (and optionally the game dev stuff) when the VS installer asks you what to install. For CMake, make sure you download and use the `.msi` installer for 64-bit Windows
+1. Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/whatsnew/) and [CMake](https://cmake.org/download/). For Visual Studio, make sure to install C++ support (and optionally the game dev stuff) when the VS installer asks you what to install. For CMake, make sure you download and use the `.msi` installer for 64-bit Windows.
 2. Optionally install [Git](https://git-scm.com/download/win). If using Git, go the next step; otherwise go to step 4.
-3. Open up Git Bash and run `git clone --recurse-submodules https://github.com/FezzedOne/xStarbound.git`, then go to step 6.
+3. Open up Git Bash and run `git clone https://github.com/FezzedOne/xStarbound.git`, then go to step 6.
 4. Download the latest xStarbound source ZIP and extract it somewhere.
-5. Download the latest [Opus source ZIP](https://github.com/xiph/opus/releases), extract it, and put the `opus\` folder in `source\extern\`.
-6. Go into `scripts\windows\` and double-click `setup.bat`.
-7. Wait for that batch file to finish, go up two folders, open up `build\` and double-click `ALL_BUILD.vcxproj`.
-8. Click the build type drop-down box (the one that says «Debug») and select «Release».
-9. Select **Build → Build Solution** in Visual Studio.
-10. Executables, required `.dll` libraries and the required `xsbinit.config` should appear in a new `xStarbound\dist\` folder if built successfully.
-11. Make a new `xsb-win64\` folder in your Starbound install folder, and copy or move the `.exe`s, `.dll`s, `xsbinit.config` and `steam_appid.txt` to it.
-12. Make a new `xab-assets\` folder in your Starbound install folder, and copy the `assets\xSBassets` folder into that folder.
-13. Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
+5. Go into `scripts\windows\` and double-click `build.bat`. CMake and VCPKG will take care of all build dependencies.
+6.  Executables, required `.dll` libraries and the required `xsbinit.config` should appear in a new `xStarbound\dist\` folder if built successfully.
+7.  Make a new `xsb-win64\` folder in your Starbound install folder, and copy or move the files in `xStarbound\dist\` to it.
+8.  Make a new `xab-assets\` folder in your Starbound install folder, and copy the `assets\xSBassets` folder into that folder. For correct installation, you should have an `xSBassets\` folder *inside* `xsb-assets\`.
+9.  Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
 
-Building on earlier versions of Windows is not recommended, although it *should* still be possible to build xStarbound on Windows 7, 8 or 8.1 if you can get VS 2022 installed.
+> **Building on older Windows versions:** Building on earlier versions of Windows is *not* recommended, although it *should* still be possible to build xStarbound on Windows 7, 8 or 8.1 if you can get VS 2022 installed.
 
-### macOS
+### Other OSes
 
-To build and install on macOS 10.15 or later:
+The basic process for building on other OSes:
 
-1. Run `xcode-select --install` in a terminal if you don't already have the Xcode CLI tools installed; if you have issues with the following steps, update macOS afterward.
-2. Download and install [CMake](https://cmake.org/download/) and [Homebrew](https://brew.sh/).
-3. Download and install [SDL2](https://github.com/libsdl-org/SDL/releases/tag/release-2.30.0) — use the DMG with the framework!
-4. Run the following terminal commands: `brew install git glew libvorbis lzlib libpng freetype`
-5. `git clone --recurse-submodules https://github.com/FezzedOne/xStarbound.git`
-6. `cd xStarbound`
-7. `scripts/osx/setup.command; scripts/osx/build.command`
-8. `cp dist/xclient macos/xClient.app/Contents/MacOS/`
-9. Copy everything in `xStarbound/dist` except `xclient` to a new `xsb-osx` folder in your Starbound install folder, then copy `xClient.app` («xClient» in Finder) from `xStarbound/macos` to the new `xsb-osx` folder.
-10. Copy `xStarbound/assets/xSBassets` to a new `xsb-assets` folder in your Starbound install folder.
-11. Optionally configure Steam or GoG to launch `xsb-osx/xClient.app`.
-
-### Cross-compilation from Linux to Windows
-
-To cross-compile from Linux to Windows:
-
-1. Install CMake, WINE, MinGW-w64 and Git (if not already preinstalled).
-  - **Arch-/Debian-based distros (`apt`/`pacman`):** Install `cmake`, `wine`, `mingw-w64` and `git`.
-  - **Fedora-based distros (`yum`):** Install `cmake`, `wine`, `mingw64-\*` and `git`.
-2. Install or build the MinGW versions of Freetype (using `--without-harfbuzz`), GLEW, ZLib, `libpng`, `libogg`, `libvorbis` and SDL2.
-  - On the AUR, these are `mingw-w64-freetype2-bootstrap`, `mingw-w64-zlib`, `mingw-w64-glew`, `mingw-w64-zlib`, `mingw-w64-libpng`, `mingw-w64-libogg`, `mingw-w64-libvorbis` and `mingw-w64-sdl2`, respectively.
-  - For Arch users (*not* derivatives), there is a [binary repo](https://martchus.no-ip.biz/repo/arch/ownstuff) for these libraries, but you should still install `mingw-w64-freetype2-bootstrap` from the AUR.
-3. `git clone --recurse-submodules https://github.com/FezzedOne/xStarbound.git`
-4. `cd xStarbound/`
-5. `scripts/mingw/setup.sh 4` (increase that `4` to `8` or more if you've got a beefy system!)
-6. Executables, required `.dll` libaries and the required `sbinit.config` should appear in `$src/dist-windows` if built successfully. Note that the Discord library is differently named due to an idiosyncrasy with the linker; do not rename it back.
-7. `mkdir -p ${sbInstall}/xsb-win64; cp dist-windows/* ${sbInstall}/xsb-win64/`
-8. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
-9. Optionally configure Steam or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `${sbInstall}/xsb-win64/xclient.exe` through WINE/Proton (or on your Windows install).
-
-> **Note:** Gentoo users will need to compile MinGW with `_GLIBCXX_USE_CXX11_ABI` enabled (`-D_GLIBCXX_USE_CXX11_ABI=1`) to avoid linker errors.
+1. Install CMake, a C++ compiler toolchain and (optionally) Git.
+   - On *macOS 10.11+*, you should use [Homebrew](https://brew.sh/) to install CMake, Git and the needed build dependencies on your system. Manual installation of dependencies via wizards or drag-and-drop is likely to cause build issues or be a pain to work with.
+   - If you're targeting *older versions of macOS / OS X*, look into [Tigerbrew](https://github.com/mistydemeo/tigerbrew). Expect to do more tinkering and/or manual installation of build dependencies.
+   - Most *BSDs* and other reasonably up-to-date *\*nix OSes* (like Haiku) should have the necessary packages in their ports system or equivalent. Make sure to disable Steam and Discord integrations.
+   - For *Windows XP* or *Vista* targets, your best bet is to use Visual Studio 2017 or 2019 on a newer version of Windows or on WINE with the `v141_xp` toolchain (it doesn't work on VS 2022!). Make sure to disable Steam and Discord integrations.
+   - Targetting *older Windows versions*, *pre-OSX Mac OS*, *Android*, the *Switch* or any other niche device or OS is left as an exercise for the reader.
+2. If you can, install any dependencies needed to build SDL2 and GLEW on your OS. If you can't, hopefully VCPKG runs on your build OS and/or has packages for your target OS. If not, get ready for a lot of tinkering.
+3. If you're not using Git or don't have it installed, download the latest xStarbound source ZIP, extract it somewhere and go to step 5. Otherwise go to the next step.
+4. If you're using Git, run `git clone https://github.com/FezzedOne/xStarbound.git` in a terminal or command prompt, or use a graphical Git utility to download the repo.
+5. In the xStarbound directory, run `cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/`. On some OSes, you may need to add the full path to your CMake executable to the beginning of the command. If necessary, add `-DCMAKE_C_COMPILER=<path to C++ compiler> -DCMAKE_CXX_COMPILER=<path to C++ compiler>`. Note that a CMake build preset already exists for modern macOS; consider using that if you have build issues.
 
 ## Discord
 
