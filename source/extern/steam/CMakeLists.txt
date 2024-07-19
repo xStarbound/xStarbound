@@ -25,6 +25,12 @@ elseif(STAR_SYSTEM STREQUAL "freebsd")
     message(FATAL_ERROR "Steam integration is not supported on FreeBSD!")
 endif()
 
+# This doesn't work for imported librares when used in other scopes, so we store the library path into the cache.
+# See https://gitlab.kitware.com/cmake/cmake/-/issues/19072
+get_target_property(_steam_lib steam_api_bindings IMPORTED_LOCATION)
+set(STAR_STEAM_SDK_LIBRARY_FILE "${_steam_lib}" CACHE STRING "Steam SDK library")
+unset(_steam_lib)
+
 add_library(Steam::APIBindings ALIAS steam_api_bindings)
 
 add_library(steamworks_sdk INTERFACE)

@@ -21,6 +21,8 @@ cmake_dependent_option(STAR_MEMORY_SANITIZER "Build executables with memory sani
 # as we do not know if the host system has the appropriate dependencies as asset_packer needs basically a full Starbound build.
 option(PACKAGE_XSB_ASSETS "Adds a command to create a packed.pak from xsb-assets to the ALL target and installs it." OFF)
 
+set(STAR_GAME_RESOURCE_BASE_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE FILEPATH "Location of the game assets to be used for running inside the build dir. Defaults to project root.")
+
 # Only request vcpkg dependencies if required to decrease build time
 # VCPKG_MANIFEST_FEATURES must be set before calling PROJECT().
 # See vcpkg.json to see which dependencies each feature pulls in.
@@ -601,59 +603,28 @@ if(STAR_BUILD_GUI)
 
 endif()
 
+if(STAR_SYSTEM_WINDOWS)
+    set(STAR_CONFIG_FILE_TEMPLATE "${PROJECT_SOURCE_DIR}/scripts/windows/xsbinit.config.in")
+elseif(STAR_SYSTEM_MACOS)
+    set(STAR_CONFIG_FILE_TEMPLATE "${PROJECT_SOURCE_DIR}/scripts/osx/xsbinit.config.in")
+elseif(STAR_SYSTEM_LINUX OR STAR_SYSTEM_FAMILY_UNIX)
+    set(STAR_CONFIG_FILE_TEMPLATE "${PROJECT_SOURCE_DIR}/scripts/linux/xsbinit.config.in")
+endif()
+
+# Create configuration files for installation & development
+set(XSB_RES_BASE_DIR "..")
+configure_file(${STAR_CONFIG_FILE_TEMPLATE} ${PROJECT_BINARY_DIR}/xsbinit.config @ONLY)
+set(XSB_RES_BASE_DIR "${STAR_GAME_RESOURCE_BASE_DIR}")
+configure_file(${STAR_CONFIG_FILE_TEMPLATE} ${PROJECT_BINARY_DIR}/xsbinit.config.build @ONLY)
+
 # Set basic build flags, include all the relevant source directories, based on
 # build settings...
 
 set(BUILD_SHARED_LIBS false)
 
-# FezzedOne: MinGW setup. Windows executables built with GCC (presumably MinGW)
-# go in `$src/dist-windows` or `$src/dist-windows-debug`, while all other executables,
-# including Windows executables built with MinGW and Linux executables built with GCC,
-# go in `$src/dist` or `$src/dist-debug`.
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    if(STAR_CROSS_COMPILE)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/dist-windows-debug)
-    else()
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/dist-debug)
-    endif()
-elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    if(STAR_CROSS_COMPILE)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/dist-windows-debug)
-    else()
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/dist-debug)
-    endif()
-else()
-    if(STAR_CROSS_COMPILE)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/dist-windows)
-    else()
-        # First set output dir for the generic no-config case (e.g. macos / linux)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/dist)
-    endif()
-endif()
+add_subdirectory(source)
 
-# Second, set output dir for multi-config builds (e.g. msvc)
-foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        if(STAR_CROSS_COMPILE)
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/dist-windows-debug)
-        else()
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/dist-debug)
-        endif()
-    elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-        if(STAR_CROSS_COMPILE)
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/dist-windows-debug)
-        else()
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/dist-debug)
-        endif()
-    else()
-        if(STAR_CROSS_COMPILE)
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/dist-windows)
-        else()
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/dist)
-        endif()
-    endif()
-endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+include(PackXSBAssets.cmake)
 
 if(BUILD_TESTING)
     # Needs to reside at the top-level CMakeLists.txt!

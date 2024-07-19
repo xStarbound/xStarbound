@@ -25,6 +25,12 @@ elseif(STAR_SYSTEM STREQUAL "freebsd")
     message(FATAL_ERROR "Discord integration is not supported on FreeBSD!")
 endif()
 
+# This doesn't work for imported librares when used in other scopes, so we store the library path into the cache.
+# See https://gitlab.kitware.com/cmake/cmake/-/issues/19072
+get_target_property(_discord_lib discord_game_sdk IMPORTED_LOCATION)
+set(STAR_DISCORD_SDK_LIBRARY_FILE "${_discord_lib}" CACHE STRING "Discord SDK library")
+unset(_discord_lib)
+
 add_library(Discord::GameSDKLibrary ALIAS discord_game_sdk)
 
 add_library(discord_sdk STATIC

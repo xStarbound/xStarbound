@@ -1,11 +1,11 @@
 {
   "assetDirectories" : [
-    "../assets/",
-    "../xsb-assets/",
-    "../mods/"
+    "@XSB_RES_BASE_DIR@/assets/",
+    "@XSB_RES_BASE_DIR@/xsb-assets/",
+    "@XSB_RES_BASE_DIR@/mods/"
   ],
 
-  "storageDirectory" : "../storage",
+  "storageDirectory" : "@XSB_RES_BASE_DIR@/storage",
 
   "assetsSettings" : {
     "pathIgnore" : [],

@@ -7,9 +7,6 @@ build-mingw/
 build-qt/
 build-runtime/
 build/
-dist-qt/
-dist-windows/
-dist/
 enc_temp_folder/
 mods/*
 mods/*.pak

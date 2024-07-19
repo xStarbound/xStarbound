@@ -70,6 +70,11 @@ target_link_libraries(game_tests
         GTest::gtest
 )
 
+# Copy configuration file to the same dir as the game_tests executable
+add_custom_command(TARGET game_tests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/xsbinit.config.build" "$<TARGET_FILE_DIR:game_tests>/xsbinit.config"
+)
+
 if(EXISTS "${PROJECT_SOURCE_DIR}/assets/packed.pak" AND (EXISTS "${PROJECT_SOURCE_DIR}/xsb-assets/packed.pak" OR TARGET package_xsb_assets))
     add_test(NAME game_tests WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/game_tests)
 
