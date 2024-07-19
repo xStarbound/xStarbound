@@ -724,6 +724,7 @@ bool String::regexMatch(String const& regex, bool full, bool caseSensitive) cons
 #ifdef STAR_COMPILER_GNU
   #ifdef STAR_SYSTEM_FAMILY_UNIX
   String adjustedRegex = full ? ("^" + regex + "$") : regex; // FezzedOne: Looks slightly hacky, but doubled `^` and `$` modifiers are ignored in POSIX regexes.
+  adjustedRegex = adjustedRegex.replace("\\d", "[[:digit:]]"); // FezzedOne: Another hack because the vanilla assets require support for `\d`.
 
   regex_t cmpRegex;
   int value;
