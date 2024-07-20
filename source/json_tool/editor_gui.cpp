@@ -125,7 +125,7 @@ void JsonEditor::displayCurrentFile() {
 
   m_pathLabel->setText(m_path->path().utf8Ptr());
 
-  m_imageLabel->setText("No preview");
+  m_imageLabel->setText("");
   m_jsonDocument->setPlainText("");
   m_valueEditor->setText("");
   m_valueEditor->setEnabled(false);

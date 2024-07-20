@@ -386,7 +386,7 @@ Maybe<ParsedArgs> parseArgs(int argc, char** argv) {
     return {};
   }
   if (parsed.command.is<EditCommand>() && anyNonFileInputs) {
-    cerrf("Interactie edit (--edit) can only be used with file input sources.\n");
+    cerrf("Interactive edit (--edit) can only be used with file input sources.\n");
     return {};
   }
 
