@@ -3,6 +3,7 @@ build-qt/
 build-mingw/
 build-runtime/
 dist/
+dist-static/
 dist-windows/
 dist-qt/
 enc_temp_folder/
