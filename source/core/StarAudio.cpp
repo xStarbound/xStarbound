@@ -219,15 +219,19 @@ public:
 
   size_t readPartial(int16_t* buffer, size_t bufferSize) {
     int bitstream;
-    int read;
+    int read = OV_HOLE;
     // ov_read takes int parameter, so do some magic here to make sure we don't
     // overflow
     bufferSize *= 2;
+
+    // Just silently skip over data holes.
+    while (read == OV_HOLE) {
 #if STAR_LITTLE_ENDIAN
-    read = ov_read(&m_vorbisFile, (char*)buffer, bufferSize, 0, 2, 1, &bitstream);
+      read = ov_read(&m_vorbisFile, (char*)buffer, bufferSize, 0, 2, 1, &bitstream);
 #else
-    read = ov_read(&m_vorbisFile, (char*)buffer, bufferSize, 1, 2, 1, &bitstream);
+      read = ov_read(&m_vorbisFile, (char*)buffer, bufferSize, 1, 2, 1, &bitstream);
 #endif
+    }
     if (read < 0)
       throw AudioException("Error in Audio::read");
 
