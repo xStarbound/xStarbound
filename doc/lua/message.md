@@ -251,6 +251,14 @@ See above for the possible controls.
 
 Sets the aim position a specified lounging position on a vehicle, as for a turret or similar. This message is sent by a player or NPC lounging in and controlling a vehicle.
 
+#### `void` `"requestUpgrade"` [crafting interface source entity] ()
+
+> **Note:** On xClient, the source entity of a crafting interface may now be any interactive entity. On other clients, the source entity *must* be a tile entity.
+
+Tells the source entity of a crafting interface — normally a crafting station object — to upgrade itself, usually to the next upgrade stage.
+
+Normally sent automatically by the client's engine. This message may be handled by a Lua script running on the entity so requested. On vanilla crafting stations (notwithstanding any changes by asset mods), the handling script is `$assets/objects/crafting/upgradeablecraftingobjects/upgradeablecraftingobject.lua`.
+
 #### `void` `"startCrafting"` [container object] ()
 
 Tells the container to start crafting. This is used for furnaces and other similar "smelters" or "extractors" that handle their crafting server-side. 

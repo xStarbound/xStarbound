@@ -10,6 +10,7 @@
 #include "StarPlayerBlueprints.hpp"
 #include "StarButtonWidget.hpp"
 #include "StarPaneManager.hpp"
+#include "StarInteractiveEntity.hpp"
 #include "StarPortraitWidget.hpp"
 #include "StarLabelWidget.hpp"
 #include "StarTextBoxWidget.hpp"
@@ -231,10 +232,16 @@ size_t CraftingPane::itemCount(List<ItemPtr> const& store, ItemDescriptor const&
 void CraftingPane::update(float dt) {
   // shut down if we can't reach the table anymore.
   if (m_sourceEntityId != NullEntityId) {
-    auto sourceEntity = as<TileEntity>(m_worldClient->entity(m_sourceEntityId));
-    if (!sourceEntity || !m_worldClient->playerCanReachEntity(m_sourceEntityId) || !sourceEntity->isInteractive()) {
-      dismiss();
-      return;
+    // FezzedOne: Stops the by-hand crafting pane from closing itself immediately on any primary player
+    // that isn't the one directly loaded from the title screen.
+    auto sourcePlayer = as<Player>(m_worldClient->entity(m_sourceEntityId));
+    if (sourcePlayer != m_player) {
+      // FezzedOne: Crafting panes are now allowed to have source entities that aren't tile entities.
+      auto sourceEntity = as<InteractiveEntity>(m_worldClient->entity(m_sourceEntityId));
+      if (!sourceEntity || !m_worldClient->playerCanReachEntity(m_sourceEntityId) || !sourceEntity->isInteractive()) {
+        dismiss();
+        return;
+      }
     }
   }
 
