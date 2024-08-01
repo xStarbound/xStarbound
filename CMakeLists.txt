@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 
+set(STAR_VERSION 3.1.2)
+
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 # Build options
@@ -15,6 +17,7 @@ cmake_dependent_option(STAR_USE_MIMALLOC "Use mi-malloc allocators" OFF "NOT STA
 
 option(BUILD_TESTING "Build unit and game tests (NOTE: game tests require all game asset packs to run)" OFF)
 cmake_dependent_option(STAR_MEMORY_SANITIZER "Build executables with memory sanitizers enabled" OFF "BUILD_TESTING" OFF)
+option(BUILD_INNOSETUP "Configures an InnoSetup project in the build directory to run on the install prefix" OFF)
 
 # Beware: This will NOT work when cross-compiling to an incompatible architecture (e.g. aarch64 on x86_64) or a different OS (e.g. MinGW)!
 # In this case, asset_packer must be build for the HOST system architecture. We can't do that easily within CMake though
@@ -59,7 +62,10 @@ else()
     message(STATUS "Not using CCache")
 endif()
 
-project(xsb2)
+project(xsb2
+    LANGUAGES C CXX
+    VERSION ${STAR_VERSION}
+)
 
 set(CMAKE_CONFIGURATION_TYPES Debug RelWithAsserts RelWithDebInfo Release)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
@@ -633,3 +639,6 @@ if(BUILD_TESTING)
     add_subdirectory(source/test)
 endif()
 
+if(BUILD_INNOSETUP)
+    add_subdirectory(scripts/windows/inno-installer)
+endif()

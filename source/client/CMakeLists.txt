@@ -1,7 +1,17 @@
+if(xsb2_VERSION_PATCH STREQUAL "")
+    set(xsb2_VERSION_PATCH "0")
+endif()
+if(xsb2_VERSION_TWEAK STREQUAL "")
+    set(xsb2_VERSION_TWEAK "0")
+endif()
+
+set(xsb2_RC_VERSION "${xsb2_VERSION_MAJOR},${xsb2_VERSION_MINOR},${xsb2_VERSION_PATCH},${xsb2_VERSION_TWEAK}")
+configure_file(xclient.rc.in ${CMAKE_CURRENT_BINARY_DIR}/xclient.rc @ONLY)
+
 add_executable(xclient WIN32
         StarClientApplication.cpp
         StarClientApplication.hpp
-        xclient.rc
+        ${CMAKE_CURRENT_BINARY_DIR}/xclient.rc
 )
 
 target_precompile_headers(xclient REUSE_FROM star_core)
@@ -46,7 +56,9 @@ install(TARGETS xclient
 string(REGEX REPLACE "([][+.*()^])" "\\\\\\1" _regex_source_dir "${PROJECT_SOURCE_DIR}")
 string(REGEX REPLACE "([][+.*()^])" "\\\\\\1" _regex_binary_dir "${PROJECT_BINARY_DIR}")
 install(RUNTIME_DEPENDENCY_SET STAR_RUNTIME_DEPS
-        PRE_EXCLUDE_REGEXES "libSDL2-2\.0\.so.*" # Only debug SDL2 library will be installed on Linux!
+        PRE_EXCLUDE_REGEXES
+            "libSDL2-2\.0\.so.*" # Only debug SDL2 library will be installed on Linux!
+            "api-ms-" "ext-ms-" # Virtual Windows runtime DLLs
         POST_INCLUDE_REGEXES "^${_regex_source_dir}/.+" "^${_regex_binary_dir}/.+"
         POST_EXCLUDE_REGEXES ".*"
         LIBRARY DESTINATION ${STAR_INSTALL_LIBDIR}

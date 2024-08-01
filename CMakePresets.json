@@ -148,7 +148,8 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
-        "BUILD_TESTING": "ON"
+        "BUILD_TESTING": "ON",
+        "BUILD_INNOSETUP": "ON"
       },
       "condition": {
         "type": "allOf",
@@ -174,7 +175,8 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
-        "BUILD_TESTING": "ON"
+        "BUILD_TESTING": "ON",
+        "BUILD_INNOSETUP": "ON"
       },
       "condition": {
         "type": "allOf",

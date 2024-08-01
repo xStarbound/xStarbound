@@ -29,11 +29,11 @@ configure_file(${STAR_CONFIG_FILE_TEMPLATE} ${PROJECT_BINARY_DIR}/xsbinit.config
 if(STAR_SYSTEM_WINDOWS)
 
     if(STAR_ARCHITECTURE STREQUAL "x86_64")
-        set(STAR_INSTALL_BINDIR win64)
-        set(STAR_INSTALL_LIBDIR win64)
+        set(STAR_INSTALL_BINDIR xsb-win64)
+        set(STAR_INSTALL_LIBDIR xsb-win64)
     else()
-        set(STAR_INSTALL_BINDIR win32)
-        set(STAR_INSTALL_LIBDIR win32)
+        set(STAR_INSTALL_BINDIR xsb-win32)
+        set(STAR_INSTALL_LIBDIR xsb-win32)
     endif()
     set(STAR_INSTALL_DATADIR .)
 
