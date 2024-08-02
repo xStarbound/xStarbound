@@ -46,13 +46,15 @@ Image scaleNearest(Image const& srcImage, Vec2F scale) {
   #pragma fenv_access(on)             // enable environment sensitivity
   #pragma float_control(except, on)   // enable exception semantics
 #elif defined STAR_COMPILER_CLANG
-  // FezzedOne: Disable optimisations on Clang.
-  #pragma clang optimize off
+  // #pragma clang optimize off
 #elif defined STAR_COMPILER_GNU
   // FezzedOne: Disable floating-point optimisations on GCC.
   #pragma GCC optimize("no-unsafe-math-optimizations")
 #endif
 Image scaleBilinear(Image const& srcImage, Vec2F scale) {
+  #if defined STAR_COMPILER_CLANG
+    #pragma clang fp reciprocal(off) reassociate(off) contract(on) exceptions(strict)
+  #endif
   if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
     if ((scale[0] < 0.0f || scale[1] < 0.0f)) {
@@ -131,8 +133,7 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
   #pragma fenv_access(off)            // disable environment sensitivity
   #pragma float_control(precise, off) // disable precise semantics
 #elif defined STAR_COMPILER_CLANG
-  // FezzedOne: Re-enable optimisations on Clang.
-  #pragma clang optimize on
+  // #pragma clang optimize on
 #elif defined STAR_COMPILER_GNU
   // FezzedOne: Reset to whatever MinGW GCC options were specified in CMakeLists.txt.
   #pragma GCC reset_options
