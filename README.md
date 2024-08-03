@@ -139,7 +139,7 @@ On Linux, the xStarbound binaries are by default built against the system librar
 4. If you're on SteamOS, run `sudo steamos-readonly enable`.
 5. `git clone https://github.com/FezzedOne/xStarbound.git`
 6. `cd xStarbound/`
-7. `cmake --preset "linux-vcpkg-x86_64"`
+7. `CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/`
 8. `mkdir -p dist/`
 9. `cp source/extern/steam/lib/linux/x86_64/libsteam_api.so dist/`
 10. `cp scripts/linux/xclient.sh scripts/linux/xserver.sh scripts/linux/mod_uploader.sh dist/`
