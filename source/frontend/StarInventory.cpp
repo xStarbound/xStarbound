@@ -30,6 +30,8 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
 
   GuiReader invWindowReader;
   auto config = Root::singleton().assets()->json("/interface/windowconfig/playerinventory.config");
+  auto playerInventoryConfig = Root::singleton().assets()->json("/player.config:inventory");
+  m_anyBagAllowed = config.optBool("allowAnyBagItem").value(false);
 
   auto leftClickCallback = [this](String const& bagType, Widget* widget) {
     auto itemGrid = convert<ItemGridWidget>(widget);
@@ -85,7 +87,7 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
       } else if (slot.is<TrashSlot>()) {
         inventory->setItem(slot, swapSlot->take(1));
       } else if (auto bs = slot.ptr<BagSlot>()) {
-        if (inventory->itemAllowedInBag(swapSlot, bs->first))
+        if (m_anyBagAllowed || inventory->itemAllowedInBag(swapSlot, bs->first))
           inventory->setItem(slot, swapSlot->take(1));
       }
     }
@@ -311,7 +313,7 @@ void InventoryPane::update(float dt) {
   }
 
   if (ItemPtr swapSlot = inventory->swapSlotItem()) {
-    if (!PlayerInventory::itemAllowedInBag(swapSlot, m_selectedTab)) {
+    if (!(m_anyBagAllowed || PlayerInventory::itemAllowedInBag(swapSlot, m_selectedTab))) {
       for (auto& pair : m_itemGrids) {
         if (pair.first != m_selectedTab && PlayerInventory::itemAllowedInBag(swapSlot, pair.first)) {
           selectTab(pair.first);

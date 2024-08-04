@@ -85,11 +85,14 @@ void BaseScriptPane::tick(float dt) {
 
   for (auto p : m_canvasClickCallbacks) {
     for (auto const& clickEvent : p.first->pullClickEvents())
-      m_script.invoke(p.second, jsonFromVec2I(clickEvent.position), (uint8_t)clickEvent.button, clickEvent.buttonDown);
+      // FezzedOne: Added this for consistency with the one below.
+      m_script.invoke(p.second, jsonFromVec2I(clickEvent.position), (uint8_t)clickEvent.button,
+        clickEvent.buttonDown, MouseButtonNames.getRight(clickEvent.button));
   }
   for (auto p : m_canvasKeyCallbacks) {
     for (auto const& keyEvent : p.first->pullKeyEvents())
-      m_script.invoke(p.second, (int)keyEvent.key, keyEvent.keyDown);
+      // FezzedOne: For OpenStarbound script compatibility. 
+      m_script.invoke(p.second, (int)keyEvent.key, keyEvent.keyDown, KeyNames.getRight(keyEvent.key));
   }
 
   m_script.update(m_script.updateDt(dt));

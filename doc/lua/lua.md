@@ -350,6 +350,16 @@ The following is a list of common Lua functions called by the engine when runnin
     interactPosition = jarray{660.12, 724.54} -- The entity's aim position when interacting.
   }
   ```
-- - **`void` activate(`float` dt, `String` fireMode, `bool` shifting, `LuaTable` moveMap):** Called when an active item is being activated with the appropriate fire button or player control callback. Is passed the same arguments as `update` for active items. Other active item functions are self-explanatory.
+- **`void` activate(`float` dt, `String` fireMode, `bool` shifting, `LuaTable` moveMap):** Called when an active item is being activated with the appropriate fire button or player control callback. Is passed the same arguments as `update` for active items. Other active item functions are self-explanatory.
+- **`void` [click event callback] (`Vec2I` clickPosition, `int` button, `bool` buttonDown, `MouseButton` buttonName):** Called when a mouse button is clicked or released within a canvas widget that has an assigned callback name in the pane config's `"canvasClickCallbacks"`.
+
+  In `"canvasClickCallbacks"`, each key represents the name of a canvas widget, and the corresponding value is the name of the callback function that the engine should invoke, replacing `[click event callback]`.
+  
+  If `buttonDown` is `true`, the mouse button is pressed down; otherwise, it is released. The `position` is relative to the lower-left corner of the canvas widget. `button` is the integer ID of the button, while `buttonName` is the name of the button. See `interface.md` for valid `MouseButton` values; the integer ID is the ordinal position of the string value in that list, minus 1.
+- **`void` [key event callback] (`int` key, `bool` keyDown, `Key` keyName):** Called when a key is pressed or released within a canvas widget that has an assigned callback name in the pane config's `"canvasKeyCallbacks"`.
+
+  In `"canvasKeyCallbacks"`, each key represents the name of a canvas widget, and the corresponding value is the name of the callback function that the engine should invoke, replacing `[key event callback]`.
+  
+  If `keyDown` is `true`, the key is pressed down; otherwise, it is released. `key` is the integer ID of the key, while `keyName` is the name of the key. See `interface.md` for valid `Key` values; the integer ID is the ordinal position of the string value in that list, minus 1.
 
 Other Lua functions invoked by the engine are fairly self-explanatory; see the base game assets for examples, and if that isn't enough, see xStarbound's source code for the gory details.

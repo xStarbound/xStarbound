@@ -1104,9 +1104,11 @@ Returns the number of slots in the specified inventory bag.
 
 ---
 
-#### `size_t` player.itemAllowedInBag(`String` bagName, `ItemDescriptor` item)
+#### `size_t` player.itemAllowedInBag(`String` bagName, `ItemDescriptor` item, `Maybe<bool>` forceCheck)
 
-Returns whether the specified item is allowed to go in the specified inventory bag.
+> *The `forceCheck` parameter is only available on xClient.
+
+Returns whether the specified item is allowed to go in the specified inventory bag. If `forceCheck` is `false` or unspecified *and* `"allowAnyBagItem"` under `"inventory"` in `$assets/player.config` is `true`, this callback will always return `true`. If `forceCheck` is `true`, the callback will act as if `"allowAnyBagItem"` were `false`, even if it is otherwise enabled by an asset mod.
 
 ---
 

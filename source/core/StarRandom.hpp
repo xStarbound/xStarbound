@@ -209,8 +209,11 @@ typename Container::value_type Random::randValueFrom(
 
 template <typename Container>
 void Random::shuffle(Container& container) {
-  size_t max = container.size();
-  std::shuffle(container.begin(), container.end(), URBG<size_t>([max]() { return Random::randUInt(max - 1); }));
+  // FezzedOne: RNG fix «downstreamed» from OpenStarbound.
+  // size_t max = container.size();
+  std::shuffle(container.begin(), container.end(), URBG<size_t>([&]() {
+      return Random::randUInt(std::numeric_limits<unsigned long long>::max());
+    }));
 }
 
 }

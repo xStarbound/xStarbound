@@ -60,8 +60,22 @@ int32_t staticRandomI32Range(int32_t min, int32_t max, T const& d, TL const&... 
   return (int32_t)(staticRandomU64(d, rest...) / denom + min);
 }
 
+// FezzedOne: Added this missing template.
+template <typename T, typename... TL>
+int64_t staticRandomI64Range(int64_t min, int64_t max, T const& d, TL const&... rest) {
+  uint64_t denom = (uint64_t)(-1) / ((uint64_t)(max - min) + 1);
+  return (int64_t)(staticRandomU64(d, rest...) / denom + min);
+}
+
 template <typename T, typename... TL>
 uint32_t staticRandomU32Range(uint32_t min, uint32_t max, T const& d, TL const&... rest) {
+  uint64_t denom = (uint64_t)(-1) / ((uint64_t)(max - min) + 1);
+  return staticRandomU64(d, rest...) / denom + min;
+}
+
+// FezzedOne: Also added this missing template.
+template <typename T, typename... TL>
+uint64_t staticRandomU64Range(uint64_t min, uint64_t max, T const& d, TL const&... rest) {
   uint64_t denom = (uint64_t)(-1) / ((uint64_t)(max - min) + 1);
   return staticRandomU64(d, rest...) / denom + min;
 }
@@ -96,14 +110,14 @@ double staticRandomDoubleRange(double min, double max, T const& d, TL const&... 
 template <typename Container, typename T, typename... TL>
 typename Container::value_type& staticRandomFrom(Container& container, T const& d, TL const&... rest) {
   auto i = container.begin();
-  std::advance(i, staticRandomI32Range(0, container.size() - 1, d, rest...));
+  std::advance(i, staticRandomI64Range(0, container.size() - 1, d, rest...));
   return *i;
 }
 
 template <typename Container, typename T, typename... TL>
 typename Container::value_type const& staticRandomFrom(Container const& container, T const& d, TL const&... rest) {
   auto i = container.begin();
-  std::advance(i, staticRandomI32Range(0, container.size() - 1, d, rest...));
+  std::advance(i, staticRandomI64Range(0, container.size() - 1, d, rest...));
   return *i;
 }
 
@@ -113,7 +127,7 @@ typename Container::value_type staticRandomValueFrom(Container const& container,
     return {};
   } else {
     auto i = container.begin();
-    std::advance(i, staticRandomI32Range(0, container.size() - 1, d, rest...));
+    std::advance(i, staticRandomI64Range(0, container.size() - 1, d, rest...));
     return *i;
   }
 }
@@ -135,11 +149,16 @@ private:
 
 template <typename Container, typename T, typename... TL>
 void staticRandomShuffle(Container& container, T const& d, TL const&... rest) {
-  int mix = 0;
-  size_t max = container.size();
-  std::shuffle(container.begin(), container.end(), URBG<size_t>([&]() {
-    return staticRandomU32Range(0, max - 1, ++mix, d, rest...);
-  }));
+  // FezzedOne: Static RNG fix «downstreamed» from OpenStarbound. Also extended the integer type used to a 64-bit one.
+  // We've all got 64-bit processors these days!
+  auto begin = container.begin();
+  auto end = container.end();
+  auto it = begin;
+  for (int64_t i = 1, mix = 0; ++it != end; ++i) {
+    int64_t off = staticRandomU32Range(0, i, ++mix, d, rest...);
+    if (off != i)
+      std::swap(*it, *(begin + off));    
+  }
 }
 
 }

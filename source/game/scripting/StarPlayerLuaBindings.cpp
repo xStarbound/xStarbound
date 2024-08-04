@@ -829,13 +829,15 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
       return {};
   });
   
-  callbacks.registerCallback("itemAllowedInBag", [player](String const& bagName, Json const& item) {
+  callbacks.registerCallback("itemAllowedInBag", [player](String const& bagName, Json const& item, Maybe<bool> const& forceCheck) {
     auto inventory = player->inventory();
     auto itemDatabase = Root::singleton().itemDatabase();
+    bool anyBagAllowed = !(forceCheck.value(false)) &&
+      (Root::singleton().assets()->json("/player.config:inventory").optBool("allowAnyBagItem").value(false));
     if (!inventory->bagContents(bagName))
       return false;
     else
-      return inventory->itemAllowedInBag(itemDatabase->item(ItemDescriptor(item)), bagName);
+      return anyBagAllowed || inventory->itemAllowedInBag(itemDatabase->item(ItemDescriptor(item)), bagName);
   });
   
   callbacks.registerCallback("item", [player](LuaValue const& rawSlot) -> Maybe<Json> {

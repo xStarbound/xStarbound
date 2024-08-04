@@ -13,6 +13,8 @@
 
 namespace Star {
 
+#define InventorySetting(setting) ((bool)(m_inventorySettings & InventorySettings::setting))
+
 bool PlayerInventory::itemAllowedInBag(ItemPtr const& items, String const& bagType) {
   // any inventory type can have empty slots
   if (!items)
@@ -38,6 +40,14 @@ bool PlayerInventory::itemAllowedAsEquipment(ItemPtr const& item, EquipmentSlot 
 
 PlayerInventory::PlayerInventory() {
   auto config = Root::singleton().assets()->json("/player.config:inventory");
+
+  m_inventorySettings = InventorySettings::Default;
+  if (config.optBool("allowAnyBagItem").value(false))
+    m_inventorySettings |= InventorySettings::AllowAnyItemInBags;
+  if (config.optBool("disableBagPreferences").value(false))
+    m_inventorySettings |= InventorySettings::NoBagPreferences;
+  if (config.optBool("autoAddToCosmetics").value(false))
+    m_inventorySettings |= InventorySettings::AddToCosmetics;
 
   auto bags = config.get("itemBags");
   auto bagOrder = bags.toObject().keys().sorted([&bags](String const& a, String const& b) {
@@ -136,9 +146,15 @@ bool PlayerInventory::exchangeItems(InventorySlot const& first, InventorySlot co
   auto& firstItems = retrieve(first);
   auto& secondItems = retrieve(second);
 
-  if (first.is<BagSlot>() && !itemAllowedInBag(secondItems, first.get<BagSlot>().first))
+  auto itemAllowed = [&](ItemPtr const& item, String const& bagType) -> bool {
+    if (InventorySetting(AllowAnyItemInBags))
+      return true;
+    return itemAllowedInBag(item, bagType);
+  };
+
+  if (first.is<BagSlot>() && !itemAllowed(secondItems, first.get<BagSlot>().first))
     return false;
-  if (second.is<BagSlot>() && !itemAllowedInBag(firstItems, second.get<BagSlot>().first))
+  if (second.is<BagSlot>() && !itemAllowed(firstItems, second.get<BagSlot>().first))
     return false;
   if (first.is<EquipmentSlot>() && (secondItems->count() > 1 || !itemAllowedAsEquipment(secondItems, first.get<EquipmentSlot>())))
     return false;
@@ -152,6 +168,12 @@ bool PlayerInventory::exchangeItems(InventorySlot const& first, InventorySlot co
 }
 
 bool PlayerInventory::setItem(InventorySlot const& slot, ItemPtr const& item) {
+  auto itemAllowed = [&](ItemPtr const& item, String const& bagType) -> bool {
+    if (InventorySetting(AllowAnyItemInBags))
+      return true;
+    return itemAllowedInBag(item, bagType);
+  };
+
   if (auto currencyItem = as<CurrencyItem>(item)) {
     m_currencies[currencyItem->currencyType()] += currencyItem->totalValue();
     return true;
@@ -168,7 +190,7 @@ bool PlayerInventory::setItem(InventorySlot const& slot, ItemPtr const& item) {
     return true;
   } else {
     auto bs = slot.get<BagSlot>();
-    if (itemAllowedInBag(item, bs.first)) {
+    if (itemAllowed(item, bs.first)) {
       m_bags[bs.first]->setItem(bs.second, item);
       return true;
     }
@@ -203,6 +225,7 @@ ItemPtr PlayerInventory::addItems(ItemPtr items) {
   }
 
   // Then, try adding equipment to the equipment slots.
+  
   if (is<HeadArmor>(items) && !headArmor())
     m_equipment[EquipmentSlot::Head] = items->take(1);
   if (is<ChestArmor>(items) && !chestArmor())
@@ -212,16 +235,35 @@ ItemPtr PlayerInventory::addItems(ItemPtr items) {
   if (is<BackArmor>(items) && !backArmor())
     m_equipment[EquipmentSlot::Back] = items->take(1);
 
+  if (InventorySetting(AddToCosmetics) && items) {
+    if (!items->empty()) {
+      if (is<HeadArmor>(items) && !headCosmetic())
+        m_equipment[EquipmentSlot::HeadCosmetic] = items->take(1);
+      if (is<ChestArmor>(items) && !chestCosmetic())
+        m_equipment[EquipmentSlot::ChestCosmetic] = items->take(1);
+      if (is<LegsArmor>(items) && !legsCosmetic())
+        m_equipment[EquipmentSlot::LegsCosmetic] = items->take(1);
+      if (is<BackArmor>(items) && !backCosmetic())
+        m_equipment[EquipmentSlot::BackCosmetic] = items->take(1);
+    }
+  }
+
   // Then, finally the bags
-  return addToBags(move(items));
+  return addToBags(std::move(items));
 }
 
 ItemPtr PlayerInventory::addToBags(ItemPtr items) {
   if (!items || items->empty())
     return {};
 
+  auto itemAllowed = [&](ItemPtr const& item, String const& bagType) -> bool {
+    if (InventorySetting(AllowAnyItemInBags) && InventorySetting(NoBagPreferences))
+      return true;
+    return itemAllowedInBag(item, bagType);
+  };
+
   for (auto pair : m_bags) {
-    if (!itemAllowedInBag(items, pair.first))
+    if (!itemAllowed(items, pair.first))
       continue;
 
     items = pair.second->stackItems(items);
@@ -233,6 +275,22 @@ ItemPtr PlayerInventory::addToBags(ItemPtr items) {
         pair.second->setItem(i, take(items));
         autoAddToCustomBar(BagSlot(pair.first, i));
         break;
+      }
+    }
+  }
+
+  if (items && InventorySetting(AllowAnyItemInBags) && !InventorySetting(NoBagPreferences)) {
+    for (auto pair : m_bags) {
+      items = pair.second->stackItems(items);
+      if (!items)
+        break;
+
+      for (size_t i = 0; i < pair.second->size(); ++i) {
+        if (!pair.second->at(i)) {
+          pair.second->setItem(i, take(items));
+          autoAddToCustomBar(BagSlot(pair.first, i));
+          break;
+        }
       }
     }
   }
@@ -259,9 +317,27 @@ uint64_t PlayerInventory::itemsCanFit(ItemPtr const& items) const {
   if (is<BackArmor>(items) && !backArmor())
     ++canFit;
 
+  // FezzedOne: Check cosmetic slots if automatic stacking into them is allowed.
+  if (InventorySetting(AddToCosmetics)) {
+    if (is<HeadArmor>(items) && !headCosmetic())
+      ++canFit;
+    if (is<ChestArmor>(items) && !chestCosmetic())
+      ++canFit;
+    if (is<LegsArmor>(items) && !legsCosmetic())
+      ++canFit;
+    if (is<BackArmor>(items) && !backCosmetic())
+      ++canFit;
+  }
+
+  auto itemAllowed = [&](ItemPtr const& item, String const& bagType) -> bool {
+    if (InventorySetting(AllowAnyItemInBags))
+      return true;
+    return itemAllowedInBag(item, bagType);
+  };
+
   // Then add into bags
   for (auto const& pair : m_bags) {
-    if (itemAllowedInBag(items, pair.first))
+    if (itemAllowed(items, pair.first))
       canFit += pair.second->itemsCanFit(items);
   }
 
@@ -554,7 +630,13 @@ void PlayerInventory::shiftSwap(InventorySlot const& slot) {
     swap(m_swapSlot, m_trashSlot);
     swapCustomBarLinks(SwapSlot(), slot);
   } else if (auto bs = slot.ptr<BagSlot>()) {
-    if (itemAllowedInBag(m_swapSlot, bs->first)) {
+    auto itemAllowed = [&](ItemPtr const& item, String const& bagType) -> bool {
+      if (InventorySetting(AllowAnyItemInBags))
+        return true;
+      return itemAllowedInBag(item, bagType);
+    };
+
+    if (itemAllowed(m_swapSlot, bs->first)) {
       bool didSwap = false;
       std::tie(m_swapSlot, didSwap) = canSwapItems(m_bags[bs->first], bs->second, m_swapSlot);
       // m_swapSlot = m_bags[bs->first]->swapItems(bs->second, m_swapSlot);
@@ -570,6 +652,12 @@ void PlayerInventory::shiftSwap(InventorySlot const& slot) {
 }
 
 bool PlayerInventory::clearSwap() {
+  auto itemAllowed = [&](ItemPtr const& item, String const& bagType) -> bool {
+    if (InventorySetting(AllowAnyItemInBags))
+      return true;
+    return itemAllowedInBag(item, bagType);
+  };
+
   auto trySlot = [&](InventorySlot slot) {
     if (!m_swapSlot)
       return;
@@ -581,7 +669,7 @@ bool PlayerInventory::clearSwap() {
 
   auto tryBag = [&](String const& bagType) {
     for (size_t i = 0; i < m_bags[bagType]->size(); ++i) {
-      if (!m_swapSlot || !itemAllowedInBag(m_swapSlot, bagType))
+      if (!m_swapSlot || !itemAllowed(m_swapSlot, bagType))
         break;
       trySlot(BagSlot(bagType, i));
     }
@@ -594,6 +682,13 @@ bool PlayerInventory::clearSwap() {
   trySlot(EquipmentSlot::Chest);
   trySlot(EquipmentSlot::Legs);
   trySlot(EquipmentSlot::Back);
+
+  if (InventorySetting(AddToCosmetics)) {
+    trySlot(EquipmentSlot::HeadCosmetic);
+    trySlot(EquipmentSlot::ChestCosmetic);
+    trySlot(EquipmentSlot::LegsCosmetic);
+    trySlot(EquipmentSlot::BackCosmetic);
+  }
 
   for (auto bagType : m_bags.keys())
     tryBag(bagType);
@@ -1097,9 +1192,14 @@ ItemPtr& PlayerInventory::retrieve(InventorySlot const& slot) {
 
   if (auto es = slot.ptr<EquipmentSlot>())
     return guardEmpty(m_equipment[*es]);
-  else if (auto bs = slot.ptr<BagSlot>())
-    return guardEmpty(m_bags[bs->first]->at(bs->second));
-  else if (slot.is<SwapSlot>())
+  else if (auto bs = slot.ptr<BagSlot>()) {
+    // FezzedOne: «Downstreamed» from OpenStarbound, but also made the exception thrown on out-of-bounds access a bit more consistent.
+    if (auto bag = m_bags.ptr(bs->first)) {
+      if (bs->second < (*bag)->size())
+        return guardEmpty((*bag)->at(bs->second));
+    }
+    throw ItemException::format("Invalid inventory slot {}", jsonFromInventorySlot(slot));
+  } else if (slot.is<SwapSlot>())
     return guardEmpty(m_swapSlot);
   else
     return guardEmpty(m_trashSlot);

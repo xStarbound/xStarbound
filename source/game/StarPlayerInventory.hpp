@@ -19,6 +19,40 @@ STAR_CLASS(PlayerInventory);
 
 STAR_EXCEPTION(InventoryException, StarException);
 
+// FezzedOne: Inventory restriction settings.
+enum class InventorySettings : uint16_t {
+  Default = 0,
+  AllowAnyItemInBags = 1 << 0,
+  NoBagPreferences = 1 << 1,
+  AddToCosmetics = 1 << 2,
+};
+
+inline InventorySettings operator|(InventorySettings a, InventorySettings b) {
+  return (InventorySettings)((uint16_t)a | (uint16_t)b);
+}
+
+inline InventorySettings operator&(InventorySettings a, InventorySettings b) {
+  return (InventorySettings)((uint16_t)a & (uint16_t)b);
+}
+
+inline InventorySettings operator~(InventorySettings a) {
+  return (InventorySettings) ~(uint16_t)a;
+}
+
+inline InventorySettings& operator|=(InventorySettings& a, InventorySettings b) {
+  uint16_t a_cast = (uint16_t)a;
+  a_cast |= (uint16_t)b;
+  a = (InventorySettings)a_cast;
+  return a;
+}
+
+inline InventorySettings& operator&=(InventorySettings& a, InventorySettings b) {
+  uint16_t a_cast = (uint16_t)a;
+  a_cast &= (uint16_t)b;
+  a = (InventorySettings)a_cast;
+  return a;
+}
+
 // Describes a player's entire inventory, including the main bag, material bag,
 // object bag, reagent bag, food bag, weapon and armor slots, swap slot, trash
 // slot, essential items, and currencies.
@@ -232,6 +266,8 @@ private:
 
   // From WasabiRaptor's PR: Extra inventory items that don't fit.
   List<ItemPtr> m_inventoryLoadOverflow;
+
+  InventorySettings m_inventorySettings;
 };
 
 }

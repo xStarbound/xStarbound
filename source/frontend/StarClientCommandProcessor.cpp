@@ -2,6 +2,7 @@
 #include "StarItem.hpp"
 #include "StarAssets.hpp"
 #include "StarItemDatabase.hpp"
+#include "StarItemDrop.hpp"
 #include "StarPlayer.hpp"
 #include "StarPlayerTech.hpp"
 #include "StarPlayerInventory.hpp"
@@ -331,10 +332,21 @@ String ClientCommandProcessor::suicide() {
 }
 
 String ClientCommandProcessor::naked() {
-  auto playerInventory = m_universeClient->mainPlayer()->inventory();
-  for (auto slot : EquipmentSlotNames.leftValues())
-    playerInventory->addItems(playerInventory->addToBags(playerInventory->takeSlot(slot)));
-  return "You are now naked";
+  auto player = m_universeClient->mainPlayer();
+  auto playerInventory = player->inventory();
+  // FezzedOne: Fixed potential item loss.
+  if (player->inWorld()) {
+    for (auto slot : EquipmentSlotNames.leftValues()) {
+      auto remainingItem = playerInventory->addItems(playerInventory->addToBags(playerInventory->takeSlot(slot)));
+      if (remainingItem) 
+        m_universeClient->worldClient()->addEntity(
+          ItemDrop::createRandomizedDrop(remainingItem->descriptor(), player->position(), true)
+        );
+    }
+    return "You are now naked";
+  } else {
+    return "Unable to go naked";
+  }
 }
 
 String ClientCommandProcessor::resetAchievements() {

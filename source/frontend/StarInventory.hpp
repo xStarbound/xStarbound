@@ -63,6 +63,8 @@ private:
   Maybe<ItemDescriptor> m_currentSwapSlotItem;
 
   List<ImageWidgetPtr> m_disabledTechOverlays;
+
+  bool m_anyBagAllowed;
 };
 
 }
