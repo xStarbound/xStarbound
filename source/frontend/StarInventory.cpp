@@ -31,7 +31,7 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
   GuiReader invWindowReader;
   auto config = Root::singleton().assets()->json("/interface/windowconfig/playerinventory.config");
   auto playerInventoryConfig = Root::singleton().assets()->json("/player.config:inventory");
-  m_anyBagAllowed = config.optBool("allowAnyBagItem").value(false);
+  m_anyBagAllowed = playerInventoryConfig.optBool("allowAnyBagItem").value(false);
 
   auto leftClickCallback = [this](String const& bagType, Widget* widget) {
     auto itemGrid = convert<ItemGridWidget>(widget);
