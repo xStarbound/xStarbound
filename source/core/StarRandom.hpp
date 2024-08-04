@@ -212,7 +212,7 @@ void Random::shuffle(Container& container) {
   // FezzedOne: RNG fix «downstreamed» from OpenStarbound.
   // size_t max = container.size();
   std::shuffle(container.begin(), container.end(), URBG<size_t>([&]() {
-      return Random::randUInt(std::numeric_limits<unsigned long long>::max());
+      return Random::randUInt(std::numeric_limits<unsigned long long>::max() - 1);
     }));
 }
 
