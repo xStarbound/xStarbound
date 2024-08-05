@@ -57,9 +57,14 @@ elseif(STAR_SYSTEM_MACOS)
 
 elseif(STAR_SYSTEM_LINUX OR STAR_SYSTEM_FAMILY_UNIX)
 
-    # Only use plain "linux", we don't distinguish as no one of sound mind runs a 32-bit Linux anymore.
-    set(STAR_INSTALL_BINDIR linux)
-    set(STAR_INSTALL_LIBDIR linux)
+    # Check if an 'xsb-linux' directory exists. If so, use that. Otherwise, install the binaries into 'linux/'.
+    if (EXISTS ${CMAKE_INSTALL_PREFIX}/xsb-linux)
+        set(STAR_INSTALL_BINDIR xsb-linux)
+        set(STAR_INSTALL_LIBDIR xsb-linux)
+    else()
+        set(STAR_INSTALL_BINDIR linux)
+        set(STAR_INSTALL_LIBDIR linux)
+    endif()
     set(STAR_INSTALL_DATADIR .)
 
 endif()
