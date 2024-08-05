@@ -1,0 +1,3 @@
+-- INSTALLATION INFO --
+
+When the installer asks you to select an installation folder, SELECT THE FOLDER WHERE STARBOUND IS INSTALLED! The default should work for most Steam installs.

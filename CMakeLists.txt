@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.25)
 
+set(STAR_VERSION 3.1.2)
+
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 # Build options
 include(CMakeDependentOption)
 option(STAR_BUILD_GUI "Build GUI utilities and Client" ON)
-cmake_dependent_option(STAR_BUILD_QT_TOOLS "Build GUI utilities that require Qt" OFF "STAR_BUILD_GUI" OFF)
+cmake_dependent_option(STAR_BUILD_QT_TOOLS "Build GUI utilities. Requires Qt 6.7 or higher" OFF "STAR_BUILD_GUI" OFF)
 cmake_dependent_option(STAR_ENABLE_STEAM_INTEGRATION "Use Steam platform services" OFF "STAR_BUILD_GUI" OFF)
 cmake_dependent_option(STAR_ENABLE_DISCORD_INTEGRATION "Use Discord platform services" OFF "STAR_BUILD_GUI" OFF)
 
@@ -15,6 +17,17 @@ cmake_dependent_option(STAR_USE_MIMALLOC "Use mi-malloc allocators" OFF "NOT STA
 
 option(BUILD_TESTING "Build unit and game tests (NOTE: game tests require all game asset packs to run)" OFF)
 cmake_dependent_option(STAR_MEMORY_SANITIZER "Build executables with memory sanitizers enabled" OFF "BUILD_TESTING" OFF)
+option(BUILD_INNOSETUP "Configures an InnoSetup project in the build directory to run on the install prefix" OFF)
+
+# Beware: This will NOT work when cross-compiling to an incompatible architecture (e.g. aarch64 on x86_64) or a different OS (e.g. MinGW)!
+# In this case, asset_packer must be build for the HOST system architecture. We can't do that easily within CMake though
+# as we do not know if the host system has the appropriate dependencies as asset_packer needs basically a full Starbound build.
+option(PACKAGE_XSB_ASSETS "Adds a command to create a packed.pak from xsb-assets to the ALL target and installs it." OFF)
+
+option(STAR_INSTALL_TOOLS "Install user and modding tools (asset_packer, planet_mapgen etc.)" ON)
+option(STAR_INSTALL_EXTRA_TOOLS "Install extra development tools (benchmarks etc.)" OFF)
+
+set(STAR_GAME_RESOURCE_BASE_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE FILEPATH "Location of the game assets to be used for running inside the build dir. Defaults to project root.")
 
 # Only request vcpkg dependencies if required to decrease build time
 # VCPKG_MANIFEST_FEATURES must be set before calling PROJECT().
@@ -49,7 +62,10 @@ else()
     message(STATUS "Not using CCache")
 endif()
 
-project(xsb2)
+project(xsb2
+    LANGUAGES C CXX
+    VERSION ${STAR_VERSION}
+)
 
 set(CMAKE_CONFIGURATION_TYPES Debug RelWithAsserts RelWithDebInfo Release)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
@@ -163,6 +179,11 @@ message(STATUS "Little Endian: ${STAR_LITTLE_ENDIAN}")
 message(STATUS "System: ${STAR_SYSTEM}")
 message(STATUS "System family: ${STAR_SYSTEM_FAMILY}")
 message(STATUS "C/C++ compiler: ${STAR_COMPILER}")
+if(VCPKG_MANIFEST_MODE)
+    message(STATUS "vcpkg: Building in Manifest mode, not using host system libraries.")
+else()
+    message(STATUS "vcpkg: Disabled, using host system libraries.")
+endif()
 
 if(DEFINED STAR_ENABLE_STATIC_LIBGCC_LIBSTDCXX)
     message(STATUS "Statically linking to libgcc / libstdc++: ${STAR_ENABLE_STATIC_LIBGCC_LIBSTDCXX}")
@@ -457,11 +478,6 @@ else()
 endif()
 
 # Set other global build settings based on environment...
-
-# if (STAR_SYSTEM_LINUX AND STAR_COMPILER_CLANG)
-#   set (CMAKE_MODULE_LINKER_FLAGS "-no-pie")
-# endif ()
-
 if(STAR_SYSTEM_MACOS)
     set(CMAKE_MODULE_LINKER_FLAGS "-flat_namespace -undefined suppress")
 elseif(STAR_SYSTEM_WINDOWS)
@@ -509,6 +525,9 @@ endif()
 if(STAR_USE_JEMALLOC AND STAR_USE_MIMALLOC)
     message(FATAL_ERROR "Please only specify ONE memory allocator to be used: either STAR_USE_JEMALLOC or STAR_USE_MIMALLOC.")
 endif()
+
+# Need to set install dirs before finding Qt.
+include(Install.cmake)
 
 if(STAR_USE_JEMALLOC)
     # Assumes jemalloc was configured with a "je_" function prefix
@@ -599,6 +618,10 @@ if(STAR_BUILD_GUI)
 
     set(STAR_EXT_GUI_LIBS ${STAR_EXT_GUI_LIBS} ${OPENGL_LIBRARY} GLEW::GLEW)
 
+    if(STAR_BUILD_QT_TOOLS)
+        find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg)
+        qt_standard_project_setup()
+    endif()
 endif()
 
 # Set basic build flags, include all the relevant source directories, based on
@@ -606,58 +629,16 @@ endif()
 
 set(BUILD_SHARED_LIBS false)
 
-# FezzedOne: MinGW setup. Windows executables built with GCC (presumably MinGW)
-# go in `$src/dist-windows` or `$src/dist-windows-debug`, while all other executables,
-# including Windows executables built with MinGW and Linux executables built with GCC,
-# go in `$src/dist` or `$src/dist-debug`.
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    if(STAR_CROSS_COMPILE)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/dist-windows-debug)
-    else()
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/dist-debug)
-    endif()
-elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    if(STAR_CROSS_COMPILE)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/dist-windows-debug)
-    else()
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/dist-debug)
-    endif()
-else()
-    if(STAR_CROSS_COMPILE)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/dist-windows)
-    else()
-        # First set output dir for the generic no-config case (e.g. macos / linux)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/dist)
-    endif()
-endif()
+add_subdirectory(source)
 
-# Second, set output dir for multi-config builds (e.g. msvc)
-foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        if(STAR_CROSS_COMPILE)
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/dist-windows-debug)
-        else()
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/dist-debug)
-        endif()
-    elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-        if(STAR_CROSS_COMPILE)
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/dist-windows-debug)
-        else()
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/dist-debug)
-        endif()
-    else()
-        if(STAR_CROSS_COMPILE)
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/dist-windows)
-        else()
-            set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PROJECT_SOURCE_DIR}/dist)
-        endif()
-    endif()
-endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+include(PackXSBAssets.cmake)
 
 if(BUILD_TESTING)
     # Needs to reside at the top-level CMakeLists.txt!
     enable_testing()
+    add_subdirectory(source/test)
 endif()
 
-add_subdirectory(source)
+if(BUILD_INNOSETUP)
+    add_subdirectory(scripts/windows/inno-installer)
+endif()

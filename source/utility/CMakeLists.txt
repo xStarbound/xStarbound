@@ -100,3 +100,32 @@ add_executable(btree_repacker
 target_link_libraries(btree_repacker
         Star::Base
 )
+
+install(TARGETS
+        asset_packer
+        asset_unpacker
+        dump_versioned_json
+        make_versioned_json
+        planet_mapgen
+        RUNTIME_DEPENDENCY_SET STAR_RUNTIME_DEPS
+        RUNTIME DESTINATION ${STAR_INSTALL_BINDIR}
+        COMPONENT Tools
+        OPTIONAL
+)
+
+if(STAR_INSTALL_EXTRA_TOOLS)
+    install(TARGETS
+            btree_repacker
+            dungeon_generation_benchmark
+            fix_embedded_tilesets
+            game_repl
+            generation_benchmark
+            render_terrain_selector
+            update_tilesets
+            world_benchmark
+            RUNTIME_DEPENDENCY_SET STAR_RUNTIME_DEPS
+            RUNTIME DESTINATION ${STAR_INSTALL_BINDIR}
+            COMPONENT Tools
+            OPTIONAL
+    )
+endif()

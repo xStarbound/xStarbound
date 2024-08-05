@@ -1,0 +1,65 @@
+; Inno Setup script for xSB-2.
+
+#define XSBName "xStarbound"
+; Note: Tick this version number every update. Use the higher of the asset version and binary version.
+#define XSBVersion "@xsb2_VERSION@"
+#define XSBPublisher "FezzedOne and other contributors"
+#define XSBGitHubURL "https://github.com/FezzedOne/xSB-2"
+; Set this to the location of your xStarbound install folder.
+#define XSBSourcePath "@CMAKE_INSTALL_PREFIX@"
+
+[Setup]
+; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
+; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
+AppId={{C3DDE786-7102-45A8-A988-4C30475DC79E}
+AppName={#XSBName}
+AppVersion={#XSBVersion}
+;AppVerName={#XSBName} {#XSBVersion}
+AppPublisher={#XSBPublisher}
+AppPublisherURL={#XSBGitHubURL}
+AppSupportURL={#XSBGitHubURL}
+AppUpdatesURL={#XSBGitHubURL}
+DefaultDirName={autopf32}\Steam\steamapps\common\Starbound
+DefaultGroupName={#XSBName}
+; Disable this warning since xSB-2 must be installed in an existing Starbound install.
+DirExistsWarning=no
+AllowNoIcons=yes
+;InfoBeforeFile=@CMAKE_BINARY_DIR@\inno-installer\install-info.txt
+; Uncomment the following line to run in non administrative install mode (install for current user only.)
+;PrivilegesRequired=lowest
+OutputDir=@CMAKE_BINARY_DIR@\inno-installer\compiled
+OutputBaseFilename=windows-install
+SetupIconFile=@CMAKE_SOURCE_DIR@\source\client\xclient-largelogo.ico
+Compression=lzma
+SolidCompression=yes
+WizardStyle=modern
+SourceDir=@CMAKE_BINARY_DIR@\inno-installer\
+
+[Languages]
+Name: "cnsimp"; MessagesFile: "ChineseSimplified.isl"
+Name: "cntrad"; MessagesFile: "ChineseTraditional.isl"
+Name: "english"; MessagesFile: "English.isl"
+Name: "french"; MessagesFile: "French.isl"
+Name: "german"; MessagesFile: "German.isl"
+Name: "russian"; MessagesFile: "Russian.isl"
+Name: "spanish"; MessagesFile: "Spanish.isl"
+
+[Files]
+Source: "{#XSBSourcePath}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+
+[Icons]
+Name: "{group}\xClient"; FileName: "{app}\xsb-win64\xclient.exe"
+Name: "{group}\xSB-2 GitHub"; Filename: "{#XSBGitHubURL}"
+Name: "{group}\Uninstall xSB-2"; Filename: "{uninstallexe}"
+
+[Code]
+function NextButtonClick(PageId: Integer): Boolean;
+begin
+    Result := True;
+    if (PageId = wpSelectDir) and not FileExists(ExpandConstant('{app}\win64\starbound.exe')) then begin
+        MsgBox(ExpandConstant('{cm:StarboundCheckError}'), mbError, MB_OK);
+        Result := False;
+        exit;
+    end;
+end;

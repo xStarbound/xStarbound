@@ -1,4 +1,4 @@
-configure_file(StarVersion.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/StarVersion.cpp)
+configure_file(StarVersion.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/StarVersion.cpp @ONLY)
 
 add_library(star_core STATIC
         ${CMAKE_CURRENT_BINARY_DIR}/StarVersion.cpp

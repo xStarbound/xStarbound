@@ -50,8 +50,3 @@ if(STAR_BUILD_GUI)
         endif()
     endif()
 endif()
-
-# Googletest based tests
-if(BUILD_TESTING)
-    add_subdirectory(test)
-endif()

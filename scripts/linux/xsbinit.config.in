@@ -1,0 +1,21 @@
+{
+  "assetDirectories" : [
+    "@XSB_RES_BASE_DIR@/assets/",
+    "@XSB_RES_BASE_DIR@/xsb-assets/",
+    "@XSB_RES_BASE_DIR@/mods/"
+  ],
+
+  "storageDirectory" : "@XSB_RES_BASE_DIR@/storage",
+
+  "assetsSettings" : {
+    "pathIgnore" : [],
+    "digestIgnore" : [
+      ".*"
+    ]
+  },
+
+  "defaultConfiguration" : {
+    "allowAdminCommandsFromAnyone" : true,
+    "anonymousConnectionsAreAdmin" : true
+  }
+}

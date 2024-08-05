@@ -51,8 +51,8 @@
       "binaryDir": "${sourceDir}/cmake-build-linux-x86_64",
       "hidden": true,
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-linux",
-        "VCPKG_HOST_TRIPLET": "x64-linux",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-mixed",
+        "VCPKG_HOST_TRIPLET": "x64-linux-mixed",
         "VCPKG_TARGET_ARCHITECTURE": "x64",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{VCPKG_INSTALLATION_ROOT}/scripts/toolchains/linux.cmake"
       }
@@ -148,7 +148,8 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
-        "BUILD_TESTING": "ON"
+        "BUILD_TESTING": "ON",
+        "BUILD_INNOSETUP": "ON"
       },
       "condition": {
         "type": "allOf",
@@ -174,7 +175,8 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
-        "BUILD_TESTING": "ON"
+        "BUILD_TESTING": "ON",
+        "BUILD_INNOSETUP": "ON"
       },
       "condition": {
         "type": "allOf",
@@ -196,7 +198,7 @@
       ],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
-        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
         "BUILD_TESTING": "ON"
@@ -221,7 +223,7 @@
       ],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
-        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
         "BUILD_TESTING": "ON"
@@ -246,7 +248,7 @@
       ],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
-        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON"
       },
@@ -271,7 +273,7 @@
       ],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
-        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
         "BUILD_TESTING": "ON"
@@ -297,7 +299,7 @@
       ],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
-        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
         "BUILD_TESTING": "ON"
@@ -323,7 +325,7 @@
       ],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
-        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
         "BUILD_TESTING": "ON"
