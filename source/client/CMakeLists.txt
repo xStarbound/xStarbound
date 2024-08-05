@@ -16,6 +16,11 @@ add_executable(xclient WIN32
 
 target_precompile_headers(xclient REUSE_FROM star_core)
 
+# Write xclient PDB to top-level build dir for easy archiving
+set_target_properties(xclient PROPERTIES
+        PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/PDB/$<CONFIG>"
+)
+
 target_link_libraries(xclient
         PRIVATE
         Star::Frontend

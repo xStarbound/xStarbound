@@ -49,3 +49,10 @@ jobs:
           name: windows-x64-archive
           path: xsb2-install/*
           compression-level: 9
+
+      - name: Upload Debug Symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64-debug-symbols
+          path: cmake-build-windows-x64/PDB/
+          compression-level: 9

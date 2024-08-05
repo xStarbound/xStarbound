@@ -11,6 +11,11 @@ add_executable(xserver
 
 target_precompile_headers(xserver REUSE_FROM star_core)
 
+# Write xserver PDB to top-level build dir for easy archiving
+set_target_properties(xserver PROPERTIES
+        PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/PDB/$<CONFIG>"
+)
+
 target_link_libraries(xserver
         PRIVATE
         Star::Game
