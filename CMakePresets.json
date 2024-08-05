@@ -518,7 +518,7 @@
       "name": "windows-x64-release",
       "displayName": "Windows x64 - Release",
       "configurePreset": "windows-x64",
-      "configuration": "Release",
+      "configuration": "RelWithDebInfo",
       "condition": {
         "type": "allOf",
         "conditions": [
@@ -550,7 +550,7 @@
       "name": "windows-x86-release",
       "displayName": "Windows x86 - Release",
       "configurePreset": "windows-x86",
-      "configuration": "Release",
+      "configuration": "RelWithDebInfo",
       "condition": {
         "type": "allOf",
         "conditions": [
