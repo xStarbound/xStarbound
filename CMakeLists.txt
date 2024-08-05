@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 
-set(STAR_VERSION 3.1.2)
+set(XSB_VERSION 3.1.2)
+set(XSB_ASSET_VERSION 3.0)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
@@ -64,7 +65,7 @@ endif()
 
 project(xsb2
     LANGUAGES C CXX
-    VERSION ${STAR_VERSION}
+    VERSION ${XSB_VERSION}
 )
 
 set(CMAKE_CONFIGURATION_TYPES Debug RelWithAsserts RelWithDebInfo Release)
