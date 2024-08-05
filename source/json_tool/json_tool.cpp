@@ -430,7 +430,7 @@ int main(int argc, char** argv) {
           argv[0]);
       cerrf("\n");
       cerrf("Example: {} --get /dialog/0/message guard.npctype\n", argv[0]);
-      cerrf("Example: {} --get 'foo[0]' -j '{\"foo\":[0,1,2,3]}'\n", argv[0]);
+      cerrf("Example: {} --get 'foo[0]' -j '{{\"foo\":[0,1,2,3]}}'\n", argv[0]);
       cerrf("Example: {} --edit /tags --input csv --find ../assets/ .object\n", argv[0]);
       return 1;
     }
