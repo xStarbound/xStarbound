@@ -1,6 +1,6 @@
 {
   "author" : "FezzedOne",
-  "description" : "Patches an xSB-2-specific GPS interface bug in Frackin' Universe.",
+  "description" : "Patches an xStarbound-specific GPS interface bug in Frackin' Universe.",
   "friendlyName" : "FezzedOne's Frackin' Universe Patch",
   "name" : "FezzedOne-FrackinPatch",
   "priority" : 99999,

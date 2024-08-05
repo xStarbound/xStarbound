@@ -129,7 +129,7 @@ LuaCallbacks LuaBindings::makeUtilityCallbacks() {
   callbacks.registerCallback("jsonMerge", [](Json const& a, Json const& b) { return jsonMerge(a, b); });
   callbacks.registerCallback("jsonQuery", [](Json const& json, String const& path, Json const& def) { return json.query(path, def); });
   callbacks.registerCallback("parseJson", [](String const &jsonStr) -> Json { return Json::parseJson(jsonStr); });
-  // FezzedOne: This is called `jsonParse` in OpenStarbound, but I changed this to be more clearly named in xSB-2 v2.5.
+  // FezzedOne: This is called `jsonParse` in OpenStarbound, but I changed this to be more clearly named in xStarbound v2.5.
   callbacks.registerCallback("parseJsonFragment", [](String const& jsonStr) -> Json { return Json::parse(jsonStr); });
   // FezzedOne: For StarExtensions compatibility.
   callbacks.registerCallback("jsonFromString", [](String const &jsonStr) -> Json { return Json::parseJson(jsonStr); });

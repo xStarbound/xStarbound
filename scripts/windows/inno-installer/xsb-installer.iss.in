@@ -1,10 +1,10 @@
-; Inno Setup script for xSB-2.
+; Inno Setup script for xStarbound.
 
 #define XSBName "xStarbound"
 ; Note: Tick this version number every update. Use the higher of the asset version and binary version.
-#define XSBVersion "@xsb2_VERSION@"
+#define XSBVersion "@xstarbound_VERSION@"
 #define XSBPublisher "FezzedOne and other contributors"
-#define XSBGitHubURL "https://github.com/FezzedOne/xSB-2"
+#define XSBGitHubURL "https://github.com/xStarbound/xStarbound"
 ; Set this to the location of your xStarbound install folder.
 #define XSBSourcePath "@CMAKE_INSTALL_PREFIX@"
 
@@ -21,7 +21,7 @@ AppSupportURL={#XSBGitHubURL}
 AppUpdatesURL={#XSBGitHubURL}
 DefaultDirName={autopf32}\Steam\steamapps\common\Starbound
 DefaultGroupName={#XSBName}
-; Disable this warning since xSB-2 must be installed in an existing Starbound install.
+; Disable this warning since xStarbound must be installed in an existing Starbound install.
 DirExistsWarning=no
 AllowNoIcons=yes
 ;InfoBeforeFile=@CMAKE_BINARY_DIR@\inno-installer\install-info.txt
@@ -50,8 +50,8 @@ Source: "{#XSBSourcePath}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubd
 
 [Icons]
 Name: "{group}\xClient"; FileName: "{app}\xsb-win64\xclient.exe"
-Name: "{group}\xSB-2 GitHub"; Filename: "{#XSBGitHubURL}"
-Name: "{group}\Uninstall xSB-2"; Filename: "{uninstallexe}"
+Name: "{group}\xStarbound GitHub"; Filename: "{#XSBGitHubURL}"
+Name: "{group}\Uninstall xStarbound"; Filename: "{uninstallexe}"
 
 [Code]
 function NextButtonClick(PageId: Integer): Boolean;

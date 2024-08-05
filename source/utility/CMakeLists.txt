@@ -85,7 +85,7 @@ target_link_libraries(dungeon_generation_benchmark
         Star::Game
 )
 
-# xSB-2 v2.5 breaks `word_count`. Might as well get rid of it and `map_grep`.
+# xStarbound v2.5 breaks `word_count`. Might as well get rid of it and `map_grep`.
 # add_executable(map_grep map_grep.cpp)
 # target_link_libraries (map_grep Star::Game)
 

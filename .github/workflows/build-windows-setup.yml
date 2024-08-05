@@ -23,7 +23,7 @@ jobs:
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
         run: |
-          cmake --preset "windows-x64" -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/xsb2-install" -DPACKAGE_XSB_ASSETS=ON
+          cmake --preset "windows-x64" -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/xstarbound-install" -DPACKAGE_XSB_ASSETS=ON
           # Clean up vcpkg temp dirs to save space
           Remove-Item $Env:VCPKG_INSTALLATION_ROOT\buildtrees\ -Force -Recurse -ErrorAction Continue
           Remove-Item $Env:VCPKG_INSTALLATION_ROOT\downloads\ -Force -Recurse -ErrorAction Continue
@@ -47,7 +47,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-x64-archive
-          path: xsb2-install/*
+          path: xstarbound-install/*
           compression-level: 9
 
       - name: Upload Debug Symbols

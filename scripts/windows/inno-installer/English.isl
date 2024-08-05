@@ -165,7 +165,7 @@ BadDirName32=Folder names cannot include any of the following characters:%n%n%1
 DirExistsTitle=Folder Exists
 DirExists=The folder:%n%n%1%n%nalready exists. Would you like to install to that folder anyway?
 DirDoesntExistTitle=Folder Does Not Exist
-DirDoesntExist=The folder:%n%n%1%n%ndoes not exist. xSB-2 must be installed to an existing Starbound folder. Would you like the folder to be created anyway?
+DirDoesntExist=The folder:%n%n%1%n%ndoes not exist. xStarbound must be installed to an existing Starbound folder. Would you like the folder to be created anyway?
 
 ; *** "Select Components" wizard page
 WizardSelectComponents=Select Components

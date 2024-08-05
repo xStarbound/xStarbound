@@ -63,7 +63,7 @@ else()
     message(STATUS "Not using CCache")
 endif()
 
-project(xsb2
+project(xstarbound
     LANGUAGES C CXX
     VERSION ${XSB_VERSION}
 )

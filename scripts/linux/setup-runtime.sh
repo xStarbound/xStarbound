@@ -1,5 +1,5 @@
 #!/bin/sh
-# This script is used for building xSB-2 in a Steam Scout Runtime container.
+# This script is used for building xStarbound in a Steam Scout Runtime container.
 
 cd "`dirname \"$0\"`/../..";
 

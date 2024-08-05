@@ -1,11 +1,11 @@
-if(xsb2_VERSION_PATCH STREQUAL "")
-    set(xsb2_VERSION_PATCH "0")
+if(xstarbound_VERSION_PATCH STREQUAL "")
+    set(xstarbound_VERSION_PATCH "0")
 endif()
-if(xsb2_VERSION_TWEAK STREQUAL "")
-    set(xsb2_VERSION_TWEAK "0")
+if(xstarbound_VERSION_TWEAK STREQUAL "")
+    set(xstarbound_VERSION_TWEAK "0")
 endif()
 
-set(xsb2_RC_VERSION "${xsb2_VERSION_MAJOR},${xsb2_VERSION_MINOR},${xsb2_VERSION_PATCH},${xsb2_VERSION_TWEAK}")
+set(xstarbound_RC_VERSION "${xstarbound_VERSION_MAJOR},${xstarbound_VERSION_MINOR},${xstarbound_VERSION_PATCH},${xstarbound_VERSION_TWEAK}")
 configure_file(xclient.rc.in ${CMAKE_CURRENT_BINARY_DIR}/xclient.rc @ONLY)
 
 add_executable(xclient WIN32

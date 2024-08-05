@@ -1,6 +1,6 @@
 1 VERSIONINFO
-FILEVERSION     @xsb2_RC_VERSION@
-PRODUCTVERSION  @xsb2_RC_VERSION@
+FILEVERSION     @xstarbound_RC_VERSION@
+PRODUCTVERSION  @xstarbound_RC_VERSION@
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
@@ -8,12 +8,12 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "FezzedOne and other contributors / Chucklefish LTD"
       VALUE "FileDescription", "xClient"
-      VALUE "FileVersion", "@xsb2_VERSION@"
+      VALUE "FileVersion", "@xstarbound_VERSION@"
       VALUE "InternalName", "xclient"
       VALUE "LegalCopyright", "FezzedOne and other contributors / Chucklefish LTD"
       VALUE "OriginalFilename", "xclient.exe"
       VALUE "ProductName", "xClient"
-      VALUE "ProductVersion", "@xsb2_VERSION@"
+      VALUE "ProductVersion", "@xstarbound_VERSION@"
     END
   END
 
