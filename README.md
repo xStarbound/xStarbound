@@ -140,15 +140,9 @@ On Linux, the xStarbound binaries are by default built against the system librar
 5. `git clone https://github.com/FezzedOne/xStarbound.git`
 6. `cd xStarbound/`
 7. `CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/`
-8. `mkdir -p dist/`
-9. `cp source/extern/steam/lib/linux/x86_64/libsteam_api.so dist/`
-10. `cp scripts/linux/xclient.sh scripts/linux/xserver.sh scripts/linux/mod_uploader.sh dist/`
-11. `scripts/linux/setup.sh 4` (increase that `4` to `8` or more if you've got a beefy system!)
-12. Executables should appear in `$src/dist` if built successfully.
-13. `chmod a+x dist/xclient dist/xclient.sh dist/xserver dist/xserver.sh dist/mod_uploader dist/mod_uploader.sh dist/btree_repacker`
-14. `mkdir -p ${sbInstall}/xsb-linux; cp dist/* ${sbInstall}/xsb-linux/`
-15. `mkdir -p ${sbInstall}/xsb-assets; cp assets/xSBassets ${sbInstall}/xsb-assets/`
-16. Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient.sh`.
+8. `cmake --build build/`
+9. `cmake --install build/ --prefix ${sbInstall}/`
+10. Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient`.
 
 > **Important:** If you're getting library linking errors while attempting to build or run xStarbound (this is likely on Debian-based distros, Slackware and CentOS due to their older libraries), you'll need to either figure out how to build xStarbound against the Steam runtime (hint: update CMake somehow!) or find a way to update your system libraries.
 
@@ -160,11 +154,8 @@ To build and install xStarbound on Windows 10 or 11:
 2. Optionally install [Git](https://git-scm.com/download/win). If using Git, go the next step; otherwise go to step 4.
 3. Open up Git Bash and run `git clone https://github.com/FezzedOne/xStarbound.git`, then go to step 6.
 4. Download the latest xStarbound source ZIP and extract it somewhere.
-5. Go into `scripts\windows\` and double-click `build.bat`. CMake and VCPKG will take care of all build dependencies.
-6.  Executables, required `.dll` libraries and the required `xsbinit.config` should appear in a new `xStarbound\dist\` folder if built successfully.
-7.  Make a new `xsb-win64\` folder in your Starbound install folder, and copy or move the files in `xStarbound\dist\` to it.
-8.  Make a new `xab-assets\` folder in your Starbound install folder, and copy the `assets\xSBassets` folder into that folder. For correct installation, you should have an `xSBassets\` folder *inside* `xsb-assets\`.
-9.  Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
+5. Go into `scripts\windows\` and double-click `build.bat`. CMake and VCPKG will take care of all build dependencies and automatically install xStarbound.
+6.  Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
 
 > **Building on older Windows versions:** Building on earlier versions of Windows is *not* recommended, although it *should* still be possible to build xStarbound on Windows 7, 8 or 8.1 if you can get VS 2022 installed.
 
