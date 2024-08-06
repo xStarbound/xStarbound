@@ -102,7 +102,7 @@ StringList ClientCommandProcessor::handleCommand(String const& commandLine) {
         if (messageResult->isType(Json::Type::String)) {
           // FezzedOne: Fix for the inability to actually read the beginning of certain long help strings in xClient commands.
           for (auto s : (*messageResult->stringPtr()).split('\n')) {
-            result.append(s);
+            result.append(s.empty() ? " " : s);
           }
         } else {
           String processedResult = messageResult->repr(1, true);
