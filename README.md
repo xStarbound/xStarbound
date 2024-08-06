@@ -154,8 +154,9 @@ To build and install xStarbound on Windows 10 or 11:
 2. Optionally install [Git](https://git-scm.com/download/win). If using Git, go the next step; otherwise go to step 4.
 3. Open up Git Bash and run `git clone https://github.com/FezzedOne/xStarbound.git`, then go to step 6.
 4. Download the latest xStarbound source ZIP and extract it somewhere.
-5. Go into `scripts\windows\` and double-click `build.bat`. CMake and VCPKG will take care of all build dependencies and automatically install xStarbound.
-6.  Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
+5. Go into `scripts\windows\` and double-click `build.bat`. CMake and VCPKG will take care of the entire build process.
+6. If the build succeeds, you will be prompted to select your Starbound install directory.
+7. Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
 
 > **Building on older Windows versions:** Building on earlier versions of Windows is *not* recommended, although it *should* still be possible to build xStarbound on Windows 7, 8 or 8.1 if you can get VS 2022 installed.
 

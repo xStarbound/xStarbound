@@ -28,7 +28,11 @@ set "@="(new-object -COM 'Shell.Application').BrowseForFolder(0,'%1',0x200,0).se
 for /f "usebackq delims=" %%# in (`PowerShell %@%`) do set "sbInstall=%%#"
 :: ----------
 
-If "%sbInstall%"=="" (exit)
+If "%sbInstall%"=="" (
+    echo "[xStarbound::Build] Build complete!"
+    pause
+    exit
+)
 if exist "%sbInstall%\assets\packed.pak" (
     echo "[xStarbound::Build] Installing xClient into chosen Starbound directory."
     "C:\Program Files (x86)\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --prefix "%sbInstall%"
@@ -41,3 +45,6 @@ if exist "%sbInstall%\assets\packed.pak" (
     echo "[xStarbound::Build] Not a valid Starbound directory!"
     goto selectDirectory
 )
+
+echo "[xStarbound::Build] Installation complete!"
+pause
