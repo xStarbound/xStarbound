@@ -1,15 +1,23 @@
 @echo off
 
+echo "[xStarbound::Build] Starting build..."
+
 cd /d %~dp0
 cd ..\..
 
-cd build
+"C:\Program Files (x86)\CMake\bin\cmake.exe" --preset "windows-x64"
 IF %ERRORLEVEL% NEQ 0 (
-    echo "[xStarbound::Build] Build directory not found! Please make a directory called 'build'."
+    color 04
+    echo "[xStarbound::Build] Configuration failed!"
     exit /b %ERRORLEVEL%
 )
 
-"C:\Program Files (x86)\CMake\bin\cmake.exe" --build . --config %1
+"C:\Program Files (x86)\CMake\bin\cmake.exe" --build --preset "windows-x64-release"
+IF %ERRORLEVEL% NEQ 0 (
+    color 04
+    echo "[xStarbound::Build] Build failed!"
+    exit /b %ERRORLEVEL%
+)
 
 :selectDirectory
 echo "[xStarbound::Build] Waiting for directory selection."
@@ -23,7 +31,12 @@ for /f "usebackq delims=" %%# in (`PowerShell %@%`) do set "sbInstall=%%#"
 If "%sbInstall%"=="" (exit)
 if exist "%sbInstall%\assets\packed.pak" (
     echo "[xStarbound::Build] Installing xClient into chosen Starbound directory."
-    "C:\Program Files (x86)\CMake\bin\cmake.exe" --install . --prefix %sbInstall%
+    "C:\Program Files (x86)\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --prefix %sbInstall%
+    IF %ERRORLEVEL% NEQ 0 (
+        color 04
+        echo "[xStarbound::Build] Installation failed!"
+        exit /b %ERRORLEVEL%
+    )
 ) else (
     echo "[xStarbound::Build] Not a valid Starbound directory!"
     goto selectDirectory
