@@ -31,7 +31,7 @@ for /f "usebackq delims=" %%# in (`PowerShell %@%`) do set "sbInstall=%%#"
 If "%sbInstall%"=="" (exit)
 if exist "%sbInstall%\assets\packed.pak" (
     echo "[xStarbound::Build] Installing xClient into chosen Starbound directory."
-    "C:\Program Files (x86)\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --prefix %sbInstall%
+    "C:\Program Files (x86)\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --prefix "%sbInstall%"
     IF %ERRORLEVEL% NEQ 0 (
         color 04
         echo "[xStarbound::Build] Installation failed!"
