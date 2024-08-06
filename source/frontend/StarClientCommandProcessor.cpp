@@ -98,9 +98,17 @@ StringList ClientCommandProcessor::handleCommand(String const& commandLine) {
       }
     } else {
       auto player = m_universeClient->mainPlayer();
-      if (auto messageResult = player->receiveMessage(connectionForEntity(player->entityId()), strf("/{}", command), { allArguments }))
-        result.append(messageResult->isType(Json::Type::String) ? *messageResult->stringPtr() : messageResult->repr(1, true));
-      else
+      if (auto messageResult = player->receiveMessage(connectionForEntity(player->entityId()), strf("/{}", command), { allArguments })) {
+        if (messageResult->isType(Json::Type::String)) {
+          // FezzedOne: Fix for the inability to actually read the beginning of certain long help strings in xClient commands.
+          for (auto s : (*messageResult->stringPtr()).split('\n')) {
+            result.append(s);
+          }
+        } else {
+          String processedResult = messageResult->repr(1, true);
+          result.append(processedResult);
+        }
+      } else
         m_universeClient->sendChat(commandLine, ChatSendMode::Broadcast);
     }
     return result;
