@@ -6,6 +6,8 @@ on:
       - "*"
     tags:
       - "*"
+    paths:
+      - "source/**"
 
   pull_request:
     branches:

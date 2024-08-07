@@ -126,7 +126,7 @@ This repository is already set up for easy building. Follow the appropriate inst
 
 ### Linux
 
-On Linux, the xStarbound binaries are by default built against the system libraries. To build xStarbound on any reasonably up-to-date Linux install:
+On Linux, the xStarbound binaries are by default built against the system libraries. To build xStarbound on any reasonably up-to-date Linux install (assuming `bash` or `zsh`):
 
 1. If you're on SteamOS, run `sudo steamos-readonly disable`.
 2. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's «base development» package.
@@ -141,13 +141,14 @@ On Linux, the xStarbound binaries are by default built against the system librar
 6. `CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/ -G Ninja`
 7. `cmake --build build/`
 8. `cmake --install build/ --prefix ${sbInstall}/`
-9.  Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient`.
+9. `cp scripts/linux/{xclient,xserver,mod_uploader}.sh ${sbInstall}/linux/`
+10. Run `./xclient.sh` to play or `./xserver.sh` to host the server! Optionally configure Steam or your other launcher to launch `${sbInstall}/linux/xclient.sh`.
 
 > **Important:** If you're getting library linking errors while attempting to build or run xStarbound (this is likely on Debian-based distros, Slackware and CentOS due to their older libraries) or your distro is old enough to still use `yum` or `apt-get`, you'll need to either build a statically linked version of xStarbound (see below), figure out how to build xStarbound against the Steam runtime (hint: update the runtime's CMake somehow!) or find a way to update your system libraries.
 
 #### Statically linked builds
 
-To build a statically linked version of xStarbound:
+To build a statically linked version of xStarbound (assuming `bash` or `zsh`):
 
 1. If you're on SteamOS, run `sudo steamos-readonly disable`.
 2. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's «base development» package.
@@ -166,7 +167,9 @@ To build a statically linked version of xStarbound:
 10. `cmake --build build/`
 11. `cmake --install build/ --prefix ${sbInstall}/`
 12. `patchelf "${sbInstall}/linux/xserver" "${sbInstall}/linux/xclient" --clear-symbol-version exp --clear-symbol-version exp2 --clear-symbol-version log --clear-symbol-version log2 --clear-symbol-version pow` (needed to «downgrade» the required `glibc` version)
-13. Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient`.
+13. `cp scripts/linux/{xclient-static,xserver,mod_uploader}.sh ${sbInstall}/linux/`
+14. `mv ${sbInstall}/linux/xclient-static.sh ${sbInstall}/linux/xclient.sh`
+15. Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient.sh`.
 
 ### Windows 10 or 11
 
