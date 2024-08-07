@@ -131,20 +131,42 @@ On Linux, the xStarbound binaries are by default built against the system librar
 1. If you're on SteamOS, run `sudo steamos-readonly disable`.
 2. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's «base development» package.
 3. Install CMake, Git and the required build libraries for xStarbound:
-   - *Arch-based distros (CachyOS, Endeavour, etc.):* `sudo pacman -S cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland` (you may need to `-Syu` first)
-   - *RPM/`yum`-based distros:* `sudo yum install cmake git ninja-build mesa mesa-libGLU libXrender libXi libxkbcommon egl-wayland`
-   - *Debian/`apt`-based distros:* `sudo apt install cmake git ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev`
-   - *Gentoo:* `sudo emerge -a dev-vcs/git dev-build/cmake dev-build/ninja media-libs/mesa virtual/glu x11-misc/xcb x11-libs/libGLw x11-libs/libXrender x11-libs/libXi x11-libs/libxkbcommon gui-libs/egl-wayland`
-   - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland; sudo steamos-readonly enable`
-4. If you're on SteamOS, run `sudo steamos-readonly enable`.
-5. `git clone https://github.com/FezzedOne/xStarbound.git`
-6. `cd xStarbound/`
-7. `CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/`
-8. `cmake --build build/`
-9. `cmake --install build/ --prefix ${sbInstall}/`
-10. Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient`.
+   - *Arch-based distros (CachyOS, Endeavour, etc.):* `sudo pacman -S cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland qt6-svg qt6-base sdl2` (you may need to `-Syu` first)
+   - *RPM/`dnf`-based distros:* `sudo dnf install cmake git ninja-build mesa mesa-libGLU libXrender libXi libxkbcommon egl-wayland qt6-qtbase qt6-qtsvg SDL2-devel`
+   - *Debian/`apt`-based distros:* `sudo apt install cmake git ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev qt6-base qt6-svg libsdl2-dev`
+   - *Gentoo:* `sudo emerge -a dev-vcs/git dev-build/cmake dev-build/ninja media-libs/mesa virtual/glu x11-misc/xcb x11-libs/libGLw x11-libs/libXrender x11-libs/libXi x11-libs/libxkbcommon gui-libs/egl-wayland media-libs/libsdl2 dev-qt/qtbase dev-qt/qtsvg`
+   - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland qt6-svg qt6-base sdl2; sudo steamos-readonly enable`
+4. `git clone https://github.com/xStarbound/xStarbound.git`
+5. `cd xStarbound/`
+6. `CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/ -G Ninja`
+7. `cmake --build build/`
+8. `cmake --install build/ --prefix ${sbInstall}/`
+9.  Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient`.
 
-> **Important:** If you're getting library linking errors while attempting to build or run xStarbound (this is likely on Debian-based distros, Slackware and CentOS due to their older libraries), you'll need to either figure out how to build xStarbound against the Steam runtime (hint: update CMake somehow!) or find a way to update your system libraries.
+> **Important:** If you're getting library linking errors while attempting to build or run xStarbound (this is likely on Debian-based distros, Slackware and CentOS due to their older libraries) or your distro is old enough to still use `yum` or `apt-get`, you'll need to either build a statically linked version of xStarbound (see below), figure out how to build xStarbound against the Steam runtime (hint: update the runtime's CMake somehow!) or find a way to update your system libraries.
+
+#### Statically linked builds
+
+To build a statically linked version of xStarbound:
+
+1. If you're on SteamOS, run `sudo steamos-readonly disable`.
+2. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's «base development» package.
+3. Install CMake, Git and the required build libraries for xStarbound:
+   - *Arch-based distros (CachyOS, Endeavour, etc.):* `sudo pacman -S cmake git ninja patchelf mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland` (you may need to `-Syu` first)
+   - *RPM/`dnf`-based distros:* `sudo dnf install cmake git ninja-build patchelf mesa mesa-libGLU libXrender libXi libxkbcommon egl-wayland`
+   - *Debian/`apt`-based distros:* `sudo apt install cmake git ninja-build patchelf build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev`
+   - *Gentoo:* `sudo emerge -a dev-vcs/git dev-build/cmake dev-build/ninja dev-util/patchelf media-libs/mesa virtual/glu x11-misc/xcb x11-libs/libGLw x11-libs/libXrender x11-libs/libXi x11-libs/libxkbcommon gui-libs/egl-wayland`
+   - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu cmake git ninja patchelf mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland; sudo steamos-readonly enable`
+4. `mkdir -p ~/.local/opt; git clone https://github.com/microsoft/vcpkg.git ~/.local/opt/vcpkg`
+5. `cd ~/.local/opt/vcpkg; ./bootstrap-vcpkg.sh -disableMetrics` (yes, VCPKG sends telemetry by default)
+6. `cd $devDirectory` (where `$devDirectory` is the folder you want to put the xStarbound source in)
+7. `git clone https://github.com/xStarbound/xStarbound.git`
+8. `cd xStarbound/; export VCPKG_ROOT="${HOME}/.local/opt/vcpkg"; export PATH="${VCPKG_ROOT}:${PATH}"`
+9.  `CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake --build cmake-build-linux-x86_64/ --preset "linux-vcpkg-x86_64-release" -G Ninja`
+10. `cmake --build build/`
+11. `cmake --install build/ --prefix ${sbInstall}/`
+12. `patchelf "${sbInstall}/linux/xserver" "${sbInstall}/linux/xclient" --clear-symbol-version exp --clear-symbol-version exp2 --clear-symbol-version log --clear-symbol-version log2 --clear-symbol-version pow` (needed to «downgrade» the required `glibc` version)
+13. Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient`.
 
 ### Windows 10 or 11
 
