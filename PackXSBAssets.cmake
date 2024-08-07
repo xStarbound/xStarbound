@@ -10,20 +10,20 @@ if(PACKAGE_XSB_ASSETS)
     file(GLOB_RECURSE XSB_ASSET_FILES LIST_DIRECTORIES FALSE *)
     file(MAKE_DIRECTORY "${PROJECT_SOURCE_DIR}/xsb-assets")
 
-    add_custom_command(OUTPUT "${PROJECT_SOURCE_DIR}/xsb-assets/packed.pak"
-            COMMAND asset_packer ARGS -c "${PROJECT_SOURCE_DIR}/scripts/packing.config" "${PROJECT_SOURCE_DIR}/assets/xSBassets" "${PROJECT_SOURCE_DIR}/xsb-assets/packed.pak"
+    add_custom_command(OUTPUT "${PROJECT_SOURCE_DIR}/xsb-assets/xSBassets.pak"
+            COMMAND asset_packer ARGS -c "${PROJECT_SOURCE_DIR}/scripts/packing.config" "${PROJECT_SOURCE_DIR}/assets/xSBassets" "${PROJECT_SOURCE_DIR}/xsb-assets/xSBassets.pak"
             WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
             DEPENDS asset_packer
     )
 
     add_custom_target(package_xsb_assets ALL
-            DEPENDS "${PROJECT_SOURCE_DIR}/xsb-assets/packed.pak"
+            DEPENDS "${PROJECT_SOURCE_DIR}/xsb-assets/xSBassets.pak"
     )
 endif()
 
 # Add install script even if the packaging isn't done at build time. The packed.pak
 # may be created outside the build before installing.
-install(FILES ${PROJECT_SOURCE_DIR}/xsb-assets/packed.pak
+install(FILES ${PROJECT_SOURCE_DIR}/xsb-assets/xSBassets.pak
         DESTINATION ${STAR_INSTALL_DATADIR}/xsb-assets/
         COMPONENT Assets
         OPTIONAL # Silently ignore if the asset pack is missing.
