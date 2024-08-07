@@ -48,9 +48,9 @@
       ]
     },
     "mimalloc": {
-      "description": "Use jemalloc memory allocator",
+      "description": "Use mimalloc memory allocator",
       "dependencies": [
-        "jemalloc"
+        "mimalloc"
       ]
     },
     "tests": {
