@@ -198,7 +198,7 @@
       ],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
-        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
         "BUILD_TESTING": "ON"
@@ -223,7 +223,7 @@
       ],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
-        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
         "BUILD_TESTING": "ON"
@@ -248,7 +248,7 @@
       ],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
-        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON"
       },
@@ -273,7 +273,7 @@
       ],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
-        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
         "BUILD_TESTING": "ON"
@@ -299,7 +299,7 @@
       ],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
-        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
         "BUILD_TESTING": "ON"
@@ -325,7 +325,7 @@
       ],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
-        "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
+        "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
         "BUILD_TESTING": "ON"
