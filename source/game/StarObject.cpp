@@ -52,16 +52,14 @@ Object::Object(ObjectConfigConstPtr config, Json const& parameters) {
   // This merger has to be done before the networked animator is spawned, meaning it's done on both xClient and xServer.
   // However, as a nice side effect, xClient clients can now see custom animations set up in an object's instance
   // parameters without needing xServer on the server.
+  bool animationModified = false;
+  auto animationConfig = m_config->animationConfig;
   auto animationCustom = m_parameters.contains("animationCustom") ? m_parameters.get("animationCustom") : Json();
-  if (animationCustom.type() == Json::Type::Object) {
-    auto newAnimationConfig = jsonMerge(m_config->animationConfig, *animationCustom.objectPtr());
-    if (newAnimationConfig.type() == Json::Type::Object) {
-      m_config->animationConfig.setAll(*newAnimationConfig.objectPtr());
-    }
-  }
+  if (animationCustom.type() == Json::Type::Object)
+    animationConfig = jsonMerge(m_config->animationConfig, *animationCustom.objectPtr());
 
-  if (m_config->animationConfig)
-    m_networkedAnimator = make_shared<NetworkedAnimator>(m_config->animationConfig, m_config->path);
+  if (animationConfig)
+    m_networkedAnimator = make_shared<NetworkedAnimator>(animationConfig, m_config->path);
   else
     m_networkedAnimator = make_shared<NetworkedAnimator>();
 
