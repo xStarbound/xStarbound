@@ -48,6 +48,18 @@ Object::Object(ObjectConfigConstPtr config, Json const& parameters) {
 
   m_currentFrame = -1;
 
+  // FezzedOne: Allow `"animationCustom"` in an object's instance parameters to be merged into the object's config.
+  // This merger has to be done before the networked animator is spawned, meaning it's done on both xClient and xServer.
+  // However, as a nice side effect, xClient clients can now see custom animations set up in an object's instance
+  // parameters without needing xServer on the server.
+  auto animationCustom = m_parameters.contains("animationCustom") ? m_parameters.get("animationCustom") : Json();
+  if (animationCustom.type() == Json::Type::Object) {
+    auto newAnimationConfig = jsonMerge(m_config->animationConfig, *animationCustom.objectPtr());
+    if (newAnimationConfig.type() == Json::Type::Object) {
+      m_config->animationConfig.setAll(*newAnimationConfig.objectPtr());
+    }
+  }
+
   if (m_config->animationConfig)
     m_networkedAnimator = make_shared<NetworkedAnimator>(m_config->animationConfig, m_config->path);
   else
@@ -168,15 +180,6 @@ void Object::init(World* world, EntityId entityId, EntityMode mode) {
   }
 
   if (isMaster()) {
-    // FezzedOne: Allow `"animationCustom"` in an object's instance parameters to be merged into the object's config.
-    auto animationCustom = m_parameters.contains("animationCustom") ? m_parameters.get("animationCustom") : Json();
-    if (animationCustom.type() == Json::Type::Object) {
-      auto newAnimationConfig = jsonMerge(m_config->animationConfig, *animationCustom.objectPtr());
-      if (newAnimationConfig.type() == Json::Type::Object) {
-        m_config->animationConfig.setAll(*newAnimationConfig.objectPtr());
-      }
-    }
-
     setImageKey("color", colorName);
 
     if (m_config->lightColors.contains(colorName))
