@@ -169,7 +169,7 @@ void Object::init(World* world, EntityId entityId, EntityMode mode) {
 
   if (isMaster()) {
     // FezzedOne: Allow `"animationCustom"` in an object's instance parameters to be merged into the object's config.
-    auto animationCustom = m_parameters.get("animationCustom");
+    auto animationCustom = m_parameters.contains("animationCustom") ? m_parameters.get("animationCustom") : Json();
     if (animationCustom.type() == Json::Type::Object) {
       auto newAnimationConfig = jsonMerge(m_config->animationConfig, *animationCustom.objectPtr());
       if (newAnimationConfig.type() == Json::Type::Object) {
@@ -496,7 +496,7 @@ void Object::destroy(RenderCallback* renderCallback) {
           ItemDescriptor objectItem(m_config->name, 1);
           // FezzedOne: If `"retainObjectParametersInItem"` exists as an instance value, use the instance value instead of the
           // predefined config value.
-          auto retainObjectParametersInItem = m_parameters.get("retainObjectParametersInItem");
+          auto retainObjectParametersInItem = m_parameters.contains("retainObjectParametersInItem") ? m_parameters.get("retainObjectParametersInItem") : Json();
           if (retainObjectParametersInItem.type() == Json::Type::Bool ? retainObjectParametersInItem.toBool() : m_config->retainObjectParametersInItem) {
             auto parameters = m_parameters.baseMap();
             parameters.remove("owner");
