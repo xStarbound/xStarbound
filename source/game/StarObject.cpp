@@ -168,6 +168,15 @@ void Object::init(World* world, EntityId entityId, EntityMode mode) {
   }
 
   if (isMaster()) {
+    // FezzedOne: Allow `"animationCustom"` in an object's instance parameters to be merged into the object's config.
+    auto animationCustom = m_parameters.get("animationCustom");
+    if (animationCustom.type() == Json::Type::Object) {
+      auto newAnimationConfig = jsonMerge(m_config->animationConfig, *animationCustom.objectPtr());
+      if (newAnimationConfig.type() == Json::Type::Object) {
+        m_config->animationConfig.setAll(*newAnimationConfig.objectPtr());
+      }
+    }
+
     setImageKey("color", colorName);
 
     if (m_config->lightColors.contains(colorName))
@@ -485,7 +494,10 @@ void Object::destroy(RenderCallback* renderCallback) {
             world()->addEntity(ItemDrop::createRandomizedDrop(o, position()));
         } else if (m_config->hasObjectItem) {
           ItemDescriptor objectItem(m_config->name, 1);
-          if (m_config->retainObjectParametersInItem) {
+          // FezzedOne: If `"retainObjectParametersInItem"` exists as an instance value, use the instance value instead of the
+          // predefined config value.
+          auto retainObjectParametersInItem = m_parameters.get("retainObjectParametersInItem");
+          if (retainObjectParametersInItem.type() == Json::Type::Bool ? retainObjectParametersInItem.toBool() : m_config->retainObjectParametersInItem) {
             auto parameters = m_parameters.baseMap();
             parameters.remove("owner");
             parameters["scriptStorage"] = m_scriptComponent.getScriptStorage();
