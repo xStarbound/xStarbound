@@ -9,6 +9,7 @@ cd ..\..
 IF %ERRORLEVEL% NEQ 0 (
     color 04
     echo "[xStarbound::Build] Configuration failed!"
+    pause
     exit /b %ERRORLEVEL%
 )
 
@@ -16,6 +17,7 @@ IF %ERRORLEVEL% NEQ 0 (
 IF %ERRORLEVEL% NEQ 0 (
     color 04
     echo "[xStarbound::Build] Build failed!"
+    pause
     exit /b %ERRORLEVEL%
 )
 
