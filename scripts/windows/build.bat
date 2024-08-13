@@ -5,7 +5,7 @@ echo "[xStarbound::Build] Starting build..."
 cd /D "%~dp0"
 cd ..\..
 
-"%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64" -DSTAR_INSTALL_VCPKG=ON -DBUILD_INNOSETUP=OFF
+"%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64" -DSTAR_INSTALL_VCPKG=ON -DBUILD_INNOSETUP=OFF -UCMAKE_TOOLCHAIN_FILE
 IF %ERRORLEVEL% NEQ 0 (
     color 04
     echo "[xStarbound::Build] Configuration failed!"
