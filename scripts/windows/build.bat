@@ -10,7 +10,7 @@ if not defined VCPKG_ROOT (
     echo "[xStarbound::Build] Installing VCPKG"
     set "xStarboundDir=%cd%"
     cd "%USERPROFILE%\"
-    git clone https://github.com/microsoft/vcpkg.git
+    if not exist vcpkg\ git clone https://github.com/microsoft/vcpkg.git
     IF %ERRORLEVEL% NEQ 0 (
         color 04
         echo "[xStarbound::Build] VCPKG installation failed! Ensure Git is installed and in your %%PATH%%."
