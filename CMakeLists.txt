@@ -7,6 +7,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 # Build options
 include(CMakeDependentOption)
+option (STAR_INSTALL_VCPKG "Automatically install VCPKG" OFF)
+
 option(STAR_BUILD_GUI "Build GUI utilities and Client" ON)
 cmake_dependent_option(STAR_BUILD_QT_TOOLS "Build GUI utilities. Requires Qt 6.7 or higher" OFF "STAR_BUILD_GUI" OFF)
 cmake_dependent_option(STAR_ENABLE_STEAM_INTEGRATION "Use Steam platform services" OFF "STAR_BUILD_GUI" OFF)
@@ -57,7 +59,8 @@ endif()
 # Unfortunately, properly installing VCPKG is hell on Windows, so automate it.
 include(automate-vcpkg.cmake)
 
-if (WIN32)
+if (WIN32 AND STAR_INSTALL_VCPKG)
+    unset(CMAKE_TOOLCHAIN_FILE PARENT_SCOPE) # Must unset this in order to bootstrap VCPKG at all.
     vcpkg_bootstrap()
 endif()
 
