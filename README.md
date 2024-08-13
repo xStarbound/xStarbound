@@ -176,12 +176,11 @@ To build a statically linked version of xStarbound (assuming `bash` or `zsh`):
 To build and install xStarbound on Windows 10 or 11:
 
 1. Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/whatsnew/) and [CMake](https://cmake.org/download/). For Visual Studio, make sure to install C++ support (and optionally the game dev stuff) when the VS installer asks you what to install. For CMake, make sure you download and use the `.msi` installer for 64-bit Windows.
-2. Optionally install [Git](https://git-scm.com/download/win). If using Git, go the next step; otherwise go to step 4.
-3. Open up Git Bash and run `git clone https://github.com/FezzedOne/xStarbound.git`, then go to step 6.
-4. Download the latest xStarbound source ZIP and extract it somewhere.
-5. Go into `scripts\windows\` and double-click `build.bat`. CMake and VCPKG will take care of the entire build process.
-6. If the build succeeds, you will be prompted to select your Starbound install directory.
-7. Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
+2. Install [Git](https://git-scm.com/download/win); the build script *requires* Git. Make sure to tick «Add to your PATH» in the installer.
+3. Open up Git Bash and run `git clone https://github.com/xStarbound/xStarbound.git` *or* download the latest xStarbound source ZIP archive and extract it somewhere.
+4. Go into `scripts\windows\` and double-click `build.bat`. CMake and VCPKG will take care of the entire build process.
+5. If the build succeeds, you will be prompted to select your Starbound install directory.
+6. Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
 
 > **Building on older Windows versions:** Building on earlier versions of Windows is *not* recommended, although it *should* still be possible to build xStarbound on Windows 7, 8 or 8.1 if you can get VS 2022 installed.
 
@@ -197,7 +196,7 @@ The basic process for building on other OSes:
    - Targetting *older Windows versions*, *pre-OSX Mac OS*, *Android*, the *Switch* or any other niche device or OS is left as an exercise for the reader.
 2. If you can, install any dependencies needed to build SDL2 and GLEW on your OS. If you can't, hopefully VCPKG runs on your build OS and/or has packages for your target OS. If not, get ready for a lot of tinkering.
 3. If you're not using Git or don't have it installed, download the latest xStarbound source ZIP, extract it somewhere and go to step 5. Otherwise go to the next step.
-4. If you're using Git, run `git clone https://github.com/FezzedOne/xStarbound.git` in a terminal or command prompt, or use a graphical Git utility to download the repo.
+4. If you're using Git, run `git clone https://github.com/xStarbound/xStarbound.git` in a terminal or command prompt, or use a graphical Git utility to download the repo.
 5. In the xStarbound directory, run `cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/`. On some OSes, you may need to add the full path to your CMake executable to the beginning of the command. If necessary, add `-DCMAKE_C_COMPILER=<path to C++ compiler> -DCMAKE_CXX_COMPILER=<path to C++ compiler>`. Note that a CMake build preset already exists for modern macOS; consider using that if you have build issues.
 
 ### Packaging and Installing xSB Assets
