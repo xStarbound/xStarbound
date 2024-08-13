@@ -60,7 +60,7 @@ endif()
 include(automate-vcpkg.cmake)
 
 if (WIN32 AND STAR_INSTALL_VCPKG)
-    unset(CMAKE_TOOLCHAIN_FILE PARENT_SCOPE) # Must unset this in order to bootstrap VCPKG at all.
+    unset(CMAKE_TOOLCHAIN_FILE CACHE) # Must unset this in order to bootstrap VCPKG at all.
     vcpkg_bootstrap()
 endif()
 
