@@ -48,9 +48,9 @@ Sets an entry in the debug log map (visible while in debug mode) using the speci
 
 ---
 
-#### `String` sb.printJson(`LuaValue` value, [`bool` pretty])
+#### `String` sb.printJson(`LuaValue` value, [`int` pretty])
 
-Returns a human-readable string representation of the specified JSON value. If pretty is `true`, objects and arrays will have whitespace added for readability. Throws an error if the given Lua value can't be encoded into JSON.
+Returns a human-readable string representation of the specified JSON value. If `pretty` is `1`, objects and arrays will have whitespace added for readability; if it's `0` or unspecified, no whitespace is added. Throws an error if the given Lua value can't be encoded into JSON.
 
 ---
 
