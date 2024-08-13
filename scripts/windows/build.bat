@@ -5,31 +5,6 @@ echo "[xStarbound::Build] Starting build..."
 cd /D "%~dp0"
 cd ..\..
 
-:: Automatically install VCPKG if not already installed.
-if not defined VCPKG_ROOT (
-    echo "[xStarbound::Build] Installing VCPKG"
-    set "xStarboundDir=%cd%"
-    cd "%USERPROFILE%\"
-    if not exist vcpkg\ git clone https://github.com/microsoft/vcpkg.git
-    IF %ERRORLEVEL% NEQ 0 (
-        color 04
-        echo "[xStarbound::Build] VCPKG installation failed! Ensure Git is installed and in your %%PATH%%."
-        pause
-        exit /b %ERRORLEVEL%
-    )
-    cd vcpkg
-    .\bootstrap-vcpkg.bat
-    IF %ERRORLEVEL% NEQ 0 (
-        color 04
-        echo "[xStarbound::Build] VCPKG installation failed!"
-        pause
-        exit /b %ERRORLEVEL%
-    )
-    setx VCPKG_ROOT "%cd%\"
-    setx PATH "%VCPKG_ROOT%;%PATH%"
-    cd "%xStarboundDir%"
-)
-
 "%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64"
 IF %ERRORLEVEL% NEQ 0 (
     color 04

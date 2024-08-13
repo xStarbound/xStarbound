@@ -53,6 +53,14 @@ if(BUILD_TESTING)
     list(APPEND VCPKG_MANIFEST_FEATURES tests)
 endif()
 
+# VCPKG is *required* on Windows builds to avoid manual dependency hell.
+# Unfortunately, properly installing VCPKG is hell on Windows, so automate it.
+include(automate-vcpkg.cmake)
+
+if (WIN32)
+    vcpkg_bootstrap()
+endif()
+
 # Find CCache
 find_program(CCACHE_PATH ccache)
 if(CCACHE_PATH)
