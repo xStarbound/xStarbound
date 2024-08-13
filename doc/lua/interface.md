@@ -302,7 +302,7 @@ If the OS's clipboard has any text on it, returns the text. Otherwise returns `n
 
 ----
 
-#### `Maybe<String>` clipboard.setText()
+#### `Maybe<String>` clipboard.setText(`String` newClipboardText)
 
 Sets the text on the OS clipboard. If successful, returns `nil`, but if there is any error, returns a string describing the error.
 
