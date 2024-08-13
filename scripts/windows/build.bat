@@ -26,7 +26,7 @@ if not exist ".\vcpkg" (
     cd ..
 )
 
-set "VCPKG_ROOT=%cd%"
+set "VCPKG_ROOT=%cd%\vcpkg\"
 set "PATH=%VCPKG_ROOT%;%PATH%"
 
 "%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64"
