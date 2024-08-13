@@ -24,12 +24,12 @@ if not exist ".\vcpkg" (
         exit /b %ERRORLEVEL%
     )
     set "VCPKG_ROOT=%cd%"
-    set PATH=%VCPKG_ROOT%;%PATH%
+    set "PATH=%VCPKG_ROOT%;%PATH%"
     cd ..
 ) else (
     cd vcpkg
     set "VCPKG_ROOT=%cd%"
-    set PATH=%VCPKG_ROOT%;%PATH%
+    set "PATH=%VCPKG_ROOT%;%PATH%"
     cd ..
 )
 
