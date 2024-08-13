@@ -2,7 +2,7 @@
 
 echo "[xStarbound::Build] Starting build..."
 
-cd /d %~dp0
+cd /D "%~dp0"
 cd ..\..
 
 "C:\Program Files (x86)\CMake\bin\cmake.exe" --preset "windows-x64"
