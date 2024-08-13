@@ -5,7 +5,7 @@ echo "[xStarbound::Build] Starting build..."
 cd /D "%~dp0"
 cd ..\..
 
-"C:\Program Files (x86)\CMake\bin\cmake.exe" --preset "windows-x64"
+"%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64"
 IF %ERRORLEVEL% NEQ 0 (
     color 04
     echo "[xStarbound::Build] Configuration failed!"
@@ -13,7 +13,7 @@ IF %ERRORLEVEL% NEQ 0 (
     exit /b %ERRORLEVEL%
 )
 
-"C:\Program Files (x86)\CMake\bin\cmake.exe" --build --preset "windows-x64-release"
+"%PROGRAMFILES%\CMake\bin\cmake.exe" --build --preset "windows-x64-release"
 IF %ERRORLEVEL% NEQ 0 (
     color 04
     echo "[xStarbound::Build] Build failed!"
@@ -37,7 +37,7 @@ If "%sbInstall%"=="" (
 )
 if exist "%sbInstall%\assets\packed.pak" (
     echo "[xStarbound::Build] Installing xClient into chosen Starbound directory."
-    "C:\Program Files (x86)\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --prefix "%sbInstall%"
+    "C:\Program Files\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --prefix "%sbInstall%"
     IF %ERRORLEVEL% NEQ 0 (
         color 04
         echo "[xStarbound::Build] Installation failed!"
