@@ -23,15 +23,11 @@ if not exist ".\vcpkg" (
         pause
         exit /b %ERRORLEVEL%
     )
-    set "VCPKG_ROOT=%cd%"
-    set "PATH=%VCPKG_ROOT%;%PATH%"
-    cd ..
-) else (
-    cd vcpkg
-    set "VCPKG_ROOT=%cd%"
-    set "PATH=%VCPKG_ROOT%;%PATH%"
     cd ..
 )
+
+set "VCPKG_ROOT=%cd%"
+set "PATH=%VCPKG_ROOT%;%PATH%"
 
 "%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64"
 IF %ERRORLEVEL% NEQ 0 (
