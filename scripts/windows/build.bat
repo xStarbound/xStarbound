@@ -37,7 +37,7 @@ If "%sbInstall%"=="" (
 )
 if exist "%sbInstall%\assets\packed.pak" (
     echo "[xStarbound::Build] Installing xClient into chosen Starbound directory."
-    "C:\Program Files\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --prefix "%sbInstall%"
+    "%PROGRAMFILES%\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --prefix "%sbInstall%"
     IF %ERRORLEVEL% NEQ 0 (
         color 04
         echo "[xStarbound::Build] Installation failed!"
