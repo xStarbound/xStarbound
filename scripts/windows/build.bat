@@ -25,7 +25,7 @@ if not defined VCPKG_ROOT (
         pause
         exit /b %ERRORLEVEL%
     )
-    setx "VCPKG_ROOT=%cd%\vcpkg\"
+    setx "VCPKG_ROOT=%cd%\"
     setx "PATH=%VCPKG_ROOT%;%PATH%"
     cd "%xStarboundDir%"
 )
