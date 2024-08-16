@@ -26,11 +26,19 @@ EnumMap<WorldEdgeForceRegionType> const WorldEdgeForceRegionTypeNames{
   {WorldEdgeForceRegionType::TopAndBottom, "TopAndBottom"}};
 
 VisitableWorldParameters::VisitableWorldParameters() {
+  typeName = "";
   threatLevel = 0;
   gravity = 0;
+  worldSize = Vec2U::filled(0);
   airless = false;
   disableDeathDrops = false;
   terraformed = false;
+  // FezzedOne: Removed UB.
+  beamUpRule = BeamUpRule::Nowhere;
+  weatherPool = {};
+  environmentStatusEffects = {};
+  globalDirectives = {};
+  disableDeathDrops = false;
   worldEdgeForceRegions = WorldEdgeForceRegionType::None;
 }
 
@@ -107,9 +115,11 @@ void VisitableWorldParameters::write(DataStream& ds) const {
 TerrestrialWorldParameters::TerrestrialWorldParameters() {
   blendSize = 0;
   dayLength = 0;
+  hueShift = 0;
 }
 
-TerrestrialWorldParameters::TerrestrialWorldParameters(TerrestrialWorldParameters const& terrestrialWorldParameters) {
+// FezzedOne: Fixed wrong constructor getting called.
+TerrestrialWorldParameters::TerrestrialWorldParameters(TerrestrialWorldParameters const& terrestrialWorldParameters) : VisitableWorldParameters(terrestrialWorldParameters) {
   *this = terrestrialWorldParameters;
 }
 
@@ -336,6 +346,9 @@ AsteroidsWorldParameters::AsteroidsWorldParameters() {
   asteroidTopLevel = 0;
   asteroidBottomLevel = 0;
   blendSize = 0;
+  // FezzedOne: Fixed potential UB.
+  asteroidBiome = "";
+  ambientLightLevel = Color();
 }
 
 AsteroidsWorldParameters::AsteroidsWorldParameters(Json const& store) : VisitableWorldParameters(store) {
@@ -376,7 +389,19 @@ void AsteroidsWorldParameters::write(DataStream& ds) const {
   ds << ambientLightLevel;
 }
 
-FloatingDungeonWorldParameters::FloatingDungeonWorldParameters() {}
+FloatingDungeonWorldParameters::FloatingDungeonWorldParameters() {
+  // FezzedOne: Fixed more UB.
+  dungeonBaseHeight = 0;
+  dungeonSurfaceHeight = 0;
+  dungeonUndergroundLevel = 0;
+  primaryDungeon = "";
+  biome = {};
+  ambientLightLevel = Color();
+  dayMusicTrack = {};
+  nightMusicTrack = {};
+  dayAmbientNoises = {};
+  nightAmbientNoises = {};
+}
 
 FloatingDungeonWorldParameters::FloatingDungeonWorldParameters(Json const& store) : VisitableWorldParameters(store) {
   dungeonBaseHeight = store.getInt("dungeonBaseHeight");
