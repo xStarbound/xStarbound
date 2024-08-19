@@ -150,12 +150,14 @@ On Linux, the xStarbound binaries are by default built against the system librar
 
 To build a statically linked version of xStarbound (assuming `bash` or `zsh`):
 
+> **Important:** It is *highly* recommended you use an older LTS distribution such as Debian 11 or 12, or Ubuntu 20.x or 22.x, in order to guarantee portability. You can use a Docker, Toolbox or Podman container for this. If the chosen distro does not have CMake 3.25+ available in its repositories, download the latest `tar.gz` archive from [CMake's website](https://cmake.org/download/), extract it somewhere, and add its `bin/` directory to your `$PATH` *instead* of installing it via the package manager.
+
 1. If you're on SteamOS, run `sudo steamos-readonly disable`.
 2. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's «base development» package.
 3. Install CMake, Git and the required build libraries for xStarbound:
    - *Arch-based distros (CachyOS, Endeavour, etc.):* `sudo pacman -S cmake git ninja patchelf mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland` (you may need to `-Syu` first)
-   - *RPM/`dnf`-based distros:* `sudo dnf install cmake git ninja-build patchelf mesa mesa-libGLU libXrender libXi libxkbcommon egl-wayland`
-   - *Debian/`apt`-based distros:* `sudo apt install cmake git ninja-build patchelf build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev`
+   - *RPM/`dnf`-based distros:* `sudo dnf install cmake git ninja-build patchelf mesa mesa-libGLU libXrender libXi libxkbcommon egl-wayland xcb* libX11-xcb`
+   - *Debian/`apt`-based distros:* `sudo apt install cmake git ninja-build patchelf build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev libxcb-*`
    - *Gentoo:* `sudo emerge -a dev-vcs/git dev-build/cmake dev-build/ninja dev-util/patchelf media-libs/mesa virtual/glu x11-misc/xcb x11-libs/libGLw x11-libs/libXrender x11-libs/libXi x11-libs/libxkbcommon gui-libs/egl-wayland`
    - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu cmake git ninja patchelf mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland; sudo steamos-readonly enable`
 4. `mkdir -p ~/.local/opt; git clone https://github.com/microsoft/vcpkg.git ~/.local/opt/vcpkg`
