@@ -138,7 +138,7 @@ On Linux, the xStarbound binaries are by default built against the system librar
    - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland qt6-svg qt6-base sdl2 libpng freetype2 libvorbis opus; sudo steamos-readonly enable`
 4. `git clone https://github.com/xStarbound/xStarbound.git`
 5. `cd xStarbound/`
-6. `CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/ -G Ninja`
+6. `CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DCMAKE_BUILD_TYPE=Release -DPACKAGE_XSB_ASSETS=ON -S . -B build/ -G Ninja`
 7. `cmake --build build/`
 8. `cmake --install build/ --prefix ${sbInstall}/`
 9. `cp scripts/linux/{xclient,xserver,mod_uploader}.sh ${sbInstall}/linux/`
