@@ -131,9 +131,9 @@ On Linux, the xStarbound binaries are by default built against the system librar
 1. If you're on SteamOS, run `sudo steamos-readonly disable`.
 2. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's «base development» package.
 3. Install CMake, Git and the required build libraries for xStarbound:
-   - *Arch-based distros (CachyOS, Endeavour, etc.):* `sudo pacman -S cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland qt6-svg qt6-base sdl2` (you may need to `-Syu` first)
-   - *RPM/`dnf`-based distros:* `sudo dnf install gcc-c++ cmake git ninja-build mesa mesa-libGLU libXrender libXi libxkbcommon egl-wayland qt6-qtbase qt6-qtsvg SDL2-devel` (yes, Fedora doesn't come with a compiler preinstalled!)
-   - *Debian/`apt`-based distros:* `sudo apt install cmake git ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev qt6-base qt6-svg libsdl2-dev`
+   - *Arch-based distros (CachyOS, Endeavour, etc.):* `sudo pacman -S cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland qt6-svg qt6-base sdl2 libpng` (you may need to `-Syu` first)
+   - *RPM/`dnf`-based distros:* `sudo dnf install gcc-c++ cmake git ninja-build mesa mesa-libGLU libXrender libXi libxkbcommon egl-wayland qt6-qtbase qt6-qtsvg SDL2-devel libpng-devel` (yes, Fedora doesn't come with a compiler preinstalled!)
+   - *Debian/`apt`-based distros:* `sudo apt install cmake git ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev qt6-base qt6-svg libsdl2-dev libpng-dev`
    - *Gentoo:* `sudo emerge -a dev-vcs/git dev-build/cmake dev-build/ninja media-libs/mesa virtual/glu x11-misc/xcb x11-libs/libGLw x11-libs/libXrender x11-libs/libXi x11-libs/libxkbcommon gui-libs/egl-wayland media-libs/libsdl2 dev-qt/qtbase dev-qt/qtsvg`
    - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland qt6-svg qt6-base sdl2; sudo steamos-readonly enable`
 4. `git clone https://github.com/xStarbound/xStarbound.git`
