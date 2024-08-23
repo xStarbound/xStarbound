@@ -140,7 +140,7 @@ On Linux, the xStarbound binaries are by default built against the system librar
 5. `cd xStarbound/`
 6. `CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DCMAKE_BUILD_TYPE=Release -DSTAR_ENABLE_STEAM_INTEGRATION=ON -DPACKAGE_XSB_ASSETS=ON -S . -B build/ -G Ninja`
 7. `cmake --build build/`
-8. `cmake --install build/ --prefix ${sbInstall}/`
+8. `cmake --install build/ --prefix ${sbInstall}/` (replace `${sbInstall}` with the path to your Starbound install)
 9. `cp scripts/linux/{xclient,xserver,mod_uploader}.sh ${sbInstall}/linux/`
 10. Run `./xclient.sh` to play or `./xserver.sh` to host the server! Optionally configure Steam or your other launcher to launch `${sbInstall}/linux/xclient.sh`.
 
@@ -167,11 +167,10 @@ To build a statically linked version of xStarbound (assuming `bash` or `zsh`):
 8. `cd xStarbound/; export VCPKG_ROOT="${HOME}/.local/opt/vcpkg"; export PATH="${VCPKG_ROOT}:${PATH}"`
 9.  `CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake --build cmake-build-linux-x86_64/ --preset "linux-vcpkg-x86_64-release" -G Ninja`
 10. `cmake --build build/`
-11. `cmake --install build/ --prefix ${sbInstall}/`
-12. `patchelf "${sbInstall}/linux/xserver" "${sbInstall}/linux/xclient" --clear-symbol-version exp --clear-symbol-version exp2 --clear-symbol-version log --clear-symbol-version log2 --clear-symbol-version pow` (needed to «downgrade» the required `glibc` version)
-13. `cp scripts/linux/{xclient-static,xserver,mod_uploader}.sh ${sbInstall}/linux/`
-14. `mv ${sbInstall}/linux/xclient-static.sh ${sbInstall}/linux/xclient.sh`
-15. Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient.sh`.
+11. `cmake --install build/ --prefix ${sbInstall}/` (replace `${sbInstall}` with the path to your Starbound install)
+12. `cp scripts/linux/{xclient-static,xserver,mod_uploader}.sh ${sbInstall}/linux/`
+13. `mv ${sbInstall}/linux/xclient-static.sh ${sbInstall}/linux/xclient.sh`
+14. Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient.sh`.
 
 ### Windows 10 or 11
 
