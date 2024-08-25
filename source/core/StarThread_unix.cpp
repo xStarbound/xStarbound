@@ -130,8 +130,22 @@ struct MutexImpl {
     pthread_mutex_destroy(&mutex);
   }
 
-  void lock() {
-    pthread_mutex_lock(&mutex);
+  void lock() { // Deadlock debugging from OpenStarbound.
+#ifndef STAR_SYSTEM_MACOS
+    timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+#define LOCK_TIME 30
+#define STR(val) #val
+#define XSTR(val) STR(VAL)
+    ts.tv_sec += LOCK_TIME;
+    if (pthread_mutex_timedlock(&mutex, &ts) != 0) {
+      Logger::warn("Unable to lock mutex within " XSTR(LOCK_TIME) " second(s)!");
+      printStack("Mutex::lock");
+#else
+    {
+#endif
+      pthread_mutex_lock(&mutex);
+    }
   }
 
   void unlock() {
@@ -198,8 +212,22 @@ struct RecursiveMutexImpl {
     pthread_mutex_destroy(&mutex);
   }
 
-  void lock() {
-    pthread_mutex_lock(&mutex);
+  void lock() { // Deadlock debugging from OpenStarbound.
+#ifndef STAR_SYSTEM_MACOS
+    timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+#define LOCK_TIME 30
+#define STR(val) #val
+#define XSTR(val) STR(VAL)
+    ts.tv_sec += LOCK_TIME;
+    if (pthread_mutex_timedlock(&mutex, &ts) != 0) {
+      Logger::warn("Unable to lock mutex within " XSTR(LOCK_TIME) " second(s)!");
+      printStack("RecursiveMutex::lock");
+#else
+    {
+#endif
+      pthread_mutex_lock(&mutex);
+    }
   }
 
   void unlock() {

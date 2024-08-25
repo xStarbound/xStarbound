@@ -230,12 +230,12 @@ OutputProxy outputException(std::exception const& e, bool fullStacktrace) {
 }
 
 void printStack(char const* message) {
-  Logger::info("Stack Trace ({})...\n{}", message, outputStack(captureStack()));
+  Logger::info("[STACK] {}:\n{}", message, outputStack(captureStack()));
 }
 
 void fatalError(char const* message, bool showStackTrace) {
   std::ostringstream ss;
-  ss << "Fatal Error: " << message << std::endl;
+  ss << "Fatal error: " << message << std::endl;
   if (showStackTrace)
     ss << outputStack(captureStack());
 
@@ -247,7 +247,7 @@ void fatalError(char const* message, bool showStackTrace) {
 
 void fatalException(std::exception const& e, bool showStackTrace) {
   std::ostringstream ss;
-  ss << "Fatal Exception caught: " << outputException(e, showStackTrace) << std::endl;
+  ss << "Fatal exception caught: " << outputException(e, showStackTrace) << std::endl;
   if (showStackTrace)
     ss << "Caught at:" << std::endl << outputStack(captureStack());
 

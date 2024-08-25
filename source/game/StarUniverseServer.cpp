@@ -1736,8 +1736,13 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   clientFlyShip(clientId, clientContext->shipCoordinate().location(), clientContext->shipLocation());
   Logger::info("UniverseServer: Client {} connected", clientContext->descriptiveName());
 
+  // Kae's fix for a potential race condition on connections.
+  ReadLocker clientsReadLocker(m_clientsLock);
   auto players = static_cast<uint16_t>(m_clients.size());
-  for (auto clientId : m_clients.keys()) {
+  auto clients = m_clients.keys();
+  clientsReadLocker.unlock();
+  
+  for (auto clientId : clients) {
     m_connectionServer->sendPackets(clientId, {
         make_shared<ServerInfoPacket>(players, static_cast<uint16_t>(m_maxPlayers))
       });
