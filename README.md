@@ -11,7 +11,7 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 - Now runs [Pluto](https://pluto-lang.org/), a fork of Lua 5.4!
 - Full Lua sandboxing when `"safeScripts"` is enabled! By FezzedOne.
   - To replace the old, potentially crash-prone sandbox-breaking code used by certain mods, new Lua callbacks for safely saving and reading variables in global variable tables with the same expected cross-context scopes.
-  - **Note:** This causes some mod compatibility issues; see below for affected mods. A patch to fix them will be released soon.
+  - **Note:** This causes some mod compatibility issues; see below for affected mods.
 - Full, up-to-date Lua API documentation. (Aside from a lot of engine calls into Lua scripts.)
 - Control multiple characters on a single client! Is fully multiplayer-compatible. By FezzedOne. Replaces OpenStarbound's character swapping feature.
   - `/add` and `/adduuid`: Loads and adds a player character from your saves.
