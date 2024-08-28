@@ -100,9 +100,12 @@ StringList ClientCommandProcessor::handleCommand(String const& commandLine) {
       auto player = m_universeClient->mainPlayer();
       if (auto messageResult = player->receiveMessage(connectionForEntity(player->entityId()), strf("/{}", command), { allArguments })) {
         if (messageResult->isType(Json::Type::String)) {
-          // FezzedOne: Fix for the inability to actually read the beginning of certain long help strings in xClient commands.
-          for (auto s : (*messageResult->stringPtr()).split('\n')) {
-            result.append(s.empty() ? " " : s);
+          auto messageStr = *messageResult->stringPtr();
+          if (messageStr != "") {
+            // FezzedOne: Fix for the inability to actually read the beginning of certain long help strings in xClient commands.
+            for (auto s : messageStr.split('\n')) {
+              result.append(s.empty() ? " " : s);
+            }
           }
         } else {
           String processedResult = messageResult->repr(1, true);
