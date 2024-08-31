@@ -27,6 +27,15 @@ if exist "%PROGRAMFILES(X86)%\Inno Setup 6" (
     )
 )
 
+call :yesNoBox "Do you want to build a debug build?"
+if "!YesNo!"=="6" (
+    echo "[xStarbound::Build] Will build a debug build."
+    set "relOrDbg=Debug"
+) else (
+    echo "[xStarbound::Build] Will build a release build."
+    set "relOrDbg=Release"
+)
+
 if "%buildInstaller%"=="yes" (
     "%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64" -DSTAR_INSTALL_VCPKG=ON -DBUILD_INNOSETUP=ON -UCMAKE_TOOLCHAIN_FILE
 ) else (
@@ -40,7 +49,11 @@ if !ERRORLEVEL! neq 0 (
     exit /b %buildError%
 )
 
-"%PROGRAMFILES%\CMake\bin\cmake.exe" --build --preset "windows-x64-release"
+if "!relOrDbg!"=="Debug" (
+    "%PROGRAMFILES%\CMake\bin\cmake.exe" --build --preset "windows-x64-debug"
+) else (
+    "%PROGRAMFILES%\CMake\bin\cmake.exe" --build --preset "windows-x64-release"
+)
 if !ERRORLEVEL! neq 0 (
     color 04
     set buildError=!ERRORLEVEL!
@@ -65,7 +78,7 @@ if "%buildInstaller%"=="yes" (
     echo "[xStarbound::Build] Building installer and ZIP archive..."
     mkdir dist-windows
     mkdir dist-windows\install-tree
-    "%PROGRAMFILES%\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --config Release --prefix dist-windows\install-tree\
+    "%PROGRAMFILES%\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --config "!relOrDbg!" --prefix dist-windows\install-tree\
     if !ERRORLEVEL! neq 0 (
         color 04
         set buildError=!ERRORLEVEL!
@@ -92,14 +105,14 @@ if "%sbInstall%"=="" (
     echo "[xStarbound::Build] Build complete^!"
     call :messageBox "xStarbound has been built successfully. Click OK to open the asset and binary directories in Explorer. Everything is already set up for testing. Make sure to place a copy of Starbound's packed.pak in the opened assets\ folder." "xStarbound Build Script"
     explorer assets\
-    explorer cmake-build-windows-x64\source\client\Release\
-    explorer cmake-build-windows-x64\source\server\Release\
-    explorer cmake-build-windows-x64\source\utility\Release\
+    explorer "cmake-build-windows-x64\source\client\!relOrDbg!\"
+    explorer "cmake-build-windows-x64\source\server\!relOrDbg!\"
+    explorer "cmake-build-windows-x64\source\utility\!relOrDbg!\"
     exit /b
 )
 if exist "%sbInstall%\assets\packed.pak" (
     echo "[xStarbound::Build] Installing xClient into chosen Starbound directory."
-    "%PROGRAMFILES%\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --config Release --prefix "%sbInstall%"
+    "%PROGRAMFILES%\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --config "!relOrDbg!" --prefix "%sbInstall%"
     if !ERRORLEVEL! neq 0 (
         color 04
         set buildError=!ERRORLEVEL!
