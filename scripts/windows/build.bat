@@ -73,9 +73,8 @@ if "%buildInstaller%"=="yes" (
         call :messageBox "Failed to set up the installation tree^! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
         exit /b %buildError%
     )
-    cd dist-windows\install-tree
-    tar -cavf ..\installer\windows.zip *
-    cd ..\..
+    :: Comment out the following line if using any Windows version older than Windows 10 1803.
+    cd dist-windows\install-tree & tar -cavf ..\installer\windows.zip * & cd ..\..
     "%PROGRAMFILES(X86)%\Inno Setup 6\ISCC.exe" "/DXSBSourcePath=..\..\dist-windows\install-tree\" /Odist-windows\installer cmake-build-windows-x64\inno-installer\xsb-installer.iss
     if !ERRORLEVEL! neq 0 (
         color 04
