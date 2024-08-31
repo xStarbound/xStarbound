@@ -43,7 +43,7 @@ if (STAR_SYSTEM_WINDOWS)
     string(REGEX REPLACE "([][+.*()^])" "\\\\\\1" _regex_binary_dir "${PROJECT_BINARY_DIR}")
     install(RUNTIME_DEPENDENCY_SET STAR_RUNTIME_DEPS
             PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-" # Virtual Windows runtime DLLs
-            POST_INCLUDE_REGEXES "^${_regex_source_dir}/.+" "^${_regex_binary_dir}/.+"
+            POST_INCLUDE_REGEXES "^${_regex_source_dir}/mod_uploader/.+" "^${_regex_binary_dir}/mod_uploader/.+"
             POST_EXCLUDE_REGEXES ".*"
             LIBRARY DESTINATION ${STAR_INSTALL_LIBDIR}
             RUNTIME DESTINATION ${STAR_INSTALL_LIBDIR}

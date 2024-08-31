@@ -84,6 +84,6 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/assets/packed.pak" AND (EXISTS "${PROJECT_SOURC
     endif()
 else()
     message(AUTHOR_WARNING "Skipped adding game_tests to CTest configuration.\n"
-            "Make sure the packed asset files are present in both assets/ and xsb-assets/ in the main project directory!\n"
+            "Make sure the packed asset files (i.e., packed.pak) are present in both assets/ and xsb-assets/ in the main project directory!\n"
             "You can still run the game tests manually though, or reconfigure the project after adding the paks.")
 endif()
