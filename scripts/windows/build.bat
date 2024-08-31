@@ -1,4 +1,5 @@
 @echo off
+setLocal enableDelayedExpansion
 
 echo "[xStarbound::Build] Starting build..."
 
@@ -7,7 +8,7 @@ cd ..\..
 
 if exist "%PROGRAMFILES(X86)%\Inno Setup 6" (
     call :yesNoBox "Do you want to build the xStarbound installer? Click 'No' if you want to use this script for direct installation." "xStarbound Build Script"
-    if "%YesNo%"=="6" (
+    if "!YesNo!"=="6" (
         echo "[xStarbound::Build] Will build installer."
         set "buildInstaller=yes"
     ) else (
@@ -17,7 +18,7 @@ if exist "%PROGRAMFILES(X86)%\Inno Setup 6" (
 ) else (
     call :yesNoBox "If you want to build the xStarbound installer, click 'No' to open the Inno Setup download page in your browser. Restart this script once you've installed Inno Setup. Otherwise, click 'Yes' to continue; you may still use this script for direct installation." "xStarbound Build Script"
     set "buildInstaller=no"
-    if "%YesNo%"=="6" (
+    if "!YesNo!"=="6" (
         echo "[xStarbound::Build] Will not build installer."
     ) else (
         echo "[xStarbound::Build] Opening Inno Setup 6 website..."
@@ -27,9 +28,9 @@ if exist "%PROGRAMFILES(X86)%\Inno Setup 6" (
 )
 
 "%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64" -DSTAR_INSTALL_VCPKG=ON -DBUILD_INNOSETUP=OFF -UCMAKE_TOOLCHAIN_FILE
-if %ERRORLEVEL% neq 0 (
+if !ERRORLEVEL! neq 0 (
     color 04
-    set buildError=%ERRORLEVEL%
+    set buildError=!ERRORLEVEL!
     echo "[xStarbound::Build] Configuration failed!"
     call :messageBox "Failed to configure xStarbound! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
     exit /b %buildError%
@@ -40,9 +41,9 @@ if "%buildInstaller%"=="yes" (
 ) else (
     "%PROGRAMFILES%\CMake\bin\cmake.exe" --build --preset "windows-x64-release"
 )
-if %ERRORLEVEL% neq 0 (
+if !ERRORLEVEL! neq 0 (
     color 04
-    set buildError=%ERRORLEVEL%
+    set buildError=!ERRORLEVEL!
     echo "[xStarbound::Build] Build failed!"
     call :messageBox "Failed to build xStarbound! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
     exit /b %buildError%
@@ -63,9 +64,9 @@ if "%buildInstaller%"=="yes" (
     echo "[xStarbound::Build] Building installer..."
     mkdir dist-windows\installer
     "%PROGRAMFILES(X86)%\Inno Setup 6\ISCC.exe" /Odist-windows\installer cmake-build-windows-x64\inno-installer\xsb-installer.iss
-    if %ERRORLEVEL% neq 0 (
+    if !ERRORLEVEL! neq 0 (
         color 04
-        set buildError=%ERRORLEVEL%
+        set buildError=!ERRORLEVEL!
         echo "[xStarbound::Build] Installer build failed!"
         call :messageBox "Failed to build the installer! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
         exit /b %buildError%
@@ -85,9 +86,9 @@ if "%sbInstall%"=="" (
 if exist "%sbInstall%\assets\packed.pak" (
     echo "[xStarbound::Build] Installing xClient into chosen Starbound directory."
     "%PROGRAMFILES%\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --config Release --prefix "%sbInstall%"
-    if %ERRORLEVEL% neq 0 (
+    if !ERRORLEVEL! neq 0 (
         color 04
-        set buildError=%ERRORLEVEL%
+        set buildError=!ERRORLEVEL!
         echo "[xStarbound::Build] Installation failed!"
         call :messageBox "Failed to install xStarbound! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
         exit /b %buildError%
