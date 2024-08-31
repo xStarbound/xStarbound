@@ -35,8 +35,8 @@ if "%buildInstaller%"=="yes" (
 if !ERRORLEVEL! neq 0 (
     color 04
     set buildError=!ERRORLEVEL!
-    echo "[xStarbound::Build] Configuration failed!"
-    call :messageBox "Failed to configure xStarbound! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
+    echo "[xStarbound::Build] Configuration failed^!"
+    call :messageBox "Failed to configure xStarbound^! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
     exit /b %buildError%
 )
 
@@ -48,7 +48,7 @@ if "%buildInstaller%"=="yes" (
 if !ERRORLEVEL! neq 0 (
     color 04
     set buildError=!ERRORLEVEL!
-    echo "[xStarbound::Build] Build failed!"
+    echo "[xStarbound::Build] Build failed^!"
     call :messageBox "Failed to build xStarbound! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
     exit /b %buildError%
 )
@@ -71,15 +71,15 @@ if "%buildInstaller%"=="yes" (
     if !ERRORLEVEL! neq 0 (
         color 04
         set buildError=!ERRORLEVEL!
-        echo "[xStarbound::Build] Installer build failed!"
-        call :messageBox "Failed to build the installer! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
+        echo "[xStarbound::Build] Installer build failed^!"
+        call :messageBox "Failed to build the installer^! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
         exit /b %buildError%
     )
     call :messageBox "The xStarbound installer has been built successfully. Click OK to open the installer folder in Explorer." "xStarbound Build Script"
     exit /b
 )
 if "%sbInstall%"=="" (
-    echo "[xStarbound::Build] Build complete!"
+    echo "[xStarbound::Build] Build complete^!"
     call :messageBox "xStarbound has been built successfully. Click OK to open the asset and binary directories in Explorer. Everything is already set up for testing. Make sure to place a copy of Starbound's packed.pak in the opened assets\ folder." "xStarbound Build Script"
     explorer assets\
     explorer cmake-build-windows-x64\source\client\Release\
@@ -93,17 +93,17 @@ if exist "%sbInstall%\assets\packed.pak" (
     if !ERRORLEVEL! neq 0 (
         color 04
         set buildError=!ERRORLEVEL!
-        echo "[xStarbound::Build] Installation failed!"
-        call :messageBox "Failed to install xStarbound! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
+        echo "[xStarbound::Build] Installation failed^!"
+        call :messageBox "Failed to install xStarbound^! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
         exit /b %buildError%
     )
 ) else (
-    echo "[xStarbound::Build] Not a valid Starbound directory!"
+    echo "[xStarbound::Build] Not a valid Starbound directory^!"
     call :messageBox "The selected folder does not contain a Starbound installation. Click OK to go back to folder selection." "xStarbound Build Script - Error"
     goto selectDirectory
 )
 
-echo "[xStarbound::Build] Installation complete!"
+echo "[xStarbound::Build] Installation complete^!"
 call :messageBox "Successfully installed xStarbound. Click OK to open the folder containing the newly installed xStarbound binaries." "xStarbound Build Script"
 explorer "%sbInstall%\xsb-win64"
 exit /b
