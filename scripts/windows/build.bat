@@ -27,7 +27,7 @@ if exist "%PROGRAMFILES(X86)%\Inno Setup 6" (
     )
 )
 
-call :yesNoBox "Do you want to build a debug build?"
+call :yesNoBox "Do you want to build a debug build?" "xStarbound Build Script"
 if "!YesNo!"=="6" (
     echo "[xStarbound::Build] Will build a debug build."
     set "relOrDbg=Debug"
