@@ -7,7 +7,7 @@ cd /D "%~dp0"
 cd ..\..
 
 if exist "%PROGRAMFILES(X86)%\Inno Setup 6" (
-    call :yesNoBox "Do you want to build the xStarbound installer? Click 'No' if you want to use this script for direct installation." "xStarbound Build Script"
+    call :yesNoBox "Do you want to build the xStarbound installer and ZIP archive? Click 'No' if you want to use this script for direct installation." "xStarbound Build Script"
     if "!YesNo!"=="6" (
         echo "[xStarbound::Build] Will build installer."
         set "buildInstaller=yes"
@@ -62,7 +62,7 @@ goto directorySelected
 :skipOver
 
 if "%buildInstaller%"=="yes" (
-    echo "[xStarbound::Build] Building installer..."
+    echo "[xStarbound::Build] Building installer and ZIP archive..."
     mkdir dist-windows
     mkdir dist-windows\install-tree
     "%PROGRAMFILES%\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --config Release --prefix dist-windows\install-tree\
@@ -70,14 +70,17 @@ if "%buildInstaller%"=="yes" (
         color 04
         set buildError=!ERRORLEVEL!
         echo "[xStarbound::Build] Installer setup failed^!"
-        call :messageBox "Failed to build the installer^! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
+        call :messageBox "Failed to set up the installation tree^! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
         exit /b %buildError%
     )
+    cd dist-windows\install-tree
+    tar -cavf ..\installer\windows.zip *
+    cd ..\..
     "%PROGRAMFILES(X86)%\Inno Setup 6\ISCC.exe" "/DXSBSourcePath=..\..\dist-windows\install-tree\" /Odist-windows\installer cmake-build-windows-x64\inno-installer\xsb-installer.iss
     if !ERRORLEVEL! neq 0 (
         color 04
         set buildError=!ERRORLEVEL!
-        echo "[xStarbound::Build] Installer setup failed^!"
+        echo "[xStarbound::Build] Installer build failed^!"
         call :messageBox "Failed to build the installer^! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
         exit /b %buildError%
     )
