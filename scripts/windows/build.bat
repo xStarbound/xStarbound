@@ -5,7 +5,7 @@ echo "[xStarbound::Build] Starting build..."
 cd /D "%~dp0"
 cd ..\..
 
-if not exist "%PROGRAMFILES(X86)%\Inno Setup 6" (
+if exist "%PROGRAMFILES(X86)%\Inno Setup 6" (
     call :yesNoBox "Do you want to build the xStarbound installer? Click 'No' if you want to use this script for direct installation." "xStarbound Build Script"
     if "%YesNo%"=="6" (
         echo "[xStarbound::Build] Will build installer."
