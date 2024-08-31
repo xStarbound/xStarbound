@@ -27,7 +27,11 @@ if exist "%PROGRAMFILES(X86)%\Inno Setup 6" (
     )
 )
 
-"%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64" -DSTAR_INSTALL_VCPKG=ON -DBUILD_INNOSETUP=OFF -UCMAKE_TOOLCHAIN_FILE
+if "%buildInstaller%"=="yes" (
+    "%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64" -DSTAR_INSTALL_VCPKG=ON -DBUILD_INNOSETUP=OFF -UCMAKE_TOOLCHAIN_FILE
+) else (
+    "%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64" -DSTAR_INSTALL_VCPKG=ON -DBUILD_INNOSETUP=ON -UCMAKE_TOOLCHAIN_FILE
+)
 if !ERRORLEVEL! neq 0 (
     color 04
     set buildError=!ERRORLEVEL!
