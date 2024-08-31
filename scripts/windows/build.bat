@@ -5,7 +5,7 @@ echo "[xStarbound::Build] Starting build..."
 cd /D "%~dp0"
 cd ..\..
 
-if exist "%PROGRAMFILES(X86)\Inno Setup 6" (
+if not exist "%PROGRAMFILES(X86)%\Inno Setup 6" (
     call :yesNoBox "Do you want to build the xStarbound installer? Click 'No' if you want to use this script for direct installation." "xStarbound Build Script"
     if "%YesNo%"=="6" (
         echo "[xStarbound::Build] Will build installer."
@@ -60,7 +60,7 @@ for /f "usebackq delims=" %%# in (`PowerShell %@%`) do set "sbInstall=%%#"
 if "%buildInstaller%"=="yes" (
     echo "[xStarbound::Build] Building installer..."
     mkdir dist-windows\installer
-    "%PROGRAMFILES(X86)\Inno Setup 6\ISCC.exe" /Odist-windows\installer cmake-build-windows-x64\inno-installer\xsb-installer.iss
+    "%PROGRAMFILES(X86)%\Inno Setup 6\ISCC.exe" /Odist-windows\installer cmake-build-windows-x64\inno-installer\xsb-installer.iss
     if %ERRORLEVEL% neq 0 (
         color 04
         set buildError=%ERRORLEVEL%
