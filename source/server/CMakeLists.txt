@@ -40,7 +40,7 @@ install(RUNTIME_DEPENDENCY_SET STAR_RUNTIME_DEPS
         PRE_EXCLUDE_REGEXES
             "libSDL2-2\.0\.so.*" # Only debug SDL2 library will be installed on Linux!
             "api-ms-" "ext-ms-" # Virtual Windows runtime DLLs
-        POST_INCLUDE_REGEXES "^${_regex_source_dir}/server/.+" "^${_regex_binary_dir}/.+"
+        POST_INCLUDE_REGEXES "^${_regex_source_dir}/server/.+" "^${_regex_binary_dir}/server/.+"
         POST_EXCLUDE_REGEXES ".*"
         LIBRARY DESTINATION ${STAR_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${STAR_INSTALL_LIBDIR}
