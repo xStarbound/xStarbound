@@ -81,6 +81,7 @@ if "%buildInstaller%"=="yes" (
         exit /b %buildError%
     )
     call :messageBox "The xStarbound installer has been built successfully. Click OK to open the installer folder in Explorer." "xStarbound Build Script"
+    explorer dist-windows\installer\
     exit /b
 )
 if "%sbInstall%"=="" (
