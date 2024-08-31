@@ -57,6 +57,7 @@ call :@ "Either select your Starbound install directory and click OK to install,
 :@
 set "@="(new-object -COM 'Shell.Application').BrowseForFolder(0,'%1',0x200,0).self.path""
 for /f "usebackq delims=" %%# in (`PowerShell %@%`) do set "sbInstall=%%#"
+goto directorySelected
 :: ----------
 :skipOver
 
@@ -84,6 +85,7 @@ if "%buildInstaller%"=="yes" (
     explorer dist-windows\installer\
     exit /b
 )
+:directorySelected
 if "%sbInstall%"=="" (
     echo "[xStarbound::Build] Build complete^!"
     call :messageBox "xStarbound has been built successfully. Click OK to open the asset and binary directories in Explorer. Everything is already set up for testing. Make sure to place a copy of Starbound's packed.pak in the opened assets\ folder." "xStarbound Build Script"
