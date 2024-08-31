@@ -40,11 +40,7 @@ if !ERRORLEVEL! neq 0 (
     exit /b %buildError%
 )
 
-if "%buildInstaller%"=="yes" (
-    "%PROGRAMFILES%\CMake\bin\cmake.exe" --build --preset "windows-x64-release" --target INSTALL
-) else (
-    "%PROGRAMFILES%\CMake\bin\cmake.exe" --build --preset "windows-x64-release"
-)
+"%PROGRAMFILES%\CMake\bin\cmake.exe" --build --preset "windows-x64-release"
 if !ERRORLEVEL! neq 0 (
     color 04
     set buildError=!ERRORLEVEL!
@@ -66,12 +62,21 @@ for /f "usebackq delims=" %%# in (`PowerShell %@%`) do set "sbInstall=%%#"
 
 if "%buildInstaller%"=="yes" (
     echo "[xStarbound::Build] Building installer..."
-    mkdir dist-windows\installer
-    "%PROGRAMFILES(X86)%\Inno Setup 6\ISCC.exe" /Odist-windows\installer cmake-build-windows-x64\inno-installer\xsb-installer.iss
+    mkdir dist-windows
+    mkdir dist-windows\install-tree
+    "%PROGRAMFILES%\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --config Release --prefix dist-windows\install-tree\
     if !ERRORLEVEL! neq 0 (
         color 04
         set buildError=!ERRORLEVEL!
-        echo "[xStarbound::Build] Installer build failed^!"
+        echo "[xStarbound::Build] Installer setup failed^!"
+        call :messageBox "Failed to build the installer^! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
+        exit /b %buildError%
+    )
+    "%PROGRAMFILES(X86)%\Inno Setup 6\ISCC.exe" "/DXSBSourcePath=dist-windows\install-tree\" /Odist-windows\installer cmake-build-windows-x64\inno-installer\xsb-installer.iss
+    if !ERRORLEVEL! neq 0 (
+        color 04
+        set buildError=!ERRORLEVEL!
+        echo "[xStarbound::Build] Installer setup failed^!"
         call :messageBox "Failed to build the installer^! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
         exit /b %buildError%
     )

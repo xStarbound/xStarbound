@@ -6,7 +6,9 @@
 #define XSBPublisher "FezzedOne and other contributors"
 #define XSBGitHubURL "https://github.com/xStarbound/xStarbound"
 ; Set this to the location of your xStarbound install folder.
-#define XSBSourcePath "@CMAKE_INSTALL_PREFIX@"
+#ifndef XSBSourcePath
+  #define XSBSourcePath "@CMAKE_INSTALL_PREFIX@"
+#endif
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -24,16 +26,16 @@ DefaultGroupName={#XSBName}
 ; Disable this warning since xStarbound must be installed in an existing Starbound install.
 DirExistsWarning=no
 AllowNoIcons=yes
-;InfoBeforeFile=@CMAKE_BINARY_DIR@\inno-installer\install-info.txt
+;InfoBeforeFile="@CMAKE_BINARY_DIR@\inno-installer\install-info.txt"
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=@CMAKE_BINARY_DIR@\inno-installer\compiled
+OutputDir="@CMAKE_BINARY_DIR@\inno-installer\compiled"
 OutputBaseFilename=windows-install
-SetupIconFile=@CMAKE_SOURCE_DIR@\source\client\xclient-largelogo.ico
+SetupIconFile="@CMAKE_SOURCE_DIR@\source\client\xclient-largelogo.ico"
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-SourceDir=@CMAKE_BINARY_DIR@\inno-installer\
+SourceDir="@CMAKE_BINARY_DIR@\inno-installer\"
 
 [Languages]
 Name: "cnsimp"; MessagesFile: "ChineseSimplified.isl"
