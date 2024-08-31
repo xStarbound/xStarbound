@@ -520,7 +520,7 @@
       "name": "windows-x64-release",
       "displayName": "Windows x64 - Release",
       "configurePreset": "windows-x64",
-      "configuration": "RelWithDebInfo",
+      "configuration": "Release",
       "condition": {
         "type": "allOf",
         "conditions": [
