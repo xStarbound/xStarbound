@@ -1,4 +1,4 @@
-name: Clean old releases
+name: Clean all old releases
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     tags:
       - "*"
     paths:
-      - "source/**"
+      - "*"
 
   pull_request:
     branches:
