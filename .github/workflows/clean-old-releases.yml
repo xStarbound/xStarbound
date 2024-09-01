@@ -1,17 +1,6 @@
 name: Clean all old releases
 
-on:
-  push:
-    branches:
-      - "*"
-    tags:
-      - "*"
-    paths:
-      - "*"
-
-  pull_request:
-    branches:
-      - "*"
+on: workflow_dispatch
 
 jobs:
   clean-releases:
