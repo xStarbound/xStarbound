@@ -5,6 +5,7 @@ on: workflow_dispatch
 jobs:
   clean-releases:
     name: Clean old releases
+    runs-on: ubuntu-latest
     steps:
       - name: Clean up all but newest release
         uses: Nats-ji/delete-old-releases@v1
