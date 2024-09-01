@@ -3,7 +3,7 @@ name: Clean all old releases
 on: workflow_dispatch
 
 env:
-  TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   clean-releases:
@@ -22,5 +22,3 @@ jobs:
           pre-release-drop-tag: true
           draft-drop: true
           draft-drop-count: -1
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
