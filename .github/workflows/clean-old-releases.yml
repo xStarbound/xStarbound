@@ -6,7 +6,6 @@ jobs:
   clean-releases:
     name: Clean old releases
     runs-on: ubuntu-latest
-    secrets: inherit
     steps:
       - name: Clean up all but newest release
         uses: sgpublic/delete-release-action@v1.1
@@ -20,5 +19,4 @@ jobs:
           pre-release-drop-tag: true
           draft-drop: true
           draft-drop-count: -1
-        env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
