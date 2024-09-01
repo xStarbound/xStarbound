@@ -1,0 +1,25 @@
+name: Clean old releases
+
+on:
+  push:
+    branches:
+      - "*"
+    tags:
+      - "*"
+    paths:
+      - "source/**"
+
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  clean-releases:
+    name: Clean old releases
+    steps:
+      - name: Clean up all but newest release
+        uses: Nats-ji/delete-old-releases@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          keep-count: 1
+          keep-old-minor-releases: false
