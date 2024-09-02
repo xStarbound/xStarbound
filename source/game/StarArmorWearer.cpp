@@ -1,17 +1,17 @@
 #include "StarArmorWearer.hpp"
-#include "StarRoot.hpp"
-#include "StarItemDatabase.hpp"
+#include "StarActivatableItem.hpp"
 #include "StarArmors.hpp"
+#include "StarAssets.hpp"
 #include "StarCasting.hpp"
 #include "StarImageProcessing.hpp"
+#include "StarItemDatabase.hpp"
 #include "StarLiquidItem.hpp"
 #include "StarMaterialItem.hpp"
 #include "StarObject.hpp"
-#include "StarTools.hpp"
-#include "StarActivatableItem.hpp"
-#include "StarObjectItem.hpp"
-#include "StarAssets.hpp"
 #include "StarObjectDatabase.hpp"
+#include "StarObjectItem.hpp"
+#include "StarRoot.hpp"
+#include "StarTools.hpp"
 #include "StarWorld.hpp"
 
 namespace Star {
@@ -38,6 +38,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   bool chestNeedsSync = nudeChanged  || m_chestNeedsSync;
   bool legsNeedsSync  = nudeChanged  || m_legsNeedsSync;
   bool backNeedsSync  = nudeChanged  || m_backNeedsSync;
+
+  if (headNeedsSync || chestNeedsSync || legsNeedsSync || backNeedsSync)
+    netElementsNeedLoad(true);
 
   bool bodyHidden = false;
   if (m_headCosmeticItem && !forceNude) {
@@ -192,14 +195,14 @@ List<PersistentStatusEffect> ArmorWearer::statusEffects() const {
 void ArmorWearer::reset() {
   // FezzedOne: {NOTE] Kae's fix for some visual issues with armour.
   m_headNeedsSync = m_chestNeedsSync = m_legsNeedsSync = m_backNeedsSync = true;
-  m_headItem .reset();
+  m_headItem.reset();
   m_chestItem.reset();
-  m_legsItem .reset();
-  m_backItem .reset();
-  m_headCosmeticItem .reset();
+  m_legsItem.reset();
+  m_backItem.reset();
+  m_headCosmeticItem.reset();
   m_chestCosmeticItem.reset();
-  m_legsCosmeticItem .reset();
-  m_backCosmeticItem .reset();
+  m_legsCosmeticItem.reset();
+  m_backCosmeticItem.reset();
 }
 
 void ArmorWearer::setHeadItem(HeadArmorPtr headItem) {
@@ -341,23 +344,24 @@ ItemDescriptor ArmorWearer::backCosmeticItemDescriptor() const {
 void ArmorWearer::netElementsNeedLoad(bool) {
   auto itemDatabase = Root::singleton().itemDatabase();
 
+  // FezzedOne: Fixed evaluation order bug.
   if (m_headCosmeticItemDataNetState.pullUpdated())
-    m_headNeedsSync |= itemDatabase->loadItem(m_headCosmeticItemDataNetState.get(), m_headCosmeticItem);
+    m_headNeedsSync = itemDatabase->loadItem(m_headCosmeticItemDataNetState.get(), m_headCosmeticItem) || m_headNeedsSync;
   if (m_chestCosmeticItemDataNetState.pullUpdated())
-    m_chestNeedsSync |= itemDatabase->loadItem(m_chestCosmeticItemDataNetState.get(), m_chestCosmeticItem);
+    m_chestNeedsSync = itemDatabase->loadItem(m_chestCosmeticItemDataNetState.get(), m_chestCosmeticItem) || m_chestNeedsSync;
   if (m_legsCosmeticItemDataNetState.pullUpdated())
-    m_legsNeedsSync |= itemDatabase->loadItem(m_legsCosmeticItemDataNetState.get(), m_legsCosmeticItem);
+    m_legsNeedsSync = itemDatabase->loadItem(m_legsCosmeticItemDataNetState.get(), m_legsCosmeticItem) || m_legsNeedsSync;
   if (m_backCosmeticItemDataNetState.pullUpdated())
-    m_backNeedsSync |= itemDatabase->loadItem(m_backCosmeticItemDataNetState.get(), m_backCosmeticItem);
+    m_backNeedsSync = itemDatabase->loadItem(m_backCosmeticItemDataNetState.get(), m_backCosmeticItem) || m_backNeedsSync;
 
   if (m_headItemDataNetState.pullUpdated())
-    m_headNeedsSync |= !m_headCosmeticItem && itemDatabase->loadItem(m_headItemDataNetState.get(), m_headItem);
+    m_headNeedsSync = (itemDatabase->loadItem(m_headItemDataNetState.get(), m_headItem) && !m_headCosmeticItem) || m_headNeedsSync;
   if (m_chestItemDataNetState.pullUpdated())
-    m_chestNeedsSync |= !m_chestCosmeticItem && itemDatabase->loadItem(m_chestItemDataNetState.get(), m_chestItem);
+    m_chestNeedsSync = (itemDatabase->loadItem(m_chestItemDataNetState.get(), m_chestItem) && !m_chestCosmeticItem) || m_chestNeedsSync;
   if (m_legsItemDataNetState.pullUpdated())
-    m_legsNeedsSync |= !m_legsCosmeticItem && itemDatabase->loadItem(m_legsItemDataNetState.get(), m_legsItem);
+    m_legsNeedsSync = (itemDatabase->loadItem(m_legsItemDataNetState.get(), m_legsItem) && !m_legsCosmeticItem) || m_legsNeedsSync;
   if (m_backItemDataNetState.pullUpdated())
-    m_backNeedsSync |= !m_backCosmeticItem && itemDatabase->loadItem(m_backItemDataNetState.get(), m_backItem);
+    m_backNeedsSync = (itemDatabase->loadItem(m_backItemDataNetState.get(), m_backItem) && !m_backCosmeticItem) || m_backNeedsSync;
 }
 
 void ArmorWearer::netElementsNeedStore() {
@@ -373,4 +377,4 @@ void ArmorWearer::netElementsNeedStore() {
   m_backCosmeticItemDataNetState.set(itemSafeDescriptor(m_backCosmeticItem));
 }
 
-}
+} // namespace Star
