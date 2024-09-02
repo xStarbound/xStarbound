@@ -32,8 +32,8 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 - Supports scriptable asset preprocessing. By Kae; fixed and greatly enhanced by FezzedOne.
 - Modded techs and status effects no longer cause crashes to the menu when the offending mod is removed (Kae and WasabiRaptor).
 - Scriptable shader and lighting parameters are supported (FezzedOne).
-- You can now make `.patch` files that are just merged in, early-beta-style (Kae). That's why the patch files in `assets/xSBassets` are unusually simple. In addition, a new `"find"` parameter is supported for `"remove"` and `"replace"` operations where the `"path"` is to a JSON array (FezzedOne) — if `"find"` is present, only the first array value exactly matching the value in `"find"` is removed or replaced by `"value"`, not the entire array.
-- Almost all Lua callbacks from the original xSB (by FezzedOne), `input` callbacks (by Kae), plus some extra `player`, `chat`, `interface` and `clipboard` callbacks for compatibility with OpenStarbound mods and some StarExtensions mods (FezzedOne). The `setSpecies` and `setIdentity` callbacks will not let you switch to a nonexistent species (FezzedOne). Documentation has yet to be updated.
+- You can now make `.patch` files that are just merged in, early-beta-style (Kae). That's why the patch files in `assets/xSBassets` are unusually simple. All of OpenStarbound's JSON patch parameters are also supported.
+- Almost all Lua callbacks from the original xSB (by FezzedOne), `input` callbacks (by Kae), plus some extra `player`, `chat`, `interface` and `clipboard` callbacks for compatibility with OpenStarbound mods and some StarExtensions mods (FezzedOne).
 - Various crash fixes (FezzedOne and Kae).
 - Custom user input support with a keybindings menu (rewrite by Kae from StarExtensions).
 - Client-side positional voice chat that works on completely vanilla servers; is compatible with StarExtensions. This uses Opus for crisp, HD audios. Rewrite by Kae from StarExtensions.
