@@ -654,7 +654,7 @@ void ClientApplication::changeState(MainAppState newState) {
       if (auto address = multiPlayerConnection.server.ptr<HostAddressWithPort>()) {
         try {
           // FezzedOne: Make the socket timeout configurable.
-          unsigned timeout /* In milliseconds. */ = assets->json("/client.config:packetTimeout").optUInt().value(60000);
+          unsigned timeout /* In milliseconds. */ = m_root->configuration()->get("clientPacketTimeout").optUInt().value(60000);
           packetSocket = TcpPacketSocket::open(TcpSocket::connectTo(*address, timeout));
         } catch (StarException const& e) {
           setError(strf("Join failed! Error connecting to '{}'", *address), e);

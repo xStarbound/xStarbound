@@ -44,9 +44,10 @@ void ServerRconThread::stop() {
 
 void ServerRconThread::run() {
   try {
-    auto timeout = Root::singleton().configuration()->get("rconServerTimeout").toInt();
+    auto timeout = Root::singleton().configuration()->get("rconServerTimeout").toUInt();
+    unsigned acceptanceTimeout = Root::singleton().configuration()->get("rconServerAcceptanceTimeout").optUInt().value(100);
     while (!m_stop) {
-      if (auto client = m_rconServer.accept(100)) {
+      if (auto client = m_rconServer.accept(acceptanceTimeout)) {
         client->setTimeout(timeout);
         auto rconClient = make_shared<ServerRconClient>(m_universe, client);
         rconClient->start();

@@ -481,8 +481,9 @@ void UniverseServer::run() {
       auto assets = root.assets();
       HostAddressWithPort bindAddress(configuration->get("gameServerBind").toString(), configuration->get("gameServerPort").toUInt());
       unsigned maxPendingConnections = assets->json("/universe_server.config:maxPendingConnections").toInt();
-      unsigned packetTimeout /* In milliseconds. */ = assets->json("/universe_server.config:packetTimeout").optUInt().value(60000);
-      unsigned connectionAcceptTimeout /* In milliseconds. */ = assets->json("/universe_server.config:connectionAcceptTimeout").optUInt().value(20);
+      maxPendingConnections = configuration->get("maxPendingServerConnections").optUInt().value(maxPendingConnections);
+      unsigned packetTimeout /* In milliseconds. */ = configuration->get("/universe_server.config:packetTimeout").optUInt().value(60000);
+      unsigned connectionAcceptTimeout /* In milliseconds. */ = configuration->get("serverConnectionAcceptTimeout").optUInt().value(20);
 
       Logger::info("UniverseServer: listening for incoming TCP connections on {}", bindAddress);
 
