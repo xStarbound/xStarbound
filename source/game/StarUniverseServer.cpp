@@ -481,11 +481,14 @@ void UniverseServer::run() {
       auto assets = root.assets();
       HostAddressWithPort bindAddress(configuration->get("gameServerBind").toString(), configuration->get("gameServerPort").toUInt());
       unsigned maxPendingConnections = assets->json("/universe_server.config:maxPendingConnections").toInt();
+      unsigned packetTimeout /* In milliseconds. */ = assets->json("/universe_server.config:packetTimeout").optUInt().value(60000);
+      unsigned connectionAcceptTimeout /* In milliseconds. */ = assets->json("/universe_server.config:connectionAcceptTimeout").optUInt().value(20);
 
       Logger::info("UniverseServer: listening for incoming TCP connections on {}", bindAddress);
 
       try {
-        tcpServer = make_shared<TcpServer>(bindAddress);
+        // FezzedOne: Made the packet and connection acceptance timeouts configurable.
+        tcpServer = make_shared<TcpServer>(bindAddress, packetTimeout);
         tcpServer->setAcceptCallback([this, maxPendingConnections](TcpSocketPtr socket) {
           RecursiveMutexLocker locker(m_mainLock);
           if (m_connectionAcceptThreads.size() < maxPendingConnections) {
@@ -497,7 +500,7 @@ void UniverseServer::run() {
           else {
             Logger::warn("UniverseServer: maximum pending connections, dropping connection from: {}", socket->remoteAddress().address());
           }
-          });
+          }, connectionAcceptTimeout);
       }
       catch (StarException const& e) {
         Logger::error("UniverseServer: Error setting up TCP, cannot accept connections: {}", e.what());

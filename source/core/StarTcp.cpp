@@ -4,14 +4,16 @@
 
 namespace Star {
 
-TcpSocketPtr TcpSocket::connectTo(HostAddressWithPort const& addressWithPort) {
+TcpSocketPtr TcpSocket::connectTo(HostAddressWithPort const& addressWithPort, unsigned timeout) {
   auto socket = TcpSocketPtr(new TcpSocket(addressWithPort.address().mode()));
+  socket->setTimeout(timeout);
   socket->connect(addressWithPort);
   return socket;
 }
 
-TcpSocketPtr TcpSocket::listen(HostAddressWithPort const& addressWithPort) {
+TcpSocketPtr TcpSocket::listen(HostAddressWithPort const& addressWithPort, unsigned timeout) {
   auto socket = TcpSocketPtr(new TcpSocket(addressWithPort.address().mode()));
+  socket->setTimeout(timeout);
   socket->bind(addressWithPort);
   ((Socket&)(*socket)).listen(32);
   return socket;
@@ -157,14 +159,14 @@ void TcpSocket::connect(HostAddressWithPort const& addressWithPort) {
   m_remoteAddress = addressWithPort;
 }
 
-TcpServer::TcpServer(HostAddressWithPort const& address) : m_hostAddress(address) {
+TcpServer::TcpServer(HostAddressWithPort const& address, unsigned timeout) : m_hostAddress(address) {
   m_hostAddress = address;
-  m_listenSocket = TcpSocket::listen(address);
+  m_listenSocket = TcpSocket::listen(address, timeout);
   m_listenSocket->setNonBlocking(true);
   Logger::debug("TcpServer listening on: {}", address);
 }
 
-TcpServer::TcpServer(uint16_t port) : TcpServer(HostAddressWithPort("*", port)) {}
+TcpServer::TcpServer(uint16_t port, unsigned timeout) : TcpServer(HostAddressWithPort("*", port), timeout) {}
 
 TcpServer::~TcpServer() {
   stop();

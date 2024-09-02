@@ -12,8 +12,8 @@ STAR_CLASS(TcpServer);
 
 class TcpSocket : public Socket {
 public:
-  static TcpSocketPtr connectTo(HostAddressWithPort const& address);
-  static TcpSocketPtr listen(HostAddressWithPort const& address);
+  static TcpSocketPtr connectTo(HostAddressWithPort const& address, unsigned timeout = 60000);
+  static TcpSocketPtr listen(HostAddressWithPort const& address, unsigned timeout = 60000);
 
   TcpSocketPtr accept();
 
@@ -40,9 +40,9 @@ class TcpServer {
 public:
   typedef function<void(TcpSocketPtr socket)> AcceptCallback;
 
-  TcpServer(HostAddressWithPort const& address);
+  TcpServer(HostAddressWithPort const& address, unsigned timeout = 60000);
   // Listens to all interfaces.
-  TcpServer(uint16_t port);
+  TcpServer(uint16_t port, unsigned timeout = 60000);
   ~TcpServer();
 
   void stop();
