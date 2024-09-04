@@ -86,6 +86,10 @@ if "%buildInstaller%"=="yes" (
         call :messageBox "Failed to set up the installation tree^! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
         exit /b %buildError%
     )
+    :: Because the "DLL hell" fix stops CMake from copying *any* DLLs on Windows builds, the DLLs have to be manually copied in.
+    xcopy /y /f "cmake-build-windows-x64\source\client\!relOrDbg!\*.dll" dist-windows\install-tree\xsb-win64\
+    xcopy /y /f "cmake-build-windows-x64\source\server\!relOrDbg!\*.dll" dist-windows\install-tree\xsb-win64\
+    xcopy /y /f "cmake-build-windows-x64\source\utility\!relOrDbg!\*.dll" dist-windows\install-tree\xsb-win64\
     :: Comment out the following line if using any Windows version older than Windows 10 1803.
     cd dist-windows\install-tree & tar -cavf ..\installer\windows.zip * & cd ..\..
     "%PROGRAMFILES(X86)%\Inno Setup 6\ISCC.exe" "/DXSBSourcePath=..\..\dist-windows\install-tree\" /Odist-windows\installer cmake-build-windows-x64\inno-installer\xsb-installer.iss
@@ -120,6 +124,10 @@ if exist "%sbInstall%\assets\packed.pak" (
         call :messageBox "Failed to install xStarbound^! Check the console window for details. Click OK to exit this script." "xStarbound Build Script - Error"
         exit /b %buildError%
     )
+    :: Because the "DLL hell" fix stops CMake from copying *any* DLLs on Windows builds, the DLLs have to be manually copied in.
+    xcopy /y /f "cmake-build-windows-x64\source\client\!relOrDbg!\*.dll" "!sbInstall!\"
+    xcopy /y /f "cmake-build-windows-x64\source\server\!relOrDbg!\*.dll" "!sbInstall!\"
+    xcopy /y /f "cmake-build-windows-x64\source\utility\!relOrDbg!\*.dll" "!sbInstall!\"
 ) else (
     echo "[xStarbound::Build] Not a valid Starbound directory^!"
     call :messageBox "The selected folder does not contain a Starbound installation. Click OK to go back to folder selection." "xStarbound Build Script - Error"
