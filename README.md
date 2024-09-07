@@ -136,7 +136,7 @@ On Linux, the xStarbound binaries are by default built against the system librar
    - *Debian/`apt`-based distros:* `sudo apt install cmake git ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev qt6-base qt6-svg libsdl2-dev libpng-dev libfreetype6-dev libvorbis-dev libopus-dev libglew-dev`
    - *Gentoo:* `sudo emerge -a dev-vcs/git dev-build/cmake dev-build/ninja media-libs/mesa virtual/glu x11-misc/xcb x11-libs/libGLw x11-libs/libXrender x11-libs/libXi x11-libs/libxkbcommon gui-libs/egl-wayland media-libs/libsdl2 dev-qt/qtbase dev-qt/qtsvg media-libs/freetype media-libs/libvorbis media-libs/libpng media-libs/opus media-libs/glew`
    - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland qt6-svg qt6-base sdl2 libpng freetype2 libvorbis opus; sudo steamos-readonly enable`
-4. `git clone https://github.com/xStarbound/xStarbound.git`
+4. `git clone --recursive https://github.com/xStarbound/xStarbound.git` (`--recursive` is needed to clone the Opus sources in `$src/extern/opus`, which may be necessary on some configurations)
 5. `cd xStarbound/`
 6. `CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DCMAKE_BUILD_TYPE=Release -DSTAR_ENABLE_STEAM_INTEGRATION=ON -DPACKAGE_XSB_ASSETS=ON -S . -B build/ -G Ninja`
 7. `cmake --build build/`
@@ -163,7 +163,7 @@ To build a statically linked version of xStarbound (assuming `bash` or `zsh`):
 4. `mkdir -p ~/.local/opt; git clone https://github.com/microsoft/vcpkg.git ~/.local/opt/vcpkg`
 5. `cd ~/.local/opt/vcpkg; ./bootstrap-vcpkg.sh -disableMetrics` (yes, VCPKG sends telemetry by default)
 6. `cd $devDirectory` (where `$devDirectory` is the folder you want to put the xStarbound source in)
-7. `git clone https://github.com/xStarbound/xStarbound.git`
+7. `git clone --recursive https://github.com/xStarbound/xStarbound.git` (`--recursive` is needed to clone the Opus sources in `$src/extern/opus`, which may be necessary on some configurations)
 8. `cd xStarbound/; export VCPKG_ROOT="${HOME}/.local/opt/vcpkg"; export PATH="${VCPKG_ROOT}:${PATH}"`
 9.  `CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake --build cmake-build-linux-x86_64/ --preset "linux-vcpkg-x86_64-release" -G Ninja`
 10. `cmake --build build/`
