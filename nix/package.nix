@@ -10,6 +10,7 @@
 , libopus
 , SDL2
 , glew
+, xorg
 , ...
 }:
 let fs = lib.fileset; in
@@ -78,6 +79,8 @@ stdenv.mkDerivation {
     libopus
     SDL2
     glew
+    xorg.libSM
+    xorg.libXi
   ];
 
   installPhase = ''
