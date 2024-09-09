@@ -134,7 +134,7 @@ compilation and installation process extremely simple.
 PRs welcome to improve Nix support!
 
 *GOG*:
-1. `cd` to your game install (by default `"$HOME/GOG Games/Starbound"`
+1. `cd` to your game install (by default `"$HOME/GOG Games/Starbound"`)
 2. `nix run github:xstarbound/xstarbound#installGOG`
 3. `./game/linux/xclient`
 
