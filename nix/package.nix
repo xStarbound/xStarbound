@@ -44,6 +44,10 @@ stdenv.mkDerivation {
       # IDE
       ../.vscode
 
+      # Nix
+      ../flake.nix
+      ../flake.lock
+
       # Code project FILES
       ../README.md
     ]);
