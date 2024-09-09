@@ -129,11 +129,11 @@ xStarbound provides a Nix derivation for its build process as well as a simple i
 compilation and installation process extremely simple.
 
 - Flake-enabled `nix` is required.
-- NixOS has first-class support, Nix on other distros or Darwin have not been tested yet.
+- NixOS has first-class support, Nix on other distros or Darwin (macOS) have not been tested yet.
 - At the time of writing, only GOG is officially supported (though Steam support is probably easy to hack in)
 PRs welcome to improve Nix support!
 
-#### GOG
+**GOG**
 1. `cd` to your game install (by default `"$HOME/GOG Games/Starbound"`
 2. `nix run github:xstarbound/xstarbound#installGOG`
 3. `./game/linux/xclient`
