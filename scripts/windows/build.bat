@@ -37,9 +37,9 @@ if "!YesNo!"=="6" (
 )
 
 if "%buildInstaller%"=="yes" (
-    "%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64" -DSTAR_INSTALL_VCPKG=ON -DBUILD_INNOSETUP=ON -UCMAKE_TOOLCHAIN_FILE
+    "%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64" -DSTAR_INSTALL_VCPKG=ON -DPACKAGE_XSB_ASSETS=ON -DBUILD_INNOSETUP=ON -UCMAKE_TOOLCHAIN_FILE
 ) else (
-    "%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64" -DSTAR_INSTALL_VCPKG=ON -DBUILD_INNOSETUP=OFF -UCMAKE_TOOLCHAIN_FILE
+    "%PROGRAMFILES%\CMake\bin\cmake.exe" --preset "windows-x64" -DSTAR_INSTALL_VCPKG=ON -DPACKAGE_XSB_ASSETS=ON -DBUILD_INNOSETUP=OFF -UCMAKE_TOOLCHAIN_FILE
 )
 if !ERRORLEVEL! neq 0 (
     color 04
