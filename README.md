@@ -50,6 +50,7 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 - Support for placing tiles in mid-air, not connected to existing ones, via an extra argument to `world.placeMaterial()` (requires *both* xClient and, in multiplayer, xServer/xClient on the host). By FezzedOne.
 - Some polish to UI (FezzedOne and Kae).
 - Terraria-like placement animations for objects, tiles and liquids (FezzedOne). Can be disabled with an asset mod if you don't like them.
+- Add Wayland support (emanueljg)
 
 ## Mod compatibility
 
@@ -127,6 +128,8 @@ This repository is already set up for easy building. Follow the appropriate inst
 ### Linux
 
 On Linux, the xStarbound binaries are by default built against the system libraries. To build xStarbound on any reasonably up-to-date Linux install (assuming `bash` or `zsh`):
+
+Wayland should work OOTB if you're using the `xclient.sh`. If you're running the binary yourself, you can enable this support yourself with `SDL_VIDEODRIVER="wayland"`.
 
 1. If you're on SteamOS, run `sudo steamos-readonly disable`.
 2. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's «base development» package.
