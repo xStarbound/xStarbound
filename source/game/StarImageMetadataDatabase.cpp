@@ -189,12 +189,13 @@ Vec2U ImageMetadataDatabase::calculateImageSize(AssetPath const& path) const {
     } else {
       locker.unlock();
       // FezzedOne: Fixed exception getting thrown when a memory asset's size is requested.
+      auto imageDevice = assets->openFile(path.basePath);
       #ifdef STAR_SYSTEM_WINDOWS
       // Because Windows is a buggy piece of shit that fucks up file reads if you read a file header beforehand.
       imageSize = fallback();
       #else
-      if (Image::isPngImage(assets->openFile(path.basePath)))
-        imageSize = get<0>(Image::readPngMetadata(assets->openFile(path.basePath)));
+      if (Image::isPngImage(imageDevice))
+        imageSize = get<0>(Image::readPngMetadata(imageDevice));
       else
         imageSize = fallback();
       #endif
