@@ -182,14 +182,16 @@ Vec2U ImageMetadataDatabase::calculateImageSize(AssetPath const& path) const {
       return fallback();
   } else {
     // We ensure that the base image size is cached even when given directives,
-    // so we don't have to call Image::readPngMetadata on the same file more
-    // than once.
+    // so we don't have to attempt to load the image unnecessarily.
     MutexLocker locker(m_mutex);
     if (auto size = m_sizeCache.maybe(path.basePath)) {
       imageSize = *size;
     } else {
       locker.unlock();
-      imageSize = get<0>(Image::readPngMetadata(assets->openFile(path.basePath)));
+      // FezzedOne: We actually load the image instead of calling `readPngMetadata`. It's only gonna be loaded once anyway,
+      // so we might as well allow it to be preloaded upon getting the image's size.
+      imageSize = fallback();
+      // imageSize = get<0>(Image::readPngMetadata(assets->openFile(path.basePath)));
       locker.lock();
       m_sizeCache[path.basePath] = imageSize;
     }
