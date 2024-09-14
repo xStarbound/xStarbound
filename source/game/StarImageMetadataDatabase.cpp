@@ -182,14 +182,23 @@ Vec2U ImageMetadataDatabase::calculateImageSize(AssetPath const& path) const {
       return fallback();
   } else {
     // We ensure that the base image size is cached even when given directives,
-    // so we don't have to call Image::readPngMetadata on the same file more
-    // than once.
+    // so we don't have to attempt to load the image or its metadata unnecessarily.
     MutexLocker locker(m_mutex);
     if (auto size = m_sizeCache.maybe(path.basePath)) {
       imageSize = *size;
     } else {
       locker.unlock();
-      imageSize = get<0>(Image::readPngMetadata(assets->openFile(path.basePath)));
+      // FezzedOne: Fixed exception getting thrown when a memory asset's size is requested.
+      #ifdef STAR_SYSTEM_WINDOWS
+      // Because Windows is a buggy piece of shit that fucks up file reads if you read a file header beforehand.
+      imageSize = fallback();
+      #else
+      auto imageDevice = assets->openFile(path.basePath);
+      if (Image::isPngImage(imageDevice))
+        imageSize = get<0>(Image::readPngMetadata(imageDevice));
+      else
+        imageSize = fallback();
+      #endif
       locker.lock();
       m_sizeCache[path.basePath] = imageSize;
     }
