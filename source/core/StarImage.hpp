@@ -25,6 +25,7 @@ STAR_CLASS(Image);
 // 0) defined to be the *lower left* corner.
 class Image {
 public:
+  static bool isPngImage(IODevicePtr device);
   static Image readPng(IODevicePtr device);
   // Returns the size and pixel format that would be constructed from the given
   // png file, without actually loading it.
