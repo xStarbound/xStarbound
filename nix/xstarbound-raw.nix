@@ -16,7 +16,7 @@
 let fs = lib.fileset; in
 
 stdenv.mkDerivation {
-  pname = "xStarbound";
+  pname = "xstarbound-raw";
   version = "v3.1.3r1";
   src = fs.toSource rec {
     root = ../.;
@@ -46,6 +46,7 @@ stdenv.mkDerivation {
       ../.vscode
 
       # Nix
+      ./.
       ../flake.nix
       ../flake.lock
 
@@ -85,5 +86,13 @@ stdenv.mkDerivation {
 
   installPhase = ''
     cmake --install . --prefix $out
+    runHook postInstall
   '';
+
+  postInstall = ''
+    mkdir -p "$out/bin"
+    ln -s "$out/linux/xclient" "$out/bin/xclient"
+  '';
+
+  meta.mainProgram = "xclient";
 }

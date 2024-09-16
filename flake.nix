@@ -9,44 +9,27 @@
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
+      packages = self.packages.${system};
     in
     {
 
       packages.${system} = {
-        steam = pkgs.callPackage ./nix/package.nix { steamSupport = true; };
-        gog = pkgs.callPackage ./nix/package.nix { steamSupport = false; };
-      };
-
-      apps.${system} = {
-        installGOG = {
-          type = "app";
-          program = pkgs.lib.getExe (
-            pkgs.writeShellApplication
-              {
-                name = "xstarbound-install-gog";
-                text =
-                  let
-                    pkg = self.packages.${system}.gog;
-                  in
-                  ''
-                    if ! [ -f "gameinfo" ]; then
-                      echo "gameinfo file not found in current dir. Are you really in the GOG base path?"
-                      exit 1
-                    fi
-
-                    find ${pkg} -not -type d -printf '%P\n' \
-                      | xargs -I {} install -Dm644 "${pkg}/{}" "game/{}"
-
-                    chmod u+x,g+x game/linux/{xserver,xclient}
-
-
-                    echo 'Installed xclient and xserver to ./game/linux successfully.'
-                    echo 'Usage:'
-                    echo '$ ./game/linux/xclient'
-                  '';
-              });
+        xstarbound-raw = pkgs.callPackage ./nix/xstarbound-raw.nix { };
+        xstarbound-app = pkgs.callPackage ./nix/xstarbound-app.nix {
+          inherit (packages) xstarbound-raw;
         };
+        xstarbound = pkgs.callPackage ./nix/xstarbound.nix {
+          inherit (packages) xstarbound-raw;
+        };
+
+        default = packages.xstarbound;
+
       };
+      apps.${system}.default = {
+        type = "app";
+        program = pkgs.lib.getExe packages.xstarbound-app;
+      };
+
     };
 }
 
