@@ -1,18 +1,30 @@
 { xstarbound-raw
 , assetsDirectory ? null
 , storageDirectory ? null
-, extraJSON ? { }
+, mods ? [ ]
+, extraAttrs ? { }
 , writeTextFile
 , writeShellApplication
+, lib
+, runCommandLocal
 }:
 let
+  mods' = builtins.map
+    (mod:
+      if !(lib.pathIsDirectory mod) then
+        (runCommandLocal "${mod.name}-dirwrapper" { } ''
+          mkdir -p "$out"
+          ln -s ${mod} "$out/${mod.name}"
+        '')
+      else mod)
+    mods;
 
   defaults = {
 
     assetDirectories = [
       assetsDirectory
       "../xsb-assets/"
-    ];
+    ] ++ mods';
 
     inherit storageDirectory;
 
@@ -27,9 +39,11 @@ let
     };
   };
 
+  mergedConfig = defaults // extraAttrs;
+
   xsbconfig = writeTextFile {
     name = "xsbinit.config";
-    text = builtins.toJSON (defaults // extraJSON);
+    text = builtins.toJSON mergedConfig;
   };
 in
 writeShellApplication {
@@ -37,6 +51,7 @@ writeShellApplication {
   runtimeInputs = [ xstarbound-raw ];
   derivationArgs.passthru = { inherit xstarbound-raw xsbconfig; };
   text = ''
+    mkdir -p "${mergedConfig.storageDirectory}"
     xclient \
       -bootconfig ${xsbconfig}
       "$@"

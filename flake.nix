@@ -8,12 +8,21 @@
   outputs = { self, nixpkgs, ... }@inputs:
     let
       system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
       packages = self.packages.${system};
     in
     {
 
       packages.${system} = {
+
+        fetchFromSteamWorkshop = pkgs.callPackage ./nix/fetchFromSteamWorkshop { };
+        fetchStarboundMod = pkgs.callPackage ./nix/fetchFromSteamWorkshop {
+          inherit (packages) fetchFromSteamWorkshop;
+        };
+
         xstarbound-raw = pkgs.callPackage ./nix/xstarbound-raw.nix { };
         xstarbound-app = pkgs.callPackage ./nix/xstarbound-app.nix {
           inherit (packages) xstarbound-raw;
@@ -21,10 +30,15 @@
         xstarbound = pkgs.callPackage ./nix/xstarbound.nix {
           inherit (packages) xstarbound-raw;
         };
-
         default = packages.xstarbound;
-
       };
+
+      legacyPackages.${system} = {
+        mods = pkgs.callPackage ./nix/mods.nix {
+          inherit (packages) fetchFromSteamWorkshop;
+        };
+      };
+
       apps.${system}.default = {
         type = "app";
         program = pkgs.lib.getExe packages.xstarbound-app;
