@@ -125,23 +125,6 @@ Read this to see if xStarbound is compatible with your mods.
 
 This repository is already set up for easy building. Follow the appropriate instructions for your OS if listed; if your OS *isn't* listed, adjustments generally shouldn't be too complex. Note that building with Clang/LLVM is *not* properly supported, and will likely never be — expect Clang builds to be a buggy mess.
 
-### Nix
-xStarbound provides a Nix derivation for its build process as well as a simple install script. This makes the 
-compilation and installation process extremely simple.
-
-- Flake-enabled `nix` is required.
-- NixOS has first-class support, Nix on other distros or Darwin (macOS) have not been tested yet.
-- At the time of writing, only GOG is officially supported (though Steam support is probably easy to hack in)
-PRs welcome!
-
-*GOG*:
-1. `cd` to your game install (by default `"$HOME/GOG Games/Starbound"`)
-2. `nix run github:xstarbound/xstarbound#installGOG`
-3. `./game/linux/xclient`
-
-*Steam*:
-Not supported yet.
-
 ### Linux
 
 On Linux, the xStarbound binaries are by default built against the system libraries. To build xStarbound on any reasonably up-to-date Linux install (assuming `bash` or `zsh`):
