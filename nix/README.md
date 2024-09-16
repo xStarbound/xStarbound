@@ -70,13 +70,17 @@ Therefore, a Nix `package` is also provided. Here's how to install it with NixOS
       # use a pre-packaged mod from xStarbound
       mods.frackin-universe 
 
-      # grab a starbound mod from the steam workshop
-      # ?id=12345 --> workshopId = "12345
+      # grab a starbound mod from the steam workshop using an url
       (xsb-pkgs.fetchStarboundMod {
-        workshopId = "XXXXXX";
+        url = "https://steamcommunity.com/sharedfiles/filedetails/?id=XXXXXXXXX";
         hash = lib.fakeHash;
       })
 
+      # grab a starbound mod by workshopId
+      (xsb-pkgs.fetchStarboundMod {
+        workshopId = "XXXXXXXXX";
+        hash = lib.fakeHash;
+      })
     ];
   # ----------------------------------------------------------------------------
 

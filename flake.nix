@@ -19,7 +19,7 @@
       packages.${system} = {
 
         fetchFromSteamWorkshop = pkgs.callPackage ./nix/fetchFromSteamWorkshop { };
-        fetchStarboundMod = pkgs.callPackage ./nix/fetchFromSteamWorkshop {
+        fetchStarboundMod = pkgs.callPackage ./nix/fetchStarboundMod.nix {
           inherit (packages) fetchFromSteamWorkshop;
         };
 
@@ -35,7 +35,7 @@
 
       legacyPackages.${system} = {
         mods = pkgs.callPackage ./nix/mods.nix {
-          inherit (packages) fetchFromSteamWorkshop;
+          inherit (packages) fetchStarboundMod;
         };
       };
 

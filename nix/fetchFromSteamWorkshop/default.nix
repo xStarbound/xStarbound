@@ -4,12 +4,10 @@
 , cacert
 , writeText
 , steam-run
-,
 }: { appId
    , workshopId
    , name ? "steamworkshop-${appId}-${workshopId}"
-   , hash
-   ,
+   , hash ? lib.fakeHash
    }: stdenvNoCC.mkDerivation {
   inherit name appId workshopId;
   builder = ./builder.sh;

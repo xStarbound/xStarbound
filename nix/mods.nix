@@ -48,7 +48,7 @@
   };
 
   scanner-shows-printability = fetchStarboundMod {
-    workshopId = "3145469034";
+    url = "https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034";
     hash = "sha256-NtfKcw7AFDDUsEmXurRB3y0emiUiOcsOHDrgLb/lcDA=";
   };
 
