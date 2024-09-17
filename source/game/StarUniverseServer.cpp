@@ -1740,7 +1740,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   clientFlyShip(clientId, clientContext->shipCoordinate().location(), clientContext->shipLocation());
   Logger::info("UniverseServer: Client {} connected", clientContext->descriptiveName());
 
-  // Kae's fix for a potential race condition on connections.
+  // Kae's fix for a potential deadlock on connections.
   ReadLocker clientsReadLocker(m_clientsLock);
   auto players = static_cast<uint16_t>(m_clients.size());
   auto clients = m_clients.keys();
@@ -2020,7 +2020,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::celestialWorldPro
       WorldServerPtr worldServer;
       String storageFile = File::relativeTo(storageDirectory, strf("{}.world", celestialWorldId.filename()));
       if (File::isFile(storageFile)) {
-        WorldStorage::repackWorldFile(storageFile, strf("celestial world {}", celestialWorldId));
+        WorldStorage::repackWorldFile(storageFile, strf("celestial world at '{}'", storageFile));
         
         try {
           Logger::info("UniverseServer: Loading celestial world {}", celestialWorldId);

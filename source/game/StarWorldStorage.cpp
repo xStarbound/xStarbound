@@ -14,11 +14,15 @@
 
 namespace Star {
 
-/* xStarbound: Automatic world file repacking. */
+/* xStarbound: Automatic world file repacking. Now much less often needed because xStarbound now has OpenStarbound's BTreeDB5 defragmentation. */
 void WorldStorage::repackWorldFile(String const& fileName, String const& fileType) {
   const String repackExtension = ".repack";
   auto config = Root::singleton().configuration();
   if (!config->get("disableRepacking").optBool().value(false)) {
+    float repackingThreshold = config->get("repackingThreshold").optFloat().value(0.5f);
+    bool disableFlattening = config->get("disableFlattening").optBool().value(false);
+    float flatteningThreshold = disableFlattening ? -1.0f : config->get("flatteningThreshold").optFloat().value(0.05f);
+
     bool success = false;
 
     try {
@@ -26,31 +30,41 @@ void WorldStorage::repackWorldFile(String const& fileName, String const& fileTyp
 
       String outputFilename = fileName + repackExtension;
 
-      BTreeDatabase oldDb;
+      BTreeDatabase oldDb(flatteningThreshold);
       oldDb.setIODevice(File::open(fileName, IOMode::Read));
       oldDb.open();
 
-      BTreeDatabase newDb;
-      newDb.setBlockSize(oldDb.blockSize());
-      newDb.setContentIdentifier(oldDb.contentIdentifier());
-      newDb.setKeySize(oldDb.keySize());
-      newDb.setAutoCommit(false);
+      float freeSpacePercentage = oldDb.freeSpacePercentage().value(0.0f);
+      bool metRepackThreshold = freeSpacePercentage > repackingThreshold;
 
-      newDb.setIODevice(File::open(outputFilename, IOMode::ReadWrite | IOMode::Truncate));
-      newDb.open();
+      if (metRepackThreshold) {
+        BTreeDatabase newDb(flatteningThreshold);
+        newDb.setBlockSize(oldDb.blockSize());
+        newDb.setContentIdentifier(oldDb.contentIdentifier());
+        newDb.setKeySize(oldDb.keySize());
+        newDb.setAutoCommit(false);
 
-      unsigned dummy = 0;
-      oldDb.forAll([&dummy, &newDb](ByteArray key, ByteArray data) {
-        newDb.insert(key, data);
-        ++dummy;
-      });
+        newDb.setIODevice(File::open(outputFilename, IOMode::ReadWrite | IOMode::Truncate));
+        newDb.open();
 
-      oldDb.close();
-      newDb.commit();
-      newDb.close();
+        unsigned dummy = 0;
+        oldDb.forAll([&dummy, &newDb](ByteArray key, ByteArray data) {
+          newDb.insert(key, data);
+          ++dummy;
+        });
 
-      Logger::info("WorldStorage: Automatically repacked {} before load in {}s", fileType, Time::monotonicTime() - startTime);
-      success = true;
+        oldDb.close();
+        newDb.commit();
+        newDb.close();
+
+        Logger::info("WorldStorage: Detected {:.2f}% unused space (exceeding {:.2f}% threshold) in {}; repacked before load in {:.2f} ms",
+          freeSpacePercentage * 100.0f, repackingThreshold * 100.0f, fileType, fileName, (Time::monotonicTime() - startTime) * 1000.0f);
+        success = true;
+      } else {
+        Logger::info("WorldStorage: Detected {:.2f}% unused space (below {:.2f}% threshold) in {}; not repacking",
+          freeSpacePercentage * 100.0f, repackingThreshold * 100.0f, fileType, fileName);
+        success = false;
+      }
     } catch (const std::exception& e) {
       Logger::error("WorldStorage: Caught exception while repacking {}, using backup: {}", fileType, e.what());
     }
@@ -62,7 +76,7 @@ void WorldStorage::repackWorldFile(String const& fileName, String const& fileTyp
         File::copy(fileName + repackExtension, fileName);
         File::remove(fileName + repackExtension);
       } catch (std::exception const& e) {
-        Logger::error("WorldStorage: Caught exception while moving repacked {} '{}': {}", fileType, fileName, e.what());
+        Logger::error("WorldStorage: Caught exception while moving repacked {}: {}", fileType, e.what());
       }
     }
   }
@@ -83,7 +97,10 @@ WorldChunks WorldStorage::getWorldChunksUpdate(WorldChunks const& oldChunks, Wor
 }
 
 void WorldStorage::applyWorldChunksUpdateToFile(String const& file, WorldChunks const& update) {
-  BTreeDatabase db;
+  auto config = Root::singleton().configuration();
+  bool disableFlattening = config->get("disableFlattening").optBool().value(false);
+  float flatteningThreshold = disableFlattening ? -1.0f : config->get("flatteningThreshold").optFloat().value(0.05f);
+  BTreeDatabase db(flatteningThreshold);
   openDatabase(db, File::open(file, IOMode::ReadWrite));
 
   for (auto const& p : update) {
@@ -97,7 +114,10 @@ void WorldStorage::applyWorldChunksUpdateToFile(String const& file, WorldChunks 
 WorldChunks WorldStorage::getWorldChunksFromFile(String const& file) {
   WorldStorage::repackWorldFile(file, strf("shipworld at '{}'", file));
 
-  BTreeDatabase db;
+  auto config = Root::singleton().configuration();
+  bool disableFlattening = config->get("disableFlattening").optBool().value(false);
+  float flatteningThreshold = disableFlattening ? -1.0f : config->get("flatteningThreshold").optFloat().value(0.05f);
+  BTreeDatabase db(flatteningThreshold);
   openDatabase(db, File::open(file, IOMode::Read));
 
   WorldChunks chunks;
@@ -115,6 +135,10 @@ WorldStorage::WorldStorage(Vec2U const& worldSize, IODevicePtr const& device, Wo
   // Creating a new world, clear any existing data.
   device->resize(0);
 
+  auto config = Root::singleton().configuration();
+  bool disableFlattening = config->get("disableFlattening").optBool().value(false);
+  float flatteningThreshold = disableFlattening ? -1.0f : config->get("flatteningThreshold").optFloat().value(0.05f);
+  m_db.setFreeSpaceThreshold(flatteningThreshold);
   openDatabase(m_db, device);
 
   m_db.insert(metadataKey(), writeWorldMetadata(WorldMetadataStore{worldSize, VersionedJson()}));
@@ -125,6 +149,10 @@ WorldStorage::WorldStorage(IODevicePtr const& device, WorldGeneratorFacadePtr co
   m_generatorFacade = generatorFacade;
   m_floatingDungeonWorld = false;
 
+  auto config = Root::singleton().configuration();
+  bool disableFlattening = config->get("disableFlattening").optBool().value(false);
+  float flatteningThreshold = disableFlattening ? -1.0f : config->get("flatteningThreshold").optFloat().value(0.05f);
+  m_db.setFreeSpaceThreshold(flatteningThreshold);
   openDatabase(m_db, device);
 
   Vec2U worldSize = readWorldMetadata(*m_db.find(metadataKey())).worldSize;

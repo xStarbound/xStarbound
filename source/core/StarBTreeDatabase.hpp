@@ -1,11 +1,12 @@
-#ifndef STAR_BTREE_DATABASE_HPP
-#define STAR_BTREE_DATABASE_HPP
+#pragma once
 
 #include "StarSet.hpp"
 #include "StarBTree.hpp"
 #include "StarLruCache.hpp"
 #include "StarDataStreamDevices.hpp"
 #include "StarThread.hpp"
+
+/* Added Kae's BTreeDB5 defragmenting code from OpenStarbound. */
 
 namespace Star {
 
@@ -15,8 +16,9 @@ class BTreeDatabase {
 public:
   uint32_t const ContentIdentifierStringSize = 16;
 
+  BTreeDatabase(float freeSpaceThreshold);
   BTreeDatabase();
-  BTreeDatabase(String const& contentIdentifier, size_t keySize);
+  BTreeDatabase(String const& contentIdentifier, size_t keySize, float freeSpaceThreshold = 0.05f);
   ~BTreeDatabase();
 
   // The underlying device will be allocated in "blocks" of this size.
@@ -42,7 +44,7 @@ public:
   uint32_t indexCacheSize() const;
   void setIndexCacheSize(uint32_t indexCacheSize);
 
-  // If true, very write operation will immediately result in a commit.
+  // If true, every write operation will immediately result in a commit.
   // Defaults to true.
   bool autoCommit() const;
   void setAutoCommit(bool autoCommit);
@@ -65,6 +67,7 @@ public:
 
   void forEach(ByteArray const& lower, ByteArray const& upper, function<void(ByteArray, ByteArray)> v);
   void forAll(function<void(ByteArray, ByteArray)> v);
+  void recoverAll(function<void(ByteArray, ByteArray)> v, function<void(String const&, std::exception const&)> e);
 
   // Returns true if a value was overwritten
   bool insert(ByteArray const& k, ByteArray const& data);
@@ -84,6 +87,10 @@ public:
   uint32_t freeBlockCount();
   uint32_t indexBlockCount();
   uint32_t leafBlockCount();
+
+  // FezzedOne: Method to check what percentage of a BTreeDB5 is free space. Also factors in untracked blocks, since they *do* waste space!
+  Maybe<float> freeSpacePercentage();
+  void setFreeSpaceThreshold(float freeSpaceThreshold);
 
   void commit();
   void rollback();
@@ -230,7 +237,7 @@ private:
   void updateBlock(BlockIndex blockIndex, ByteArray const& block);
 
   void rawReadBlock(BlockIndex blockIndex, size_t blockOffset, char* block, size_t size) const;
-  void rawWriteBlock(BlockIndex blockIndex, size_t blockOffset, char const* block, size_t size) const;
+  void rawWriteBlock(BlockIndex blockIndex, size_t blockOffset, char const* block, size_t size);
 
   void updateHeadFreeIndexBlock(BlockIndex newHead);
 
@@ -251,6 +258,9 @@ private:
   void writeRoot();
   void readRoot();
   void doCommit();
+  void commitWrites();
+  bool tryFlatten();
+  bool flattenVisitor(BTreeImpl::Index& index, BlockIndex& count);
 
   void checkIfOpen(char const* methodName, bool shouldBeOpen) const;
   void checkBlockIndex(size_t blockIndex) const;
@@ -285,14 +295,17 @@ private:
   bool m_dirty;
 
   // Blocks that can be freely allocated and written to without violating
-  // atomic consistency
+  // atomic consistency.
   Set<BlockIndex> m_availableBlocks;
-
-  // Blocks to be freed on next commit.
-  Deque<BlockIndex> m_pendingFree;
 
   // Blocks that have been written in uncommitted portions of the tree.
   Set<BlockIndex> m_uncommitted;
+
+  // Temporarily holds written data so that it can be rolled back.
+  mutable Map<BlockIndex, ByteArray> m_uncommittedWrites;
+
+  // FezzedOne: Configurable free space threshold.
+  float m_freeSpaceThreshold;
 };
 
 // Version of BTreeDatabase that hashes keys with SHA-256 to produce a unique
@@ -340,5 +353,3 @@ public:
 };
 
 }
-
-#endif

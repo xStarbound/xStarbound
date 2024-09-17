@@ -1,10 +1,13 @@
 #include "StarBTreeDatabase.hpp"
 #include "StarSha256.hpp"
 #include "StarVlqEncoding.hpp"
+#include "StarLogging.hpp"
+
+/* Added Kae's BTreeDB5 defragmenting code from OpenStarbound. */
 
 namespace Star {
 
-BTreeDatabase::BTreeDatabase() {
+BTreeDatabase::BTreeDatabase(float freeSpaceThreshold) : m_freeSpaceThreshold(freeSpaceThreshold) {
   m_impl.parent = this;
   m_open = false;
   m_deviceSize = 0;
@@ -18,14 +21,27 @@ BTreeDatabase::BTreeDatabase() {
   m_usingAltRoot = false;
 }
 
-BTreeDatabase::BTreeDatabase(String const& contentIdentifier, size_t keySize)
-  : BTreeDatabase() {
+BTreeDatabase::BTreeDatabase() : BTreeDatabase(0.05f) {}
+
+BTreeDatabase::BTreeDatabase(String const& contentIdentifier, size_t keySize, float freeSpaceThreshold)
+  : BTreeDatabase(freeSpaceThreshold) {
   setContentIdentifier(contentIdentifier);
   setKeySize(keySize);
 }
 
 BTreeDatabase::~BTreeDatabase() {
-  close();
+  // Log any errors that occur while closing a BTreeDB5.
+  try {
+    close();
+  } catch (std::exception const& e) {
+    if (m_device) {
+      ReadLocker readLocker(m_lock);
+      if(!m_uncommittedWrites.empty())
+        Logger::error("Exception caught while destroying BTreeDB5 backed by file '{}'; uncommitted changes have been lost! Exception: {}", m_device->deviceName(), outputException(e, true));
+      else
+        Logger::error("Exception caught while destroying BTreeDB5 backed by file '{}'! Exception: {}", m_device->deviceName(), outputException(e, true));
+    }
+  }
 }
 
 uint32_t BTreeDatabase::blockSize() const {
@@ -58,7 +74,7 @@ String BTreeDatabase::contentIdentifier() const {
 void BTreeDatabase::setContentIdentifier(String contentIdentifier) {
   WriteLocker writeLocker(m_lock);
   checkIfOpen("setContentIdentifier", false);
-  m_contentIdentifier = move(contentIdentifier);
+  m_contentIdentifier = std::move(contentIdentifier);
 }
 
 uint32_t BTreeDatabase::indexCacheSize() const {
@@ -91,7 +107,7 @@ IODevicePtr BTreeDatabase::ioDevice() const {
 void BTreeDatabase::setIODevice(IODevicePtr device) {
   WriteLocker writeLocker(m_lock);
   checkIfOpen("setIODevice", false);
-  m_device = move(device);
+  m_device = std::move(device);
 }
 
 bool BTreeDatabase::isOpen() const {
@@ -188,19 +204,23 @@ void BTreeDatabase::forEach(ByteArray const& lower, ByteArray const& upper, func
   ReadLocker readLocker(m_lock);
   checkKeySize(lower);
   checkKeySize(upper);
-  m_impl.forEach(lower, upper, move(v));
+  m_impl.forEach(lower, upper, std::move(v));
 }
 
 void BTreeDatabase::forAll(function<void(ByteArray, ByteArray)> v) {
   ReadLocker readLocker(m_lock);
-  m_impl.forAll(move(v));
+  m_impl.forAll(std::move(v));
+}
+
+void BTreeDatabase::recoverAll(function<void(ByteArray, ByteArray)> v, function<void(String const&, std::exception const&)> e) {
+  ReadLocker readLocker(m_lock);
+  m_impl.recoverAll(std::move(v), std::move(e));
 }
 
 bool BTreeDatabase::insert(ByteArray const& k, ByteArray const& data) {
   WriteLocker writeLocker(m_lock);
   checkKeySize(k);
-  // FezzedOne: Those `move`s had a good reason to be there.
-  return m_impl.insert(move(k), move(data));
+  return m_impl.insert(k, data);
 }
 
 bool BTreeDatabase::remove(ByteArray const& k) {
@@ -239,7 +259,7 @@ uint32_t BTreeDatabase::freeBlockCount() {
     indexBlockIndex = indexBlock.nextFreeBlock;
   }
 
-  count += m_availableBlocks.size() + m_pendingFree.size();
+  count += m_availableBlocks.size();
 
   // Include untracked blocks at the end of the file in the free count.
   count += (m_device->size() - m_deviceSize) / m_blockSize;
@@ -268,7 +288,7 @@ uint32_t BTreeDatabase::leafBlockCount() {
       return true;
     }
 
-    BTreeDatabase* parent;
+    BTreeDatabase* parent = nullptr;
     BlockIndex leafBlockCount = 0;
   };
 
@@ -277,6 +297,36 @@ uint32_t BTreeDatabase::leafBlockCount() {
   m_impl.forAllNodes(visitor);
 
   return visitor.leafBlockCount;
+}
+
+// FezzedOne: Method to check how much unused space a BTreeDB5 has.
+Maybe<float> BTreeDatabase::freeSpacePercentage() {
+  ReadLocker readLocker(m_lock);
+  checkIfOpen("freeSpacePercentage", true);
+
+  if (m_headFreeIndexBlock == InvalidBlockIndex || m_rootIsLeaf)
+    return {};
+  
+  BlockIndex freeBlockCount = 0;
+  BlockIndex indexBlockIndex = m_headFreeIndexBlock;
+  while (indexBlockIndex != InvalidBlockIndex) {
+    FreeIndexBlock indexBlock = readFreeIndexBlock(indexBlockIndex);
+    freeBlockCount += 1 + indexBlock.freeBlocks.size();
+    indexBlockIndex = indexBlock.nextFreeBlock;
+  }
+
+  freeBlockCount += m_availableBlocks.size();
+
+  // Include untracked blocks at the end of the file. They use up space, after all!
+  freeBlockCount += (m_device->size() - m_deviceSize) / m_blockSize;
+
+  BlockIndex expectedBlockCount = (m_deviceSize - HeaderSize) / m_blockSize;
+  return float(freeBlockCount) / float(expectedBlockCount);
+}
+
+void BTreeDatabase::setFreeSpaceThreshold(float freeSpaceThreshold) {
+  WriteLocker writeLocker(m_lock);
+  m_freeSpaceThreshold = freeSpaceThreshold;
 }
 
 void BTreeDatabase::commit() {
@@ -289,8 +339,8 @@ void BTreeDatabase::rollback() {
 
   m_availableBlocks.clear();
   m_indexCache.clear();
+  m_uncommittedWrites.clear();
   m_uncommitted.clear();
-  m_pendingFree.clear();
 
   readRoot();
 
@@ -300,14 +350,20 @@ void BTreeDatabase::rollback() {
 
 void BTreeDatabase::close(bool closeDevice) {
   WriteLocker writeLocker(m_lock);
-  if (m_open) {
-    doCommit();
+  try {
+    if (m_open) {
+      if (!tryFlatten())
+        doCommit();
 
-    m_indexCache.clear();
+      m_indexCache.clear();
 
-    m_open = false;
-    if (closeDevice && m_device && m_device->isOpen())
-      m_device->close();
+      m_open = false;
+      if (closeDevice && m_device && m_device->isOpen())
+        m_device->close();
+    }
+  } catch (std::exception const& e) {
+    writeLocker.unlock();
+    throw;
   }
 }
 
@@ -446,7 +502,7 @@ ByteArray const& BTreeDatabase::LeafNode::data(size_t i) const {
 }
 
 void BTreeDatabase::LeafNode::insert(size_t i, ByteArray k, ByteArray d) {
-  elements.insertAt(i, Element{move(k), move(d)});
+  elements.insertAt(i, Element{std::move(k), std::move(d)});
 }
 
 void BTreeDatabase::LeafNode::remove(size_t i) {
@@ -532,7 +588,7 @@ auto BTreeDatabase::BTreeImpl::loadIndex(Pointer pointer) -> Index {
   index->pointers.resize(s);
   for (uint32_t i = 0; i < s; ++i) {
     auto& e = index->pointers[i];
-    e.key =buffer.readBytes(parent->m_keySize);
+    e.key = buffer.readBytes(parent->m_keySize);
     e.pointer = buffer.read<BlockIndex>();
   }
 
@@ -856,7 +912,7 @@ auto BTreeDatabase::BTreeImpl::leafData(Leaf const& leaf, size_t i) -> Data {
 }
 
 void BTreeDatabase::BTreeImpl::leafInsert(Leaf& leaf, size_t i, Key k, Data d) {
-  leaf->insert(i, move(k), move(d));
+  leaf->insert(i, std::move(k), std::move(d));
 }
 
 void BTreeDatabase::BTreeImpl::leafRemove(Leaf& leaf, size_t i) {
@@ -892,17 +948,25 @@ void BTreeDatabase::rawReadBlock(BlockIndex blockIndex, size_t blockOffset, char
   if (size <= 0)
     return;
 
-  m_device->readFullAbsolute(HeaderSize + blockIndex * (StreamOffset)m_blockSize + blockOffset, block, size);
+  if (auto buffer = m_uncommittedWrites.ptr(blockIndex))
+    buffer->copyTo(block, blockOffset, size);
+  else
+    m_device->readFullAbsolute(HeaderSize + blockIndex * (StreamOffset)m_blockSize + blockOffset, block, size);
 }
 
-void BTreeDatabase::rawWriteBlock(BlockIndex blockIndex, size_t blockOffset, char const* block, size_t size) const {
+void BTreeDatabase::rawWriteBlock(BlockIndex blockIndex, size_t blockOffset, char const* block, size_t size) {
   if (blockOffset > m_blockSize || size > m_blockSize - blockOffset)
     throw DBException::format("Write past end of block, offset: {} size {}", blockOffset, size);
 
   if (size <= 0)
     return;
 
-  m_device->writeFullAbsolute(HeaderSize + blockIndex * (StreamOffset)m_blockSize + blockOffset, block, size);
+  StreamOffset blockStart = HeaderSize + blockIndex * (StreamOffset)m_blockSize;
+  auto buffer = m_uncommittedWrites.find(blockIndex);
+  if (buffer == m_uncommittedWrites.end())
+    buffer = m_uncommittedWrites.emplace(blockIndex, m_device->readBytesAbsolute(blockStart, m_blockSize)).first;
+
+  buffer->second.writeFrom(block, blockOffset, size);
 }
 
 auto BTreeDatabase::readFreeIndexBlock(BlockIndex blockIndex) -> FreeIndexBlock {
@@ -987,12 +1051,12 @@ auto BTreeDatabase::leafTailBlocks(BlockIndex leafPointer) -> List<BlockIndex> {
 }
 
 void BTreeDatabase::freeBlock(BlockIndex b) {
-  if (m_uncommitted.contains(b)) {
+  if (m_uncommitted.contains(b))
     m_uncommitted.remove(b);
-    m_availableBlocks.add(b);
-  } else {
-    m_pendingFree.append(b);
-  }
+  if (m_uncommittedWrites.contains(b))
+    m_uncommittedWrites.remove(b);
+
+  m_availableBlocks.add(b);
 }
 
 auto BTreeDatabase::reserveBlock() -> BlockIndex {
@@ -1003,10 +1067,7 @@ auto BTreeDatabase::reserveBlock() -> BlockIndex {
       FreeIndexBlock indexBlock = readFreeIndexBlock(m_headFreeIndexBlock);
       for (auto const& b : indexBlock.freeBlocks)
         m_availableBlocks.add(b);
-      // We cannot make available the block itself, because we must maintain
-      // atomic consistency.  We will need to free this block later and commit
-      // the new free index block chain.
-      m_pendingFree.append(m_headFreeIndexBlock);
+      m_availableBlocks.add(m_headFreeIndexBlock);
       m_headFreeIndexBlock = indexBlock.nextFreeBlock;
     }
 
@@ -1064,63 +1125,166 @@ void BTreeDatabase::readRoot() {
 }
 
 void BTreeDatabase::doCommit() {
-  if (m_availableBlocks.empty() && m_pendingFree.empty() && m_uncommitted.empty())
+  if (m_availableBlocks.empty() && m_uncommitted.empty())
     return;
 
-  if (!m_availableBlocks.empty() || !m_pendingFree.empty()) {
-    // First, read the existing head FreeIndexBlock, if it exists
+  if (!m_availableBlocks.empty()) {
+    // First, read the existing head FreeIndexBlock, if it exists.
     FreeIndexBlock indexBlock = FreeIndexBlock{InvalidBlockIndex, {}};
-    if (m_headFreeIndexBlock != InvalidBlockIndex) {
+
+    auto newBlock = [&]() -> BlockIndex {
+      if (!m_availableBlocks.empty())
+        return m_availableBlocks.takeFirst();
+      else
+        return makeEndBlock();
+    };
+
+    if (m_headFreeIndexBlock != InvalidBlockIndex)
       indexBlock = readFreeIndexBlock(m_headFreeIndexBlock);
-      if (indexBlock.freeBlocks.size() >= maxFreeIndexLength()) {
-        // If the existing head free index block is full, then we should start a
-        // new one and leave it alone
-        indexBlock.nextFreeBlock = m_headFreeIndexBlock;
-        indexBlock.freeBlocks.clear();
-      } else {
-        // If we are copying an existing free index block, the old free index
-        // block will be a newly freed block
-        indexBlock.freeBlocks.append(m_headFreeIndexBlock);
-      }
-    }
+    else
+      m_headFreeIndexBlock = newBlock();
 
-    // Then, we need to write all the available blocks, which are safe to write
-    // to, and the pending free blocks, which are NOT safe to write to, to the
-    // FreeIndexBlock chain.
+    // Then, we need to write all the available blocks to the FreeIndexBlock chain.
     while (true) {
-      if (indexBlock.freeBlocks.size() < maxFreeIndexLength() && (!m_availableBlocks.empty() || !m_pendingFree.empty())) {
-        // If we have room on our current FreeIndexblock, just add a block to
-        // it.  Prioritize the pending free blocks, because we cannot use those
-        // to write to.
-        BlockIndex toAdd;
-        if (m_pendingFree.empty())
-          toAdd = m_availableBlocks.takeFirst();
-        else
-          toAdd = m_pendingFree.takeFirst();
-
+      // If we have room on our current FreeIndexBlock, just add a block to it.
+      if (!m_availableBlocks.empty() && indexBlock.freeBlocks.size() < maxFreeIndexLength()) {
+        BlockIndex toAdd = m_availableBlocks.takeFirst();
         indexBlock.freeBlocks.append(toAdd);
       } else {
-        // If our index block is full OR we are out of blocks to free, then
-        // need to write a new head free index block.
-        if (m_availableBlocks.empty())
-          m_headFreeIndexBlock = makeEndBlock();
-        else
-          m_headFreeIndexBlock = m_availableBlocks.takeFirst();
+        // Update the current head free index block.
         writeFreeIndexBlock(m_headFreeIndexBlock, indexBlock);
 
         // If we're out of blocks to free, then we're done
-        if (m_availableBlocks.empty() && m_pendingFree.empty())
+        if (m_availableBlocks.empty())
           break;
 
-        indexBlock.nextFreeBlock = m_headFreeIndexBlock;
-        indexBlock.freeBlocks.clear();
+        // If our head free index block is full, then
+        // need to write a new head free index block.
+        if (indexBlock.freeBlocks.size() >= maxFreeIndexLength()) {
+          indexBlock.nextFreeBlock = m_headFreeIndexBlock;
+          indexBlock.freeBlocks.clear();
+
+          m_headFreeIndexBlock = newBlock();
+          writeFreeIndexBlock(m_headFreeIndexBlock, indexBlock);
+        }
       }
     }
   }
 
+  
+  commitWrites(); 
   writeRoot();
-
   m_uncommitted.clear();
+}
+
+void BTreeDatabase::commitWrites() {
+  for (auto& write : m_uncommittedWrites)
+    m_device->writeFullAbsolute(HeaderSize + write.first * (StreamOffset)m_blockSize, write.second.ptr(), m_blockSize);
+
+  m_device->sync();
+  m_uncommittedWrites.clear();
+}
+
+bool BTreeDatabase::tryFlatten() {
+  if (m_headFreeIndexBlock == InvalidBlockIndex || m_rootIsLeaf || !m_device->isWritable())
+    return false;
+  
+  BlockIndex freeBlockCount = 0;
+  BlockIndex indexBlockIndex = m_headFreeIndexBlock;
+  while (indexBlockIndex != InvalidBlockIndex) {
+    FreeIndexBlock indexBlock = readFreeIndexBlock(indexBlockIndex);
+    freeBlockCount += 1 + indexBlock.freeBlocks.size();
+    indexBlockIndex = indexBlock.nextFreeBlock;
+  }
+
+  BlockIndex expectedBlockCount = (m_deviceSize - HeaderSize) / m_blockSize;
+  float free = float(freeBlockCount) / float(expectedBlockCount);
+  if (m_freeSpaceThreshold < 0.0f || free < m_freeSpaceThreshold) // FezzedOne: Made the flattening threshold configurable.
+    return false;
+
+  Logger::info("BTreeDatabase: BTreeDB5 file '{}' is {:.2f}% free space (excluding untracked blocks), exceeding {:.2f}% threshold; flattening", m_device->deviceName(), free * 100.0f, m_freeSpaceThreshold * 100.0f);
+
+  indexBlockIndex = m_headFreeIndexBlock;
+  {
+    List<BlockIndex> availableBlocksList;
+    do {
+      FreeIndexBlock indexBlock = readFreeIndexBlock(indexBlockIndex);
+      availableBlocksList.appendAll(indexBlock.freeBlocks);
+      availableBlocksList.append(indexBlockIndex);
+      indexBlockIndex = indexBlock.nextFreeBlock;
+    } while (indexBlockIndex != InvalidBlockIndex);
+    m_headFreeIndexBlock = InvalidBlockIndex;
+
+    sort(availableBlocksList);
+    for (auto& availableBlock : availableBlocksList)
+      m_availableBlocks.insert(m_availableBlocks.end(), availableBlock);
+  }
+
+  BlockIndex count = 1; // 1 to include root index
+
+  double start = Time::monotonicTime();
+  auto index = m_impl.loadIndex(m_impl.rootPointer());
+  if (flattenVisitor(index, count)) {
+    m_impl.deleteIndex(index);
+    index->self = InvalidBlockIndex;
+    m_root = m_impl.storeIndex(index);
+  }
+
+  m_availableBlocks.clear();
+  m_device->resize(m_deviceSize = HeaderSize + (StreamOffset)m_blockSize * count);
+
+  m_indexCache.clear();
+  commitWrites();
+  writeRoot();
+  m_uncommitted.clear();
+
+  Logger::info("BTreeDatabase: Finished flattening BTreeDB5 file '{}' in {:.2f} ms", m_device->deviceName(), (Time::monotonicTime() - start) * 1000.0f);
+  return true;
+}
+
+bool BTreeDatabase::flattenVisitor(BTreeImpl::Index& index, BlockIndex& count) {
+  auto pointerCount = index->pointerCount();
+  count += pointerCount;
+  bool canStore = !m_availableBlocks.empty();
+
+  bool needsStore = false;
+  if (m_impl.indexLevel(index) == 0) {
+    for (size_t i = 0; i != pointerCount; ++i) {
+      auto indexPointer = index->pointer(i);
+      auto tailBlocks = leafTailBlocks(indexPointer);
+      if (canStore) {
+        bool leafNeedsStore = m_availableBlocks.first() < indexPointer;
+
+        if (!leafNeedsStore)
+          for (size_t i = 0; !leafNeedsStore && i != tailBlocks.size(); ++i)
+            if (m_availableBlocks.first() < tailBlocks[i])
+              leafNeedsStore = true;
+
+        if (leafNeedsStore) {
+          auto leaf = m_impl.loadLeaf(indexPointer);
+          m_impl.deleteLeaf(leaf);
+          leaf->self = InvalidBlockIndex;
+          index->updatePointer(i, m_impl.storeLeaf(leaf));
+          tailBlocks = leafTailBlocks(leaf->self);
+          needsStore = true;
+        }
+        canStore = !m_availableBlocks.empty();
+      }
+      count += tailBlocks.size();
+    }
+  } else {
+    for (size_t i = 0; i != pointerCount; ++i) {
+      auto childIndex = m_impl.loadIndex(index->pointer(i));
+      if (canStore && flattenVisitor(childIndex, count)) {
+        m_impl.deleteIndex(childIndex);
+        childIndex->self = InvalidBlockIndex;
+        index->updatePointer(i, m_impl.storeIndex(childIndex));
+        canStore = !m_availableBlocks.empty();
+        needsStore = true;
+      }
+    }
+  }
+  return needsStore || (canStore && m_availableBlocks.first() < index->self);
 }
 
 void BTreeDatabase::checkIfOpen(char const* methodName, bool shouldBeOpen) const {
@@ -1142,7 +1306,7 @@ void BTreeDatabase::checkKeySize(ByteArray const& k) const {
 }
 
 uint32_t BTreeDatabase::maxFreeIndexLength() const {
-  return (m_blockSize - 2 - sizeof(BlockIndex) - 4) / sizeof(BlockIndex);
+  return (m_blockSize / sizeof(BlockIndex)) - 2 - sizeof(BlockIndex) - 4;
 }
 
 BTreeSha256Database::BTreeSha256Database() {
