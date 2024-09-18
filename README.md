@@ -50,8 +50,8 @@ Compiled builds for Linux and Windows should be available in the usual place on 
   - Additionally, objects can be placed under non-solid foreground tiles (@novaenia).
 - Support for placing tiles in mid-air, not connected to existing ones, via an extra argument to `world.placeMaterial()` (requires *both* xClient and, in multiplayer, xServer/xClient on the host). By @fezzedone.
 - Some polish to UI (@fezzedone and @novaenia).
-- Added Wayland support (@emanueljg).
 - Terraria-like placement animations for objects, tiles and liquids (@fezzedone). Can be disabled with an asset mod if you don't like them.
+- Added Wayland support (@emanueljg).
 - Nix build & install support (emanueljg). See [Nix](#nix).
 
 ## Mod compatibility
@@ -125,10 +125,6 @@ Read this to see if xStarbound is compatible with your mods.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xStarbound has differently named callbacks) and is redundant anyway because xStarbound already fully supports this feature.
 - Mods that patch in StarExtensions «body dynamics» support for other mods. These won't do anything.
 
-# Nix
-
-See [xStarbound/nix](nix).
-
 ## Building
 
 This repository is already set up for easy building (mostly @kblaschke's work, with an updated Windows build script and some additional fixes by @fezzedone). Follow the appropriate instructions for your OS if listed; if your OS *isn't* listed, adjustments generally shouldn't be too complex.
@@ -182,6 +178,10 @@ To build a statically linked version of xStarbound (assuming `bash` or `zsh`):
 12. `cp scripts/linux/{xclient-static,xserver,mod_uploader}.sh ${sbInstall}/linux/`
 13. `mv ${sbInstall}/linux/xclient-static.sh ${sbInstall}/linux/xclient.sh`
 14. Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient.sh`.
+
+### Nix / NixOS
+
+See [`$xsbSrc/nix/README.md](nix/README.md) as well as the [`nix/` directory](nix/).
 
 ### Windows 10 or 11
 

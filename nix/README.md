@@ -25,6 +25,7 @@ In other words, it looks for game assets in the standard GOG/Steam directories a
 this will "just work".
 
 ### But what if I have a nonstandard game assets directory? What if I want mods?
+
 Read on further!
 
 ## Package
@@ -64,7 +65,7 @@ Therefore, a Nix `package` is also provided. Here's how to install it with NixOS
     # Mods! With the power of Nix, 
     # you can seperate your modded/vanilla Starbound installs from each other! :-)
     # This encapsulation is especially useful for mods like Frackin' Universe which permanently changes mutable user state,
-    # and crashes if you later remove the mod.
+    # and crashes if you later remove the mod. (@fezzedone: Don't need to worry about that anymore with xStarbound though.)
     mods = [
 
       # use a pre-packaged mod from xStarbound
