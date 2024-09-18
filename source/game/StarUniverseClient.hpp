@@ -88,7 +88,7 @@ public:
   uint16_t players();
   uint16_t maxPlayers();
 
-  void setLuaCallbacks(String const& groupName, LuaCallbacks const& callbacks);
+  void setLuaCallbacks(String const& groupName, LuaCallbacks const& callbacks, uint8_t safetyLevel = 0);
   void startLua();
   void stopLua();
 

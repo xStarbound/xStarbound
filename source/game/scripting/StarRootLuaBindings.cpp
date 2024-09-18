@@ -42,6 +42,7 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
   callbacks.registerCallbackWithSignature<StringList, String>("assetsByExtension", bind(RootCallbacks::assetsByExtension, root, _1));
   callbacks.registerCallbackWithSignature<Maybe<String>, String>("assetSource", bind(RootCallbacks::assetSource, root, _1));
   callbacks.registerCallbackWithSignature<Maybe<List<String>>, String>("assetPatchSources", bind(RootCallbacks::assetPatchSources, root, _1));
+  callbacks.registerCallbackWithSignature<Maybe<List<String>>, String>("assetPatches", bind(RootCallbacks::assetPatchSources, root, _1));
   callbacks.registerCallbackWithSignature<List<String>>("assetSources", bind(RootCallbacks::assetSources, root));
   callbacks.registerCallbackWithSignature<Maybe<List<String>>, String>("assetSourcePaths", bind(RootCallbacks::assetSourcePaths, root, _1));
   callbacks.registerCallbackWithSignature<Json, String>("assetSourceMetadata", bind(RootCallbacks::assetSourceMetadata, root, _1));

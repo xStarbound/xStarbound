@@ -710,7 +710,14 @@ void ClientApplication::changeState(MainAppState newState) {
     m_titleScreen->stopMusic();
 
     m_mainInterface = make_shared<MainInterface>(m_universeClient, m_worldPainter, m_cinematicOverlay);
-    m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get()));
+    // FezzedOne: Fixed a segfault caused by invoking lingering callbacks returned by `bindRegisteredPane` after a player swap while `"safeScripts"` is
+    // enabled by removing the ability to have lingering tables in any context where the Lua root *isn't* purged upon a swap.
+    if (m_root->configuration()->get("safeScripts").toBool()) {
+      m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), true), 1);
+      m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), false), 2);
+    } else {
+      m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), true));
+    }
     m_universeClient->setLuaCallbacks("clipboard", LuaBindings::makeClipboardCallbacks(m_mainInterface.get()));
     m_universeClient->setLuaCallbacks("chat", LuaBindings::makeChatCallbacks(m_mainInterface.get()));
     m_universeClient->startLua();

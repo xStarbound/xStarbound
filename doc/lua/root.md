@@ -133,9 +133,10 @@ If the loaded version of the asset was created by an asset preprocessor script, 
 
 ---
 
+#### `Maybe<List<FilePath>>` root.assetPatches(`AssetPath<>` assetPath)
 #### `Maybe<List<FilePath>>` root.assetPatchSources(`AssetPath<>` assetPath)
 
-> **Only available on xStarbound, OpenStarbound and StarExtensions.**
+> **`root.assetPatches` is only available on xStarbound v3.1.5r1+ and OpenStarbound, while `root.assetPatchSources` is xStarbound-only.**
 
 Returns a list of file paths to any asset sources that contain JSON or Lua patches to the base asset at the specified asset path, or `nil` if no base asset exists at that path; passing a path containing a subpath or directives will result in a `nil` return.
 

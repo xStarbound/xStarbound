@@ -34,13 +34,13 @@ The following bindings are available across all five tables:
 
 ----
 
-#### `Maybe<CanvasWidget>` bindCanvas(`String` canvasName, [`bool` ignoreInterfaceScale])
+#### `Maybe<CanvasWidget>` interface.bindCanvas(`String` canvasName, [`bool` ignoreInterfaceScale])
 
 Binds a canvas widget, returning a `CanvasWidget` object. If `ignoreInterfaceScale` is true, the returned `CanvasWidget` object's methods will return and take positional values in actual display pixels instead of scaled pixels.
 
 ----
 
-#### `Maybe<LuaCallbacks>` bindRegisteredPane(`String` registeredPaneName)
+#### `Maybe<LuaCallbacks>` interface.bindRegisteredPane(`String` registeredPaneName)
 
 "Binds" one of the game's primary registered panes to a returned table of script pane callbacks; see `scriptpane.md` for documentation on these callbacks. The following are valid registered pane names:
 
@@ -67,6 +67,8 @@ Binds a canvas widget, returning a `CanvasWidget` object. If `ignoreInterfaceSca
 - `"QuestTracker"`
 - `"MmUpgrade"`
 - `"Collections"`
+
+**Note:** On xClient v3.1.5r3+ with `"safeScripts"` enabled, this callback will return `nil` in any Lua context where a callback table could unsafely linger after registered panes are deregistered (which happens whenever the client swaps players), i.e., it will return callbacks *only* in universe client scripts.
 
 > **Warning:** If you're on xClient with `"safeScripts"` disabled or on OpenStarbound regardless, do *not* attempt to use the returned callbacks after the "bound" pane is deregistered or uninitialised! Deregistration and uninitialisation happens whenever a player is swapped on xStarbound. Invoking callbacks on a dead pane *will* cause a segfault!
 

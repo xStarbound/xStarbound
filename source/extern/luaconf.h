@@ -850,7 +850,7 @@
 #define PLUTO_COMMON_GLOBAL_NAMES "table","string","json","arg","xsb","sb","null","world","universe","CommandProcessor",\
   "player","entity","widget","config","monster","npc","physics","fireableItem","item","activeItem","root","pane",\
   "interface","chat","object","objectAnimator","assets","quest","jobject","jarray","jsize","jremove","jresize",\
-  "shared","message","mcontroller","tech","voice","clipboard"
+  "shared","message","mcontroller","tech","voice","clipboard","playerAnimator"
 #endif
 
 // If defined, the "non-portable-code" warning is enabled by default.
