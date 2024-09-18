@@ -34,13 +34,13 @@ The following bindings are available across all five tables:
 
 ----
 
-#### `Maybe<CanvasWidget>` bindCanvas(`String` canvasName, [`bool` ignoreInterfaceScale])
+#### `Maybe<CanvasWidget>` interface.bindCanvas(`String` canvasName, [`bool` ignoreInterfaceScale])
 
 Binds a canvas widget, returning a `CanvasWidget` object. If `ignoreInterfaceScale` is true, the returned `CanvasWidget` object's methods will return and take positional values in actual display pixels instead of scaled pixels.
 
 ----
 
-#### `Maybe<LuaCallbacks>` bindRegisteredPane(`String` registeredPaneName)
+#### `Maybe<LuaCallbacks>` interface.bindRegisteredPane(`String` registeredPaneName)
 
 "Binds" one of the game's primary registered panes to a returned table of script pane callbacks; see `scriptpane.md` for documentation on these callbacks. The following are valid registered pane names:
 
