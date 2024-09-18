@@ -52,6 +52,7 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 - Some polish to UI (@fezzedone and @novaenia).
 - Added Wayland support (@emanueljg).
 - Terraria-like placement animations for objects, tiles and liquids (@fezzedone). Can be disabled with an asset mod if you don't like them.
+- Nix build & install support (emanueljg). See [Nix](#nix).
 
 ## Mod compatibility
 
@@ -123,6 +124,10 @@ Read this to see if xStarbound is compatible with your mods.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xStarbound has differently named callbacks) and is redundant anyway because xStarbound already fully supports this feature.
 - Mods that patch in StarExtensions «body dynamics» support for other mods. These won't do anything.
+
+# Nix
+
+See [xStarbound/nix](nix).
 
 ## Building
 
