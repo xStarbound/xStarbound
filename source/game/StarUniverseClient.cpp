@@ -182,12 +182,13 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     }
 
     // FezzedOne: I'll never know why the gods-damned world client couldn't access the universe client to begin with.
-    m_worldClient = make_shared<WorldClient>(m_mainPlayer, this); 
+    m_worldClient = make_shared<WorldClient>(m_mainPlayer, this);
+    bool safeScripts = root.configuration()->get("safeScripts").toBool();
     for (auto& pair : m_luaCallbacks) {
       // Make sure non-universe scripts get the safe version of `interface`.
-      if (pair.first != "interface")
+      if (!safeScripts || pair.first != "interface")
         m_worldClient->setLuaCallbacks(pair.first, pair.second);
-      if (pair.first == "safeInterface")
+      if (safeScripts && pair.first == "safeInterface")
         m_worldClient->setLuaCallbacks("interface", pair.second);
     }
 
