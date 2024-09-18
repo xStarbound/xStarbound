@@ -183,8 +183,13 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
 
     // FezzedOne: I'll never know why the gods-damned world client couldn't access the universe client to begin with.
     m_worldClient = make_shared<WorldClient>(m_mainPlayer, this); 
-    for (auto& pair : m_luaCallbacks)
-      m_worldClient->setLuaCallbacks(pair.first, pair.second);
+    for (auto& pair : m_luaCallbacks) {
+      // Make sure non-universe scripts get the safe version of `interface`.
+      if (pair.first != "interface")
+        m_worldClient->setLuaCallbacks(pair.first, pair.second);
+      if (pair.first == "safeInterface")
+        m_worldClient->setLuaCallbacks("interface", pair.second);
+    }
 
     m_connection = move(connection);
     m_celestialDatabase = make_shared<CelestialSlaveDatabase>(move(success->celestialInformation));
@@ -627,9 +632,13 @@ uint16_t UniverseClient::maxPlayers() {
   return m_serverInfo.apply([](auto const& info) { return info.maxPlayers; }).value(1);
 }
 
-void UniverseClient::setLuaCallbacks(String const& groupName, LuaCallbacks const& callbacks) {
-  m_luaCallbacks[groupName] = callbacks;
-  if (m_worldClient)
+void UniverseClient::setLuaCallbacks(String const& groupName, LuaCallbacks const& callbacks, uint8_t safetyLevel) {
+  // FezzedOne: 0 for most callbacks, 1 for the unsafe version of `interface`, 2 for the safe version of `interface`.
+  if (safetyLevel <= 1)
+    m_luaCallbacks[groupName] = callbacks;
+  else
+    m_luaCallbacks["safeInterface"] = callbacks;
+  if (m_worldClient && safetyLevel != 1)
     m_worldClient->setLuaCallbacks(groupName, callbacks);
 }
 

@@ -119,7 +119,7 @@ LuaCallbacks LuaBindings::makeClipboardCallbacks(MainInterface* mainInterface) {
   return callbacks;
 }
 
-LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface) {
+LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface, bool unsafeVersion) {
   LuaCallbacks callbacks;
 
   callbacks.registerCallback("bindCanvas", [mainInterface](String const& canvasName, Maybe<bool> ignoreInterfaceScale) -> Maybe<CanvasWidgetPtr> {
@@ -128,11 +128,17 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface) {
     return {};
   });
 
-  callbacks.registerCallback("bindRegisteredPane", [mainInterface](String const& registeredPaneName) -> Maybe<LuaCallbacks> {
-    if (auto pane = mainInterface->paneManager()->maybeRegisteredPane(MainInterfacePanesNames.getLeft(registeredPaneName)))
-      return pane->makePaneCallbacks();
-    return {};
-  });
+  if (unsafeVersion) {
+    callbacks.registerCallback("bindRegisteredPane", [mainInterface](String const& registeredPaneName) -> Maybe<LuaCallbacks> {
+      if (auto pane = mainInterface->paneManager()->maybeRegisteredPane(MainInterfacePanesNames.getLeft(registeredPaneName)))
+        return pane->makePaneCallbacks();
+      return {};
+    });
+  } else {
+    callbacks.registerCallback("bindRegisteredPane", [mainInterface](String const& registeredPaneName) -> Maybe<LuaCallbacks> {
+      return {};
+    });
+  }
 
   callbacks.registerCallback("scale", [mainInterface]() -> float {
     return GuiContext::singleton().interfaceScale();
