@@ -70,7 +70,8 @@ void main() {
 )SHADER";
 
 OpenGl20Renderer::OpenGl20Renderer() {
-  if (glewInit() != GLEW_OK)
+  auto glewResult = glewInit();
+  if (glewResult != GLEW_OK && glewResult != GLEW_ERROR_NO_GLX_DISPLAY)
     throw RendererException("Could not initialize GLEW");
 
   if (!GLEW_VERSION_2_0)
