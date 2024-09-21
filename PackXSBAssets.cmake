@@ -10,14 +10,16 @@ if(PACKAGE_XSB_ASSETS)
     file(GLOB_RECURSE XSB_ASSET_FILES LIST_DIRECTORIES FALSE *)
     file(MAKE_DIRECTORY "${PROJECT_SOURCE_DIR}/xsb-assets")
 
-    add_custom_command(OUTPUT "${PROJECT_SOURCE_DIR}/xsb-assets/xSBassets.pak"
+    # FezzedOne: Force the .pak file to be repacked on *every* build by
+    # referencing a file that'll never exist. This has been driving me insane.
+    add_custom_command(OUTPUT "${PROJECT_SOURCE_DIR}/xsb-assets/xSBassets.pak" "${PROJECT_SOURCE_DIR}/xsb-assets/xSBassets-dummy.pak"
             COMMAND asset_packer ARGS -c "${PROJECT_SOURCE_DIR}/scripts/packing.config" "${PROJECT_SOURCE_DIR}/assets/xSBassets" "${PROJECT_SOURCE_DIR}/xsb-assets/xSBassets.pak"
             WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
             DEPENDS asset_packer
     )
 
     add_custom_target(package_xsb_assets ALL
-            DEPENDS "${PROJECT_SOURCE_DIR}/xsb-assets/xSBassets.pak"
+            DEPENDS "${PROJECT_SOURCE_DIR}/xsb-assets/xSBassets-dummy.pak"
     )
 endif()
 
