@@ -148,10 +148,11 @@ void ClientApplication::startup(StringList const& cmdLineArgs) {
 }
 
 void ClientApplication::shutdown() {
-  m_mainInterface.reset();
-
   if (m_universeClient)
     m_universeClient->disconnect();
+
+  // FezzedOne: Fixed `bindRegisteredPane` returning `nil` on `uninit` when closing the client.
+  m_mainInterface.reset();
 
   if (m_universeServer) {
     m_universeServer->stop();
