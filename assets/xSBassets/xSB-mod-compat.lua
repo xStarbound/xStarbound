@@ -62,7 +62,7 @@ pluto_try
         local oldPrimaryUuid = nil
 
         function init()
-            if not root.getConfiguration("safeScripts")) then
+            if not root.getConfiguration("safeScripts") then
                 interface.addChatMessage({
                     message = "^#f22;[xSB]^reset; You must enable ^cyan;\"safeScripts\"^reset; in ^cyan;xclient.config^reset; " .. 
                     "to use Patman's Save Inventory Position with xClient.",
@@ -98,7 +98,7 @@ pluto_try
         local resetIdentifier <const> = "patman::resetInventoryPosition"
 
         function init()
-            if not root.getConfiguration("safeScripts")) then return end
+            if not root.getConfiguration("safeScripts") then return end
             message.setHandler("/resetinventoryposition", |_, isLocal| ->
                 (isLocal and player.uniqueId() == world.primaryPlayerUuid())
                     ? (world.setGlobal(resetIdentifier, true) or "Reset inventory position.")
