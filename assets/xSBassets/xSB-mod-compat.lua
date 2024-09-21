@@ -125,7 +125,7 @@ modName = "Patman's Ruler"
 pluto_try
     local rulerScriptPath = "/pat/ruler/ruler.lua"
 
-    local rulerScript = assets.bytes(rulerScript)
+    local rulerScript = assets.bytes(rulerScriptPath)
     local rulerScriptPatch = [==[
         local starExtensions = true -- Fool the mod script into thinking it's running on StarExtensions.
     ]==]
@@ -146,7 +146,7 @@ modName = "Emmaker's Limited Lives"
 pluto_try
     local limitedLivesScriptPath = "/scripts/player/limitedLives.lua"
 
-    local limitedLivesScript = assets.bytes(limitedLivesScript)
+    local limitedLivesScript = assets.bytes(limitedLivesScriptPath)
     local limitedLivesScriptPatch = [==[
         local starExtensions = true -- Fool the mod script into thinking it's running on StarExtensions.
     ]==]
@@ -167,7 +167,7 @@ modName = "Patman's Matter Manipulator Keybinds"
 pluto_try
     local mmBindsScriptPath = "/pat_mmbinds.lua"
 
-    local mmBindsScript = assets.bytes(mmBindsScript)
+    local mmBindsScript = assets.bytes(mmBindsScriptPath)
     local mmBindsScriptPatch = [==[
         local oldInit = init
         function init()
