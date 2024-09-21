@@ -55,12 +55,18 @@ pluto_try
             script.setUpdateDelta(1)
         end
 
-        local inventoryPositionIdentifier <const> = "patman::setInventoryPosition"
+        local setIdentifier <const> = "patman::setInventoryPosition"
+        local resetIdentifier <const> = "patman::resetInventoryPosition"
 
         function update(dt)
-            if world.getGlobal(inventoryPositionIdentifier) then
-                inv?.setPosition({0, 0})
-                world.setGlobal(inventoryPositionIdentifier, null)
+            -- Make sure the inventory is restored to its saved position on player swaps.
+            if world.getGlobal(setIdentifier) then
+                init()
+                world.setGlobal(setIdentifier, null)
+            end
+            if world.getGlobal(resetIdentifier) then
+                interface.bindRegisteredPane(PaneName).setPosition({0, 0})
+                world.setGlobal(resetIdentifier, null)
             end
         end
     ]==]
@@ -68,11 +74,14 @@ pluto_try
 
     local inventoryResetCommandScript = [==[
         function init()
-            local inventoryPositionIdentifier <const> = "patman::setInventoryPosition"
+            local setIdentifier <const> = "patman::setInventoryPosition"
+            local resetIdentifier <const> = "patman::resetInventoryPosition"
 
             message.setHandler("/resetinventoryposition", |_, isLocal| ->
-                isLocal ? world.setGlobal(inventoryPositionIdentifier, true) : nil)
+                isLocal ? world.setGlobal(resetIdentifier, true) : nil)
             script.setUpdateDelta(0)
+
+            world.setGlobal(setIdentifier, true)
         end
     ]==]
     assets.add(inventoryResetCommandScriptPath, inventoryResetCommandScript)
