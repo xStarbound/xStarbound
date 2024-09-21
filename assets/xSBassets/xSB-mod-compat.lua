@@ -34,19 +34,30 @@ pluto_try
     local saveInventoryPositionScriptPath = "/pat_saveInventoryPosition.lua"
     local inventoryResetCommandScriptPath = "/scripts/patmanInventoryResetCommandHandler.lua"
 
-    local playerConfig = assets.json("/player.config")
-    local clientConfig = assets.json("/client.config")
     local saveInventoryPositionScript = assets.bytes(saveInventoryPositionScriptPath)
 
-    clientConfig.universeScriptContexts.pat_saveInventoryPosition = jarray{ saveInventoryPositionScriptPath }
-    assets.add("/client.config", clientConfig)
+    local clientConfig = jobject{
+        universeScriptContexts = jobject{ 
+            pat_saveInventoryPosition = jarray{ 
+                saveInventoryPositionScriptPath
+            }
+        }
+    }
+    assets.add("/client.config.xSB-postproc", clientConfig)
+    assets.patch("/client.config", "/client.config.xSB-postproc")
 
-    playerConfig.genericScriptContexts.pat_saveInventoryPosition = inventoryResetCommandScriptPath
-    assets.add("/player.config", playerConfig)
+    local playerConfig = jobject{
+        genericScriptContexts = jobject{
+            pat_saveInventoryPosition = inventoryResetCommandScriptPath
+        }
+    }
+    assets.add("/player.config.xSB-postproc", playerConfig)
+    assets.patch("/player.config", "/player.config.xSB-postproc")
 
     local saveInventoryPositionPatch = [==[
+        -- Note: The patched mod script only works properly when `"safeScripts"` is *enabled*.
+
         local patman_oldInit = init
-        local patman_oldUninit = uninit
 
         local oldPrimaryUuid = nil
 
@@ -64,14 +75,6 @@ pluto_try
         local resetIdentifier <const> = "patman::resetInventoryPosition"
 
         function update(dt)
-            -- Make sure the inventory is restored to its saved position on player swaps,
-            -- even when `"safeScripts"` is disabled.
-            local primaryUuid = world.primaryPlayerUuid()
-            if primaryUuid ~= oldPrimaryUuid then
-                patman_oldUninit()
-                patman_oldInit()
-            end
-
             if world.getGlobal(resetIdentifier) then
                 interface.bindRegisteredPane(PaneName).setPosition({0, 0})
                 world.setGlobal(resetIdentifier, null)
@@ -87,8 +90,9 @@ pluto_try
 
         function init()
             message.setHandler("/resetinventoryposition", |_, isLocal| ->
-                (isLocal and player.uniqueId() == world.primaryPlayerUuid()) ? world.setGlobal(resetIdentifier, true) : nil)
-            script.setUpdateDelta(0)
+                (isLocal and player.uniqueId() == world.primaryPlayerUuid())
+                    ? (world.setGlobal(resetIdentifier, true) or "Reset inventory position.")
+                    : "^red;Attempted to invoke ^orange;/resetinventoryposition^red; on a non-local or secondary player!^reset;")
         end
     ]==]
     assets.add(inventoryResetCommandScriptPath, inventoryResetCommandScript)

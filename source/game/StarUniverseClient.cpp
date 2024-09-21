@@ -683,7 +683,6 @@ void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) 
   if (m_playerReloadPreCallback && resetInterfaces)
     safeScriptsEnabled = Root::singleton().configuration()->get("safeScripts").toBool();
 
-
   for (auto& loadedPlayer : m_loadedPlayers) {
     if (!loadedPlayer.second.loaded) return;
 
@@ -733,12 +732,14 @@ void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) 
       world->removeEntity(indicator->entityId(), false);
 
     if (m_playerReloadCallback) {
+      // FezzedOne: Fixed `bindRegisteredPane` not being able to bind any panes on `init`
+      // after a full reload.
+      m_playerReloadCallback(resetInterfaces);
       if (resetInterfaces && safeScriptsEnabled) {
         // FezzedOne: Needed because of `interface.bindRegisteredPane`.
         m_luaRoot = make_shared<LuaRoot>();
         startLua();
       }
-      m_playerReloadCallback(resetInterfaces);
     }
   }
 }
@@ -897,12 +898,14 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     world->removeEntity(indicator->entityId(), false);
 
   if (m_playerReloadCallback) {
+    // FezzedOne: Fixed `bindRegisteredPane` not being able to bind any panes on `init`
+    // after a swap.
+    m_playerReloadCallback(resetInterfaces);
     if (resetInterfaces && safeScriptsEnabled) {
       // FezzedOne: Needed because of `interface.bindRegisteredPane`.
       m_luaRoot = make_shared<LuaRoot>();
       startLua();
     }
-    m_playerReloadCallback(resetInterfaces);
   }
 
   return !dupeError;
