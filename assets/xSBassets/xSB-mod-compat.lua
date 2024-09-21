@@ -56,6 +56,7 @@ pluto_try
         end
 
         local setIdentifier <const> = "patman::setInventoryPosition"
+        local saveIdentifier <const> = "patman::saveInventoryPosition"
         local resetIdentifier <const> = "patman::resetInventoryPosition"
 
         function update(dt)
@@ -68,6 +69,10 @@ pluto_try
                 interface.bindRegisteredPane(PaneName).setPosition({0, 0})
                 world.setGlobal(resetIdentifier, null)
             end
+            if world.getGlobal(saveIdentifier) then
+                uninit()
+                world.setGlobal(saveIdentifier, null)
+            end
         end
     ]==]
     assets.add(saveInventoryPositionScriptPath, saveInventoryPositionScript .. saveInventoryPositionPatch)
@@ -75,6 +80,7 @@ pluto_try
     local inventoryResetCommandScript = [==[
         function init()
             local setIdentifier <const> = "patman::setInventoryPosition"
+            local saveIdentifier <const> = "patman::saveInventoryPosition"
             local resetIdentifier <const> = "patman::resetInventoryPosition"
 
             message.setHandler("/resetinventoryposition", |_, isLocal| ->
@@ -82,6 +88,10 @@ pluto_try
             script.setUpdateDelta(0)
 
             world.setGlobal(setIdentifier, true)
+        end
+
+        function uninit()
+            world.setGlobal(saveIdentifier, true)
         end
     ]==]
     assets.add(inventoryResetCommandScriptPath, inventoryResetCommandScript)
