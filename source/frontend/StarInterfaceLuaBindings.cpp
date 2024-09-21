@@ -140,6 +140,14 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface, b
     });
   }
 
+  // FezzedOne: Why was this missing?
+  callbacks.registerCallback("displayRegisteredPane", [mainInterface](String const& registeredPaneName) {
+    auto pane = MainInterfacePanesNames.getLeft(registeredPaneName);
+    auto paneManager = mainInterface->paneManager();
+    if (paneManager->maybeRegisteredPane(pane))
+      paneManager->displayRegisteredPane(pane);
+  });
+
   callbacks.registerCallback("scale", [mainInterface]() -> float {
     return GuiContext::singleton().interfaceScale();
   });

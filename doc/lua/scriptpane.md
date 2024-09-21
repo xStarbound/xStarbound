@@ -21,7 +21,17 @@ Returns a table of widget callbacks (see `widget.md`). The returned callbacks ar
 
 #### `EntityId` pane.sourceEntity()
 
-Returns the entity ID of the pane's source entity.
+Returns the entity ID of the pane's source entity. *Not* available on registered panes bound with `interface.bindRegisteredPane`.
+
+---
+
+#### `bool` pane.isDisplayed()
+
+> **Available only on xStarbound and OpenStarbound.**
+
+Returns whether the pane is currently displayed. 
+
+This callback is only useful when invoked on registered panes bound with `interface.bindRegisteredPane` — undisplayed script panes aren't running their scripts to begin with, but registered panes are always loaded (while the client is in game) even when they're not displayed.
 
 ---
 
@@ -94,3 +104,11 @@ Creates a new widget with the specified config and adds it to the pane, optional
 #### `void` pane.removeWidget(`String` widgetName)
 
 Removes the specified widget from the pane.
+
+---
+
+#### `float` pane.scale()
+
+> **Available only on xStarbound and OpenStarbound. Returns an `int` on OpenStarbound.**
+
+Returns the interface scale. Identical to `interface.scale`.

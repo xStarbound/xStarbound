@@ -47,8 +47,8 @@ Binds a canvas widget, returning a `CanvasWidget` object. If `ignoreInterfaceSca
 - `"EscapeDialog"`
 - `"Inventory"`
 - `"Codex"`
-- `"Cockpit"`
-- `"Tech"`
+- `"Cockpit"` (unused; will return `nil`)
+- `"Tech"` (unused; will return `nil`)
 - `"Songbook"`
 - `"Ai"`
 - `"Popup"`
@@ -76,7 +76,7 @@ Binds a canvas widget, returning a `CanvasWidget` object. If `ignoreInterfaceSca
 
 #### `float` interface.scale()
 
-> **Available only on xStarbound.**
+> **Available only on xStarbound and OpenStarbound. Returns an `int` on OpenStarbound.**
 
 Returns the current interface scale, expressed as the number of interface pixels per screen pixel in either dimension.
 
