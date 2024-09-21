@@ -1,10 +1,10 @@
-local loadedModPaths = assets.loadedSources
+local loadedModPaths = assets.loadedSources()
 local loadedMods = {}
 for loadedModPaths as loadedMod do
     table.insert(loadedMods, assets.sourceMetadata(loadedMod).name ?? loadedMod)
 end
 
-local logInfo = |modName| -> sb.logError($"[xSB] Detected and applied compatibility patch to {modName}")
+local logInfo = |modName| -> sb.logInfo($"[xSB] Detected and applied compatibility patch to {modName}")
 local logError = |modName, error| -> sb.logError($"[xSB] Error while applying compatibility patch for {modName}: {error}")
 local modName
 
@@ -55,10 +55,10 @@ pluto_try
             script.setUpdateDelta(1)
         end
 
-        local inventoryPositionIdentifier <const> = "patman::inventoryPosition"
+        local inventoryPositionIdentifier <const> = "patman::setInventoryPosition"
 
         function update(dt)
-            if inventoryPosition := world.getGlobal(inventoryPositionIdentifier) then
+            if world.getGlobal(inventoryPositionIdentifier) then
                 inv?.setPosition({0, 0})
                 world.setGlobal(inventoryPositionIdentifier, null)
             end
@@ -68,7 +68,7 @@ pluto_try
 
     local inventoryResetCommandScript = [==[
         function init()
-            local inventoryPositionIdentifier <const> = "patman::inventoryPosition"
+            local inventoryPositionIdentifier <const> = "patman::setInventoryPosition"
 
             message.setHandler("/resetinventoryposition", |_, isLocal| ->
                 isLocal ? world.setGlobal(inventoryPositionIdentifier, true) : nil)
@@ -127,7 +127,7 @@ pluto_try
 
     local rulerScript = assets.bytes(rulerScript)
     local rulerScriptPatch = [==[
-        local starExtensions = true -- Fool Patman's Ruler into thinking it's running on StarExtensions.
+        local starExtensions = true -- Fool the mod script into thinking it's running on StarExtensions.
     ]==]
     assets.add(rulerScriptPath, rulerScriptPatch .. rulerScript)
 
@@ -148,7 +148,7 @@ pluto_try
 
     local limitedLivesScript = assets.bytes(limitedLivesScript)
     local limitedLivesScriptPatch = [==[
-        local starExtensions = true -- Fool Emmaker's Limited Lives into thinking it's running on StarExtensions.
+        local starExtensions = true -- Fool the mod script into thinking it's running on StarExtensions.
     ]==]
     assets.add(limitedLivesScriptPath, limitedLivesScriptPatch .. limitedLivesScript)
 
@@ -158,3 +158,28 @@ pluto_catch e then
 end
 
 ::skipLimitedLivesPatch::
+
+--- Compatibility patch for Patman's Matter Manipulator Keybinds ---
+
+if not "pat_mmbinds" in loadedMods then goto skipMmBindsPatch end
+modName = "Patman's Matter Manipulator Keybinds"
+
+pluto_try
+    local mmBindsScriptPath = "/pat_mmbinds.lua"
+
+    local mmBindsScript = assets.bytes(mmBindsScript)
+    local mmBindsScriptPatch = [==[
+        local oldInit = init
+        function init()
+            root.assetOrigin = root.assetSource -- Emulate the StarExtensions callback expected by this mod.
+            oldInit()
+        end
+    ]==]
+    assets.add(mmBindsScriptPath, mmBindsScript .. mmBindsScriptPatch)
+
+    logInfo(modName)
+pluto_catch e then
+    logError(modName, e)
+end
+
+::skipMmBindsPatch::
