@@ -4,7 +4,7 @@ The `world` table contains bindings that perform actions within a specified worl
 
 The `world` table is available in the following script contexts:
 
-- universe client scripts (server-side, only on xStarbound)
+- universe client scripts (client-side, only on xStarbound)
 - world context scripts (server-side)
 - pane scripts (client-side)
 - container interface scripts (client-side)

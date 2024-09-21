@@ -60,16 +60,22 @@ Read this to see if xStarbound is compatible with your mods.
 
 **Has xStarbound support:** The following mods have special functionality that requires or is supported by xStarbound.
 
+- [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — Fully supported by xStarbound.
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports StarExtensions (with reduced functionality) and is compatible with vanilla Starbound. Is *not* compatible with OpenStarbound.
+- [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — fully spported by xStarbound as of v3.1.6.
+- [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — Fully supported by xStarbound as of v3.1.6.
+- [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — All OpenStarbound-compatible commands are supported by xStarbound as of v3.1.6.
+- [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — fully supported by xStarbound, including keybinds, as of v3.1.6. (Bravo for getting rid of the sandbox-breaking code, Patman!)
+- [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — Fully supported by xStarbound as of v3.1.6.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xStarbound as of v2.3.7.
 - [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111), [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) and other mods based on the framework — xStarbound supports «nice» non-pixelated scaling as of v2.4.1.1.
+- [Spawnable Item Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=733665104) — SIP's universal mod support requires xStarbound v2.5+ or OpenStarbound.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xStarbound.
 - [Time Control Command](https://steamcommunity.com/sharedfiles/filedetails/?id=3256623666) ([GitHub](https://github.com/bongus-jive/TimeControlCommand)) — fully supported by xStarbound.
 - [Universal Instant Crafting for All Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3251274439) — As of v2.5, fully supported by xStarbound.
-- [xAdvancedChat](https://github.com/fezzedone/xAdvancedChat) — requires xStarbound v2.3.7+. Supports most features of and is network-compatible with «upstream» [StarCustomChat](https://github.com/KrashV/StarCustomChat).
-- [xSIP](https://github.com/fezzedone/xSIP) — this Spawnable Item Pack fork's universal mod support requires xStarbound v2.5+ or OpenStarbound.
+- [xSIP](https://github.com/fezzedone/xSIP) — xSIP's universal mod support requires xStarbound v2.5+ or OpenStarbound.
 - [xWEdit](https://github.com/fezzedone/xWEdit) — this WEdit fork requires xStarbound for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
 - Mods that change the size or number of bags in the inventory or hotbar — as of v2.4, xStarbound gives these mods full compatibility with vanilla multiplayer and existing characters «out of the box».
 
@@ -100,8 +106,6 @@ Read this to see if xStarbound is compatible with your mods.
 - [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) and its [two](https://steamcommunity.com/sharedfiles/filedetails/?id=2954344118) [counterparts](https://steamcommunity.com/sharedfiles/filedetails/?id=2954354494) — their PNG compression does not play well with xClient's hardware cursor, potentially making it invisible. Use `/cursor off` if you want to use these mods.
 - [Project Knightfall](https://steamcommunity.com/sharedfiles/filedetails/?id=2010883172) ([GitHub](https://github.com/Nitrosteel/Project-Knightfall)) — some added UIs have minor issues with xStarbound's Lua sandbox.
 - [Русификатор Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2980671752) — technically fully compatible, but the mod it patches isn't compatible anyway.
-- [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — not compatible with xStarbound's Lua sandbox. If you use this mod, you need to disable `"safeScripts"`.
-- [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — supported by xStarbound as long as you turn off `"safeScripts"` and *don't* use `/swap` — this will cause an immediate crash!
 - [Stardust Core](https://steamcommunity.com/sharedfiles/filedetails/?id=764887546) and [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — not compatible with xStarbound's Lua sandbox. Either disable `"safeScripts"` or use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) instead.
 - [Stardust Suite](https://github.com/zetaPRIME/sb.StardustSuite) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — Ditto.
 - [Starloader](https://steamcommunity.com/sharedfiles/filedetails/?id=2936533996) ([GitHub](https://github.com/Starbound-Neon/StarLoader)) — fully compatible as long as `"safeScripts"` is disabled in your `xclient.config` (but be careful with that!).
@@ -110,14 +114,10 @@ Read this to see if xStarbound is compatible with your mods.
 
 **Not compatible:** The following mods are *NOT* compatible with xStarbound:
 
-- [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — Would work if it didn't have an explicit StarExtensions check.
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — Would work if it didn't have an explicit StarExtensions check.
-- [Futara's Dragon Engine](https://steamcommunity.com/sharedfiles/filedetails/?id=2297133082) — Causes severe server- *and* client-side entity lag on xStarbound.
+- [Futara's Dragon Engine](https://steamcommunity.com/sharedfiles/filedetails/?id=2297133082) — Causes severe server- *and* client-side entity lag on xStarbound. Use 
 - [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) — Causes a whole bunch of errors on xStarbound. Also depends on Futara's Dragon Engine and thus inherits its severe lag issue.
-- [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — would be fully supported if not for an explicit StarExtensions check.
-- [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — Not compatible because xStarbound has `root.assetSource` instead of `root.assetOrigin`.
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — Would work if it didn't have an explicit StarExtensions check. Use [FezzedTech](https://github.com/fezzedone/FezzedTech) instead.
-- [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — this mod explicitly checks for StarExtensions, so the keybinds do not work, although some of the added hidden chat commands do.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
 - [StarCustomChat](https://github.com/KrashV/StarCustomChat) — not fully compatible with xStarbound's callbacks and has serious issues with xStarbound's Lua sandbox anyway.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load on xClient and may cause crashes! However, *xServer* fully supports the server-side part of SE's «overground» tile placement feature.
