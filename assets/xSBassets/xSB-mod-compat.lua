@@ -27,6 +27,7 @@ assets.patch("/interface/cockpit/cockpit.config", "/interface/cockpit/cockpit.co
 
 --- Compatibility patch for Patman's Save Inventory Position ---
 
+if true then goto skipInventoryResetPatch end
 if not "pat_saveInventoryPosition" in loadedMods then goto skipInventoryResetPatch end
 modName = "Patman's Save Inventory Position"
 
