@@ -90,7 +90,7 @@ if not "XRC_quickCommands" in loadedMods then goto skipQuickCommandsPatch end
 modName = "Silver Sokolova's Quick Commands"
 
 pluto_try
-    local quickCommandsScriptPath = "/pat_dumpids.lua"
+    local quickCommandsScriptPath = "/xrc_bindings.lua"
 
     local quickCommandsScript = assets.bytes(quickCommandsScriptPath)
     local quickCommandsScriptPatch = [==[
