@@ -215,13 +215,16 @@ The `chatMessageConfig` must be in the following format:
 ```lua
 jobject{
   context = jobject{
-    mode = "Local", -- The chat mode, any of "Local", "Party", "Broadcast", "Whisper", "CommandResult", RadioMessage" or "World".
-    channel = "" -- If the mode is "Party" or "Local", the channel name.
+    mode = "Local", -- The chat mode, any of `"Local"`, `"Party"`, `"Broadcast"`, `"Whisper"`, `"CommandResult"`,
+    -- `"RadioMessage"` or `"World"`. Defaults to `"Local"` for `interface.addChatMessage` or `"CommandResult"` for
+    -- `chat.addMessage`.
+    channel = "" -- If the mode is "Party" or "Local", the channel name. This is currently only used for party UUIDs.
   },
   connection = 0, -- The connection ID for the player who posted the message.
   -- Server messages have an ID of 0, while player connection IDs start at 1, going up.
   nick = "", -- The sender's nickname. If an empty string, no nick is shown in chat.
-  portrait = "", -- The chat portrait. Is an empty string if there's no portrait. Not used for messages that don't have a "RadioMessage" mode.
+  portrait = "", -- The chat portrait. Is an empty string if there's no portrait.
+  -- Not used for messages that don't have a `"RadioMessage"` mode.
   message = "" -- The chat message, of course.
 }
 ```
@@ -230,7 +233,7 @@ For `chat.addMessage`, `messageText`, if specified, is used instead of any messa
 
 For `interface.addChatMessage`, the chat pane will only be shown if `showChat` is `true`. Otherwise, the message is added "silently" without popping the chat pane up.
 
-Identical in functionality to `chat.addMessage` (see below). To actually *send* messages, use `interface.doChat` (see above), `chat.send` (below) or `player.sendChat` (see `player.md`).
+To actually *send* messages, use `interface.doChat` (see above), `chat.send` (below) or `player.sendChat` (see `player.md`).
 
 ----
 
