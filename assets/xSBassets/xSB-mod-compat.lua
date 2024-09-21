@@ -78,11 +78,11 @@ pluto_try
     assets.add(saveInventoryPositionScriptPath, saveInventoryPositionScript .. saveInventoryPositionPatch)
 
     local inventoryResetCommandScript = [==[
-        function init()
-            local setIdentifier <const> = "patman::setInventoryPosition"
-            local saveIdentifier <const> = "patman::saveInventoryPosition"
-            local resetIdentifier <const> = "patman::resetInventoryPosition"
+        local setIdentifier <const> = "patman::setInventoryPosition"
+        local saveIdentifier <const> = "patman::saveInventoryPosition"
+        local resetIdentifier <const> = "patman::resetInventoryPosition"
 
+        function init()
             message.setHandler("/resetinventoryposition", |_, isLocal| ->
                 isLocal ? world.setGlobal(resetIdentifier, true) : nil)
             script.setUpdateDelta(0)
