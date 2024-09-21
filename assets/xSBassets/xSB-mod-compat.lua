@@ -117,7 +117,7 @@ pluto_try
 
     local quickCommandsScript = assets.bytes(quickCommandsScriptPath)
     local quickCommandsScriptPatch = [==[
-        local oldInit = init
+        local quickCommands_oldInit = init
         function init()
             local oldAssetJson = root.assetJson
             root.assetJson = function(path)
@@ -128,7 +128,7 @@ pluto_try
                 end
                 return result
             end
-            oldInit()
+            quickCommands_oldInit()
         end
     ]==]
     assets.add(quickCommandsScriptPath, quickCommandsScript .. quickCommandsScriptPatch)
@@ -192,10 +192,10 @@ pluto_try
 
     local mmBindsScript = assets.bytes(mmBindsScriptPath)
     local mmBindsScriptPatch = [==[
-        local oldInit = init
+        local mmBinds_oldInit = init
         function init()
             root.assetOrigin = root.assetSource -- Emulate the StarExtensions callback expected by this mod.
-            oldInit()
+            mmBinds_oldInit()
         end
     ]==]
     assets.add(mmBindsScriptPath, mmBindsScript .. mmBindsScriptPatch)
