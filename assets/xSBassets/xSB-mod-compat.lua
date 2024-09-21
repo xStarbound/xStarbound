@@ -57,6 +57,8 @@ pluto_try
             }
             patman_oldInit()
             script.setUpdateDelta(1)
+
+            oldPrimaryUuid = world.primaryPlayerUuid()
         end
 
         local resetIdentifier <const> = "patman::resetInventoryPosition"
