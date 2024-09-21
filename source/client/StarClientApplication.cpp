@@ -502,10 +502,11 @@ void ClientApplication::changeState(MainAppState newState) {
     // interface does own a shared pointer to the universe client, but
     // still.
     m_cinematicOverlay->stop();
-    m_mainInterface.reset();
-
     if (m_universeClient)
       m_universeClient->disconnect();
+
+    // FezzedOne: Fixed `bindRegisteredPane` sometimes returning `nil` on `uninit`.
+    m_mainInterface.reset();
 
     if (m_universeServer) {
       m_universeServer->stop();
