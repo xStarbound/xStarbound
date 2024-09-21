@@ -45,13 +45,14 @@ pluto_try
     assets.add("/player.config", playerConfig)
 
     local saveInventoryPositionPatch = [==[
-        local oldInit = init
+        local patman_oldInit = init
+        local patman_oldUninit = uninit
         function init()
             -- The message table is not currently available in universe client scripts on xClient.
             message ??= {
                 setHandler = function() end
             }
-            oldInit()
+            patman_oldInit()
             script.setUpdateDelta(1)
         end
 
@@ -62,7 +63,8 @@ pluto_try
         function update(dt)
             -- Make sure the inventory is restored to its saved position on player swaps.
             if world.getGlobal(setIdentifier) then
-                init()
+                patman_oldInit()
+                script.setUpdateDelta(1)
                 world.setGlobal(setIdentifier, null)
             end
             if world.getGlobal(resetIdentifier) then
@@ -70,7 +72,7 @@ pluto_try
                 world.setGlobal(resetIdentifier, null)
             end
             if world.getGlobal(saveIdentifier) then
-                uninit()
+                patman_oldUninit()
                 world.setGlobal(saveIdentifier, null)
             end
         end
