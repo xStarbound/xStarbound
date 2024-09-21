@@ -27,7 +27,6 @@ assets.patch("/interface/cockpit/cockpit.config", "/interface/cockpit/cockpit.co
 
 --- Compatibility patch for Patman's Save Inventory Position ---
 
-if true then goto skipInventoryResetPatch end
 if not "pat_saveInventoryPosition" in loadedMods then goto skipInventoryResetPatch end
 modName = "Patman's Save Inventory Position"
 
@@ -48,6 +47,9 @@ pluto_try
     local saveInventoryPositionPatch = [==[
         local patman_oldInit = init
         local patman_oldUninit = uninit
+
+        local oldPrimaryUuid = nil
+
         function init()
             -- The message table is not currently available in universe client scripts on xClient.
             message ??= {
@@ -57,46 +59,34 @@ pluto_try
             script.setUpdateDelta(1)
         end
 
-        local setIdentifier <const> = "patman::setInventoryPosition"
-        local saveIdentifier <const> = "patman::saveInventoryPosition"
         local resetIdentifier <const> = "patman::resetInventoryPosition"
 
         function update(dt)
-            -- Make sure the inventory is restored to its saved position on player swaps.
-            if world.getGlobal(saveIdentifier) then
+            -- Make sure the inventory is restored to its saved position on player swaps,
+            -- even when `"safeScripts"` is disabled.
+            local primaryUuid = world.primaryPlayerUuid()
+            if primaryUuid ~= oldPrimaryUuid then
                 patman_oldUninit()
-                world.setGlobal(saveIdentifier, null)
-            end
-            
-            if world.getGlobal(setIdentifier) then
                 patman_oldInit()
-                script.setUpdateDelta(1)
-                world.setGlobal(setIdentifier, null)
             end
-            
+
             if world.getGlobal(resetIdentifier) then
                 interface.bindRegisteredPane(PaneName).setPosition({0, 0})
                 world.setGlobal(resetIdentifier, null)
             end
+
+            oldPrimaryUuid = primaryUuid
         end
     ]==]
     assets.add(saveInventoryPositionScriptPath, saveInventoryPositionScript .. saveInventoryPositionPatch)
 
     local inventoryResetCommandScript = [==[
-        local setIdentifier <const> = "patman::setInventoryPosition"
-        local saveIdentifier <const> = "patman::saveInventoryPosition"
         local resetIdentifier <const> = "patman::resetInventoryPosition"
 
         function init()
             message.setHandler("/resetinventoryposition", |_, isLocal| ->
-                isLocal ? world.setGlobal(resetIdentifier, true) : nil)
+                (isLocal and player.uniqueId() == world.primaryPlayerUuid()) ? world.setGlobal(resetIdentifier, true) : nil)
             script.setUpdateDelta(0)
-
-            world.setGlobal(setIdentifier, true)
-        end
-
-        function uninit()
-            world.setGlobal(saveIdentifier, true)
         end
     ]==]
     assets.add(inventoryResetCommandScriptPath, inventoryResetCommandScript)
