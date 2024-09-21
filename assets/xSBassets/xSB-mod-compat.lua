@@ -67,13 +67,13 @@ pluto_try
                 script.setUpdateDelta(1)
                 world.setGlobal(setIdentifier, null)
             end
-            if world.getGlobal(resetIdentifier) then
-                interface.bindRegisteredPane(PaneName).setPosition({0, 0})
-                world.setGlobal(resetIdentifier, null)
-            end
             if world.getGlobal(saveIdentifier) then
                 patman_oldUninit()
                 world.setGlobal(saveIdentifier, null)
+            end
+            if world.getGlobal(resetIdentifier) then
+                interface.bindRegisteredPane(PaneName).setPosition({0, 0})
+                world.setGlobal(resetIdentifier, null)
             end
         end
     ]==]
