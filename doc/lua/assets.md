@@ -128,7 +128,7 @@ Creates a new `Image` object (see `image.md` for methods) with the specified siz
 
 ----
 
-#### `ByteArray` assets.newBytes()
+#### `ByteArray` assets.newRawBytes()
 
 > **Only available on xStarbound.**
 

@@ -147,8 +147,11 @@ MainInterfaceConfigPtr MainInterfaceConfig::loadFromAssets() {
   config->debugBackgroundPad = assets->json("/interface.config:debugBackgroundPad").toUInt();
 
   for (auto const& path : assets->scanExtension("macros")) {
-    for (auto const& pair : assets->json(path).iterateObject())
-      config->macroCommands.add(pair.first, jsonToStringList(pair.second));
+    for (auto const& pair : assets->json(path).iterateObject()) {
+      if (config->macroCommands.contains(pair.first))
+        Logger::warn("MainInterfaceConfig::loadFromAssets: Existing macro '/{}' overwritten with macro from '{}'", pair.first, path);
+      config->macroCommands[pair.first] = jsonToStringList(pair.second);
+    }
   }
 
   return config;
