@@ -1986,10 +1986,22 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::shipWorldPromise(
         shipWorld->setProperty("ship.maxFuel", currentUpgrades.maxFuel);
         shipWorld->setProperty("ship.crewSize", currentUpgrades.crewSize);
         shipWorld->setProperty("ship.fuelEfficiency", currentUpgrades.fuelEfficiency);
+      // Downstreamed from OpenStarbound: Fixed inconsistent plant growth on shipworlds by giving ships their own clock. Server-side fix. /* { */
+        shipWorld->setProperty("ship.epoch", Time::timeSinceEpoch());
+      }
+      auto shipClock = make_shared<Clock>();
+      auto shipTime = shipWorld->getProperty("ship.epoch");
+      if (!shipTime.canConvert(Json::Type::Float)) {
+        auto now = Time::timeSinceEpoch();
+        shipWorld->setProperty("ship.epoch", now);
+      } else {
+        shipClock->setTime(Time::timeSinceEpoch() - shipTime.toDouble());
       }
 
       shipWorld->setUniverseSettings(m_universeSettings);
-      shipWorld->setReferenceClock(universeClock);
+      shipWorld->setReferenceClock(shipClock);
+      shipClock->start();
+      /* } */
 
       if (auto systemWorld = clientContext->systemWorld())
         shipWorld->setOrbitalSky(systemWorld->clientSkyParameters(clientContext->clientId()));
