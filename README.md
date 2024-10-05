@@ -60,7 +60,8 @@ Read this to see if xStarbound is compatible with your mods.
 
 **Has xStarbound support:** The following mods have special functionality that requires or is supported by xStarbound.
 
-- [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — Fully supported by xStarbound.
+- [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — fully supported by xStarbound.
+- [Cheap As Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — currently fully supported by xStarbound, but due to stupidity, don't expect this to last.
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports StarExtensions (with reduced functionality) and is compatible with vanilla Starbound. Is *not* compatible with OpenStarbound.
