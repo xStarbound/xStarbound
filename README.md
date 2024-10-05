@@ -64,7 +64,6 @@ Read this to see if xStarbound is compatible with your mods.
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports StarExtensions (with reduced functionality) and is compatible with vanilla Starbound. Is *not* compatible with OpenStarbound.
-- [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — fully spported by xStarbound as of v3.1.6.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
 - [Planet Search](https://steamcommunity.com/sharedfiles/filedetails/?id=3269792617) — fully supported by xStarbound.
 - [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — All OpenStarbound-compatible commands are supported by xStarbound as of v3.1.6.
@@ -118,6 +117,7 @@ Read this to see if xStarbound is compatible with your mods.
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — Would work if it didn't have an explicit StarExtensions check.
 - [Futara's Dragon Engine](https://steamcommunity.com/sharedfiles/filedetails/?id=2297133082) — Causes severe server- *and* client-side entity lag on xStarbound. Use 
 - [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) — Causes a whole bunch of errors on xStarbound. Also depends on Futara's Dragon Engine and thus inherits its severe lag issue.
+- [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — Would work if it didn't have an explicit StarExtensions check. Use [FezzedTech](https://github.com/fezzedone/FezzedTech) instead.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
 - [StarCustomChat](https://github.com/KrashV/StarCustomChat) — not fully compatible with xStarbound's callbacks and has serious issues with xStarbound's Lua sandbox anyway.
