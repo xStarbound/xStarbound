@@ -17,7 +17,7 @@ if exist "%PROGRAMFILES(X86)%\Inno Setup 6" (
     )
 ) else (
     set "buildInstaller=no"
-    call :yesNoBox "If you want to build the xStarbound installer, click 'No' to open the Inno Setup download page in your browser. Restart this script once you've installed Inno Setup. Otherwise, click 'Yes' to continue; you may still use this script for direct installation." "xStarbound Build Script"
+    call :yesNoBox "If you want to build the xStarbound installer, click 'No' to open the Inno Setup download page in your browser. Restart this script once you've installed Inno Setup. Otherwise, click 'Yes' to continue. You may still use this script for direct installation." "xStarbound Build Script"
     if "!YesNo!"=="6" (
         echo "[xStarbound::Build] Will not build installer."
     ) else (
