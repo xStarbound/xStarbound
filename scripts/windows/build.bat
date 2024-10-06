@@ -61,7 +61,7 @@ if !ERRORLEVEL! neq 0 (
     exit /b %buildError%
 )
 
-goto skipOver
+if "%buildInstaller%"=="yes" goto skipOver
 :selectDirectory
 echo "[xStarbound::Build] Waiting for directory selection."
 :: Borrowed from this batch script on TenForums.com: https://www.tenforums.com/general-support/179377-bat-script-select-folder-update-path-bat-file.html
