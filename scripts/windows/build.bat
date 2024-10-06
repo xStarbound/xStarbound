@@ -124,9 +124,10 @@ if exist "%sbInstall%\assets\packed.pak" (
         exit /b %buildError%
     )
     :: Because the "DLL hell" fix stops CMake from copying *any* DLLs on Windows builds, the DLLs have to be manually copied in.
-    xcopy /y /f "cmake-build-windows-x64\source\client\!relOrDbg!\*.dll" "!sbInstall!\"
-    xcopy /y /f "cmake-build-windows-x64\source\server\!relOrDbg!\*.dll" "!sbInstall!\"
-    xcopy /y /f "cmake-build-windows-x64\source\utility\!relOrDbg!\*.dll" "!sbInstall!\"
+    mkdir "!sbInstall!\xsb-win64"
+    xcopy /y /f "cmake-build-windows-x64\source\client\!relOrDbg!\*.dll" "!sbInstall!\xsb-win64\"
+    xcopy /y /f "cmake-build-windows-x64\source\server\!relOrDbg!\*.dll" "!sbInstall!\xsb-win64\"
+    xcopy /y /f "cmake-build-windows-x64\source\utility\!relOrDbg!\*.dll" "!sbInstall!\xsb-win64\"
 ) else (
     echo "[xStarbound::Build] Not a valid Starbound directory^!"
     call :messageBox "The selected folder does not contain a Starbound installation. Click OK to go back to folder selection." "xStarbound Build Script - Error"
