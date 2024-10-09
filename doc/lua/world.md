@@ -259,6 +259,22 @@ Returns the duration of a day on the current world.
 
 ---
 
+### `Maybe<String>` world.biomeAt(`Vec2I` tilePos, `Maybe<bool>` getBlockBiome)
+
+> **Only available on xStarbound.**
+
+Returns the biome at the given world tile position for this world, or `nil` if there's no biome there. If `getBlockBiome` is `false` or unspecified, this returns the biome that affects the visible *parallax*; if `true`, this returns any biome or sub-biome at the location, even if it *doesn't* affect parallax.
+
+---
+
+### `Maybe<JsonObject>` world.biomeParametersAt(`Vec2I` tilePos, `Maybe<bool>` getBlockBiome)
+
+> **Only available on xStarbound.**
+
+Similar to `world.biomeAt` above, but returns a JSON object containing the parameters for any biome at the specified location, or `nil`/`null` if there's no biome there. `getBlockBiome` functions as it does for `world.biomeAt`.
+
+---
+
 #### `Json` world.getProperty(`String` propertyName, [`Json` defaultValue])
 
 Returns the JSON value of the specified world property, or defaultValue or `nil` if it is not set.
