@@ -1,4 +1,6 @@
 #include "StarImageMetadataDatabase.hpp"
+
+#include <cstddef>
 #include "StarFile.hpp"
 #include "StarImage.hpp"
 #include "StarImageProcessing.hpp"
@@ -7,6 +9,7 @@
 #include "StarGameTypes.hpp"
 #include "StarRoot.hpp"
 #include "StarAssets.hpp"
+#include "StarTime.hpp"
 
 namespace Star {
 
@@ -18,14 +21,16 @@ ImageMetadataDatabase::ImageMetadataDatabase() {
 Vec2U ImageMetadataDatabase::imageSize(AssetPath const& path) const {
   MutexLocker locker(m_mutex);
   auto i = m_sizeCache.find(path);
-  if (i != m_sizeCache.end())
-    return i->second;
+  if (i != m_sizeCache.end()) {
+    i->second.first = Time::monotonicMilliseconds();
+    return i->second.second;
+  }
 
   locker.unlock();
   Vec2U size = calculateImageSize(path);
 
   locker.lock();
-  m_sizeCache[path] = size;
+  m_sizeCache[path] = {Time::monotonicMilliseconds(), size};
   return size;
 }
 
@@ -35,7 +40,8 @@ List<Vec2I> ImageMetadataDatabase::imageSpaces(AssetPath const& path, Vec2F posi
   MutexLocker locker(m_mutex);
   auto i = m_spacesCache.find(key);
   if (i != m_spacesCache.end()) {
-    return i->second;
+    i->second.first = Time::monotonicMilliseconds();
+    return i->second.second;
   }
 
   auto filteredPath = filterProcessing(path);
@@ -43,8 +49,10 @@ List<Vec2I> ImageMetadataDatabase::imageSpaces(AssetPath const& path, Vec2F posi
 
   auto j = m_spacesCache.find(filteredKey);
   if (j != m_spacesCache.end()) {
-    auto spaces = j->second;
-    m_spacesCache[key] = spaces;
+    int64_t currentTime = Time::monotonicMilliseconds();
+    j->second.first = currentTime;
+    auto spaces = j->second.second;
+    m_spacesCache[key] = {currentTime, spaces};
     return spaces;
   }
 
@@ -87,8 +95,9 @@ List<Vec2I> ImageMetadataDatabase::imageSpaces(AssetPath const& path, Vec2F posi
   }
 
   locker.lock();
-  m_spacesCache[key] = spaces;
-  m_spacesCache[filteredKey] = spaces;
+  int64_t currentTime = Time::monotonicMilliseconds();
+  m_spacesCache[key] = {currentTime, spaces};
+  m_spacesCache[filteredKey] = {currentTime, spaces};
 
   return spaces;
 }
@@ -97,14 +106,16 @@ RectU ImageMetadataDatabase::nonEmptyRegion(AssetPath const& path) const {
   MutexLocker locker(m_mutex);
   auto i = m_regionCache.find(path);
   if (i != m_regionCache.end()) {
-    return i->second;
+    i->second.first = Time::monotonicMilliseconds();
+    return i->second.second;
   }
 
   auto filteredPath = filterProcessing(path);
   auto j = m_regionCache.find(filteredPath);
   if (j != m_regionCache.end()) {
-    m_regionCache[path] = j->second;
-    return j->second;
+    m_regionCache[path] = {Time::monotonicMilliseconds(), j->second.second};
+    j->second.first = Time::monotonicMilliseconds();
+    return j->second.second;
   }
 
   locker.unlock();
@@ -116,19 +127,29 @@ RectU ImageMetadataDatabase::nonEmptyRegion(AssetPath const& path) const {
   });
 
   locker.lock();
-  m_regionCache[path] = region;
-  m_regionCache[filteredPath] = region;
+  int64_t currentTime = Time::monotonicMilliseconds();
+  m_regionCache[path] = {currentTime, region};
+  m_regionCache[filteredPath] = {currentTime, region};
 
   return region;
 }
 
 void ImageMetadataDatabase::cleanup(bool triggered) {
+  MutexLocker locker(m_mutex);
   if (triggered) {
-    MutexLocker locker(m_mutex);
     m_regionCache.clear();
     m_spacesCache.clear();
     m_sizeCache.clear();
     Logger::info("ImageMetadataDatabase: Cleared cache.");
+  } else {
+    int64_t currentTime = Time::monotonicMilliseconds();
+    constexpr int64_t expiryTime = 5UL * 60UL * 1000UL; // FezzedOne: An expiry time of 5 minutes.
+    # define cleanCache(cache) eraseWhere(cache, [&](auto const& pair) { \
+        return currentTime - pair.second.first >= expiryTime;            \
+      })
+    cleanCache(m_regionCache);
+    cleanCache(m_spacesCache);
+    cleanCache(m_sizeCache);
   }
 }
 
@@ -185,7 +206,8 @@ Vec2U ImageMetadataDatabase::calculateImageSize(AssetPath const& path) const {
     // so we don't have to attempt to load the image or its metadata unnecessarily.
     MutexLocker locker(m_mutex);
     if (auto size = m_sizeCache.maybe(path.basePath)) {
-      imageSize = *size;
+      (*size).first = Time::monotonicMilliseconds();
+      imageSize = (*size).second;
     } else {
       locker.unlock();
       // FezzedOne: Fixed exception getting thrown when a memory asset's size is requested.
@@ -200,7 +222,7 @@ Vec2U ImageMetadataDatabase::calculateImageSize(AssetPath const& path) const {
         imageSize = fallback();
       #endif
       locker.lock();
-      m_sizeCache[path.basePath] = imageSize;
+      m_sizeCache[path.basePath] = {Time::monotonicMilliseconds(), imageSize};
     }
   }
 

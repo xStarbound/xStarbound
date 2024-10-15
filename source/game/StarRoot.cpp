@@ -57,7 +57,7 @@ namespace Star {
 
 namespace {
   unsigned const RootMaintenanceSleep = 5000;
-  unsigned const ImageMaintenancePeriods = 60;
+  unsigned const ImageMaintenancePeriods = 30;
   unsigned const RootLoadThreads = 4;
 }
 
@@ -110,7 +110,7 @@ Root::Root(Settings settings) {
           MutexLocker locker(m_imageMetadataDatabaseMutex);
           if (ImageMetadataDatabasePtr imgDb = m_imageMetadataDatabase) {
             locker.unlock();
-            imgDb->cleanup(true);
+            imgDb->cleanup();
           }
         }
 

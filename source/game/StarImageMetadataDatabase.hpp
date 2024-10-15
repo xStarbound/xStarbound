@@ -32,11 +32,13 @@ private:
 
   // Path, position, fillLimit, and flip
   typedef tuple<AssetPath, Vec2I, float, bool> SpacesEntry;
+  template <typename T>
+  using ExpirableEntry = pair<int64_t, T>;
 
   mutable Mutex m_mutex;
-  mutable HashMap<AssetPath, Vec2U> m_sizeCache;
-  mutable HashMap<SpacesEntry, List<Vec2I>> m_spacesCache;
-  mutable HashMap<AssetPath, RectU> m_regionCache;
+  mutable HashMap<AssetPath, ExpirableEntry<Vec2U>> m_sizeCache;
+  mutable HashMap<SpacesEntry, ExpirableEntry<List<Vec2I>>> m_spacesCache;
+  mutable HashMap<AssetPath, ExpirableEntry<RectU>> m_regionCache;
   TrackerListenerPtr m_reloadTracker;
   size_t m_reloadTicks = 0;
 };
