@@ -114,7 +114,7 @@ Root::Root(Settings settings) {
           }
         }
 
-        m_imageMaintenanceStopCondition.wait(m_maintenanceStopMutex, RootMaintenanceSleep);
+        m_imageMaintenanceStopCondition.wait(m_imageMaintenanceStopMutex, RootMaintenanceSleep);
       }
     });
 
