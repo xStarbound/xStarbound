@@ -144,12 +144,13 @@ void ImageMetadataDatabase::cleanup(bool triggered) {
   } else {
     int64_t currentTime = Time::monotonicMilliseconds();
     constexpr int64_t expiryTime = 5UL * 60UL * 1000UL; // FezzedOne: An expiry time of 5 minutes.
-    # define cleanCache(cache) eraseWhere(cache, [&](auto const& pair) { \
+    # define cleanStale(cache) eraseWhere(cache, [&](auto const& pair) { \
         return currentTime - pair.second.first >= expiryTime;            \
       })
-    cleanCache(m_regionCache);
-    cleanCache(m_spacesCache);
-    cleanCache(m_sizeCache);
+    cleanStale(m_regionCache);
+    cleanStale(m_spacesCache);
+    cleanStale(m_sizeCache);
+    Logger::info("ImageMetadataDatabase: Cleaned stale metadata from cache.");
   }
 }
 
