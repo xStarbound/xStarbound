@@ -57,6 +57,7 @@ namespace Star {
 
 namespace {
   unsigned const RootMaintenanceSleep = 5000;
+  unsigned const ImageMaintenanceSleep = 300000; // FezzedOne: 300 seconds, or 5 minutes.
   unsigned const RootLoadThreads = 4;
 }
 
@@ -97,6 +98,22 @@ Root::Root(Settings settings) {
     Logger::removeStdoutSink();
 
   Logger::info("Root: Preparing Root...");
+
+  m_stopImageMaintenanceThread = false;
+  m_imageMaintenanceThread = Thread::invoke("Root::imageMaintenanceMain", [this]() {
+      MutexLocker locker(m_imageMaintenanceStopMutex);
+      while (!m_stopImageMaintenanceThread) {
+        {
+          MutexLocker locker(m_imageMetadataDatabaseMutex);
+          if (ImageMetadataDatabasePtr imgDb = m_imageMetadataDatabase) {
+            locker.unlock();
+            imgDb->cleanup(true);
+          }
+        }
+
+        m_imageMaintenanceStopCondition.wait(m_maintenanceStopMutex, ImageMaintenanceSleep);
+      }
+    });
 
   m_stopMaintenanceThread = false;
   m_maintenanceThread = Thread::invoke("Root::maintenanceMain", [this]() {
@@ -163,6 +180,13 @@ Root::~Root() {
     m_maintenanceStopCondition.signal();
   }
   m_maintenanceThread.finish();
+
+  {
+    MutexLocker locker(m_imageMaintenanceStopMutex);
+    m_stopImageMaintenanceThread = true;
+    m_imageMaintenanceStopCondition.signal();
+  }
+  m_imageMaintenanceThread.finish();
 
   m_reloadListeners.clearAllListeners();
 

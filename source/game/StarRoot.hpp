@@ -212,6 +212,11 @@ private:
   ConditionVariable m_maintenanceStopCondition;
   bool m_stopMaintenanceThread;
 
+  ThreadFunction<void> m_imageMaintenanceThread;
+  Mutex m_imageMaintenanceStopMutex;
+  ConditionVariable m_imageMaintenanceStopCondition;
+  bool m_stopImageMaintenanceThread;
+
   AssetsPtr m_assets;
   Mutex m_assetsMutex;
 
