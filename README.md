@@ -89,8 +89,9 @@ Read this to see if xStarbound is compatible with your mods.
 - [Frackin' Universe](https://steamcommunity.com/sharedfiles/filedetails/?id=729480149) ([GitHub](https://github.com/sayterdarkwynd/FrackinUniverse)).
 - [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — the keybind is not supported by xStarbound solely due to an explicit StarExtensions check.
 - [Maple32](https://steamcommunity.com/sharedfiles/filedetails/?id=2568667104&searchtext=maple32).
-- [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034). Note that the new Classic Quickbar extension (see below) has compatibility issues!
+- [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034). Note that the Classic Quickbar extension (see below) has sandbox-related compatibility issues!
 - [Shellguard: Starbound Expansion Remastered](https://steamcommunity.com/sharedfiles/filedetails/?id=1563376005).
+- [Updated Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=2641776549) — use this instead of Classic Quickbar (see below) to avoid having to disable `"safeScripts"`.
 
 > **Note:** xStarbound does not and will not support StarExtensions' «body dynamics» and text-to-speech features, and currently doesn't support StarExtensions' species-specific head rotation parameters. Details:
 >
