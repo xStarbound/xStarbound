@@ -230,7 +230,23 @@ Maybe<Json> ContainerObject::receiveMessage(ConnectionId sendingConnection, Stri
   }
 }
 
-InteractAction ContainerObject::interact(InteractRequest const&) {
+InteractAction ContainerObject::interact(InteractRequest const& request) {
+  // FezzedOne: Call `onInteraction` in container scripts whenever the container is interacted with.
+  Vec2F diff = world()->geometry().diff(request.sourcePosition, position());
+  auto result = m_scriptComponent.invoke<Json>(
+      "onInteraction", JsonObject{{"source", JsonArray{diff[0], diff[1]}}, {"sourceId", request.sourceId}});
+
+  if (result) {
+    if (result->isNull())
+      return {};
+    else if (result->isType(Json::Type::String))
+      return InteractAction(result->toString(), entityId(), Json());
+    else
+      return InteractAction(result->getString(0), entityId(), result->get(1));
+  } else if (!configValue("interactAction", Json()).isNull()) {
+    return InteractAction(configValue("interactAction").toString(), entityId(), configValue("interactData", Json()));
+  }
+
   return InteractAction(InteractActionType::OpenContainer, entityId(), Json());
 }
 
