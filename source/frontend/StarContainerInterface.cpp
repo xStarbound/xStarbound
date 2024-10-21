@@ -19,6 +19,7 @@
 #include "StarStatusControllerLuaBindings.hpp"
 #include "StarWidgetLuaBindings.hpp"
 #include "StarAugmentItem.hpp"
+#include "StarInput.hpp"
 
 namespace Star {
 
@@ -303,6 +304,11 @@ void ContainerPane::update(float dt) {
         }
         fuelGauge->setPotentialFuelAmount(totalFuelAmount);
         fuelGauge->setRequestedFuelAmount(0);
+      }
+
+      // Downstreamed from OpenStarbound due to popular demand.
+      if (Input::singleton().bindDown("xsb", "containerTakeAll")) {
+        m_containerInteractor->clearContainer();
       }
     }
   }

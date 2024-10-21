@@ -75,7 +75,13 @@ void ItemTooltipBuilder::buildItemDescriptionInner(
   subTitle = categoryDisplayName(item->category());
   String description = item->description();
 
-  reader.construct(root.assets()->json(tooltipKind), container.get());
+   try {
+    reader.construct(root.assets()->json(tooltipKind), container.get());
+  } catch (std::exception const& e) {
+    Logger::warn("ItemTooltipBuilder: Tooltip config '{}' does not exist or is invalid; using base tooltip", tooltipKind);
+    reader = GuiReader();
+    reader.construct(root.assets()->json("/interface/tooltips/base.tooltip"), container.get());
+  }
 
   if (container->containsChild("icon"))
     container->fetchChild<ItemSlotWidget>("icon")->setItem(item);
@@ -102,8 +108,10 @@ void ItemTooltipBuilder::buildItemDescriptionInner(
         container->fetchChild<ImageWidget>("objectImage")->setDrawables(drawables);
       }
 
-      if (objectItem->tooltipKind() == "container")
-        container->setLabel("slotCountLabel", strf("Holds {} Items", objectItem->instanceValue("slotCount")));
+      if (objectItem->tooltipKind() == "container") {
+        Json slotCount = objectItem->instanceValue("slotCount");
+        container->setLabel("slotCountLabel", strf("Holds {} {}", slotCount, slotCount == Json(1) ? "item" : "items"));
+      }
 
       title = object->shortDescription();
       subTitle = categoryDisplayName(object->category());

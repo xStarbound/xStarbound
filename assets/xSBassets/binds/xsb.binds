@@ -4,7 +4,8 @@
       "camera": { "name": "Camera" },
       "interface": { "name": "Interface" },
       "voice": { "name": "Voice" },
-      "building": { "name": "Building" }
+      "building": { "name": "Building" },
+      "inventory": { "name": "Inventory" }
     },
     "name": "^#f22;xClient",
     "binds": {
@@ -14,7 +15,7 @@
           "value": "="
         }],
         "group": "camera",
-        "name": "Zoom In"
+        "name": "Zoom in"
       },
       "zoomOut": {
         "default": [{
@@ -22,7 +23,7 @@
           "value": "-"
         }],
         "group": "camera",
-        "name": "Zoom Out"
+        "name": "Zoom out"
       },
       "incrementalZoomIn": {
         "default": [{
@@ -31,7 +32,7 @@
           "mods" : ["LShift"]
         }],
         "group": "camera",
-        "name": "Zoom In Incrementally"
+        "name": "Zoom in incrementally"
       },
       "incrementalZoomOut": {
         "default": [{
@@ -40,7 +41,7 @@
           "mods" : ["LShift"]
         }],
         "group": "camera",
-        "name": "Zoom Out Incrementally"
+        "name": "Zoom out incrementally"
       },
       "interfaceZoomIn": {
         "default": [{
@@ -49,7 +50,7 @@
           "mods" : ["LCtrl"]
         }],
         "group": "interface",
-        "name": "Increase Scale"
+        "name": "Increase scale"
       },
       "interfaceZoomOut": {
         "default": [{
@@ -58,7 +59,7 @@
           "mods" : ["LCtrl"]
         }],
         "group": "interface",
-        "name": "Decrease Scale"
+        "name": "Decrease scale"
       },
       "interfaceIncrementalZoomIn": {
         "default": [{
@@ -67,7 +68,7 @@
           "mods" : ["LShift", "LCtrl"]
         }],
         "group": "interface",
-        "name": "Inc. Increase Scale"
+        "name": "Increase scale incrementally"
       },
       "interfaceIncrementalZoomOut": {
         "default": [{
@@ -76,27 +77,32 @@
           "mods" : ["LShift", "LCtrl"]
         }],
         "group": "interface",
-        "name": "Inc. Decrease Scale"
+        "name": "Decrease scale incrementally"
       },
       "pushToTalk": {
         "default": [],
         "group": "voice",
-        "name": "Push To Talk"
+        "name": "Push-to-talk"
       },
       "materialCollisionCycle": {
         "default": [],
         "group": "building",
-        "name": "Cycle Material Collision"
+        "name": "Cycle collision modifier"
       },
       "buildingRadiusGrow": {
         "default": [],
         "group": "building",
-        "name": "Increase Building Radius"
+        "name": "Increase building radius"
       },
       "buildingRadiusShrink": {
         "default": [],
         "group": "building",
-        "name": "Decrease Building Radius"
+        "name": "Decrease building radius"
+      },
+      "containerTakeAll": {
+        "default": [],
+        "group": "inventory",
+        "name": "Take all from container"
       }
     }
   }

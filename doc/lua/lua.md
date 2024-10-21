@@ -327,7 +327,7 @@ The following is a list of common Lua functions called by the engine when runnin
     ```
     Moves which are not active will be `nil`. In additional to normal game input, xClient's player control callbacks affect these as well.
   - *`void` update(`float` dt, `String` fireMode, `bool` shifting):* Fireable item scripts. Like active item scripts, but without the `moveMap`.
-- **`Json` onInteraction(`Json` interactionInfo):** Called when an NPC, monster, object or vehicle is interacted with. Expects a valid interact action config or `nil` (for no action) to be returned; on vehicles, a `nil` return lets a player or NPC lounge in the vehicle. For monsters and NPCs, `interactInfo` looks like this:
+- **`Maybe<Json>` onInteraction(`Json` interactionInfo):** Called when an NPC, monster, object or vehicle is interacted with. Expects a valid interact action config, `null` or `nil` (for no action) to be returned; on vehicles, a `nil` return lets a player or NPC lounge in the vehicle. For monsters and NPCs, `interactInfo` looks like this:
   ```lua
   jobject{
     sourceId = -4464, -- Entity ID of the interacting entity.
@@ -350,6 +350,8 @@ The following is a list of common Lua functions called by the engine when runnin
     interactPosition = jarray{660.12, 724.54} -- The entity's aim position when interacting.
   }
   ```
+
+  *Note:* For containers on xServer, a `nil` result returns the default container pane, whereas `null` returns *no* pane.
 - **`void` activate(`float` dt, `String` fireMode, `bool` shifting, `LuaTable` moveMap):** Called when an active item is being activated with the appropriate fire button or player control callback. Is passed the same arguments as `update` for active items. Other active item functions are self-explanatory.
 - **`void` [click event callback] (`Vec2I` clickPosition, `int` button, `bool` buttonDown, `MouseButton` buttonName):** Called when a mouse button is clicked or released within a canvas widget that has an assigned callback name in the pane config's `"canvasClickCallbacks"`.
 
