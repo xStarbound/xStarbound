@@ -75,11 +75,10 @@ void ItemTooltipBuilder::buildItemDescriptionInner(
   subTitle = categoryDisplayName(item->category());
   String description = item->description();
 
-   try {
+  if (root.assets()->assetExists(tooltipKind)) {
     reader.construct(root.assets()->json(tooltipKind), container.get());
-  } catch (std::exception const& e) {
-    Logger::warn("ItemTooltipBuilder: Tooltip config '{}' does not exist or is invalid; using base tooltip", tooltipKind);
-    reader = GuiReader();
+  } else {
+    Logger::warn("ItemTooltipBuilder: Tooltip config '{}' does not exist; using base tooltip", tooltipKind);
     reader.construct(root.assets()->json("/interface/tooltips/base.tooltip"), container.get());
   }
 
