@@ -3,9 +3,9 @@
 sbPath="$(realpath -zL $0 | xargs -0 dirname)/../"; export sbPath;
 cd "`dirname \"$0\"`";
 
-# automatically switch to wayland support if it seems like it's running
-if [ -z "$WAYLAND_DISPLAY" ]; then 
-  export SDL_VIDEODRIVER="wayland"
+# Automatically switch to wayland support if it seems like it's running.
+if [ -n "$WAYLAND_DISPLAY" ]; then 
+  export SDL_VIDEODRIVER="wayland";
 fi
 
 LD_LIBRARY_PATH="$LD_LIBRARY_PATH:./" ./xclient "$@"; #"$0";
