@@ -90,7 +90,7 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
 
   m_questManager = make_shared<QuestManager>(this);
   m_tools = make_shared<ToolUser>();
-  m_armor = make_shared<ArmorWearer>();
+  m_armor = make_shared<ArmorWearer>(true);
   m_companions = make_shared<PlayerCompanions>(config->companionsConfig);
 
   for (auto& p : config->genericScriptContexts) {
@@ -1504,6 +1504,8 @@ void Player::refreshArmor() {
   if (isSlave())
     return;
 
+  // FezzedOne: Force the ArmorWearer to check armour.
+  m_armor->reset();
   m_armor->setHeadItem(m_inventory->headArmor());
   m_armor->setHeadCosmeticItem(m_inventory->headCosmetic());
   m_armor->setChestItem(m_inventory->chestArmor());
@@ -2499,6 +2501,8 @@ Gender Player::gender() const {
 void Player::setGender(Gender const& gender) {
   m_identity.gender = gender;
   updateIdentity();
+  // FezzedOne: Fixed bug where changing gender does not immediately swap armour sprites.
+  refreshArmor();
 }
 
 String Player::species() const {
@@ -2554,6 +2558,8 @@ void Player::setIdentity(Json const &newIdentity)
     }
     m_identity = HumanoidIdentity(mergedIdentity);
     updateIdentity();
+    // FezzedOne: Fixed bug where changing gender does not immediately swap armour sprites.
+    refreshArmor();
   }
 }
 

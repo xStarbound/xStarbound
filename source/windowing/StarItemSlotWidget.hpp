@@ -70,6 +70,10 @@ private:
 
   bool m_highlightEnabled;
   Animation m_highlightAnimation;
+
+  String m_underlaidMarkerDirectives;
+  String m_fontEscapes;
+  Color m_cosmeticStackFontColor;
 };
 
 }

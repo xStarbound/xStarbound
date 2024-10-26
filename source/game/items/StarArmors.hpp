@@ -35,6 +35,15 @@ public:
   Directives const& directives() const;
 
   bool hideBody() const;
+  bool isUnderlaid() const;
+
+  void setUnderlaid(bool underlaid);
+
+  List<ItemPtr> getStackedCosmetics() const;
+  void setStackedCosmetics(List<ItemPtr> const& newStack);
+  ItemPtr popCosmetic();
+  void pushCosmetic(ItemPtr const& newItem);
+  size_t cosmeticStackCount();
 
   Maybe<String> const& techModule() const;
 
@@ -47,7 +56,9 @@ private:
   StringSet m_effectSources;
   Directives m_directives;
   bool m_hideBody;
+  bool m_underlaid;
   Maybe<String> m_techModule;
+  List<ItemPtr> m_stackedCosmetics;
 };
 
 class HeadArmor : public ArmorItem, public PreviewableItem {

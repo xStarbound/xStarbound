@@ -1,9 +1,11 @@
 #include "StarArmors.hpp"
 #include "StarAssets.hpp"
+#include "StarLogging.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarImageProcessing.hpp"
 #include "StarHumanoid.hpp"
 #include "StarRoot.hpp"
+#include "StarItemDatabase.hpp"
 #include "StarStoredFunctions.hpp"
 #include "StarPlayer.hpp"
 #include "StarDirectives.hpp"
@@ -26,6 +28,62 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
   refreshIconDrawables();
 
   m_hideBody = config.getBool("hideBody", false);
+  m_underlaid = instanceValue("underlaid").optBool().value(false);
+
+  if (auto storedCosmetics = instanceValue("stackedItems").optArray()) {
+    m_stackedCosmetics = (*storedCosmetics).transformed([](Json itemJson) -> ItemPtr {
+      ItemPtr result;
+      try {
+        result = Root::singleton().itemDatabase()->diskLoad(itemJson);
+      } catch (std::exception const& e) {
+        Logger::error("ArmorItem: Exception caught while instantiating stacked cosmetic item '{}': {}", itemJson.repr(), outputException(e, true));
+        result = nullptr;
+      }
+      return result;
+    });
+  }
+}
+
+void ArmorItem::setUnderlaid(bool underlaid) {
+  m_underlaid = underlaid;
+  setInstanceValue("underlaid", underlaid);
+}
+
+bool ArmorItem::isUnderlaid() const {
+  return m_underlaid;
+}
+
+void ArmorItem::setStackedCosmetics(List<ItemPtr> const& newStack) {
+  m_stackedCosmetics = std::move(newStack);
+  setInstanceValue("stackedItems", m_stackedCosmetics.transformed([](ItemPtr item) -> Json {
+    return Root::singleton().itemDatabase()->diskStore(item);
+  }));
+}
+
+void ArmorItem::pushCosmetic(ItemPtr const& newItem) {
+  m_stackedCosmetics.emplaceAppend(std::move(newItem));
+  setInstanceValue("stackedItems", m_stackedCosmetics.transformed([](ItemPtr item) -> Json {
+    return Root::singleton().itemDatabase()->diskStore(item);
+  }));
+}
+
+ItemPtr ArmorItem::popCosmetic() {
+  ItemPtr result = nullptr;
+  if (!m_stackedCosmetics.empty()) {
+    result = m_stackedCosmetics.takeLast();
+    setInstanceValue("stackedItems", m_stackedCosmetics.transformed([](ItemPtr item) -> Json {
+      return Root::singleton().itemDatabase()->diskStore(item);
+    }));
+  }
+  return result;
+}
+
+List<ItemPtr> ArmorItem::getStackedCosmetics() const {
+  return m_stackedCosmetics;
+}
+
+size_t ArmorItem::cosmeticStackCount() {
+  return m_stackedCosmetics.size();
 }
 
 List<PersistentStatusEffect> ArmorItem::statusEffects() const {

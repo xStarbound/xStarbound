@@ -15,6 +15,7 @@
 #include "StarWorldClient.hpp"
 #include "StarAssets.hpp"
 #include "StarItem.hpp"
+#include "StarArmors.hpp"
 #include "StarMainInterface.hpp"
 #include "StarMerchantInterface.hpp"
 #include "StarJsonExtra.hpp"
@@ -60,18 +61,55 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
     auto inventory = m_player->inventory();
     if (ItemPtr slotItem = inventory->itemsAt(slot)) {
       auto swapItem = inventory->swapSlotItem();
-      if (!swapItem || swapItem->empty() || swapItem->couldStack(slotItem)) {
+      if (context()->shiftHeld() && slot.is<EquipmentSlot>() && swapItem && !swapItem->empty() && slotItem->maxStack() == 1) {
+        if (auto headItem = as<HeadArmor>(slotItem)) {
+          if (as<HeadArmor>(swapItem)) {
+            headItem->pushCosmetic(swapItem);
+            inventory->setSwapSlotItem({});
+            m_player->refreshArmor();
+          }
+        } else if (auto chestItem = as<ChestArmor>(slotItem)) {
+          if (as<ChestArmor>(swapItem)) {
+            chestItem->pushCosmetic(swapItem);
+            inventory->setSwapSlotItem({});
+            m_player->refreshArmor();
+          }
+        } else if (auto legsItem = as<LegsArmor>(slotItem)) {
+          if (as<LegsArmor>(swapItem)) {
+            legsItem->pushCosmetic(swapItem);
+            inventory->setSwapSlotItem({});
+            m_player->refreshArmor();
+          }
+        } else if (auto backItem = as<BackArmor>(slotItem)) {
+          if (as<BackArmor>(swapItem)) {
+            backItem->pushCosmetic(swapItem);
+            inventory->setSwapSlotItem({});
+            m_player->refreshArmor();
+          }
+        }
+      } else if (!swapItem || swapItem->empty() || swapItem->couldStack(slotItem)) {
         uint64_t count = swapItem ? swapItem->couldStack(slotItem) : slotItem->maxStack();
         if (context()->shiftHeld())
           count = max(1, min<int>(count, slotItem->count() / 2));
         else
           count = 1;
 
-        if (auto taken = slotItem->take(count)) {
-          if (swapItem)
-            swapItem->stackWith(taken);
-          else
-            inventory->setSwapSlotItem(taken);
+        if (slot.is<EquipmentSlot>() && !swapItem) {
+        // FezzedOne: Right-clicking on an item in an equipment slot with an empty swap slot toggles the item's «underlaid» status.
+          if (auto armourItem = as<ArmorItem>(slotItem)) {
+            if (context()->shiftHeld())
+              inventory->setSwapSlotItem(armourItem->popCosmetic());
+            else
+              armourItem->setUnderlaid(!armourItem->isUnderlaid());
+            m_player->refreshArmor();
+          }
+        } else {
+          if (auto taken = slotItem->take(count)) {
+            if (swapItem)
+              swapItem->stackWith(taken);
+            else
+              inventory->setSwapSlotItem(taken);
+          }
         }
       } else if (auto augment = as<AugmentItem>(swapItem)) {
         if (auto augmented = augment->applyTo(slotItem))

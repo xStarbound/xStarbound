@@ -123,6 +123,12 @@ public:
     Array<unsigned, EmoteSize> emoteFrames;
   };
 
+  struct ArmorEntry {
+    String frameset = "";
+    Directives directives = Directives();
+    Directives maskDirectives = Directives();
+  };
+
   void setIdentity(HumanoidIdentity const& identity);
   HumanoidIdentity const& identity() const;
 
@@ -154,6 +160,28 @@ public:
   void setBackArmorFrameset(String backFrameset);
 
   void setHelmetMaskDirectives(Directives helmetMaskDirectives);
+
+  void setHeadArmorUnderlayDirectives(Directives directives);
+  void setHeadArmorUnderlayFrameset(String headFrameset);
+  void setChestArmorUnderlayDirectives(Directives directives);
+  void setChestArmorUnderlayFrameset(String chest);
+  void setBackSleeveUnderlayFrameset(String backSleeveFrameset);
+  void setFrontSleeveUnderlayFrameset(String frontSleeveFrameset);
+
+  void setLegsArmorUnderlayDirectives(Directives directives);
+  void setLegsArmorUnderlayFrameset(String legsFrameset);
+
+  void setBackArmorUnderlayDirectives(Directives directives);
+  void setBackArmorUnderlayFrameset(String backFrameset);
+
+  void setHelmetMaskUnderlayDirectives(Directives helmetMaskDirectives);
+
+  void setBackArmorStack(List<ArmorEntry> const& newStack);
+  void setBackSleeveStack(List<ArmorEntry> const& newStack);
+  void setLegsArmorStack(List<ArmorEntry> const& newStack);
+  void setChestArmorStack(List<ArmorEntry> const& newStack);
+  void setHeadArmorStack(List<ArmorEntry> const& newStack);
+  void setFrontSleeveStack(List<ArmorEntry> const& newStack);
 
   void setBodyHidden(bool hidden);
 
@@ -274,10 +302,15 @@ private:
   Directives getFacialHairDirectives() const;
   Directives getFacialMaskDirectives() const;
   Directives getHelmetMaskDirectives() const;
+  Directives getHelmetMaskUnderlayDirectives() const;
   Directives getHeadDirectives() const;
+  Directives getHeadUnderlayDirectives() const;
   Directives getChestDirectives() const;
+  Directives getChestUnderlayDirectives() const;
   Directives getLegsDirectives() const;
+  Directives getLegsUnderlayDirectives() const;
   Directives getBackDirectives() const;
+  Directives getBackUnderlayDirectives() const;
 
   int getEmoteStateSequence() const;
   int getArmStateSequence() const;
@@ -343,6 +376,26 @@ private:
   String m_backArmorFrameset;
   Directives m_backArmorDirectives;
   Directives m_helmetMaskDirectives;
+
+  String m_backSleeveUnderlayFrameset;
+  String m_frontSleeveUnderlayFrameset;
+  String m_headArmorUnderlayFrameset;
+  Directives m_headArmorUnderlayDirectives;
+  String m_chestArmorUnderlayFrameset;
+  Directives m_chestArmorUnderlayDirectives;
+  String m_legsArmorUnderlayFrameset;
+  Directives m_legsArmorUnderlayDirectives;
+  String m_backArmorUnderlayFrameset;
+  Directives m_backArmorUnderlayDirectives;
+  Directives m_helmetMaskUnderlayDirectives;
+
+  List<ArmorEntry> m_backArmorStack;
+  List<ArmorEntry> m_backSleeveStack;
+  List<ArmorEntry> m_legsArmorStack;
+  List<ArmorEntry> m_chestArmorStack;
+  List<ArmorEntry> m_headArmorStack;
+  List<ArmorEntry> m_frontSleeveStack;
+
   Vec2F m_headCenterPosition; // FezzedOne: Position of the centre of the humanoid's head.
   float m_headRotationMultiplier; // FezzedOne: The amount to multiply head rotation by.
   // FezzedOne: The maximum offset by which the head is shifted while it is being rotated.

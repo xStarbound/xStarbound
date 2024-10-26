@@ -25,6 +25,7 @@ STAR_CLASS(ArmorWearer);
 class ArmorWearer : public NetElementSyncGroup {
 public:
   ArmorWearer();
+  ArmorWearer(bool isPlayer);
 
   void setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude);
   void effects(EffectEmitter& effectEmitter);
@@ -90,6 +91,8 @@ private:
   bool m_chestNeedsSync;
   bool m_legsNeedsSync;
   bool m_backNeedsSync;
+
+  bool m_isPlayer;
 };
 
 }

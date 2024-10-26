@@ -4,6 +4,7 @@
 #include "StarWidgetParsing.hpp"
 #include "StarImageMetadataDatabase.hpp"
 #include "StarItem.hpp"
+#include "StarArmors.hpp"
 #include "StarDurabilityItem.hpp"
 #include "StarAssets.hpp"
 #include "StarGameTypes.hpp"
@@ -20,10 +21,11 @@ ItemSlotWidget::ItemSlotWidget(ItemPtr const& item, String const& backingImage)
   auto assets = Root::singleton().assets();
   auto interfaceConfig = assets->json("/interface.config");
   m_countPosition = TextPositioning(jsonToVec2F(interfaceConfig.get("itemCountRightAnchor")), HorizontalAnchor::RightAnchor);
-  m_countFontMode = FontMode::Normal;
+  m_countFontMode = FontMode::Shadow;
   m_fontSize = interfaceConfig.query("font.itemSize").toInt();
   m_font = interfaceConfig.query("font.defaultFont").toString();
   m_fontColor = Color::rgb(jsonToVec3B(interfaceConfig.query("font.defaultColor")));
+  m_fontEscapes = interfaceConfig.query("font.escapeCodes", "?border=1;111a;1114").toString();
   m_itemDraggableArea = jsonToRectI(interfaceConfig.get("itemDraggableArea"));
   m_durabilityOffset = jsonToVec2I(interfaceConfig.get("itemIconDurabilityOffset"));
 
@@ -35,6 +37,9 @@ ItemSlotWidget::ItemSlotWidget(ItemPtr const& item, String const& backingImage)
   Json highlightAnimationConfig = interfaceConfig.get("highlightAnimation");
   m_highlightAnimation = Animation(highlightAnimationConfig);
   m_highlightEnabled = false;
+
+  m_underlaidMarkerDirectives = interfaceConfig.optString("underlaidMarkerDirectives").value("?replace;000f=b33f");
+  m_cosmeticStackFontColor = Color::rgb(jsonToVec3B(interfaceConfig.query("font.cosmeticStackColor", JsonArray{210, 50, 50})));
 
   Vec2I backingImageSize;
   if (m_backingImage.size()) {
@@ -152,6 +157,10 @@ void ItemSlotWidget::renderImpl() {
 
     if (m_showRarity) {
       String border = rarityBorder(m_item->rarity());
+      if (auto armourItem = as<ArmorItem>(m_item)) {
+        if (armourItem->isUnderlaid())
+          border += m_underlaidMarkerDirectives;
+      }
       context()->drawInterfaceQuad(border, Vec2F(screenPosition()));
     }
 
@@ -183,14 +192,29 @@ void ItemSlotWidget::renderImpl() {
     int frame = (int)roundf(m_progress * 18); // TODO: Hardcoded lol
     context()->drawInterfaceQuad(String(strf("/interface/cooldown.png:{}", frame)), Vec2F(screenPosition()));
 
-    if (m_item->count() > 1 && m_showCount) { // we don't need to tell people that there's only 1 of something
-      context()->setFont(m_font);
-      context()->setFontSize(m_fontSize);
-      context()->setFontColor(m_fontColor.toRgba());
-      context()->setFontMode(m_countFontMode);
-      context()->renderInterfaceText(toString(m_item->count()), m_countPosition.translated(Vec2F(screenPosition())));
-      context()->setFontMode(FontMode::Normal);
-      context()->setDefaultFont();
+    if (m_showCount) {
+      if (m_item->count() == 1) {
+        if (auto armourItem = as<ArmorItem>(m_item)) {
+          size_t cosmeticStackCount = armourItem->cosmeticStackCount();
+          if (cosmeticStackCount != 0) {
+            context()->setFont(m_font);
+            context()->setFontSize(m_fontSize);
+            context()->setFontColor(m_cosmeticStackFontColor.toRgba());
+            context()->setFontMode(m_countFontMode);
+            context()->renderInterfaceText(toString(cosmeticStackCount + 1), m_countPosition.translated(Vec2F(screenPosition())));
+            context()->setFontMode(FontMode::Normal);
+            context()->setDefaultFont();
+          }
+        }
+      } else if (m_item->count() > 1) { // we don't need to tell people that there's only 1 of something
+        context()->setFont(m_font);
+        context()->setFontSize(m_fontSize);
+        context()->setFontColor(m_fontColor.toRgba());
+        context()->setFontMode(m_countFontMode);
+        context()->renderInterfaceText(toString(m_item->count()), m_countPosition.translated(Vec2F(screenPosition())));
+        context()->setFontMode(FontMode::Normal);
+        context()->setDefaultFont();
+      }
     }
 
   } else if (m_drawBackingImageWhenEmpty && m_backingImage != "") {
