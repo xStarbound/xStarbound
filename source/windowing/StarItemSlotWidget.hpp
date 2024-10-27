@@ -35,6 +35,7 @@ public:
   void indicateNew();
 
   void setHighlightEnabled(bool highlight);
+  void setCosmeticHighlightEnabled(bool cosmeticHighlight);
 
 protected:
   virtual void renderImpl() override;
@@ -69,6 +70,7 @@ private:
   Animation m_newItemIndicator;
 
   bool m_highlightEnabled;
+  bool m_cosmeticHighlightEnabled;
   Animation m_highlightAnimation;
 
   String m_underlaidMarkerDirectives;

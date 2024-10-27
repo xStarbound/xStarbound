@@ -61,27 +61,30 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
     auto inventory = m_player->inventory();
     if (ItemPtr slotItem = inventory->itemsAt(slot)) {
       auto swapItem = inventory->swapSlotItem();
-      if (context()->shiftHeld() && slot.is<EquipmentSlot>() && swapItem && !swapItem->empty() && slotItem->maxStack() == 1) {
+      // FezzedOne: Shift-right-clicking on an armour item in the inventory with an armour item of the same type in the swap slot
+      // adds that item to the armour item's cosmetic stack (or adds a cosmetic stack if none is present).
+      if (context()->shiftHeld() && as<ArmorItem>(slotItem) && swapItem && !swapItem->empty() && slotItem->maxStack() == 1) {
+        constexpr size_t maxCosmeticStack = 99;
         if (auto headItem = as<HeadArmor>(slotItem)) {
-          if (as<HeadArmor>(swapItem)) {
+          if (headItem->cosmeticStackCount() < maxCosmeticStack && as<HeadArmor>(swapItem)) {
             headItem->pushCosmetic(swapItem);
             inventory->setSwapSlotItem({});
             m_player->refreshArmor();
           }
         } else if (auto chestItem = as<ChestArmor>(slotItem)) {
-          if (as<ChestArmor>(swapItem)) {
+          if (chestItem->cosmeticStackCount() < maxCosmeticStack && as<ChestArmor>(swapItem)) {
             chestItem->pushCosmetic(swapItem);
             inventory->setSwapSlotItem({});
             m_player->refreshArmor();
           }
         } else if (auto legsItem = as<LegsArmor>(slotItem)) {
-          if (as<LegsArmor>(swapItem)) {
+          if (legsItem->cosmeticStackCount() < maxCosmeticStack && as<LegsArmor>(swapItem)) {
             legsItem->pushCosmetic(swapItem);
             inventory->setSwapSlotItem({});
             m_player->refreshArmor();
           }
         } else if (auto backItem = as<BackArmor>(slotItem)) {
-          if (as<BackArmor>(swapItem)) {
+          if (backItem->cosmeticStackCount() < maxCosmeticStack && as<BackArmor>(swapItem)) {
             backItem->pushCosmetic(swapItem);
             inventory->setSwapSlotItem({});
             m_player->refreshArmor();
@@ -94,8 +97,9 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
         else
           count = 1;
 
-        if (slot.is<EquipmentSlot>() && !swapItem) {
-        // FezzedOne: Right-clicking on an item in an equipment slot with an empty swap slot toggles the item's «underlaid» status.
+        // FezzedOne: Right-clicking on an armour item in the inventory with an empty swap slot toggles the item's «underlaid» status.
+        // Shift-right-click grabs an item out of an armour item's cosmetic stack if any stack is present.
+        if (as<ArmorItem>(slotItem) && !swapItem) {
           if (auto armourItem = as<ArmorItem>(slotItem)) {
             if (context()->shiftHeld())
               inventory->setSwapSlotItem(armourItem->popCosmetic());
@@ -337,6 +341,19 @@ void InventoryPane::update(float dt) {
     if (auto itemSlot = fetchChild<ItemSlotWidget>(p.second)) {
       itemSlot->setItem(inventory->itemsAt(p.first));
       itemSlot->showLinkIndicator(customBarItems.contains(itemSlot->item()));
+      itemSlot->setCosmeticHighlightEnabled(false);
+      if (ItemPtr swapSlot = inventory->swapSlotItem()) {
+        if (auto item = itemSlot->item()) {
+          if (as<HeadArmor>(item))
+            itemSlot->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
+          else if (as<ChestArmor>(item))
+            itemSlot->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
+          else if (as<LegsArmor>(item))
+            itemSlot->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
+          else if (as<BackArmor>(item))
+            itemSlot->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
+        }
+      }
     }
   }
 
@@ -366,6 +383,19 @@ void InventoryPane::update(float dt) {
     for (size_t i = 0; i < p.second->itemSlots(); ++i) {
       auto itemWidget = p.second->itemWidgetAt(i);
       itemWidget->showLinkIndicator(customBarItems.contains(itemWidget->item()));
+      itemWidget->setCosmeticHighlightEnabled(false);
+      if (ItemPtr swapSlot = inventory->swapSlotItem()) {
+        if (auto item = itemWidget->item()) {
+          if (as<HeadArmor>(item))
+            itemWidget->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
+          else if (as<ChestArmor>(item))
+            itemWidget->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
+          else if (as<LegsArmor>(item))
+            itemWidget->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
+          else if (as<BackArmor>(item))
+            itemWidget->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
+        }
+      }
     }
   }
 

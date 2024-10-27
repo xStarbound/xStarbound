@@ -183,6 +183,13 @@ public:
   void setHeadArmorStack(List<ArmorEntry> const& newStack);
   void setFrontSleeveStack(List<ArmorEntry> const& newStack);
 
+  void setBackArmorUnderlayStack(List<ArmorEntry> const& newStack);
+  void setBackSleeveUnderlayStack(List<ArmorEntry> const& newStack);
+  void setLegsArmorUnderlayStack(List<ArmorEntry> const& newStack);
+  void setChestArmorUnderlayStack(List<ArmorEntry> const& newStack);
+  void setHeadArmorUnderlayStack(List<ArmorEntry> const& newStack);
+  void setFrontSleeveUnderlayStack(List<ArmorEntry> const& newStack);
+
   void setBodyHidden(bool hidden);
 
   void setState(State state);
@@ -395,6 +402,13 @@ private:
   List<ArmorEntry> m_chestArmorStack;
   List<ArmorEntry> m_headArmorStack;
   List<ArmorEntry> m_frontSleeveStack;
+
+  List<ArmorEntry> m_backArmorUnderlayStack;
+  List<ArmorEntry> m_backSleeveUnderlayStack;
+  List<ArmorEntry> m_legsArmorUnderlayStack;
+  List<ArmorEntry> m_chestArmorUnderlayStack;
+  List<ArmorEntry> m_headArmorUnderlayStack;
+  List<ArmorEntry> m_frontSleeveUnderlayStack;
 
   Vec2F m_headCenterPosition; // FezzedOne: Position of the centre of the humanoid's head.
   float m_headRotationMultiplier; // FezzedOne: The amount to multiply head rotation by.

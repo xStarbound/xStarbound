@@ -103,6 +103,33 @@
         "default": [],
         "group": "inventory",
         "name": "Take all from container"
+      },
+      "copyItem": {
+        "default": [{
+          "type": "key",
+          "value": "C",
+          "mods": ["LCtrl"]
+        }],
+        "group": "inventory",
+        "name": "Copy item to JSON"
+      },
+      "cutItem": {
+        "default": [{
+          "type": "key",
+          "value": "X",
+          "mods": ["LCtrl"]
+        }],
+        "group": "inventory",
+        "name": "Cut item to JSON"
+      },
+      "pasteItem": {
+        "default": [{
+          "type": "key",
+          "value": "V",
+          "mods": ["LCtrl"]
+        }],
+        "group": "inventory",
+        "name": "Paste JSON as item"
       }
     }
   }

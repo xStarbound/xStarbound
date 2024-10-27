@@ -37,6 +37,7 @@ ItemSlotWidget::ItemSlotWidget(ItemPtr const& item, String const& backingImage)
   Json highlightAnimationConfig = interfaceConfig.get("highlightAnimation");
   m_highlightAnimation = Animation(highlightAnimationConfig);
   m_highlightEnabled = false;
+  m_cosmeticHighlightEnabled = false;
 
   m_underlaidMarkerDirectives = interfaceConfig.optString("underlaidMarkerDirectives").value("?replace;000f=b33f");
   m_cosmeticStackFontColor = Color::rgb(jsonToVec3B(interfaceConfig.query("font.cosmeticStackColor", JsonArray{210, 50, 50})));
@@ -148,6 +149,10 @@ void ItemSlotWidget::setHighlightEnabled(bool highlight) {
   m_highlightEnabled = highlight;
 }
 
+void ItemSlotWidget::setCosmeticHighlightEnabled(bool cosmeticHighlight) {
+  m_cosmeticHighlightEnabled = cosmeticHighlight;
+}
+
 void ItemSlotWidget::renderImpl() {
   if (m_item) {
     if (m_drawBackingImageWhenFull && m_backingImage != "")
@@ -193,20 +198,23 @@ void ItemSlotWidget::renderImpl() {
     context()->drawInterfaceQuad(String(strf("/interface/cooldown.png:{}", frame)), Vec2F(screenPosition()));
 
     if (m_showCount) {
-      if (m_item->count() == 1) {
+      if (m_item->maxStack() == 1) {
         if (auto armourItem = as<ArmorItem>(m_item)) {
+          constexpr size_t maxCosmeticStack = 99;
           size_t cosmeticStackCount = armourItem->cosmeticStackCount();
-          if (cosmeticStackCount != 0) {
+          if (cosmeticStackCount != 0 || m_cosmeticHighlightEnabled) {
             context()->setFont(m_font);
             context()->setFontSize(m_fontSize);
             context()->setFontColor(m_cosmeticStackFontColor.toRgba());
             context()->setFontMode(m_countFontMode);
-            context()->renderInterfaceText(toString(cosmeticStackCount + 1), m_countPosition.translated(Vec2F(screenPosition())));
+            String plusSign = (m_cosmeticHighlightEnabled && cosmeticStackCount < maxCosmeticStack) ? "+" : "";
+            context()->renderInterfaceText(cosmeticStackCount == 0 ? plusSign : toString(cosmeticStackCount + 1) + plusSign, 
+              m_countPosition.translated(Vec2F(screenPosition())));
             context()->setFontMode(FontMode::Normal);
             context()->setDefaultFont();
           }
         }
-      } else if (m_item->count() > 1) { // we don't need to tell people that there's only 1 of something
+      } else if (m_item->maxStack() > 1) { // FezzedOne: Stackable items always show their stack size.
         context()->setFont(m_font);
         context()->setFontSize(m_fontSize);
         context()->setFontColor(m_fontColor.toRgba());
