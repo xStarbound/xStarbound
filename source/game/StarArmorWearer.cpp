@@ -91,7 +91,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           humanoid.setHeadArmorUnderlayStack({});
         }
       }
-      bodyHidden = bodyHidden || m_headItem->hideBody();
+      bodyHidden = bodyHidden || (m_headItem->isUnderlaid() && m_headItem->hideBody());
     } else {
       if (headNeedsSync) {
         humanoid.setHeadArmorUnderlayFrameset("");
@@ -207,7 +207,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           humanoid.setBackSleeveUnderlayStack({});
         }
       }
-      bodyHidden = bodyHidden || m_chestItem->hideBody();
+      bodyHidden = bodyHidden || (m_chestItem->isUnderlaid() && m_chestItem->hideBody());
     } else {
       if (chestNeedsSync) {
         humanoid.setBackSleeveUnderlayFrameset("");
@@ -316,7 +316,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           humanoid.setLegsArmorUnderlayStack({});
         }
       }
-      bodyHidden = bodyHidden || m_legsItem->hideBody();
+      bodyHidden = bodyHidden || (m_legsItem->isUnderlaid() && m_legsItem->hideBody());
     } else {
       if (legsNeedsSync) {
         humanoid.setLegsArmorUnderlayFrameset("");
@@ -395,7 +395,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           humanoid.setBackArmorUnderlayStack({});
         }
       }
-      bodyHidden = bodyHidden || m_backItem->hideBody();
+      bodyHidden = bodyHidden || (m_backItem->isUnderlaid() && m_backItem->hideBody());
     } else {
       if (backNeedsSync) {
         humanoid.setBackArmorUnderlayFrameset("");
