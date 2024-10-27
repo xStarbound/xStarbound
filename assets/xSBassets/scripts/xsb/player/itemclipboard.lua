@@ -1,3 +1,6 @@
+local module = {}
+modules.itemclipboard = module
+
 -- FezzedOne: Allow items to be copied and pasted from the clipboard.
 
 local function resolveItem(itemJson)
@@ -13,7 +16,7 @@ local function resolveItem(itemJson)
 end
 
 function module:update(dt)
-    if xsb and entity.id() == world.primaryPlayer() then
+    if entity.id() == world.primaryPlayer() then
         if input.bindDown("xSB", "copyItem") then
             local itemToCopy = player.primaryHandItem() or player.altHandItem()
             if itemToCopy then
