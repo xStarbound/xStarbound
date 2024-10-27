@@ -17,7 +17,7 @@ end
 
 function module:update(dt)
     if entity.id() == world.primaryPlayer() then
-        if input.bindDown("xSB", "copyItem") then
+        if input.bindDown("xsb", "copyItem") then
             local itemToCopy = player.primaryHandItem() or player.altHandItem()
             if itemToCopy then
                 clipboard.setText(sb.printJson(itemToCopy, 1))
@@ -36,7 +36,7 @@ function module:update(dt)
             end
         end
 
-        if input.bindDown("xSB", "cutItem") then
+        if input.bindDown("xsb", "cutItem") then
             local itemToCopy = player.swapSlotItem()
             if itemToCopy then
                 clipboard.setText(sb.printJson(itemToCopy, 1))
@@ -55,7 +55,7 @@ function module:update(dt)
             end
         end
 
-        if input.bindDown("xSB", "pasteItem") then
+        if input.bindDown("xsb", "pasteItem") then
             if clipboard.hasText() then
                 local rawItemText = clipboard.getText()
                 local parseSuccess, itemJson = pcall(sb.parseJson, rawItemText)
