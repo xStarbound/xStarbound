@@ -1,4 +1,5 @@
 #include "StarContainerObject.hpp"
+#include "StarInteractionTypes.hpp"
 #include "StarRoot.hpp"
 #include "StarAssets.hpp"
 #include "StarLexicalCast.hpp"
@@ -241,8 +242,17 @@ InteractAction ContainerObject::interact(InteractRequest const& request) {
       return {};
     else if (result->isType(Json::Type::String))
       return InteractAction(result->toString(), entityId(), Json());
-    else
-      return InteractAction(result->getString(0), entityId(), result->get(1));
+    else if (result->isType(Json::Type::Array)) {
+      // FezzedOne: Fixed exception getting thrown whenever the second item in the array is a `nil`.
+      // This fixes objects that use the upgradeable object script.
+      auto arrayResult = result->toArray();
+      String action = arrayResult.size() != 0 ? arrayResult.get(0).optString().value("None") : "None";
+      Json data = arrayResult.size() > 1 ? arrayResult.get(1) : Json();
+      if (action == "OpenCraftingInterface" && data.isNull()) // FezzedOne: Special exception for mod compatibility.
+        return InteractAction(InteractActionType::OpenContainer, entityId(), Json());
+      else
+        return InteractAction(action, entityId(), data);
+    }
   } else if (!configValue("interactAction", Json()).isNull()) {
     return InteractAction(configValue("interactAction").toString(), entityId(), configValue("interactData", Json()));
   }

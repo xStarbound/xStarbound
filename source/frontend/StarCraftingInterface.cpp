@@ -37,8 +37,13 @@ CraftingPane::CraftingPane(WorldClientPtr worldClient, PlayerPtr player, Json co
   m_sourceEntityId = sourceEntityId;
 
   auto assets = Root::singleton().assets();
-  // get the config data for this crafting pane, default to "bare hands" crafting
-  auto baseConfig = settings.get("config", "/interface/windowconfig/crafting.config");
+  if (settings.isNull())
+    Logger::warn("CraftingPane: Pane settings not present; defaulting to by-hand crafting pane");
+  // FezzedOne: If the `settings` are somehow `null`, use the by-hand crafting config
+  // and log a warning instead of throwing an exception and crashing to the menu.
+  auto baseConfig = settings.type() == Json::Type::Object
+                  ? settings.get("config", "/interface/windowconfig/crafting.config")
+                  : "/interface/windowconfig/crafting.config";
   m_settings = jsonMerge(assets->json("/interface/windowconfig/crafting.config:default"), 
                jsonMerge(assets->fetchJson(baseConfig), settings));
 
