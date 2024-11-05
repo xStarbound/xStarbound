@@ -81,7 +81,8 @@ LuaCallbacks LuaBindings::makeStatusControllerCallbacks(StatusController* statCo
   callbacks.registerCallbackWithSignature<bool, String>("uniqueStatusEffectActive",
       bind(&StatusControllerCallbacks::uniqueStatusEffectActive, statController, _1));
 
-  callbacks.registerCallbackWithSignature<String>("primaryDirectives", bind(&StatusController::primaryDirectives, statController));
+  // FezzedOne: Downstreamed OpenStarbound bugfix for this callback not returning the actual status directives.
+  callbacks.registerCallbackWithSignature<Directives>("primaryDirectives", bind(&StatusController::primaryDirectives, statController));
   callbacks.registerCallback("setPrimaryDirectives", [statController](Maybe<String> const& directives) { statController->setPrimaryDirectives(directives.value()); });
 
   callbacks.registerCallbackWithSignature<void, DamageRequest>("applySelfDamageRequest", bind(&StatusController::applySelfDamageRequest, statController, _1));
