@@ -597,15 +597,16 @@ String imageOperationToString(ImageOperation const& operation) {
     else
       return strf("border={};{};{}", op->pixels, Color::rgba(op->startColor).toHex(), Color::rgba(op->endColor).toHex());
   } else if (auto op = operation.ptr<ScaleImageOperation>()) {
+    // FezzedOne: Ensure scale operations have their arguments formatted correctly.
     if (op->mode == ScaleImageOperation::Nearest)
-      return strf("scalenearest={}", op->rawScale);
+      return strf("scalenearest={};{}", op->rawScale[1], op->rawScale[2]);
     // FezzedOne: Faithfully translate explicit nearest-pixel ops with their `skip` argument.
     else if (op->mode == ScaleImageOperation::NearestPixel)
-      return strf("scalenearest={};skip", op->rawScale);
+      return strf("scalenearest={};{};skip", op->rawScale[1], op->rawScale[2]);
     else if (op->mode == ScaleImageOperation::Bilinear)
-      return strf("scalebilinear={}", op->rawScale);
+      return strf("scalebilinear={};{}", op->rawScale[1], op->rawScale[2]);
     else if (op->mode == ScaleImageOperation::Bicubic)
-      return strf("scalebicubic={}", op->rawScale);
+      return strf("scalebicubic={};{}", op->rawScale[1], op->rawScale[2]);
   } else if (auto op = operation.ptr<CropImageOperation>()) {
     return strf("crop={};{};{};{}", op->subset.xMin(), op->subset.xMax(), op->subset.yMin(), op->subset.yMax());
   } else if (auto op = operation.ptr<FlipImageOperation>()) {
