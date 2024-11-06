@@ -57,6 +57,23 @@ NAMESPACE_SOUP
 			reset();
 		}
 
+		void operator=(const Buffer& b) SOUP_EXCAL
+		{
+			clear();
+			append(b);
+		}
+
+		void operator=(Buffer&& b) noexcept
+		{
+			reset();
+			this->m_data = b.m_data;
+			this->m_size = b.m_size;
+			this->m_capacity = b.m_capacity;
+			b.m_data = nullptr;
+			b.m_size = 0;
+			b.m_capacity = 0;
+		}
+
 		[[nodiscard]] uint8_t* data() noexcept
 		{
 			return m_data;
@@ -100,6 +117,16 @@ NAMESPACE_SOUP
 		[[nodiscard]] const uint8_t& at(size_t i) const noexcept
 		{
 			return m_data[i];
+		}
+
+		[[nodiscard]] uint8_t& back() noexcept
+		{
+			return m_data[size()];
+		}
+
+		[[nodiscard]] const uint8_t& back() const noexcept
+		{
+			return m_data[size()];
 		}
 
 		void resize(size_t desired_size) SOUP_EXCAL
@@ -160,8 +187,16 @@ NAMESPACE_SOUP
 		{
 			const auto s = m_size;
 			grow(count);
-			memcpy(&m_data[count], &m_data[0], s);
+			memmove(&m_data[count], &m_data[0], s);
 			memset(&m_data[0], value, count);
+		}
+
+		void prepend(const void* src_data, size_t src_size) SOUP_EXCAL
+		{
+			const auto s = m_size;
+			grow(src_size);
+			memmove(&m_data[src_size], &m_data[0], s);
+			memcpy(&m_data[0], src_data, src_size);
 		}
 
 		void insert_back(size_t count, uint8_t value) SOUP_EXCAL

@@ -37,18 +37,6 @@ static bool isIndexBasedTable(lua_State* L, int i)
 		}
 		lua_pop(L, 2);
 	}
-	// FezzedOne: If no integer keys are found, check for a Starbound type hint.
-	if (const auto type = luaL_getmetafield(L, -2, "__typehint")) {
-		if (lua_isinteger(L, -2)) {
-			const auto typeHint = lua_tointeger(L, -2);
-			lua_pop(L, 2);
-			if (typeHint == 1) return true;
-			else if (typeHint == 2) return false;
-		} else {
-			lua_pop(L, 1);
-		}
-	}
-	// FezzedOne: If any integer keys are found, but no Starbound type hint is found, assume this is an array.
 	lua_pop(L, 1);
 	return true;
 }
@@ -95,38 +83,40 @@ static soup::UniquePtr<soup::JsonNode> checkJson(lua_State* L, int i)
 		{
 			auto obj = soup::make_unique<soup::JsonObject>();
 			lua_pushvalue(L, i);
-			lua_pushnil(L);
-			while (lua_next(L, -2))
+			lua_pushliteral(L, "__order");
+			if (lua_rawget(L, -2) == LUA_TTABLE)
 			{
-				lua_pushvalue(L, -2);
-				obj->children.emplace_back(checkJson(L, -1), checkJson(L, -2));
-				lua_pop(L, 2);
-			}
-			lua_pop(L, 1);
-			if (auto itOrder = obj->findIt("__order"); itOrder != obj->end())
-			{
-				if (itOrder->second->isArr())
+				// table, __order
+				lua_pushnil(L);
+				// table, __order, idx
+				while (lua_next(L, -2))
 				{
-					auto upOrder = std::move(itOrder->second);
-					obj->erase(itOrder);
-					std::sort(obj->begin(), obj->end(), [pOrder{ static_cast<soup::JsonArray*>(upOrder.get()) }]
-						(const soup::JsonObject::Container::value_type& a, const soup::JsonObject::Container::value_type& b)
+					// table, __order, idx, key
+					lua_pushvalue(L, -1);
+					// table, __order, idx, key, key
+					if (lua_rawget(L, -5) > LUA_TNIL)
 					{
-						for (const auto& val : *pOrder)
-						{
-							if (*a.first == val)
-							{
-								return true;
-							}
-							if (*b.first == val)
-							{
-								return false;
-							}
-						}
-						return false;
-					});
+						// table, __order, idx, key, value
+						obj->children.emplace_back(soup::make_unique<soup::JsonString>(pluto_checkstring(L, -2)), checkJson(L, -1));
+					}
+					// table, __order, idx, key, value
+					lua_pop(L, 2);
+					// table, __order, idx
+				}
+				lua_pop(L, 1);  /* pop __order */
+			}
+			else
+			{
+				lua_pop(L, 1);  /* pop __order (nil)*/
+				lua_pushnil(L);
+				while (lua_next(L, -2))
+				{
+					lua_pushvalue(L, -2);
+					obj->children.emplace_back(checkJson(L, -1), checkJson(L, -2));
+					lua_pop(L, 2);
 				}
 			}
+			lua_pop(L, 1);
 			return obj;
 		}
 	}
@@ -171,15 +161,6 @@ static void pushFromJson(lua_State* L, const soup::JsonNode& node, int flags)
 				pushFromJson(L, *child, flags);
 				lua_settable(L, -3);
 			}
-
-			// FezzedOne: Set the correct Starbound type hint for any JSON arrays so that empty arrays are handled appropriately.
-			if (!lua_getmetatable(L, -1))
-				lua_newtable(L);
-			lua_pushstring(L, "__typehint");
-			const lua_Integer arrayHint = 1;
-			lua_pushinteger(L, arrayHint);
-			lua_rawset(L, -3);
-			lua_setmetatable(L, -2);
 		}
 		break;
 

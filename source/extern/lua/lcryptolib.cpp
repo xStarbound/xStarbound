@@ -8,15 +8,12 @@
 #include "lstring.h"
 #include "lcryptolib.hpp"
 
-#include <ios>
-#include <string>
-#include <random>
-#include <sstream>
-#include <iomanip>
-
 #include "vendor/Soup/soup/adler32.hpp"
 #include "vendor/Soup/soup/aes.hpp"
 #include "vendor/Soup/soup/crc32.hpp"
+#include "vendor/Soup/soup/deflate.hpp"
+#include "vendor/Soup/soup/HardwareRng.hpp"
+#include "vendor/Soup/soup/ripemd160.hpp"
 #include "vendor/Soup/soup/rsa.hpp"
 #include "vendor/Soup/soup/sha1.hpp"
 #include "vendor/Soup/soup/sha256.hpp"
@@ -29,13 +26,13 @@ static int fnv1(lua_State *L)
 {
   const auto FNV_offset_basis = 0xcbf29ce484222325ull;
   const auto FNV_prime = 0x100000001b3ull;
-  const std::string s  = luaL_checkstring(L, 1);
   uint64_t hash     = FNV_offset_basis;
   
-  for (auto& c : s)
-  {
+  size_t l;
+  const char* s = luaL_checklstring(L, 1, &l);
+  for (; l--; ++s) {
     hash *= FNV_prime;
-    hash ^= (uint8_t)c;
+    hash ^= (uint8_t)*s;
   }
 
   lua_pushinteger(L, hash);
@@ -47,12 +44,12 @@ static int fnv1a(lua_State *L)
 {
   const auto FNV_offset_basis = 0xcbf29ce484222325ull;
   const auto FNV_prime = 0x100000001b3ull;
-  const std::string s  = luaL_checkstring(L, 1);
   uint64_t hash     = FNV_offset_basis;
   
-  for (auto& c : s)
-  {
-    hash ^= (uint8_t)c;
+  size_t l;
+  const char *s = luaL_checklstring(L, 1, &l);
+  for (; l--; ++s) {
+    hash ^= (uint8_t)*s;
     hash *= FNV_prime;
   }
 
@@ -87,12 +84,12 @@ static int joaat(lua_State *L)
 // Times33, a.k.a DJBX33A is the hashing algorithm used in PHP's hash table.
 static int times33(lua_State *L)
 {
-  const std::string str = luaL_checkstring(L, 1);
   unsigned long hash = 0;
  
-  for (auto c : str)
-  {
-    hash = (hash * 33) ^ (unsigned long)c;
+  size_t l;
+  const char *s = luaL_checklstring(L, 1, &l);
+  for (; l--; ++s) {
+    hash = (hash * 33) ^ (unsigned long)*s;
   }
   
   lua_pushinteger(L, hash);
@@ -118,7 +115,7 @@ static int murmur2(lua_State *L)
   size_t textLen;
   const auto text = luaL_checklstring(L, 1, &textLen);
   const auto seed = luaL_optinteger(L, 2, 0);
-  unsigned int hash;
+  uint32_t hash;
 
   if (lua_toboolean(L, 3))
     hash = MurmurHashAligned2(text, (int)textLen, (uint32_t)seed);
@@ -219,17 +216,13 @@ static int sdbm(lua_State *L)
 static int md5(lua_State *L)
 {
   size_t len;
-  unsigned char buffer[16] = {};
+  unsigned char buffer[16];
   const auto str = luaL_checklstring(L, 1, &len);
   md5_fn((unsigned char*)str, (int)len, buffer);
   
-  std::stringstream res {};
-  for (int i = 0; i < 16; i++)
-  {
-    res << std::hex << (int)buffer[i];
-  }
-
-  lua_pushstring(L, res.str().c_str());
+  char hexbuff[32];
+  soup::string::bin2hexAt(hexbuff, (const char*)buffer, sizeof(buffer), soup::string::charset_hex_lower);
+  lua_pushlstring(L, hexbuff, sizeof(hexbuff));
   return 1;
 }
 
@@ -266,74 +259,37 @@ static int lua(lua_State *L)
 }
 
 
-static int l_sha1(lua_State *L)
-{
-  const auto text = pluto_checkstring(L, 1);
-  const bool binary = lua_istrue(L, 2);
-  auto digest = soup::sha1::hash(text);
-  if (!binary) {
-    digest = soup::string::bin2hexLower(digest);
-  }
-  pluto_pushstring(L, digest);
-  return 1;
-}
-
-
-static int l_sha256(lua_State *L)
-{
+template <typename T>
+static int l_hashwithdigest (lua_State *L) {
   size_t l;
-  const char* text = luaL_checklstring(L, 1, &l);
+  const char *text = luaL_checklstring(L, 1, &l);
   const bool binary = lua_istrue(L, 2);
-  auto digest = soup::sha256::hash(text, l);
-  if (!binary) {
-    digest = soup::string::bin2hexLower(digest);
+
+  typename T::State st;
+  st.append(text, l);
+  st.finalise();
+
+  char shrtbuf[LUAI_MAXSHORTLEN];
+  if (binary) {
+    char *out = plutoS_prealloc(L, shrtbuf, T::DIGEST_BYTES);
+    st.getDigest(reinterpret_cast<uint8_t*>(out));
+    plutoS_commit(L, out, T::DIGEST_BYTES);
   }
-  pluto_pushstring(L, digest);
+  else {
+    uint8_t digest[T::DIGEST_BYTES];
+    st.getDigest(digest);
+
+    char *out = plutoS_prealloc(L, shrtbuf, T::DIGEST_BYTES * 2);
+    soup::string::bin2hexAt(out, (const char*)digest, sizeof(digest), soup::string::charset_hex_lower);
+    plutoS_commit(L, out, T::DIGEST_BYTES * 2);
+  }
   return 1;
 }
 
 
-static int l_sha384(lua_State *L)
-{
-  size_t l;
-  const char* text = luaL_checklstring(L, 1, &l);
-  const bool binary = lua_istrue(L, 2);
-  auto digest = soup::sha384::hash(text, l);
-  if (!binary) {
-    digest = soup::string::bin2hexLower(digest);
-  }
-  pluto_pushstring(L, digest);
-  return 1;
-}
-
-
-static int l_sha512(lua_State *L)
-{
-  size_t l;
-  const char* text = luaL_checklstring(L, 1, &l);
-  const bool binary = lua_istrue(L, 2);
-  auto digest = soup::sha512::hash(text, l);
-  if (!binary) {
-    digest = soup::string::bin2hexLower(digest);
-  }
-  pluto_pushstring(L, digest);
-  return 1;
-}
-
-
-// This should be fairly secure on systems that employ a randomized device, like /dev/urandom, BCryptGenRandom, etc.
-// But, otherwise, it's not secure whatsoever.
 static int random(lua_State *L)
 {
-  std::random_device dev;
-#if defined(_WIN64) || defined(__x86_64__) || defined(__ppc64__) || defined(_M_X64) || defined(__aarch64__)
-  std::mt19937_64 rng(dev());
-  std::uniform_int_distribution<std::mt19937_64::result_type> dist(luaL_checkinteger(L, 1), luaL_checkinteger(L, 2));
-#else
-  std::mt19937 rng(dev());
-  std::uniform_int_distribution<std::mt19937::result_type> dist((std::mt19937::result_type)luaL_checkinteger(L, 1), (std::mt19937::result_type)luaL_checkinteger(L, 2));
-#endif
-  lua_pushinteger(L, dist(rng));
+  lua_pushinteger(L, static_cast<lua_Integer>(soup::FastHardwareRng::generate64()));
   return 1;
 }
 
@@ -376,6 +332,39 @@ static int generatekeypair (lua_State *L) {
   pushbigint(L, std::move(kp.q));
   lua_settable(L, -3);
   return 2;
+}
+
+
+static int exportkey (lua_State *L) {
+  const char *format = luaL_checkstring(L, 2);
+  if (strcmp(format, "pem") == 0) {
+    luaL_checktype(L, 1, LUA_TTABLE);
+    soup::Bigint *p = lua_getfield(L, 1, "p") == LUA_TUSERDATA ? checkbigint(L, -1) : nullptr; if (p) lua_pop(L, 1);
+    soup::Bigint *q = lua_getfield(L, 1, "q") == LUA_TUSERDATA ? checkbigint(L, -1) : nullptr; if (q) lua_pop(L, 1);
+    if (p && q) {
+      pluto_pushstring(L, soup::RsaPrivateKey::fromPrimes(*p, *q).toPem());
+      return 1;
+    }
+    else luaL_error(L, "Invalid private key");
+  }
+  else luaL_error(L, "Unknown format");
+}
+
+
+static int importkey (lua_State *L) {
+  const char *format = luaL_checkstring(L, 2);
+  if (strcmp(format, "pem") == 0) {
+    auto priv = soup::RsaPrivateKey::fromPem(pluto_checkstring(L, 1));
+    lua_newtable(L);
+    lua_pushliteral(L, "p");
+    pushbigint(L, std::move(priv.p));
+    lua_settable(L, -3);
+    lua_pushliteral(L, "q");
+    pushbigint(L, std::move(priv.q));
+    lua_settable(L, -3);
+    return 1;
+  }
+  else luaL_error(L, "Unknown format");
 }
 
 
@@ -480,11 +469,17 @@ static int l_encrypt (lua_State *L) {
     soup::Bigint *q = lua_getfield(L, 3, "q") == LUA_TUSERDATA ? checkbigint(L, -1) : nullptr; if (q) lua_pop(L, 1);
     if (p && q) {  /* private key? */
       std::string data = pluto_checkstring(L, 1);
-      if (strcmp(mode, "rsa-pkcs1") == 0) {
-        data = soup::RsaPrivateKey::fromPrimes(*p, *q).encryptPkcs1(std::move(data)).toBinary();
+      try {
+        if (strcmp(mode, "rsa-pkcs1") == 0) {
+          data = soup::RsaPrivateKey::fromPrimes(*p, *q).encryptPkcs1(std::move(data)).toBinary();
+        }
+        else {
+          data = soup::RsaPrivateKey::fromPrimes(*p, *q).encryptUnpadded(std::move(data)).toBinary();
+        }
       }
-      else {
-        data = soup::RsaPrivateKey::fromPrimes(*p, *q).encryptUnpadded(std::move(data)).toBinary();
+      catch (std::exception&) {  /* Either "Assertion failed" or "Modular multiplicative inverse does not exist as the numbers are not coprime" */
+        data.clear(); data.shrink_to_fit();
+        luaL_error(L, "Invalid private key");
       }
       pluto_pushstring(L, data);
       return 1;
@@ -617,11 +612,17 @@ static int l_decrypt (lua_State *L) {
     soup::Bigint *q = lua_getfield(L, 3, "q") == LUA_TUSERDATA ? checkbigint(L, -1) : nullptr; if (q) lua_pop(L, 1);
     if (p && q) {  /* private key? */
       std::string data = pluto_checkstring(L, 1);
-      if (strcmp(mode, "rsa-pkcs1") == 0) {
-        data = soup::RsaPrivateKey::fromPrimes(*p, *q).decryptPkcs1(soup::Bigint::fromBinary(data));
+      try {
+        if (strcmp(mode, "rsa-pkcs1") == 0) {
+          data = soup::RsaPrivateKey::fromPrimes(*p, *q).decryptPkcs1(soup::Bigint::fromBinary(data));
+        }
+        else {
+          data = soup::RsaPrivateKey::fromPrimes(*p, *q).decryptUnpadded(soup::Bigint::fromBinary(data));
+        }
       }
-      else {
-        data = soup::RsaPrivateKey::fromPrimes(*p, *q).decryptUnpadded(soup::Bigint::fromBinary(data));
+      catch (std::exception&) {  /* Either "Assertion failed" or "Modular multiplicative inverse does not exist as the numbers are not coprime" */
+        data.clear(); data.shrink_to_fit();
+        luaL_error(L, "Invalid private key");
       }
       pluto_pushstring(L, data);
       return 1;
@@ -651,11 +652,17 @@ static int l_sign (lua_State *L) {
     soup::Bigint *q = lua_getfield(L, 3, "q") == LUA_TUSERDATA ? checkbigint(L, -1) : nullptr; if (q) lua_pop(L, 1);
     if (p && q) {
       std::string data = pluto_checkstring(L, 1);
-      if (strcmp(mode, "rsa-sha1") == 0) {
-        data = soup::RsaPrivateKey::fromPrimes(*p, *q).sign<soup::sha1>(data).toBinary();
+      try {
+        if (strcmp(mode, "rsa-sha1") == 0) {
+          data = soup::RsaPrivateKey::fromPrimes(*p, *q).sign<soup::sha1>(data).toBinary();
+        }
+        else {
+          data = soup::RsaPrivateKey::fromPrimes(*p, *q).sign<soup::sha256>(data).toBinary();
+        }
       }
-      else {
-        data = soup::RsaPrivateKey::fromPrimes(*p, *q).sign<soup::sha256>(data).toBinary();
+      catch (std::exception&) {  /* Either "Assertion failed" or "Modular multiplicative inverse does not exist as the numbers are not coprime" */
+        data.clear(); data.shrink_to_fit();
+        luaL_error(L, "Invalid private key");
       }
       pluto_pushstring(L, data);
       return 1;
@@ -691,8 +698,44 @@ static int l_verify (lua_State *L) {
 
 static int l_adler32 (lua_State *L) {
   size_t size;
-  const char* data = luaL_checklstring(L, 1, &size);
+  const char *data = luaL_checklstring(L, 1, &size);
   lua_pushinteger(L, soup::adler32::hash(data, size));
+  return 1;
+}
+
+
+static int l_decompress (lua_State *L) {
+  size_t size;
+  const char *data = luaL_checklstring(L, 1, &size);
+  soup::deflate::DecompressResult res;
+  if (lua_gettop(L) >= 2)
+    res = soup::deflate::decompress(data, size, luaL_checkinteger(L, 2));
+  else
+    res = soup::deflate::decompress(data, size);
+  pluto_pushstring(L, res.decompressed);
+  lua_newtable(L);
+  lua_pushliteral(L, "compressed_size");
+  lua_pushinteger(L, res.compressed_size);
+  lua_settable(L, -3);
+  lua_pushliteral(L, "checksum_present");
+  lua_pushboolean(L, res.checksum_present);
+  lua_settable(L, -3);
+  lua_pushliteral(L, "checksum_mismatch");
+  lua_pushboolean(L, res.checksum_mismatch);
+  lua_settable(L, -3);
+  return 2;
+}
+
+
+static int l_ripemd160 (lua_State *L) {
+  size_t size;
+  const char *data = luaL_checklstring(L, 1, &size);
+  const bool binary = lua_istrue(L, 2);
+  auto digest = soup::ripemd160(data, size);
+  if (!binary) {
+    digest = soup::string::bin2hexLower(digest);
+  }
+  pluto_pushstring(L, digest);
   return 1;
 }
 
@@ -700,10 +743,10 @@ static int l_adler32 (lua_State *L) {
 static const luaL_Reg funcs_crypto[] = {
   {"hexdigest", hexdigest},  /* deprecated since 0.8.0 */
   {"random", random},
-  {"sha1", l_sha1},
-  {"sha256", l_sha256},
-  {"sha384", l_sha384},
-  {"sha512", l_sha512},
+  {"sha1", l_hashwithdigest<soup::sha1>},
+  {"sha256", l_hashwithdigest<soup::sha256>},
+  {"sha384", l_hashwithdigest<soup::sha384>},
+  {"sha512", l_hashwithdigest<soup::sha512>},
   {"lua", lua},
   {"crc32", crc32},
   {"lookup3", lookup3},
@@ -722,11 +765,15 @@ static const luaL_Reg funcs_crypto[] = {
   {"fnv1a", fnv1a},
   {"fnv1", fnv1},
   {"generatekeypair", generatekeypair},
+  {"exportkey", exportkey},
+  {"importkey", importkey},
   {"encrypt", l_encrypt},
   {"decrypt", l_decrypt},
   {"sign", l_sign},
   {"verify", l_verify},
   {"adler32", l_adler32},
+  {"decompress", l_decompress},
+  {"ripemd160", l_ripemd160},
   {NULL, NULL}
 };
 

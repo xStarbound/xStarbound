@@ -3,6 +3,7 @@
 #include <fstream>
 
 #if SOUP_WINDOWS
+#include <windows.h>
 #include <shlobj.h> // CSIDL_COMMON_APPDATA
 
 #pragma comment(lib, "Shell32.lib") // SHGetFolderPathW
@@ -46,6 +47,19 @@ NAMESPACE_SOUP
 		return static_cast<intptr_t>(in.tellg());
 	}
 
+	bool filesystem::replace(const std::filesystem::path& replaced, const std::filesystem::path& replacement)
+	{
+#if SOUP_WINDOWS
+		SOUP_IF_UNLIKELY (!std::filesystem::exists(replaced))
+		{
+			return MoveFileW(replacement.c_str(), replaced.c_str()) != 0;
+		}
+		return ReplaceFileW(replaced.c_str(), replacement.c_str(), nullptr, 0, 0, 0) != 0;
+#else
+		return ::rename(replacement.c_str(), replaced.c_str()) == 0;
+#endif
+	}
+
 	std::filesystem::path filesystem::tempfile(const std::string& ext)
 	{
 		std::filesystem::path path;
@@ -66,7 +80,7 @@ NAMESPACE_SOUP
 		return path;
 	}
 
-	std::filesystem::path filesystem::getProgramData() noexcept
+	std::filesystem::path filesystem::getProgramData() SOUP_EXCAL
 	{
 #if SOUP_WINDOWS
 		wchar_t szPath[MAX_PATH];
@@ -80,6 +94,10 @@ NAMESPACE_SOUP
 #endif
 	}
 
+#if SOUP_WINDOWS
+	static char empty_file_data = 0;
+#endif
+
 	void* filesystem::createFileMapping(const std::filesystem::path& path, size_t& out_len)
 	{
 		void* addr = nullptr;
@@ -91,11 +109,18 @@ NAMESPACE_SOUP
 			SOUP_IF_LIKELY (GetFileSizeEx(f, &liSize))
 			{
 				out_len = static_cast<size_t>(liSize.QuadPart);
-				HANDLE m = CreateFileMappingA(f, nullptr, PAGE_READONLY, liSize.HighPart, liSize.LowPart, NULL);
-				SOUP_IF_LIKELY (m != NULL)
+				if (out_len == 0)
 				{
-					addr = MapViewOfFile(m, FILE_MAP_READ, 0, 0, out_len);
-					CloseHandle(m);
+					addr = &empty_file_data;
+				}
+				else
+				{
+					HANDLE m = CreateFileMappingA(f, nullptr, PAGE_READONLY, liSize.HighPart, liSize.LowPart, NULL);
+					SOUP_IF_LIKELY(m != NULL)
+					{
+						addr = MapViewOfFile(m, FILE_MAP_READ, 0, 0, out_len);
+						CloseHandle(m);
+					}
 				}
 			}
 			CloseHandle(f);
@@ -116,10 +141,15 @@ NAMESPACE_SOUP
 		return addr;
 	}
 
-#if !SOUP_WINDOWS
 	void filesystem::destroyFileMapping(void* addr, size_t len)
 	{
+#if SOUP_WINDOWS
+		if (addr != &empty_file_data)
+		{
+			UnmapViewOfFile(addr);
+		}
+#else
 		munmap(addr, len);
-	}
 #endif
+	}
 }

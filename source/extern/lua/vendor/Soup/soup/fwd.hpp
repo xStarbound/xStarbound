@@ -172,13 +172,11 @@ NAMESPACE_SOUP
 
 	// os
 	enum ControlInput : uint8_t;
+	struct HandleRaii;
 	class Module;
 	enum MouseButton : uint8_t;
 	class Thread;
 	struct Window;
-
-	// os.windows
-	struct HandleRaii;
 
 	// task
 	class Capture;
@@ -191,6 +189,7 @@ NAMESPACE_SOUP
 	class Mixed;
 
 	// vis
+	struct BCanvas;
 	class Canvas;
 	struct FormattedText;
 	class QrCode;

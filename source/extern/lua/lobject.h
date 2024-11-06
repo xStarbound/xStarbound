@@ -239,7 +239,10 @@ typedef union {
 #define ttisfalse(o)		checktag((o), LUA_VFALSE)
 #define ttistrue(o)		checktag((o), LUA_VTRUE)
 
-
+/* FezzedOne: Change from 'stock' Pluto: `null` and `json.null` evaluate
+   as 'falsy' in xStarbound's dialect of Pluto, since this is more
+   intuitive (and helps with script compatibility).
+ */
 #define l_isfalse(o)	(ttisfalse(o) || ttisnil(o) \
   || (ttislightuserdata(o) && pvalue(o) == (void*)0xF01D))
 

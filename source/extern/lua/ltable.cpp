@@ -653,7 +653,6 @@ void luaH_initmetatable (lua_State *L, Table *t) {
     sethvalue(L, s2v(L->top.p - 1), table_mt);
     /* set __index */
     L->ci->top.p++;
-    /* Upstream: Minor optimisation. */
     lua_pushliteral(L, "__index");
     lua_getglobal(L, "table");
     lua_settable(L, -3);
@@ -1036,7 +1035,7 @@ LUAI_FUNC void luaH_clear (lua_State *L, Table *t) {
   /* clear hash part */
   freehash(L, t);
   setnodevector(L, t, 0);
-  /* Upstream: Fixed bug where the table's cached length didn't get reset. */
+  /* clear cached length */
 #ifndef PLUTO_DISABLE_LENGTH_CACHE
   t->length = 0;
 #endif

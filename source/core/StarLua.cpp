@@ -288,26 +288,31 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   luaL_requiref(self->m_state, "_ENV", luaopen_base, true);
   if (safe) {
     StringSet baseWhitelist = {
-        "assert",
-        "error",
-        "getmetatable",
-        "ipairs",
-        "next",
-        "pairs",
-        "pcall",
-        "print",
-        "rawequal",
-        "rawget",
-        "rawlen",
-        "rawset",
-        "select",
-        "setmetatable",
-        "tonumber",
-        "tostring",
-        "type",
-        "unpack",
-        "_VERSION",
-        "xpcall"};
+      "assert",
+      "error",
+      "getmetatable",
+      "ipairs",
+      "next",
+      "pairs",
+      "pcall",
+      "print",
+      "rawequal",
+      "rawget",
+      "rawlen",
+      "rawset",
+      "select",
+      "setmetatable",
+      "tonumber",
+      "tostring",
+      "type",
+      "unpack",
+      "_VERSION",
+      "xpcall",
+      "range",
+      "dumpvar",
+      "wcall",
+      "warn"
+    };
 
     lua_pushnil(self->m_state);
     while (lua_next(self->m_state, -2) != 0) {
@@ -326,7 +331,7 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   luaL_requiref(self->m_state, "os", luaopen_os, true);
   if (safe) {
     StringSet osWhitelist = {"clock", "difftime", "time", 
-      "nanos", "micros", "millis", "seconds", "unixseconds"};
+      "nanos", "micros", "millis", "seconds", "unixseconds", "platform"};
 
     lua_pushnil(self->m_state);
     while (lua_next(self->m_state, -2) != 0) {
@@ -372,6 +377,11 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   loadBaseLibrary(self->m_state, "pluto_assert", luaopen_assert);
   loadBaseLibrary(self->m_state, "bigint", luaopen_bigint);
   loadBaseLibrary(self->m_state, "cat", luaopen_cat);
+  loadBaseLibrary(self->m_state, "regex", luaopen_regex);
+  // FezzedOne: Note: To convert the string return value of `canvas:topng()` to a usable PNG image,
+  // use `newPngFile = assets.newRawBytes():set(pngString)`. Canvases don't support alpha
+  // transparency, unfortunately!
+  loadBaseLibrary(self->m_state, "canvas", luaopen_canvas);
   loadBaseLibrary(self->m_state, "crypto", luaopen_crypto);
   loadBaseLibrary(self->m_state, "scheduler", luaopen_scheduler);
   loadBaseLibrary(self->m_state, "url", luaopen_url);
@@ -387,6 +397,7 @@ LuaEnginePtr LuaEngine::create(bool safe) {
     loadBaseLibrary(self->m_state, "debug", luaopen_debug);
     loadBaseLibrary(self->m_state, "http", luaopen_http);
     loadBaseLibrary(self->m_state, "socket", luaopen_socket);
+    loadBaseLibrary(self->m_state, "ffi", luaopen_ffi);
     lua_pop(self->m_state, 3);
   }
 
@@ -406,13 +417,12 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   self->setGlobal("jresize", self->createFunction(&LuaDetail::jcontResize));
 
   self->setGlobal("shared", self->createTable());
-
   return self;
 }
 
 LuaEngine::~LuaEngine() {
-  // If we've had a stack space leak, this will be larger than 11
-  starAssert(lua_gettop(m_state) <= 11);
+  // If we've had a stack space leak, this will not be zero
+  starAssert(lua_gettop(m_state) == 0);
   lua_close(m_state);
 }
 

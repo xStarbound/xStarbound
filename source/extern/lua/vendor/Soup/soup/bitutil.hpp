@@ -74,7 +74,21 @@ NAMESPACE_SOUP
 #endif
 		}
 
-		[[nodiscard]] static unsigned int getLeastSignificantSetBit(unsigned int mask) noexcept
+		[[nodiscard]] static unsigned long getLeastSignificantSetBit(uint16_t mask) noexcept
+		{
+			SOUP_DEBUG_ASSERT(mask != 0); // UB!
+
+			// These intrinsic functions just use the bsf instruction.
+#if defined(_MSC_VER) && !defined(__clang__)
+			unsigned long ret;
+			_BitScanForward(&ret, static_cast<uint32_t>(mask));
+			return ret;
+#else
+			return __builtin_ctz(mask);
+#endif
+		}
+
+		[[nodiscard]] static unsigned long getLeastSignificantSetBit(uint32_t mask) noexcept
 		{
 			SOUP_DEBUG_ASSERT(mask != 0); // UB!
 
@@ -88,13 +102,43 @@ NAMESPACE_SOUP
 #endif
 		}
 
+		[[nodiscard]] static unsigned long getLeastSignificantSetBit(uint64_t mask) noexcept
+		{
+			SOUP_DEBUG_ASSERT(mask != 0); // UB!
+
+			// These intrinsic functions just use the bsf instruction.
+#if defined(_MSC_VER) && !defined(__clang__)
+			unsigned long ret;
+			_BitScanForward64(&ret, mask);
+			return ret;
+#else
+			return __builtin_ctz(mask);
+#endif
+		}
+
 		template <typename T>
 		static constexpr void unsetLeastSignificantSetBit(T& val)
 		{
 			val &= (val - 1);
 		}
 
-		[[nodiscard]] static unsigned int getMostSignificantSetBit(unsigned int mask) noexcept
+		[[nodiscard]] static unsigned int getNumLeadingZeros(uint32_t mask) noexcept
+		{
+			unsigned int res = 32;
+			if (mask != 0)
+			{
+#if defined(_MSC_VER) && !defined(__clang__)
+				unsigned long ret;
+				_BitScanReverse(&ret, mask);
+				res -= ret;
+#else
+				res = __builtin_clz(mask);
+#endif
+			}
+			return res;
+		}
+
+		[[nodiscard]] static unsigned int getMostSignificantSetBit(uint32_t mask) noexcept
 		{
 			SOUP_DEBUG_ASSERT(mask != 0); // UB!
 
@@ -119,6 +163,15 @@ NAMESPACE_SOUP
 #else
 			return __builtin_popcount(i);
 #endif
+		}
+
+		// https://stackoverflow.com/a/2602885
+		[[nodiscard]] static uint8_t reverse(uint8_t b) noexcept
+		{
+			b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+			b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+			b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+			return b;
 		}
 
 		[[nodiscard]] static std::vector<bool> interleave(const std::vector<std::vector<bool>>& data); // assumes that all inner vectors have the same size

@@ -8,6 +8,9 @@ static const luaL_Reg funcs[] = {
 };
 
 LUAMOD_API int luaopen_assert(lua_State *L) {
+#ifdef PLUTO_DONT_LOAD_ANY_STANDARD_LIBRARY_CODE_WRITTEN_IN_PLUTO
+  return 0;
+#else
   const auto code = R"EOC(pluto_use "0.6.0"
 
 local module = {}
@@ -37,7 +40,7 @@ local function deepCompare(t1, t2)
     end
   end
 
-  for k, v in t2 do
+  for k in t2 do
     if t1[k] == nil then
       return false
     end
@@ -264,7 +267,7 @@ function module.noerror(callback, ...)
 end
 
 function module.haserror(callback, ...)
-  local status, err = pcall(callback, ...)
+  local status = pcall(callback, ...)
   if status == true then
     return new AssertionError("haserror", nil, nil):setSimple("Expected an error, but there was none."):raise()
   end
@@ -289,6 +292,13 @@ function module.type(desired_type, ...)
   end
 end
 
+function module.contains(element, container)
+  local container_type = type(container)
+  if (container_type != "string" and container_type != "table") or (not element in container) then
+    return new AssertionError("contains", element, container):setNameOverride("Element", "Container"):raise()
+  end
+end
+
 setmetatable(module, {
   __call = function (self, cond, err_msg = "assertion failed!")
     err_msg = " " .. err_msg
@@ -304,6 +314,7 @@ return module)EOC";
   luaL_loadbuffer(L, code, strlen(code), "pluto:assert");
   lua_call(L, 0, 1);
   return 1;
+#endif
 }
 
 const Pluto::PreloadedLibrary Pluto::preloaded_assert{ "assert", funcs, &luaopen_assert };

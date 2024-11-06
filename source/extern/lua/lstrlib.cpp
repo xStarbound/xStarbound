@@ -24,6 +24,7 @@
 
 #include "lauxlib.h"
 #include "lualib.h"
+#include "lstring.h"
 
 
 #include "vendor/Soup/soup/string.hpp"
@@ -1932,33 +1933,39 @@ static int str_partition (lua_State *L) {
 
 static int str_split (lua_State *L) {
   /*
+    This str_split function is based on the one found in LuaU, licensed under their terms.
     https://github.com/Roblox/luau/blob/master/VM/src/lstrlib.cpp
-    This str_split function is licensed to LuaU under their terms.
   */
   size_t haystackLen;
   const char* haystack = luaL_checklstring(L, 1, &haystackLen);
   size_t needleLen;
   const char* needle = luaL_optlstring(L, 2, ",", &needleLen);
+  lua_Integer limit = luaL_optinteger(L, 3, LUA_MAXINTEGER) - 1;
 
   const char* begin = haystack;
   const char* end = haystack + haystackLen;
   const char* spanStart = begin;
-  int numMatches = 0;
+  lua_Integer numMatches = 0;
 
   lua_createtable(L, 0, 0);
 
   if (needleLen == 0)
     begin++;
 
-  for (const char* iter = begin; iter <= end - needleLen; iter++) {
-    if (memcmp(iter, needle, needleLen) == 0) {
-      lua_pushinteger(L, ++numMatches);
-      lua_pushlstring(L, spanStart, iter - spanStart);
-      lua_settable(L, -3);
-
-      spanStart = iter + needleLen;
-      if (needleLen > 0)
-        iter += needleLen - 1;
+  if (l_likely(limit > 0)) {
+    for (const char* iter = begin; iter <= end - needleLen; iter++) {
+      if (memcmp(iter, needle, needleLen) == 0) {
+        lua_pushinteger(L, ++numMatches);
+        lua_pushlstring(L, spanStart, iter - spanStart);
+        lua_settable(L, -3);
+    
+        spanStart = iter + needleLen;
+        if (needleLen > 0)
+          iter += needleLen - 1;
+    
+        if (numMatches == limit)
+          break;
+      }
     }
   }
 
@@ -2369,10 +2376,47 @@ static int str_formatint (lua_State *L) {
   return 1;
 }
 
+
+static int str_tohex (lua_State* L) {
+  size_t size;
+  const char *data = luaL_checklstring(L, 1, &size);
+  const bool spaces = lua_toboolean(L, 2);
+  const bool upper = lua_toboolean(L, 3);
+
+  const auto map = upper ? soup::string::charset_hex : soup::string::charset_hex_lower;
+
+  char shrtbuf[LUAI_MAXSHORTLEN];
+  if (spaces) {
+    size_t out_size = soup::string::bin2hexWithSpacesSize(size);
+    char *out = plutoS_prealloc(L, shrtbuf, out_size);
+    soup::string::bin2hexWithSpaces(out, data, size, map);
+    plutoS_commit(L, out, out_size);
+  }
+  else {
+    char *out = plutoS_prealloc(L, shrtbuf, size * 2);
+    soup::string::bin2hexAt(out, data, size, map);
+    plutoS_commit(L, out, size * 2);
+  }
+  return 1;
+}
+
+
+static int str_fromhex (lua_State* L) {
+  size_t size;
+  const char *data = luaL_checklstring(L, 1, &size);
+
+  auto res = soup::string::hex2bin(data, size);
+
+  pluto_pushstring(L, res);
+  return 1;
+}
+
 /* }====================================================== */
 
 
 static const luaL_Reg strlib[] = {
+  {"tohex", str_tohex},
+  {"fromhex", str_fromhex},
   {"formatint", str_formatint},
   {"replace", str_replace},
   {"truncate", str_truncate},

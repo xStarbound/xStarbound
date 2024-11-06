@@ -8,7 +8,10 @@ static const luaL_Reg funcs[] = {
 };
 
 LUAMOD_API int luaopen_scheduler (lua_State *L) {
-	const auto code = R"EOC(pluto_use "0.6.0"
+#ifdef PLUTO_DONT_LOAD_ANY_STANDARD_LIBRARY_CODE_WRITTEN_IN_PLUTO
+    return 0;
+#else
+    const auto code = R"EOC(pluto_use "0.6.0"
 
 return class
     __name = "pluto:scheduler"
@@ -53,6 +56,24 @@ return class
         end)
     end
 
+    function contains(needle)
+        for self.coros as t do
+            if t == needle then
+                return true
+            end
+        end
+        return false
+    end
+
+    function remove(needle)
+        for i, t in self.coros do
+            if t == needle then
+                table.remove(self.coros, i)
+                break
+            end
+        end
+    end
+
     function run()
         local all_dead
         repeat
@@ -69,9 +90,10 @@ return class
         until all_dead
     end
 end)EOC";
-	luaL_loadbuffer(L, code, strlen(code), "pluto:scheduler");
-	lua_call(L, 0, 1);
-	return 1;
+    luaL_loadbuffer(L, code, strlen(code), "pluto:scheduler");
+    lua_call(L, 0, 1);
+    return 1;
+#endif
 }
 
 const Pluto::PreloadedLibrary Pluto::preloaded_scheduler{ "scheduler", funcs, &luaopen_scheduler };

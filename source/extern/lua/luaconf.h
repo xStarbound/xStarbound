@@ -293,18 +293,12 @@
 ** LUA_BUILD_AS_DLL to get it).
 */
 #if defined(LUA_BUILD_AS_DLL)
-  #ifndef PLUTO_C_LINKAGE
-    #define PLUTO_C_LINKAGE true
-  #endif
   #if defined(LUA_CORE) || defined(LUA_LIB)
     #define PLUTO_DLLSPEC __declspec(dllexport)
   #else
     #define PLUTO_DLLSPEC __declspec(dllimport)
   #endif
 #else
-  #ifndef PLUTO_C_LINKAGE
-    #define PLUTO_C_LINKAGE false
-  #endif
   #ifdef __EMSCRIPTEN__
     #include "emscripten.h"
     #define PLUTO_DLLSPEC EMSCRIPTEN_KEEPALIVE
@@ -318,13 +312,8 @@
 // Additions by Pluto that are not compatible with `extern "C"` use PLUTO_API instead of LUA_API.
 #define PLUTO_API	PLUTO_DLLSPEC
 
-#if PLUTO_C_LINKAGE
-  #define LUA_API			extern "C" PLUTO_API
-  #define LUA_API_NORETURN	extern "C" [[noreturn]] PLUTO_API
-#else
-  #define LUA_API			PLUTO_API
-  #define LUA_API_NORETURN	[[noreturn]] LUA_API
-#endif
+#define LUA_API			    extern "C" PLUTO_API
+#define LUA_API_NORETURN	extern "C" [[noreturn]] PLUTO_API
 
 /*
 ** More often than not the libs go together with the core.
@@ -816,7 +805,7 @@
 
 /*
 ** {====================================================================
-** Pluto configuration
+** Pluto Configuration
 ** =====================================================================}
 */
 
@@ -834,11 +823,12 @@
 //#define PLUTO_FORCE_JUMPTABLE
 
 // If defined, Pluto won't imbue tables with a metatable by default.
+// FezzedOne: Still needs to be disabled for compatibility with some Starbound scripts.
 #define PLUTO_NO_DEFAULT_TABLE_METATABLE
 
 /*
 ** {====================================================================
-** Pluto configuration: Warnings
+** Pluto Configuration: Warnings
 ** =====================================================================}
 */
 
@@ -864,14 +854,14 @@
 
 /*
 ** {====================================================================
-** Pluto configuration: Compatibility
+** Pluto Configuration: Compatibility
 ** =====================================================================}
 */
 
 // If defined, Pluto will assign 'pluto_' to new keywords which break previously valid Lua identifiers.
 // So, for example, the 'switch' keyword becomes 'pluto_switch'. The 'pluto_' variants are valid even if this is not defined.
 // As of Pluto 0.7.0, scripts can individually set compatibility modes via 'pluto_use'.
-#define PLUTO_COMPATIBLE_MODE
+//#define PLUTO_COMPATIBLE_MODE // FezzedOne: As of v0.10.x, should no longer be needed for script compatibility.
 
 #ifdef PLUTO_COMPATIBLE_MODE
     #define PLUTO_COMPATIBLE_SWITCH
@@ -891,7 +881,7 @@
 
 /*
 ** {====================================================================
-** Pluto configuration: Optional keywords
+** Pluto Configuration: Optional keywords
 ** =====================================================================}
 */
 
@@ -908,7 +898,7 @@
 
 /*
 ** {====================================================================
-** Pluto configuration: Infinite Loop Prevention (ILP)
+** Pluto Configuration: Infinite Loop Prevention (ILP)
 **
 ** This is only useful in game regions, where a long loop may block the main thread and crash the game.
 ** These places usually implement a yield (or wait) function, which can be detected and hooked to reset iterations.
@@ -916,6 +906,7 @@
 */
 
 // If defined, Pluto will attempt to prevent infinite loops.
+// FezzedOne: Not needed; there's already a infinite loop check in xStarbound's Lua VM.
 //#define PLUTO_ILP_ENABLE
 
 #ifdef PLUTO_ILP_ENABLE
@@ -946,12 +937,13 @@
 
 /*
 ** {====================================================================
-** Pluto configuration: Execution Time Limit (ETL)
+** Pluto Configuration: Execution Time Limit (ETL)
 **
 ** This is only useful in sandbox environments where stalling is absolutely unacceptable.
 ** =====================================================================}
 */
 
+// FezzedOne: Not needed; there's already an execution time limit in xStarbound's Lua VM.
 //#define PLUTO_ETL_ENABLE
 
 #ifdef PLUTO_ETL_ENABLE
@@ -973,17 +965,18 @@
 
 /*
 ** {====================================================================
-** Pluto configuration: Memory Limit
+** Pluto Configuration: Memory Limit
 **
 ** For sandbox environments. This changes the memory allocator in luaL_newstate.
 ** =====================================================================}
 */
 
+// FezzedOne: Might come in useful.
 //#define PLUTO_MEMORY_LIMIT 64'000'000 /* 64 MB (megabytes, not mebibytes!) */
 
 /*
 ** {====================================================================
-** Pluto configuration: VM Dump
+** Pluto Configuration: VM Dump
 ** =====================================================================}
 */
 
@@ -1017,7 +1010,7 @@
 
 /*
 ** {====================================================================
-** Pluto configuration: Content Moderation
+** Pluto Configuration: Content Moderation
 ** =====================================================================}
 */
 
@@ -1051,7 +1044,7 @@
 // Disables os.execute & io.popen.
 //#define PLUTO_NO_OS_EXECUTE
 
-// Eliminate any loading of any binaries. This removes package.loadlib and prevents 'require' from loading any C modules or shared libraries.
+// Eliminate any loading of any binaries. This removes package.loadlib & ffi.open and prevents 'require' from loading any C modules or shared libraries.
 //#define PLUTO_NO_BINARIES
 
 #ifdef PLUTO_NO_BINARIES
@@ -1065,28 +1058,35 @@
 //#define PLUTO_NO_COROLIB
 
 // If defined, all HTTP requests will fail.
+// Note that the 'socket' library can still be used to the same effect (with more effort).
 //#define PLUTO_DISABLE_HTTP_COMPLETELY
 
 // If defined, the provided function will be called as bool(lua_State* L, const char* url).
 // If it returns false, a Lua error is raised.
+// Note that the 'socket' library can still be used to the same effect (with more effort).
 //#define PLUTO_HTTP_REQUEST_HOOK ContmodOnHttpRequest
 
 // If defined, the provided function will be called as bool(lua_State* L, const char* path)
 // for any attempt to read a file's contents or metadata. The path will be UTF-8 encoded.
-// If the function hook returns false, a Lua error is raised.
+// If it returns false, a Lua error is raised.
 //#define PLUTO_READ_FILE_HOOK ContmodOnReadFile
 
 // If defined, the provided function will be called as bool(lua_State* L, const char* path)
 // for any attempt to write a file's contents or metadata. The path will be UTF-8 encoded.
-// If the function hook returns false, a Lua error is raised.
+// If it returns false, a Lua error is raised.
 //#define PLUTO_WRITE_FILE_HOOK ContmodOnWriteFile
+
+// If defined, the provided function will be called as bool(lua_State* L, void* addr)
+// for any attempt to call a foreign function.
+// If it returns false, a Lua error is raised.
+//#define PLUTO_FFI_CALL_HOOK ContmodOnFfiCall
 
 /*
 ** {====================================================================
-** Pluto configuration: Performance
+** Pluto Configuration: Performance
 **
-** We recommend not touching this section because the only options here are to disable Pluto features
-** and doing so will not affect performance as trivially as "less features = more performance."
+** We recommend not changing this section. The only options here disable Pluto features,
+** but disabling features will not necessarily improve performance simply because "fewer features = better performance."
 ** =====================================================================}
 */
 

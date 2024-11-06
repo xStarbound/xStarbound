@@ -4,10 +4,10 @@
 
 namespace soup
 {
-	namespace e1 {};
-	using namespace e1;
+	namespace pluto_vendored {};
+	using namespace pluto_vendored;
 };
-#define NAMESPACE_SOUP namespace soup::e1
+#define NAMESPACE_SOUP namespace soup::pluto_vendored
 
 // === Platform/ABI macros
 
@@ -73,12 +73,14 @@ namespace soup
 
 #define SOUP_CEXPORT extern "C" SOUP_EXPORT
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 #define SOUP_FORCEINLINE __forceinline
 #define SOUP_NOINLINE __declspec(noinline)
+#define SOUP_PURE
 #else
 #define SOUP_FORCEINLINE __attribute__((always_inline))
 #define SOUP_NOINLINE __attribute__((noinline))
+#define SOUP_PURE __attribute__((pure))
 #endif
 
 // === CPU macros
@@ -173,12 +175,7 @@ namespace soup
 
 #ifndef SOUP_EXCAL
 	// An 'excal' function is 'noexcept' except it may throw std::bad_alloc.
-	//
-	// We generally don't attempt to handle allocation failures, not least because it's basically impossible on modern systems.
-	// Because of this, we declare that 'excal' functions are 'noexcept' to avoid superfluous unwind information.
-	//
-	// For visual distinction with IDE hover features, we use `throw()`, but it's functionally identical to `noexcept`.
-	#define SOUP_EXCAL throw()
+	#define SOUP_EXCAL
 #endif
 
 // === Development helpers

@@ -981,7 +981,7 @@ static int relative (lua_State *L) {
 static int io_part (lua_State *L) {
   Protect(
     std::filesystem::path path = getStringStreamPathRaw(L, 1);
-    static const char *const parts[] = {"parent", "name"};
+    static const char *const parts[] = {"parent", "name", nullptr};
     int part = luaL_checkoption(L, 2, nullptr, parts);
     if (part == 0)
       path = path.parent_path();
@@ -1189,6 +1189,8 @@ static const luaL_Reg iolib[] = {
   {"contents", contents},
   {"writetime", writetime},
   {"currentdir", currentdir},
+  {"chdir", currentdir},
+  {"cwd", currentdir},
   {"rename", l_rename},
   {"remove", l_remove},
   {"listdir", listdir},

@@ -316,6 +316,7 @@ NAMESPACE_SOUP
 		const auto t = (pm1 * qm1);
 		if (t < RsaPublicKey::E_PREF)
 		{
+			SOUP_ASSERT(p > 2_b && q > 2_b);
 			const auto bl = t.getBitLength();
 			do
 			{
@@ -334,16 +335,8 @@ NAMESPACE_SOUP
 
 	RsaKeypair RsaKeypair::generate(unsigned int bits, bool lax_length_requirement)
 	{
-		if (FastHardwareRng::isAvailable())
-		{
-			FastHardwareRngInterface rngif;
-			return generate(rngif, bits, lax_length_requirement);
-		}
-		else
-		{
-			DefaultRngInterface rngif;
-			return generate(rngif, bits, lax_length_requirement);
-		}
+		FastHardwareRngInterface rngif;
+		return generate(rngif, bits, lax_length_requirement);
 	}
 
 	RsaKeypair RsaKeypair::generate(StatelessRngInterface& rng, unsigned int bits, bool lax_length_requirement)

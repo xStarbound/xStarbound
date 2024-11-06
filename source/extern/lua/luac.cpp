@@ -123,7 +123,7 @@ static int doargs(int argc, char* argv[])
  }
  if (version)
  {
-  printf("%s\n",LUA_COPYRIGHT);
+  printf("%s\n",PLUTO_COPYRIGHT);
   if (version==argc-1) exit(EXIT_SUCCESS);
  }
  return i;
@@ -184,7 +184,9 @@ static int pmain(lua_State* L)
  int i;
  tmname=G(L)->tmname;
  if (!lua_checkstack(L,argc)) fatal("too many input files");
- L->l_G->setCompatibilityMode(compat);
+ if (compat) {
+   L->l_G->setCompatibilityMode(compat);
+ }
  for (i=0; i<argc; i++)
  {
   const char* filename=IS("-") ? NULL : argv[i];
