@@ -78,7 +78,7 @@ namespace soup
 #define SOUP_NOINLINE __declspec(noinline)
 #define SOUP_PURE
 #else
-#define SOUP_FORCEINLINE __attribute__((always_inline))
+#define SOUP_FORCEINLINE __attribute__((always_inline)) inline
 #define SOUP_NOINLINE __attribute__((noinline))
 #define SOUP_PURE __attribute__((pure))
 #endif
