@@ -7,7 +7,7 @@ attic/chucklefish/
 build-mingw/
 build-qt/
 build-runtime/
-build-test/
+build-tests/
 build/
 dist/
 dist-qt/
