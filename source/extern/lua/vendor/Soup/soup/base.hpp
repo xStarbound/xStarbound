@@ -2,11 +2,14 @@
 
 // === Namespace
 
-namespace soup
-{
-	namespace pluto_vendored {};
-	using namespace pluto_vendored;
-};
+// When vendoring Soup, it is advisable to assign a unique namespace, like so:
+//
+// namespace soup { namespace PROJECTNAME_vendored {}; using namespace PROJECTNAME_vendored; };
+// #define NAMESPACE_SOUP namespace soup::PROJECTNAME_vendored
+//
+// Note that this does not change the way you use Soup.
+
+namespace soup { namespace pluto_vendored {}; using namespace pluto_vendored; };
 #define NAMESPACE_SOUP namespace soup::pluto_vendored
 
 // === Platform/ABI macros
@@ -74,13 +77,13 @@ namespace soup
 #define SOUP_CEXPORT extern "C" SOUP_EXPORT
 
 #if defined(_MSC_VER) && !defined(__clang__)
-#define SOUP_FORCEINLINE __forceinline
-#define SOUP_NOINLINE __declspec(noinline)
-#define SOUP_PURE
+	#define SOUP_FORCEINLINE __forceinline
+	#define SOUP_NOINLINE __declspec(noinline)
+	#define SOUP_PURE
 #else
-#define SOUP_FORCEINLINE __attribute__((always_inline)) inline
-#define SOUP_NOINLINE __attribute__((noinline))
-#define SOUP_PURE __attribute__((pure))
+	#define SOUP_FORCEINLINE __attribute__((always_inline)) inline
+	#define SOUP_NOINLINE __attribute__((noinline))
+	#define SOUP_PURE __attribute__((pure))
 #endif
 
 // === CPU macros
@@ -101,6 +104,12 @@ namespace soup
 	#define SOUP_ARM true
 #else
 	#define SOUP_ARM false
+#endif
+
+#if 'ABCD' == 0x41424344ul
+	#define SOUP_LITTLE_ENDIAN
+#else
+	static_assert('ABCD' == 0x44434241ul); // If it's not little endian, it has to be big endian.
 #endif
 
 // === Determine if code inspector
@@ -175,6 +184,11 @@ namespace soup
 
 #ifndef SOUP_EXCAL
 	// An 'excal' function is 'noexcept' except it may throw std::bad_alloc.
+	//
+	// We generally don't attempt to handle allocation failures, not least because it's basically impossible on modern systems.
+	// Because of this, we declare that 'excal' functions are 'noexcept' to avoid superfluous unwind information.
+	//
+	// For visual distinction with IDE hover features, we use `throw()`, but it's functionally identical to `noexcept`.
 	#define SOUP_EXCAL
 #endif
 
@@ -198,8 +212,11 @@ NAMESPACE_SOUP
 
 template <typename T> SOUP_FORCEINLINE void SOUP_UNUSED(T&&) {}
 
-// RVO may not apply when returning the member of a class-instance in the function's scope.
-// In that case, one could do `return std::move(inst.member);` to move out the return value.
-// However, if we have a flat return value, `return std::move(flat);` could be a pessimisation.
-// This macro ensures the return value is moved out in both cases with zero overhead.
-#define SOUP_MOVE_RETURN(x) auto rvoable_return_value = std::move(x); return rvoable_return_value;
+// Enable compiler warning for unannotated fallthroughs
+#if defined(__clang__)
+#pragma clang diagnostic warning "-Wimplicit-fallthrough"
+//#elif defined(_MSC_VER)
+//#pragma warning(default: 5262) // MSVC is too retarded, it thinks everything is an implicit fallthrough.
+#elif defined(__GNUC__)
+#pragma GCC diagnostic warning "-Wimplicit-fallthrough"
+#endif

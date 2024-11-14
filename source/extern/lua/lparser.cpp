@@ -1956,7 +1956,7 @@ static void localclass (LexState *ls) {
   TString *name = str_checkname(ls, 0);
   size_t parent_pos = checkextends(ls);
 
-  new_localvar(ls, name, ls->getLineNumber());
+  new_localvar(ls, name, line);
 
   expdesc t;
   classexpr(ls, &t);
@@ -2591,7 +2591,7 @@ static void safe_navigation (LexState *ls, expdesc *v) {
       }
       case ':': {
         luaX_next(ls);
-        codename(ls, &key);
+        codename(ls, &key, N_RESERVED);
         luaK_self(fs, v, &key);
         method_call_funcargs(ls, v);
         break;
@@ -3048,7 +3048,7 @@ static void expsuffix (LexState *ls, expdesc *v, int line, int flags, TypeHint *
         else if (l_unlikely(ls->t.column != (colon_column + 1) && ls->getContext() == PARCTX_TERNARY_C)) {
           throw_warn(ls, "possible confusion with colons", "the second colon is interpreted as a method call instead of the first colon", "wrap the method call in parentheses", ls->t.line, WT_POSSIBLE_TYPO);
         }
-        codename(ls, &key);
+        codename(ls, &key, N_RESERVED);
         luaK_self(fs, v, &key);
         method_call_funcargs(ls, v);
         break;
@@ -5527,6 +5527,7 @@ static void statement (LexState *ls, TypeHint *prop) {
           if (luaX_lookbehind(ls).token == TK_CLASS && ls->getKeywordState(TK_CLASS) == KS_ENABLED_BY_PLUTO_UNINFORMED) {
             luaX_prev(ls);
             disablekeyword(ls, TK_CLASS);
+            ls->uninformed_reserved.emplace(TK_CLASS, ls->getLineNumber());
             ls->setKeywordState(TK_CLASS, KS_DISABLED_BY_PLUTO_INFORMED);
             luaX_setpos(ls, luaX_getpos(ls));  /* update ls->t */
             localstat(ls);
