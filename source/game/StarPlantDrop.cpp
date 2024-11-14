@@ -340,7 +340,7 @@ void PlantDrop::render(RenderCallback* renderCallback) {
           auto audioInstance = make_shared<AudioInstance>(*assets->audio(sound.getString("file")));
           audioInstance->setPosition(collisionRect().center() + position());
           audioInstance->setVolume(sound.getFloat("volume", 1.0f));
-          renderCallback->addAudio(move(audioInstance));
+          renderCallback->addAudio(std::move(audioInstance));
         }
       };
       playBreakSound(m_stemConfig);
@@ -366,7 +366,7 @@ void PlantDrop::render(RenderCallback* renderCallback) {
         auto audioInstance = make_shared<AudioInstance>(*assets->audio(sound.getString("file")));
         audioInstance->setPosition(collisionRect().center() + position());
         audioInstance->setVolume(sound.getFloat("volume", 1.0f));
-        renderCallback->addAudio(move(audioInstance));
+        renderCallback->addAudio(std::move(audioInstance));
       }
     };
     playHitSound(m_stemConfig);
@@ -387,7 +387,7 @@ void PlantDrop::render(RenderCallback* renderCallback) {
         drawable.scale(Vec2F(-1, 1));
       drawable.rotate(m_movementController.rotation());
       drawable.translate(position());
-      renderCallback->addDrawable(move(drawable), RenderLayerPlantDrop);
+      renderCallback->addDrawable(std::move(drawable), RenderLayerPlantDrop);
     }
   }
 }
@@ -397,7 +397,7 @@ pair<ByteArray, uint64_t> PlantDrop::writeNetState(uint64_t fromVersion) {
 }
 
 void PlantDrop::readNetState(ByteArray data, float interpolationTime) {
-  m_netGroup.readNetState(move(data), interpolationTime);
+  m_netGroup.readNetState(std::move(data), interpolationTime);
 }
 
 void PlantDrop::enableInterpolation(float extrapolationHint) {

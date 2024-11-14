@@ -32,8 +32,8 @@ namespace Star {
 
 UniverseClient::UniverseClient(PlayerStoragePtr playerStorage, StatisticsPtr statistics) {
   m_storageTriggerDeadline = 0;
-  m_playerStorage = move(playerStorage);
-  m_statistics = move(statistics);
+  m_playerStorage = std::move(playerStorage);
+  m_statistics = std::move(statistics);
   m_pause = false;
   m_playerToSwitchTo = {};
   m_playersToLoad = {};
@@ -192,8 +192,8 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
         m_worldClient->setLuaCallbacks("interface", pair.second);
     }
 
-    m_connection = move(connection);
-    m_celestialDatabase = make_shared<CelestialSlaveDatabase>(move(success->celestialInformation));
+    m_connection = std::move(connection);
+    m_celestialDatabase = make_shared<CelestialSlaveDatabase>(std::move(success->celestialInformation));
     m_systemWorldClient = make_shared<SystemWorldClient>(m_universeClock, m_celestialDatabase, m_mainPlayer->universeMap());
 
     size_t playerCount = m_playerStorage->playerCount();
@@ -330,11 +330,11 @@ void UniverseClient::update(float dt) {
 
   auto contextUpdate = m_clientContext->writeUpdate();
   if (!contextUpdate.empty())
-    m_connection->pushSingle(make_shared<ClientContextUpdatePacket>(move(contextUpdate)));
+    m_connection->pushSingle(make_shared<ClientContextUpdatePacket>(std::move(contextUpdate)));
 
   auto celestialRequests = m_celestialDatabase->pullRequests();
   if (!celestialRequests.empty())
-    m_connection->pushSingle(make_shared<CelestialRequestPacket>(move(celestialRequests)));
+    m_connection->pushSingle(make_shared<CelestialRequestPacket>(std::move(celestialRequests)));
 
   m_connection->send();
 
@@ -372,7 +372,7 @@ void UniverseClient::update(float dt) {
         if (assets->assetExists(cinematic) && !(m_mainPlayer->fastRespawn() || m_mainPlayer->externalCinematicsIgnored()))
           // FezzedOne: If a respawn cinematic doesn't exist for the species, don't try to play a nonexistent cinematic.
           // Also respect xSB player settings, of course.
-          m_mainPlayer->setPendingCinematic(Json(move(cinematic)));
+          m_mainPlayer->setPendingCinematic(Json(std::move(cinematic)));
         if (!(m_worldClient->respawnInWorld() || m_mainPlayer->alwaysRespawnInWorld()))
           m_pendingWarp = WarpAlias::OwnShip;
         if (m_mainPlayer->fastRespawn())
@@ -1280,7 +1280,7 @@ void UniverseClient::handlePackets(List<PacketPtr> const& packets) {
       break; // Stop handling other packets
 
     } else if (auto celestialResponse = as<CelestialResponsePacket>(packet)) {
-      m_celestialDatabase->pushResponses(move(celestialResponse->responses));
+      m_celestialDatabase->pushResponses(std::move(celestialResponse->responses));
 
     } else if (auto warpResult = as<PlayerWarpResultPacket>(packet)) {
       if (m_mainPlayer->isDeploying() && m_warping && m_warping->is<WarpToPlayer>()) {

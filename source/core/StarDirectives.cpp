@@ -7,7 +7,7 @@
 namespace Star {
 
 Directives::Entry::Entry(ImageOperation&& newOperation, size_t strBegin, size_t strLength) {
-  operation = move(newOperation);
+  operation = std::move(newOperation);
   begin = strBegin;
   length = strLength;
 }
@@ -43,8 +43,8 @@ bool Directives::Shared::empty() const {
 }
 
 Directives::Shared::Shared(List<Entry>&& givenEntries, String&& givenString, StringView givenPrefix) {
-  entries = move(givenEntries);
-  string = move(givenString);
+  entries = std::move(givenEntries);
+  string = std::move(givenString);
   prefix = givenPrefix;
   hash = XXH3_64bits(string.utf8Ptr(), string.utf8Size());
 }
@@ -55,7 +55,7 @@ Directives::Directives(String const& directives) {
 }
 
 Directives::Directives(String&& directives) {
-  parse(move(directives));
+  parse(std::move(directives));
 }
 
 Directives::Directives(const char* directives) {
@@ -80,7 +80,7 @@ Directives& Directives::operator=(String&& directives) {
     return *this;
   }
 
-  parse(move(directives));
+  parse(std::move(directives));
   return *this;
 }
 
@@ -115,7 +115,7 @@ void Directives::parse(String&& directives) {
       if (beg == 0) {
         try {
           ImageOperation operation = imageOperationFromString(split);
-          newList.emplace_back(move(operation), beg, end);
+          newList.emplace_back(std::move(operation), beg, end);
         }
         catch (StarException const& e) {
           prefix = split;
@@ -124,7 +124,7 @@ void Directives::parse(String&& directives) {
       }
       else {
         ImageOperation operation = NullImageOperation();
-        newList.emplace_back(move(operation), beg, end);
+        newList.emplace_back(std::move(operation), beg, end);
       }
     }
   });
@@ -135,7 +135,7 @@ void Directives::parse(String&& directives) {
   }
 
   shared.reset(); // FezzedOne: Reset the shared pointer first to stop a massive memory leak.
-  shared = std::make_shared<Shared const>(move(newList), move(directives), prefix);
+  shared = std::make_shared<Shared const>(std::move(newList), std::move(directives), prefix);
   if (view.size() < 1000) { // Pre-load short enough directives
     for (auto& entry : shared->entries)
       entry.loadOperation(*shared);
@@ -203,7 +203,7 @@ DataStream& operator>>(DataStream& ds, Directives& directives) {
   String string;
   ds.read(string);
 
-  directives.parse(move(string));
+  directives.parse(std::move(string));
 
   return ds;
 }
@@ -224,7 +224,7 @@ DirectivesGroup::DirectivesGroup(String const& directives) : m_count(0) {
 
   Directives parsed(directives);
   if (parsed) {
-    m_directives.emplace_back(move(parsed));
+    m_directives.emplace_back(std::move(parsed));
     m_count = m_directives.back().size();
   }
 }
@@ -234,9 +234,9 @@ DirectivesGroup::DirectivesGroup(String&& directives) : m_count(0) {
     return;
   }
 
-  Directives parsed(move(directives));
+  Directives parsed(std::move(directives));
   if (parsed) {
-    m_directives.emplace_back(move(parsed));
+    m_directives.emplace_back(std::move(parsed));
     m_count = m_directives.back().size();
   }
 }
@@ -350,7 +350,7 @@ DataStream& operator>>(DataStream& ds, DirectivesGroup& directivesGroup) {
   String string;
   ds.read(string);
 
-  directivesGroup = DirectivesGroup(move(string));
+  directivesGroup = DirectivesGroup(std::move(string));
 
   return ds;
 }

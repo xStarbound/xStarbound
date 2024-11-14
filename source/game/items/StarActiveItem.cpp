@@ -185,7 +185,7 @@ List<DamageSource> ActiveItem::damageSources() const {
         line.flipHorizontal(0.0f);
       line.translate(handPosition(Vec2F()));
     }
-    damageSources.append(move(ds));
+    damageSources.append(std::move(ds));
   }
   return damageSources;
 }
@@ -197,7 +197,7 @@ List<PolyF> ActiveItem::shieldPolys() const {
     if (owner()->facingDirection() == Direction::Left)
       sp.flipHorizontal(0.0f);
     sp.translate(handPosition(Vec2F()));
-    shieldPolys.append(move(sp));
+    shieldPolys.append(std::move(sp));
   }
   return shieldPolys;
 }
@@ -216,7 +216,7 @@ List<PhysicsForceRegion> ActiveItem::forceRegions() const {
         rfr->center[0] *= -1;
       rfr->center += owner()->position() + handPosition(Vec2F());
     }
-    forceRegions.append(move(fr));
+    forceRegions.append(std::move(fr));
   }
   return forceRegions;
 }
@@ -279,7 +279,7 @@ List<LightSource> ActiveItem::lights() const {
       else
         light.beamAngle = -Constants::pi / 2 - constrainAngle(light.beamAngle + Constants::pi / 2);
     }
-    result.append(move(light));
+    result.append(std::move(light));
   }
   result.appendAll(m_scriptedAnimator.lightSources());
   return result;
@@ -297,7 +297,7 @@ List<AudioInstancePtr> ActiveItem::pullNewAudios() {
   for (auto& audio : m_itemAnimatorDynamicTarget.pullNewAudios()) {
     m_activeAudio[audio] = *audio->position();
     audio->setPosition(owner()->position() + handPosition(*audio->position()));
-    result.append(move(audio));
+    result.append(std::move(audio));
   }
   result.appendAll(m_scriptedAnimator.pullNewAudios());
   return result;
@@ -313,7 +313,7 @@ List<Particle> ActiveItem::pullNewParticles() {
       particle.velocity[0] *= -1;
       particle.flip = !particle.flip;
     }
-    result.append(move(particle));
+    result.append(std::move(particle));
   }
   result.appendAll(m_scriptedAnimator.pullNewParticles());
   return result;
@@ -465,20 +465,20 @@ LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
     });
 
   callbacks.registerCallback("setCursor", [this](Maybe<String> cursor) {
-      m_cursor = move(cursor);
+      m_cursor = std::move(cursor);
     });
 
   callbacks.registerCallback("setScriptedAnimationParameter", [this](String name, Json value) {
-      m_scriptedAnimationParameters.set(move(name), move(value));
+      m_scriptedAnimationParameters.set(std::move(name), std::move(value));
     });
 
   callbacks.registerCallback("setInventoryIcon", [this](String image) {
       setInstanceValue("inventoryIcon", image);
-      setIconDrawables({Drawable::makeImage(move(image), 1.0f, true, Vec2F())});
+      setIconDrawables({Drawable::makeImage(std::move(image), 1.0f, true, Vec2F())});
     });
 
   callbacks.registerCallback("setInstanceValue", [this](String name, Json val) {
-      setInstanceValue(move(name), move(val));
+      setInstanceValue(std::move(name), std::move(val));
     });
 
   callbacks.registerCallback("callOtherHandScript", [this](LuaEngine& engine, String const& func, LuaVariadic<LuaValue> const& args) -> LuaValue {

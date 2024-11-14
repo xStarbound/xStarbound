@@ -142,7 +142,7 @@ T* BlockAllocator<T, BlockSize>::allocate(size_t n) {
         auto sortedPosition = std::lower_bound(m_data->blocks.begin(), m_data->blocks.end(), block.get(), [](std::unique_ptr<Block> const& a, Block* b) {
             return a.get() < b;
           });
-        m_data->blocks.insert(sortedPosition, move(block));
+        m_data->blocks.insert(sortedPosition, std::move(block));
       }
     }
 

@@ -775,7 +775,7 @@ void ActorMovementController::tickMaster(float dt) {
       if (appliedForceRegion()) {
         m_pathController->reset();
       } else if (!m_pathController->pathfinding()) {
-        m_pathMoveResult = m_pathController->move(*this, activeParameters, activeModifiers, m_controlPathMove->second, dt)
+        m_pathMoveResult = m_pathController->std::move(*this, activeParameters, activeModifiers, m_controlPathMove->second, dt)
           .apply([this](bool result) { return pair<Vec2F, bool>(m_controlPathMove->first, result); });
 
         auto action = m_pathController->curAction();
@@ -1104,7 +1104,7 @@ void ActorMovementController::doSetAnchorState(Maybe<EntityAnchorState> anchorSt
   }
 
   m_anchorState.set(anchorState);
-  m_entityAnchor = move(entityAnchor);
+  m_entityAnchor = std::move(entityAnchor);
 
   if (m_entityAnchor)
     setPosition(m_entityAnchor->position);
@@ -1271,7 +1271,7 @@ Maybe<bool> PathController::findPath(ActorMovementController& movementController
   return {};
 }
 
-Maybe<bool> PathController::move(ActorMovementController& movementController, ActorMovementParameters const& parameters, ActorMovementModifiers const& modifiers, bool run, float dt) {
+Maybe<bool> PathController::std::move(ActorMovementController& movementController, ActorMovementParameters const& parameters, ActorMovementModifiers const& modifiers, bool run, float dt) {
   using namespace PlatformerAStar;
 
   // pathfind to a new target position in the background while moving on the current path

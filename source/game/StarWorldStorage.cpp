@@ -121,7 +121,7 @@ WorldChunks WorldStorage::getWorldChunksFromFile(String const& file) {
   openDatabase(db, File::open(file, IOMode::Read));
 
   WorldChunks chunks;
-  db.forAll([&chunks](ByteArray key, ByteArray value) { chunks.add(move(key), move(value)); });
+  db.forAll([&chunks](ByteArray key, ByteArray value) { chunks.add(std::move(key), std::move(value)); });
   return chunks;
 }
 
@@ -287,7 +287,7 @@ void WorldStorage::triggerTerraformSector(Sector sector) {
 }
 
 RpcPromise<Vec2I> WorldStorage::enqueuePlacement(List<BiomeItemDistribution> distributions, Maybe<DungeonId> id) {
-  return m_generatorFacade->enqueuePlacement(move(distributions), id);
+  return m_generatorFacade->enqueuePlacement(std::move(distributions), id);
 }
 
 Maybe<float> WorldStorage::sectorTimeToLive(Sector sector) const {
@@ -499,7 +499,7 @@ WorldChunks WorldStorage::readChunks() {
 
     WorldChunks chunks;
     m_db.forAll([&chunks](ByteArray k, ByteArray v) {
-        chunks.add(move(k), move(v));
+        chunks.add(std::move(k), std::move(v));
       });
 
     return WorldChunks(chunks);
@@ -672,7 +672,7 @@ ByteArray WorldStorage::writeSectorUniqueStore(SectorUniqueStore const& store) {
 void WorldStorage::openDatabase(BTreeDatabase& db, IODevicePtr device) {
   db.setContentIdentifier("World4");
   db.setKeySize(5);
-  db.setIODevice(move(device));
+  db.setIODevice(std::move(device));
   db.setBlockSize(2048);
   db.setAutoCommit(false);
   db.open();
@@ -839,9 +839,9 @@ void WorldStorage::unloadSectorToLevel(Sector const& sector, SectorLoadLevel tar
         return;
 
       if (m_generatorFacade->entityPersistent(this, entity))
-        entitiesToStore.append(move(entity));
+        entitiesToStore.append(std::move(entity));
       else
-        entitiesToRemove.append(move(entity));
+        entitiesToRemove.append(std::move(entity));
     }
   }
 

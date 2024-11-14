@@ -14,9 +14,9 @@ STAR_CLASS(Image);
 STAR_EXCEPTION(ImageOperationException, StarException);
 
 Image scaleNearest(Image const& srcImage, Vec2F scale);
-#if defined XSB_DISABLED // STAR_COMPILER_GNU
-// FezzedOne: Needed to disable `--ffast-math` on GCC.
-Image scaleBilinear(Image const& srcImage, Vec2F scale) __attribute__ ((optimize("no-unsafe-math-optimizations")));
+#if defined STAR_COMPILER_GNU
+// FezzedOne: Needed to emulate MSVC-like floating-point behaviour on GCC.
+Image scaleBilinear(Image const& srcImage, Vec2F scale) __attribute__ ((optimize("float-store")));
 #else
 Image scaleBilinear(Image const& srcImage, Vec2F scale);
 #endif

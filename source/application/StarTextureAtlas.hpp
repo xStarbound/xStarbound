@@ -168,7 +168,7 @@ auto TextureAtlasSet<AtlasTextureHandle>::addTexture(Image const& image, bool bo
       return nullptr;
 
     auto textureEntry = make_shared<TextureEntry>();
-    textureEntry->textureImage = move(finalImage);
+    textureEntry->textureImage = std::move(finalImage);
     textureEntry->atlasPlacement = *placement;
 
     m_textures.add(textureEntry);

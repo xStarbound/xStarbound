@@ -341,7 +341,7 @@ public:
 
   // return true for reaching goal, false for failing to find path, nothing for running
   Maybe<bool> findPath(ActorMovementController& movementController, Vec2F const& targetPosition);
-  Maybe<bool> move(ActorMovementController& movementController, ActorMovementParameters const& parameters, ActorMovementModifiers const& modifiers, bool run, float dt);
+  Maybe<bool> std::move(ActorMovementController& movementController, ActorMovementParameters const& parameters, ActorMovementModifiers const& modifiers, bool run, float dt);
 private:
   bool validateEdge(ActorMovementController& movementController, PlatformerAStar::Edge const& edge);
   bool movingCollision(ActorMovementController& movementController, PolyF const& collisionPoly);

@@ -150,7 +150,7 @@ StringList LuaBindings::UniverseServerCallbacks::activeWorlds(UniverseServer* un
 // @param args... Optional JSON arguments.
 // @return An RPC promise for the sent world message.
 RpcThreadPromise<Json> LuaBindings::UniverseServerCallbacks::sendWorldMessage(UniverseServer* universe, String const& worldId, String const& message, LuaVariadic<Json> args) {
-  return universe->sendWorldMessage(parseWorldId(worldId), message, JsonArray::from(move(args)));
+  return universe->sendWorldMessage(parseWorldId(worldId), message, JsonArray::from(std::move(args)));
 }
 
 // ErodeesFleurs: Returns the world a given player is located on.

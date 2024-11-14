@@ -17,7 +17,7 @@ List<NodeParameterType> BlackboardTypes = {
   NodeParameterType::String
 };
 
-Blackboard::Blackboard(LuaTable luaContext) : m_luaContext(move(luaContext)) {
+Blackboard::Blackboard(LuaTable luaContext) : m_luaContext(std::move(luaContext)) {
   for (auto type : BlackboardTypes) {
     m_board.set(type, {});
     m_input.set(type, {});
@@ -118,7 +118,7 @@ void Blackboard::clearEphemerals(Set<pair<NodeParameterType, String>> ephemerals
   }
 }
 
-DecoratorState::DecoratorState(LuaThread thread) : thread(move(thread)) {
+DecoratorState::DecoratorState(LuaThread thread) : thread(std::move(thread)) {
   child = make_shared<NodeState>();
 }
 
@@ -131,7 +131,7 @@ CompositeState::CompositeState(size_t childCount, size_t begin) : CompositeState
   index = begin;
 }
 
-BehaviorState::BehaviorState(BehaviorTreeConstPtr tree, LuaTable context, Maybe<BlackboardWeakPtr> blackboard) : m_tree(tree), m_luaContext(move(context)) {
+BehaviorState::BehaviorState(BehaviorTreeConstPtr tree, LuaTable context, Maybe<BlackboardWeakPtr> blackboard) : m_tree(tree), m_luaContext(std::move(context)) {
   if (blackboard)
     m_board = *blackboard;
   else

@@ -387,7 +387,7 @@ template <typename FirstType, typename... RestTypes>
 Variant<FirstType, RestTypes...>::Variant(Variant&& x)
   noexcept(detail::IsNothrowMoveConstructible<FirstType, RestTypes...>::value) {
   x.call([this](auto& t) {
-      assign(move(t));
+      assign(std::move(t));
     });
 }
 
@@ -415,7 +415,7 @@ Variant<FirstType, RestTypes...>& Variant<FirstType, RestTypes...>::operator=(Va
     return *this;
 
   x.call([this](auto& t) {
-      assign(move(t));
+      assign(std::move(t));
     });
 
   return *this;
@@ -665,7 +665,7 @@ MVariant<Types...>::MVariant(MVariant const& x)
 
 template <typename... Types>
 MVariant<Types...>::MVariant(MVariant&& x) {
-  m_variant = move(x.m_variant);
+  m_variant = std::move(x.m_variant);
   x.m_variant = MVariantEmpty();
 }
 
@@ -676,7 +676,7 @@ MVariant<Types...>::MVariant(Variant<Types...> const& x) {
 
 template <typename... Types>
 MVariant<Types...>::MVariant(Variant<Types...>&& x) {
-  operator=(move(x));
+  operator=(std::move(x));
 }
 
 template <typename... Types>
@@ -707,7 +707,7 @@ MVariant<Types...>& MVariant<Types...>::operator=(MVariant const& x) {
 template <typename... Types>
 MVariant<Types...>& MVariant<Types...>::operator=(MVariant&& x) {
   try {
-    m_variant = move(x.m_variant);
+    m_variant = std::move(x.m_variant);
   } catch (...) {
     if (m_variant.invalid())
       m_variant = MVariantEmpty();
@@ -753,7 +753,7 @@ MVariant<Types...>& MVariant<Types...>::operator=(Variant<Types...> const& x) {
 template <typename... Types>
 MVariant<Types...>& MVariant<Types...>::operator=(Variant<Types...>&& x) {
   x.call([this](auto& t) {
-      *this = move(t);
+      *this = std::move(t);
     });
   return *this;
 }
@@ -830,7 +830,7 @@ bool MVariant<Types...>::is() const {
 template <typename... Types>
 template <typename T, typename>
 T MVariant<Types...>::take() {
-  T t = move(m_variant.template get<T>());
+  T t = std::move(m_variant.template get<T>());
   m_variant = MVariantEmpty();
   return t;
 }
@@ -854,7 +854,7 @@ Variant<Types...> MVariant<Types...>::takeValue() {
 
   Variant<Types...> r;
   call([&r](auto& v) {
-      r = move(v);
+      r = std::move(v);
     });
   m_variant = MVariantEmpty();
   return r;

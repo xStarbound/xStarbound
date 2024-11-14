@@ -290,11 +290,11 @@ Json MonsterDatabase::mergePartParameters(Json const& partParameterDescription, 
             if (pair.second.type() == Json::Type::Array) {
               auto array = value.toArray();
               array.appendAll(pair.second.toArray());
-              value = move(array);
+              value = std::move(array);
             } else if (pair.second.type() == Json::Type::Object) {
               auto obj = value.toObject();
               obj.merge(pair.second.toObject(), true);
-              value = move(obj);
+              value = std::move(obj);
             }
           }
         }
@@ -321,7 +321,7 @@ Json MonsterDatabase::mergeFinalParameters(JsonArray const& parameters) {
           || pair.first == "baseSkills") {
         auto array = value.optArray().value();
         array.appendAll(pair.second.optArray().value());
-        value = move(array);
+        value = std::move(array);
       } else {
         value = jsonMerge(value, pair.second);
       }

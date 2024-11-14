@@ -25,14 +25,14 @@ StringList const& LuaBaseComponent::scripts() const {
 }
 
 void LuaBaseComponent::setScript(String script) {
-  setScripts({move(script)});
+  setScripts({std::move(script)});
 }
 
 void LuaBaseComponent::setScripts(StringList scripts) {
   if (initialized())
     throw LuaComponentException("Cannot call LuaWorldComponent::setScripts when LuaWorldComponent is initialized");
 
-  m_scripts = move(scripts);
+  m_scripts = std::move(scripts);
 }
 
 void LuaBaseComponent::addBaseCallbacks(String groupName, LuaCallbacks callbacks) {
@@ -76,7 +76,7 @@ void LuaBaseComponent::setAutoReInit(bool autoReInit) {
 }
 
 void LuaBaseComponent::setLuaRoot(LuaRootPtr luaRoot) {
-  m_luaRoot = move(luaRoot);
+  m_luaRoot = std::move(luaRoot);
 }
 
 LuaRootPtr const& LuaBaseComponent::luaRoot() {
@@ -162,7 +162,7 @@ void LuaBaseComponent::contextShutdown() {
 
 void LuaBaseComponent::setError(String error) {
   m_context.reset();
-  m_error = move(error);
+  m_error = std::move(error);
 }
 
 bool LuaBaseComponent::checkInitialization() {

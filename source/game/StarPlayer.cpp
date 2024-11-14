@@ -346,7 +346,7 @@ ClientContextPtr Player::clientContext() const {
 }
 
 void Player::setClientContext(ClientContextPtr clientContext) {
-  m_clientContext = move(clientContext);
+  m_clientContext = std::move(clientContext);
   if (m_clientContext)
     m_universeMap->setServerUuid(m_clientContext->serverUuid());
 }
@@ -507,7 +507,7 @@ List<Drawable> Player::drawables() const {
               drawable.imagePart().addDirectives(*directives, true);
           }
         }
-        drawables.append(move(drawable));
+        drawables.append(std::move(drawable));
       }
     }
     drawables.appendAll(m_techController->frontDrawables());
@@ -1332,14 +1332,14 @@ void Player::render(RenderCallback* renderCallback) {
       auto landingNoise = make_shared<AudioInstance>(*footstepAudio);
       landingNoise->setPosition(position() + feetOffset());
       landingNoise->setVolume(m_landingVolume);
-      renderCallback->addAudio(move(landingNoise));
+      renderCallback->addAudio(std::move(landingNoise));
     }
 
     if (m_footstepPending) {
       auto stepNoise = make_shared<AudioInstance>(*footstepAudio);
       stepNoise->setPosition(position() + feetOffset());
       stepNoise->setVolume(1 - Random::randf(0, m_footstepVolumeVariance));
-      renderCallback->addAudio(move(stepNoise));
+      renderCallback->addAudio(std::move(stepNoise));
     }
   } else {
     m_footstepTimer = m_config->footstepTiming;
@@ -1358,7 +1358,7 @@ void Player::render(RenderCallback* renderCallback) {
     audio->setVolume(get<1>(p));
     audio->setPitchMultiplier(get<2>(p));
     audio->setPosition(position());
-    renderCallback->addAudio(move(audio));
+    renderCallback->addAudio(std::move(audio));
   }
 
   auto loungeAnchor = as<LoungeAnchor>(m_movementController->entityAnchor());
@@ -1857,7 +1857,7 @@ pair<ByteArray, uint64_t> Player::writeNetState(uint64_t fromVersion) {
 }
 
 void Player::readNetState(ByteArray data, float interpolationTime) {
-  m_netGroup.readNetState(move(data), interpolationTime);
+  m_netGroup.readNetState(std::move(data), interpolationTime);
 }
 
 void Player::enableInterpolation(float) {
@@ -2373,7 +2373,7 @@ ShipUpgrades Player::shipUpgrades() {
 }
 
 void Player::setShipUpgrades(ShipUpgrades shipUpgrades) {
-  m_shipUpgrades = move(shipUpgrades);
+  m_shipUpgrades = std::move(shipUpgrades);
 }
 
 void Player::applyShipUpgrades(Json const& upgrades) {
@@ -2533,7 +2533,7 @@ Json Player::getIdentity() const {
 }
 
 void Player::setIdentity(HumanoidIdentity identity) {
-  m_identity = move(identity);
+  m_identity = std::move(identity);
   updateIdentity();
 }
 
@@ -2782,7 +2782,7 @@ Json Player::diskStore() {
   for (auto& p : m_genericScriptContexts) {
     auto scriptStorage = p.second->getScriptStorage();
     if (!scriptStorage.empty())
-      genericScriptStorage[p.first] = move(scriptStorage);
+      genericScriptStorage[p.first] = std::move(scriptStorage);
   }
 
 /* FezzedOne: Save the player's `"xSbProperties"` to the file. */
@@ -3296,7 +3296,7 @@ Json Player::getSecretProperty(String const& name, Json defaultValue) const {
       { Logger::error("Exception reading secret player property '{}': {}", name, e.what()); }
   }
 
-  return move(defaultValue);
+  return std::move(defaultValue);
 }
 
 void Player::setSecretProperty(String const& name, Json const& value) {

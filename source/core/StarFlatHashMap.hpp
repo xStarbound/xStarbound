@@ -290,12 +290,12 @@ FlatHashMap<Key, Mapped, Hash, Equals, Allocator>::FlatHashMap(FlatHashMap const
 
 template <typename Key, typename Mapped, typename Hash, typename Equals, typename Allocator>
 FlatHashMap<Key, Mapped, Hash, Equals, Allocator>::FlatHashMap(FlatHashMap&& other)
-  : FlatHashMap(move(other), other.m_table.getAllocator()) {}
+  : FlatHashMap(std::move(other), other.m_table.getAllocator()) {}
 
 template <typename Key, typename Mapped, typename Hash, typename Equals, typename Allocator>
 FlatHashMap<Key, Mapped, Hash, Equals, Allocator>::FlatHashMap(FlatHashMap&& other, allocator_type const& alloc)
   : FlatHashMap(alloc) {
-  operator=(move(other));
+  operator=(std::move(other));
 }
 
 template <typename Key, typename Mapped, typename Hash, typename Equals, typename Allocator>
@@ -326,7 +326,7 @@ auto FlatHashMap<Key, Mapped, Hash, Equals, Allocator>::operator=(FlatHashMap co
 
 template <typename Key, typename Mapped, typename Hash, typename Equals, typename Allocator>
 auto FlatHashMap<Key, Mapped, Hash, Equals, Allocator>::operator=(FlatHashMap&& other) -> FlatHashMap& {
-  m_table = move(other.m_table);
+  m_table = std::move(other.m_table);
   return *this;
 }
 
@@ -480,7 +480,7 @@ auto FlatHashMap<Key, Mapped, Hash, Equals, Allocator>::operator[](key_type&& ke
   auto i = m_table.find(key);
   if (i != m_table.end())
     return i->second;
-  return m_table.insert({move(key), mapped_type()}).first->second;
+  return m_table.insert({std::move(key), mapped_type()}).first->second;
 }
 
 template <typename Key, typename Mapped, typename Hash, typename Equals, typename Allocator>

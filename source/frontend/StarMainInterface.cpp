@@ -866,7 +866,7 @@ bool MainInterface::isDebugDisplayed() {
 }
 
 void MainInterface::drawDrawable(Drawable drawable, Vec2F const& screenPos, float pixelRatio, Vec4B const& color) {
-  m_queuedDrawables.push_back({move(drawable), screenPos, pixelRatio, color});
+  m_queuedDrawables.push_back({std::move(drawable), screenPos, pixelRatio, color});
 }
 
 void MainInterface::doChat(String const& chat, bool addToHistory) {
@@ -900,7 +900,7 @@ Maybe<List<String>> MainInterface::doChatCallback(String& chat, bool addToHistor
       finalResult.emplace_back(result);
     }
 
-    m_lastCommand = move(chat);
+    m_lastCommand = std::move(chat);
   } else {
     m_client->sendChat(chat, m_chat->sendMode());
   }
@@ -1208,7 +1208,7 @@ void MainInterface::renderMonsterHealthBar() {
     Drawable::scaleAll(portrait, 1.0f / (m_portraitScale * 2.0f));
 
     for (auto drawable : portrait)
-      m_guiContext->drawDrawable(move(drawable), backgroundCenterPos + portraitOffset, portraitScale);
+      m_guiContext->drawDrawable(std::move(drawable), backgroundCenterPos + portraitOffset, portraitScale);
 
     m_guiContext->resetInterfaceScissorRect();
   }
@@ -1597,7 +1597,7 @@ void MainInterface::renderCursor() {
 void MainInterface::renderQueuedDrawables() {
   if (!m_queuedDrawables.empty()) {
     for (auto q : m_queuedDrawables) {
-      m_guiContext->drawDrawable(move(q.drawable), q.screenPosition, q.pixelRatio, q.colour);
+      m_guiContext->drawDrawable(std::move(q.drawable), q.screenPosition, q.pixelRatio, q.colour);
     }
     m_queuedDrawables.clear();
   }
@@ -1706,7 +1706,7 @@ Vec2F MainInterface::cameraPosition() const {
 }
 
 void MainInterface::passCameraPosition(Vec2F cameraPosition) {
-  m_cameraPosition = move(cameraPosition);
+  m_cameraPosition = std::move(cameraPosition);
 }
 
 Maybe<Vec2F> MainInterface::cameraPositionOverride() const {
@@ -1714,7 +1714,7 @@ Maybe<Vec2F> MainInterface::cameraPositionOverride() const {
 }
 
 void MainInterface::setCameraPositionOverride(Maybe<Vec2F> newCameraOverride) {
-  m_cameraPositionOverride = move(newCameraOverride);
+  m_cameraPositionOverride = std::move(newCameraOverride);
 }
 
 UniverseClientPtr MainInterface::universeClient() const {

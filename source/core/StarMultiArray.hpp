@@ -326,14 +326,14 @@ void MultiArray<Element, Rank>::set(IndexArray const& index, Element element) {
       throw MultiArrayException(strf("Out of bounds on MultiArray::set({})", index));
   }
 
-  m_data[storageIndex(index)] = move(element);
+  m_data[storageIndex(index)] = std::move(element);
 }
 
 template <typename Element, size_t Rank>
 Element MultiArray<Element, Rank>::get(IndexArray const& index, Element def) {
   for (size_t i = Rank; i != 0; --i) {
     if (index[i - 1] >= m_shape[i - 1])
-      return move(def);
+      return std::move(def);
   }
 
   return m_data[storageIndex(index)];
@@ -346,7 +346,7 @@ void MultiArray<Element, Rank>::setResize(IndexArray const& index, Element eleme
     newShape[i] = std::max(m_shape[i], index[i] + 1);
   resize(newShape);
 
-  m_data[storageIndex(index)] = move(element);
+  m_data[storageIndex(index)] = std::move(element);
 }
 
 template <typename Element, size_t Rank>

@@ -43,7 +43,7 @@ ByteArray::ByteArray(ByteArray const& b)
 
 ByteArray::ByteArray(ByteArray&& b) noexcept
   : ByteArray() {
-  operator=(move(b));
+  operator=(std::move(b));
 }
 
 ByteArray::~ByteArray() {
@@ -145,7 +145,7 @@ void ByteArray::trimLeft(size_t s) {
   if (s >= m_size) {
     clear();
   } else {
-    std::memmove(m_data, m_data + s, m_size - s);
+    std::memstd::move(m_data, m_data + s, m_size - s);
     resize(m_size - s);
   }
 }

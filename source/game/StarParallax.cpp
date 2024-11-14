@@ -67,7 +67,7 @@ void ParallaxLayer::addImageDirectives(Directives const& newDirectives) {
         newString += entry.string(*newDirectives.shared);
       }
 
-      directives = move(newString);
+      directives = std::move(newString);
     }
     else
       directives = newDirectives;

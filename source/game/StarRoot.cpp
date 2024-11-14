@@ -80,7 +80,7 @@ Root::Root(Settings settings) {
   if (!s_singleton.compare_exchange_strong(oldRoot, this))
     throw RootException("Singleton Root has been constructed twice");
 
-  m_settings = move(settings);
+  m_settings = std::move(settings);
   if (m_settings.runtimeConfigFile)
     m_runtimeConfigFile = toStoragePath(*m_settings.runtimeConfigFile);
 
@@ -329,7 +329,7 @@ void Root::reload() {
 
 void Root::reloadWithMods(StringList modDirectories) {
   MutexLocker locker(m_modsMutex);
-  m_modDirectories = move(modDirectories);
+  m_modDirectories = std::move(modDirectories);
   reload();
 }
 
@@ -401,7 +401,7 @@ void Root::cleanUpImageMetadata() {
 }
 
 void Root::registerReloadListener(ListenerWeakPtr reloadListener) {
-  m_reloadListeners.addListener(move(reloadListener));
+  m_reloadListeners.addListener(std::move(reloadListener));
 }
 
 String Root::toStoragePath(String const& path) const {
@@ -664,10 +664,10 @@ StringList Root::scanForAssetSources(StringList const& directories) {
           }
         } else {
           namedSources[*assetSource->name] = assetSource;
-          assetSources.append(move(assetSource));
+          assetSources.append(std::move(assetSource));
         }
       } else {
-        assetSources.append(move(assetSource));
+        assetSources.append(std::move(assetSource));
       }
     }
   }
@@ -709,11 +709,11 @@ StringList Root::scanForAssetSources(StringList const& directories) {
 
     workingSet.remove(source);
 
-    dependencySortedSources.add(move(source));
+    dependencySortedSources.add(std::move(source));
   };
 
   for (auto source : assetSources)
-    dependencySortVisit(move(source));
+    dependencySortVisit(std::move(source));
 
   StringList sourcePaths;
   // Throw exceptions and close the game if there's an xStarbound asset version mismatch or the xStarbound or base game assets aren't found.

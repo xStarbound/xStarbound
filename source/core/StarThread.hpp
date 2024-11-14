@@ -364,7 +364,7 @@ ThreadFunction<Return>::ThreadFunction(ThreadFunction&&) = default;
 template <typename Return>
 ThreadFunction<Return>::ThreadFunction(function<Return()> function, String const& name) {
   m_return = make_shared<Maybe<Return>>();
-  m_function = ThreadFunction<void>([function = move(function), retValue = m_return]() {
+  m_function = ThreadFunction<void>([function = std::move(function), retValue = m_return]() {
       *retValue = function();
     }, name);
 }

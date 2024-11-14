@@ -113,7 +113,7 @@ LuaCallbacks LuaBindings::makeClipboardCallbacks(MainInterface* mainInterface) {
     return GuiContext::singleton().maybeGetClipboard();
   });
   callbacks.registerCallback("setText", [mainInterface](String text) -> Maybe<String> {
-    return GuiContext::singleton().maybeSetClipboard(move(text));
+    return GuiContext::singleton().maybeSetClipboard(std::move(text));
   });
 
   return callbacks;
@@ -169,7 +169,7 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface, b
   });
 
   callbacks.registerCallback("overrideCameraPosition", [mainInterface](Vec2F newPosition) {
-    mainInterface->setCameraPositionOverride(move(newPosition));
+    mainInterface->setCameraPositionOverride(std::move(newPosition));
   });
 
   callbacks.registerCallback("queueMessage", [mainInterface](String const& message, Maybe<float> cooldown, Maybe<float> springState) {
@@ -196,7 +196,7 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface, b
     Vec4B checkedColour = Vec4B::filled(255);
     if (colour)
       checkedColour = *colour;
-    mainInterface->drawDrawable(move(drawable), screenPos, pixelRatio, checkedColour);
+    mainInterface->drawDrawable(std::move(drawable), screenPos, pixelRatio, checkedColour);
   });
 
   callbacks.registerCallback("windowSize", [mainInterface]() -> Vec2U {

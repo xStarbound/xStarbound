@@ -37,7 +37,7 @@ struct SwallowReturn {
 
 template <typename Func>
 SwallowReturn<Func> swallow(Func f) {
-  return SwallowReturn<Func>{move(f)};
+  return SwallowReturn<Func>{std::move(f)};
 }
 
 struct Empty {
@@ -64,7 +64,7 @@ struct FunctionComposer {
 
 template <typename FirstFunction, typename SecondFunction>
 decltype(auto) compose(FirstFunction&& firstFunction, SecondFunction&& secondFunction) {
-  return FunctionComposer<FirstFunction, SecondFunction>{move(forward<FirstFunction>(firstFunction)), move(forward<SecondFunction>(secondFunction))};
+  return FunctionComposer<FirstFunction, SecondFunction>{std::move(forward<FirstFunction>(firstFunction)), std::move(forward<SecondFunction>(secondFunction))};
 }
 
 template <typename FirstFunction, typename SecondFunction, typename ThirdFunction, typename... RestFunctions>
@@ -293,7 +293,7 @@ template <typename OutContainer, typename InContainer, typename Function>
 void transformInto(OutContainer& outContainer, InContainer&& inContainer, Function&& function) {
   for (auto&& elem : inContainer) {
     if (std::is_rvalue_reference<InContainer&&>::value)
-      outContainer.insert(outContainer.end(), function(move(elem)));
+      outContainer.insert(outContainer.end(), function(std::move(elem)));
     else
       outContainer.insert(outContainer.end(), function(elem));
   }
@@ -326,7 +326,7 @@ OutputContainer zipWith(Function&& function, Container1 const& cont1, Container2
 // default constructed state.
 template <typename T>
 T take(T& t) {
-  T t2 = move(t);
+  T t2 = std::move(t);
   t = T();
   return t2;
 }
@@ -365,7 +365,7 @@ public:
   };
 
   explicit FunctionOutputIterator(UnaryFunction f = UnaryFunction())
-    : m_function(move(f)) {}
+    : m_function(std::move(f)) {}
 
   OutputProxy operator*() {
     return OutputProxy(m_function);
@@ -385,7 +385,7 @@ private:
 
 template <typename UnaryFunction>
 FunctionOutputIterator<UnaryFunction> makeFunctionOutputIterator(UnaryFunction f) {
-  return FunctionOutputIterator<UnaryFunction>(move(f));
+  return FunctionOutputIterator<UnaryFunction>(std::move(f));
 }
 
 // Wraps a nullary function to produce an input iterator
@@ -401,7 +401,7 @@ public:
   typedef typename std::result_of<NullaryFunction()>::type FunctionReturnType;
 
   explicit FunctionInputIterator(NullaryFunction f = {})
-    : m_function(move(f)) {}
+    : m_function(std::move(f)) {}
 
   FunctionReturnType operator*() {
     return m_function();
@@ -421,7 +421,7 @@ private:
 
 template <typename NullaryFunction>
 FunctionInputIterator<NullaryFunction> makeFunctionInputIterator(NullaryFunction f) {
-  return FunctionInputIterator<NullaryFunction>(move(f));
+  return FunctionInputIterator<NullaryFunction>(std::move(f));
 }
 
 template <typename Iterable>
@@ -449,14 +449,14 @@ ReverseWrapper<Iterable> reverseIterate(Iterable& list) {
 template <typename Functor>
 class FinallyGuard {
 public:
-  FinallyGuard(Functor functor) : functor(move(functor)), dismiss(false) {}
+  FinallyGuard(Functor functor) : functor(std::move(functor)), dismiss(false) {}
 
-  FinallyGuard(FinallyGuard&& o) : functor(move(o.functor)), dismiss(o.dismiss) {
+  FinallyGuard(FinallyGuard&& o) : functor(std::move(o.functor)), dismiss(o.dismiss) {
     o.cancel();
   }
 
   FinallyGuard& operator=(FinallyGuard&& o) {
-    functor = move(o.functor);
+    functor = std::move(o.functor);
     dismiss = o.dismiss;
     o.cancel();
     return *this;

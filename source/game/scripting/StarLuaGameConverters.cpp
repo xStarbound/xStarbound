@@ -31,7 +31,7 @@ Maybe<CollisionSet> LuaConverter<CollisionSet>::to(LuaEngine& engine, LuaValue c
   CollisionSet result;
   bool failed = false;
   table->iterate([&result, &failed, &engine](LuaValue, LuaValue value) {
-      if (auto k = engine.luaMaybeTo<CollisionKind>(move(value))) {
+      if (auto k = engine.luaMaybeTo<CollisionKind>(std::move(value))) {
         result.insert(*k);
         return true;
       } else {
@@ -62,7 +62,7 @@ LuaValue LuaConverter<PlatformerAStar::Path>::from(LuaEngine& engine, Platformer
     edgeTable.set("jumpVelocity", edge.jumpVelocity);
     edgeTable.set("source", convertNode(edge.source));
     edgeTable.set("target", convertNode(edge.target));
-    pathTable.set(pathTableIndex++, move(edgeTable));
+    pathTable.set(pathTableIndex++, std::move(edgeTable));
   }
   return pathTable;
 }
@@ -295,7 +295,7 @@ LuaValue LuaConverter<StatModifier>::from(LuaEngine& engine, StatModifier const&
 }
 
 Maybe<StatModifier> LuaConverter<StatModifier>::to(LuaEngine& engine, LuaValue v) {
-  auto json = engine.luaMaybeTo<Json>(move(v));
+  auto json = engine.luaMaybeTo<Json>(std::move(v));
   if (!json)
     return {};
 

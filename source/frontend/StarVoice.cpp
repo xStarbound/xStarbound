@@ -178,7 +178,7 @@ template <typename T>
 inline bool change(T& value, T newValue, bool& out) {
 	bool changed = value != newValue;
 	out |= changed;
-	value = move(newValue);
+	value = std::move(newValue);
 	return changed;
 }
 
@@ -442,7 +442,7 @@ void Voice::update(float dt, PositionalAttenuationFunction positionalAttenuation
 			auto& dbHistory = speaker->dbHistory;
 			// This fix (from @kblaschke) isn't *technically* necessary (on GCC/MSVC, that is), but it does stop Valgrind from
 			// complaining and should also fix a known segfault that happens on Clang-compiled builds.
-			memmove(&dbHistory[1], &dbHistory[0], (dbHistory.size() - 1) * sizeof(float));
+			memstd::move(&dbHistory[1], &dbHistory[0], (dbHistory.size() - 1) * sizeof(float));
 			dbHistory[0] = speaker->decibelLevel;
 			float smoothDb = 0.0f;
 			for (float dB : dbHistory)
@@ -490,7 +490,7 @@ int Voice::send(DataStreamBuffer& out, size_t budget) {
 	if (m_encodedChunks.empty())
 		return 0;
 
-	std::vector<ByteArray> encodedChunks = move(m_encodedChunks);
+	std::vector<ByteArray> encodedChunks = std::move(m_encodedChunks);
 	size_t encodedChunksLength = m_encodedChunksLength;
 	m_encodedChunksLength = 0;
 
@@ -702,7 +702,7 @@ void Voice::thread() {
 
 					{
 						MutexLocker lock(m_encodeMutex);
-						m_encodedChunks.emplace_back(move(encoded));
+						m_encodedChunks.emplace_back(std::move(encoded));
 						m_encodedChunksLength += encodedSize;
 
 						encoded = ByteArray(VOICE_MAX_PACKET_SIZE, 0);

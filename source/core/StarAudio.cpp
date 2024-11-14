@@ -129,7 +129,7 @@ namespace {
     for (size_t i = 0; i < pcmData->size() / 2; ++i)
       fromByteOrder(ByteOrder::LittleEndian, pcmData->ptr() + i * 2, 2);
 
-    return WaveData{move(pcmData), wavChannels, wavSampleRate};
+    return WaveData{std::move(pcmData), wavChannels, wavSampleRate};
   }
 }
 
@@ -280,7 +280,7 @@ public:
   UncompressedAudioImpl(ByteArrayConstPtr data, unsigned channels, unsigned sampleRate) {
     m_channels = channels;
     m_sampleRate = sampleRate;
-    m_audioData = move(data);
+    m_audioData = std::move(data);
     m_memoryFile.reset(m_audioData->ptr(), m_audioData->size());
   }
 
@@ -339,7 +339,7 @@ Audio::Audio(IODevicePtr device) {
 
   if (isUncompressed(device)) {
     WaveData data = parseWav(device);
-    m_uncompressed = make_shared<UncompressedAudioImpl>(move(data.byteArray), data.channels, data.sampleRate);
+    m_uncompressed = make_shared<UncompressedAudioImpl>(std::move(data.byteArray), data.channels, data.sampleRate);
   } else {
     m_compressed = make_shared<CompressedAudioImpl>(device);
     if (!m_compressed->open())
@@ -352,7 +352,7 @@ Audio::Audio(Audio const& audio) {
 }
 
 Audio::Audio(Audio&& audio) {
-  operator=(move(audio));
+  operator=(std::move(audio));
 }
 
 Audio& Audio::operator=(Audio const& audio) {
@@ -369,8 +369,8 @@ Audio& Audio::operator=(Audio const& audio) {
 }
 
 Audio& Audio::operator=(Audio&& audio) {
-  m_compressed = move(audio.m_compressed);
-  m_uncompressed = move(audio.m_uncompressed);
+  m_compressed = std::move(audio.m_compressed);
+  m_uncompressed = std::move(audio.m_uncompressed);
   return *this;
 }
 

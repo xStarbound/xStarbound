@@ -496,7 +496,7 @@ VisitableWorldParametersPtr netLoadVisitableWorldParameters(ByteArray data) {
   if (data.empty())
     return {};
 
-  DataStreamBuffer ds(move(data));
+  DataStreamBuffer ds(std::move(data));
   auto type = ds.read<WorldParametersType>();
 
   VisitableWorldParametersPtr parameters;

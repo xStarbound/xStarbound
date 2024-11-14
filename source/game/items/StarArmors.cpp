@@ -132,7 +132,7 @@ void ArmorItem::refreshIconDrawables() {
       drawable.imagePart().addDirectives(m_directives, true);
     }
   }
-  setIconDrawables(move(drawables));
+  setIconDrawables(std::move(drawables));
 }
 
 void ArmorItem::refreshStatusEffects() {

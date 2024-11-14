@@ -334,14 +334,14 @@ if(STAR_COMPILER_GNU)
 
     # FezzedOne: Need to define `FLOAT_APPROX` for Opus whenever `-Ofast` is used.
 
-    set(CMAKE_C_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -O3")
-    set(CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -O3")
+    set(CMAKE_C_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -O3 -ffloat-store")
+    set(CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -O3 -ffloat-store")
 
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -ffloat-store")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -ffloat-store")
 
-    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3")
-    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3")
+    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffloat-store")
+    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffloat-store")
 
     if(STAR_MEMORY_SANITIZER)
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
@@ -355,8 +355,8 @@ if(STAR_COMPILER_GNU)
 elseif(STAR_COMPILER_CLANG)
     if(STAR_SYSTEM_LINUX)
         # Stop Clang from bitching about all those thousands of `move` calls without an `std::` (or `Star::`, since there's an alias in that namespace).
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,--export-dynamic -Wall -Wextra -Wuninitialized -Wno-unqualified-std-cast-call -Wno-parentheses-equality -Wno-deprecated-declarations")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wl,--export-dynamic -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wuninitialized -Wno-unqualified-std-cast-call -Wno-parentheses-equality -Wno-deprecated-declarations")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
     elseif(STAR_SYSTEM_MACOS)
         # Stop Clang from bitching about all those thousands of `move` calls without an `std::` (or `Star::`, since there's an alias in that namespace).
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-export_dynamic -Wall -Wextra -Wuninitialized -Wno-unqualified-std-cast-call -Wno-parentheses-equality -Wno-deprecated-declarations")
@@ -368,11 +368,11 @@ elseif(STAR_COMPILER_CLANG)
         set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++17")
         set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
     elseif(STAR_SYSTEM_LINUX)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -no-pie")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -no-pie")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     elseif()
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -no-pie -pthread -D_REENTRANT")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -no-pie -pthread -D_REENTRANT")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -D_REENTRANT")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_REENTRANT")
     endif()
 
     set(CMAKE_C_FLAGS_DEBUG "-g")

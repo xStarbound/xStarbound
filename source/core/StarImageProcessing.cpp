@@ -48,8 +48,8 @@ Image scaleNearest(Image const& srcImage, Vec2F scale) {
 #elif defined STAR_COMPILER_CLANG
   // #pragma clang optimize off
 #elif defined XSB_DISABLED // STAR_COMPILER_GNU
-  // FezzedOne: Disable floating-point optimisations on GCC.
-  #pragma GCC optimize("no-unsafe-math-optimizations")
+  // FezzedOne: Emulate MSVC's floating-point behaviour on GCC.
+  #pragma GCC optimize("-ffloat-store")
 #endif
 Image scaleBilinear(Image const& srcImage, Vec2F scale) {
   #if defined STAR_COMPILER_CLANG
@@ -302,7 +302,7 @@ ImageOperation imageOperationFromString(StringView string) {
             else if (hexLen == 6) { // If the hex color string is 6 characters long, it's an `RRGGBB` hex string, so expand it to 8 by adding an alpha of `ff` (fully opaque).
               hexDecode(hexPtr, 6, c, 4); // Decodes into the first three bytes of the array as hex bytes equivalent to their string representation.
               c[3] = 255; // Add an alpha of `ff` (fully opaque).
-            #if defined XSB_DISABLED // STAR_COMPILER_GNU
+            #if defined STAR_COMPILER_GNU
               // FezzedOne: Warning: Disgusting hack for MinGW builds! This makes sure generated sleeves are rendered properly. To bypass this hack, tack an `ff` alpha value onto the end of `bcbc5d` when using
               // it as an `a` colour. The hack replaces an `a` of `bcbc5d` (not `bcbc5dff`) with `bcbc5e`, which is visually nearly indistinguishable anyway.
               // The hack is needed because `scaleBilinear` (way up above) now works very slightly differently from the vanilla version, just enough to impact this one edge case.
@@ -338,7 +338,7 @@ ImageOperation imageOperationFromString(StringView string) {
             else if (!which || (ptr != end && ++ptr != end)) // If we're in `b` of `a=b` and the hex string is of the wrong length, throw an exception.
               throw ImageOperationException(strf("Improper size for hex string '{}' in imageOperationFromString", StringView(hexPtr, hexLen)), false);
             else // We're in `a` of `a=b`. In vanilla, only `a=b` pairs are evaluated, so only throw an exception if `b` is also there.
-              return move(operation); // Return the incomplete operation, whose parsing stopped just before the invalid `a`, so no valid replacements after that part will be executed.
+              return std::move(operation); // Return the incomplete operation, whose parsing stopped just before the invalid `a`, so no valid replacements after that part will be executed.
 
             which = !which; // If we parsed a hex colour code, switch `which` to the other colour. I.e., from `a` to `b` and vice versa.
             if (which)
@@ -555,7 +555,7 @@ String imageOperationToString(ImageOperation const& operation) {
       // FezzedOne: Transparently convert compiled colour replacements back to the original directives,
       // as if the replacement never happened.
       Vec4B adjustedColour{a[0], a[1], a[2], a[3]};
-    #if defined XSB_DISABLED // STAR_COMPILER_GNU
+    #if defined STAR_COMPILER_GNU
       char colourSubstitutionMode = a[4];
       if (colourSubstitutionMode == (char)255 && adjustedColour[0] == NEW_COLOUR_BYTE_R) {
         adjustedColour[0] = OLD_COLOUR_BYTE_R;
@@ -570,7 +570,7 @@ String imageOperationToString(ImageOperation const& operation) {
 
       String aStr = Color::rgba(adjustedColour).toHex();
     
-    #if defined XSB_DISABLED // STAR_COMPILER_GNU
+    #if defined STAR_COMPILER_GNU
       if (colourSubstitutionMode == (char)0 && (COLOUR_NEEDS_SUB_RGBA(adjustedColour, unsigned char) || COLOUR_2_NEEDS_SUB_RGBA(adjustedColour, unsigned char))) {
         aStr += "ff";
       }
@@ -725,7 +725,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
         // Linux/GCC and MSVC builds: No extra substitutions required.
         pixel = *m; return; 
       }
-    #if defined XSB_DISABLED // STAR_COMPILER_GNU
+    #if defined STAR_COMPILER_GNU
       else if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 255))) {
         // Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
         // MinGW builds: Also execute any tagged `ad9b5a` → `ae9c5aff` replacement if no preceding explicit replacement for `ae9c5a`/`ae9c5aff` is found.
