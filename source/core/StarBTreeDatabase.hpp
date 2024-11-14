@@ -225,7 +225,7 @@ private:
     Key leafKey(Leaf const& leaf, size_t i);
     Data leafData(Leaf const& leaf, size_t i);
     void leafInsert(Leaf& leaf, size_t i, Key k, Data d);
-    void leafRestd::move(Leaf& leaf, size_t i);
+    void leafRemove(Leaf& leaf, size_t i);
     Maybe<Pointer> nextLeaf(Leaf const& leaf);
     void setNextLeaf(Leaf& leaf, Maybe<Pointer> n);
 

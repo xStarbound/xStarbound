@@ -915,7 +915,7 @@ void BTreeDatabase::BTreeImpl::leafInsert(Leaf& leaf, size_t i, Key k, Data d) {
   leaf->insert(i, std::move(k), std::move(d));
 }
 
-void BTreeDatabase::BTreeImpl::leafRestd::move(Leaf& leaf, size_t i) {
+void BTreeDatabase::BTreeImpl::leafRemove(Leaf& leaf, size_t i) {
   leaf->remove(i);
 }
 

@@ -492,7 +492,7 @@ struct SimpleBTreeBase {
     return leaf.insert(i, k, d);
   }
 
-  void leafRestd::move(Leaf& leaf, size_t i) {
+  void leafRemove(Leaf& leaf, size_t i) {
     return leaf.remove(i);
   }
 

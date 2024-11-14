@@ -1548,7 +1548,7 @@ LuaTable LuaDetail::jobjectCreate(LuaEngine& engine, Maybe<LuaTable> table) {
   }
 }
 
-void LuaDetail::jcontRestd::move(LuaTable const& table, LuaValue const& key) {
+void LuaDetail::jcontRemove(LuaTable const& table, LuaValue const& key) {
   if (auto mt = table.getMetatable()) {
     if (auto nils = mt->rawGet<Maybe<LuaTable>>("__nils"))
       nils->rawSet(key, LuaNil);

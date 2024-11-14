@@ -52,7 +52,7 @@ namespace JsonPath {
 
   // Erases the location referred to by the path from the document
   template <typename Jsonlike>
-  Jsonlike pathRestd::move(Jsonlike const& base, PathParser parser, String const& path);
+  Jsonlike pathRemove(Jsonlike const& base, PathParser parser, String const& path);
 
   // Performs RFC6902 (JSON Patching) add operation. Inserts into arrays, or
   // appends if the last path segment is "-". On objects, does the same as
@@ -104,7 +104,7 @@ namespace JsonPath {
 
     template <typename Jsonlike>
     Jsonlike remove(Jsonlike const& base) {
-      return pathRestd::move(base, m_parser, m_path);
+      return pathRemove(base, m_parser, m_path);
     }
 
     template <typename Jsonlike>
@@ -293,7 +293,7 @@ namespace JsonPath {
   }
 
   template <typename Jsonlike>
-  Jsonlike pathRestd::move(Jsonlike const& base, PathParser parser, String const& path) {
+  Jsonlike pathRemove(Jsonlike const& base, PathParser parser, String const& path) {
     EmptyPathOp<Jsonlike> emptyPathOp = [](Jsonlike const&) { return Json{}; };
     ObjectOp<Jsonlike> objectOp = [](Jsonlike const& object, String const& key) {
       if (!object.contains(key))

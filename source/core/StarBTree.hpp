@@ -72,7 +72,7 @@ namespace Star {
 //   Data leafData(Leaf const& leaf, size_t i);
 //
 //   void leafInsert(Leaf& leaf, size_t i, Key k, Data d);
-//   void leafRestd::move(Leaf& leaf, size_t i);
+//   void leafRemove(Leaf& leaf, size_t i);
 //
 //   // Set and get next-leaf pointers.  It is not required that next-leaf
 //   // pointers be kept or that they be valid, so nextLeaf may return nothing.
@@ -600,7 +600,7 @@ void BTreeMixin<Base>::modify(Leaf& leafNode, ModifyInfo& info) {
   size_t i = res.first;
   if (res.second) {
     info.found = true;
-    Base::leafRestd::move(leafNode, i);
+    Base::leafRemove(leafNode, i);
   }
 
   // No change necessary.

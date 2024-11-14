@@ -1524,7 +1524,7 @@ namespace LuaDetail {
   // *Really* remove an entry from a JsonList or JsonMap container table,
   // including removing it from the __nils table.  If the given table is not a
   // special container table, is equivalent to setting the key entry to nil.
-  void jcontRestd::move(LuaTable const& t, LuaValue const& key);
+  void jcontRemove(LuaTable const& t, LuaValue const& key);
 
   // Returns the element count of the lua table argument, or, in the case of a
   // special JsonList container table, returns the "true" element count

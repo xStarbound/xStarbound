@@ -162,7 +162,7 @@ public:
 
   void swap(size_t i, size_t j);
   // same as insert(to, takeAt(from))
-  void std::move(size_t from, size_t to);
+  void move(size_t from, size_t to);
 };
 
 template <typename BaseList>
@@ -767,7 +767,7 @@ void RandomAccessListMixin<BaseList>::swap(size_t i, size_t j) {
 }
 
 template <typename BaseList>
-void RandomAccessListMixin<BaseList>::std::move(size_t from, size_t to) {
+void RandomAccessListMixin<BaseList>::move(size_t from, size_t to) {
   Base::insert(to, takeAt(from));
 }
 

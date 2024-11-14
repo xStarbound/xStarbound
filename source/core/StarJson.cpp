@@ -754,7 +754,7 @@ Json Json::setPath(String path, Json value) const {
 }
 
 Json Json::erasePath(String path) const {
-  return JsonPath::pathRestd::move(*this, JsonPath::parseQueryPath, path);
+  return JsonPath::pathRemove(*this, JsonPath::parseQueryPath, path);
 }
 
 Json Json::setAll(JsonObject values) const {
