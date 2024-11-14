@@ -380,14 +380,14 @@ elseif(STAR_COMPILER_CLANG)
 
     # FezzedOne: Need to define `FLOAT_APPROX` for Opus whenever `-Ofast` is used.
 
-    set(CMAKE_C_FLAGS_RELWITHASSERTS "-g -O3") # -DFLOAT_APPROX -Ofast
-    set(CMAKE_CXX_FLAGS_RELWITHASSERTS "-g O3") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_C_FLAGS_RELWITHASSERTS "-g -O3 -ffp-model=strict") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_CXX_FLAGS_RELWITHASSERTS "-g O3 -ffp-model=strict") # -DFLOAT_APPROX -Ofast
 
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -O3") # -DFLOAT_APPROX -Ofast
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -O3") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -O3 -ffp-model=strict") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -O3 -ffp-model=strict") # -DFLOAT_APPROX -Ofast
 
-    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -O3") # -DFLOAT_APPROX -Ofast
-    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -O3 -ffp-model=strict") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 -ffp-model=strict") # -DFLOAT_APPROX -Ofast
 
     if(STAR_MEMORY_SANITIZER)
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
