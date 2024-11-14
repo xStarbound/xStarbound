@@ -145,7 +145,7 @@ void ByteArray::trimLeft(size_t s) {
   if (s >= m_size) {
     clear();
   } else {
-    std::memstd::move(m_data, m_data + s, m_size - s);
+    std::memmove(m_data, m_data + s, m_size - s);
     resize(m_size - s);
   }
 }

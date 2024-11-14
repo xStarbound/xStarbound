@@ -442,7 +442,7 @@ void Voice::update(float dt, PositionalAttenuationFunction positionalAttenuation
 			auto& dbHistory = speaker->dbHistory;
 			// This fix (from @kblaschke) isn't *technically* necessary (on GCC/MSVC, that is), but it does stop Valgrind from
 			// complaining and should also fix a known segfault that happens on Clang-compiled builds.
-			memstd::move(&dbHistory[1], &dbHistory[0], (dbHistory.size() - 1) * sizeof(float));
+			memmove(&dbHistory[1], &dbHistory[0], (dbHistory.size() - 1) * sizeof(float));
 			dbHistory[0] = speaker->decibelLevel;
 			float smoothDb = 0.0f;
 			for (float dB : dbHistory)
