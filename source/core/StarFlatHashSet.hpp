@@ -406,13 +406,13 @@ void FlatHashSet<Key, Hash, Equals, Allocator>::insert(initializer_list<value_ty
 template <typename Key, typename Hash, typename Equals, typename Allocator>
 template <typename... Args>
 auto FlatHashSet<Key, Hash, Equals, Allocator>::emplace(Args&&... args) -> pair<iterator, bool> {
-  return insert(value_type(forward<Args>(args)...));
+  return insert(value_type(std::forward<Args>(args)...));
 }
 
 template <typename Key, typename Hash, typename Equals, typename Allocator>
 template <typename... Args>
 auto FlatHashSet<Key, Hash, Equals, Allocator>::emplace_hint(const_iterator i, Args&&... args) -> iterator {
-  return insert(i, value_type(forward<Args>(args)...));
+  return insert(i, value_type(std::forward<Args>(args)...));
 }
 
 template <typename Key, typename Hash, typename Equals, typename Allocator>

@@ -507,14 +507,14 @@ StringList StringList::from(Container const& m) {
 template <typename Filter>
 StringList StringList::filtered(Filter&& filter) const {
   StringList l;
-  l.filter(forward<Filter>(filter));
+  l.filter(std::forward<Filter>(filter));
   return l;
 }
 
 template <typename Comparator>
 StringList StringList::sorted(Comparator&& comparator) const {
   StringList l;
-  l.sort(forward<Comparator>(comparator));
+  l.sort(std::forward<Comparator>(comparator));
   return l;
 }
 

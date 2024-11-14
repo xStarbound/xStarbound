@@ -1264,7 +1264,7 @@ namespace LuaDetail {
 
     template <typename Function>
     static LuaWrappedFunction wrap(Function func) {
-      return wrapIndexes(forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
+      return wrapIndexes(std::forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
     }
   };
 
@@ -1280,7 +1280,7 @@ namespace LuaDetail {
 
     template <typename Function>
     static LuaWrappedFunction wrap(Function func) {
-      return wrapIndexes(forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
+      return wrapIndexes(std::forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
     }
   };
 
@@ -1295,7 +1295,7 @@ namespace LuaDetail {
 
     template <typename Function>
     static LuaWrappedFunction wrap(Function func) {
-      return wrapIndexes(forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
+      return wrapIndexes(std::forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
     }
   };
 
@@ -1311,24 +1311,24 @@ namespace LuaDetail {
 
     template <typename Function>
     static LuaWrappedFunction wrap(Function func) {
-      return wrapIndexes(forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
+      return wrapIndexes(std::forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
     }
   };
 
   template <typename Return, typename... Args, typename Function>
   LuaWrappedFunction wrapFunctionWithSignature(Function&& func) {
-    return FunctionWrapper<Return, typename std::decay<Args>::type...>::wrap(forward<Function>(func));
+    return FunctionWrapper<Return, typename std::decay<Args>::type...>::wrap(std::forward<Function>(func));
   }
 
   template <typename Return, typename Function, typename... Args>
   LuaWrappedFunction wrapFunctionArgs(Function&& func, VariadicTypedef<Args...> const&) {
-    return wrapFunctionWithSignature<Return, Args...>(forward<Function>(func));
+    return wrapFunctionWithSignature<Return, Args...>(std::forward<Function>(func));
   }
 
   template <typename Function>
   LuaWrappedFunction wrapFunction(Function&& func) {
     return wrapFunctionArgs<typename FunctionTraits<Function>::Return>(
-        forward<Function>(func), typename FunctionTraits<Function>::Args());
+        std::forward<Function>(func), typename FunctionTraits<Function>::Args());
   }
 
   template <typename Return, typename T, typename... Args>
@@ -1345,7 +1345,7 @@ namespace LuaDetail {
 
     template <typename Function>
     static LuaWrappedFunction wrap(Function&& func) {
-      return wrapIndexes(forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
+      return wrapIndexes(std::forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
     }
   };
 
@@ -1363,7 +1363,7 @@ namespace LuaDetail {
 
     template <typename Function>
     static LuaWrappedFunction wrap(Function func) {
-      return wrapIndexes(forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
+      return wrapIndexes(std::forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
     }
   };
 
@@ -1382,7 +1382,7 @@ namespace LuaDetail {
 
     template <typename Function>
     static LuaWrappedFunction wrap(Function func) {
-      return wrapIndexes(forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
+      return wrapIndexes(std::forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
     }
   };
 
@@ -1400,24 +1400,24 @@ namespace LuaDetail {
 
     template <typename Function>
     static LuaWrappedFunction wrap(Function func) {
-      return wrapIndexes(forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
+      return wrapIndexes(std::forward<Function>(func), typename GenIndexSequence<0, sizeof...(Args)>::type());
     }
   };
 
   template <typename Return, typename... Args, typename Function>
   LuaWrappedFunction wrapMethodWithSignature(Function&& func) {
-    return MethodWrapper<Return, typename std::decay<Args>::type...>::wrap(forward<Function>(func));
+    return MethodWrapper<Return, typename std::decay<Args>::type...>::wrap(std::forward<Function>(func));
   }
 
   template <typename Return, typename Function, typename... Args>
   LuaWrappedFunction wrapMethodArgs(Function&& func, VariadicTypedef<Args...> const&) {
-    return wrapMethodWithSignature<Return, Args...>(forward<Function>(func));
+    return wrapMethodWithSignature<Return, Args...>(std::forward<Function>(func));
   }
 
   template <typename Function>
   LuaWrappedFunction wrapMethod(Function&& func) {
     return wrapMethodArgs<typename FunctionTraits<Function>::Return>(
-        forward<Function>(func), typename FunctionTraits<Function>::Args());
+        std::forward<Function>(func), typename FunctionTraits<Function>::Args());
   }
 
   template <typename Ret, typename... Args>
@@ -1467,19 +1467,19 @@ namespace LuaDetail {
 
   template <typename Return, typename... Args, typename Function>
   function<bool(LuaValue, LuaValue)> wrapTableIteratorWithSignature(LuaEngine& engine, Function&& func) {
-    return TableIteratorWrapper<Return, typename std::decay<Args>::type...>::wrap(engine, forward<Function>(func));
+    return TableIteratorWrapper<Return, typename std::decay<Args>::type...>::wrap(engine, std::forward<Function>(func));
   }
 
   template <typename Return, typename Function, typename... Args>
   function<bool(LuaValue, LuaValue)> wrapTableIteratorArgs(
       LuaEngine& engine, Function&& func, VariadicTypedef<Args...> const&) {
-    return wrapTableIteratorWithSignature<Return, Args...>(engine, forward<Function>(func));
+    return wrapTableIteratorWithSignature<Return, Args...>(engine, std::forward<Function>(func));
   }
 
   template <typename Function>
   function<bool(LuaValue, LuaValue)> wrapTableIterator(LuaEngine& engine, Function&& func) {
     return wrapTableIteratorArgs<typename FunctionTraits<Function>::Return>(
-        engine, forward<Function>(func), typename FunctionTraits<Function>::Args());
+        engine, std::forward<Function>(func), typename FunctionTraits<Function>::Args());
   }
 
   // Like lua_setfield / lua_getfield but raw.
@@ -1620,7 +1620,7 @@ LuaTupleReturn<Types&...> luaTie(Types&... args) {
 
 template <typename... Types>
 LuaTupleReturn<typename std::decay<Types>::type...> luaTupleReturn(Types&&... args) {
-  return LuaTupleReturn<typename std::decay<Types>::type...>(forward<Types>(args)...);
+  return LuaTupleReturn<typename std::decay<Types>::type...>(std::forward<Types>(args)...);
 }
 
 inline LuaReference::LuaReference(LuaDetail::LuaHandle handle) : m_handle(std::move(handle)) {}
@@ -1745,12 +1745,12 @@ void LuaTable::remove(K key) const {
 
 template <typename Function>
 void LuaTable::iterate(Function&& function) const {
-  return engine().tableIterate(handleIndex(), LuaDetail::wrapTableIterator(engine(), forward<Function>(function)));
+  return engine().tableIterate(handleIndex(), LuaDetail::wrapTableIterator(engine(), std::forward<Function>(function)));
 }
 
 template <typename Return, typename... Args, typename Function>
 void LuaTable::iterateWithSignature(Function&& func) const {
-  return engine().tableIterate(handleIndex(), LuaDetail::wrapTableIteratorWithSignature<Return, Args...>(engine(), forward<Function>(func)));
+  return engine().tableIterate(handleIndex(), LuaDetail::wrapTableIteratorWithSignature<Return, Args...>(engine(), std::forward<Function>(func)));
 }
 
 template <typename T, typename K>
@@ -1806,27 +1806,27 @@ T& LuaUserData::get() const {
 
 template <typename Function>
 void LuaCallbacks::registerCallback(String name, Function&& func) {
-  if (!m_callbacks.insert(name, LuaDetail::wrapFunction(forward<Function>(func))).second)
+  if (!m_callbacks.insert(name, LuaDetail::wrapFunction(std::forward<Function>(func))).second)
     throw LuaException::format("Lua callback '{}' was registered twice", name);
 }
 
 template <typename Return, typename... Args, typename Function>
 void LuaCallbacks::registerCallbackWithSignature(String name, Function&& func) {
-  if (!m_callbacks.insert(name, LuaDetail::wrapFunctionWithSignature<Return, Args...>(forward<Function>(func))).second)
+  if (!m_callbacks.insert(name, LuaDetail::wrapFunctionWithSignature<Return, Args...>(std::forward<Function>(func))).second)
     throw LuaException::format("Lua callback '{}' was registered twice", name);
 }
 
 template <typename T>
 template <typename Function>
 void LuaMethods<T>::registerMethod(String name, Function&& func) {
-  if (!m_methods.insert(name, LuaDetail::wrapMethod(forward<Function>(std::move(func)))).second)
+  if (!m_methods.insert(name, LuaDetail::wrapMethod(std::forward<Function>(std::move(func)))).second)
     throw LuaException::format("Lua method '{}' was registered twice", name);
 }
 
 template <typename T>
 template <typename Return, typename... Args, typename Function>
 void LuaMethods<T>::registerMethodWithSignature(String name, Function&& func) {
-  if (!m_methods.insert(name, LuaDetail::wrapMethodWithSignature<Return, Args...>(forward<Function>(std::move(func))))
+  if (!m_methods.insert(name, LuaDetail::wrapMethodWithSignature<Return, Args...>(std::forward<Function>(std::move(func))))
            .second)
     throw LuaException::format("Lua method '{}' was registered twice", name);
 }
@@ -1861,7 +1861,7 @@ Ret LuaContext::invokePath(String const& key, Args const&... args) const {
 
 template <typename T>
 LuaValue LuaContext::luaFrom(T&& t) {
-  return engine().luaFrom(forward<T>(t));
+  return engine().luaFrom(std::forward<T>(t));
 }
 
 template <typename T>
@@ -1901,12 +1901,12 @@ LuaTable LuaContext::createArrayTable(Container const& array) {
 
 template <typename Function>
 LuaFunction LuaContext::createFunction(Function&& func) {
-  return engine().createFunction(forward<Function>(func));
+  return engine().createFunction(std::forward<Function>(func));
 }
 
 template <typename Return, typename... Args, typename Function>
 LuaFunction LuaContext::createFunctionWithSignature(Function&& func) {
-  return engine().createFunctionWithSignature<Return, Args...>(forward<Function>(func));
+  return engine().createFunctionWithSignature<Return, Args...>(std::forward<Function>(func));
 }
 
 template <typename T>
@@ -1935,7 +1935,7 @@ Maybe<T> LuaUserDataConverter<T>::to(LuaEngine&, LuaValue const& v) {
 
 template <typename T>
 LuaValue LuaEngine::luaFrom(T&& t) {
-  return LuaConverter<typename std::decay<T>::type>::from(*this, forward<T>(t));
+  return LuaConverter<typename std::decay<T>::type>::from(*this, std::forward<T>(t));
 }
 
 template <typename T>
@@ -1988,12 +1988,12 @@ LuaTable LuaEngine::createArrayTable(Container const& array) {
 
 template <typename Function>
 LuaFunction LuaEngine::createFunction(Function&& func) {
-  return createWrappedFunction(LuaDetail::wrapFunction(forward<Function>(func)));
+  return createWrappedFunction(LuaDetail::wrapFunction(std::forward<Function>(func)));
 }
 
 template <typename Return, typename... Args, typename Function>
 LuaFunction LuaEngine::createFunctionWithSignature(Function&& func) {
-  return createWrappedFunction(LuaDetail::wrapFunctionWithSignature<Return, Args...>(forward<Function>(func)));
+  return createWrappedFunction(LuaDetail::wrapFunctionWithSignature<Return, Args...>(std::forward<Function>(func)));
 }
 
 template <typename... Args>

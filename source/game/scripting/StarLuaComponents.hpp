@@ -201,7 +201,7 @@ Maybe<Ret> LuaBaseComponent::invoke(String const& name, V&&... args) {
     auto method = m_context->getPath(name);
     if (method == LuaNil)
       return {};
-    return m_context->luaTo<LuaFunction>(std::move(method)).invoke<Ret>(forward<V>(args)...);
+    return m_context->luaTo<LuaFunction>(std::move(method)).invoke<Ret>(std::forward<V>(args)...);
   } catch (LuaException const& e) {
     Logger::error("Exception while invoking lua function '{}'. {}", name, outputException(e, true));
     setError(printException(e, false));
@@ -304,7 +304,7 @@ Maybe<Ret> LuaUpdatableComponent<Base>::update(V&&... args) {
   if (!m_updatePeriodic.tick())
     return {};
 
-  return Base::template invoke<Ret>("update", forward<V>(args)...);
+  return Base::template invoke<Ret>("update", std::forward<V>(args)...);
 }
 
 template <typename Base>

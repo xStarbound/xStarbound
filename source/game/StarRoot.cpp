@@ -771,7 +771,7 @@ void Root::writeConfig() {
 template <typename T, typename... Params>
 shared_ptr<T> Root::loadMember(shared_ptr<T>& ptr, Mutex& mutex, char const* name, Params&&... params) {
   return loadMemberFunction<T>(ptr, mutex, name, [&]() {
-      return make_shared<T>(forward<Params>(params)...);
+      return make_shared<T>(std::forward<Params>(params)...);
     });
 }
 

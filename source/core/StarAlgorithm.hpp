@@ -14,7 +14,7 @@ template <typename ToType>
 struct construct {
   template <typename... FromTypes>
   ToType operator()(FromTypes&&... fromTypes) const {
-    return ToType(forward<FromTypes>(fromTypes)...);
+    return ToType(std::forward<FromTypes>(fromTypes)...);
   }
 };
 
@@ -29,7 +29,7 @@ template <typename Func>
 struct SwallowReturn {
   template <typename... T>
   void operator()(T&&... args) {
-    func(forward<T>(args)...);
+    func(std::forward<T>(args)...);
   }
 
   Func func;
@@ -58,18 +58,18 @@ struct FunctionComposer {
 
   template <typename... T>
   decltype(auto) operator()(T&&... args) {
-    return f1(f2(forward<T>(args)...));
+    return f1(f2(std::forward<T>(args)...));
   }
 };
 
 template <typename FirstFunction, typename SecondFunction>
 decltype(auto) compose(FirstFunction&& firstFunction, SecondFunction&& secondFunction) {
-  return FunctionComposer<FirstFunction, SecondFunction>{std::move(forward<FirstFunction>(firstFunction)), std::move(forward<SecondFunction>(secondFunction))};
+  return FunctionComposer<FirstFunction, SecondFunction>{std::move(std::forward<FirstFunction>(firstFunction)), std::move(std::forward<SecondFunction>(secondFunction))};
 }
 
 template <typename FirstFunction, typename SecondFunction, typename ThirdFunction, typename... RestFunctions>
 decltype(auto) compose(FirstFunction firstFunction, SecondFunction secondFunction, ThirdFunction thirdFunction, RestFunctions... restFunctions) {
-  return compose(forward<FirstFunction>(firstFunction), compose(forward<SecondFunction>(secondFunction), compose(forward<ThirdFunction>(thirdFunction), forward<RestFunctions>(restFunctions)...)));
+  return compose(std::forward<FirstFunction>(firstFunction), compose(std::forward<SecondFunction>(secondFunction), compose(std::forward<ThirdFunction>(thirdFunction), std::forward<RestFunctions>(restFunctions)...)));
 }
 
 template <typename Container, typename Value, typename Function>
@@ -260,7 +260,7 @@ void sortByComputedValue(Container& container, Getter&& valueGetter, bool stable
 
 template <typename Container, typename Getter>
 void stableSortByComputedValue(Container& container, Getter&& valueGetter) {
-  return sortByComputedValue(container, forward<Getter>(valueGetter), true);
+  return sortByComputedValue(container, std::forward<Getter>(valueGetter), true);
 }
 
 template <typename Container>
@@ -302,7 +302,7 @@ void transformInto(OutContainer& outContainer, InContainer&& inContainer, Functi
 template <typename OutContainer, typename InContainer, typename Function>
 OutContainer transform(InContainer&& container, Function&& function) {
   OutContainer res;
-  transformInto(res, forward<InContainer>(container), forward<Function>(function));
+  transformInto(res, std::forward<InContainer>(container), std::forward<Function>(function));
   return res;
 }
 
@@ -356,7 +356,7 @@ public:
 
     template <typename T>
     OutputProxy& operator=(T&& value) {
-      m_function(forward<T>(value));
+      m_function(std::forward<T>(value));
       return *this;
     }
 
@@ -478,7 +478,7 @@ private:
 
 template <typename Functor>
 FinallyGuard<typename std::decay<Functor>::type> finally(Functor&& f) {
-  return FinallyGuard<Functor>(forward<Functor>(f));
+  return FinallyGuard<Functor>(std::forward<Functor>(f));
 }
 
 // Generates compile time sequences of indexes from MinIndex to MaxIndex
@@ -498,12 +498,12 @@ struct GenIndexSequence<Min, Min, S...> {
 
 template <typename Function, typename Tuple, size_t... Indexes>
 decltype(auto) tupleUnpackFunctionIndexes(Function&& function, Tuple&& args, IndexSequence<Indexes...> const&) {
-  return function(get<Indexes>(forward<Tuple>(args))...);
+  return function(get<Indexes>(std::forward<Tuple>(args))...);
 }
 
 template <typename Function, typename Tuple>
 decltype(auto) tupleUnpackFunction(Function&& function, Tuple&& args) {
-  return tupleUnpackFunctionIndexes<Function, Tuple>(forward<Function>(function), forward<Tuple>(args),
+  return tupleUnpackFunctionIndexes<Function, Tuple>(std::forward<Function>(function), std::forward<Tuple>(args),
       typename GenIndexSequence<0, std::tuple_size<typename std::decay<Tuple>::type>::value>::type());
 }
 
@@ -512,12 +512,12 @@ decltype(auto) tupleUnpackFunction(Function&& function, Tuple&& args) {
 
 template <typename Function, typename Tuple, size_t... Indexes>
 decltype(auto) tupleApplyFunctionIndexes(Function&& function, Tuple&& args, IndexSequence<Indexes...> const&) {
-  return make_tuple(function(get<Indexes>(forward<Tuple>(args)))...);
+  return make_tuple(function(get<Indexes>(std::forward<Tuple>(args)))...);
 }
 
 template <typename Function, typename Tuple>
 decltype(auto) tupleApplyFunction(Function&& function, Tuple&& args) {
-  return tupleApplyFunctionIndexes<Function, Tuple>(forward<Function>(function), forward<Tuple>(args),
+  return tupleApplyFunctionIndexes<Function, Tuple>(std::forward<Function>(function), std::forward<Tuple>(args),
       typename GenIndexSequence<0, std::tuple_size<typename std::decay<Tuple>::type>::value>::type());
 }
 
@@ -530,35 +530,35 @@ void tupleCallFunctionCaller(Function&&, Tuple&&) {}
 
 template <typename Tuple, typename Function, typename First, typename... Rest>
 void tupleCallFunctionCaller(Tuple&& t, Function&& function) {
-  tupleCallFunctionCaller<Tuple, Function, Rest...>(forward<Tuple>(t), forward<Function>(function));
-  function(get<sizeof...(Rest)>(forward<Tuple>(t)));
+  tupleCallFunctionCaller<Tuple, Function, Rest...>(std::forward<Tuple>(t), std::forward<Function>(function));
+  function(get<sizeof...(Rest)>(std::forward<Tuple>(t)));
 }
 
 template <typename Tuple, typename Function, typename... T>
 void tupleCallFunctionExpander(Tuple&& t, Function&& function, tuple<T...> const&) {
-  tupleCallFunctionCaller<Tuple, Function, T...>(forward<Tuple>(t), forward<Function>(function));
+  tupleCallFunctionCaller<Tuple, Function, T...>(std::forward<Tuple>(t), std::forward<Function>(function));
 }
 
 template <typename Tuple, typename Function>
 void tupleCallFunction(Tuple&& t, Function&& function) {
-  tupleCallFunctionExpander<Tuple, Function>(forward<Tuple>(t), forward<Function>(function), forward<Tuple>(t));
+  tupleCallFunctionExpander<Tuple, Function>(std::forward<Tuple>(t), std::forward<Function>(function), std::forward<Tuple>(t));
 }
 
 // Get a subset of a tuple
 
 template <typename Tuple, size_t... Indexes>
 decltype(auto) subTupleIndexes(Tuple&& t, IndexSequence<Indexes...> const&) {
-  return make_tuple(get<Indexes>(forward<Tuple>(t))...);
+  return make_tuple(get<Indexes>(std::forward<Tuple>(t))...);
 }
 
 template <size_t Min, size_t Size, typename Tuple>
 decltype(auto) subTuple(Tuple&& t) {
-  return subTupleIndexes(forward<Tuple>(t), GenIndexSequence<Min, Size>::type());
+  return subTupleIndexes(std::forward<Tuple>(t), GenIndexSequence<Min, Size>::type());
 }
 
 template <size_t Trim, typename Tuple>
 decltype(auto) trimTuple(Tuple&& t) {
-  return subTupleIndexes(forward<Tuple>(t), typename GenIndexSequence<Trim, std::tuple_size<typename std::decay<Tuple>::type>::value>::type());
+  return subTupleIndexes(std::forward<Tuple>(t), typename GenIndexSequence<Trim, std::tuple_size<typename std::decay<Tuple>::type>::value>::type());
 }
 
 // Unpack a parameter expansion into a container
@@ -568,14 +568,14 @@ void unpackVariadicImpl(Container&) {}
 
 template <typename Container, typename TFirst, typename... TRest>
 void unpackVariadicImpl(Container& container, TFirst&& tfirst, TRest&&... trest) {
-  container.insert(container.end(), forward<TFirst>(tfirst));
-  unpackVariadicImpl(container, forward<TRest>(trest)...);
+  container.insert(container.end(), std::forward<TFirst>(tfirst));
+  unpackVariadicImpl(container, std::forward<TRest>(trest)...);
 }
 
 template <typename Container, typename... T>
 Container unpackVariadic(T&&... t) {
   Container c;
-  unpackVariadicImpl(c, forward<T>(t)...);
+  unpackVariadicImpl(c, std::forward<T>(t)...);
   return c;
 }
 
@@ -587,7 +587,7 @@ void callFunctionVariadic(Function&&) {}
 template <typename Function, typename Arg1, typename... ArgRest>
 void callFunctionVariadic(Function&& function, Arg1&& arg1, ArgRest&&... argRest) {
   function(arg1);
-  callFunctionVariadic(forward<Function>(function), forward<ArgRest>(argRest)...);
+  callFunctionVariadic(std::forward<Function>(function), std::forward<ArgRest>(argRest)...);
 }
 
 template <typename... Rest>

@@ -183,7 +183,7 @@ void BlockAllocator<T, BlockSize>::deallocate(T* p, size_t n) {
 template <typename T, size_t BlockSize>
 template <typename... Args>
 void BlockAllocator<T, BlockSize>::construct(pointer p, Args&&... args) const {
-  new (p) T(forward<Args>(args)...);
+  new (p) T(std::forward<Args>(args)...);
 }
 
 template <typename T, size_t BlockSize>

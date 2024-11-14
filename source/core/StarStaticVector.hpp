@@ -322,7 +322,7 @@ void StaticVector<Element, MaxSize>::emplace(iterator pos, Args&&... args) {
   resize(m_size + 1);
   for (size_t i = m_size - 1; i != index; --i)
     operator[](i) = std::move(operator[](i - 1));
-  operator[](index) = Element(forward<Args>(args)...);
+  operator[](index) = Element(std::forward<Args>(args)...);
 }
 
 template <typename Element, size_t MaxSize>
@@ -332,7 +332,7 @@ void StaticVector<Element, MaxSize>::emplace_back(Args&&... args) {
     throw StaticVectorSizeException::format("StaticVector::emplace_back would extend StaticVector beyond size {}", MaxSize);
 
   m_size += 1;
-  new (ptr() + m_size - 1) Element(forward<Args>(args)...);
+  new (ptr() + m_size - 1) Element(std::forward<Args>(args)...);
 }
 
 template <typename Element, size_t MaxSize>

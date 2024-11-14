@@ -82,7 +82,7 @@ public:
       function(m_elapsed);
       m_elapsed = 0.0;
       if (amount > 0.0)
-        update(amount, forward<Function>(function));
+        update(amount, std::forward<Function>(function));
     }
   }
 

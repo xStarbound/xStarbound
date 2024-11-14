@@ -361,7 +361,7 @@ void SmallVector<Element, MaxStackSize>::emplace(iterator pos, Args&&... args) {
   emplace_back(Element());
   for (size_t i = size() - 1; i != index; --i)
     operator[](i) = std::move(operator[](i - 1));
-  operator[](index) = Element(forward<Args>(args)...);
+  operator[](index) = Element(std::forward<Args>(args)...);
 }
 
 template <typename Element, size_t MaxStackSize>
@@ -369,7 +369,7 @@ template <typename... Args>
 void SmallVector<Element, MaxStackSize>::emplace_back(Args&&... args) {
   if (m_end == m_capacity)
     reserve(size() + 1);
-  new (m_end) Element(forward<Args>(args)...);
+  new (m_end) Element(std::forward<Args>(args)...);
   ++m_end;
 }
 
