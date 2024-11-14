@@ -334,14 +334,14 @@ if(STAR_COMPILER_GNU)
 
     # FezzedOne: Need to define `FLOAT_APPROX` for Opus whenever `-Ofast` is used.
 
-    set(CMAKE_C_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -O3 -ffloat-store")
-    set(CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -O3 -ffloat-store")
+    set(CMAKE_C_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast")
+    set(CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast")
 
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -ffloat-store")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -ffloat-store")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast")
 
-    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffloat-store")
-    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffloat-store")
+    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast")
+    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast")
 
     if(STAR_MEMORY_SANITIZER)
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
@@ -368,8 +368,8 @@ elseif(STAR_COMPILER_CLANG)
         set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++17")
         set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
     elseif(STAR_SYSTEM_LINUX)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -stdlib=libc++")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
     elseif()
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -D_REENTRANT")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_REENTRANT")
@@ -380,14 +380,14 @@ elseif(STAR_COMPILER_CLANG)
 
     # FezzedOne: Need to define `FLOAT_APPROX` for Opus whenever `-Ofast` is used.
 
-    set(CMAKE_C_FLAGS_RELWITHASSERTS "-g -O3 -ffp-model=strict") # -DFLOAT_APPROX -Ofast
-    set(CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -O3 -ffp-model=strict") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_C_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast") # -DFLOAT_APPROX -Ofast
 
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -O3 -ffp-model=strict") # -DFLOAT_APPROX -Ofast
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -O3 -ffp-model=strict") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast") # -DFLOAT_APPROX -Ofast
 
-    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -O3 -ffp-model=strict") # -DFLOAT_APPROX -Ofast
-    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 -ffp-model=strict") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast") # -DFLOAT_APPROX -Ofast
 
     if(STAR_MEMORY_SANITIZER)
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")

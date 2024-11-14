@@ -97,23 +97,45 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
           auto ipart = Vec2I::floor(pos);
           auto fpart = pos - Vec2F(ipart);
 
-          Vec4F topLeft     = Vec4F(srcImage.clamp(ipart[0],       ipart[1]));
-          Vec4F topRight    = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1]));
-          Vec4F bottomLeft  = Vec4F(srcImage.clamp(ipart[0],       ipart[1] + 1));
-          Vec4F bottomRight = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1] + 1));
+          // Vec4F topLeft     = Vec4F(srcImage.clamp(ipart[0],       ipart[1]));
+          // Vec4F topRight    = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1]));
+          // Vec4F bottomLeft  = Vec4F(srcImage.clamp(ipart[0],       ipart[1] + 1));
+          // Vec4F bottomRight = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1] + 1));
 
           // FezzedOne: Inlined lerp function.
           auto inlineLerp = [](float offset, Vec4F f0, Vec4F f1) -> Vec4F {
             return f0 * (1.0f - offset) + f1 * (offset);
           };
 
+          // Vec4F result = lerp(fpart[1],
+          //   lerp(fpart[0],
+          //     Vec4F(srcImage.clamp(ipart[0], ipart[1])),
+          //     Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1]))
+          //   ), 
+          //   lerp(fpart[0], 
+          //     Vec4F(srcImage.clamp(ipart[0], ipart[1] + 1)),
+          //     Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 1))
+          //   )
+          // );
+
+          Vec4F result = inlineLerp(fpart[1],
+            inlineLerp(fpart[0],
+              Vec4F(srcImage.clamp(ipart[0], ipart[1])),
+              Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1]))
+            ), 
+            inlineLerp(fpart[0],
+              Vec4F(srcImage.clamp(ipart[0], ipart[1] + 1)),
+              Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 1))
+            )
+          );
+
           // Vec4F left    = inlineLerp(fpart[1], topLeft,   bottomLeft);
           // Vec4F right   = inlineLerp(fpart[1], topRight,  bottomRight);
           // Vec4F result  = inlineLerp(fpart[0], left,      right);
 
-          Vec4F top     = inlineLerp(fpart[0], topLeft,     topRight);
-          Vec4F bottom  = inlineLerp(fpart[0], bottomLeft,  bottomRight);
-          Vec4F result  = inlineLerp(fpart[1], top,         bottom);
+          // Vec4F top     = inlineLerp(fpart[0], topLeft,     topRight);
+          // Vec4F bottom  = inlineLerp(fpart[0], bottomLeft,  bottomRight);
+          // Vec4F result  = inlineLerp(fpart[1], top,         bottom);
 
           processedResult = Vec4B(Vec4F::floor(result));
         }
