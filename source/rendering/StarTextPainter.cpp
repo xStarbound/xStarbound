@@ -380,6 +380,16 @@ RectF TextPainter::doRenderText(StringView s, TextPositioning const& position, b
   if (s.empty())
     return RectF(pos, pos);
 
+  // FezzedOne: Check if text is valid UTF-8 before rendering to prevent CTDs.
+  bool invalidUtf8 = false;
+  try {
+    volatile size_t _ = s.size(); (void)_;
+  } catch (UnicodeException const& e) {
+    invalidUtf8 = true;
+  }
+  if (invalidUtf8)
+    s = String("^#ff0;<invalid UTF-8 string>^reset;");
+
   List<StringView> lines = wrapTextViews(s, position.wrapWidth);
 
   int height = (lines.size() - 1) * m_lineSpacing * m_fontSize + m_fontSize;
