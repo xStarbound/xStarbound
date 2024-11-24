@@ -210,8 +210,7 @@ static void check_for_non_portable_code (LexState *ls) {
       if (luaX_lookahead(ls) == '=' || luaX_lookahead(ls) == ':' || luaX_lookahead(ls) == '.' ||
         luaX_lookahead(ls) == '[' || luaX_lookahead(ls) == '(' || luaX_lookahead(ls) == '{') { 
           /* attempting a global function call, assignment, or table member access? */
-          // FezzedOne: Added compatibility lookahead for function call attempts. Fortunately, none of the incompatible keywords
-          // take an expression as an argument.
+          // FezzedOne: Added compatibility lookahead for function call attempts.
           disablekeyword(ls, ls->t.token);
           ls->uninformed_reserved.emplace(ls->t.token, ls->getLineNumber());
           ls->setKeywordState(ls->t.token, KS_DISABLED_BY_PLUTO_INFORMED);
