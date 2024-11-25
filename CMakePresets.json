@@ -584,7 +584,7 @@
       "name": "linux-system-x86_64-release",
       "displayName": "Linux System x86_64 - Release",
       "configurePreset": "linux-system-x86_64",
-      "configuration": "RelWithDebInfo",
+      "configuration": "Release",
       "condition": {
         "type": "allOf",
         "conditions": [
@@ -616,7 +616,7 @@
       "name": "linux-vcpkg-x86_64-release",
       "displayName": "Linux vcpkg x86_64 - Release",
       "configurePreset": "linux-vcpkg-x86_64",
-      "configuration": "RelWithDebInfo",
+      "configuration": "Release",
       "condition": {
         "type": "allOf",
         "conditions": [
@@ -648,7 +648,7 @@
       "name": "linux-vcpkg-i386-release",
       "displayName": "Linux vcpkg i386 - Release",
       "configurePreset": "linux-vcpkg-i386",
-      "configuration": "RelWithDebInfo",
+      "configuration": "Release",
       "condition": {
         "type": "allOf",
         "conditions": [
