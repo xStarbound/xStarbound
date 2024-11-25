@@ -184,7 +184,7 @@ To build a statically linked version of xStarbound (assuming `bash` or `zsh`):
 6. `cd $devDirectory` (where `$devDirectory` is the folder you want to put the xStarbound source in)
 7. `git clone --recursive https://github.com/xStarbound/xStarbound.git` (`--recursive` is needed to clone the Opus sources in `$src/extern/opus`, which may be necessary on some configurations)
 8. `cd xStarbound/; export VCPKG_ROOT="${HOME}/.local/opt/vcpkg"; export PATH="${VCPKG_ROOT}:${PATH}"`
-9.  `CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake --build cmake-build-linux-x86_64/ --preset "linux-vcpkg-x86_64-release" -G Ninja` (Clang is recommended now, but you can use `gcc` and `g++` instead for GCC)
+9.  `CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake --build cmake-build-linux-x86_64/ --preset "linux-vcpkg-x86_64-release" -G Ninja` (Clang is recommended on up-to-date distros; GCC — `gcc` and `g++` — on less up-to-date ones)
 10. `cmake --build build/`
 11. `cmake --install build/ --prefix ${sbInstall}/` (replace `${sbInstall}` with the path to your Starbound install)
 12. `cp scripts/linux/{xclient-static,xserver,mod_uploader}.sh ${sbInstall}/linux/`
