@@ -208,9 +208,12 @@ static void check_for_non_portable_code (LexState *ls) {
   if (ls->t.IsNonCompatible() && !ls->t.IsOverridable()) {
     if (ls->getKeywordState(ls->t.token) == KS_ENABLED_BY_PLUTO_UNINFORMED) {
       if (luaX_lookahead(ls) == '=' || luaX_lookahead(ls) == ':' || luaX_lookahead(ls) == '.' ||
-        luaX_lookahead(ls) == '[' || luaX_lookahead(ls) == '(' || luaX_lookahead(ls) == '{') { 
+        luaX_lookahead(ls) == '[' || luaX_lookahead(ls) == '(' || luaX_lookahead(ls) == '{' ||
+        luaX_lookahead(ls) == TK_STRING) { 
           /* attempting a global function call, assignment, or table member access? */
-          // FezzedOne: Added compatibility lookahead for function call attempts.
+          /* FezzedOne: Or a function call? This is needed to inform the parser as to
+           * whether `catch` should be allowed to end blocks.
+           */
           disablekeyword(ls, ls->t.token);
           ls->uninformed_reserved.emplace(ls->t.token, ls->getLineNumber());
           ls->setKeywordState(ls->t.token, KS_DISABLED_BY_PLUTO_INFORMED);
@@ -347,10 +350,10 @@ static void check_match (LexState *ls, int what, int who, int where, const char*
           throw_warn(ls, "'else if' is not the same as 'elseif' in Lua/Pluto", "did you mean 'elseif'?", ls->else_if, WT_POSSIBLE_TYPO);
         const char *msg;
         if (who == TK_ARROW) {
-          msg = luaO_fmt(ls->L, "missing 'end' to terminate lambda starting on line %d", where);
+          msg = luaO_fmt(ls->L, "missing 'end' to terminate lambda starting on line %d, got %s", where, luaX_token2str(ls, luaX_lookahead(ls)));
         }
         else {
-          msg = luaO_fmt(ls->L, "missing 'end' to terminate %s on line %d", luaX_token2str(ls, who), where);
+          msg = luaO_fmt(ls->L, "missing 'end' to terminate %s on line %d, got %s", luaX_token2str(ls, who), where, luaX_token2str(ls, luaX_lookahead(ls)));
         }
         throwerr(ls, msg, "this was the last statement.", ls->getLineNumberOfLastNonEmptyLine());
       }
@@ -1281,6 +1284,8 @@ static void close_func (LexState *ls) {
 ** so it is handled in separate.
 */
 static int block_follow (LexState *ls, int withuntil) {
+  /* FezzedOne: Need to run this on the current token in case there's a `catch(...)`, `catch{...}` or `catch "..."` statement. */
+  check_for_non_portable_code(ls);
   switch (ls->t.token) {
     case '$': {
       int ret;
@@ -1289,9 +1294,12 @@ static int block_follow (LexState *ls, int withuntil) {
       luaX_prev(ls);
       return ret;
     }
+    case TK_CATCH: { /* FezzedOne: Fixed `catch` ending blocks early when it's disabled. */
+      return ls->getKeywordState(TK_CATCH) % 2 == 0;
+    }
     case TK_ELSE: case TK_ELSEIF:
     case TK_END: case TK_EOS:
-    case TK_CATCH: case TK_PCATCH:
+    case TK_PCATCH:
       return 1;
     case TK_UNTIL: return withuntil;
     default: return 0;
