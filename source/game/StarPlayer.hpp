@@ -626,6 +626,7 @@ private:
   State m_state;
   HumanoidEmote m_emoteState;
 
+  float m_vaporTrailTimer = 0.0f; // FerreiraJGB: Declaration of the private member variable for the falling animation.
   float m_footstepTimer;
   float m_teleportTimer;
   float m_emoteCooldownTimer;

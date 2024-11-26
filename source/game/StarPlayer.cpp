@@ -1231,6 +1231,17 @@ void Player::update(float dt, uint64_t) {
     m_statusController->tickSlave(dt);
   }
 
+  // FerreiraJGB: Sets up a vapor trail when the player is falling.
+
+  if (m_movementController->velocity()[1] < -50) {
+  m_vaporTrailTimer += dt;
+  if (m_vaporTrailTimer > 1)
+      m_humanoid->setVaporTrail(true);
+  } else {
+  m_vaporTrailTimer = 0;
+  m_humanoid->setVaporTrail(false);
+  }
+
   m_humanoid->setMovingBackwards(false);
   m_humanoid->setRotation(m_movementController->rotation());
 
