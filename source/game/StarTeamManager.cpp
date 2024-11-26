@@ -134,7 +134,7 @@ bool TeamManager::addToTeam(Uuid const& playerUuid, Uuid const& teamUuid) {
   purgeInvitationsFor(playerUuid);
 
   // FezzedOne: Make a copy to avoid potential UB caused by `removeFromTeam`.
-  auto teamsCopy = m_teams; 
+  auto teamsCopy = Map<Uuid, Team>(m_teams); 
   for (auto otherTeam : teamsCopy) {
     List<Uuid> alreadyMemberOf;
     if (otherTeam.second.members.contains(playerUuid))
