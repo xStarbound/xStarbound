@@ -17,6 +17,7 @@ Additionally, messages can be handled by a variety of script contexts that run o
 - fireable item scripts
 - quest scripts
 - player companion scripts
+- player generic scripts
 - status scripts
 
 Lastly, world server scripts can receive world messages, but cannot receive entity messages. For communication between a world server script and server-side scripted entities on that world, use `world.callScriptedEntity` for world-to-entity communication and `world.callScriptContext` for entity-to-world communication.
