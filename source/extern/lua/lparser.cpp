@@ -3302,8 +3302,9 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
   expdesc ctrl;
   expr(ls, &ctrl);
   checknext(ls, TK_DO);
-  if (!vkhasregister(ctrl.k)) {
-    luaK_exp2nextreg(ls->fs, &ctrl);
+  if (!vkhasregister(ctrl.k) || ctrl.t != ctrl.f) {
+    /* Sainan: Fixed infinite loop when the control expression has a jump instruction in it (as when `and` or `or` is used). */
+    luaK_exp2nextreg(ls->fs, &ctrl); 
     if (tk == TK_ARROW) {
       prevpinnedreg = fs->pinnedreg;
       fs->pinnedreg = ctrl.u.reg;
