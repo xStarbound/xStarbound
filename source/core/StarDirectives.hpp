@@ -64,9 +64,6 @@ public:
   bool empty() const;
   operator bool() const;
 
-  friend bool operator==(Directives const& a, Directives const& b);
-  friend bool operator!=(Directives const& a, Directives const& b);
-
   friend DataStream& operator>>(DataStream& ds, Directives& directives);
   friend DataStream& operator<<(DataStream& ds, Directives const& directives);
 
