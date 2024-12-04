@@ -199,6 +199,16 @@ bool Directives::empty() const {
 
 Directives::operator bool() const { return !empty(); }
 
+bool Directives::operator==(Directives const& other) {
+  if (empty() != other.empty()) return false;
+  if (size() != other.size()) return false;
+  return hash() == other.hash();
+}
+
+bool Directives::operator!=(Directives const& other) {
+  return !(*this == other);
+}
+
 DataStream& operator>>(DataStream& ds, Directives& directives) {
   String string;
   ds.read(string);
