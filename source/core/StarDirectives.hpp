@@ -64,6 +64,9 @@ public:
   bool empty() const;
   operator bool() const;
 
+  friend bool operator==(Directives const& a, Directives const& b);
+  friend bool operator!=(Directives const& a, Directives const& b);
+
   friend DataStream& operator>>(DataStream& ds, Directives& directives);
   friend DataStream& operator<<(DataStream& ds, Directives const& directives);
 
@@ -116,6 +119,16 @@ template <>
 struct hash<DirectivesGroup> {
   size_t operator()(DirectivesGroup const& s) const;
 };
+
+bool operator==(Directives const& a, Directives const& b) {
+  if (a.empty() != b.empty()) return false;
+  if (a.size() != b.size()) return false;
+  return a.hash() == b.hash();
+}
+
+bool operator!=(Directives const& a, Directives const& b) {
+  return !(a == b);
+}
 
 typedef DirectivesGroup ImageDirectives;
 
