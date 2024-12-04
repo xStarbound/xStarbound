@@ -919,7 +919,7 @@ LuaCallbacks Object::makeObjectCallbacks() {
     });
 
   callbacks.registerCallback("setProcessingDirectives", [this](String const& directives) {
-      m_networkedAnimator->setProcessingDirectives(directives);
+      m_networkedAnimator->setProcessingDirectives(Directives(directives));
     });
 
   callbacks.registerCallback("setSoundEffectEnabled", [this](bool soundEffectEnabled) {
