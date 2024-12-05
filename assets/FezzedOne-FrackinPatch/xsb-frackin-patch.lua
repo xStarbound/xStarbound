@@ -1,5 +1,6 @@
 -- FezzedOne's Frackin' Patch --
 local needsPatch = "/scripts/fupower.lua"
+local needsPatch2 = "/objects/crafting/clonelab/clonelab.lua"
 
 local patchCode = [==[
 function power.onNodeConnectionChange(arg, iterations)
@@ -97,7 +98,18 @@ function power.onNodeConnectionChange(arg, iterations)
 end
 ]==]
 
-if xsb and assets.exists(needsPatch) then
-    local patchedScript = assets.bytes(needsPatch) .. patchCode
-    assets.add(needsPatch, patchedScript)
+local patchCode2 = [==[
+null = nil -- The script in question expects `null` to be exactly the same as `nil` to avoid a nil dereference error.
+-- This conflicts with xStarbound's special `null` value. Fix your shit, Sayter!
+]==]
+
+if xsb then 
+    if assets.exists(needsPatch) then
+        local patchedScript = assets.bytes(needsPatch) .. patchCode
+        assets.add(needsPatch, patchedScript)
+    end
+    if assets.exists(needsPatch2) then
+        local patchedScript2 = assets.bytes(needsPatch2) .. patchCode2
+        assets.add(needsPatch2, patchedScript2)
+    end
 end
