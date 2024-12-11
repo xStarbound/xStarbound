@@ -1140,6 +1140,8 @@ Sets the current time for the world's sky to the specified value. If `math.huge`
 
 Sets the amount of time remaining on the world expiration timer. This timer starts ticking down when there are no longer any players on the world, and using this callback regularly to reset the expiry timer allows a world to persist indefinitely. To immediately cause a world to be unloaded while players aren't present, pass a value of `0` to this callback.
 
+**Note:** If a negative float value is passed to the callback, the world will never expire. At least not until this callback is invoked again with a positive or zero value.
+
 ---
 
 #### `void` world.placeDungeon(`String` dungeonName, `Vec2I` position, [`DungeonId` dungeonId])
