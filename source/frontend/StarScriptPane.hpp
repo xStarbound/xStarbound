@@ -2,6 +2,7 @@
 #define STAR_SCRIPT_PANE_HPP
 
 #include "StarBaseScriptPane.hpp"
+#include "StarMainInterface.hpp"
 
 namespace Star {
 
@@ -11,7 +12,7 @@ STAR_CLASS(UniverseClient);
 
 class ScriptPane : public BaseScriptPane {
 public:
-  ScriptPane(UniverseClientPtr client, Json config, EntityId sourceEntityId = NullEntityId);
+  ScriptPane(UniverseClientPtr client, Json config, EntityId sourceEntityId = NullEntityId, MainInterface* mainInterface = nullptr);
 
   void displayed() override;
   void dismissed() override;

@@ -4,6 +4,7 @@
 #include "StarPane.hpp"
 #include "StarLuaComponents.hpp"
 #include "StarGuiReader.hpp"
+#include "StarMainInterface.hpp"
 
 namespace Star {
 
@@ -16,7 +17,7 @@ STAR_CLASS(BaseScriptPane);
 
 class BaseScriptPane : public Pane {
 public:
-  BaseScriptPane(Json config);
+  BaseScriptPane(Json config, MainInterface* mainInterface = nullptr);
 
   virtual void show() override;
   void displayed() override;
@@ -48,6 +49,7 @@ protected:
 
   bool m_callbacksAdded;
   LuaUpdatableComponent<LuaBaseComponent> m_script;
+  MainInterface* m_mainInterface; // If null, means the pane wasn't initialised from the main game interface.
 };
 
 }

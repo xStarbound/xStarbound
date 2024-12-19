@@ -23,7 +23,7 @@
 
 namespace Star {
 
-ScriptPane::ScriptPane(UniverseClientPtr client, Json config, EntityId sourceEntityId) : BaseScriptPane(config) {
+ScriptPane::ScriptPane(UniverseClientPtr client, Json config, EntityId sourceEntityId, MainInterface* mainInterface) : BaseScriptPane(config, mainInterface) {
   auto& root = Root::singleton();
   auto assets = root.assets();
 

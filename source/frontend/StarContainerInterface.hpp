@@ -4,6 +4,7 @@
 #include "StarPane.hpp"
 #include "StarLuaComponents.hpp"
 #include "StarContainerInteractor.hpp"
+#include "StarMainInterface.hpp"
 #include "StarGuiReader.hpp"
 
 namespace Star {
@@ -18,7 +19,7 @@ STAR_CLASS(ContainerPane);
 
 class ContainerPane : public Pane {
 public:
-  ContainerPane(WorldClientPtr worldClient, PlayerPtr player, ContainerInteractorPtr containerInteractor);
+  ContainerPane(WorldClientPtr worldClient, PlayerPtr player, ContainerInteractorPtr containerInteractor, MainInterface* mainInterface = nullptr);
 
   void displayed() override;
   void dismissed() override;

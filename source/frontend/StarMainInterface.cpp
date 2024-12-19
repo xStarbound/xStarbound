@@ -163,10 +163,10 @@ void MainInterface::reset() { // *Completely* reset the interface.
   m_questTracker = make_shared<QuestTrackerPane>();
   m_paneManager.registerPane(MainInterfacePanes::QuestTracker, PaneLayer::Hud, m_questTracker);
 
-  m_mmUpgrade = make_shared<ScriptPane>(m_client, "/interface/scripted/mmupgrade/mmupgradegui.config");
+  m_mmUpgrade = make_shared<ScriptPane>(m_client, "/interface/scripted/mmupgrade/mmupgradegui.config", NullEntityId, this);
   m_paneManager.registerPane(MainInterfacePanes::MmUpgrade, PaneLayer::Window, m_mmUpgrade);
 
-  m_collections = make_shared<ScriptPane>(m_client, "/interface/scripted/collections/collectionsgui.config");
+  m_collections = make_shared<ScriptPane>(m_client, "/interface/scripted/collections/collectionsgui.config", NullEntityId, this);
   m_paneManager.registerPane(MainInterfacePanes::Collections, PaneLayer::Window, m_collections);
 
   m_chat = make_shared<Chat>(m_client);
@@ -421,7 +421,7 @@ void MainInterface::handleInteractAction(InteractAction interactAction) {
 
       m_paneManager.displayRegisteredPane(MainInterfacePanes::Inventory);
 
-      m_containerPane = make_shared<ContainerPane>(world, m_client->mainPlayer(), m_containerInteractor);
+      m_containerPane = make_shared<ContainerPane>(world, m_client->mainPlayer(), m_containerInteractor, this);
       m_paneManager.displayPane(PaneLayer::Window, m_containerPane, [this](PanePtr const&) {
         if (auto player = m_client->mainPlayer())
           player->clearSwap();
@@ -512,7 +512,7 @@ void MainInterface::handleInteractAction(InteractAction interactAction) {
       if (sourceEntity != NullEntityId && m_interactionScriptPanes.contains(sourceEntity) && m_paneManager.isDisplayed(m_interactionScriptPanes[sourceEntity]))
         m_paneManager.dismissPane(m_interactionScriptPanes[sourceEntity]);
 
-      ScriptPanePtr scriptPane = make_shared<ScriptPane>(m_client, interactAction.data, sourceEntity);
+      ScriptPanePtr scriptPane = make_shared<ScriptPane>(m_client, interactAction.data, sourceEntity, this);
       displayScriptPane(scriptPane, sourceEntity);
 
     } else if (interactAction.type == InteractActionType::Message) {

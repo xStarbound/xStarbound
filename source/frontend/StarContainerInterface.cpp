@@ -20,10 +20,12 @@
 #include "StarWidgetLuaBindings.hpp"
 #include "StarAugmentItem.hpp"
 #include "StarInput.hpp"
+#include "StarInterfaceLuaBindings.hpp"
+#include "StarInputLuaBindings.hpp"
 
 namespace Star {
 
-ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, ContainerInteractorPtr containerInteractor) {
+ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, ContainerInteractorPtr containerInteractor, MainInterface* mainInterface) {
   m_worldClient = worldClient;
   m_player = player;
   m_containerInteractor = std::move(containerInteractor);
@@ -51,6 +53,13 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
     containerPaneCallbacks.registerCallback("playerEntityId", [this]() { return m_player->entityId(); });
     containerPaneCallbacks.registerCallback("dismiss", [this]() { dismiss(); });
     m_script->addCallbacks("pane", containerPaneCallbacks);
+    m_script->addCallbacks("input", LuaBindings::makeInputCallbacks());
+    // FezzedOne: The clipboard callbacks don't actually use the main interface, so it's fine to put a null pointer there.
+    m_script->addCallbacks("clipboard", LuaBindings::makeClipboardCallbacks(nullptr));
+    if (mainInterface) {
+      m_script->addCallbacks("interface", LuaBindings::makeInterfaceCallbacks(mainInterface));
+      m_script->addCallbacks("chat", LuaBindings::makeChatCallbacks(mainInterface));
+    }
 
     m_script->setUpdateDelta(guiConfig.getUInt("scriptDelta", 1));
   }
