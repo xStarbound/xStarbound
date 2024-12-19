@@ -1,0 +1,13 @@
+{
+  "version" : "v1.4.4/x1.0.1",
+  "tags" : "Crafting and Building|Cheats and God Items|User Interface|In-Game Tools",
+  "author" : "FezzedOne",
+  "description" : "",
+  "name" : "StarCustomChat-xSB",
+  "priority" : -1,
+  "friendlyName" : "[xStarbound] StarCustomChat Compatibility Patch",
+  "steamContentId" : "733665104",
+  "link" : "steam://url/CommunityFilePage/733665104",
+  "includes" : ["starcustomchat"],
+  "scripts": {"postLoad": ["/starcustomchat-xsb-compat.postproc.lua"]}
+}

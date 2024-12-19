@@ -1,0 +1,11 @@
+{
+  "author" : "FezzedOne",
+  "description" : "Patches an xStarbound-specific Lua script issue in My Enternia.",
+  "friendlyName" : "FezzedOne's My Enternia Script Patch",
+  "name" : "FezzedOne-MyEnterniaScriptPatch",
+  "priority" : 99999,
+  "includes" : ["My Enternia"],
+  "requires" : [],
+  "scripts" : {"postLoad": ["/xsb-myenternia-patch.lua"]},
+  "version" : "1.0"
+}
