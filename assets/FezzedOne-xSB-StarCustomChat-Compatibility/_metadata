@@ -2,7 +2,7 @@
   "version" : "v1.4.4/x1.0.1",
   "tags" : "Crafting and Building|Cheats and God Items|User Interface|In-Game Tools",
   "author" : "FezzedOne",
-  "description" : "",
+  "description" : "Adds xStarbound compatibility to StarCustomChat.",
   "name" : "StarCustomChat-xSB",
   "priority" : -1,
   "friendlyName" : "[xStarbound] StarCustomChat Compatibility Patch",
