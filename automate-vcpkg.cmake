@@ -141,7 +141,14 @@ macro(_install_or_update_vcpkg)
 
     if(NOT EXISTS ${VCPKG_EXEC})
         message("Bootstrapping vcpkg in ${VCPKG_ROOT}")
-        execute_process(COMMAND ${VCPKG_BOOTSTRAP} WORKING_DIRECTORY ${VCPKG_ROOT})
+        if (MSVC_CROSS_COMPILE)
+            execute_process(
+                COMMAND wine ${VCPKG_BOOTSTRAP} 
+                WORKING_DIRECTORY ${VCPKG_ROOT}
+                )
+        else()
+            execute_process(COMMAND ${VCPKG_BOOTSTRAP} WORKING_DIRECTORY ${VCPKG_ROOT})
+        endif()
     endif()
 
     if(NOT EXISTS ${VCPKG_EXEC})
@@ -162,10 +169,17 @@ macro(vcpkg_install_packages)
         set(ENV{VCPKG_DEFAULT_TRIPLET} "${VCPKG_TRIPLET}")
     endif()
 
-    execute_process(
-        COMMAND ${VCPKG_EXEC} install ${ARGN}
-        WORKING_DIRECTORY ${VCPKG_ROOT}
-        )
+    if (MSVC_CROSS_COMPILE)
+        execute_process(
+            COMMAND wine ${VCPKG_EXEC} install ${ARGN}
+            WORKING_DIRECTORY ${VCPKG_ROOT}
+            )
+    else()
+        execute_process(
+            COMMAND ${VCPKG_EXEC} install ${ARGN}
+            WORKING_DIRECTORY ${VCPKG_ROOT}
+            )
+    endif()
 endmacro()
     
 # MIT License
