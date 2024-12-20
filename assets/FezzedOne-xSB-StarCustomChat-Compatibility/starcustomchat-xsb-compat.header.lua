@@ -50,14 +50,16 @@ local function handleSharedTable()
                                     return
                                 end
                                 local smuggles = world.getGlobal(compatVarName) or jobject({})
-                                smuggles[handledMessage] = jobject({
+                                smuggles[handledMessage] = jarray()
+                                table.insert(smuggles[handledMessage], jobject())
+                                -- {
                                     -- `-1` for a message with no real handler set up yet;
                                     -- `0` for a message with a handler set up, but no messages received;
                                     -- an incremented number for each received message.
-                                    heartbeat = -1,
-                                    isLocal = null,
-                                    contents = null,
-                                })
+                                --     heartbeat = -1,
+                                --     isLocal = null,
+                                --     contents = null,
+                                -- }
                                 world.setGlobal(compatVarName, smuggles)
                                 -- Add a fake handler to the smuggling list.
                                 smuggledHandlersToCall[handledMessage] = {
@@ -141,35 +143,44 @@ end
 local function handleSmuggledHandlers()
     if xsb and world then
         local globalSmuggles = world.getGlobal(compatVarName)
-        for handlerName, handlerInfo in pairs(globalSmuggles or jobject({})) do
+        for handlerName, handledMessages in pairs(globalSmuggles or jobject({})) do
             if message and not smuggledHandlersToCall[handlerName] then
-                if handlerInfo.heartbeat == -1 then
+                if handledMessages then
                     message.setHandler(handlerName, function(innerName, isLocal, ...)
                         if xsb and world then
-                            local smuggles = world.getGlobal(compatVarName) or jobject({})
+                            local smuggles = world.getGlobal(compatVarName) or jobject()
                             if smuggles[innerName] then
-                                local heartbeat = smuggles[innerName].heartbeat or 0
-                                smuggles[innerName] = {
+                                local msgCount = #smuggles[innerName]
+                                local heartbeat = msgCount ~= 0 and smuggles[innerName][msgCount].heartbeat or 0
+                                table.insert(smuggles[innerName], {
                                     heartbeat = heartbeat + 1,
                                     isLocal = isLocal,
                                     contents = jsonPack(...),
-                                }
+                                })
                             end
                             world.setGlobal(compatVarName, smuggles)
                         end
                     end)
-                    handlerInfo.heartbeat = 0
                 end
             elseif smuggledHandlersToCall[handlerName] then
                 local handler = smuggledHandlersToCall[handlerName]
-                if
-                    handlerInfo.heartbeat
-                    and handler.handler
-                    and handlerInfo.heartbeat > handler.heartbeat
-                    and handlerInfo.contents
-                then
-                    handler.handler(handlerName, handlerInfo.isLocal, jsonUnpack(handlerInfo.contents))
-                    handler.heartbeat = handlerInfo.heartbeat
+                
+                if handledMessages then
+                    local newMessageArray = jarray()
+                    for _, msg in ipairs(handledMessages) do
+                        if
+                            msg.heartbeat
+                            and handler.handler
+                            and msg.heartbeat > handler.heartbeat
+                            and msg.contents
+                        then
+                            handler.handler(handlerName, msg.isLocal, jsonUnpack(msg.contents))
+                            handler.heartbeat = msg.heartbeat
+                        else
+                            table.insert(newMessageArray, msg)
+                        end
+                    end
+                    globalSmuggles[handlerName] = newMessageArray
                 end
             end
         end

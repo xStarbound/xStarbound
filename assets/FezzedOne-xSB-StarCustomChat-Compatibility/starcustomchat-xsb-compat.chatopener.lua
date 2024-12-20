@@ -40,7 +40,6 @@ end
 local base_receiveMessage = receiveMessage
 
 function receiveMessage(message)
-    sb.logInfo("[SCC-xSB-Patch::Debug] Invoked SCC chat message handler.")
     if not self.chatHidden then
         world.sendEntityMessage(player.id(), "icc_xSB_addChat", message or jobject())
     end
