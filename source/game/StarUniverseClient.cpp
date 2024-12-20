@@ -206,7 +206,7 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     size_t playerCount = m_playerStorage->playerCount();
 
     Logger::info("UniverseClient: Joined {} server as client {}",
-      m_legacyServer ? "Starbound" : "xStarbound/OpenSB",
+      m_legacyServer ? "stock" : "custom",
       success->clientId);
     return {};
   } else if (auto failure = as<ConnectFailurePacket>(packet)) {

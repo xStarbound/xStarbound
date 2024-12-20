@@ -1562,7 +1562,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   connection.sendAll(clientWaitLimit);
 
   String remoteAddressString = remoteAddress ? toString(*remoteAddress) : "local";
-  Logger::info("UniverseServer: Awaiting connection info from {}, {} client", remoteAddressString, legacyClient ? "Starbound" : "xStarbound/OpenSB");
+  Logger::info("UniverseServer: Awaiting connection info from {}, {} client", remoteAddressString, legacyClient ? "stock" : "custom");
 
   connection.receiveAny(clientWaitLimit);
   auto clientConnect = as<ClientConnectPacket>(connection.pullSingle());
