@@ -6,6 +6,7 @@ local soundStatusPatchFooter = assets.bytes("/starcustomchat-xsb-compat.voice-st
 local chatOpenerFooter = assets.bytes("/starcustomchat-xsb-compat.chatopener.lua")
 local chatHandlerFooter = assets.bytes("/starcustomchat-xsb-compat.chathandler.lua")
 local biggerChatPatch = assets.bytes("/starcustomchat-biggerchat-fix.lua")
+local settingsGuiFooter = assets.bytes("/starcustomchat-xsb-compat.settings.lua")
 
 local sccChatOpenerScript = "/scripts/starcustomchat/chatopener.lua"
 local sccGuiScript = "/interface/scripted/starcustomchat/base/starcustomchatgui.lua"
@@ -13,6 +14,7 @@ local sccTalkingEffectScript =
     "/interface/scripted/starcustomchat/plugins/sounds/stats/effects/scctalking/scctalking.lua"
 local sccChatRevealScript = "/interface/scripted/starcustomchatreveal/chatreveal.lua"
 local sccBiggerChatScript = "/interface/BiggerChat/biggerchatv2.lua"
+local sccSettingsGuiScript = "/interface/scripted/starcustomchatsettings/starcustomchatsettingsgui.lua"
 local otherSccScriptsToPatch = {
     "/interface/scripted/starcustomchat/plugins/sounds/sounds.lua",
     "/interface/scripted/starcustomchat/plugins/sounds/soundssettings.lua",
@@ -31,6 +33,13 @@ if xsb then
         local patchedScript = patchHeader .. baseScript .. patchFooter .. chatHandlerFooter
         assets.erase(sccGuiScript)
         assets.add(sccGuiScript, patchedScript)
+    end
+
+    if assets.exists(sccSettingsGuiScript) then
+        local baseScript = assets.bytes(sccSettingsGuiScript)
+        local patchedScript = baseScript .. settingsGuiFooter
+        assets.erase(sccSettingsGuiScript)
+        assets.add(sccSettingsGuiScript, patchedScript)
     end
 
     if assets.exists(sccTalkingEffectScript) then
