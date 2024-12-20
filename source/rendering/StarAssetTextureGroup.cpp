@@ -59,10 +59,15 @@ TexturePtr AssetTextureGroup::loadTexture(AssetPath const& imagePath, bool tryTe
   auto assets = Root::singleton().assets();
 
   ImageConstPtr image;
-  if (tryTexture)
-    image = assets->tryImage(imagePath);
-  else
-    image = assets->image(imagePath);
+  try { // FezzedOne: Fixed a crash that could occur when an invalid asset path is used for texture rendering.
+    if (tryTexture)
+      image = assets->tryImage(imagePath);
+    else
+      image = assets->image(imagePath);
+  } catch (AssetException const& e) { // 
+    Logger::warn("AssetTextureGroup: Unable to load image '{}' due to exception: {}", AssetPath::join(imagePath), e.what());
+    return {};
+  }
 
   if (!image)
     return {};
