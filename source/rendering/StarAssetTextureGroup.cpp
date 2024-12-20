@@ -64,8 +64,8 @@ TexturePtr AssetTextureGroup::loadTexture(AssetPath const& imagePath, bool tryTe
       image = assets->tryImage(imagePath);
     else
       image = assets->image(imagePath);
-  } catch (AssetException const& e) { // 
-    Logger::warn("AssetTextureGroup: Unable to load image '{}' due to exception: {}", AssetPath::join(imagePath), e.what());
+  } catch (AssetException const& e) {
+    // Logger::warn("AssetTextureGroup: Unable to load image '{}' due to exception: {}", AssetPath::join(imagePath), e.what());
     return {};
   }
 
