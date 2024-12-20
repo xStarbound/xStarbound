@@ -171,20 +171,17 @@ local function handleSmuggledHandlers()
                         if
                             msg.heartbeat
                             and handler.handler
-                            and msg.heartbeat > handler.heartbeat
                             and msg.contents
                         then
-                            handler.handler(handlerName, msg.isLocal, jsonUnpack(msg.contents))
-                            handler.heartbeat = msg.heartbeat
-                        else
-                            table.insert(newMessageArray, msg)
+                            if msg.heartbeat > handler.heartbeat then
+                                handler.handler(handlerName, msg.isLocal, jsonUnpack(msg.contents))
+                                handler.heartbeat = msg.heartbeat
+                            end
                         end
                     end
-                    globalSmuggles[handlerName] = newMessageArray
                 end
             end
         end
-        world.setGlobal(compatVarName, globalSmuggles)
     end
 end
 
