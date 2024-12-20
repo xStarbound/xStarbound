@@ -93,7 +93,7 @@ PlayerPtr UniverseClient::mainPlayer() const {
   return m_mainPlayer;
 }
 
-Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowAssetsMismatch, String const& account, String const& password) {
+Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowAssetsMismatch, String const& account, String const& password, bool forceLegacyConnection) {
   auto& root = Root::singleton();
   auto assets = root.assets();
 
@@ -122,10 +122,15 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
 
   unsigned timeout = assets->json("/client.config:serverConnectTimeout").toUInt();
 
+  // FezzedOne: Due to networking code changes in OpenStarbound that cause compatibility issues, added a
+  // `"forceLegacyConnection"` setting to `xclient.config` and also allowed prepending `@` to the
+  // server address to force a legacy connection.
+  bool shouldForceLegacyConnection = forceLegacyConnection || root.configuration()->get("forceLegacyConnection").optBool().value(false);
+
   {
     auto protocolRequest = make_shared<ProtocolRequestPacket>(StarProtocolVersion);
-    protocolRequest->setCompressionMode(PacketCompressionMode::Enabled);
-    // Signal that we're xStarbound/OpenSB.
+    protocolRequest->setCompressionMode(shouldForceLegacyConnection ? PacketCompressionMode::Disabled : PacketCompressionMode::Enabled);
+    // FezzedOne: If we're not forcing legacy connections, signal that we're a modded client.
     connection.pushSingle(protocolRequest);
   }
   connection.sendAll(timeout);
@@ -138,7 +143,9 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     return String(strf("Join failed! Server does not support connections with protocol version {}", StarProtocolVersion));
 
   m_legacyServer = protocolResponsePacket->compressionMode() != PacketCompressionMode::Enabled; // True if server is vanilla
-  connection.setLegacy(m_legacyServer);
+  connection.setLegacy(shouldForceLegacyConnection || m_legacyServer);
+  if (shouldForceLegacyConnection && !m_legacyServer)
+    Logger::info("UniverseClient: Detected custom server, but forcing legacy protocol");
   connection.pushSingle(make_shared<ClientConnectPacket>(Root::singleton().assets()->digest(), allowAssetsMismatch, m_mainPlayer->uuid(), m_mainPlayer->name(),
       m_mainPlayer->species(), m_playerStorage->loadShipData(m_mainPlayer->uuid()), m_mainPlayer->shipUpgrades(),
       m_mainPlayer->log()->introComplete(), account));

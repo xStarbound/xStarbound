@@ -42,7 +42,7 @@ public:
   PlayerPtr mainPlayer() const;
 
   // Returns error if connection failed
-  Maybe<String> connect(UniverseConnection connection, bool allowAssetsMismatch, String const& account = "", String const& password = "");
+  Maybe<String> connect(UniverseConnection connection, bool allowAssetsMismatch, String const& account = "", String const& password = "", bool forceLegacyConnection = false);
   bool isConnected() const;
   void disconnect();
   Maybe<String> disconnectReason() const;

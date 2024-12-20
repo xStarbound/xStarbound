@@ -1525,22 +1525,29 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   String serverAssetsMismatchMessage = assets->json("/universe_server.config:serverAssetsMismatchMessage").toString();
   String clientAssetsMismatchMessage = assets->json("/universe_server.config:clientAssetsMismatchMessage").toString();
 
+  // FezzedOne: Due to networking code changes in OpenStarbound that cause compatibility issues, added a
+  // `"forceLegacyConnection"` setting to the server's `xserver.config` or host's `xclient.config`.
+  bool forceLegacyConnection = root.configuration()->get("forceLegacyConnection").optBool().value(false);
+
   RecursiveMutexLocker mainLocker(m_mainLock, false);
 
   connection.receiveAny(clientWaitLimit);
   auto protocolRequest = as<ProtocolRequestPacket>(connection.pullSingle());
   if (!protocolRequest) {
-    Logger::warn("UniverseServer: client connection aborted, expected ProtocolRequestPacket");
+    Logger::warn("UniverseServer: Client connection aborted, expected ProtocolRequestPacket");
     return;
   }
 
   bool legacyClient = protocolRequest->compressionMode() != PacketCompressionMode::Enabled;
-  connection.setLegacy(legacyClient);
+  connection.setLegacy(forceLegacyConnection || legacyClient);
+  if (forceLegacyConnection && !legacyClient)
+    Logger::info("UniverseServer: Detected connection from custom client, but forcing legacy protocol");
 
   auto protocolResponse = make_shared<ProtocolResponsePacket>();
-  protocolResponse->setCompressionMode(PacketCompressionMode::Enabled); // Signal that we're xStarbound or OpenStarbound.
+  // FezzedOne: Signal that we're a custom server unless legacy connections are forced.
+  protocolResponse->setCompressionMode(forceLegacyConnection ? PacketCompressionMode::Disabled : PacketCompressionMode::Enabled); 
   if (protocolRequest->requestProtocolVersion != StarProtocolVersion) {
-    Logger::warn("UniverseServer: client connection aborted, unsupported protocol version {}, supported version {}",
+    Logger::warn("UniverseServer: Client connection aborted, unsupported protocol version {}, supported version {}",
         protocolRequest->requestProtocolVersion, StarProtocolVersion);
     protocolResponse->allowed = false;
     connection.pushSingle(protocolResponse);

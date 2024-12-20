@@ -606,7 +606,8 @@ void ClientApplication::changeState(MainAppState newState) {
 
     if (m_pendingMultiPlayerConnection) {
       if (auto address = m_pendingMultiPlayerConnection->server.ptr<HostAddressWithPort>()) {
-        m_titleScreen->setMultiPlayerAddress(toString(address->address()));
+        m_titleScreen->setMultiPlayerAddress((m_pendingMultiPlayerConnection->forceLegacyConnection ? "@" : "") +
+          toString(address->address()));
         m_titleScreen->setMultiPlayerPort(toString(address->port()));
         m_titleScreen->setMultiPlayerAccount(configuration->getPath("title.multiPlayerAccount").toString());
         m_titleScreen->goToMultiPlayerSelectCharacter(false);
@@ -682,7 +683,8 @@ void ClientApplication::changeState(MainAppState newState) {
 
       bool allowAssetsMismatch = m_root->configuration()->get("allowAssetsMismatch").toBool();
       if (auto errorMessage = m_universeClient->connect(UniverseConnection(std::move(packetSocket)), allowAssetsMismatch,
-            multiPlayerConnection.account, multiPlayerConnection.password)) {
+            multiPlayerConnection.account, multiPlayerConnection.password,
+            multiPlayerConnection.forceLegacyConnection)) {
         setError(*errorMessage);
         return;
       }
@@ -819,7 +821,11 @@ void ClientApplication::updateTitle(float dt) {
 
   } else if (m_titleScreen->currentState() == TitleState::StartMultiPlayer) {
     if (!m_pendingMultiPlayerConnection || m_pendingMultiPlayerConnection->server.is<HostAddressWithPort>()) {
-      auto addressString = m_titleScreen->multiPlayerAddress().trim();
+      auto rawAddressString = m_titleScreen->multiPlayerAddress().trim();
+      bool forceLegacyConnection = false;
+      if (rawAddressString.beginsWith('@'))
+        forceLegacyConnection = true;
+      auto addressString = rawAddressString.trimBeg("@");
       auto portString = m_titleScreen->multiPlayerPort().trim();
       portString = portString.empty() ? toString(m_root->configuration()->get("gameServerPort").toUInt()) : portString;
       if (auto port = maybeLexicalCast<uint16_t>(portString)) {
@@ -830,7 +836,8 @@ void ClientApplication::updateTitle(float dt) {
           m_pendingMultiPlayerConnection = PendingMultiPlayerConnection{
             address.right(),
             m_titleScreen->multiPlayerAccount(),
-            m_titleScreen->multiPlayerPassword()
+            m_titleScreen->multiPlayerPassword(),
+            forceLegacyConnection
           };
 
           auto configuration = m_root->configuration();
