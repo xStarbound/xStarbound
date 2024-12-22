@@ -22,4 +22,4 @@ BEGIN
     VALUE "Translation", 0x409, 1252
   END
 END
-icon ICON "@CMAKE_CURRENT_SOURCE_DIR@\\xclient-largelogo.ico"
+icon ICON "@CMAKE_CURRENT_SOURCE_DIR@/xclient-largelogo.ico"
