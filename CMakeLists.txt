@@ -59,7 +59,7 @@ endif()
 # Unfortunately, properly installing VCPKG is hell on Windows, so automate it.
 include(automate-vcpkg.cmake)
 
-if (WIN32 AND STAR_INSTALL_VCPKG)
+if ((WIN32 OR STAR_CROSS_COMPILE) AND STAR_INSTALL_VCPKG)
     vcpkg_bootstrap()
 endif()
 
@@ -164,7 +164,7 @@ cmake_dependent_option(STAR_ENABLE_STATIC_MSVC_RUNTIME "Statically link with the
 
 # FezzedOne: clang-cl cross-compilation stuff.
 if ((STAR_COMPILER STREQUAL "clang" OR STAR_COMPILER STREQUAL "msvc") AND STAR_CROSS_COMPILE)
-    set (MSVC_CROSS_COMPILE ON)
+    # set (MSVC_CROSS_COMPILE ON)
 endif()
 
 # FezzedOne: More MinGW stuff.
