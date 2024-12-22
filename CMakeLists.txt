@@ -162,6 +162,11 @@ cmake_dependent_option(STAR_ENABLE_GCC_PROFILING "Enable gcc/g++ profiling via t
 cmake_dependent_option(STAR_ENABLE_GLIBCXX_DEBUG "Enable _GLIBCXX_DEBUG for g++" OFF "STAR_COMPILER STREQUAL gnu" OFF)
 cmake_dependent_option(STAR_ENABLE_STATIC_MSVC_RUNTIME "Statically link with the CRT" OFF "STAR_COMPILER STREQUAL msvc" OFF)
 
+# FezzedOne: clang-cl cross-compilation stuff.
+if ((STAR_COMPILER STREQUAL "clang" OR STAR_COMPILER STREQUAL "msvc") AND STAR_CROSS_COMPILE)
+    set (MSVC_CROSS_COMPILE ON)
+endif()
+
 # FezzedOne: More MinGW stuff.
 if(STAR_COMPILER STREQUAL "gnu" AND STAR_SYSTEM STREQUAL "windows" AND STAR_CROSS_COMPILE)
     message(STATUS "Cross-compiling for Windows on Linux")
