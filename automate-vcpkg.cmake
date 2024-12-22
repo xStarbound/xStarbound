@@ -97,6 +97,10 @@ macro(vcpkg_bootstrap)
     if(NOT DEFINED ${CMAKE_TOOLCHAIN_FILE})
         # We know this wasn't set before so we need point the toolchain file to the newly found VCPKG_ROOT
         set(CMAKE_TOOLCHAIN_FILE ${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake CACHE STRING "")
+
+        if (STAR_CROSS_COMPILE) # Needed to get VCPKG to behave when cross-compiling to Windows.
+            set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${VCPKG_INSTALLATION_ROOT}/scripts/toolchains/linux.cmake CACHE STRING "")
+        endif()
     
         # Just setting vcpkg.cmake as toolchain file does not seem to actually pull in the code
         include(${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)

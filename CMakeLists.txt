@@ -61,7 +61,6 @@ include(automate-vcpkg.cmake)
 
 if ((WIN32 OR STAR_CROSS_COMPILE) AND STAR_INSTALL_VCPKG)
     vcpkg_bootstrap()
-    set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "$env{VCPKG_INSTALLATION_ROOT}/scripts/toolchains/linux.cmake")
 endif()
 
 # Find CCache
