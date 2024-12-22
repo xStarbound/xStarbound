@@ -315,7 +315,7 @@ if(STAR_COMPILER_GNU)
             # Cross-compiled binaries have to be statically linked to avoid weird "un-Windows-like" GCC DLL crap.
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -static-libgcc -DSTAR_CROSS_COMPILE")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libstdc++ -static-libgcc -DSTAR_CROSS_COMPILE")
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/x86_64-w64-mingw32/lib -lbcrypt")
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/x86_64-w64-mingw32/lib")
             if(STAR_USE_JEMALLOC)
             endif()
         endif()
@@ -589,7 +589,8 @@ if(STAR_CROSS_COMPILE)
     set(STAR_EXT_LIBS ${STAR_EXT_LIBS}
             Vorbis::vorbisfile
             Vorbis::vorbis
-            Opus::opus
+            "/usr/x86_64-w64-mingw32/lib/libopus.a" # Need to manually tell CMake where Opus is.
+            # Opus::opus
             Ogg::ogg
             Freetype::Freetype
             "/usr/x86_64-w64-mingw32/lib/libbrotlidec.a"
@@ -598,6 +599,7 @@ if(STAR_CROSS_COMPILE)
             "/usr/x86_64-w64-mingw32/lib/libbz2.a"
             PNG::PNG
             ZLIB::ZLIB
+            "bcrypt"
     )
 else()
 
