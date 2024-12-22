@@ -315,7 +315,7 @@ if(STAR_COMPILER_GNU)
             # Cross-compiled binaries have to be statically linked to avoid weird "un-Windows-like" GCC DLL crap.
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -static-libgcc -DSTAR_CROSS_COMPILE")
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libstdc++ -static-libgcc -DSTAR_CROSS_COMPILE")
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/x86_64-w64-mingw32/lib")
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/x86_64-w64-mingw32/lib -lbcrypt")
             if(STAR_USE_JEMALLOC)
             endif()
         endif()
