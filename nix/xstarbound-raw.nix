@@ -17,7 +17,7 @@ let fs = lib.fileset; in
 
 stdenv.mkDerivation {
   pname = "xstarbound-raw";
-  version = "v3.1.3r1";
+  version = "git";
   src = fs.toSource rec {
     root = ../.;
     fileset = fs.difference root (fs.unions [
