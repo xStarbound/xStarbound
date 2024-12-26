@@ -13,4 +13,4 @@ steamcmd \
   "+workshop_download_item $appId $workshopId" \
   "+quit"
 
-mv "$HOME/.local/share/Steam/Steamapps/workshop/content/$appId/$workshopId/"* "$out"
+mv -T "$HOME/.local/share/Steam/Steamapps/workshop/content/$appId/$workshopId" "$out"
