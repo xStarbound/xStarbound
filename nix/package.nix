@@ -43,8 +43,20 @@ let
 
   xStarboundGeneric = stdenv.mkDerivation {
     pname = "xstarbound-generic";
-    # set as 'git' so we don't make any promises to keep this version string updated
-    version = "git";
+    # parse version # from CMakeLists.txt. This might be brittle and show a very wonky version
+    # in the future, but it's better than someone forgetting to update it.
+    version =
+      let
+        lines = builtins.split "\n" (builtins.readFile ../CMakeLists.txt);
+        prefix = "set(XSB_VERSION ";
+        suffix = ")";
+        statement = lib.findFirst (line: !(builtins.isList line) && lib.hasPrefix prefix line) null lines;
+      in
+      lib.pipe statement [
+        (lib.removePrefix prefix)
+        (lib.removeSuffix suffix)
+      ];
+
     src = fs.toSource rec {
       root = ../.;
       fileset = fs.difference root (fs.unions [
