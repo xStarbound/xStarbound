@@ -1,0 +1,4 @@
+builds:
+  exclude:
+  - "*.fetchFromSteamWorkshop"
+  - "*.fetchStarboundMod"
