@@ -1,6 +1,8 @@
-{ xstarbound-raw
-, writeShellApplication
-}: writeShellApplication {
+{
+  xstarbound-raw,
+  writeShellApplication,
+}:
+writeShellApplication {
   name = "xstarbound-${xstarbound-raw.version}";
   runtimeInputs = [ xstarbound-raw ];
   text = ''

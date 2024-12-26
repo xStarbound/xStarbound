@@ -1,4 +1,5 @@
-{ runCommandLocal
+{
+  runCommandLocal,
 }:
 
 # helper function for turning a file derivation into a directory derivation

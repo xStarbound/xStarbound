@@ -5,7 +5,8 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
   };
 
-  outputs = { self, ... }@inputs:
+  outputs =
+    { self, ... }@inputs:
     let
       system = "x86_64-linux";
       pkgs = import inputs.nixpkgs {
@@ -33,6 +34,7 @@
         };
       };
 
+      formatter.${system} = pkgs.nixfmt-rfc-style;
+
     };
 }
-
