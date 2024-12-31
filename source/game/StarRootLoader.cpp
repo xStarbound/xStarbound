@@ -2,6 +2,10 @@
 #include "StarLexicalCast.hpp"
 #include "StarJsonExtra.hpp"
 
+#ifdef STAR_SYSTEM_LINUX
+#include <regex>
+#endif
+
 namespace Star {
 
 Json const BaseAssetsSettings = Json::parseJson(R"JSON(
@@ -138,10 +142,24 @@ pair<RootUPtr, RootLoader::Options> RootLoader::commandInitOrDie(int argc, char*
 
 Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const {
   try {
-    String bootConfigFile = options.parameters.value("bootconfig").maybeFirst().value("xsbinit.config");
-    Json bootConfig = Json::parseJson(File::readFileString(bootConfigFile));
+    const String configFileName = "xsbinit.config";
+    const String bootConfigFile = options.parameters.value("bootconfig").maybeFirst().value(configFileName);
+#ifdef STAR_SYSTEM_LINUX
+    // FezzedOne
+    #define CONFIG_ENV_VAR_NAME "XDG_CONFIG_HOME"
+    Json bootConfig = JsonObject{};
+    const String xdgConfigPath = String(::getenv(CONFIG_ENV_VAR_NAME));
+    const String linuxConfigPath = xdgConfigPath + "/xStarbound/" + bootConfigFile;
+    if (File::exists(bootConfigFile)) {
+      bootConfig = Json::parseJson(File::readFileString(bootConfigFile));
+    } else if (File::exists(linuxConfigPath)) {
+      bootConfig = Json::parseJson(File::readFileString(linuxConfigPath));
+    }
+#else
+    const Json bootConfig = Json::parseJson(File::readFileString(bootConfigFile));
+#endif
 
-    Json assetsSettings = jsonMerge(
+    const Json assetsSettings = jsonMerge(
         BaseAssetsSettings,
         m_defaults.additionalAssetsSettings,
         bootConfig.get("assetsSettings", {})
@@ -158,7 +176,24 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     rootSettings.assetsSettings.luaGcPause = assetsSettings.getFloat("luaGcPause");
     rootSettings.assetsSettings.luaGcStepMultiplier = assetsSettings.getFloat("luaGcStepMultiplier");
 
+#ifdef STAR_SYSTEM_LINUX
+    #define HOME_ENV_VAR_NAME "HOME"
+    const std::string homePath = std::string(::getenv(HOME_ENV_VAR_NAME));
+    const std::regex envVarRegex(R"((?<!\\)\$(\{)" HOME_ENV_VAR_NAME R"(\}|)" HOME_ENV_VAR_NAME R"())"), escapeRegex(R"(\\\$)");
+    const std::string dollarSign = "$";
+
+    const List<String> rawAssetDirectories = jsonToStringList(bootConfig.get("assetDirectories"));
+    rootSettings.assetDirectories = {};
+    for (const String& assetDir : rawAssetDirectories)
+      rootSettings.assetDirectories.emplaceAppend(String(
+          std::regex_replace(
+            std::regex_replace(assetDir.utf8(), envVarRegex, homePath), 
+            escapeRegex, dollarSign
+          )
+        ));
+#else
     rootSettings.assetDirectories = jsonToStringList(bootConfig.get("assetDirectories"));
+#endif
 
     rootSettings.defaultConfiguration = jsonMerge(
         BaseDefaultConfiguration,
@@ -166,7 +201,17 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
         bootConfig.get("defaultConfiguration", {})
       );
 
+#ifdef STAR_SYSTEM_LINUX
+    const std::string rawStorageDirectory = bootConfig.getString("storageDirectory").utf8();
+    rootSettings.storageDirectory = String(
+        std::regex_replace(
+          std::regex_replace(rawStorageDirectory, envVarRegex, homePath), 
+          escapeRegex, dollarSign
+        )
+      );
+#else
     rootSettings.storageDirectory = bootConfig.getString("storageDirectory");
+#endif
 
     rootSettings.logFile = options.parameters.value("logfile").maybeFirst().orMaybe(m_defaults.logFile);
     rootSettings.logFileBackups = bootConfig.getUInt("logFileBackups", 5);
