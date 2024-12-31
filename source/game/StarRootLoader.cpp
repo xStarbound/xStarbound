@@ -148,8 +148,15 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
 #ifdef STAR_SYSTEM_LINUX
     // FezzedOne: If the boot config file does not exist in the working directory, check `$XDG_CONFIG_HOME`.
     #define CONFIG_ENV_VAR_NAME "XDG_CONFIG_HOME"
+    #define HOME_ENV_VAR "HOME"
     Json bootConfig = JsonObject{};
-    const String xdgConfigPath = String(::getenv(CONFIG_ENV_VAR_NAME));
+    const char* xdgConfigVar = ::getenv(CONFIG_ENV_VAR_NAME);
+    const char* homePath = ::getenv(HOME_ENV_VAR);
+
+    if (!homePath) throw StarException("$HOME is somehow not set; set this variable to your home directory");
+
+    const String defaultXdgConfigPath = String(std::string(homePath) + "/.config/");
+    const String xdgConfigPath = String(xdgConfigVar ? xdgConfigVar : defaultXdgConfigPath);
     const String linuxConfigPath = xdgConfigPath + "/xStarbound/" + bootConfigFile;
     if (File::exists(bootConfigFile)) {
       bootConfig = Json::parseJson(File::readFileString(bootConfigFile));
