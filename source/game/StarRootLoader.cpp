@@ -154,6 +154,9 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
       bootConfig = Json::parseJson(File::readFileString(bootConfigFile));
     } else if (File::exists(linuxConfigPath)) {
       bootConfig = Json::parseJson(File::readFileString(linuxConfigPath));
+    } else {
+      throw StarException("Cannot find boot config file; ensure xsbinit.config is present either in working directory" 
+        " or in \"$XDG_CONFIG_HOME/xStarbound/\" and check permissions, or use -bootconfig");
     }
 #else
     const Json bootConfig = Json::parseJson(File::readFileString(bootConfigFile));
