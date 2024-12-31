@@ -145,7 +145,7 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     const String configFileName = "xsbinit.config";
     const String bootConfigFile = options.parameters.value("bootconfig").maybeFirst().value(configFileName);
 #ifdef STAR_SYSTEM_LINUX
-    // FezzedOne
+    // FezzedOne: If the boot config file does not exist in the working directory, check `$XDG_CONFIG_HOME`.
     #define CONFIG_ENV_VAR_NAME "XDG_CONFIG_HOME"
     Json bootConfig = JsonObject{};
     const String xdgConfigPath = String(::getenv(CONFIG_ENV_VAR_NAME));
@@ -177,6 +177,7 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     rootSettings.assetsSettings.luaGcStepMultiplier = assetsSettings.getFloat("luaGcStepMultiplier");
 
 #ifdef STAR_SYSTEM_LINUX
+    // FezzedOne: Substitute `${HOME}` and `$HOME` for the user's home directory, but not if the `$` is escaped (i.e., `\$`).
     #define HOME_ENV_VAR_NAME "HOME"
     const std::string homePath = std::string(::getenv(HOME_ENV_VAR_NAME));
     const std::regex envVarRegex(R"((?<!\\)\$(\{)" HOME_ENV_VAR_NAME R"(\}|)" HOME_ENV_VAR_NAME R"())"), escapeRegex(R"(\\\$)");
