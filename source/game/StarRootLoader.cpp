@@ -153,7 +153,7 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     const char* xdgConfigVar = ::getenv(CONFIG_ENV_VAR_NAME);
     const char* homePath = ::getenv(HOME_ENV_VAR);
 
-    if (!homePath) throw StarException("$HOME is somehow not set; set this variable to your home directory");
+    if (!homePath) throw StarException("$" HOME_ENV_VAR " is somehow not set; set this variable to your home directory");
 
     const String defaultXdgConfigPath = String(std::string(homePath) + "/.config/");
     const String xdgConfigPath = String(xdgConfigVar ? xdgConfigVar : defaultXdgConfigPath);
@@ -164,7 +164,7 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
       bootConfig = Json::parseJson(File::readFileString(linuxConfigPath));
     } else {
       throw StarException("Cannot find boot config file; ensure xsbinit.config is present either in working directory" 
-        " or in \"$XDG_CONFIG_HOME/xStarbound/\" and check permissions, or use -bootconfig");
+        " or in \"$" CONFIG_ENV_VAR_NAME "/xStarbound/\" and check permissions, or use -bootconfig");
     }
 #else
     const Json bootConfig = Json::parseJson(File::readFileString(bootConfigFile));
@@ -190,8 +190,8 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
 #ifdef STAR_SYSTEM_LINUX
     // FezzedOne: Substitute `${HOME}` and `$HOME` for the user's home directory, but not if the `$` is escaped (i.e., `\$`).
     #define HOME_ENV_VAR_NAME "HOME"
-    const std::string homePath = std::string(::getenv(HOME_ENV_VAR_NAME));
-    const std::regex envVarRegex(R"((?<!\\)\$(\{)" HOME_ENV_VAR_NAME R"(\}|)" HOME_ENV_VAR_NAME R"())"), escapeRegex(R"(\\\$)");
+    const std::string homePathStr = std::string(homePath);
+    const std::regex envVarRegex(R"((?<!\\)\$(\{)" HOME_ENV_VAR R"(\}|)" HOME_ENV_VAR R"())"), escapeRegex(R"(\\\$)");
     const std::string dollarSign = "$";
 
     const List<String> rawAssetDirectories = jsonToStringList(bootConfig.get("assetDirectories"));
@@ -199,7 +199,7 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     for (const String& assetDir : rawAssetDirectories)
       rootSettings.assetDirectories.emplaceAppend(String(
           std::regex_replace(
-            std::regex_replace(assetDir.utf8(), envVarRegex, homePath), 
+            std::regex_replace(assetDir.utf8(), envVarRegex, homePathStr), 
             escapeRegex, dollarSign
           )
         ));
