@@ -147,10 +147,10 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     const String bootConfigFile = options.parameters.value("bootconfig").maybeLast().value(configFileName);
 #ifdef STAR_SYSTEM_LINUX
     // FezzedOne: If the boot config file does not exist in the working directory, check `$XDG_CONFIG_HOME`.
-    #define CONFIG_ENV_VAR_NAME "XDG_CONFIG_HOME"
+    #define CONFIG_ENV_VAR "XDG_CONFIG_HOME"
     #define HOME_ENV_VAR "HOME"
     Json bootConfig = JsonObject{};
-    const char* xdgConfigVar = ::getenv(CONFIG_ENV_VAR_NAME);
+    const char* xdgConfigVar = ::getenv(CONFIG_ENV_VAR);
     const char* homePath = ::getenv(HOME_ENV_VAR);
 
     if (!homePath) throw StarException("$" HOME_ENV_VAR " is somehow not set; set this variable to your home directory");
@@ -164,7 +164,7 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
       bootConfig = Json::parseJson(File::readFileString(linuxConfigPath));
     } else {
       throw StarException("Cannot find boot config file; ensure xsbinit.config is present either in working directory" 
-        " or in \"$" CONFIG_ENV_VAR_NAME "/xStarbound/\" and check permissions, or use -bootconfig");
+        " or in \"$" CONFIG_ENV_VAR "/xStarbound/\" and check permissions, or use -bootconfig");
     }
 #else
     const Json bootConfig = Json::parseJson(File::readFileString(bootConfigFile));
