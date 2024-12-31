@@ -3,7 +3,7 @@
 
 sbPath="$(realpath -zL "$0" | xargs -0 dirname)/../"; export sbPath;
 workingDir="$(pwd)";
-cd "$(dirname \"$0\")";
+cd "$(dirname "$0")";
 
 # Use Wayland if it's what's running.
 if [ -n "$WAYLAND_DISPLAY" ]; then 
