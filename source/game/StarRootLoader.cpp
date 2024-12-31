@@ -100,8 +100,9 @@ RootLoader::RootLoader(Defaults defaults) {
   String baseConfigFile;
   Maybe<String> userConfigFile;
 
-  addParameter("bootconfig", "bootconfig", Optional,
-      strf("Boot time configuration file, defaults to xsbinit.config"));
+  // FezzedOne: Workaround to ensure `-bootconfig` is usable with the bundled launch scripts.
+  addParameter("bootconfig", "bootconfig", Multiple,
+      strf("Boot time configuration file, defaults to xsbinit.config; only the last specified configuration file is used"));
   addParameter("logfile", "logfile", Optional,
       strf("Log to the given logfile relative to the root directory, defaults to {}",
         defaults.logFile ? *defaults.logFile : "no log file"));
@@ -143,7 +144,7 @@ pair<RootUPtr, RootLoader::Options> RootLoader::commandInitOrDie(int argc, char*
 Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const {
   try {
     const String configFileName = "xsbinit.config";
-    const String bootConfigFile = options.parameters.value("bootconfig").maybeFirst().value(configFileName);
+    const String bootConfigFile = options.parameters.value("bootconfig").maybeLast().value(configFileName);
 #ifdef STAR_SYSTEM_LINUX
     // FezzedOne: If the boot config file does not exist in the working directory, check `$XDG_CONFIG_HOME`.
     #define CONFIG_ENV_VAR_NAME "XDG_CONFIG_HOME"
