@@ -17,6 +17,7 @@
       "description": "Build client GUI",
       "dependencies": [
         { "name": "sdl2", "default-features": false, "features": ["wayland", "x11", "alsa"], "platform": "linux" },
+        { "name": "sdl2", "platform": "!linux" },
         "glew"
       ]
     },
