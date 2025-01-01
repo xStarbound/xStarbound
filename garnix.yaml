@@ -1,3 +1,11 @@
 builds:
+  exclude: []
   include:
-  - 'legacyPackages.x86_64-linux.fetchStarboundMod'
+  - 'packages.*.*'
+  - legacyPackages.*.*'
+  - legacyPackages.*.mods.*'
+  - devShells.*.*
+  - homeConfigurations.*
+  - darwinConfigurations.*
+  - nixosConfigurations.*
+
