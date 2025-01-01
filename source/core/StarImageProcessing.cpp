@@ -47,9 +47,9 @@ Image scaleNearest(Image const& srcImage, Vec2F scale) {
   #pragma float_control(except, on)   // enable exception semantics
 #elif defined STAR_COMPILER_CLANG
   // #pragma clang optimize off
-#elif defined XSB_DISABLED // STAR_COMPILER_GNU
+#elif defined STAR_COMPILER_GNU
   // FezzedOne: Emulate MSVC's floating-point behaviour on GCC.
-  #pragma GCC optimize("-ffloat-store")
+  #pragma GCC optimize("O2")
 #endif
 Image scaleBilinear(Image const& srcImage, Vec2F scale) {
   #if defined STAR_COMPILER_CLANG
@@ -156,7 +156,7 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
   #pragma float_control(precise, off) // disable precise semantics
 #elif defined STAR_COMPILER_CLANG
   // #pragma clang optimize on
-#elif defined XSB_DISABLED // STAR_COMPILER_GNU
+#elif defined STAR_COMPILER_GNU
   // FezzedOne: Reset to whatever MinGW GCC options were specified in CMakeLists.txt.
   #pragma GCC reset_options
 #endif
@@ -324,7 +324,7 @@ ImageOperation imageOperationFromString(StringView string) {
             else if (hexLen == 6) { // If the hex color string is 6 characters long, it's an `RRGGBB` hex string, so expand it to 8 by adding an alpha of `ff` (fully opaque).
               hexDecode(hexPtr, 6, c, 4); // Decodes into the first three bytes of the array as hex bytes equivalent to their string representation.
               c[3] = 255; // Add an alpha of `ff` (fully opaque).
-            #if defined STAR_COMPILER_GNU
+            #if false // defined STAR_COMPILER_GNU
               // FezzedOne: Warning: Disgusting hack for MinGW builds! This makes sure generated sleeves are rendered properly. To bypass this hack, tack an `ff` alpha value onto the end of `bcbc5d` when using
               // it as an `a` colour. The hack replaces an `a` of `bcbc5d` (not `bcbc5dff`) with `bcbc5e`, which is visually nearly indistinguishable anyway.
               // The hack is needed because `scaleBilinear` (way up above) now works very slightly differently from the vanilla version, just enough to impact this one edge case.
@@ -577,7 +577,7 @@ String imageOperationToString(ImageOperation const& operation) {
       // FezzedOne: Transparently convert compiled colour replacements back to the original directives,
       // as if the replacement never happened.
       Vec4B adjustedColour{a[0], a[1], a[2], a[3]};
-    #if defined STAR_COMPILER_GNU
+    #if false // defined STAR_COMPILER_GNU
       char colourSubstitutionMode = a[4];
       if (colourSubstitutionMode == (char)255 && adjustedColour[0] == NEW_COLOUR_BYTE_R) {
         adjustedColour[0] = OLD_COLOUR_BYTE_R;
@@ -592,7 +592,7 @@ String imageOperationToString(ImageOperation const& operation) {
 
       String aStr = Color::rgba(adjustedColour).toHex();
     
-    #if defined STAR_COMPILER_GNU
+    #if false // defined STAR_COMPILER_GNU
       if (colourSubstitutionMode == (char)0 && (COLOUR_NEEDS_SUB_RGBA(adjustedColour, unsigned char) || COLOUR_2_NEEDS_SUB_RGBA(adjustedColour, unsigned char))) {
         aStr += "ff";
       }
