@@ -12,6 +12,14 @@
 
 using namespace Star;
 
+// FezzedOne: Fixed an inconsistency that caused world crashes only on the server.
+Json const AdditionalAssetsSettings = Json::parseJson(R"JSON(
+  {
+    "missingImage": "/assetmissing.png",
+    "missingAudio": "/assetmissing.wav"
+  }
+)JSON");
+
 Json const AdditionalDefaultConfiguration = Json::parseJson(R"JSON(
     {
       "configurationVersion" : {
@@ -38,7 +46,7 @@ Json const AdditionalDefaultConfiguration = Json::parseJson(R"JSON(
 
 int main(int argc, char** argv) {
   try {
-    RootLoader rootLoader({{}, AdditionalDefaultConfiguration, String("xserver.log"), LogLevel::Info, false, String("xserver.config")});
+    RootLoader rootLoader({AdditionalAssetsSettings, AdditionalDefaultConfiguration, String("xserver.log"), LogLevel::Info, false, String("xserver.config")});
     RootUPtr root = rootLoader.commandInitOrDie(argc, argv).first;
     root->fullyLoad();
 
