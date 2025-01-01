@@ -104,7 +104,7 @@ Consider using `assets.exists` to avoid unnecessary error handling.
 
 #### `Json` assets.frames(`AssetPath<>` path)
 
-Returns the frames specification this image asset file would use, or `nil` if there is no applicable frames file, the specified asset isn't an image, or the asset doesn't exist. A returned frames specification has the following format:
+Returns the frames specification this image asset would use, or `nil` if there is no applicable frames configuration, the specified asset isn't an image, or the asset doesn't exist. A returned frames specification has the following format:
 
 ```lua
 jobject{
