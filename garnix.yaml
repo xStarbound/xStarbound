@@ -2,7 +2,7 @@ builds:
   exclude: []
   include:
   - packages.*.*
-  - legacyPackages.*.mods.*
+  - legacyPackages.*._allMods
   - devShells.*.*
   - homeConfigurations.*
   - darwinConfigurations.*
