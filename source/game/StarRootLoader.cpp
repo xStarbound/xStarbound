@@ -190,18 +190,28 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
 #ifdef STAR_SYSTEM_LINUX
     // FezzedOne: Substitute `${HOME}` and `$HOME` for the user's home directory, but not if the `$` is escaped (i.e., `\$`).
     const std::string homePathStr = std::string(homePath);
-    const std::regex envVarRegex(R"((?<!\\)\$(\{)" HOME_ENV_VAR R"(\}|)" HOME_ENV_VAR R"())"), escapeRegex(R"(\\\$)");
-    const std::string dollarSign = "$";
-
     const List<String> rawAssetDirectories = jsonToStringList(bootConfig.get("assetDirectories"));
-    rootSettings.assetDirectories = {};
-    for (const String& assetDir : rawAssetDirectories)
-      rootSettings.assetDirectories.emplaceAppend(String(
-          std::regex_replace(
-            std::regex_replace(assetDir.utf8(), envVarRegex, homePathStr), 
-            escapeRegex, dollarSign
-          )
-        ));
+    const std::string dollarSign = "$";
+    #define HOME_SUBST_REGEX_FLAGS (std::regex::ECMAScript)
+    #define HOME_SUBST_REGEX (R"((?:^|[^\\])\$(\{)" HOME_ENV_VAR R"(\}|)" HOME_ENV_VAR R"())")
+    #define ESCAPE_SUBST_REGEX (R"(\\\$)")
+    try {
+      const std::regex envVarRegex(HOME_SUBST_REGEX, HOME_SUBST_REGEX_FLAGS),
+                       escapeRegex(ESCAPE_SUBST_REGEX, HOME_SUBST_REGEX_FLAGS);
+
+      rootSettings.assetDirectories = {};
+      for (const String& assetDir : rawAssetDirectories)
+        rootSettings.assetDirectories.emplaceAppend(String(
+            std::regex_replace(
+              std::regex_replace(assetDir.utf8(), envVarRegex, homePathStr), 
+              escapeRegex, dollarSign
+            )
+          ));
+    } catch (std::regex_error const& e) {
+      ::printf("[Error] Error during regex substitution for asset directory paths;" 
+        " not performing $" HOME_ENV_VAR " substitution: %s\nSubstitution regex: '%s'\n", e.what(), HOME_SUBST_REGEX);
+      rootSettings.assetDirectories = rawAssetDirectories;
+    }
 #else
     rootSettings.assetDirectories = jsonToStringList(bootConfig.get("assetDirectories"));
 #endif
@@ -214,12 +224,20 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
 
 #ifdef STAR_SYSTEM_LINUX
     const std::string rawStorageDirectory = bootConfig.getString("storageDirectory").utf8();
-    rootSettings.storageDirectory = String(
+    try {
+      const std::regex envVarRegex(HOME_SUBST_REGEX, HOME_SUBST_REGEX_FLAGS),
+                       escapeRegex(ESCAPE_SUBST_REGEX, HOME_SUBST_REGEX_FLAGS);
+      rootSettings.storageDirectory = String(
         std::regex_replace(
           std::regex_replace(rawStorageDirectory, envVarRegex, homePath), 
           escapeRegex, dollarSign
         )
       );
+    } catch (std::regex_error const& e) {
+      ::printf("[Error] Error during regex substitution for storage directory path;" 
+        " not performing $" HOME_ENV_VAR " substitution: %s\nSubstitution regex: '%s'\n", e.what(), HOME_SUBST_REGEX);
+      rootSettings.storageDirectory = String(rawStorageDirectory);
+    }
 #else
     rootSettings.storageDirectory = bootConfig.getString("storageDirectory");
 #endif
