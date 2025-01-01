@@ -1,9 +1,8 @@
 builds:
   exclude: []
   include:
-  - 'packages.*.*'
-  - legacyPackages.*.*'
-  - legacyPackages.*.mods.*'
+  - packages.*.*
+  - legacyPackages.*.mods.*
   - devShells.*.*
   - homeConfigurations.*
   - darwinConfigurations.*
