@@ -21,16 +21,21 @@
         xstarbound = pkgs.callPackage ./nix/package.nix { };
         default = packages.xstarbound;
 
-        fetchFromSteamWorkshop = pkgs.callPackage ./nix/fetchFromSteamWorkshop { };
-        fetchStarboundMod = pkgs.callPackage ./nix/fetchStarboundMod.nix {
-          inherit (packages) fetchFromSteamWorkshop;
-        };
+      };
 
+      nixosModules = {
+        xstarbound = import ./nix/module.nix self;
+        default = self.nixosModules.xstarbound;
       };
 
       legacyPackages.${system} = {
+        fetchFromSteamWorkshop = pkgs.callPackage ./nix/fetchFromSteamWorkshop { };
+        fetchStarboundMod = pkgs.callPackage ./nix/fetchStarboundMod.nix {
+          inherit (self.legacyPackages.${system}) fetchFromSteamWorkshop;
+        };
+        dirwrap = pkgs.callPackage ./nix/dirwrap.nix { };
         mods = pkgs.callPackage ./nix/mods.nix {
-          inherit (packages) fetchStarboundMod;
+          inherit (self.legacyPackages.${system}) fetchStarboundMod dirwrap;
         };
       };
 
