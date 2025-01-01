@@ -21,11 +21,8 @@
         xstarbound = pkgs.callPackage ./nix/package.nix { };
         default = packages.xstarbound;
 
-        # meta package for garnix which can't support legacyPackages
-        _allMods = pkgs.emptyDirectory.overrideAttrs (_: {
-          passthru.mods = self.legacyPackages.${system}.mods;
-        });
-
+        # meta package for garnix which can't support legacyPackages; do not use!
+        _allMods = pkgs.linkFarmFromDrvs "xstarbound-allMods" self.legacyPackages.${system}.mods;
       };
 
       nixosModules = {
