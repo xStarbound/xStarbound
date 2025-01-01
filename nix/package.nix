@@ -1,11 +1,6 @@
 { steamSupport ? false
 , bootconfig ? null
-, symlinkJoin
-, writeTextFile
 , writeShellApplication
-, writeText
-, runCommand
-, makeWrapper
 , lib
 , stdenv
 , cmake
