@@ -358,6 +358,9 @@ if(STAR_COMPILER_GNU)
     endif()
 
 elseif(STAR_COMPILER_CLANG)
+    # Needed to ensure xClient gets linked properly in the Sniper runtime.
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -latomic")
+
     if(STAR_SYSTEM_LINUX)
         # Stop Clang from bitching about all those thousands of `move` calls without an `std::` (or `Star::`, since there's an alias in that namespace).
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wuninitialized -Wno-unqualified-std-cast-call -Wno-parentheses-equality -Wno-deprecated-declarations")
@@ -366,6 +369,15 @@ elseif(STAR_COMPILER_CLANG)
         # Stop Clang from bitching about all those thousands of `move` calls without an `std::` (or `Star::`, since there's an alias in that namespace).
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-export_dynamic -Wall -Wextra -Wuninitialized -Wno-unqualified-std-cast-call -Wno-parentheses-equality -Wno-deprecated-declarations")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wl,-export_dynamic -Wall -Wextra -Wuninitialized -Wno-parentheses-equality -Wno-deprecated-declarations")
+    elseif(STAR_SYSTEM_FAMILY_WINDOWS) # For cross-compilation.
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wuninitialized -Wno-unqualified-std-cast-call -Wno-parentheses-equality -Wno-deprecated-declarations")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Wextra -Wuninitialized -Wno-unqualified-std-cast-call -Wno-parentheses-equality -Wno-deprecated-declarations")
+        if(STAR_CROSS_COMPILE)
+        # Cross-compiled binaries have to be statically linked to avoid weird "un-Windows-like" GCC DLL crap.
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -static-libgcc -DSTAR_CROSS_COMPILE")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libstdc++ -static-libgcc -DSTAR_CROSS_COMPILE")
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/x86_64-w64-mingw32/lib")
+        endif()
     endif()
 
     if(STAR_SYSTEM_MACOS)
