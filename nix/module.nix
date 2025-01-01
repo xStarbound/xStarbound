@@ -23,5 +23,8 @@ in
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ cfg.finalPackage ];
+    programs.xstarbound.bootconfig.settings.assetDirectories = [
+      "../xsb-assets/"
+    ];
   };
 }
