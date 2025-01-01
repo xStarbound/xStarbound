@@ -1,4 +1,9 @@
 builds:
-  exclude:
-  - 'packages.*.fetchFromSteamWorkshop'
-  - 'packages.*.fetchStarboundMod'
+  exclude: []
+  include:
+  - packages.*.*
+  - devShells.*.*
+  - homeConfigurations.*
+  - darwinConfigurations.*
+  - nixosConfigurations.*
+

@@ -14,6 +14,7 @@
         config.allowUnfree = true;
       };
       packages = self.packages.${system};
+      inherit (inputs.nixpkgs) lib;
     in
     {
 
@@ -21,16 +22,35 @@
         xstarbound = pkgs.callPackage ./nix/package.nix { };
         default = packages.xstarbound;
 
-        fetchFromSteamWorkshop = pkgs.callPackage ./nix/fetchFromSteamWorkshop { };
-        fetchStarboundMod = pkgs.callPackage ./nix/fetchStarboundMod.nix {
-          inherit (packages) fetchFromSteamWorkshop;
-        };
+        # meta package for garnix which can't support legacyPackages; do not use!
+        _allMods = pkgs.linkFarmFromDrvs "xstarbound-allMods" (
+          lib.pipe self.legacyPackages.${system}.mods [
+            (
+              mods:
+              builtins.removeAttrs mods [
+                "overrideDerivation"
+                "override"
+                "__functor"
+              ]
+            )
+            builtins.attrValues
+          ]
+        );
+      };
 
+      nixosModules = {
+        xstarbound = import ./nix/module.nix self;
+        default = self.nixosModules.xstarbound;
       };
 
       legacyPackages.${system} = {
+        fetchFromSteamWorkshop = pkgs.callPackage ./nix/fetchFromSteamWorkshop { };
+        fetchStarboundMod = pkgs.callPackage ./nix/fetchStarboundMod.nix {
+          inherit (self.legacyPackages.${system}) fetchFromSteamWorkshop;
+        };
+        dirwrap = pkgs.callPackage ./nix/dirwrap.nix { };
         mods = pkgs.callPackage ./nix/mods.nix {
-          inherit (packages) fetchStarboundMod;
+          inherit (self.legacyPackages.${system}) fetchStarboundMod dirwrap;
         };
       };
 
