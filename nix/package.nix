@@ -1,8 +1,6 @@
 {
   steamSupport ? false,
-  xsbinitOverlays ? [ ],
-  symlinkJoin,
-  writeTextFile,
+  bootconfig ? null,
   writeShellApplication,
   lib,
   stdenv,
@@ -21,29 +19,8 @@
 let
   fs = lib.fileset;
 
-  configDrv = writeTextFile {
-    name = "xsbinit.config";
-    destination = "/linux/xsbinit.config";
-    text = builtins.toJSON (
-      lib.fix (
-        builtins.foldl' (f: overlay: lib.extends overlay f) (
-          _: builtins.fromJSON (builtins.readFile ./xsbinit.config)
-        ) xsbinitOverlays
-      )
-    );
-  };
-
-  exeDrv = writeShellApplication {
-    name = "xstarbound";
-    text = ''
-      pushd "$(dirname -- "$(readlink -f -- "$0")")/../linux"
-      ./xclient "$@"
-      popd
-    '';
-  };
-
-  xStarboundGeneric = stdenv.mkDerivation {
-    pname = "xstarbound-generic";
+  base = stdenv.mkDerivation {
+    pname = "xstarbound";
     # parse version # from CMakeLists.txt. This might be brittle and show a very wonky version
     # in the future, but it's better than someone forgetting to update it.
     version =
@@ -126,28 +103,42 @@ let
       xorg.libXi
     ];
 
-    installPhase = ''
-      cmake --install . --prefix $out
-      runHook postInstall
+    postInstall = ''
+      mkdir -p "$out/bin"
+      ln -s "$out/linux/xclient" "$out/bin/xstarbound"
     '';
 
-    postInstall = ''
-      rm -rf "$out/linux/xsbinit.config"
-    '';
+    meta.mainProgram = "xstarbound";
   };
 
 in
-symlinkJoin {
-  name = "xstarbound";
-  passthru.generic = xStarboundGeneric;
-  meta.mainProgram = "xstarbound";
-  postBuild = ''
-    cp -rT ${exeDrv} "$out"
-  '';
+writeShellApplication (
+  lib.fix (self: {
+    name = "xstarbound";
+    runtimeInputs = [ base ];
+    passthru = {
+      inherit base bootconfig;
+    };
+    runtimeEnv = {
+      inherit bootconfig;
+    };
+    text =
+      (lib.optionalString (bootconfig == null) ''
+        cfg_dir="$HOME/.config/xStarbound"
+        bootconfig="$cfg_dir/xsbinit.config"
 
-  # meta = { inherit (xStarboundGeneric.meta) mainProgram; };
-  paths = [
-    xStarboundGeneric
-    configDrv
-  ];
-}
+        mkdir -p "$cfg_dir"
+        cp -n --no-preserve=mode '${./xsbinit.config}' "$bootconfig"
+      '')
+      + ''
+        if [ -n "$WAYLAND_DISPLAY" ]; then 
+          SDL_VIDEODRIVER="wayland"
+        else
+          SDL_VIDEODRIVER=""
+        fi
+
+        exec env SDL_VIDEODRIVER="$SDL_VIDEODRIVER" xstarbound \
+          -bootconfig "$bootconfig"
+      '';
+  })
+)
