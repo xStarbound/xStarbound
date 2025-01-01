@@ -193,6 +193,41 @@ Consider using `root.assetExists`, `root.assetData` and/or `sb.parseJson` to avo
 
 ---
 
+#### `Json` root.assetFrames(`AssetPath<>` assetPath)
+
+Returns the frames specification this image asset file would use, or `nil` if there is no applicable frames file, the specified asset isn't an image, or the asset doesn't exist. A returned frames specification has the following format:
+
+```lua
+jobject{
+    -- Path to the JSON frame configuration asset used to construct the return value.
+    file = "/items/armors/pants.frames",
+    
+    -- A table of frame aliases where each alias maps to the name of the actual frame it references.
+    aliases = jobject{
+        ["lay.1"] = "idle.1",
+        ["swimIdle.2"] = "swimIdle.1",
+        ["swim.5"] = "swimIdle.1",
+        ["swim.6"] = "swimIdle.1",
+        ["swim.7"] = "swimIdle.1"
+    },
+    
+    -- A list of frames where each frame name maps to a set of RectI coordinates that define the region of
+    -- the image to be cropped out for that frame (as with the `?crop` directive`).
+    frames = jobject{
+        ["jump.3"] = jarray{129, 129, 172, 172},
+        ["jump.4"] = jarray{172, 129, 215, 172},
+        ["fall.1"] = jarray{215, 129, 258, 172},
+        -- Additional frame coordinate mappings would go here.
+    }
+}
+```
+
+Throws an error and may log another uncatchable error if the specified path is invalid.
+
+Analogous to `assets.frames` (see `assets.md`).
+
+---
+
 #### `String` root.assetData(`AssetPath<>` assetPath)
 
 Returns the contents of the specified asset file as a `String` of raw bytes; for a text file, this is the (UTF-8-encoded) text it contains. Throws an error (but doesn't also log an uncatchable error) if the specified asset doesn't exist, or the path isn't valid or contains disallowed components.

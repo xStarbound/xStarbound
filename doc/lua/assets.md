@@ -92,13 +92,46 @@ See `root.md` for documentation on JSON subpaths.
 
 ----
 
-#### `String` assets.image(`AssetPath<Image, Directives>` path)
+#### `Image` assets.image(`AssetPath<Image, Directives>` path)
 
 Returns the specified asset file as an `Image` object (see `image.md`), if it exists, is a valid image and any frame specifier is valid for it. Otherwise, it logs an uncatchable warning and returns an `Image` object based on `/assetmissing.png` without a frame specifier but with any directives applied. Throws an error if an invalid path is specified.
 
 An uncatchable warning is also logged if any directives are invalid; the returned image will be invisible.
 
 Consider using `assets.exists` to avoid unnecessary error handling.
+
+----
+
+#### `Json` assets.frames(`AssetPath<>` path)
+
+Returns the frames specification this image asset file would use, or `nil` if there is no applicable frames file, the specified asset isn't an image, or the asset doesn't exist. A returned frames specification has the following format:
+
+```lua
+jobject{
+    -- Path to the JSON frame configuration asset used to construct the return value.
+    file = "/items/armors/pants.frames",
+    
+    -- A table of frame aliases where each alias maps to the name of the actual frame it references.
+    aliases = jobject{
+        ["lay.1"] = "idle.1",
+        ["swimIdle.2"] = "swimIdle.1",
+        ["swim.5"] = "swimIdle.1",
+        ["swim.6"] = "swimIdle.1",
+        ["swim.7"] = "swimIdle.1"
+    },
+    
+    -- A list of frames where each frame name maps to a set of RectI coordinates that define the region of
+    -- the image to be cropped out for that frame (as with the `?crop` directive`).
+    frames = jobject{
+        ["jump.3"] = jarray{129, 129, 172, 172},
+        ["jump.4"] = jarray{172, 129, 215, 172},
+        ["fall.1"] = jarray{215, 129, 258, 172},
+        -- Additional frame coordinate mappings would go here.
+    }
+}
+```
+
+Throws an error and may log another uncatchable error if the specified path is invalid.
 
 ----
 

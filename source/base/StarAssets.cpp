@@ -156,6 +156,16 @@ Assets::Assets(Settings settings, StringList assetSources) {
         return *assetImage;
     });
 
+    callbacks.registerCallback("frames", [this](String const& path) -> Json {
+      if (auto frames = imageFrames(path))
+      return JsonObject{
+        {"aliases", jsonFromMap(frames->aliases)},
+        {"frames", jsonFromMapV(frames->frames, jsonFromRectU)},
+        {"file", frames->framesFile}
+      };
+      return Json();
+    });
+
     callbacks.registerCallback("newImage", [this](Vec2U const& size) -> Image {
       return Image::filled(size, Vec4B::filled(0));
     });

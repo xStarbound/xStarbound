@@ -83,6 +83,16 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
   callbacks.registerCallback("assetExists", [root](String const& assetPath) -> bool {
       return root->assets()->assetExists(assetPath);
     });
+
+  callbacks.registerCallback("assetFrames", [root](String const& assetPath) -> Json {
+    if (auto frames = root->assets()->imageFrames(assetPath))
+      return JsonObject{
+        {"aliases", jsonFromMap(frames->aliases)},
+        {"frames", jsonFromMapV(frames->frames, jsonFromRectU)},
+        {"file", frames->framesFile}
+      };
+    return Json();
+  });
   
   callbacks.registerCallback("materialConfig", [root](String const& materialName) -> Json {
       auto materialId = root->materialDatabase()->materialId(materialName);
