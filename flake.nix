@@ -23,14 +23,19 @@
         default = packages.xstarbound;
 
         # meta package for garnix which can't support legacyPackages; do not use!
-        _allMods = pkgs.linkFarmFromDrvs
-          "xstarbound-allMods"
-          (lib.pipe self.legacyPackages.${system}.mods
-            [
-              (mods: builtins.removeAttrs mods [ "overrideDerivation" "override" "__functor" ])
-              builtins.attrValues
-            ]
-          );
+        _allMods = pkgs.linkFarmFromDrvs "xstarbound-allMods" (
+          lib.pipe self.legacyPackages.${system}.mods [
+            (
+              mods:
+              builtins.removeAttrs mods [
+                "overrideDerivation"
+                "override"
+                "__functor"
+              ]
+            )
+            builtins.attrValues
+          ]
+        );
       };
 
       nixosModules = {

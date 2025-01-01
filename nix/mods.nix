@@ -1,9 +1,9 @@
-{ fetchurl
-, fetchzip
-, lib
-, fetchStarboundMod
-, dirwrap
-,
+{
+  fetchurl,
+  fetchzip,
+  lib,
+  fetchStarboundMod,
+  dirwrap,
 }:
 {
 

@@ -1,19 +1,20 @@
-{ steamSupport ? false
-, bootconfig ? null
-, writeShellApplication
-, lib
-, stdenv
-, cmake
-, ninja
-, zlib
-, libpng
-, freetype
-, libvorbis
-, libopus
-, SDL2
-, glew
-, xorg
-, ...
+{
+  steamSupport ? false,
+  bootconfig ? null,
+  writeShellApplication,
+  lib,
+  stdenv,
+  cmake,
+  ninja,
+  zlib,
+  libpng,
+  freetype,
+  libvorbis,
+  libopus,
+  SDL2,
+  glew,
+  xorg,
+  ...
 }:
 let
   fs = lib.fileset;
@@ -111,29 +112,33 @@ let
   };
 
 in
-writeShellApplication (lib.fix (self: {
-  name = "xstarbound";
-  runtimeInputs = [ base ];
-  passthru = {
-    inherit base bootconfig;
-  };
-  runtimeEnv = {
-    inherit bootconfig;
-  };
-  text = (lib.optionalString (bootconfig == null) ''
-    cfg_dir="$HOME/.config/xStarbound"
-    bootconfig="$cfg_dir/xsbinit.config"
+writeShellApplication (
+  lib.fix (self: {
+    name = "xstarbound";
+    runtimeInputs = [ base ];
+    passthru = {
+      inherit base bootconfig;
+    };
+    runtimeEnv = {
+      inherit bootconfig;
+    };
+    text =
+      (lib.optionalString (bootconfig == null) ''
+        cfg_dir="$HOME/.config/xStarbound"
+        bootconfig="$cfg_dir/xsbinit.config"
 
-    mkdir -p "$cfg_dir"
-    cp -n --no-preserve=mode '${./xsbinit.config}' "$bootconfig"
-  '') + ''
-    if [ -n "$WAYLAND_DISPLAY" ]; then 
-      SDL_VIDEODRIVER="wayland"
-    else
-      SDL_VIDEODRIVER=""
-    fi
+        mkdir -p "$cfg_dir"
+        cp -n --no-preserve=mode '${./xsbinit.config}' "$bootconfig"
+      '')
+      + ''
+        if [ -n "$WAYLAND_DISPLAY" ]; then 
+          SDL_VIDEODRIVER="wayland"
+        else
+          SDL_VIDEODRIVER=""
+        fi
 
-    exec env SDL_VIDEODRIVER="$SDL_VIDEODRIVER" xstarbound \
-      -bootconfig "$bootconfig"
-  '';
-}))
+        exec env SDL_VIDEODRIVER="$SDL_VIDEODRIVER" xstarbound \
+          -bootconfig "$bootconfig"
+      '';
+  })
+)
