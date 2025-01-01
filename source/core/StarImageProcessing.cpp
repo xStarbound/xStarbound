@@ -747,7 +747,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
         // Linux/GCC and MSVC builds: No extra substitutions required.
         pixel = *m; return; 
       }
-    #if defined STAR_COMPILER_GNU
+    #if false // defined STAR_COMPILER_GNU
       else if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 255))) {
         // Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
         // MinGW builds: Also execute any tagged `ad9b5a` → `ae9c5aff` replacement if no preceding explicit replacement for `ae9c5a`/`ae9c5aff` is found.
