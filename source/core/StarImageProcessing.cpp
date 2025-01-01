@@ -53,7 +53,7 @@ Image scaleNearest(Image const& srcImage, Vec2F scale) {
 #endif
 Image scaleBilinear(Image const& srcImage, Vec2F scale) {
   #if defined STAR_COMPILER_CLANG
-    #pragma clang fp reassociate(off) contract(on) // reciprocal(off) exceptions(strict)
+    #pragma clang fp reassociate(off) contract(on) reciprocal(off) exceptions(strict)
   #endif
   if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
