@@ -189,7 +189,7 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
 
 #ifdef STAR_SYSTEM_LINUX
     // FezzedOne: Substitute `${HOME}` and `$HOME` for the user's home directory, but not if the `$` is escaped (i.e., `\$`).
-    const std::string homePathStr = std::string(homePath);
+    const std::string homePathStr = std::string(homePath) + "/";
     const List<String> rawAssetDirectories = jsonToStringList(bootConfig.get("assetDirectories"));
     const std::string dollarSign = "$";
     #define HOME_SUBST_REGEX_FLAGS (std::regex::ECMAScript)
