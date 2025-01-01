@@ -22,7 +22,9 @@
         default = packages.xstarbound;
 
         # meta package for garnix which can't support legacyPackages; do not use!
-        _allMods = pkgs.linkFarmFromDrvs "xstarbound-allMods" self.legacyPackages.${system}.mods;
+        _allMods = pkgs.linkFarmFromDrvs
+          "xstarbound-allMods"
+          (builtins.attrValues self.legacyPackages.${system}.mods);
       };
 
       nixosModules = {
