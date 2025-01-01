@@ -21,6 +21,11 @@
         xstarbound = pkgs.callPackage ./nix/package.nix { };
         default = packages.xstarbound;
 
+        # meta package for garnix which can't support legacyPackages
+        _allMods = pkgs.emptyDirectory.overrideAttrs (_: {
+          passthru.mods = self.legacyPackages.${system}.mods;
+        });
+
       };
 
       nixosModules = {
@@ -37,10 +42,6 @@
         mods = pkgs.callPackage ./nix/mods.nix {
           inherit (self.legacyPackages.${system}) fetchStarboundMod dirwrap;
         };
-        # meta package for garnix which can't support recursive attrsets
-        _allMods = pkgs.emptyDirectory.overrideAttrs (_: {
-          passthru.mods = self.legacyPackages.${system}.mods;
-        });
       };
 
       formatter.${system} = pkgs.nixfmt-rfc-style;
