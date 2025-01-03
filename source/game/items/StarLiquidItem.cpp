@@ -90,7 +90,8 @@ float LiquidItem::liquidQuantity() const {
 
 List<PreviewTile> LiquidItem::previewTiles(bool shifting) const {
   List<PreviewTile> result;
-  if (initialized()) {
+  // FezzedOne: If Terraria-style previews are enabled, don't show any liquid preview if the aim position is out of placement range.
+  if (initialized() && (owner()->inToolRange() || !m_terrariaPreview)) {
     auto liquid = liquidId();
 
     float radius;

@@ -339,7 +339,8 @@ TileCollisionOverride& MaterialItem::collisionOverride() {
 
 List<PreviewTile> MaterialItem::previewTiles(bool shifting) const {
   List<PreviewTile> result;
-  if (initialized()) {
+  // FezzedOne: If Terraria-style previews are enabled, don't show any tile preview if the aim position is out of placement range.
+  if (initialized() && (owner()->inToolRange() || !m_terrariaPreview)) {
     Color lightColor = Color::rgba(owner()->favoriteColor());
     Vec3B light = lightColor.toRgb();
 

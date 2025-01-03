@@ -166,7 +166,8 @@ Maybe<float> ToolUser::toolRadius() const {
 }
 
 List<Drawable> ToolUser::renderObjectPreviews(Vec2F aimPosition, Direction walkingDirection, bool inToolRange, Vec4B favoriteColor) const {
-  if (m_suppress.get() || !m_user)
+  // FezzedOne: Don't show an object preview if the placement position isn't in the player's tool range.
+  if (m_suppress.get() || !m_user || !inToolRange)
     return {};
 
   auto generate = [&](ObjectItemPtr item) -> List<Drawable> {
