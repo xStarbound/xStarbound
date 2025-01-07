@@ -351,7 +351,8 @@ void TextPainter::reloadFonts() {
     String name = parseFontName(fontPath);
     addFont(loadFont(fontPath, name), name);
   }
-  m_fontTextureGroup.addFont(defaultFont, defaultName, true);
+  m_fontTextureGroup.addFont(defaultFont, defaultName, true, false);
+  m_fontTextureGroup.addFont(fallbackFont, fallbackName, false, true);
 }
 
 void TextPainter::cleanup(int64_t timeout) {
