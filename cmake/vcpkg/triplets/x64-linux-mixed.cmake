@@ -7,10 +7,10 @@ if(PORT MATCHES "sdl2" OR PORT MATCHES "qtbase")
 endif()
 
 # FezzedOne: Downstreamed this fix from oSB.
-if(PORT MATCHES "libsystemd")
-    set(VCPKG_C_FLAGS "-std=c11")
-    set(VCPKG_CXX_FLAGS "")
-endif()
+# if(PORT MATCHES "libsystemd")
+#     set(VCPKG_C_FLAGS "-std=c11")
+#     set(VCPKG_CXX_FLAGS "")
+# endif()
 
 # FezzedOne: Also downstreamed this to ensure the Discord library gets linked dynamically.
 if(PORT MATCHES "discord-")
