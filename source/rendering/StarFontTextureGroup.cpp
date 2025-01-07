@@ -28,10 +28,12 @@ String const& FontTextureGroup::activeFont() {
   return m_fontName;
 }
 
-void FontTextureGroup::addFont(FontPtr const& font, String const& name, bool isDefault) {
+void FontTextureGroup::addFont(FontPtr const& font, String const& name, bool isDefault, bool isFallback) {
   m_fonts[name] = font;
   if (isDefault)
     m_defaultFont = m_font = font;
+  if (isFallback)
+    m_fallbackFont = font;
 }
 
 void FontTextureGroup::clearFonts() {
@@ -41,11 +43,13 @@ void FontTextureGroup::clearFonts() {
 
 const FontTextureGroup::GlyphTexture& FontTextureGroup::glyphTexture(String::Char c, unsigned size, Directives const* processingDirectives)
 {
+  Font* font = (m_font->exists(c) || !m_fallbackFont) ? m_font.get() : m_fallbackFont.get();
+
   auto res = m_glyphs.insert(GlyphDescriptor{c, size, processingDirectives ? processingDirectives->hash() : 0, m_font.get()}, GlyphTexture());
 
   if (res.second) {
-    m_font->setPixelSize(size);
-    auto pair = m_font->render(c);
+    font->setPixelSize(size);
+    auto pair = font->render(c);
     Image& image = pair.first;
     if (processingDirectives && *processingDirectives) {
       try {
@@ -82,8 +86,9 @@ TexturePtr FontTextureGroup::glyphTexturePtr(String::Char c, unsigned size, Dire
 }
 
 unsigned FontTextureGroup::glyphWidth(String::Char c, unsigned fontSize) {
-  m_font->setPixelSize(fontSize);
-  return m_font->width(c);
+  Font* font = ((m_font->exists(c) || !m_fallbackFont) ? m_font.get() : m_fallbackFont.get());
+  font->setPixelSize(fontSize);
+  return font->width(c);
 }
 
 }

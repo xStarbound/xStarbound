@@ -101,6 +101,8 @@ private:
   String m_nonRenderedCharacters;
 
   TrackerListenerPtr m_reloadTracker;
+
+  String m_defaultFontName;
 };
 
 }

@@ -42,8 +42,9 @@ TextPainter::TextPainter(RendererPtr renderer, TextureGroupPtr textureGroup)
     m_fontTextureGroup(textureGroup),
     m_fontSize(8),
     m_lineSpacing(1.30f),
-    m_renderSettings({FontMode::Normal, Vec4B::filled(255), "hobo", ""}) {
+    m_defaultFontName("hobo") {
   reloadFonts();
+  m_renderSettings = {FontMode::Normal, Vec4B::filled(255), m_defaultFontName, ""};
   m_reloadTracker = make_shared<TrackerListener>();
   Root::singleton().registerReloadListener(m_reloadTracker);
 }
@@ -328,15 +329,26 @@ void TextPainter::reloadFonts() {
   m_fontTextureGroup.clearFonts();
   m_fontTextureGroup.cleanup(0);
   auto assets = Root::singleton().assets();
-  String defaultName = "hobo";
-  auto defaultFont = loadFont("/hobo.ttf", defaultName);
+
+  auto parseFontName = [](String const& path, String const& defaultName = "") -> String {
+    String name = AssetPath::filename(path);
+    name = name.substr(0, name.findLast("."));
+    return name.empty() ? defaultName : name;
+  };
+
+  Json fontSettings = assets->json("/interface.config:font").optObject().value(JsonObject{});
+  String defaultFontPath = fontSettings.optString("defaultFont").value("/hobo.tff");
+  String defaultName = m_defaultFontName = parseFontName(defaultFontPath, "hobo");
+  String fallbackFontPath = fontSettings.optString("defaultFont").value("/font/unifont.tff");
+  String fallbackName = parseFontName(fallbackFontPath, "unifont");
+  auto defaultFont = loadFont(defaultFontPath, defaultName);
+  auto fallbackFont = loadFont(fallbackFontPath, fallbackName);
   for (auto& fontPath : assets->scanExtension("ttf")) {
     auto font = assets->font(fontPath);
     if (font == defaultFont)
       continue;
 
-    auto name = AssetPath::filename(fontPath);
-    name = name.substr(0, name.findLast("."));
+    String name = parseFontName(fontPath);
     addFont(loadFont(fontPath, name), name);
   }
   m_fontTextureGroup.addFont(defaultFont, defaultName, true);
@@ -417,8 +429,10 @@ RectF TextPainter::doRenderText(StringView s, TextPositioning const& position, b
 }
 
 RectF TextPainter::doRenderLine(StringView text, TextPositioning const& position, bool reallyRender, unsigned* charLimit) {
-  if (m_reloadTracker->pullTriggered())
+  if (m_reloadTracker->pullTriggered()) {
     reloadFonts();
+    m_renderSettings = {FontMode::Normal, Vec4B::filled(255), m_defaultFontName, ""};
+  }
   TextPositioning pos = position;
 
 

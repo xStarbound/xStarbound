@@ -88,6 +88,9 @@ unsigned Font::width(String::Char c) {
   }
 }
 
+bool Font::exists(String::Char c) {
+  return (bool)FT_Get_Char_Index(m_fontImpl->face, c);
+}
 
 std::pair<Image, Vec2I> Font::render(String::Char c) {
   if (!m_fontImpl)

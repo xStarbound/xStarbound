@@ -36,13 +36,14 @@ public:
   // Switches the current font
   void switchFont(String const& font);
   String const& activeFont();
-  void addFont(FontPtr const& font, String const& name, bool isDefault = false);
+  void addFont(FontPtr const& font, String const& name, bool isDefault = false, bool isFallback = false);
   void clearFonts();
 private:
   CaseInsensitiveStringMap<FontPtr> m_fonts;
   String m_fontName;
   FontPtr m_font;
   FontPtr m_defaultFont;
+  FontPtr m_fallbackFont;
 
   TextureGroupPtr m_textureGroup;
   HashMap<GlyphDescriptor, GlyphTexture> m_glyphs;

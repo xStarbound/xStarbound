@@ -31,6 +31,7 @@ public:
 
   unsigned height() const;
   unsigned width(String::Char c);
+  bool exists(String::Char c);
 
   // May return empty image on unrenderable character (Normally, this will
   // render a box, but if there is an internal freetype error this may return
