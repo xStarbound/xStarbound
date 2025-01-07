@@ -339,7 +339,7 @@ void TextPainter::reloadFonts() {
   Json fontSettings = assets->json("/interface.config:font").optObject().value(JsonObject{});
   String defaultFontPath = fontSettings.optString("defaultFont").value("/hobo.tff");
   String defaultName = m_defaultFontName = parseFontName(defaultFontPath, "hobo");
-  String fallbackFontPath = fontSettings.optString("defaultFont").value("/font/unifont.tff");
+  String fallbackFontPath = fontSettings.optString("fallbackFont").value("/font/unifont.tff");
   String fallbackName = parseFontName(fallbackFontPath, "unifont");
   auto defaultFont = loadFont(defaultFontPath, defaultName);
   auto fallbackFont = loadFont(fallbackFontPath, fallbackName);

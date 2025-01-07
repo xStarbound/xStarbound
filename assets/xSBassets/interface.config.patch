@@ -8,7 +8,7 @@
   },
   "font" : {
     "defaultDirectives" : "",
-    "defaultFont" : ""
+    "defaultFont" : "/hobo.ttf"
   },
   "cursorTooltip" : {
     "font" : ""
