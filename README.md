@@ -244,3 +244,28 @@ It is important to note that automatic packaging will _only_ work if the built b
 ## Discord
 
 For support, suggestions or just plain old chit-chat, check out the [xStarbound Discord server](https://discord.gg/GJ5RTkyFCX).
+
+## Font attributions
+
+Attributions for the fonts that come with xStarbound:
+
+- **7 Segmental Digital Display:** By Ash Pikachu Font. Link: https://www.dafont.com/7-segmental-digital-display.font
+- **Beech:** By Yuji Oshimoto. Link: http://04.jp.org/ [under **font ps&tt**] (Licence: http://www.dsg4.com/04/extra/font/about.html)
+- **Avali Scratch:** By AikaDee. Link: https://fontstruct.com/fontstructions/show/1108804/avali_scratch
+- **Free Pixel:** By levelb. Link: https://www.dafont.com/free-pixel.font
+- **Hobo (pixelised Koala build version):** By Chucklefish, of course.
+- **Iosevka:** By @be5invis. Link: https://typeof.net/Iosevka/ (GitHub link: https://github.com/be5invis/Iosevka)
+- **LED Real:** By Matthew Welch. Link: https://www.dafont.com/led-real.font
+- **Libre Barcode 128:** By Lasse Fister. Link: https://fonts.google.com/specimen/Libre+Barcode+128
+- **Libre Barcode 128 Text:** By Lasse Fister. Link: https://fonts.google.com/specimen/Libre+Barcode+128+Text
+- **Moder Dos:** By Grandoplex Productions. Link: https://fontmeme.com/fonts/moder-dos-437-font/
+- **Newspaper Cutout White on Black:** By onlygfx.com. Link: https://www.dafont.com/newspaper-cutout-white-on-black.font
+- **Pixel Arial 11:** By «Max». Link: https://www.dafont.com/pixel-arial-11.font
+- **Pixel Operator:** By Jayvee Enaguas. Link: https://www.dafont.com/pixel-operator.font
+- **Pixolde:** By jeti. Link: https://www.dafont.com/pixolde.font
+- **Roses are FF0000:** By AJ Paglia. Link: https://www.dafont.com/roses-are-ff0000.font
+- **Runescape UF:** By Nathan P. Link: https://www.dafont.com/runescape-uf.font
+- **Smooth Hobo:** By The_Pro. Link to Steam community page: https://steamcommunity.com/profiles/76561198054550016
+- **Space Mono:** By Colophon Foundry. Link: https://fonts.google.com/specimen/Space+Mono
+- **UnifontEX:** By @stgiga (fork of GNU Unifont). Link: https://stgiga.github.io/UnifontEX/ (GitHub: https://github.com/stgiga/UnifontEX)
+- **VCR OSD Mono:** By Riciery Leal. Link: https://www.dafont.com/vcr-osd-mono.font
