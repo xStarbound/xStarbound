@@ -393,8 +393,11 @@ void StatusController::init(Entity* parentEntity, ActorMovementController* movem
 
   if (m_parentEntity->isMaster()) {
     initPrimaryScript();
-    for (auto& p : m_uniqueEffects)
-      initUniqueEffectScript(p.second);
+    // Potential segfault fix from oSB. Can't iterate over the map itself because of `status.addEphemeralEffect` and `status.addEphemeralEffects`.
+    for (auto& p : m_uniqueEffects.keys()) {
+      if (auto effect = m_uniqueEffects.ptr(p))
+        initUniqueEffectScript(*effect);
+    }
   }
 
   m_environmentStatusEffectUpdateTimer.reset();
@@ -404,8 +407,11 @@ void StatusController::uninit() {
   m_parentEntity = nullptr;
   m_movementController = nullptr;
 
-  for (auto& p : m_uniqueEffects)
-    uninitUniqueEffectScript(p.second);
+  // Ditto.
+  for (auto& p : m_uniqueEffects.keys()) {
+    if (auto effect = m_uniqueEffects.ptr(p))
+      uninitUniqueEffectScript(*effect);
+  }
   uninitPrimaryScript();
 
   m_recentHitsGiven.reset();
@@ -493,11 +499,14 @@ void StatusController::tickMaster(float dt) {
   }
 
   m_primaryScript.update(m_primaryScript.updateDt(dt));
-  for (auto& p : m_uniqueEffects) {
-    p.second.script.update(p.second.script.updateDt(dt));
-    auto metadata = m_uniqueEffectMetadata.getNetElement(p.second.metadataId);
-    if (metadata->duration)
-      *metadata->duration -= dt;
+  // Segfault fix here.
+  for (auto& p : m_uniqueEffects.keys()) {
+    if (auto effect = m_uniqueEffects.ptr(p)) {
+      (*effect).script.update((*effect).script.updateDt(dt));
+      auto metadata = m_uniqueEffectMetadata.getNetElement((*effect).metadataId);
+      if (metadata->duration)
+        *metadata->duration -= dt;
+    }
   }
 
   for (auto const& key : m_uniqueEffects.keys()) {
