@@ -77,6 +77,9 @@ if "%buildInstaller%"=="yes" (
     echo "[xStarbound::Build] Building installer and ZIP archive..."
     mkdir dist-windows
     mkdir dist-windows\install-tree
+    :: Don't forget to create `steam_appid.txt`!
+    mkdir dist-windows\install-tree\xsb-win64
+    <nul set /p=211820 > dist-windows\install-tree\xsb-win64\steam_appid.txt
     "%PROGRAMFILES%\CMake\bin\cmake.exe" --install cmake-build-windows-x64\ --config "!relOrDbg!" --prefix dist-windows\install-tree\
     if !ERRORLEVEL! neq 0 (
         color 04
@@ -125,6 +128,8 @@ if exist "%sbInstall%\assets\packed.pak" (
     )
     :: Because the "DLL hell" fix stops CMake from copying *any* DLLs on Windows builds, the DLLs have to be manually copied in.
     mkdir "!sbInstall!\xsb-win64"
+    :: Don't forget to create `steam_appid.txt`!
+    <nul set /p=211820 > "!sbInstall!\xsb-win64\steam_appid.txt"
     xcopy /y /f "cmake-build-windows-x64\source\client\!relOrDbg!\*.dll" "!sbInstall!\xsb-win64\"
     xcopy /y /f "cmake-build-windows-x64\source\server\!relOrDbg!\*.dll" "!sbInstall!\xsb-win64\"
     xcopy /y /f "cmake-build-windows-x64\source\utility\!relOrDbg!\*.dll" "!sbInstall!\xsb-win64\"
