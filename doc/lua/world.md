@@ -513,7 +513,19 @@ Attempts to place the specified mod in the specified position and layer. If allo
 Queries for entities in a specified area of the world and returns a list of their entity IDs. Area can be specified either as the `Vec2F` lower left and upper right positions of a rectangle, or as the `Vec2F` center and `float` radius of a circular area. The following additional parameters can be specified in the `options` table:
 
 - __withoutEntityId__ - Specifies an `EntityId` that will be excluded from the returned results
-- __includedTypes__ - Specifies a list of one or more `String` entity types that the query will return. In addition to standard entity type names, this list can include "mobile" for all mobile entity types or "creature" for players, monsters and NPCs.
+- __includedTypes__ - Specifies a list of one or more `String` entity types that the query will return. The valid entity type names are:
+  - `"plant"`
+  - `"object"`
+  - `"vehicle"`
+  - `"itemDrop"`
+  - `"plantDrop"`
+  - `"projectile"`
+  - `"stagehand"`
+  - `"monster"`
+  - `"npc"`
+  - `"player"`
+
+  In addition to standard entity type names, this list can include `"mobile"` for all mobile entity types or `"creature"` for players, monsters and NPCs.
 - __boundMode__ - Specifies the bounding mode for determining whether entities fall within the query area. Valid options are `"position"`, `"collisionarea"` and `"metaboundbox"`. Defaults to `"collisionarea"` if unspecified.
 - __order__ - A `String` used to specify how the results will be ordered. If this is set to `"nearest"` the entities will be sorted by ascending distance from the first positional argument. If this is set to `"random"` the list of results will be shuffled. If not specified, the list of entities will be in an undefined order.
 - __callScript__ - Specifies a `String` name of a function that should be called in the script context of all scripted entities matching the query. Accepts Lua dot notation.
@@ -612,7 +624,7 @@ Returns `true` if the specified entity is an aggressive monster or NPC, or `fals
 
 #### `Maybe<String>` world.entityType(`EntityId` entityId)
 
-Returns the entity type name of the specified entity, or `nil` if the entity doesn't exist. Valid entity type names are:
+Returns the entity type name of the specified entity, or `nil` if the entity doesn't exist. The valid entity type names are:
 
 - `"plant"`
 - `"object"`
@@ -621,6 +633,9 @@ Returns the entity type name of the specified entity, or `nil` if the entity doe
 - `"plantDrop"`
 - `"projectile"`
 - `"stagehand"`
+- `"monster"`
+- `"npc"`
+- `"player"`
 
 ---
 
