@@ -616,41 +616,41 @@ Returns the entity type name of the specified entity, or `nil` if the entity doe
 
 ---
 
-#### `Vec2F` world.entityPosition(`EntityId` entityId)
+#### `Maybe<Vec2F>` world.entityPosition(`EntityId` entityId)
 
 Returns the current world position of the specified entity, or `nil` if the entity doesn't exist.
 
 ---
 
-#### `Vec2F` world.entityMouthPosition(`EntityId` entityId)
+#### `Maybe<Vec2F>` world.entityMouthPosition(`EntityId` entityId)
 
 Returns the current world mouth position of the specified player, monster, NPC or object, or `nil` if the entity doesn't exist or isn't a valid type.
 
 ---
 
-#### `Vec2F` world.entityVelocity(`EntityId` entityId)
+#### `Maybe<Vec2F>` world.entityVelocity(`EntityId` entityId)
 
 Returns the current velocity of the entity if it is a vehicle, monster, NPC or player and `nil` otherwise.
 
 ---
 
-#### `Vec2F` world.entityMetaBoundBOx(`EntityId` entityId)
+#### `Maybe<RectF>` world.entityMetaBoundBOx(`EntityId` entityId)
 
 Returns the meta bound box of the entity, if any.
 
 ---
 
-#### `unsigned` world.entityCurrency(`EntityId` entityId, `String` currencyType)
+#### `Maybe<unsigned>` world.entityCurrency(`EntityId` entityId, `String` currencyType)
 
 Returns the specified player entity's stock of the specified currency type, or `nil` if the entity is not a player.
 
 ---
 
-#### `unsigned` world.entityHasCountOfItem(`EntityId` entityId, `Json` itemDescriptor, [`bool` exactMatch])
+#### `Maybe<unsigned>` world.entityHasCountOfItem(`EntityId` entityId, `Json` itemDescriptor, [`bool` exactMatch])
 
-Returns the nubmer of the specified item that the specified player entity is currently carrying, or `nil` if the entity is not a player. If exactMatch is `true` then parameters as well as item name must match.
+Returns the total count of the specified item in the specified player's inventory, or `nil` if the entity is not a player. If `exactMatch` is `true`, both the item name and parameters in the specified descriptor must match ; if `false`, only the item name needs to match to count an item stack.
 
-NOTE: This function currently does not work correctly over the network, making it inaccurate when not used from client side scripts such as status.
+> **Note:** If the specified player has any inventory slots or bags that aren't networked, any matching items in these «hidden» slots will *not* be counted.
 
 ---
 
@@ -660,13 +660,13 @@ Returns a `Vec2F` containing the specified entity's current and maximum health i
 
 ---
 
-#### `String` world.entitySpecies(`EntityId` entityId)
+#### `Maybe<String>` world.entitySpecies(`EntityId` entityId)
 
 Returns the name of the specified entity's species if it is a player or NPC and `nil` otherwise.
 
 ---
 
-#### `String` world.entityGender(`EntityId` entityId)
+#### `Maybe<String>` world.entityGender(`EntityId` entityId)
 
 Returns the name of the specified entity's gender if it is a player or NPC and `nil` otherwise.
 
@@ -692,7 +692,14 @@ Returns the configured description for the specified inspectable entity (current
 
 #### `Maybe<JsonArray>` world.entityPortrait(`EntityId` entityId, `String` portraitMode)
 
-Generates a portrait of the specified entity in the specified portrait mode and returns a list of drawables, or `nil` if the entity is not a portrait entity.
+Generates a portrait of the specified entity in the specified portrait mode and returns a list of drawables, or `nil` if the entity is not a portrait entity. `portraitMode` only affects portraits of players and NPCs. The available modes are as follows:
+
+- `"head"`: Just the entity's head and a sliver of the entity's upper body. `?crop` directives will be added to the portrait drawables.
+- `"bust"`: The entity's head and the upper part of the entity's body. `?crop` directives will be added to the portrait drawables.
+- `"full"`: The entity's full body.
+- `"fullneutral"`: The player's full body, posed «neutrally» in the species' first configured personality (normally `idle.1`).
+- `"fullnude"`: The player's full body, without any armour or clothing. Note that any «clothing» in the form of modified humanoid directives is still rendered.
+- `"fullneutralnude"`: The player's full body, posed «neutrally» *and* without clothing (as above).
 
 ---
 
