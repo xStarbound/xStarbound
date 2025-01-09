@@ -528,31 +528,31 @@ On xStarbound with `"safeScripts"` enabled, all `callScript` arguments and the `
 
 #### `List<EntityId>` world.monsterQuery(`Vec2F` position, `Variant<Vec2F, float` positionOrRadius, [`Json` options])
 
-Identical to world.entityQuery but only considers monsters.
+Identical to `world.entityQuery`, but only considers monsters.
 
 ---
 
 #### `List<EntityId>` world.npcQuery(`Vec2F` position, `Variant<Vec2F, float` positionOrRadius, [`Json` options])
 
-Identical to world.entityQuery but only considers NPCs.
+Identical to `world.entityQuery`, but only considers NPCs.
 
 ---
 
 #### `List<EntityId>` world.objectQuery(`Vec2F` position, `Variant<Vec2F, float` positionOrRadius, [`Json` options])
 
-Similar to world.entityQuery but only considers objects. Allows an additional option, __name__, which specifies a `String` object type name and will only return objects of that type.
+Similar to `world.entityQuery`, but only considers objects. Allows an additional option, __name__, which specifies a `String` object type name and will only return objects of that type.
 
 ---
 
 #### `List<EntityId>` world.itemDropQuery(`Vec2F` position, `Variant<Vec2F, float` positionOrRadius, [`Json` options])
 
-Identical to world.entityQuery but only considers item drops.
+Identical to `world.entityQuery`, but only considers item drops.
 
 ---
 
 #### `List<EntityId>` world.playerQuery(`Vec2F` position, `Variant<Vec2F, float` positionOrRadius, [`Json` options])
 
-Identical to world.entityQuery but only considers players.
+Identical to `world.entityQuery`, but only considers players.
 
 ---
 
@@ -606,13 +606,21 @@ Returns `true` if the specified source entity can damage the specified target en
 
 #### `bool` world.entityAggressive(`EntityId` entity)
 
-Returns `true` if the specified entity is an aggressive monster or NPC and `false` otherwise.
+Returns `true` if the specified entity is an aggressive monster or NPC, or `false` otherwise.
 
 ---
 
-#### `String` world.entityType(`EntityId` entityId)
+#### `Maybe<String>` world.entityType(`EntityId` entityId)
 
-Returns the entity type name of the specified entity, or `nil` if the entity doesn't exist.
+Returns the entity type name of the specified entity, or `nil` if the entity doesn't exist. Valid entity type names are:
+
+- `"plant"`
+- `"object"`
+- `"vehicle"`
+- `"itemDrop"`
+- `"plantDrop"`
+- `"projectile"`
+- `"stagehand"`
 
 ---
 
@@ -634,9 +642,9 @@ Returns the current velocity of the entity if it is a vehicle, monster, NPC or p
 
 ---
 
-#### `Maybe<RectF>` world.entityMetaBoundBOx(`EntityId` entityId)
+#### `Maybe<RectF>` world.entityMetaBoundBox(`EntityId` entityId)
 
-Returns the meta bound box of the entity, if any.
+Returns the meta bound box of the specified entity, if any. This bound box is used by the game as the bound box for entity interactions and chunkloading. In regards to entity interactions, a middle-click or **Interact** bind press within an entity's meta bound box, provided it is within the player's interaction range and the entity is marked as interactive (*or* provided that `/admin` or overreach mode is enabled), will trigger an interaction with the entity, notwithstanding other conflicting meta bound boxes partially or completely inside the returned one.
 
 ---
 
@@ -648,45 +656,45 @@ Returns the specified player entity's stock of the specified currency type, or `
 
 #### `Maybe<unsigned>` world.entityHasCountOfItem(`EntityId` entityId, `Json` itemDescriptor, [`bool` exactMatch])
 
-Returns the total count of the specified item in the specified player's inventory, or `nil` if the entity is not a player. If `exactMatch` is `true`, both the item name and parameters in the specified descriptor must match ; if `false`, only the item name needs to match to count an item stack.
+Returns the total count (sum of the stack counts of all matching items) of the specified item in the specified player's inventory, `0` if no matching items (or stacks) are found, or `nil` if the entity is not a player. If `exactMatch` is `true`, both the item name and parameters in the specified descriptor must match a given item stack in order for that stack to be counted; if `false`, only the item name needs to match for a given item stack to be counted, and any parameters are permissible.
 
 > **Note:** If the specified player has any inventory slots or bags that aren't networked, any matching items in these «hidden» slots will *not* be counted.
 
 ---
 
-#### `Vec2F` world.entityHealth(`EntityId` entityId)
+#### `Maybe<Vec2F>` world.entityHealth(`EntityId` entityId)
 
-Returns a `Vec2F` containing the specified entity's current and maximum health if the entity is a player, monster or NPC and `nil` otherwise.
+Returns a `Vec2F` containing the specified entity's current and maximum health, as the first and second elements, respectively, if the entity is a player, monster or NPC, or `nil` otherwise.
 
 ---
 
 #### `Maybe<String>` world.entitySpecies(`EntityId` entityId)
 
-Returns the name of the specified entity's species if it is a player or NPC and `nil` otherwise.
+Returns the name of the specified entity's species if it is a player or NPC, or `nil` otherwise.
 
 ---
 
 #### `Maybe<String>` world.entityGender(`EntityId` entityId)
 
-Returns the name of the specified entity's gender if it is a player or NPC and `nil` otherwise.
+Returns the name of the specified entity's gender if it is a player or NPC, or `nil` otherwise.
 
 ---
 
-#### `String` world.entityName(`EntityId` entityId)
+#### `Maybe<String>` world.entityName(`EntityId` entityId)
 
-Returns a `String` name of the specified entity which has different behavior for different entity types. For players, monsters and NPCs, this will be the configured name of the specific entity. For objects or vehicles, this will be the name of the object or vehicle type. For item drops, this will be the name of the contained item.
-
----
-
-#### `String` world.entityTypeName(`EntityId` entityId)
-
-Similar to world.entityName but returns the names of configured types for NPCs and monsters.
+Returns a `String` name of the specified entity. This callback has different behaviour for different entity types. For players, monsters and NPCs, this will be the configured name of the specific entity. For objects, vehicles or stagehands, this will be the name of the object, vehicle or stagehand type. For item drops, this will be the name of the contained item. Returns `nil` if the specified entity is a plant or plant drop.
 
 ---
 
-#### `String` world.entityDescription(`EntityId` entityId, [`String` species])
+#### `Maybe<String>` world.entityTypeName(`EntityId` entityId)
 
-Returns the configured description for the specified inspectable entity (currently only objects and plants support this). Will return a species-specific description if species is specified and a generic description otherwise.
+Similar to `world.entityName` but returns the names of configured types for NPCs and monsters. Returns `nil` if the specified entity is a player, plant, plant drop or stagehand.
+
+---
+
+#### `Maybe<String>` world.entityDescription(`EntityId` entityId, [`String` species])
+
+Returns the configured description for the specified inspectable entity (currently only objects and plants support this). Will return a species-specific description if a species name is specified, or a generic description otherwise.
 
 ---
 
@@ -735,7 +743,7 @@ Returns the list of biome specific blocks that can place in the biome at the spe
 
 ---
 
-#### `String` world.entityUniqueId(`EntityId` entityId)
+#### `Maybe<String>` world.entityUniqueId(`EntityId` entityId)
 
 Returns the unique ID of the specified entity, or `nil` if the entity does not have a unique ID. Will return a vanity UUID if the entity uses such.
 
@@ -759,13 +767,13 @@ Returns a list of tile positions that the specified object occupies, or `nil` if
 
 ---
 
-#### `int` world.farmableStage(`EntityId` entityId)
+#### `Maybe<int>` world.farmableStage(`EntityId` entityId)
 
 Returns the current growth stage of the specified farmable object, or `nil` if the entity is not a farmable object.
 
 ---
 
-#### `int` world.containerSize(`EntityId` entityId)
+#### `Maybe<int>` world.containerSize(`EntityId` entityId)
 
 Returns the total capacity of the specified container, or `nil` if the entity is not a container.
 
@@ -783,13 +791,13 @@ Visually opens the specified container. Returns `true` if the entity is a contai
 
 ---
 
-#### `JsonArray` world.containerItems(`EntityId` entityId)
+#### `Maybe<JsonArray>` world.containerItems(`EntityId` entityId)
 
 Returns a list of pairs of item descriptors and container positions of all items in the specified container, or `nil` if the entity is not a container.
 
 ---
 
-#### `ItemDescriptor` world.containerItemAt(`EntityId` entityId, `unsigned` offset)
+#### `Maybe<ItemDescriptor>` world.containerItemAt(`EntityId` entityId, `unsigned` offset)
 
 Returns an item descriptor of the item at the specified position in the specified container, or `nil` if the entity is not a container or the offset is out of range.
 
@@ -807,31 +815,31 @@ Similar to `world.containerConsume`, but only considers the specified slot withi
 
 ---
 
-#### `unsigned` world.containerAvailable(`EntityId` entityId, `ItemDescriptor` item)
+#### `Maybe<unsigned>` world.containerAvailable(`EntityId` entityId, `ItemDescriptor` item)
 
-Returns the number of the specified item that are currently available to consume in the specified container, or `nil` if the entity is not a container.
+Returns the total count (sum of all stack counts) of the specified item that is currently available to consume in the specified container, `0` if no matching items are found, or `nil` if the entity is not a container. Both the item name and parameters must match in order for a given item stack to be counted.
 
 ---
 
 #### `JsonArray` world.containerTakeAll(`EntityId` entityId)
 
-Similar to world.containerItems but consumes all items in the container.
+Similar to `world.containerItems` but also consumes all items in the container.
 
 ---
 
-#### `ItemDescriptor` world.containerTakeAt(`EntityId` entityId, `unsigned` offset)
+#### `Maybe<ItemDescriptor>` world.containerTakeAt(`EntityId` entityId, `unsigned` offset)
 
-Similar to world.containerItemAt, but consumes all items in the specified slot of the container.
-
----
-
-#### `ItemDescriptor` world.containerTakeNumItemsAt(`EntityId` entityId, `unsigned` offset, `unsigned` count)
-
-Similar to world.containerTakeAt, but consumes up to (but not necessarily equal to) the specified count of items from the specified slot of the container and returns only the items consumed.
+Similar to `world.containerItemAt`, but consumes all items in the specified slot of the container.
 
 ---
 
-#### `unsigned` world.containerItemsCanFit(`EntityId` entityId, `ItemDescriptor` item)
+#### `Maybe<ItemDescriptor>` world.containerTakeNumItemsAt(`EntityId` entityId, `unsigned` offset, `unsigned` count)
+
+Similar to `world.containerTakeAt`, but consumes up to (but not necessarily equal to) the specified count of items from the specified slot of the container and returns only the items consumed.
+
+---
+
+#### `Maybe<unsigned>` world.containerItemsCanFit(`EntityId` entityId, `ItemDescriptor` item)
 
 Returns the number of times the specified item can fit in the specified container, or `nil` if the entity is not a container.
 
@@ -839,25 +847,25 @@ Returns the number of times the specified item can fit in the specified containe
 
 #### `Json` world.containerItemsFitWhere(`EntityId` entityId, `ItemDescriptor` items)
 
-Returns a JsonObject containing a list of "slots" the specified item would fit and the count of "leftover" items that would remain after attempting to add the items. Returns `nil` if the entity is not a container.
+Returns a `JsonObject` containing a list of `"slots"` where the specified item would fit and the count of `"leftover"` items that would remain after attempting to add the items. Returns `nil` if the entity is not a container.
 
 ---
 
 #### `ItemDescriptor` world.containerAddItems(`EntityId` entityId, `ItemDescriptor` items)
 
-Adds the specified items to the specified container. Returns the leftover items after filling the container, or all items if the entity is not a container.
+Adds the specified items to the specified container. Returns the leftover items after filling the container, `nil` if none are left over, or all items if the entity is not a container.
 
 ---
 
 #### `ItemDescriptor` world.containerStackItems(`EntityId` entityId, `ItemDescriptor` items)
 
-Similar to world.containerAddItems but will only combine items with existing stacks and will not fill empty slots.
+Similar to `world.containerAddItems` but will only combine items with existing stacks and will not fill empty slots.
 
 ---
 
 #### `ItemDescriptor` world.containerPutItemsAt(`EntityId` entityId, `ItemDescriptor` items, `unsigned` offset)
 
-Similar to world.containerAddItems but only considers the specified slot in the container.
+Similar to `world.containerAddItems` but only considers the specified slot in the container.
 
 ---
 
