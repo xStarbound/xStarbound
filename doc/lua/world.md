@@ -715,7 +715,7 @@ Returns the configured description for the specified inspectable entity (current
 
 #### `Maybe<JsonArray>` world.entityPortrait(`EntityId` entityId, `String` portraitMode)
 
-Generates a portrait of the specified entity in the specified portrait mode and returns a list of drawables, or `nil` if the entity is not a portrait entity. `portraitMode` only affects portraits of players and NPCs. The available modes are as follows:
+Generates a portrait of the specified entity in the specified portrait mode and returns a list of drawables, or `nil` if the entity is not a portrait entity (i.e., a monster, NPC or player). `portraitMode` only affects portraits of players and NPCs; for monsters, a full portrait is always returned. The available modes are as follows:
 
 - `"head"`: Just the entity's head and a sliver of the entity's upper body. `?crop` directives will be added to the portrait drawables.
 - `"bust"`: The entity's head and the upper part of the entity's body. `?crop` directives will be added to the portrait drawables.
