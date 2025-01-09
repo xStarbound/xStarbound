@@ -720,9 +720,9 @@ Generates a portrait of the specified entity in the specified portrait mode and 
 - `"head"`: Just the entity's head and a sliver of the entity's upper body. `?crop` directives will be added to the portrait drawables.
 - `"bust"`: The entity's head and the upper part of the entity's body. `?crop` directives will be added to the portrait drawables.
 - `"full"`: The entity's full body.
-- `"fullneutral"`: The player's full body, posed «neutrally» in the species' first configured personality (normally `idle.1`).
-- `"fullnude"`: The player's full body, without any armour or clothing. Note that any «clothing» in the form of modified humanoid directives is still rendered.
-- `"fullneutralnude"`: The player's full body, posed «neutrally» *and* without clothing (as above).
+- `"fullneutral"`: The entity's full body, posed «neutrally» in the species' first configured personality (normally `idle.1`).
+- `"fullnude"`: The entity's full body, without any armour or clothing. Note that any «clothing» in the form of modified humanoid directives is still rendered.
+- `"fullneutralnude"`: The entity's full body, posed «neutrally» *and* without clothing (as above).
 
 ---
 
