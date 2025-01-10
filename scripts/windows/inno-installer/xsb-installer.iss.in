@@ -7,7 +7,7 @@
 #define XSBGitHubURL "https://github.com/xStarbound/xStarbound"
 ; Set this to the location of your xStarbound install folder.
 #ifndef XSBSourcePath
-  #define XSBSourcePath "@CMAKE_INSTALL_PREFIX@"
+  #define XSBSourcePath "@CMAKE_BINARY_DIR@"
 #endif
 #ifndef XSBDistPath
   #define XSBDistPath "@CMAKE_INSTALL_PREFIX@"
