@@ -5,7 +5,7 @@ namespace Star {
 
 BindingsMenu::BindingsMenu(Json const& config) : BaseScriptPane(config) {
   m_script.setLuaRoot(make_shared<LuaRoot>());
-  m_script.addCallbacks("input", LuaBindings::makeInputCallbacks());
+  // m_script.addCallbacks("input", LuaBindings::makeInputCallbacks());
 }
 
 void BindingsMenu::show() {
