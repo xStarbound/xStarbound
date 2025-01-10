@@ -168,7 +168,8 @@ if ((STAR_COMPILER STREQUAL "clang" OR STAR_COMPILER STREQUAL "msvc") AND STAR_C
     set(VCPKG_TARGET_ARCHITECTURE $ARCH)
     set(VCPKG_CRT_LINKAGE dynamic)
     set(VCPKG_LIBRARY_LINKAGE dynamic)
-    set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/toolchains/windows.cmake")
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake")
+    set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "$ENV{VCPKG_INSTALLATION_ROOT}/scripts/toolchains/windows.cmake")
 endif()
 
 # FezzedOne: More MinGW stuff.
@@ -576,6 +577,7 @@ if(STAR_USE_MIMALLOC)
     include_directories(SYSTEM ${MIMALLOC_INCLUDE_DIR})
     set(STAR_EXT_LIBS ${MIMALLOC_LIBRARY})
 endif()
+
 
 find_package(ZLIB REQUIRED)
 find_package(PNG REQUIRED)
