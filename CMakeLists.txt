@@ -162,9 +162,13 @@ cmake_dependent_option(STAR_ENABLE_GCC_PROFILING "Enable gcc/g++ profiling via t
 cmake_dependent_option(STAR_ENABLE_GLIBCXX_DEBUG "Enable _GLIBCXX_DEBUG for g++" OFF "STAR_COMPILER STREQUAL gnu" OFF)
 cmake_dependent_option(STAR_ENABLE_STATIC_MSVC_RUNTIME "Statically link with the CRT" OFF "STAR_COMPILER STREQUAL msvc" OFF)
 
-# FezzedOne: clang-cl cross-compilation stuff.
+# FezzedOne: MSVC and clang-cl cross-compilation stuff.
 if ((STAR_COMPILER STREQUAL "clang" OR STAR_COMPILER STREQUAL "msvc") AND STAR_CROSS_COMPILE)
-    # set (MSVC_CROSS_COMPILE ON)
+    set(STAR_MSVC_CROSS_COMPILE ON)
+    set(VCPKG_TARGET_ARCHITECTURE $ARCH)
+    set(VCPKG_CRT_LINKAGE dynamic)
+    set(VCPKG_LIBRARY_LINKAGE dynamic)
+    set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "$env{VCPKG_ROOT}/scripts/toolchains/windows.cmake")
 endif()
 
 # FezzedOne: More MinGW stuff.
@@ -531,7 +535,7 @@ if(STAR_COMPILER STREQUAL "msvc")
 endif()
 
 if(STAR_SYSTEM_WINDOWS)
-    if(STAR_CROSS_COMPILE)
+    if(STAR_CROSS_COMPILE AND NOT (STAR_COMPILER STREQUAL "msvc" OR STAR_COMPILER STREQUAL "clang"))
         set(CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES} -lws2_32 -liphlpapi -lshlwapi -ldbghelp")
         set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -lws2_32 -liphlpapi -lshlwapi -ldbghelp")
     else()
@@ -590,7 +594,7 @@ if(NOT TARGET Opus::opus)
     find_package(Opus MODULE REQUIRED)
 endif()
 
-if(STAR_CROSS_COMPILE)
+if(STAR_CROSS_COMPILE AND NOT (STAR_COMPILER STREQUAL "msvc" OR STAR_COMPILER STREQUAL "clang"))
     include_directories(SYSTEM
             ${ZLIB_INCLUDE_DIR}
             ${PNG_INCLUDE_DIR}
@@ -629,7 +633,7 @@ endif()
 if(STAR_BUILD_GUI)
     find_package(SDL2 CONFIG REQUIRED)
     include_directories(SYSTEM ${SDL2_INCLUDE_DIR})
-    # if(STAR_CROSS_COMPILE)
+    # if(STAR_CROSS_COMPILE AND NOT (STAR_COMPILER STREQUAL "msvc" OR STAR_COMPILER STREQUAL "clang"))
     #     set(STAR_EXT_GUI_LIBS "${PROJECT_SOURCE_DIR}/../lib/mingw/SDL2.dll" "${PROJECT_SOURCE_DIR}/../lib/mingw/glew32.dll")
     # else()
         # if (STAR_ENABLE_STATIC_LIBGCC_LIBSTDCXX AND STAR_SYSTEM_LINUX AND STAR_COMPILER_GNU)
