@@ -57,7 +57,7 @@
 
 cmake_minimum_required (VERSION 3.12)
 
-if(WIN32)
+if(WIN32 AND NOT STAR_MSVC_CROSS_COMPILE)
     set(VCPKG_FALLBACK_ROOT ${CMAKE_CURRENT_BINARY_DIR}/vcpkg CACHE STRING "vcpkg configuration directory to use if vcpkg was not installed on the system before")
 else()
     set(VCPKG_FALLBACK_ROOT ${CMAKE_CURRENT_BINARY_DIR}/.vcpkg CACHE STRING  "vcpkg configuration directory to use if vcpkg was not installed on the system before")
@@ -65,7 +65,7 @@ endif()
 
 # On Windows, Vcpkg defaults to x86, even on x64 systems. If we're 
 # doing a 64-bit build, we need to fix that.
-if (WIN32)
+if (WIN32 AND NOT STAR_MSVC_CROSS_COMPILE)
 
     # Since the compiler checks haven't run yet, we need to figure
     # out the value of CMAKE_SIZEOF_VOID_P ourselfs
@@ -135,7 +135,7 @@ macro(_install_or_update_vcpkg)
         message(FATAL_ERROR "***** FATAL ERROR: Could not clone vcpkg *****")
     endif()
 
-    if(WIN32)
+    if(WIN32 AND NOT STAR_MSVC_CROSS_COMPILE)
         set(VCPKG_EXEC ${VCPKG_ROOT}/vcpkg.exe)
         set(VCPKG_BOOTSTRAP ${VCPKG_ROOT}/bootstrap-vcpkg.bat)
     else()
@@ -145,14 +145,14 @@ macro(_install_or_update_vcpkg)
 
     if(NOT EXISTS ${VCPKG_EXEC})
         message("Bootstrapping vcpkg in ${VCPKG_ROOT}")
-        if (MSVC_CROSS_COMPILE)
-            execute_process(
-                COMMAND wine ${VCPKG_BOOTSTRAP} 
-                WORKING_DIRECTORY ${VCPKG_ROOT}
-                )
-        else()
+        # if (MSVC_CROSS_COMPILE)
+        #     execute_process(
+        #         COMMAND wine ${VCPKG_BOOTSTRAP} 
+        #         WORKING_DIRECTORY ${VCPKG_ROOT}
+        #         )
+        # else()
             execute_process(COMMAND ${VCPKG_BOOTSTRAP} WORKING_DIRECTORY ${VCPKG_ROOT})
-        endif()
+        # endif()
     endif()
 
     if(NOT EXISTS ${VCPKG_EXEC})
@@ -173,17 +173,17 @@ macro(vcpkg_install_packages)
         set(ENV{VCPKG_DEFAULT_TRIPLET} "${VCPKG_TRIPLET}")
     endif()
 
-    if (MSVC_CROSS_COMPILE)
-        execute_process(
-            COMMAND wine ${VCPKG_EXEC} install ${ARGN}
-            WORKING_DIRECTORY ${VCPKG_ROOT}
-            )
-    else()
+    # if (MSVC_CROSS_COMPILE)
+    #     execute_process(
+    #         COMMAND wine ${VCPKG_EXEC} install ${ARGN}
+    #         WORKING_DIRECTORY ${VCPKG_ROOT}
+    #         )
+    # else()
         execute_process(
             COMMAND ${VCPKG_EXEC} install ${ARGN}
             WORKING_DIRECTORY ${VCPKG_ROOT}
             )
-    endif()
+    # endif()
 endmacro()
     
 # MIT License
