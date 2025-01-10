@@ -9,6 +9,7 @@ build-qt/
 build-runtime/
 build-tests/
 build-windows/
+build-windows-msvc/
 build/
 dist/
 dist-qt/

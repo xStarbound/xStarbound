@@ -168,7 +168,7 @@ if ((STAR_COMPILER STREQUAL "clang" OR STAR_COMPILER STREQUAL "msvc") AND STAR_C
     set(VCPKG_TARGET_ARCHITECTURE $ARCH)
     set(VCPKG_CRT_LINKAGE dynamic)
     set(VCPKG_LIBRARY_LINKAGE dynamic)
-    set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "$env{VCPKG_ROOT}/scripts/toolchains/windows.cmake")
+    set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/toolchains/windows.cmake")
 endif()
 
 # FezzedOne: More MinGW stuff.
