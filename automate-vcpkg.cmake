@@ -180,7 +180,7 @@ macro(vcpkg_install_packages)
     #         )
     # else()
         execute_process(
-            COMMAND ${VCPKG_EXEC} install ${ARGN}
+            COMMAND ${VCPKG_EXEC} install ${ARGN} "--overlay-triplets=vcpkg-triplets"
             WORKING_DIRECTORY ${VCPKG_ROOT}
             )
     # endif()
