@@ -4,7 +4,7 @@ on: workflow_dispatch
 
 jobs:
   windows-setup:
-    name: Build xSB2 Windows x64 Setup
+    name: Build xStarbound for Windows
     runs-on: windows-latest
 
     steps:
@@ -30,6 +30,13 @@ jobs:
 
       - name: Build Release
         run: cmake --build --preset "windows-x64-release" --target INSTALL
+
+      - name: Copy DLLs
+        run: |
+          Set-Content -Value '211820' -Path "${{ github.workspace }}\xstarbound-install\xsb-win64\steam_appid.txt" -NoNewline
+          Copy-Item -Path "${{ github.workspace }}\cmake-build-windows-x64\source\client\Release\*.dll" -Destination "${{ github.workspace }}\xstarbound-install\xsb-win64\" -Force
+          Copy-Item -Path "${{ github.workspace }}\cmake-build-windows-x64\source\server\Release\*.dll" -Destination "${{ github.workspace }}\xstarbound-install\xsb-win64\" -Force
+          Copy-Item -Path "${{ github.workspace }}\cmake-build-windows-x64\source\utility\Release\*.dll" -Destination "${{ github.workspace }}\xstarbound-install\xsb-win64\" -Force
 
       - name: Create Setup
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
