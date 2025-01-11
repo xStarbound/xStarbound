@@ -176,6 +176,7 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "OFF",
+        "STAR_USE_RPMALLOC": "ON",
         "BUILD_TESTING": "ON",
         "BUILD_INNOSETUP": "ON"
       },
@@ -202,6 +203,7 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
+        "STAR_USE_RPMALLOC": "ON",
         "BUILD_TESTING": "ON"
       },
       "condition": {
@@ -227,6 +229,7 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
+        "STAR_USE_RPMALLOC": "ON",
         "BUILD_TESTING": "ON"
       },
       "condition": {
@@ -251,7 +254,8 @@
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "ON",
-        "STAR_BUILD_QT_TOOLS": "ON"
+        "STAR_BUILD_QT_TOOLS": "ON",
+        "STAR_USE_RPMALLOC": "ON"
       },
       "condition": {
         "type": "allOf",
@@ -277,6 +281,7 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
+        "STAR_USE_RPMALLOC": "ON",
         "BUILD_TESTING": "ON"
       },
       "condition": {
@@ -303,6 +308,7 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
+        "STAR_USE_RPMALLOC": "ON",
         "BUILD_TESTING": "ON"
       },
       "condition": {
@@ -329,6 +335,7 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
+        "STAR_USE_RPMALLOC": "ON",
         "BUILD_TESTING": "ON"
       },
       "condition": {
@@ -353,6 +360,7 @@
         "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "OFF",
+        "STAR_USE_RPMALLOC": "ON",
         "STAR_BUILD_QT_TOOLS": "OFF"
       },
       "condition": {
@@ -377,6 +385,7 @@
         "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "OFF",
+        "STAR_USE_RPMALLOC": "ON",
         "STAR_BUILD_QT_TOOLS": "OFF"
       },
       "condition": {
@@ -401,6 +410,7 @@
         "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "OFF",
+        "STAR_USE_RPMALLOC": "ON",
         "STAR_BUILD_QT_TOOLS": "OFF"
       },
       "condition": {
@@ -427,6 +437,7 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
+        "STAR_USE_RPMALLOC": "ON",
         "BUILD_TESTING": "ON"
       },
       "condition": {
@@ -452,7 +463,8 @@
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
         "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
-        "STAR_BUILD_QT_TOOLS": "ON"
+        "STAR_BUILD_QT_TOOLS": "ON",
+        "STAR_USE_RPMALLOC": "ON"
       },
       "condition": {
         "type": "allOf",
@@ -477,7 +489,8 @@
         "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "OFF",
-        "STAR_BUILD_QT_TOOLS": "OFF"
+        "STAR_BUILD_QT_TOOLS": "OFF",
+        "STAR_USE_RPMALLOC": "ON"
       },
       "condition": {
         "type": "allOf",
@@ -502,7 +515,8 @@
         "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "OFF",
-        "STAR_BUILD_QT_TOOLS": "OFF"
+        "STAR_BUILD_QT_TOOLS": "OFF",
+        "STAR_USE_RPMALLOC": "ON"
       },
       "condition": {
         "type": "allOf",

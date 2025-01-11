@@ -167,7 +167,7 @@ Wayland should work OOTB if you're using the `xclient.sh`. If you're running the
    - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu clang cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland qt6-svg qt6-base sdl2 libpng freetype2 libvorbis opus; sudo steamos-readonly enable`
 4. `git clone --recursive https://github.com/xStarbound/xStarbound.git` (`--recursive` is needed to clone the Opus sources in `$src/extern/opus`, which may be necessary on some configurations)
 5. `cd xStarbound/`
-6. `CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -DCMAKE_BUILD_TYPE=Release -DSTAR_ENABLE_STEAM_INTEGRATION=ON -DPACKAGE_XSB_ASSETS=ON -S . -B build/ -G Ninja` (Clang is recommended now, but you can use `gcc` and `g++` instead for GCC)
+6. `CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -DCMAKE_BUILD_TYPE=Release -DSTAR_ENABLE_STEAM_INTEGRATION=ON -DSTAR_USE_RPMALLOC=ON -DPACKAGE_XSB_ASSETS=ON -S . -B build/ -G Ninja` (Clang is recommended now, but you can use `gcc` and `g++` instead for GCC)
 7. `cmake --build build/`
 8. `cmake --install build/ --prefix ${sbInstall}/` (replace `${sbInstall}` with the path to your Starbound install)
 9. `cp scripts/linux/{xclient,xserver,mod_uploader}.sh ${sbInstall}/linux/`
