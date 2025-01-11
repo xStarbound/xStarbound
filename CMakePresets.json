@@ -148,6 +148,7 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "OFF",
+        "STAR_USE_RPMALLOC": "ON",
         "BUILD_TESTING": "ON",
         "BUILD_INNOSETUP": "ON"
       },
