@@ -3,9 +3,16 @@
 #include "StarWorldTemplate.hpp"
 #include "StarWorldServer.hpp"
 
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
+
 using namespace Star;
 
 int main(int argc, char** argv) {
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_initialize();
+#endif
   try {
     unsigned repetitions = 5;
     unsigned reportEvery = 1;

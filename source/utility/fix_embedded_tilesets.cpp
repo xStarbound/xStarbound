@@ -3,6 +3,10 @@
 #include "StarRootLoader.hpp"
 #include "StarTilesetDatabase.hpp"
 
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
+
 using namespace Star;
 
 void removeCommonPrefix(StringList& a, StringList& b) {
@@ -78,6 +82,9 @@ void fixEmbeddedTilesets(String const& searchRoot, String const& tilesetPath) {
 }
 
 int main(int argc, char* argv[]) {
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_initialize();
+#endif
   try {
     RootLoader rootLoader({{}, {}, {}, LogLevel::Info, false, {}});
     rootLoader.setSummary("Replaces embedded tilesets in Tiled JSON files with references to external tilesets. Assumes tilesets are available in the packed assets.");

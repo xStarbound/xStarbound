@@ -3,6 +3,10 @@
 #include "StarRootLoader.hpp"
 #include "StarDungeonTMXPart.hpp"
 
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
+
 using namespace Star;
 using namespace Star::Dungeon;
 
@@ -91,7 +95,10 @@ MatchCriteria parseMatchCriteria(String const& criteriaStr) {
   return TileName(criteriaStr);
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char** argv) {
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_initialize();
+#endif
   try {
     RootLoader rootLoader({{}, {}, {}, LogLevel::Warn, false, {}});
     rootLoader.setSummary("Search Tiled map files for specific materials or objects.");

@@ -15,6 +15,7 @@ cmake_dependent_option(STAR_ENABLE_STEAM_INTEGRATION "Use Steam platform service
 cmake_dependent_option(STAR_ENABLE_DISCORD_INTEGRATION "Use Discord platform services" OFF "STAR_BUILD_GUI" OFF)
 
 option(STAR_LUA_APICHECK "Use Lua API checks" OFF)
+cmake_dependent_option(STAR_USE_RPMALLOC "Use rpmalloc allocators" OFF "NOT STAR_USE_RPMALLOC" OFF)
 cmake_dependent_option(STAR_USE_JEMALLOC "Use jemalloc allocators" OFF "NOT STAR_USE_MIMALLOC" OFF)
 cmake_dependent_option(STAR_USE_MIMALLOC "Use mi-malloc allocators" OFF "NOT STAR_USE_JEMALLOC" OFF)
 
@@ -306,6 +307,10 @@ if(STAR_USE_JEMALLOC)
     add_definitions(-DSTAR_USE_JEMALLOC)
 endif()
 
+if(STAR_USE_RPMALLOC)
+    add_definitions(-DSTAR_USE_RPMALLOC)
+endif()
+
 # Set C/C++ compiler flags based on build environment...
 
 if(STAR_COMPILER_GNU)
@@ -556,11 +561,21 @@ endif()
 
 # Find all required external libraries, based on build settings...
 if(STAR_USE_JEMALLOC AND STAR_USE_MIMALLOC)
-    message(FATAL_ERROR "Please only specify ONE memory allocator to be used: either STAR_USE_JEMALLOC or STAR_USE_MIMALLOC.")
+    message(FATAL_ERROR "Please only specify ONE memory allocator to be used: either STAR_USE_RPMALLOC, STAR_USE_JEMALLOC or STAR_USE_MIMALLOC.")
+endif()
+
+if(STAR_USE_JEMALLOC AND STAR_USE_RPMALLOC)
+    message(FATAL_ERROR "Please only specify ONE memory allocator to be used: either STAR_USE_RPMALLOC, STAR_USE_JEMALLOC or STAR_USE_MIMALLOC.")
+endif()
+
+if(STAR_USE_MIMALLOC AND STAR_USE_RPMALLOC)
+    message(FATAL_ERROR "Please only specify ONE memory allocator to be used: either STAR_USE_RPMALLOC, STAR_USE_JEMALLOC or STAR_USE_MIMALLOC.")
 endif()
 
 # Need to set install dirs before finding Qt.
 include(Install.cmake)
+
+# rpmalloc is already included in the `source/extern` directory. No need to do package management for it.
 
 if(STAR_USE_JEMALLOC)
     # Assumes jemalloc was configured with a "je_" function prefix
@@ -577,7 +592,6 @@ if(STAR_USE_MIMALLOC)
     include_directories(SYSTEM ${MIMALLOC_INCLUDE_DIR})
     set(STAR_EXT_LIBS ${MIMALLOC_LIBRARY})
 endif()
-
 
 find_package(ZLIB REQUIRED)
 find_package(PNG REQUIRED)

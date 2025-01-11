@@ -1,9 +1,16 @@
 #include "StarFile.hpp"
 #include "StarVersioningDatabase.hpp"
 
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
+
 using namespace Star;
 
 int main(int argc, char** argv) {
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_initialize();
+#endif
   try {
     if (argc != 3) {
       coutf("Usage, {} <versioned_json_binary> <versioned_json_json>\n", argv[0]);

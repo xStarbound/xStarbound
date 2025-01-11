@@ -16,6 +16,10 @@
 #include <sys/time.h>
 #include <errno.h>
 
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
+
 #ifdef MAXCOMLEN
 #define MAX_THREAD_NAMELEN MAXCOMLEN
 #else
@@ -26,6 +30,9 @@ namespace Star {
 
 struct ThreadImpl {
   static void* runThread(void* data) {
+#ifdef STAR_USE_RPMALLOC
+    ::rpmalloc_thread_initialize();
+#endif
     ThreadImpl* ptr = static_cast<ThreadImpl*>(data);
     try {
 #ifdef STAR_SYSTEM_MACOS
@@ -48,6 +55,9 @@ struct ThreadImpl {
         Logger::error("Unknown exception caught in Thread {}", ptr->name);
     }
     ptr->stopped = true;
+#ifdef STAR_USE_RPMALLOC
+    ::rpmalloc_thread_finalize();
+#endif
     return nullptr;
   }
 

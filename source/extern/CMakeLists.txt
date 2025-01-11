@@ -12,6 +12,10 @@ add_subdirectory(lua)
 add_subdirectory(tinyformat)
 add_subdirectory(xxhash)
 
+if(STAR_ENABLE_RPMALLOC)
+  add_subdirectory(rpmalloc)
+endif()
+
 add_library(star_extern INTERFACE)
 
 # This target also links the (non-GUI) third-party libraries pulled in via find_package()

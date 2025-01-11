@@ -6,7 +6,16 @@
 
 using namespace Star;
 
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
+
+using namespace Star;
+
 int main(int argc, char** argv) {
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_initialize();
+#endif
   try {
     RootLoader rootLoader({{}, {}, {}, LogLevel::Error, false, {}});
     rootLoader.addArgument("dungeon", OptionParser::Required, "name of the dungeon to spawn in the world to benchmark");

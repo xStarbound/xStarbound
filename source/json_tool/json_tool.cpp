@@ -2,6 +2,10 @@
 #include "json_tool.hpp"
 #include "editor_gui.hpp"
 
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
+
 // Tool for scripting and mass-editing of JSON+Comments files without affecting
 // formatting.
 
@@ -411,6 +415,10 @@ String readStdin() {
 }
 
 int main(int argc, char** argv) {
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_initialize();
+#endif
+  int returnVal;
   try {
     Maybe<ParsedArgs> parsedArgs = parseArgs(argc, argv);
 
@@ -432,40 +440,49 @@ int main(int argc, char** argv) {
       cerrf("Example: {} --get /dialog/0/message guard.npctype\n", argv[0]);
       cerrf("Example: {} --get 'foo[0]' -j '{{\"foo\":[0,1,2,3]}}'\n", argv[0]);
       cerrf("Example: {} --edit /tags --input csv --find ../assets/ .object\n", argv[0]);
-      return 1;
-    }
-
-    OutputPtr output = parsedArgs->options.output;
-    bool success = true;
-
-    if (parsedArgs->command.is<EditCommand>()) {
-      return edit(argc, argv, parsedArgs->command.get<EditCommand>().path, parsedArgs->options, parsedArgs->inputs);
-
-    } else if (parsedArgs->inputs.size() == 0) {
-      // No files were provided. Reading from stdin
-      success &= process(output->toFunction(), parsedArgs->command, parsedArgs->options, readStdin());
+      returnVal = 1;
     } else {
-      for (Input const& input : parsedArgs->inputs) {
-        success &= process(output->toFunction(), parsedArgs->command, parsedArgs->options, input);
+      OutputPtr output = parsedArgs->options.output;
+      bool success = true;
+      bool editing = false;
+
+      if (parsedArgs->command.is<EditCommand>()) {
+        editing = true;
+        returnVal = edit(argc, argv, parsedArgs->command.get<EditCommand>().path, parsedArgs->options, parsedArgs->inputs);
+
+      } else if (parsedArgs->inputs.size() == 0) {
+        // No files were provided. Reading from stdin
+        success &= process(output->toFunction(), parsedArgs->command, parsedArgs->options, readStdin());
+      } else {
+        for (Input const& input : parsedArgs->inputs) {
+          success &= process(output->toFunction(), parsedArgs->command, parsedArgs->options, input);
+        }
+      }
+
+      output->flush();
+
+      if (!editing) {
+        if (!success)
+          returnVal = 1;
+        else
+          returnVal = 0;
       }
     }
 
-    output->flush();
-
-    if (!success)
-      return 1;
-    return 0;
-
   } catch (JsonParsingException const& e) {
     cerrf("{}\n", e.what());
-    return 1;
+    returnVal = 1;
 
   } catch (JsonException const& e) {
     cerrf("{}\n", e.what());
-    return 1;
+    returnVal = 1;
 
   } catch (std::exception const& e) {
     cerrf("Exception caught: {}\n", outputException(e, true));
-    return 1;
+    returnVal = 1;
   }
+#ifdef STAR_USE_RPMALLOC
+  :rpmalloc_finalize();
+#endif
+  return returnVal;
 }

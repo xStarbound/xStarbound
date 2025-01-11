@@ -6,6 +6,10 @@
 #include "StarRootLoader.hpp"
 #include "tileset_updater.hpp"
 
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
+
 using namespace Star;
 
 String const InboundNode = "/tilesets/inboundnode.png";
@@ -232,6 +236,9 @@ void scanLiquids(TilesetUpdater& updater) {
 }
 
 int main(int argc, char** argv) {
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_initialize();
+#endif
   try {
     RootLoader rootLoader({{}, {}, {}, LogLevel::Error, false, {}});
 

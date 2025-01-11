@@ -8,6 +8,10 @@
 #include <process.h>
 #include <locale.h>
 
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
+
 namespace Star {
 
 // This is the CONDITIONAL_VARIABLE typedef for using Window's native
@@ -44,6 +48,9 @@ static ThreadSupport g_threadSupport;
 
 struct ThreadImpl {
   static DWORD WINAPI runThread(void* data) {
+#ifdef STAR_USE_RPMALLOC
+    ::rpmalloc_thread_initialize();
+#endif
     ThreadImpl* ptr = static_cast<ThreadImpl*>(data);
     try {
       ptr->function();
@@ -59,6 +66,9 @@ struct ThreadImpl {
         Logger::error("Unknown exception caught in Thread {}", ptr->name);
     }
     ptr->stopped = true;
+#ifdef STAR_USE_RPMALLOC
+    ::rpmalloc_thread_finalize();
+#endif
     return 0;
   }
 

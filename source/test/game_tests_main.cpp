@@ -4,6 +4,10 @@
 
 #include "gtest/gtest.h"
 
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
+
 using namespace Star;
 
 struct ErrorLogSink : public LogSink {
@@ -37,6 +41,9 @@ public:
 };
 
 int main(int argc, char** argv) {
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_initialize();
+#endif
   testing::InitGoogleTest(&argc, argv);
   testing::AddGlobalTestEnvironment(new TestEnvironment(RootLoader({{}, {}, {}, LogLevel::Error, true, {}}).commandParseOrDie(argc, argv).first));
   return RUN_ALL_TESTS();

@@ -3,9 +3,16 @@
 #include "StarJsonExtra.hpp"
 #include "StarFile.hpp"
 
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
+
 using namespace Star;
 
 int main(int argc, char** argv) {
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_initialize();
+#endif
   try {
     double startTime = Time::monotonicTime();
 

@@ -3,9 +3,16 @@
 #include "StarUtilityLuaBindings.hpp"
 #include "StarRootLuaBindings.hpp"
 
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
+
 using namespace Star;
 
 int main(int argc, char** argv) {
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_initialize();
+#endif
   RootLoader rootLoader({{}, {}, {}, LogLevel::Error, false, {}});
   RootUPtr root;
   OptionParser::Options options;
@@ -13,6 +20,7 @@ int main(int argc, char** argv) {
 
   auto engine = LuaEngine::create(true);
   auto context = engine->createContext();
+  context.setCallbacks("xsb", LuaBindings::makeXsbCallbacks());
   context.setCallbacks("sb", LuaBindings::makeUtilityCallbacks());
   context.setCallbacks("root", LuaBindings::makeRootCallbacks());
 
@@ -49,5 +57,8 @@ int main(int argc, char** argv) {
       continuation = false;
     }
   }
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_finalize();
+#endif
   return 0;
 }

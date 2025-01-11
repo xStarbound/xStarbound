@@ -10,6 +10,10 @@
 #include "StarServerRconThread.hpp"
 #include "StarSignalHandler.hpp"
 
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
+
 using namespace Star;
 
 // FezzedOne: Fixed an inconsistency that caused world crashes only on the server.
@@ -45,6 +49,9 @@ Json const AdditionalDefaultConfiguration = Json::parseJson(R"JSON(
   )JSON");
 
 int main(int argc, char** argv) {
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_initialize();
+#endif
   try {
     RootLoader rootLoader({AdditionalAssetsSettings, AdditionalDefaultConfiguration, String("xserver.log"), LogLevel::Info, false, String("xserver.config")});
     RootUPtr root = rootLoader.commandInitOrDie(argc, argv).first;
@@ -107,5 +114,8 @@ int main(int argc, char** argv) {
     fatalException(e, true);
   }
 
+  #ifdef STAR_USE_RPMALLOC
+    ::rpmalloc_finalize();
+  #endif
   return 0;
 }

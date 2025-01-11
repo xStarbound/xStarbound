@@ -5,10 +5,18 @@
 #include "StarAssets.hpp"
 #include "StarItemDatabase.hpp"
 #include "StarJson.hpp"
+#include "StarSet.hpp"
+
+#ifdef STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#endif
 
 using namespace Star;
 
 int main(int argc, char** argv) {
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_initialize();
+#endif
   try {
     RootLoader rootLoader({{}, {}, {}, LogLevel::Error, false, {}});
 
@@ -24,7 +32,7 @@ int main(int argc, char** argv) {
     auto countWordsInType = [&](String const& type, function<int(Json const&)> countFunction, Maybe<function<bool(String const&)>> filterFunction = {}, Maybe<String> wordCountKey = {}) {
       auto files = assets->scanExtension(type);
       if (filterFunction)
-        files.filter(*filterFunction);
+        Star::filter(files, *filterFunction);
       assets->queueJsons(files);
       for (auto path : files) {
         auto json = assets->json(path);
