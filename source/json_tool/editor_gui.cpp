@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QGridLayout>
 #include <QPushButton>
+#include <QByteArray>
 #include "StarFile.hpp"
 #include "json_tool.hpp"
 #include "editor_gui.hpp"
