@@ -1,7 +1,6 @@
 #include <QApplication>
 #include <QGridLayout>
 #include <QPushButton>
-#include <QByteArray>
 #include "StarFile.hpp"
 #include "json_tool.hpp"
 #include "editor_gui.hpp"
@@ -90,7 +89,7 @@ void JsonEditor::back() {
 
 void JsonEditor::updatePreview(QString const& valueStr) {
   try {
-    FormattedJson newValue = m_editFormat->toJson(valueStr.toStdString());
+    FormattedJson newValue = m_editFormat->toJson(std::string(valueStr.toUtf8()));
     FormattedJson preview = addOrSet(false, m_path, m_currentJson, m_options.insertLocation, newValue);
     m_jsonDocument->setPlainText(preview.repr().utf8Ptr());
 
@@ -102,7 +101,7 @@ void JsonEditor::updatePreview(QString const& valueStr) {
 
 bool JsonEditor::saveChanges() {
   try {
-    FormattedJson newValue = m_editFormat->toJson(m_valueEditor->text().toStdString());
+    FormattedJson newValue = m_editFormat->toJson(std::string(m_valueEditor->text().toUtf8()));
     m_currentJson = addOrSet(false, m_path, m_currentJson, m_options.insertLocation, newValue);
     String repr = reprWithLineEnding(m_currentJson);
     File::writeFile(repr, m_files.get(m_fileIndex));
