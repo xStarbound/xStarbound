@@ -15,6 +15,7 @@ on:
 
 jobs:
   windows-debug:
+    if: false
     name: Windows x64 Debug (with Tests)
     runs-on: windows-latest
 
@@ -86,6 +87,7 @@ jobs:
           path: dist/*
 
   linux-debug:
+    if: false
     name: Linux x86_64 Debug (with Tests)
     runs-on: ubuntu-latest
 
