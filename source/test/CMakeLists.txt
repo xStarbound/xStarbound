@@ -67,6 +67,7 @@ add_executable(game_tests
 
 target_link_libraries(game_tests
         Star::Game
+        GTest::gtest_main
         GTest::gtest
 )
 
