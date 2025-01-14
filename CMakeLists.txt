@@ -610,7 +610,7 @@ if(NOT TARGET Opus::opus)
     find_package(Opus MODULE REQUIRED)
 endif()
 
-configure_file(${CMAKE_SOURCE_DIR}/xsb-assets/xSBassets/_metadata.in ${CMAKE_SOURCE_DIR}/xsb-assets/xSBassets/_metadata @ONLY)
+configure_file(${CMAKE_SOURCE_DIR}/assets/xSBassets/_metadata.in ${CMAKE_SOURCE_DIR}/assets/xSBassets/_metadata @ONLY)
 
 if(STAR_CROSS_COMPILE AND NOT (STAR_COMPILER STREQUAL "msvc" OR STAR_COMPILER STREQUAL "clang"))
     include_directories(SYSTEM
