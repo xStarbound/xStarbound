@@ -3,7 +3,9 @@ set(CMAKE_AUTOMOC ON)
 
 add_executable(json_tool WIN32
         json_tool.cpp
+        json_tool.hpp
         editor_gui.cpp
+        editor_gui.hpp
 )
 
 target_link_libraries(json_tool
