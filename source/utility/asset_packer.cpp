@@ -18,11 +18,12 @@ int main(int argc, char** argv) {
     double startTime = Time::monotonicTime();
 
     VersionOptionParser optParse;
-    optParse.setSummary("Packs asset folder into a starbound .pak file");
+    optParse.setSummary("Packs asset directory into a starbound .pak file; skips .git directory, .gitignore, .gitkeep, .gitmodules and .gitattributes by default");
     optParse.addParameter("c", "configFile", OptionParser::Optional, "JSON file with ignore lists and ordering info");
     optParse.addSwitch("s", "Enable server mode");
     optParse.addSwitch("v", "Verbose, list each file added");
-    optParse.addArgument("assets folder path", OptionParser::Required, "Path to the assets to be packed");
+    optParse.addSwitch("g", "Don't skip .git directory, .gitignore, .gitkeep, .gitmodules and .gitattributes");
+    optParse.addArgument("assets directory path", OptionParser::Required, "Path to the assets to be packed");
     optParse.addArgument("output filename", OptionParser::Required, "Output pak file");
 
     auto opts = optParse.commandParseOrDie(argc, argv);
@@ -56,6 +57,13 @@ int main(int argc, char** argv) {
         ignoreFiles = jsonToStringList(configFileJson.get("globalIgnore", JsonArray()));
         if (opts.switches.contains("s"))
           ignoreFiles.appendAll(jsonToStringList(configFileJson.get("serverIgnore", JsonArray())));
+        if (!opts.switches.contains("g")) {
+          ignoreFiles.append(R"(/\.git/)");
+          ignoreFiles.append(R"(/\.gitignore$)");
+          ignoreFiles.append(R"(/\.gitkeep$)");
+          ignoreFiles.append(R"(/\.gitmodules$)");
+          ignoreFiles.append(R"(/\.gitattributes$)");
+        }
         extensionOrdering = jsonToStringList(configFileJson.get("extensionOrdering", JsonArray()));
       } catch (JsonException const& e) {
         cerrf("Could not read the asset_packer config file {}\n", configFile);

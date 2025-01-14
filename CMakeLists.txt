@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 
-set(XSB_VERSION 3.3.5)
-set(XSB_ASSET_VERSION 3.3.5)
+set(XSB_VERSION 3.3.5.1)
+set(XSB_ASSET_VERSION 3.3.5.1)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
@@ -609,6 +609,8 @@ endif()
 if(NOT TARGET Opus::opus)
     find_package(Opus MODULE REQUIRED)
 endif()
+
+configure_file(${CMAKE_SOURCE_DIR}/xsb-assets/xSBassets/_metadata.in ${CMAKE_SOURCE_DIR}/xsb-assets/xSBassets/_metadata @ONLY)
 
 if(STAR_CROSS_COMPILE AND NOT (STAR_COMPILER STREQUAL "msvc" OR STAR_COMPILER STREQUAL "clang"))
     include_directories(SYSTEM

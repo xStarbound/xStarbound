@@ -151,7 +151,7 @@ function commands.listworld(cid, args)
         local hostType = checkHostType(cid)
         local connectionIds = universe.clientIds()
         local worldConnectionIds = {}
-        local worldId = args[1] or universe.clientWorld(cid) 
+        local worldId = (args[1] and args[1] ~= "") ? args[1] : universe.clientWorld(cid) 
         if worldId then
             for _, connectionId in ipairs(connectionIds) do
                 if universe.clientWorld(connectionId) == worldId then

@@ -255,7 +255,7 @@ Set your species: ^cyan;/identity set species [newSpecies]^reset;
                         if key == idKey then keyFound = true end
                     end
                     if not keyFound then
-                        return "Invalid key. Valid keys are:\n"
+                        return "Invalid or unspecified key. Valid keys are:\n"
                             .. getIdentitySetCommands()
                             .. "\nNot specifying ^cyan;<string>^reset; for ^cyan;imagePath^reset; sets it to ^cyan;null^reset;."
                             .. "\nFor ^cyan;name^reset;, the new name must be quoted or escaped if it contains any spaces."
@@ -300,7 +300,7 @@ Set your species: ^cyan;/identity set species [newSpecies]^reset;
                 for _, idKey in ipairs(identityKeys) do
                     if key == idKey then keyFound = true end
                 end
-                if not keyFound then return "Invalid key. Valid keys are:\n" .. getIdentityGetCommands() end
+                if not keyFound then return "Invalid or unspecified key. Valid keys are:\n" .. getIdentityGetCommands() end
                 return "^cyan;" .. key .. "^reset;: ^orange;" .. sb.printJson(player.identity()[key]) .. "^reset;"
             end
         else
@@ -618,7 +618,7 @@ local renderHelp =
 
 local function renderDirectives(rawArgs)
     local args = chat.parseArguments(rawArgs)
-    if not args[1] then
+    if args[1] == "" or not args[1] then
         return noArgHelp .. renderHelp
     elseif not checkRenderArguments(args) then
         return wrongArgHelp .. renderHelp
@@ -1066,6 +1066,8 @@ local function voiceSettings(rawArgs)
         else
             return invalidVoiceHelp
         end
+    else
+        return invalidVoiceHelp
     end
 end
 
@@ -1075,7 +1077,7 @@ command("voice", voiceSettings)
 
 local function handleDescription(rawArgs)
     local args = chat.parseArguments(rawArgs)
-    if not args[1] then
+    if args[1] == "" or not args[1] then
         local description = player.description()
         if description == "" then
             sb.logInfo("[xSB] Player description is empty.")
@@ -1085,7 +1087,7 @@ local function handleDescription(rawArgs)
         description = description == "" and "^gray;<no description>^reset;" or description
         return "^#888,set;[" .. player.name() .. "^reset,#888,set;]^#aaa,set; " .. description
     else
-        player.setDescription(args[1])
+        player.setDescription(args[1] == " " and "" or args[1])
         return "Set this character's description to: '" .. args[1] .. "'"
     end
 end

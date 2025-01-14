@@ -1,0 +1,11 @@
+{
+  "author" : "FezzedOne and xSB/OpenSB contributors",
+  "name" : "xSBassets",
+  "priority" : -9999,
+  "friendlyName" : "xStarbound Assets",
+  "requires" : ["base"],
+  "scripts": {
+    "postLoad": ["/titlebar.lua", "/xSB-mod-compat.lua"]
+  },
+  "version" : "@XSB_ASSET_VERSION@"
+}
