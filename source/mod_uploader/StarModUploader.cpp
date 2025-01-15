@@ -45,7 +45,7 @@ Maybe<ModUploader::ParsedArgs> ModUploader::parseArguments(int argc, char* argv[
     if (arg == "--help") {
       parsedArguments.shownHelp = true;
       coutf(ModUploaderHelp);
-    } else if (arg == "-g") {
+    } else if (arg == "-g" || arg == "--include-git-files") {
       parsedArguments.addGitFiles = true;
     }
   }
