@@ -5,11 +5,30 @@
 // #elifdef apparently isn't compatible with MSVC.
 #elif defined STAR_USE_JEMALLOC
 #include "jemalloc/jemalloc.h"
+#elif defined STAR_USE_RPMALLOC
+#include "rpmalloc/rpmalloc.h"
+#include "rpmalloc/rpnew.h"
 #endif
 
 namespace Star {
 
-#if defined STAR_USE_MIMALLOC
+#if defined STAR_USE_RPMALLOC
+  void* malloc(size_t size) {
+    return ::rpmalloc(size);
+  }
+
+  void* realloc(void* ptr, size_t size) {
+    return ::rprealloc(ptr, size);
+  }
+
+  void free(void* ptr) {
+    ::rpfree(ptr);
+  }
+
+  void free(void* ptr, size_t) {
+    ::rpfree(ptr);
+  }
+#elif defined STAR_USE_MIMALLOC
   void* malloc(size_t size) {
     return mi_malloc(size);
   }
@@ -82,6 +101,8 @@ namespace Star {
 
 }
 
+#if !defined STAR_USE_RPMALLOC
+
 void* operator new(std::size_t size) {
   auto ptr = Star::malloc(size);
   if (!ptr)
@@ -130,3 +151,5 @@ void operator delete(void* ptr, std::size_t size) noexcept {
 void operator delete[](void* ptr, std::size_t size) noexcept {
   Star::free(ptr, size);
 }
+
+#endif // !defined STAR_USE_RPMALLOC

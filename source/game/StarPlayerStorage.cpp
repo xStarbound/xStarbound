@@ -59,6 +59,7 @@ PlayerStorage::PlayerStorage(String const& storageDir) {
         it.remove();
       } else {
         try {
+          Logger::debug("Loading player with UUID {}...", entry.first.hex());
           auto entityFactory = Root::singleton().entityFactory();
           auto player = as<Player>(entityFactory->diskLoadEntity(EntityType::Player, entry.second));
           if (player->uuid() != entry.first)
@@ -247,6 +248,9 @@ void PlayerStorage::backupCycle(Uuid const& uuid) {
 
   auto configuration = Root::singleton().configuration();
   unsigned playerBackupFileCount = configuration->get("playerBackupFileCount").toUInt();
+  // FezzedOne: If the player file doesn't exist, don't do anything.
+  if (!m_playerFileNames.hasLeftValue(uuid))
+    return;
   auto& fileName = uuidFileName(uuid);
 
   auto path = [&](String const& dir, String const& extension) {

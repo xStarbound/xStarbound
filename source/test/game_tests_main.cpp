@@ -6,6 +6,7 @@
 
 #ifdef STAR_USE_RPMALLOC
 #include "rpmalloc/rpmalloc.h"
+#define ENABLE_OVERRIDE 1
 #endif
 
 using namespace Star;
