@@ -19,7 +19,14 @@ namespace Star {
 class ModUploader : public QMainWindow {
   Q_OBJECT
 public:
+  struct ParsedArgs {
+    bool addGitFiles = false;
+    bool shownHelp = false;
+  };
+
+  ModUploader(ParsedArgs parsedArguments);
   ModUploader();
+  static Maybe<ParsedArgs> parseArguments(int argc, char* argv[]);
 
 private slots:
   void selectDirectory();
@@ -52,6 +59,8 @@ private:
 
   Maybe<pair<CreateItemResult_t, bool>> m_steamItemCreateResult;
   Maybe<pair<SubmitItemUpdateResult_t, bool>> m_steamItemSubmitResult;
+
+  bool m_ignoreGitFiles = false;
 };
 
 }

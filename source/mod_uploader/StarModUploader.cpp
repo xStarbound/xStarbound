@@ -14,8 +14,47 @@
 
 namespace Star {
 
-ModUploader::ModUploader()
-  : QMainWindow() {
+const char* const ModUploaderHelp = R"HELP(
+xStarbound Steam Workshop Mod Uploader
+--------------------------------------
+Usage:
+  mod_uploader [options]
+
+Options:
+  -g, --include-git-files      Includes Git files, i.e., the .git directory, the .github directory,
+                               .gitignore, .gitkeep, .gitmodules, .gitattributes and .gitlab-ci.yml,
+                               in any uploaded mod source. Without this option, Git files will be
+                               stripped.
+
+  --help                       Displays this help message.
+
+Examples:
+  mod_uploader --include-git-files
+    Uploads the mod source with all Git-related files included.
+
+  mod_uploader --help
+    Displays this help message.
+)HELP";
+
+Maybe<ModUploader::ParsedArgs> ModUploader::parseArguments(int argc, char* argv[]) {
+  Deque<String> args = Deque<String>(argv + 1, argv + argc);
+  ParsedArgs parsedArguments;
+
+  while (!args.empty()) {
+    String const& arg = args.takeFirst();
+    if (arg == "--help") {
+      parsedArguments.shownHelp = true;
+      coutf(ModUploaderHelp);
+    } else if (arg == "-g") {
+      parsedArguments.addGitFiles = true;
+    }
+  }
+
+  return parsedArguments;
+}
+
+ModUploader::ModUploader(ParsedArgs parsedArguments)
+  : QMainWindow(), m_ignoreGitFiles(!parsedArguments.addGitFiles) {
 
   auto selectDirectoryButton = new QPushButton("Select Mod Directory");
   m_directoryLabel = new QLabel();
@@ -131,9 +170,11 @@ ModUploader::ModUploader()
   m_reloadButton->setEnabled(false);
   m_editorSection->setEnabled(false);
 
-  setWindowTitle("Steam Mod Uploader");
+  setWindowTitle("xStarbound Steam Mod Uploader");
   resize(1000, 600);
 }
+
+ModUploader::ModUploader() : ModUploader(ParsedArgs{}) {}
 
 void ModUploader::selectDirectory() {
   QString dir = QFileDialog::getExistingDirectory(this, "Select the top-level mod directory");
@@ -163,7 +204,17 @@ void ModUploader::loadDirectory() {
   m_reloadButton->setEnabled(true);
   m_directoryLabel->setText(toQString(*m_modDirectory));
   m_editorSection->setEnabled(true);
-  m_assetSource = DirectoryAssetSource(*m_modDirectory);
+  List<String> filesToIgnore;
+  if (m_ignoreGitFiles) {
+    filesToIgnore.append(R"(/\.git/)");
+    filesToIgnore.append(R"(/\.gitignore$)");
+    filesToIgnore.append(R"(/\.gitkeep$)");
+    filesToIgnore.append(R"(/\.gitmodules$)");
+    filesToIgnore.append(R"(/\.gitattributes$)");
+    filesToIgnore.append(R"(/\.github$)");
+    filesToIgnore.append(R"(/\.gitlab-ci\.yml$)");
+  }
+  m_assetSource = DirectoryAssetSource(*m_modDirectory, filesToIgnore);
 
   JsonObject metadata = m_assetSource->metadata();
   m_nameEditor->setText(toQString(metadata.value("name", "").toString()));

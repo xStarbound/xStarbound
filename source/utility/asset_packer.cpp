@@ -18,11 +18,13 @@ int main(int argc, char** argv) {
     double startTime = Time::monotonicTime();
 
     VersionOptionParser optParse;
-    optParse.setSummary("Packs asset directory into a starbound .pak file; skips .git directory, .gitignore, .gitkeep, .gitmodules and .gitattributes by default");
+    optParse.setSummary("Packs asset directory into a starbound .pak file; skips .git directory, .github directory, .gitignore, .gitkeep, "
+      ".gitmodules, .gitattributes and .gitlab-ci.yml by default");
     optParse.addParameter("c", "configFile", OptionParser::Optional, "JSON file with ignore lists and ordering info");
     optParse.addSwitch("s", "Enable server mode");
     optParse.addSwitch("v", "Verbose, list each file added");
-    optParse.addSwitch("g", "Don't skip .git directory, .gitignore, .gitkeep, .gitmodules and .gitattributes");
+    optParse.addSwitch("g", "Don't skip .git directory, .github directory, .gitignore, .gitkeep, .gitmodules, .gitattributes"
+      " or .gitlab-ci.yml");
     optParse.addArgument("assets directory path", OptionParser::Required, "Path to the assets to be packed");
     optParse.addArgument("output filename", OptionParser::Required, "Output pak file");
 
@@ -39,7 +41,7 @@ int main(int argc, char** argv) {
       try {
         configFileContents = File::readFileString(configFile);
       } catch (IOException const& e) {
-        cerrf("Could not open specified configFile: {}\n", configFile);
+        cerrf("Could not open the specified config file: {}\n", configFile);
         cerrf("For the following reason: {}\n", outputException(e, false));
         return 1;
       }
@@ -48,7 +50,7 @@ int main(int argc, char** argv) {
       try {
         configFileJson = Json::parseJson(configFileContents);
       } catch (JsonParsingException const& e) {
-        cerrf("Could not parse the specified configFile: {}\n", configFile);
+        cerrf("Could not parse the specified config file: {}\n", configFile);
         cerrf("For the following reason: {}\n", outputException(e, false));
         return 1;
       }
@@ -63,6 +65,8 @@ int main(int argc, char** argv) {
           ignoreFiles.append(R"(/\.gitkeep$)");
           ignoreFiles.append(R"(/\.gitmodules$)");
           ignoreFiles.append(R"(/\.gitattributes$)");
+          ignoreFiles.append(R"(/\.github$)");
+          ignoreFiles.append(R"(/\.gitlab-ci\.yml$)");
         }
         extensionOrdering = jsonToStringList(configFileJson.get("extensionOrdering", JsonArray()));
       } catch (JsonException const& e) {
@@ -74,11 +78,11 @@ int main(int argc, char** argv) {
 
     bool verbose = opts.parameters.contains("v");
 
-    function<void(size_t, size_t, String, String, bool)> BuildProgressCallback;
-    auto progressCallback = [verbose](size_t, size_t, String filePath, String assetPath) {
-      if (verbose)
-        coutf("Adding file '{}' to the target pak as '{}'\n", filePath, assetPath);
-    };
+    function<void(size_t, size_t, String, String)> progressCallback =
+      [verbose](size_t, size_t, String filePath, String assetPath) {
+        if (verbose)
+          coutf("Adding file '{}' to the target pak as '{}'\n", filePath, assetPath);
+      };
 
     outputFilename = File::relativeTo(File::fullPath(File::dirName(outputFilename)), File::baseName(outputFilename));
     DirectoryAssetSource directorySource(assetsFolderPath, ignoreFiles);
