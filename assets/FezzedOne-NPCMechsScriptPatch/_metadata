@@ -1,0 +1,11 @@
+{
+  "author" : "FezzedOne",
+  "description" : "Patches an xStarbound-specific Lua script issue in NPC Mechs.",
+  "friendlyName" : "FezzedOne's NPC Mechs Script Patch",
+  "name" : "FezzedOne-NPCMechsScriptPatch",
+  "priority" : 99999,
+  "includes" : ["xs_crumex"],
+  "requires" : [],
+  "scripts" : {"postLoad": ["/npc-mechs-script-patch.postproc.lua"]},
+  "version" : "1.0"
+}
