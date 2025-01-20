@@ -140,7 +140,7 @@ ItemPtr PlayerInventory::stackWith(InventorySlot const& slot, ItemPtr const& ite
 ItemPtr PlayerInventory::takeSlot(InventorySlot const& slot) {
   if (slot.is<SwapSlot>())
     m_swapReturnSlot = {};
-  auto item = retrieve(slot);
+  auto& item = retrieve(slot);
   item->markTaken();
   return take(item);
 }
