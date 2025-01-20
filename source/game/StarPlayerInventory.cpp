@@ -10,6 +10,7 @@
 #include "StarItemBag.hpp"
 #include "StarAssets.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarItem.hpp"
 
 namespace Star {
 
@@ -139,7 +140,9 @@ ItemPtr PlayerInventory::stackWith(InventorySlot const& slot, ItemPtr const& ite
 ItemPtr PlayerInventory::takeSlot(InventorySlot const& slot) {
   if (slot.is<SwapSlot>())
     m_swapReturnSlot = {};
-  return take(retrieve(slot));
+  auto item = retrieve(slot);
+  item->markTaken();
+  return take(item);
 }
 
 bool PlayerInventory::exchangeItems(InventorySlot const& first, InventorySlot const& second) {

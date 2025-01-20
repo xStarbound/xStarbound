@@ -115,6 +115,8 @@ public:
   // Returns just the dynamic parameters
   Json parameters() const;
 
+  virtual void markTaken();
+
   static bool itemsEqual(ItemConstPtr const& a, ItemConstPtr const& b);
 
 protected:

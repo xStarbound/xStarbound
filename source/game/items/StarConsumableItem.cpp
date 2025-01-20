@@ -107,4 +107,8 @@ void ConsumableItem::maybeConsume() {
   }
 }
 
+void ConsumableItem::markTaken() {
+  maybeConsume();
+}
+
 }

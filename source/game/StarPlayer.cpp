@@ -1433,7 +1433,10 @@ void Player::triggerPickupEvents(ItemPtr const& item) {
     for (auto pair : item->collectablesOnPickup())
       addCollectable(pair.first, pair.second);
 
-    for (auto m : item->instanceValue("radioMessagesOnPickup", JsonArray()).iterateArray()) {
+    // FezzedOne: Fixed crash to menu whenever an item's `"radioMessagesOnPickup"` is of the wrong type.
+    auto radioMessageList = item->instanceValue("radioMessagesOnPickup", JsonArray());
+    radioMessageList = radioMessageList.isType(Json::Type::Array) ? radioMessageList : JsonArray();
+    for (auto m : radioMessageList.iterateArray()) {
       if (m.isType(Json::Type::Array)) {
         if (m.size() >= 2 && m.get(1).canConvert(Json::Type::Float))
           queueRadioMessage(m.get(0), m.get(1).toFloat());
@@ -1451,14 +1454,17 @@ void Player::triggerPickupEvents(ItemPtr const& item) {
     }
 
     if (auto consume = item->instanceValue("consumeOnPickup", Json())) {
-      if (consume.toBool())
+      if (consume.isType(Json::Type::Bool) && consume.toBool())
         item->consume(item->count());
     }
+
+    auto itemCategory = item->instanceValue("eventCategory", item->category());
+    itemCategory = itemCategory.isType(Json::Type::String) ? itemCategory : String("");
 
     statistics()->recordEvent("item", JsonObject{
         {"itemName", item->name()},
         {"count", item->count()},
-        {"category", item->instanceValue("eventCategory", item->category())}
+        {"category", itemCategory}
       });
   }
 }

@@ -286,6 +286,8 @@ StringMap<String> Item::collectablesOnPickup() const {
   return m_collectablesOnPickup;
 }
 
+void Item::markTaken() {}
+
 GenericItem::GenericItem(Json const& config, String const& directory, Json const& parameters)
   : Item(config, directory, parameters), SwingableItem(config) {}
 

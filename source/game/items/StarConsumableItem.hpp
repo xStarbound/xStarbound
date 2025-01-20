@@ -20,6 +20,8 @@ public:
   void fireTriggered() override;
   void uninit() override;
 
+  void markTaken() override;
+
 private:
   bool canUse() const;
 
