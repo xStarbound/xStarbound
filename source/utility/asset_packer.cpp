@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
           ignoreFiles.append(R"(/\.gitkeep$)");
           ignoreFiles.append(R"(/\.gitmodules$)");
           ignoreFiles.append(R"(/\.gitattributes$)");
-          ignoreFiles.append(R"(/\.github$)");
+          ignoreFiles.append(R"(/\.github/)");
           ignoreFiles.append(R"(/\.gitlab-ci\.yml$)");
         }
         extensionOrdering = jsonToStringList(configFileJson.get("extensionOrdering", JsonArray()));

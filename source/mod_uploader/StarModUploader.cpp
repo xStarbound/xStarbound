@@ -211,7 +211,7 @@ void ModUploader::loadDirectory() {
     filesToIgnore.append(R"(/\.gitkeep$)");
     filesToIgnore.append(R"(/\.gitmodules$)");
     filesToIgnore.append(R"(/\.gitattributes$)");
-    filesToIgnore.append(R"(/\.github$)");
+    filesToIgnore.append(R"(/\.github/)");
     filesToIgnore.append(R"(/\.gitlab-ci\.yml$)");
   }
   m_assetSource = DirectoryAssetSource(*m_modDirectory, filesToIgnore);
