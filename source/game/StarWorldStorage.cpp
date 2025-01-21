@@ -58,11 +58,11 @@ void WorldStorage::repackWorldFile(String const& fileName, String const& fileTyp
         newDb.close();
 
         Logger::info("WorldStorage: Detected {:.2f}% unused space (exceeding {:.2f}% threshold) in {}; repacked before load in {:.2f} ms",
-          freeSpacePercentage * 100.0f, repackingThreshold * 100.0f, fileType, fileName, (Time::monotonicTime() - startTime) * 1000.0f);
+          freeSpacePercentage * 100.0f, repackingThreshold * 100.0f, fileType, (Time::monotonicTime() - startTime) * 1000.0f);
         success = true;
       } else {
         Logger::info("WorldStorage: Detected {:.2f}% unused space (below {:.2f}% threshold) in {}; not repacking",
-          freeSpacePercentage * 100.0f, repackingThreshold * 100.0f, fileType, fileName);
+          freeSpacePercentage * 100.0f, repackingThreshold * 100.0f, fileType);
         success = false;
       }
     } catch (const std::exception& e) {
