@@ -21,7 +21,7 @@ void Cinematic::load(Json const& definition) {
   stop();
 
   // FezzedOne: Fixed potential crash to menu when loading a cinematic of the wrong type.
-  if (definition.isType(Json::Type::Object)) return;
+  if (!definition.isType(Json::Type::Object)) return;
 
   for (auto timeSkipDefinition : definition.getArray("timeSkips", JsonArray())) {
     TimeSkip timeSkip;
