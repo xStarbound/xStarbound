@@ -89,7 +89,7 @@ jobs:
   linux-debug:
     if: false
     name: Linux x86_64 Debug (with Tests)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Install Build Dependencies
@@ -130,7 +130,7 @@ jobs:
 
   linux-release:
     name: Linux x86_64 Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Install Build Dependencies
