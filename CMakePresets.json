@@ -281,7 +281,8 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "ON",
-        "STAR_USE_RPMALLOC": "ON",
+        "STAR_USE_MIMALLOC": "ON",
+        "STAR_USE_RPMALLOC": "OFF",
         "BUILD_TESTING": "ON"
       },
       "condition": {
