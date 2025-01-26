@@ -70,7 +70,7 @@ xStarbound supports the image operations listed below. Names and arguments are i
 
 > **Note to modders:** These detailed technical notes are aimed mostly at macOS users, C/C++ developers and nerds. The average Starbound modder can and should skip reading these unless gripped by curiosity.
 
-**MinGW builds:** The behaviour of the `?replace` directive parser and executor on the MinGW/Windows build (the released build on GitHub) actually deviates slightly from its description above in order to work around a minor optimisation "fluke" that would otherwise affect generated sleeve items. On this build, the behaviour of the following "source" colours is changed, in order of precedence:
+**MinGW builds:** The behaviour of the `?replace` directive parser and executor on the Linux/GCC and MinGW/Windows build actually deviates slightly from its description above in order to work around a minor optimisation "fluke" that would otherwise affect generated sleeve items. On this build, the behaviour of the following "source" colours is changed, in order of precedence:
 
 - `bcbc5e`, `bcbc5eff`, `bcbc5dff`: These replace the specified colours with replacement colours, working exactly as in stock Starbound, StarExtensions and other non-xClient clients. Use `bcbc5dff` instead of `bcbc5d` if you don't want the "implicit" double replacement below to happen; this should virtually never be necessary since a replacement of `bcbc5e` in the same operation will always override "implicit" replacement.
 - `ae9c5a`, `ae9c5aff`, `ad9b5aff`: These replace the specified colours with replacement colours, working exactly as in stock Starbound, StarExtensions and other non-xClient clients. Use `ae9c5aff` instead of `ae9c5a` if you don't want the "implicit" double replacement below to happen; this should virtually never be necessary since a replacement of `ae9c5a` in the same operation will always override "implicit" replacement.
@@ -81,6 +81,6 @@ This colour replacement happens completely under the hood and has been designed 
  
 As for the rationale, this internal substitution is done on the MinGW build in order to work around floating-point optimisations in `?scale`/`?scalebilinear` calculations that cause the `walk.1` and `run.1` frame in generated sleeve items (the most common type, with a Dokie "header") to be rendered as a big yellow box. Using pragmas to disable the problematic optimisations on MinGW didn't work.
 
-**Linux and MSVC builds:** The "fluke" above does not affect the Linux or MSVC/Windows build. As such, these builds do not have or need the `?replace` adjustments detailed above.
+**Linux and MSVC builds:** The "fluke" above does not affect the Linux/Clang or MSVC/Windows build. As such, these builds do not have or need the `?replace` adjustments detailed above.
  
 **macOS builds:** Generated sleeves on the x86 macOS build (at least on the latest x86-64 Apple Clang on macOS 14 Sonoma) are affected by a different and *worse* optimisation "fluke" (that affects four *back* sleeve frames) which I couldn't fix by disabling optimisations and didn't feel like patching around, so they're most likely still in that build if you decide to compile it yourself. I suggest you save yourself the trouble by cross-compiling and running the Windows build in Whisky or WINE.
