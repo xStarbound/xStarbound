@@ -81,6 +81,6 @@ This colour replacement happens completely under the hood and has been designed 
  
 As for the rationale, this internal substitution is done on the MinGW build in order to work around floating-point optimisations in `?scale`/`?scalebilinear` calculations that cause the `walk.1` and `run.1` frame in generated sleeve items (the most common type, with a Dokie "header") to be rendered as a big yellow box. Using pragmas to disable the problematic optimisations on MinGW didn't work.
 
-**Linux and MSVC builds:** The "fluke" above does not affect the Linux/Clang or MSVC/Windows build. As such, these builds do not have or need the `?replace` adjustments detailed above.
+**Clang and MSVC builds:** The "fluke" above does not affect the Linux/Clang or MSVC/Windows build. As such, these builds do not have or need the `?replace` adjustments detailed above.
  
 **macOS builds:** Generated sleeves on the x86 macOS build (at least on the latest x86-64 Apple Clang on macOS 14 Sonoma) are affected by a different and *worse* optimisation "fluke" (that affects four *back* sleeve frames) which I couldn't fix by disabling optimisations and didn't feel like patching around, so they're most likely still in that build if you decide to compile it yourself. I suggest you save yourself the trouble by cross-compiling and running the Windows build in Whisky or WINE.
