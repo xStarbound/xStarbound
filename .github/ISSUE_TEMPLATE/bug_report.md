@@ -46,6 +46,6 @@ To install the PDB files:
 2. Once extracted, copy the `.pdb` files into the folder containing the executables of the same names. Depending on the version of Starbound you own, this folder is located at:
   - **Windows (Steam):** Defaults to `C:\Program Files\Steam\steamapps\common\Starbound\xsb-win64\`. Replace `C:\Program Files (x86)\Steam\steamapps\common\` with the path to your custom installation directory for Starbound, if you use one.
   - **Windows (GOG):** Defaults to `C:\GOG Games\Starbound\xsb-win64\`.
-  - **Windows (Xbox Live}:** Defaults to `C:\Program Files\WindowsApps\Starbound\xsb-win64\`.
+  - **Windows (Xbox Live):** Defaults to `C:\Program Files\WindowsApps\Starbound\xsb-win64\`.
   - **Windows (other):** If you've followed the manual installation instructions or used the installer, the executables will be in `%starboundDir%\xsb-win64\`, where `%starboundDir%` is the path to your Starbound install.
 3. Restart xStarbound and attempt to reproduce the crash.
