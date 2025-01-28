@@ -64,21 +64,22 @@ namespace Star {
       ::sdallocx(ptr, size, 0);
   }
   #else
+  // FezzedOne: ... or in the VCPKG package.
   void* malloc(size_t size) {
-    return je_malloc(size);
+    return ::malloc(size);
   }
 
   void* realloc(void* ptr, size_t size) {
-    return je_realloc(ptr, size);
+    return ::realloc(ptr, size);
   }
 
   void free(void* ptr) {
-    je_free(ptr);
+    ::free(ptr);
   }
 
   void free(void* ptr, size_t size) {
     if (ptr)
-      je_sdallocx(ptr, size, 0);
+      ::sdallocx(ptr, size, 0);
   }
   #endif
 #else
