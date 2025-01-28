@@ -141,7 +141,9 @@ void GuiContext::resetInterfaceScissorRect() {
 }
 
 Vec2U GuiContext::textureSize(AssetPath const& texName) {
-  return assetTextureGroup()->loadTexture(texName)->size();
+  if (auto texture = assetTextureGroup()->loadTexture(texName))
+    return texture->size();
+  return Vec2U();
 }
 
 void GuiContext::drawQuad(RectF const& screenCoords, Vec4B const& color) {
