@@ -66,13 +66,37 @@ void ModsMenu::update(float dt) {
     String assetsSource = m_assetsSources.at(selectedItem);
     JsonObject assetsSourceMetadata = Root::singleton().assets()->assetSourceMetadata(assetsSource);
 
-    m_modName->setText(bestModName(assetsSourceMetadata, assetsSource));
-    m_modAuthor->setText(assetsSourceMetadata.value("author", "No Author Set").toString());
-    m_modVersion->setText(assetsSourceMetadata.value("version", "No Version Set").toString());
+    String modName = bestModName(assetsSourceMetadata, assetsSource);
+    m_modName->setText(modName);
+  
+    auto modAuthor = assetsSourceMetadata.value("author", "<n/a>");
+    bool authorIsString = modAuthor.isType(Json::Type::String);
+    String modAuthorStr = authorIsString ? modAuthor.toString() : "<n/a>";
+    m_modAuthor->setText(modAuthorStr);
+    // if (!authorIsString)
+    //   Logger::warn("ModsMenu: Specified author name for mod '{}' at '{}' is not a string; discarding invalid author name", modName, assetsSource);
+  
+    auto modVersion = assetsSourceMetadata.value("version", "<n/a>");
+    String modVersionStr = modVersion.isType(Json::Type::String) ? modVersion.toString() : 
+      ((modVersion.isType(Json::Type::Int) || modVersion.isType(Json::Type::Float)) ? modVersion.repr() : "<n/a>");
+    m_modVersion->setText(modVersionStr);
+    // if (!(modVersion.isType(Json::Type::Int) || modVersion.isType(Json::Type::Float) || modVersion.isType(Json::Type::String)))
+    //   Logger::warn("ModsMenu: Specified version for mod '{}' at '{}' is not a string or number; discarding invalid version", modName, assetsSource);
+  
     m_modPath->setText(assetsSource);
-    m_modDescription->setText(assetsSourceMetadata.value("description", "").toString());
+  
+    auto modDescription = assetsSourceMetadata.value("description", "<n/a>");
+    bool descriptionIsString = modDescription.isType(Json::Type::String);
+    String modDescriptionStr = descriptionIsString ? modDescription.toString() : "<n/a>";
+    m_modDescription->setText(modDescriptionStr);
+    // if (!descriptionIsString)
+    //   Logger::warn("ModsMenu: Specified description for mod '{}' at '{}' is not a string; discarding invalid description", modName, assetsSource);
 
-    String link = assetsSourceMetadata.value("link", "").toString();
+    auto linkJson = assetsSourceMetadata.value("link", "");
+    bool linkIsString = linkJson.isType(Json::Type::String);
+    String link = linkIsString ? linkJson.toString() : "";
+    // if (!linkIsString)
+    //   Logger::warn("ModsMenu: Specified link for mod '{}' at '{}' is not a string; discarding invalid link", modName, assetsSource);
 
     m_linkButton->setEnabled(!link.empty());
     m_copyLinkButton->setEnabled(!link.empty());
@@ -81,9 +105,9 @@ void ModsMenu::update(float dt) {
 
 String ModsMenu::bestModName(JsonObject const& metadata, String const& sourcePath) {
   if (auto ptr = metadata.ptr("friendlyName"))
-    return ptr->toString();
+    return ptr->isType(Json::Type::String) ? ptr->toString() : ptr->repr();
   if (auto ptr = metadata.ptr("name"))
-    return ptr->toString();
+    return ptr->isType(Json::Type::String) ? ptr->toString() : ptr->repr();
   String baseName = File::baseName(sourcePath);
   if (baseName.contains("."))
     baseName.rextract(".");

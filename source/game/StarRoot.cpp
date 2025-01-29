@@ -637,7 +637,7 @@ StringList Root::scanForAssetSources(StringList const& directories) {
       else if (entry.first.endsWith(".pak"))
         source = make_shared<PackedAssetSource>(fileName);
       else
-        Logger::warn("Root: Unrecognized file in asset directory '{}', skipping", entry.first);
+        Logger::warn("Root: Unrecognised file in asset directory '{}', skipping", entry.first);
 
       if (!source)
         continue;
@@ -645,12 +645,51 @@ StringList Root::scanForAssetSources(StringList const& directories) {
       auto metadata = source->metadata();
 
       auto assetSource = make_shared<AssetSource>();
+      // FezzedOne: Get rid of crashes from invalid or bad metadata.
       assetSource->path = fileName;
-      assetSource->name = metadata.maybe("name").apply(mem_fn(&Json::toString));
-      assetSource->priority = metadata.value("priority", 0.0f).toFloat();
-      assetSource->requires_ = jsonToStringList(metadata.value("requires", JsonArray{}));
-      assetSource->includes = jsonToStringList(metadata.value("includes", JsonArray{}));
-      assetSource->version = metadata.maybe("version").apply(mem_fn(&Json::toString));
+      if (auto nameJson = metadata.ptr("name"))
+        assetSource->name = nameJson->isType(Json::Type::String) ? nameJson->toString() : nameJson->repr();
+      else
+        assetSource->name = {};
+      if (auto priorityJson = metadata.ptr("priority")) {
+        if (priorityJson->isType(Json::Type::Float) || priorityJson->isType(Json::Type::Int)) {
+          assetSource->priority = priorityJson->toFloat();
+        } else {
+          assetSource->priority = 0.0f;
+          Logger::warn("Root: Asset source '{}' (file name '{}') has non-numerical priority value; assuming priority of 0",
+            assetSource->name, fileName);
+        }
+      } else {
+        assetSource->priority = 0.0f;
+      }
+      if (auto requiresJson = metadata.ptr("requires")) {
+        StringList requiresList{};
+        if (requiresJson->isType(Json::Type::Array)) {
+          for (auto val : requiresJson->iterateArray()) {
+            requiresList.append(val.isType(Json::Type::String) ? val.toString() : val.repr());
+          }
+        } else {
+          Logger::warn("Root: Asset source '{}' (file name '{}') has non-array \"requires\" value; skipping requires",
+            assetSource->name, fileName);
+        }
+        assetSource->requires_ = requiresList;
+      }
+      if (auto includesJson = metadata.ptr("includes")) {
+        StringList includesList{};
+        if (includesJson->isType(Json::Type::Array)) {
+          for (auto val : includesJson->iterateArray()) {
+            includesList.append(val.isType(Json::Type::String) ? val.toString() : val.repr());
+          }
+        } else {
+          Logger::warn("Root: Asset source '{}' (file name '{}') has non-array \"includes\" value; skipping includes",
+            assetSource->name, fileName);
+        }
+        assetSource->includes = includesList;
+      }
+      if (auto versionJson = metadata.ptr("version"))
+        assetSource->version = versionJson->isType(Json::Type::String) ? versionJson->toString() : versionJson->repr();
+      else
+        assetSource->version = {};
 
       if (assetSource->name) {
         if (auto oldAssetSource = namedSources.value(*assetSource->name)) {
@@ -730,15 +769,20 @@ StringList Root::scanForAssetSources(StringList const& directories) {
           if (*source->version == xSbAssetVersionString) {
             Logger::info("Root: Detected xStarbound assets, version '{}', at '{}'.", *source->version, source->path);
           } else {
-            throw StarException(strf("Root: Detected mismatched version '{}' of xStarbound assets at '{}', expected version '{}'! Make sure xStarbound is correctly installed and up to date.",
+            throw StarException(strf("Root: Detected mismatched version '{}' of xStarbound assets at '{}', expected version '{}'! "
+              "Make sure xStarbound is correctly installed and up to date.",
               *source->version, source->path, xSbAssetVersionString));
           }
         } else {
-          throw StarException(strf("Root: Detected non-versioned xStarbound assets at '{}', expected version '{}'! Make sure xStarbound is correctly installed and up to date.",
+          throw StarException(strf("Root: Detected non-versioned xStarbound assets at '{}', expected version '{}'! " 
+            "Make sure xStarbound is correctly installed and up to date.",
             source->path, xSbAssetVersionString));
         }
       } else {
-        Logger::info("Root: Detected asset source named '{}' at '{}'.", *source->name, source->path);
+        Logger::info("Root: Detected asset source named '{}'{} at '{}'.",
+          *source->name,
+          (source->version ? strf(", version '{}',", *source->version) : ", unversioned,"),
+          source->path);
       }
     } else {
       Logger::info("Root: Detected unnamed asset source at '{}'.", source->path);
