@@ -8,6 +8,8 @@
 
 namespace Star {
 
+constexpr float FixedTimeStep = 1.0f / 60.0f;
+
 MovementParameters MovementParameters::sensibleDefaults() {
   return MovementParameters(Root::singleton().assets()->json("/default_movement.config").toObject());
 }
@@ -400,15 +402,15 @@ void MovementController::rotate(float rotationRate) {
     return;
 
   m_resting = false;
-  m_rotation.set(fmod(rotation() + rotationRate * m_timeStep, 2 * Constants::pi));
+  m_rotation.set(fmod(rotation() + rotationRate * FixedTimeStep /* m_timeStep */, 2 * Constants::pi));
 }
 
 void MovementController::accelerate(Vec2F const& acceleration) {
-  setVelocity(velocity() + acceleration * m_timeStep);
+  setVelocity(velocity() + acceleration * FixedTimeStep /* m_timeStep */);
 }
 
 void MovementController::force(Vec2F const& force) {
-  setVelocity(velocity() + force / mass() * m_timeStep);
+  setVelocity(velocity() + force / mass() * FixedTimeStep /* m_timeStep */);
 }
 
 void MovementController::approachVelocity(Vec2F const& targetVelocity, float maxControlForce) {
@@ -422,7 +424,7 @@ void MovementController::approachVelocity(Vec2F const& targetVelocity, float max
   if (diffMagnitude == 0.0f)
     return;
 
-  float maximumAcceleration = maxControlForce / mass() * m_timeStep;
+  float maximumAcceleration = maxControlForce / mass() * FixedTimeStep; // m_timeStep
   float clampedMagnitude = clamp(diffMagnitude, 0.0f, maximumAcceleration);
 
   setVelocity(velocity() + diff * (clampedMagnitude / diffMagnitude));
@@ -445,7 +447,7 @@ void MovementController::approachVelocityAlongAngle(float angle, float targetVel
   if (positiveOnly && diff < 0)
     return;
 
-  float maximumAcceleration = maxControlForce / mass() * m_timeStep;
+  float maximumAcceleration = maxControlForce / mass() * FixedTimeStep; // m_timeStep
 
   float diffMagnitude = std::fabs(diff);
   float clampedMagnitude = clamp(diffMagnitude, 0.0f, maximumAcceleration);
@@ -654,7 +656,8 @@ void MovementController::tickMaster(float dt) {
     float buoyancy = *m_parameters.liquidBuoyancy * m_liquidPercentage + *m_parameters.airBuoyancy * (1.0f - liquidPercentage());
     float gravity = world()->gravity(position()) * *m_parameters.gravityMultiplier * (1.0f - buoyancy);
     Vec2F environmentVelocity;
-    environmentVelocity[1] -= gravity * dt;
+    // FezzedOne: Fixed gravitational acceleration incorrectly varying with FPS.
+    environmentVelocity[1] -= gravity * FixedTimeStep /* dt */;
 
     if (onGround() && *m_parameters.slopeSlidingFactor != 0 && m_surfaceSlope[1] != 0)
       environmentVelocity += -m_surfaceSlope * (m_surfaceSlope[0] * m_surfaceSlope[1]) * *m_parameters.slopeSlidingFactor;
