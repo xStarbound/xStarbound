@@ -492,6 +492,7 @@ void TitleScreen::switchState(TitleState titleState) {
       m_paneManager.displayRegisteredPane("charCreationMenu");
     } else if (titleState == TitleState::MultiPlayerConnect) {
       m_paneManager.displayRegisteredPane("multiplayerMenu");
+      m_paneManager.displayRegisteredPane("serverList");
       if (auto addressWidget = m_multiPlayerMenu->fetchChild("address"))
         addressWidget->focus();
     }
