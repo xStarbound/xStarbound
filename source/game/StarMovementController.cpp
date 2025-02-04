@@ -656,7 +656,6 @@ void MovementController::tickMaster(float dt) {
     float buoyancy = *m_parameters.liquidBuoyancy * m_liquidPercentage + *m_parameters.airBuoyancy * (1.0f - liquidPercentage());
     float gravity = world()->gravity(position()) * *m_parameters.gravityMultiplier * (1.0f - buoyancy);
     Vec2F environmentVelocity;
-    // FezzedOne: Fixed gravitational acceleration incorrectly varying with FPS.
     environmentVelocity[1] -= gravity * dt;
 
     if (onGround() && *m_parameters.slopeSlidingFactor != 0 && m_surfaceSlope[1] != 0)
