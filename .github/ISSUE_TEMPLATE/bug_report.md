@@ -33,12 +33,12 @@ Depending on your OS and what version of Starbound you have, the log files are l
 - **Linux/SteamOS (other):** `$starboundDir/storage/`, where `$starboundDir` is the path to your Starbound install.
 - **Windows (Steam):** Defaults to `C:\Program Files\Steam\steamapps\common\Starbound\storage\`. Replace `C:\Program Files (x86)\Steam\steamapps\common\` with the path to your custom installation directory for Starbound, if you use one.
 - **Windows (GOG):** Defaults to `C:\GOG Games\Starbound\storage\`.
-- **Windows (Xbox Live}:** Defaults to `C:\Program Files\WindowsApps\Starbound\storage\`, since `xsbinit.config` by default does *not* use the saves in your `Documents\` folder.
+- **Windows (Xbox Live):** Defaults to `C:\Program Files\WindowsApps\Starbound\storage\`, since `xsbinit.config` by default does *not* use the saves in your `Documents\` folder.
 - **Windows (other):** `%starboundDir%\storage\`, where `%starboundDir%` is the path to your Starbound install.
 
 **IF YOU'RE ON WINDOWS, READ THE FOLLOWING!**
 
-If you're on Windows and are reporting a crash, your log files are virtually **USELESS** if the `.pdb` files are not installed. If the crash happened without the `.pdb` files installed, install those files and then attempt to reproduce the crash before submitting the issue or uploading logs.
+If you're reporting a crash on the MSVC / Visual Studio build on Windows, your log files are virtually **USELESS** if the `.pdb` files are not installed. If the crash happened on an MSVC build without the `.pdb` files installed, install those files and then attempt to reproduce the crash before submitting the issue or uploading logs.
 
 To install the PDB files:
 
@@ -49,3 +49,5 @@ To install the PDB files:
   - **Windows (Xbox Live):** Defaults to `C:\Program Files\WindowsApps\Starbound\xsb-win64\`.
   - **Windows (other):** If you've followed the manual installation instructions or used the installer, the executables will be in `%starboundDir%\xsb-win64\`, where `%starboundDir%` is the path to your Starbound install.
 3. Restart xStarbound and attempt to reproduce the crash.
+
+**If you're reporting a crash on the dynamically linked Linux build, try to reproduce the crash on the statically linked build — or on a `RelWithDebInfo` or `Debug` build you've built yourself — before submitting a bug report.**
