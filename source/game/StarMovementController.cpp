@@ -402,15 +402,15 @@ void MovementController::rotate(float rotationRate) {
     return;
 
   m_resting = false;
-  m_rotation.set(fmod(rotation() + rotationRate * FixedTimeStep /* m_timeStep */, 2 * Constants::pi));
+  m_rotation.set(fmod(rotation() + rotationRate * m_timeStep, 2 * Constants::pi));
 }
 
 void MovementController::accelerate(Vec2F const& acceleration) {
-  setVelocity(velocity() + acceleration * FixedTimeStep /* m_timeStep */);
+  setVelocity(velocity() + acceleration * m_timeStep);
 }
 
 void MovementController::force(Vec2F const& force) {
-  setVelocity(velocity() + force / mass() * FixedTimeStep /* m_timeStep */);
+  setVelocity(velocity() + force / mass() * m_timeStep);
 }
 
 void MovementController::approachVelocity(Vec2F const& targetVelocity, float maxControlForce) {
@@ -657,7 +657,7 @@ void MovementController::tickMaster(float dt) {
     float gravity = world()->gravity(position()) * *m_parameters.gravityMultiplier * (1.0f - buoyancy);
     Vec2F environmentVelocity;
     // FezzedOne: Fixed gravitational acceleration incorrectly varying with FPS.
-    environmentVelocity[1] -= gravity * FixedTimeStep /* dt */;
+    environmentVelocity[1] -= gravity * dt;
 
     if (onGround() && *m_parameters.slopeSlidingFactor != 0 && m_surfaceSlope[1] != 0)
       environmentVelocity += -m_surfaceSlope * (m_surfaceSlope[0] * m_surfaceSlope[1]) * *m_parameters.slopeSlidingFactor;
