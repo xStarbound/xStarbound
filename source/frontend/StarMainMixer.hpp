@@ -17,7 +17,7 @@ public:
   void setUniverseClient(UniverseClientPtr universeClient);
   void setWorldPainter(WorldPainterPtr worldPainter);
 
-  void update(float dt, bool muteSfx = false, bool muteMusic = false);
+  void update(float dt, bool muteSfx = false, bool muteMusic = false, bool muteInstruments = false);
 
   MixerPtr mixer() const;
 

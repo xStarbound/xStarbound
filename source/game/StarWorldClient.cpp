@@ -622,6 +622,7 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
       
       m_particles->addParticles(std::move(renderCallback.particles));
       m_samples.appendAll(std::move(renderCallback.audios));
+      m_instruments.appendAll(std::move(renderCallback.instrumentAudios));
       previewTiles.appendAll(std::move(renderCallback.previewTiles));
       renderData.overheadBars.appendAll(std::move(renderCallback.overheadBars));
 
@@ -757,6 +758,10 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
   renderData.isFullbright = m_fullBright;
   renderData.dimLevel = m_worldDimLevel;
   renderData.dimColor = m_worldDimColor;
+}
+
+List<AudioInstancePtr> WorldClient::pullPendingInstrumentAudio() {
+  return take(m_instruments);
 }
 
 List<AudioInstancePtr> WorldClient::pullPendingAudio() {
@@ -2310,6 +2315,10 @@ void WorldClient::ClientRenderCallback::addParticle(Particle particle) {
 
 void WorldClient::ClientRenderCallback::addAudio(AudioInstancePtr audio) {
   audios.append(std::move(audio));
+}
+
+void WorldClient::ClientRenderCallback::addInstrumentAudio(AudioInstancePtr audio) {
+  instrumentAudios.append(std::move(audio));
 }
 
 void WorldClient::ClientRenderCallback::addTilePreview(PreviewTile preview) {

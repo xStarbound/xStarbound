@@ -48,6 +48,7 @@ Json const AdditionalDefaultConfiguration = Json::parseJson(R"JSON(
 
       "sfxVol" : 100,
       "musicVol" : 70,
+      "instrumentVol" : 100,
       "windowedResolution" : [1000, 600],
       "fullscreenResolution" : [1920, 1080],
       "fullscreen" : false,
@@ -1027,7 +1028,8 @@ void ClientApplication::updateRunning(float dt) {
 
     m_cinematicOverlay->update(dt);
     m_mainInterface->update(dt);
-    m_mainMixer->update(dt, m_cinematicOverlay->muteSfx(), m_cinematicOverlay->muteMusic());
+    m_mainMixer->update(dt, m_cinematicOverlay->muteSfx(), m_cinematicOverlay->muteMusic(), 
+      m_cinematicOverlay->muteMusic() || m_cinematicOverlay->muteSfx());
     m_mainMixer->setSpeed(GlobalTimescale);
 
     bool inputActive = m_mainInterface->textInputActive();

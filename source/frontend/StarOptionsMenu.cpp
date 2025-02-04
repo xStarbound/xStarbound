@@ -14,7 +14,7 @@
 namespace Star {
 
 OptionsMenu::OptionsMenu(PaneManager* manager)
-  : m_sfxRange(0, 100), m_musicRange(0, 100), m_paneManager(manager) {
+  : m_sfxRange(0, 100), m_musicRange(0, 100), m_instrumentRange(0, 100), m_paneManager(manager) {
   auto root = Root::singletonPtr();
   auto assets = root->assets();
 
@@ -25,6 +25,9 @@ OptionsMenu::OptionsMenu(PaneManager* manager)
     });
   reader.registerCallback("musicSlider", [=](Widget*) {
       updateMusicVol();
+    });
+  reader.registerCallback("instrumentSlider", [=](Widget*) {
+      updateInstrumentVol();
     });
   reader.registerCallback("acceptButton", [=](Widget*) {
       for (auto k : ConfigKeys)
@@ -66,6 +69,7 @@ OptionsMenu::OptionsMenu(PaneManager* manager)
 
   m_sfxSlider = fetchChild<SliderBarWidget>("sfxSlider");
   m_musicSlider = fetchChild<SliderBarWidget>("musicSlider");
+  m_instrumentSlider = fetchChild<SliderBarWidget>("instrumentSlider");
   m_tutorialMessagesButton = fetchChild<ButtonWidget>("tutorialMessagesCheckbox");
   m_clientIPJoinableButton = fetchChild<ButtonWidget>("clientIPJoinableCheckbox");
   m_clientP2PJoinableButton = fetchChild<ButtonWidget>("clientP2PJoinableCheckbox");
@@ -73,10 +77,12 @@ OptionsMenu::OptionsMenu(PaneManager* manager)
 
   m_sfxLabel = fetchChild<LabelWidget>("sfxValueLabel");
   m_musicLabel = fetchChild<LabelWidget>("musicValueLabel");
+  m_instrumentLabel = fetchChild<LabelWidget>("instrumentValueLabel");
   m_p2pJoinableLabel = fetchChild<LabelWidget>("clientP2PJoinableLabel");
 
   m_sfxSlider->setRange(m_sfxRange, assets->json("/interface/optionsmenu/optionsmenu.config:sfxDelta").toInt());
   m_musicSlider->setRange(m_musicRange, assets->json("/interface/optionsmenu/optionsmenu.config:musicDelta").toInt());
+  m_instrumentSlider->setRange(m_instrumentRange, assets->json("/interface/optionsmenu/optionsmenu.config:instrumentDelta").toInt());
 
   const String xSbVoiceChatPath = "/interface/xsb/voicechat/voicechat.config";
   m_voiceSettingsMenu = make_shared<VoiceSettingsMenu>(assets->json(config.getString("voiceSettingsPanePath", xSbVoiceChatPath)));
@@ -105,6 +111,7 @@ void OptionsMenu::toggleFullscreen() {
 StringList const OptionsMenu::ConfigKeys = {
   "sfxVol",
   "musicVol",
+  "instrumentVol",
   "tutorialMessages",
   "clientIPJoinable",
   "clientP2PJoinable",
@@ -113,6 +120,11 @@ StringList const OptionsMenu::ConfigKeys = {
 
 void OptionsMenu::initConfig() {
   auto configuration = Root::singleton().configuration();
+
+  auto instrumentVol = configuration->get("instrumentVol");
+
+  if (!(instrumentVol.isType(Json::Type::Float) || instrumentVol.isType(Json::Type::Int)))
+    configuration->set("instrumentVol", 100.0f);
 
   for (auto k : ConfigKeys) {
     m_origConfig[k] = configuration->get(k);
@@ -132,6 +144,11 @@ void OptionsMenu::updateMusicVol() {
   m_musicLabel->setText(toString(m_musicSlider->val()));
 }
 
+void OptionsMenu::updateInstrumentVol() {
+  m_localChanges.set("instrumentVol", {m_instrumentSlider->val()});
+  Root::singleton().configuration()->set("instrumentVol", m_instrumentSlider->val());
+  m_musicLabel->setText(toString(m_instrumentSlider->val()));
+}
 
 void OptionsMenu::updateTutorialMessages() {
   m_localChanges.set("tutorialMessages", m_tutorialMessagesButton->isChecked());
@@ -159,6 +176,9 @@ void OptionsMenu::syncGuiToConf() {
 
   m_musicSlider->setVal(m_localChanges.get("musicVol").toInt(), false);
   m_musicLabel->setText(toString(m_musicSlider->val()));
+
+  m_instrumentSlider->setVal(m_localChanges.get("instrumentVol").toInt(), false);
+  m_instrumentLabel->setText(toString(m_instrumentSlider->val()));
 
   m_tutorialMessagesButton->setChecked(m_localChanges.get("tutorialMessages").toBool());
   m_clientIPJoinableButton->setChecked(m_localChanges.get("clientIPJoinable").toBool());

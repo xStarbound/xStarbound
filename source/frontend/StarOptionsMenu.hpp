@@ -31,6 +31,7 @@ private:
 
   void updateSFXVol();
   void updateMusicVol();
+  void updateInstrumentVol();
   void updateTutorialMessages();
   void updateClientIPJoinable();
   void updateClientP2PJoinable();
@@ -45,6 +46,7 @@ private:
 
   SliderBarWidgetPtr m_sfxSlider;
   SliderBarWidgetPtr m_musicSlider;
+  SliderBarWidgetPtr m_instrumentSlider;
   ButtonWidgetPtr m_tutorialMessagesButton;
   ButtonWidgetPtr m_interactiveHighlightButton;
   ButtonWidgetPtr m_clientIPJoinableButton;
@@ -53,10 +55,12 @@ private:
 
   LabelWidgetPtr m_sfxLabel;
   LabelWidgetPtr m_musicLabel;
+  LabelWidgetPtr m_instrumentLabel;
   LabelWidgetPtr m_p2pJoinableLabel;
 
   Vec2I m_sfxRange;
   Vec2I m_musicRange;
+  Vec2I m_instrumentRange;
 
   JsonObject m_origConfig;
   JsonObject m_localChanges;

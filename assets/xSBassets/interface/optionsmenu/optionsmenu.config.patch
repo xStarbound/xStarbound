@@ -34,7 +34,27 @@
       "base" : "/interface/optionsmenu/tricontrolsbutton.png",
       "hover" : "/interface/optionsmenu/tricontrolsbuttonhover.png"
     },
-    "sfxValueLabel" : { "position" : [192, 142] },
-    "musicSlider" : { "position" : [62, 126] }
+    "sfxLabel" : {  "position" : [32, 142] },
+    "musicLabel" : { "position" : [32, 122] },
+    "instrumentLabel" : {
+      "type" : "label",
+      "position" : [32, 133],
+      "value" : "Instr."
+    },
+    "sfxValueLabel" : { "position" : [192, 144] },
+    "musicValueLabel" : { "position" : [192, 122] },
+    "instrumentValueLabel" : {
+      "type" : "label",
+      "position" : [192, 133],
+      "hAnchor" : "mid",
+      "value" : "Replace Me"
+    },
+    "sfxSlider" : { "position" : [62, 144] },
+    "musicSlider" : { "position" : [62, 122] },
+    "instrumentSlider" : {
+      "type" : "slider",
+      "position" : [62, 133],
+      "gridImage" : "/interface/optionsmenu/largeselection.png"
+    }
   }
 }

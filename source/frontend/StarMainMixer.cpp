@@ -23,7 +23,7 @@ void MainMixer::setWorldPainter(WorldPainterPtr worldPainter) {
   m_worldPainter = std::move(worldPainter);
 }
 
-void MainMixer::update(float dt, bool muteSfx, bool muteMusic) {
+void MainMixer::update(float dt, bool muteSfx, bool muteMusic, bool muteInstruments) {
   auto assets = Root::singleton().assets();
 
   auto updateGroupVolume = [&](MixerGroup group, bool muted, String const& settingName) {
@@ -36,7 +36,7 @@ void MainMixer::update(float dt, bool muteSfx, bool muteMusic) {
           m_mixer->setGroupVolume(group, m_groupVolumes[group], 1.0f);
         }
       } else if (!m_mutedGroups.contains(group)) {
-        float volumeSetting = Root::singleton().configuration()->get(settingName).toFloat() / 100.0f;
+        float volumeSetting = Root::singleton().configuration()->get(settingName).optFloat().value(100.0f) / 100.0f;
         if (!m_groupVolumes.contains(group) || volumeSetting != m_groupVolumes[group]) {
           m_mixer->setGroupVolume(group, volumeSetting);
           m_groupVolumes[group] = volumeSetting;
@@ -47,6 +47,7 @@ void MainMixer::update(float dt, bool muteSfx, bool muteMusic) {
   updateGroupVolume(MixerGroup::Effects, muteSfx, "sfxVol");
   updateGroupVolume(MixerGroup::Music, muteMusic, "musicVol");
   updateGroupVolume(MixerGroup::Cinematic, false, "sfxVol");
+  updateGroupVolume(MixerGroup::Instruments, muteInstruments, "instrumentVol");
 
   WorldClientPtr currentWorld;
   if (m_universeClient)
@@ -55,6 +56,10 @@ void MainMixer::update(float dt, bool muteSfx, bool muteMusic) {
   if (currentWorld) {
     for (auto audioInstance : currentWorld->pullPendingAudio()) {
       audioInstance->setMixerGroup(MixerGroup::Effects);
+      m_mixer->play(audioInstance);
+    }
+    for (auto audioInstance : currentWorld->pullPendingInstrumentAudio()) {
+      audioInstance->setMixerGroup(MixerGroup::Instruments);
       m_mixer->play(audioInstance);
     }
     for (auto audioInstance : currentWorld->pullPendingMusic()) {
