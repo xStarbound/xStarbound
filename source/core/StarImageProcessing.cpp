@@ -325,7 +325,7 @@ ImageOperation imageOperationFromString(StringView string) {
               hexDecode(hexPtr, 6, c, 4); // Decodes into the first three bytes of the array as hex bytes equivalent to their string representation.
               c[3] = 255; // Add an alpha of `ff` (fully opaque).
             #if defined STAR_COMPILER_GNU
-              // FezzedOne: Warning: Disgusting hack for MinGW builds! This makes sure generated sleeves are rendered properly. To bypass this hack, tack an `ff` alpha value onto the end of `bcbc5d` when using
+              // FezzedOne: Warning: Disgusting hack for GCC builds! This makes sure generated sleeves are rendered properly. To bypass this hack, tack an `ff` alpha value onto the end of `bcbc5d` when using
               // it as an `a` colour. The hack replaces an `a` of `bcbc5d` (not `bcbc5dff`) with `bcbc5e`, which is visually nearly indistinguishable anyway.
               // The hack is needed because `scaleBilinear` (way up above) now works very slightly differently from the vanilla version, just enough to impact this one edge case.
               #define COLOUR_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d) // Check if this colour is the one needing substitution.
@@ -410,13 +410,14 @@ ImageOperation imageOperationFromString(StringView string) {
     } else if (type == "setcolor") {
       return SetColorImageOperation{Color::fromHex(bits.at(1)).toRgb()};
 
-    // } else if (type == "replace") {
-    //   // The old `?replace` parser. Now never gets called.
-    //   ColorReplaceImageOperation operation;
-    //   for (size_t i = 0; i < (bits.size() - 1) / 2; ++i)
-    //     operation.colorReplaceMap[Color::hexToVec4B(bits[i * 2 + 1])] = Color::hexToVec4B(bits[i * 2 + 2]);
+    } else if (type == "replace") {
+      // FezzedOne: Gets rid of annoying «Could not recognize ImageOperation type replace» errors.
+      ColorReplaceImageOperation operation;
+      // The old `?replace` parser. Now never gets called.
+      // for (size_t i = 0; i < (bits.size() - 1) / 2; ++i)
+      //   operation.colorReplaceMap[Color::hexToVec4B(bits[i * 2 + 1])] = Color::hexToVec4B(bits[i * 2 + 2]);
 
-    //   return operation;
+      return operation;
 
     } else if (type == "addmask" || type == "submask") {
       AlphaMaskImageOperation operation;
