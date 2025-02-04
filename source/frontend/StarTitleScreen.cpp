@@ -438,6 +438,7 @@ void TitleScreen::initMultiPlayerMenu() {
   readerConnect.construct(assets->json("/interface/windowconfig/multiplayer.config"), m_multiPlayerMenu.get());
 
   m_paneManager.registerPane("multiplayerMenu", PaneLayer::Hud, m_multiPlayerMenu);
+  m_paneManager.registerPane("serverList", PaneLayer::Hud, m_serverSelectPane);
 }
 
 void TitleScreen::initOptionsMenu() {
