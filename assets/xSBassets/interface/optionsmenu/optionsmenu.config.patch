@@ -1,4 +1,5 @@
 {
+  "instrumentDelta" : 5,
   "paneLayout" : {
     "voiceLabel" : {
       "type" : "label",
