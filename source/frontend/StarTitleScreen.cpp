@@ -334,16 +334,23 @@ void TitleScreen::populateServerList(ListWidgetPtr list) {
       Logger::warn("TitleScreen: \"serverList\" is not an array in xclient.config; ignoring");
       return;
     }
+    String defaultPort = String(toString(Root::singleton().configuration()->get("gameServerPort").toUInt()));
     size_t ignoredEntries = 0;
     for (auto const& server : m_serverList.iterateArray()) {
       if (!server.isType(Json::Type::Object)) {
         ignoredEntries++;
         continue;
       }
-      Json address = server.opt("address").value(Json()), account = server.opt("account").value("");
+      Json address = server.opt("address").value(Json()),
+           port = server.opt("port").value(""),
+           account = server.opt("account").value("");
       if (address.isType(Json::Type::String) && account.isType(Json::Type::String)) {
         auto listItem = list->addItem();
+        auto portString = port.toString();
+        listItem->fetchChild<LabelWidget>("shownAddress")->setText(address.toString() + ":" + 
+          (portString.empty() ? defaultPort : portString));
         listItem->fetchChild<LabelWidget>("address")->setText(address.toString());
+        listItem->fetchChild<LabelWidget>("port")->setText(port.toString());
         listItem->fetchChild<LabelWidget>("account")->setText(account.toString());
         listItem->setData(server);
       } else {
@@ -436,6 +443,8 @@ void TitleScreen::initMultiPlayerMenu() {
       switchState(TitleState::StartMultiPlayer);
     });
   readerConnect.construct(assets->json("/interface/windowconfig/multiplayer.config"), m_multiPlayerMenu.get());
+
+  populateServerList(serverList);
 
   m_paneManager.registerPane("multiplayerMenu", PaneLayer::Hud, m_multiPlayerMenu);
   m_paneManager.registerPane("serverList", PaneLayer::Hud, m_serverSelectPane);
