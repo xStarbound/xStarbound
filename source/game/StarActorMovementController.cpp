@@ -928,13 +928,7 @@ void ActorMovementController::tickMaster(float dt) {
         else
           m_jumpHoldTimer = {};
 
-        // FezzedOne: Compensate for slightly more accurate integration of gravity (and thus slightly reduced jump height) at higher framerates.
-        float buoyancy = *activeParameters.liquidBuoyancy * liquidPercentage() + *activeParameters.airBuoyancy * (1.0f - liquidPercentage());
-        float gravity = world()->gravity(position()) * *activeParameters.gravityMultiplier * (1.0f - buoyancy);
-
-        float baseJumpVel = *jumpProfile.jumpSpeed * *jumpProfile.jumpInitialPercentage * jumpModifier;
-        float adjustment = 1.0f + (gravity * ((1.0f / 60.0f) - dt)) / (2.0f * baseJumpVel);
-        setYVelocity(yVelocity() + baseJumpVel * adjustment);
+        setYVelocity(yVelocity() + *jumpProfile.jumpSpeed * *jumpProfile.jumpInitialPercentage * jumpModifier);
 
         m_groundMovementSustainTimer = GameTimer(0);
 
