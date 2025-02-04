@@ -35,7 +35,7 @@
       "base" : "/interface/optionsmenu/tricontrolsbutton.png",
       "hover" : "/interface/optionsmenu/tricontrolsbuttonhover.png"
     },
-    "sfxLabel" : {  "position" : [32, 142] },
+    "sfxLabel" : {  "position" : [32, 144] },
     "musicLabel" : { "position" : [32, 122] },
     "instrumentLabel" : {
       "type" : "label",

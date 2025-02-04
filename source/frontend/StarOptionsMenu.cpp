@@ -147,7 +147,7 @@ void OptionsMenu::updateMusicVol() {
 void OptionsMenu::updateInstrumentVol() {
   m_localChanges.set("instrumentVol", {m_instrumentSlider->val()});
   Root::singleton().configuration()->set("instrumentVol", m_instrumentSlider->val());
-  m_musicLabel->setText(toString(m_instrumentSlider->val()));
+  m_instrumentLabel->setText(toString(m_instrumentSlider->val()));
 }
 
 void OptionsMenu::updateTutorialMessages() {
