@@ -5,6 +5,7 @@
 #include "StarAmbient.hpp"
 #include "StarRegisteredPaneManager.hpp"
 #include "StarInterfaceCursor.hpp"
+#include "StarListWidget.hpp"
 
 namespace Star {
 
@@ -88,6 +89,7 @@ private:
 
   void switchState(TitleState titleState);
   void back();
+  void populateServerList(ListWidgetPtr list);
 
   float interfaceScale() const;
   unsigned windowHeight() const;
@@ -98,6 +100,9 @@ private:
   RendererPtr m_renderer;
   EnvironmentPainterPtr m_environmentPainter;
   PanePtr m_multiPlayerMenu;
+  // Degranon's server list pane.
+  PanePtr m_serverSelectPane;
+  Json m_serverList;
 
   RegisteredPaneManager<String> m_paneManager;
 

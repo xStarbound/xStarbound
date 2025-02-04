@@ -50,7 +50,24 @@ FontPtr Font::loadTrueTypeFont(ByteArrayConstPtr const& bytes, unsigned pixelSiz
   return font;
 }
 
+// Downstreamed @bmdhacks's lazy-loading code. Helps with memory usage on the client a bit.
+void Font::lazyLoadFont() {
+  if (!this->m_fontImpl) {
+    shared_ptr<FontImpl> fontImpl = make_shared<FontImpl>();
+    if (FT_New_Memory_Face(
+            ftContext.library, (FT_Byte const*)this->m_fontBuffer->ptr(), this->m_fontBuffer->size(), 0, &fontImpl->face))
+      throw FontException("Could not load font from buffer");
+
+    this->m_fontImpl = fontImpl;
+  }
+}
+
 Font::Font() : m_pixelSize(0), m_alphaThreshold(0) {}
+
+Font::~Font() {
+  // Downstreamed oSB bugfix for a potential memory leak here.
+  FT_Done_Face(m_fontImpl->face);
+}
 
 FontPtr Font::clone() const {
   return Font::loadTrueTypeFont(m_fontBuffer, m_pixelSize);
@@ -64,7 +81,7 @@ void Font::setPixelSize(unsigned pixelSize) {
   if (m_pixelSize == pixelSize)
     return;
 
-  if (FT_Set_Pixel_Sizes(m_fontImpl->face, pixelSize, 0))
+  if (m_fontImpl && FT_Set_Pixel_Sizes(m_fontImpl->face, pixelSize, 0))
     throw FontException(strf("Cannot set font pixel size to: {}", pixelSize));
   m_pixelSize = pixelSize;
 }
@@ -81,6 +98,11 @@ unsigned Font::width(String::Char c) {
   if (auto width = m_widthCache.maybe({c, m_pixelSize})) {
     return *width;
   } else {
+    if (!m_fontBuffer)
+      throw FontException("Font::width called on uninitialized font.");
+
+    lazyLoadFont();
+
     FT_Load_Char(m_fontImpl->face, c, FontLoadFlags);
     unsigned newWidth = (m_fontImpl->face->glyph->linearHoriAdvance + 32768) / 65536;
     m_widthCache.insert({c, m_pixelSize}, newWidth);
@@ -89,10 +111,20 @@ unsigned Font::width(String::Char c) {
 }
 
 bool Font::exists(String::Char c) {
+  if (!m_fontBuffer)
+    throw FontException("Font::exists called on uninitialized font.");
+
+  lazyLoadFont();
+
   return (bool)FT_Get_Char_Index(m_fontImpl->face, c);
 }
 
 std::pair<Image, Vec2I> Font::render(String::Char c) {
+  if (!m_fontBuffer)
+    throw FontException("Font::render called on uninitialized font.");
+
+  lazyLoadFont();
+
   if (!m_fontImpl)
     throw FontException("Font::render called on uninitialized font.");
 

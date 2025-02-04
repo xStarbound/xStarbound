@@ -19,6 +19,7 @@ public:
   static FontPtr loadTrueTypeFont(ByteArrayConstPtr const& bytes, unsigned pixelSize = 12);
 
   Font();
+  ~Font();
 
   Font(Font const&) = delete;
   Font const& operator=(Font const&) = delete;
@@ -32,6 +33,8 @@ public:
   unsigned height() const;
   unsigned width(String::Char c);
   bool exists(String::Char c);
+
+  void lazyLoadFont();
 
   // May return empty image on unrenderable character (Normally, this will
   // render a box, but if there is an internal freetype error this may return
