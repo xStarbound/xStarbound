@@ -928,7 +928,18 @@ void ActorMovementController::tickMaster(float dt) {
         else
           m_jumpHoldTimer = {};
 
-        setYVelocity(yVelocity() + *jumpProfile.jumpSpeed * *jumpProfile.jumpInitialPercentage * jumpModifier);
+        // FezzedOne: Leaving a fucking kludge here for now.
+        constexpr float FixedTimeScale = 1.0f / 60.0f;
+        constexpr float AdjustmentScale = 1.0f / 144.0f;
+        constexpr float JumpAdjustment = 1.125f;
+        float adjustedJumpScale = *jumpProfile.jumpSpeed * *jumpProfile.jumpInitialPercentage * jumpModifier;
+
+        if (dt < FixedTimeScale) {
+            float t = (FixedTimeScale - dt) / (FixedTimeScale - AdjustmentScale);
+            adjustedJumpScale = 1.0f + t * (JumpAdjustment - 1.0f);
+        }
+
+        setYVelocity(yVelocity() + adjustedJumpScale);
 
         m_groundMovementSustainTimer = GameTimer(0);
 
