@@ -145,7 +145,7 @@ void ClientApplication::startup(StringList const& cmdLineArgs) {
   if (options.switches.contains("noworkshop"))
     m_skipWorkshop = true;
 
-  Logger::info("xClient [Starbound v{}] ({}) // Source ID: {} // Protocol: {}", xSbVersionString, StarVersionString, StarArchitectureString, StarSourceIdentifierString, StarProtocolVersion);
+  Logger::info("xClient v{} [Starbound v{}] ({}) // Source ID: {} // Protocol: {}", xSbVersionString, StarVersionString, StarArchitectureString, StarSourceIdentifierString, StarProtocolVersion);
 }
 
 void ClientApplication::shutdown() {
