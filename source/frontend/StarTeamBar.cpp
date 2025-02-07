@@ -154,8 +154,15 @@ void TeamBar::buildTeamBar() {
   size_t memberIndex = 0;
 
   float portraitScale = assets->json("/interface/windowconfig/teambar.config:memberPortraitScale").toFloat();
-  int memberSize = assets->json("/interface/windowconfig/teambar.config:memberSize").toInt();
-  int memberSpacing = assets->json("/interface/windowconfig/teambar.config:memberSpacing").toInt();
+  size_t maxMembersPerColumn = assets->json("/interface/windowconfig/teambar.config").optInt("maxMembersPerColumn").value(0);
+  Json memberSizeJson = assets->json("/interface/windowconfig/teambar.config:memberSize");
+  Vec2I memberSize = memberSizeJson.isType(Json::Type::Array) ? jsonToVec2I(memberSizeJson) : Vec2I::filled(memberSizeJson.toInt());
+  int memberSizeX = memberSize[0];
+  int memberSizeY = memberSize[1];
+  Json memberSpacingJson = assets->json("/interface/windowconfig/teambar.config:memberSpacing");
+  Vec2I memberSpacing = memberSpacingJson.isType(Json::Type::Array) ? jsonToVec2I(memberSpacingJson) : Vec2I::filled(memberSpacingJson.toInt());
+  int memberSpacingX = memberSpacing[0];
+  int memberSpacingY = memberSpacing[1];
 
   Uuid myUuid = player->clientContext()->playerUuid();
   for (auto member : teamClient->members()) {
@@ -183,7 +190,7 @@ void TeamBar::buildTeamBar() {
       list->addChild(cellName, cell);
     }
 
-    offset[1] -= memberSize;
+    offset[1] -= memberSizeY;
     cell->setPosition(offset);
 
     cell->setData(member.uuid.hex());
@@ -217,7 +224,12 @@ void TeamBar::buildTeamBar() {
     cell->fetchChild<ProgressWidget>("healthBar")->setCurrentProgressLevel(member.healthPercentage);
     cell->fetchChild<ProgressWidget>("energyBar")->setCurrentProgressLevel(member.energyPercentage);
 
-    offset[1] -= memberSpacing;
+    if (maxMembersPerColumn && (controlIndex + 1) % maxMembersPerColumn == 0) {
+      offset[0] += memberSpacingX + memberSizeX;
+      offset[1] = 0;
+    } else {
+      offset[1] -= memberSpacingY;
+    }
     controlIndex++;
     memberIndex++;
   }
