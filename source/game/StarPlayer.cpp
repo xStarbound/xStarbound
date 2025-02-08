@@ -2203,7 +2203,7 @@ bool Player::inInteractionRange() const {
 }
 
 bool Player::inInteractionRange(Vec2F aimPos) const {
-  return isAdmin() || world()->geometry().diff(aimPos, position()).magnitude() < interactRadius();
+  return canReachAll() || isAdmin() || world()->geometry().diff(aimPos, position()).magnitude() < interactRadius();
 }
 
 bool Player::inToolRange() const {
@@ -2211,7 +2211,7 @@ bool Player::inToolRange() const {
 }
 
 bool Player::inToolRange(Vec2F const& aimPos) const {
-  return isAdmin() || world()->geometry().diff(aimPos, position()).magnitude() < toolRadius();
+  return canReachAll() || isAdmin() || world()->geometry().diff(aimPos, position()).magnitude() < toolRadius();
 }
 
 void Player::getNetStates(bool initial) {
