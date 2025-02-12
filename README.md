@@ -139,6 +139,7 @@ Read this to see if xStarbound is compatible with your mods.
 - [StarCustomChat](https://github.com/KrashV/StarCustomChat) — no longer compatible with xStarbound as of SCC v1.8.0.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load on xClient and may cause crashes! However, xServer fully supports the server-side part of SE's «overground» tile placement feature.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
+- [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — requires OpenStarbound's `root.itemFile`, added in [this commit](https://github.com/OpenStarbound/OpenStarbound/commit/9eae03a968d0b2294d09d831a972cc3bbcae59c6).
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xStarbound has differently named callbacks) and is redundant anyway because xStarbound already fully supports this feature.
 - Mods that patch in StarExtensions «body dynamics» support for other mods. These won't do anything.
 
