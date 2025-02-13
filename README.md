@@ -57,6 +57,7 @@ Compiled builds for Linux and Windows should be available in the usual place on 
   - Additionally, objects can be placed under non-solid foreground tiles (@novaenia).
 - Support for placing tiles in mid-air, not connected to existing ones, via an extra argument to `world.placeMaterial()` (requires *both* xClient and, in multiplayer, xServer/xClient on the host). By @fezzedone.
 - Some polish to UI (@fezzedone and @novaenia).
+- A multiplayer server list that lets you save your server IPs and accounts (@KrashV).
 - Terraria-like placement animations for objects, tiles and liquids (@fezzedone). Can be disabled with an asset mod if you don't like them.
 - Added Wayland support (@emanueljg).
 - Nix build & install support (emanueljg). See [Nix](#nix).
