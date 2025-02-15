@@ -611,6 +611,7 @@ void ItemDatabase::addObjectDropItem(String const& objectPath, Json const& objec
   data.itemTags = objectConfig.opt("itemTags").apply(jsonToStringSet).value();
   data.agingScripts = objectConfig.opt("itemAgingScripts").apply(jsonToStringList).value();
   data.directory = AssetPath::directory(objectPath);
+  data.fileName = AssetPath::filename(objectPath);
   JsonObject customConfig = objectConfig.toObject();
   if (!customConfig.contains("inventoryIcon")) {
     customConfig["inventoryIcon"] = assets->json("/objects/defaultParameters.config:missingIcon");
