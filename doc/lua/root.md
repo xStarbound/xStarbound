@@ -143,10 +143,31 @@ If the loaded version of the asset was created by an asset preprocessor script, 
 
 ---
 
-#### `Maybe<List<FilePath>>` root.assetPatches(`AssetPath<>` assetPath)
+#### `Json` root.assetPatches(`AssetPath<>` assetPath)
+
+> **Only available on xStarbound v3.4.2+, StarExtensions and OpenStarbound.**
+
+Returns a list of asset patches for the specified asset, or `nil` if the asset doesn't exist. The list has the following format:
+
+```lua
+jarray{
+  jarray{
+    -- [1] The filesystem path (`FilePath`) to the asset source supplying the patch.
+    "/home/user/.local/share/Steam/steamapps/common/Starbound/assets/SomeMod.pak",
+    -- [2] The asset path (`AssetPath<>`) for the patch itself.
+    "/client.config.patch"
+  },
+  ...
+}
+```
+
+*Compatibility note:* Prior to xStarbound v3.4.2, `root.assetPatches` was an alias to `root.assetPatchSources` (see below).
+
+---
+
 #### `Maybe<List<FilePath>>` root.assetPatchSources(`AssetPath<>` assetPath)
 
-> **`root.assetPatches` is only available on xStarbound v3.1.5r1+ and OpenStarbound, while `root.assetPatchSources` is xStarbound-only.**
+> **`root.assetPatchSources` is available only on xStarbound.**
 
 Returns a list of file paths to any asset sources that contain JSON or Lua patches to the base asset at the specified asset path, or `nil` if no base asset exists at that path; passing a path containing a subpath or directives will result in a `nil` return.
 
