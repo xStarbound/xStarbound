@@ -91,7 +91,7 @@ pluto_try
 
             oldPrimaryUuid = primaryUuid
         end
-    ]==]
+    ]==] .. "\n"
     assets.add(saveInventoryPositionScriptPath, saveInventoryPositionScript .. saveInventoryPositionPatch)
 
     local inventoryResetCommandScript = [==[
@@ -104,7 +104,7 @@ pluto_try
                     ? (world.setGlobal(resetIdentifier, true) or "Reset inventory position.")
                     : "^red;Attempted to invoke ^orange;/resetinventoryposition^red; on a non-local or secondary player!^reset;")
         end
-    ]==]
+    ]==] .. "\n"
     assets.add(inventoryResetCommandScriptPath, inventoryResetCommandScript)
 
     logInfo(modName)
@@ -137,7 +137,7 @@ pluto_try
             end
             quickCommands_oldInit()
         end
-    ]==]
+    ]==] .. "\n"
     assets.add(quickCommandsScriptPath, quickCommandsScript .. quickCommandsScriptPatch)
 
     logInfo(modName)
@@ -158,7 +158,7 @@ pluto_try
     local rulerScript = assets.bytes(rulerScriptPath)
     local rulerScriptPatch = [==[
         local starExtensions = true -- Fool the mod script into thinking it's running on StarExtensions.
-    ]==]
+    ]==] .. "\n"
     assets.add(rulerScriptPath, rulerScriptPatch .. rulerScript)
 
     logInfo(modName)
@@ -179,7 +179,7 @@ pluto_try
     local limitedLivesScript = assets.bytes(limitedLivesScriptPath)
     local limitedLivesScriptPatch = [==[
         local starExtensions = true -- Fool the mod script into thinking it's running on StarExtensions.
-    ]==]
+    ]==] .. "\n"
     assets.add(limitedLivesScriptPath, limitedLivesScriptPatch .. limitedLivesScript)
 
     logInfo(modName)
@@ -198,7 +198,7 @@ pluto_try
     local mmBindsScriptPath = "/pat_mmbinds.lua"
 
     local mmBindsScript = assets.bytes(mmBindsScriptPath)
-    local mmBindsScriptPatch = [==[
+    local mmBindsScriptPatch =  "\n" .. [==[
         local mmBinds_oldInit = init
         function init()
             root.assetOrigin = root.assetSource -- Emulate the StarExtensions callback expected by this mod.
@@ -213,3 +213,39 @@ pluto_catch e then
 end
 
 ::skipMmBindsPatch::
+
+--- Compatibility patch for RingSpokes' Unde Venis ---
+
+if not "UndeVenis" in loadedMods then goto skipUndeVenisPatch end
+modName = "RingSpokes' Unde Venis"
+
+pluto_try
+    local undeVenisScriptPath = "/interface/undevenis/undevenis.lua"
+    local undeVenisScript = assets.bytes(undeVenisScriptPath)
+
+    local undeVenisScriptPatch = [==[
+        function init()
+            root.assetOrigin = root.assetSource
+            root.assetSourcePaths = function(addMetadata)
+                if addMetadata then
+                    local assetSources = root.assetSources()
+                    local returnValue = jobject{}
+                    for assetSources as source do
+                        returnValue[source] = root.assetSourceMetadata(source)
+                    end
+                    return returnValue
+                else
+                    return root.assetSources()
+                end
+            end
+        end
+
+        ---<< ORIGINAL UNDE VENIS SCRIPT BEGINS HERE >>---
+    ]==] .. "\n"
+    assets.add(undeVenisScriptPath, undeVenisScriptPatch .. undeVenisScript)
+
+    logInfo(modName)
+pluto_catch e then
+    logError(modName, e)
+end
+::skipUndeVenisPatch::
