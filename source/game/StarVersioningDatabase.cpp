@@ -108,6 +108,22 @@ VersioningDatabase::VersioningDatabase() {
     }
   }
 
+  for (auto const& scriptFile : assets->scan("/versioning/", ".pluto")) {
+    try {
+      auto scriptParts = File::baseName(scriptFile).splitAny("_.");
+      if (scriptParts.size() != 4)
+        throw VersioningDatabaseException::format("Script file '{}' filename not of the form <identifier>_<fromversion>_<toversion>.pluto", scriptFile);
+
+      String identifier = scriptParts.at(0);
+      VersionNumber fromVersion = lexicalCast<VersionNumber>(scriptParts.at(1));
+      VersionNumber toVersion = lexicalCast<VersionNumber>(scriptParts.at(2));
+
+      m_versionUpdateScripts[identifier.toLower()].append({scriptFile, fromVersion, toVersion});
+    } catch (StarException const&) {
+      throw VersioningDatabaseException::format("Error parsing version information from versioning script '{}'", scriptFile);
+    }
+  }
+
   // Sort each set of update scripts first by fromVersion, and then in
   // *reverse* order of toVersion.  This way, the first matching script for a
   // given fromVersion should take the json to the *furthest* toVersion.

@@ -2,7 +2,7 @@
 
 The `mcontroller` table sometimes contains functions relating to the actor movement controller.
 
-This section of `mcontroller` documentation refers to the `ActorMovementController` lua bindings. The `ActorMovementController` is the one used by the following kinds of entities:
+This section of `mcontroller` documentation refers to the `ActorMovementController` Lua bindings. The `ActorMovementController` is the one used by the following kinds of entities:
 
 - monsters
 - NPCs

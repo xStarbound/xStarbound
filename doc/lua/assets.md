@@ -198,7 +198,7 @@ jobject{
   requires = jarray{},
   priority = 1,
   scripts = jobject{
-    onLoad = jarray{"/myscript.lua", "/myotherscript.lua"},
+    onLoad = jarray{"/myscript.lua", "/myotherscript.lua", "/myplutoscript.pluto"},
     postLoad = jarray{}
   },
   friendlyName = "My Mod",
@@ -252,10 +252,12 @@ If the specified patch file is later modified, removed or replaced by any script
 
 ## Asset file extensions
 
+> **Note:** Only xStarbound recognises `pluto` or `patch.pluto` files.
+
 The following asset file extensions are recognised by the engine:
 
 - Generic asset configs: `config` (the engine looks for and loads specific `config` files in the asset root)
-- Lua scripts: `lua` (aside from versioning scripts, only loaded if explicitly configured in assets)
+- Pluto/Lua scripts: `pluto`, `lua` (aside from versioning scripts, only loaded if explicitly configured in assets)
 - Images: `png`
 - Fonts: `ttf`
 - Music and audio files: `wav`, `ogg`
@@ -297,7 +299,7 @@ The following asset file extensions are recognised by the engine:
 The following patch extensions are recognised by the engine during asset preprocessing:
 
 - JSON asset patch files: `patch`, `patch<X>` (where `<X>` is a number between 0 and 9, inclusive)
-- Lua asset patch files: `patch.lua` (but `assets.patch` can also make the engine invoke any arbitrary script file as a patch)
-- Lua preprocessor files `lua` (only loaded if explicitly configured)
+- Lua asset patch files: `patch.pluto`, `patch.lua` (but `assets.patch` can also make the engine invoke any arbitrary script file as a patch)
+- Lua preprocessor files: `pluto`, `lua` (only loaded if explicitly configured)
 
 Aside from the above extensions recognised by the engine, mod scripts may be set up to recognise other file extensions.

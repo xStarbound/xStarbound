@@ -106,6 +106,7 @@ Maybe<RectU> FramesSpecification::getRect(String const& frame) const {
 Assets::Assets(Settings settings, StringList assetSources) {
   const char* const AssetsPatchSuffix = ".patch";
   const char* const AssetsLuaPatchSuffix = ".patch.lua";
+  const char* const AssetsPlutoPatchSuffix = ".patch.pluto";
 
   m_settings = std::move(settings);
   m_stopThreads = false;
@@ -220,6 +221,10 @@ Assets::Assets(Settings settings, StringList assetSources) {
             p->patchSources.append({filename, source});
         } else if (filename.endsWith(AssetsLuaPatchSuffix, String::CaseInsensitive)) {
           auto targetPatchFile = filename.substr(0, filename.size() - strlen(AssetsLuaPatchSuffix));
+          if (auto p = m_files.ptr(targetPatchFile))
+            p->patchSources.append({filename, source});
+        } else if (filename.endsWith(AssetsPlutoPatchSuffix, String::CaseInsensitive)) {
+          auto targetPatchFile = filename.substr(0, filename.size() - strlen(AssetsPlutoPatchSuffix));
           if (auto p = m_files.ptr(targetPatchFile))
             p->patchSources.append({filename, source});
         } else {
@@ -1022,12 +1027,12 @@ ImageConstPtr Assets::readImage(String const& path) const {
       LuaEngine* luaEngine = as<LuaEngine>(m_luaEngine.get());
       LuaValue result = luaEngine->createUserData(*image);
       luaLocker.unlock();
-      // For a given image `imageAsset.png`, runs any `imageAsset.png.patch.lua` scripts.
+      // For a given image `imageAsset.png`, runs any `imageAsset.png.patch.lua` and `imageAsset.png.patch.pluto` scripts.
       for (auto const& pair : p->patchSources) {
         auto& patchPath = pair.first;
         auto& patchSource = pair.second;
         auto patchStream = patchSource->read(patchPath);
-        if (patchPath.endsWith(".lua")) {
+        if (patchPath.endsWith(".lua") || patchPath.endsWith(".pluto")) {
           luaLocker.lock();
           LuaContextPtr& context = m_patchContexts[patchPath];
           if (!context) {
@@ -1040,14 +1045,14 @@ ImageConstPtr Assets::readImage(String const& path) const {
               if (ud->is<Image>())
                 result = std::move(newResult);
               else
-                Logger::warn("Patch '{}' for image '{}' returned a non-Image userdata value, ignoring", patchPath, path);
+                Logger::error("Patch '{}' for image '{}' returned a non-Image userdata value, ignoring", patchPath, path);
             } else {
-              Logger::warn("Patch '{}' for image '{}' returned a non-Image value, ignoring", patchPath, path);
+              Logger::error("Patch '{}' for image '{}' returned a non-Image value, ignoring", patchPath, path);
             }
           }
           luaLocker.unlock();
         } else {
-          Logger::warn("Patch '{}' for image '{}' isn't a Lua script, ignoring", patchPath, path);
+          Logger::error("Patch '{}' for image '{}' isn't a Pluto/Lua script, ignoring", patchPath, path);
         }
       }
       image = make_shared<Image>(result.get<LuaUserData>().get<Image>());
@@ -1088,11 +1093,15 @@ Json Assets::readJson(String const& path) const {
   ByteArray streamData = read(path);
   try {
     Json result = inputUtf8Json(streamData.begin(), streamData.end(), false);
-    for (auto const& pair : m_files.get(path).patchSources) {
+    // FezzedOne: Minor optimisation.
+    auto& patchSources = m_files.get(path).patchSources;
+    if (patchSources.empty()) return result;
+    for (auto const& pair : patchSources) {
       auto& patchPath = pair.first;
       auto& patchSource = pair.second;
       auto patchStream = patchSource->read(patchPath);
-      if (patchPath.endsWith(".lua")) {
+      // FezzedOne: Patches that return an invalid result or throw errors are now ignored, allowing the patched asset file to load.
+      if (patchPath.endsWith(".lua") || patchPath.endsWith("pluto")) {
         RecursiveMutexLocker luaLocker(m_luaMutex);
         // Kae: i don't like that lock. perhaps have a LuaEngine and patch context cache per worker thread later on?
         LuaContextPtr& context = m_patchContexts[patchPath];
@@ -1100,20 +1109,31 @@ Json Assets::readJson(String const& path) const {
           context = make_shared<LuaContext>(as<LuaEngine>(m_luaEngine.get())->createContext());
           context->load(patchStream, patchPath);
         }
-        auto newResult = context->invokePath<Json>("patch", result, path);
-        if (newResult)
-          result = std::move(newResult);
+        Json newResult = Json();
+        try {
+          newResult = context->invokePath<Json>("patch", result, path);
+        } catch (std::exception const& e) {
+          Logger::error("Ignored failed Pluto/Lua patch from file {} in source: '{}' at '{}'. Caused by: {}",
+            patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
+        }
+        if (newResult.isType(Json::Type::Array) || newResult.isType(Json::Type::Object))
+            result = std::move(newResult);
       } else {
         auto patchJson = inputUtf8Json(patchStream.begin(), patchStream.end(), false);
         if (patchJson.isType(Json::Type::Array)) {
-        auto patchData = patchJson.toArray();
-        try {
-          result = checkPatchArray(patchPath, patchSource, result, patchData);
-        } catch (JsonPatchTestFail const& e) {
-          Logger::debug("Patch test failure from file {} in source: '{}' at '{}'. Caused by: {}", patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
-        } catch (JsonPatchException const& e) {
-          Logger::error("Could not apply patch from file {} in source: '{}' at '{}'.  Caused by: {}", patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
-        }
+          auto patchData = patchJson.toArray();
+          Json newResult = Json();
+          try {
+            newResult = checkPatchArray(patchPath, patchSource, result, patchData);
+          } catch (JsonPatchTestFail const& e) {
+            Logger::debug("Ignored patch from file {} in source: '{}' at '{}' due to test failure. Caused by: {}",
+              patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
+          } catch (JsonPatchException const& e) {
+            Logger::error("Ignored failed patch from file {} in source: '{}' at '{}'. Caused by: {}",
+              patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
+          }
+          if (newResult.isType(Json::Type::Array) || newResult.isType(Json::Type::Object))
+            result = std::move(newResult);
         } else if (patchJson.isType(Json::Type::Object)) { // Kae: Do a good ol' json merge instead if the .patch file is a Json object
           result = jsonMergeNull(result, patchJson.toObject());
         }
@@ -1121,7 +1141,7 @@ Json Assets::readJson(String const& path) const {
     }
     return result;
   } catch (std::exception const& e) {
-    throw JsonParsingException(strf("Cannot parse json file: {}", path), e);
+    throw JsonParsingException(strf("Cannot parse JSON file: {}", path), e);
   }
 }
 

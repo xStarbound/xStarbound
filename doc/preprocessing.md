@@ -33,24 +33,30 @@ For each loaded asset source, patches for a given JSON asset file are executed i
 
 1. `$asset.patch`
 2. `$asset.patch.lua`
-3. `$asset.patch0`
-4. `$asset.patch1`
-5. `$asset.patch2`
-6. `$asset.patch3`
-7. `$asset.patch4`
-8. `$asset.patch5`
-9. `$asset.patch6`
-10. `$asset.patch7`
-11. `$asset.patch8`
-12. `$asset.patch9`
-13. Any patches added via `assets.patch` in on-load preprocessor scripts, in the order they are added. Patches with a `.lua` extension are considered Lua scripts; otherwise they are considered JSON patches.
-14. Ditto, but for post-load preprocessor scripts.
+3. `$asset.patch.pluto`
+4. `$asset.patch0`
+5. `$asset.patch1`
+6. `$asset.patch2`
+7. `$asset.patch3`
+8. `$asset.patch4`
+9. `$asset.patch5`
+10. `$asset.patch6`
+11. `$asset.patch7`
+12. `$asset.patch8`
+13. `$asset.patch9`
+14. Any patches added via `assets.patch` in on-load preprocessor scripts, in the order they are added. Patches with a `.pluto` or `.lua` extension are considered Pluto/Lua scripts; otherwise they are considered JSON patches.
+15. Ditto, but for post-load preprocessor scripts.
 
 Also, for each loaded asset source, patches for a given PNG image asset file are executed in the following order, where `$asset.png` is the PNG asset file being patched:
 
 1. `$asset.png.patch.lua` 
-2. Any patches added via `assets.patch` in on-load preprocessor scripts, in the order they are added. Patches are Lua scripts and must have a `.lua` extension in order to take effect.
-3. Ditto, but for post-load preprocessor scripts.
+2. `$asset.png.patch.pluto`
+3. Any patches added via `assets.patch` in on-load preprocessor scripts, in the order they are added. Patches are Pluto/Lua scripts and must have a `.pluto` or `.lua` extension in order to take effect.
+4. Ditto, but for post-load preprocessor scripts.
+
+**Note:** Because capital letters are sorted before lower-case ones when asset files are sorted, a `.patch.Pluto` file with capital letters in its extension will be executed before any `.patch.lua` file whose extension is fully lower-case, among other things.
+
+**xStarbound note:** If a Pluto/Lua patch throws an unhandled error, any patch test fails, or any patch returns anything that isn't valid top-level JSON, that patch is skipped on xStarbound v3.4.2+, rather than sometimes invalidating the entire asset file. Such errors are still logged on xStarbound, as a matter of course.
 
 ----
 
