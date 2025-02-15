@@ -109,9 +109,19 @@ The following `root` callbacks are available:
 
 #### `List<FilePath>` root.assetSources()
 
-> **Only available on xStarbound, OpenStarbound and StarExtensions.**
+> **Only available on xStarbound. The equivalent on StarExtensions and OpenStarbound is `root.assetSourcePaths`.**
 
 Returns a list of file paths for all loaded asset sources. If the game loads any assets created by preprocessor scripts, file paths to any asset sources that contained those scripts, with `::onLoad` (for any assets created by on-load scripts) or `::postLoad` (for any assets created by post-load scripts), will be added to this list.
+
+**Note:** `root.assetSourcePaths` on StarExtensions and OpenStarbound has an optional boolean parameter which if `true`, returns a `JsonObject<Json>` where each key is the file path and each value is the metadata. To get metadata for a given asset source in xStarbound, use `root.assetSourceMetadata`.
+
+---
+
+#### `List<AssetPath<>>` root.assetSourcePaths(`FilePath` sourcePath)
+
+> **This functionality is only available on xStarbound. On OpenStarbound and StarExtensions, the callback of the same name functions like `root.assetSources`, above.**
+
+Returns a list of paths for all asset files in the specified asset source. Ignores the metadata file.
 
 ---
 
@@ -125,7 +135,7 @@ Returns a list of all assets that have a given file extension. Extension matches
 
 #### `Maybe<FilePath>` root.assetSource(`AssetPath<>` assetPath)
 
-> **Only available on xStarbound, OpenStarbound and StarExtensions.**
+> **Only available on xStarbound. The equivalent in StarExtensions and OpenStarbound is `root.assetOrigin`.**
 
 Returns the file path to the asset source containing the loaded version of the asset at the specified asset path, or `nil` if no asset exists at that path; passing a path containing a subpath or directives will result in a `nil` return.
 
