@@ -1,1 +1,0 @@
---- Dummy file to disable SCC's oSB patch script to avoid an error getting logged. ---

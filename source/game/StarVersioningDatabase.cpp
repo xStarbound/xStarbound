@@ -92,11 +92,11 @@ VersioningDatabase::VersioningDatabase() {
       m_currentVersions[pair.first] = pair.second.toUInt();
   }
 
-  for (auto const& scriptFile : assets->scan("/versioning/", ".lua")) {
+  for (auto const& scriptFile : assets->scan("/versioning/", ".pluto")) {
     try {
       auto scriptParts = File::baseName(scriptFile).splitAny("_.");
       if (scriptParts.size() != 4)
-        throw VersioningDatabaseException::format("Script file '{}' filename not of the form <identifier>_<fromversion>_<toversion>.lua", scriptFile);
+        throw VersioningDatabaseException::format("Script file '{}' filename not of the form <identifier>_<fromversion>_<toversion>.pluto", scriptFile);
 
       String identifier = scriptParts.at(0);
       VersionNumber fromVersion = lexicalCast<VersionNumber>(scriptParts.at(1));
@@ -108,11 +108,11 @@ VersioningDatabase::VersioningDatabase() {
     }
   }
 
-  for (auto const& scriptFile : assets->scan("/versioning/", ".pluto")) {
+  for (auto const& scriptFile : assets->scan("/versioning/", ".lua")) {
     try {
       auto scriptParts = File::baseName(scriptFile).splitAny("_.");
       if (scriptParts.size() != 4)
-        throw VersioningDatabaseException::format("Script file '{}' filename not of the form <identifier>_<fromversion>_<toversion>.pluto", scriptFile);
+        throw VersioningDatabaseException::format("Script file '{}' filename not of the form <identifier>_<fromversion>_<toversion>.lua", scriptFile);
 
       String identifier = scriptParts.at(0);
       VersionNumber fromVersion = lexicalCast<VersionNumber>(scriptParts.at(1));

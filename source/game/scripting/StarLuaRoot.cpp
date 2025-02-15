@@ -75,13 +75,13 @@ void LuaRoot::shutdown() {
     String profileSummary = Json(profile.transformed(jsonFromProfileEntry)).repr(1);
 
     if (!File::isDirectory(m_storageDirectory)) {
-      Logger::info("Creating lua storage directory");
+      Logger::info("Creating Pluto/Lua storage directory");
       File::makeDirectory(m_storageDirectory);
     }
 
     String filename = strf("{}.luaprofile", Time::printCurrentDateAndTime("<year>-<month>-<day>-<hours>-<minutes>-<seconds>-<millis>"));
     String path = File::relativeTo(m_storageDirectory, filename);
-    Logger::info("Writing lua profile {}", filename);
+    Logger::info("Writing Pluto/Lua profile {}", filename);
     File::writeFile(profileSummary, path);
   }
 
@@ -100,7 +100,7 @@ LuaContext LuaRoot::createContext(StringList const& scriptPaths) {
   // is in the middle of warping to another (or the same) world. Also fixes various other segfaults related
   // to Lua script context initialisation.
   if (!m_luaEngine)
-    throw LuaException("Lua engine not initialised");
+    throw LuaException("Pluto/Lua engine not initialised");
 
   auto newContext = m_luaEngine->createContext();
 

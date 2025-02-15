@@ -1,10 +1,12 @@
 # `versioning` and versioning scripts
 
-Versioning scripts are run when the engine loads an out-of-date versioned JSON file (such as a serialised player file). Versioning scripts must be located under `$assets/versioning` (subdirectories are allowe) and must have a name conforming to the format `<identifier>_<fromversion>_<toversion>.lua`
+Versioning scripts are run when the engine loads an out-of-date versioned JSON file (such as a serialised player file). Versioning scripts must be located under `$assets/versioning` (subdirectories are allowe) and must have a name conforming to the format `<identifier>_<fromversion>_<toversion>.lua` or (in xStarbound v3.4.2+) `<identifier>_<fromversion>_<toversion>.pluto`.
 
 When it loads an out-of-date file, the engine attempts to make the longest version jump possible when looking for a versioning script to run, ideally a jump straight from `$oldVersion` to `$newestVersion`.
 
 If there is no such script, the engine attempts to find and run the script with the highest `$newerVersion` below the `$newestVersion` that it can find. The engine does not make recursive attempts, but will throw an exception if any found versioning script did not fully update the versioned JSON file.
+
+> **xStarbound note:** If suitable versioning scripts for the same jump with both `.pluto` and `.lua` extensions exist, the `.pluto` script is preferred by xStarbound v3.4.2+.
 
 ----
 

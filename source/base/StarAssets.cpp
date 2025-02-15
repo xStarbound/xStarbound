@@ -1101,7 +1101,7 @@ Json Assets::readJson(String const& path) const {
       auto& patchSource = pair.second;
       auto patchStream = patchSource->read(patchPath);
       // FezzedOne: Patches that return an invalid result or throw errors are now ignored, allowing the patched asset file to load.
-      if (patchPath.endsWith(".lua") || patchPath.endsWith("pluto")) {
+      if (patchPath.endsWith(".lua") || patchPath.endsWith(".pluto")) {
         RecursiveMutexLocker luaLocker(m_luaMutex);
         // Kae: i don't like that lock. perhaps have a LuaEngine and patch context cache per worker thread later on?
         LuaContextPtr& context = m_patchContexts[patchPath];
@@ -1119,24 +1119,32 @@ Json Assets::readJson(String const& path) const {
         if (newResult.isType(Json::Type::Array) || newResult.isType(Json::Type::Object))
             result = std::move(newResult);
       } else {
-        auto patchJson = inputUtf8Json(patchStream.begin(), patchStream.end(), false);
-        if (patchJson.isType(Json::Type::Array)) {
-          auto patchData = patchJson.toArray();
-          Json newResult = Json();
-          try {
-            newResult = checkPatchArray(patchPath, patchSource, result, patchData);
-          } catch (JsonPatchTestFail const& e) {
-            Logger::debug("Ignored patch from file {} in source: '{}' at '{}' due to test failure. Caused by: {}",
-              patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
-          } catch (JsonPatchException const& e) {
-            Logger::error("Ignored failed patch from file {} in source: '{}' at '{}'. Caused by: {}",
-              patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
+        Json newPatchResult = Json();
+        try {
+          auto patchJson = inputUtf8Json(patchStream.begin(), patchStream.end(), false);
+          if (patchJson.isType(Json::Type::Array)) {
+            auto patchData = patchJson.toArray();
+            Json newResult = Json();
+            try {
+              newResult = checkPatchArray(patchPath, patchSource, result, patchData);
+            } catch (JsonPatchTestFail const& e) {
+              Logger::debug("Ignored patch from file {} in source: '{}' at '{}' due to test failure. Caused by: {}",
+                patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
+            } catch (JsonPatchException const& e) {
+              Logger::error("Ignored failed patch from file {} in source: '{}' at '{}'. Caused by: {}",
+                patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
+            }
+            if (newResult.isType(Json::Type::Array) || newResult.isType(Json::Type::Object))
+              newPatchResult = std::move(newResult);
+          } else if (patchJson.isType(Json::Type::Object)) { // Kae: Do a good ol' json merge instead if the .patch file is a Json object
+            newPatchResult = jsonMergeNull(newPatchResult, patchJson.toObject());
           }
-          if (newResult.isType(Json::Type::Array) || newResult.isType(Json::Type::Object))
-            result = std::move(newResult);
-        } else if (patchJson.isType(Json::Type::Object)) { // Kae: Do a good ol' json merge instead if the .patch file is a Json object
-          result = jsonMergeNull(result, patchJson.toObject());
+        } catch (std::exception const& e) {
+          Logger::error("Cannot parse JSON patch from file {} in source: '{}' at '{}'. Patch file ignored. Caused by: {}",
+            patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
         }
+        if (newPatchResult.isType(Json::Type::Array) || newPatchResult.isType(Json::Type::Object))
+          result = std::move(newPatchResult);
       }
     }
     return result;
