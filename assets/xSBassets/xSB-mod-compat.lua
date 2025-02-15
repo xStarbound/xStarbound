@@ -223,7 +223,11 @@ pluto_try
     local undeVenisScriptPath = "/interface/undevenis/undevenis.lua"
     local undeVenisScript = assets.bytes(undeVenisScriptPath)
 
-    local undeVenisScriptPatch = [==[
+    local undeVenisScriptPatch = "\n" .. [==[
+        ---<< ORIGINAL UNDE VENIS SCRIPT ENDS HERE >>---
+
+        UNKNOWN = "<unknown>"
+
         function init()
             root.assetOrigin = root.assetSource
             root.assetSourcePaths = function(addMetadata)
@@ -232,17 +236,17 @@ pluto_try
                     local returnValue = jobject{}
                     for assetSources as source do
                         returnValue[source] = root.assetSourceMetadata(source)
+                          |> |x| -> type(x.name) == "string" ? x : rawset(x, "name", sb.printJson(x.name))
+                          |> |x| -> type(x.friendlyName) == "string" ? x : rawset(x, "friendlyName", sb.printJson(x.friendlyName))
                     end
                     return returnValue
                 else
                     return root.assetSources()
                 end
             end
-        end
-
-        ---<< ORIGINAL UNDE VENIS SCRIPT BEGINS HERE >>---
-    ]==] .. "\n"
-    assets.add(undeVenisScriptPath, undeVenisScriptPatch .. undeVenisScript)
+        end   
+    ]==]
+    assets.add(undeVenisScriptPath, undeVenisScript .. undeVenisScriptPatch)
 
     logInfo(modName)
 pluto_catch e then
