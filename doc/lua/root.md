@@ -406,7 +406,7 @@ Returns true if the given item's tags include the specified tag and false otherw
 
 ---
 
-#### `JsonArray` root.allRecipes([`StringList` types])
+#### `JsonArray` root.allRecipes([`StringList` groups])
 
 > **This callback is available only on xStarbound v3.4.2+ and OpenStarbound. Additionally, only xStarbound v3.4.2+ supports the `types` parameter.**
 
@@ -440,7 +440,7 @@ jarray{
 }
 ```
 
-If `types` is specified, this callback returns only recipes matching *all* of the specified types. This can be used for custom scripted crafting interfaces or similar.
+If `groups` is specified, this callback returns only recipes that are members of *all* of the specified groups. This can be used for custom scripted crafting interfaces or similar.
 
 ---
 
