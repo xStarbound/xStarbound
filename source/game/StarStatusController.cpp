@@ -824,7 +824,16 @@ LuaCallbacks StatusController::makeUniqueEffectCallbacks(UniqueEffectInstance& u
       return sourceEntityId;
     });
   callbacks.registerCallback("setParentDirectives", [&uniqueEffect](Maybe<String> const& directives) {
-      uniqueEffect.parentDirectives = directives.value();
+      // FezzedOne: Added this workaround because some mods forget to prepend a `?` to the first directive for some reason.
+      if (auto p = directives.ptr()) {
+        String const& directiveString = *p;
+        if (!directiveString.empty() && !directiveString.beginsWith('?'))
+          uniqueEffect.parentDirectives = Directives('?' + directiveString);
+        else
+          uniqueEffect.parentDirectives = Directives(std::move(directiveString));
+      } else {
+        uniqueEffect.parentDirectives = Directives();
+      }
     });
   callbacks.registerCallback("getParameter", [&uniqueEffect](String const& name, Json const& def) -> Json {
       return uniqueEffect.effectConfig.effectConfig.query(name, def);

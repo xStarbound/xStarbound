@@ -83,7 +83,18 @@ LuaCallbacks LuaBindings::makeStatusControllerCallbacks(StatusController* statCo
 
   // FezzedOne: Downstreamed OpenStarbound bugfix for segfault caused by invocation of this callback.
   callbacks.registerCallbackWithSignature<Directives>("primaryDirectives", bind(&StatusController::primaryDirectives, statController));
-  callbacks.registerCallback("setPrimaryDirectives", [statController](Maybe<String> const& directives) { statController->setPrimaryDirectives(directives.value()); });
+  callbacks.registerCallback("setPrimaryDirectives", [statController](Maybe<String> const& directives) {
+    // FezzedOne: Added this workaround because some mods forget to prepend a `?` to the first directive for some reason.
+    if (auto p = directives.ptr()) {
+      String const& directiveString = *p;
+      if (!directiveString.empty() && !directiveString.beginsWith('?'))
+        statController->setPrimaryDirectives(Directives('?' + directiveString));
+      else
+        statController->setPrimaryDirectives(Directives(std::move(directiveString)));
+    } else {
+      statController->setPrimaryDirectives(Directives());
+    }
+  });
 
   callbacks.registerCallbackWithSignature<void, DamageRequest>("applySelfDamageRequest", bind(&StatusController::applySelfDamageRequest, statController, _1));
 

@@ -524,7 +524,16 @@ LuaCallbacks TechController::makeTechCallbacks(TechModule& techModule) {
     });
 
   callbacks.registerCallback("setParentDirectives", [this, &techModule](Maybe<String> const& directives) {
-      techModule.parentDirectives = directives.value();
+      // FezzedOne: Added this workaround because some mods forget to prepend a `?` to the first directive for some reason.
+      if (auto p = directives.ptr()) {
+        String const& directiveString = *p;
+        if (!directiveString.empty() && !directiveString.beginsWith('?'))
+          techModule.parentDirectives = Directives('?' + directiveString);
+        else
+          techModule.parentDirectives = Directives(std::move(directiveString));
+      } else {
+        techModule.parentDirectives = Directives();
+      }
 
       DirectivesGroup newParentDirectives;
       for (auto& module : m_techModules)
