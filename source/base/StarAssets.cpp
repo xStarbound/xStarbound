@@ -1137,7 +1137,7 @@ Json Assets::readJson(String const& path) const {
             if (newResult.isType(Json::Type::Array) || newResult.isType(Json::Type::Object))
               newPatchResult = std::move(newResult);
           } else if (patchJson.isType(Json::Type::Object)) { // Kae: Do a good ol' json merge instead if the .patch file is a Json object
-            newPatchResult = jsonMergeNull(newPatchResult, patchJson.toObject());
+            newPatchResult = jsonMergeNull(result, patchJson.toObject());
           }
         } catch (std::exception const& e) {
           Logger::error("Cannot parse JSON patch from file {} in source: '{}' at '{}'. Patch file ignored. Caused by: {}",
