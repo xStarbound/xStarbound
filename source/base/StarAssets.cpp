@@ -1105,12 +1105,15 @@ Json Assets::readJson(String const& path) const {
         RecursiveMutexLocker luaLocker(m_luaMutex);
         // Kae: i don't like that lock. perhaps have a LuaEngine and patch context cache per worker thread later on?
         LuaContextPtr& context = m_patchContexts[patchPath];
+        Json newResult = Json();
+        bool startedNewContext = false;
         if (!context) {
           context = make_shared<LuaContext>(as<LuaEngine>(m_luaEngine.get())->createContext());
-          context->load(patchStream, patchPath);
+          startedNewContext = true;
         }
-        Json newResult = Json();
         try {
+          if (startedNewContext)
+            context->load(patchStream, patchPath);
           newResult = context->invokePath<Json>("patch", result, path);
         } catch (std::exception const& e) {
           Logger::error("Ignored failed Pluto/Lua patch from file {} in source: '{}' at '{}'. Caused by: {}",
