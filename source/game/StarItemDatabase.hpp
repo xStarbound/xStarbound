@@ -55,6 +55,9 @@ public:
     // The relative path in assets to the base config
     String directory;
 
+    // FezzedOne: The file name for the item's config file.
+    String fileName;
+
     // A possibly modified / generated config from the base config that is
     // re-constructed each time an ItemDescriptor is loaded.  Become's the
     // Item's base config.
@@ -147,6 +150,8 @@ public:
 
   List<String> allItems() const;
 
+  Maybe<String> itemFile(String const& itemName) const;
+
 private:
   struct ItemData {
     ItemType type;
@@ -157,6 +162,7 @@ private:
     Maybe<String> assetsConfig;
     JsonObject customConfig;
     String directory;
+    String fileName;
   };
 
   static ItemPtr createItem(ItemType type, ItemConfig const& config);

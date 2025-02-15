@@ -396,9 +396,57 @@ Returns true if the given item's tags include the specified tag and false otherw
 
 ---
 
+#### `JsonArray` root.allRecipes([`StringList` types])
+
+> **This callback is available only on xStarbound v3.4.2+ and OpenStarbound. Additionally, only xStarbound v3.4.2+ supports the `types` parameter.**
+
+Returns a list of item recipes of the following format:
+
+```lua
+jarray{
+  jobject{
+    currencyInputs = jobject{ -- List of currencies the recipe consumes
+      money = 100 -- Each key is the currency name, each value is the currency amount to consume.
+    },
+    inputList = jarray{ -- List of non-currency input item descriptors.
+      {name = "dirtblock", count = 10, parameters = jobject{}},
+      {name = "copperore", count = 5, parameters = jobject{}}
+    },
+    -- The output item.
+    output = {name = "perfectlygenericitem", count = 1, parameters = jobject{}},
+    -- The groups this recipe is categorised in. Used by crafting stations to determine
+    -- which items they're allowed to craft.
+    groups = jarray{ "plain", "all" },
+    -- A list of collectable entries this recipes fulfils.
+    -- As shown, this sample recipe fulfils the `"perfectlygenericitem"`
+    -- entry in a sample `"generic"` collection.
+    collectables = jobject{ generic = perfectlygenericitem },
+    -- Whether the parameters of input items must match those of items in the
+    -- input list exactly. If `false`, any item with the specified name, regardless
+    -- of parameters, will fulfil item requirements in the input list.
+    matchInputParameters = false
+  },
+  ...
+}
+```
+
+If `types` is specified, this callback returns only recipes matching *all* of the specified types. This can be used for custom scripted crafting interfaces or similar.
+
+---
+
 #### `Json` root.itemConfig(`ItemDescriptor` descriptor, [`float` level], [`unsigned` seed])
 
-Generates an item from the specified descriptor, level and seed and returns a JSON object containing the `directory`, `config` and `parameters` for that item.
+> *The `file` value is only available on xStarbound v3.4.2+.*
+
+Generates an item from the specified descriptor, level and seed and returns a JSON object containing the `directory`, `file`, `config`, `parameters` for that item. `file` is the item config file name; to get a full item path, prepend the value of `directory` to the value of `file` or use `root.itemFile` below.
+
+---
+
+#### `Maybe<AssetPath<>>` root.itemFile(`String` itemName)
+
+> **This callback is available only on xStarbound v3.4.2+ and OpenStarbound.**
+
+Returns the asset path for the item's config file, or `nil` if no such item exists in the assets.
 
 ---
 
@@ -416,7 +464,7 @@ Returns the JSON configuration for the given tenant.
 
 ---
 
-#### `JsonArray` root.getMatchingTenants(`map<String, unsigned>` colonyTags)
+#### `JsonArray` root.getMatchingTenants(`JsonObject<unsigned>` colonyTags)
 
 Returns an array of JSON configurations of tenants matching the given map of colony tags and corresponding object counts.
 

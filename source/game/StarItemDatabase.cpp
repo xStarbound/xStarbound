@@ -202,6 +202,7 @@ ItemDatabase::ItemConfig ItemDatabase::itemConfig(String const& itemName, Json p
   if (data.assetsConfig)
     itemConfig.config = Root::singleton().assets()->json(*data.assetsConfig);
   itemConfig.directory = data.directory;
+  itemConfig.fileName = data.fileName;
   itemConfig.config = jsonMerge(itemConfig.config, data.customConfig);
   itemConfig.parameters = parameters;
 
@@ -452,6 +453,12 @@ List<String> ItemDatabase::allItems() const {
   return m_items.keys();
 }
 
+Maybe<String> ItemDatabase::itemFile(String const& itemName) const {
+  if (auto item = m_items.ptr(itemName))
+    return item->directory + item->fileName;
+  return {};
+}
+
 ItemPtr ItemDatabase::createItem(ItemType type, ItemConfig const& config) {
   if (type == ItemType::Generic) {
     return make_shared<GenericItem>(config.config, config.directory, config.parameters);
@@ -581,7 +588,7 @@ void ItemDatabase::addItemSet(ItemType type, String const& extension) {
       data.itemTags = config.opt("itemTags").apply(jsonToStringSet).value();
       data.agingScripts = config.opt("itemAgingScripts").apply(jsonToStringList).value();
       data.directory = AssetPath::directory(file);
-
+      data.fileName = AssetPath::filename(file);
       data.agingScripts = data.agingScripts.transformed(bind(&AssetPath::relativeTo, data.directory, _1));
     } catch (std::exception const& e) {
       throw ItemException(strf("Could not load item asset {}", file), e);

@@ -193,6 +193,40 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
       }
     });
 
+  // FezzedOne: xStarbound implementation of OpenStarbound callback.
+  callbacks.registerCallback("itemFile", [root](String const& itemId) -> Maybe<String> {
+    return root->itemDatabase()->itemFile(itemId);
+  });
+
+  // From OpenStarbound. FezzedOne: Added type checking and support for specifying required recipe categories,
+  // allowing this callback to be used in scripted crafting interfaces.
+  callbacks.registerCallback("allRecipes", [root](Json const& categories) -> JsonArray {
+    auto constructStringSet = [](Json const& v) -> StringSet {
+      StringSet result;
+      for (Json const& entry : v.iterateArray()) {
+        if (entry.isType(Json::Type::String))
+          result.add(entry.toString());
+      }
+      return result;
+    };
+
+    if (categories.isType(Json::Type::Array)) {
+      auto recipes = root->itemDatabase()->allRecipes(constructStringSet(categories));
+      JsonArray result;
+      result.reserve(recipes.size());
+      for (auto& recipe : recipes)
+        result.append(recipe.toJson());
+      return result;
+    } else {
+      auto recipes = root->itemDatabase()->allRecipes();
+      JsonArray result;
+      result.reserve(recipes.size());
+      for (auto& recipe : recipes)
+        result.append(recipe.toJson());
+      return result;
+    }
+  });
+
   callbacks.registerCallback("materialHealth", [root](String const& materialName) {
       auto materialId = root->materialDatabase()->materialId(materialName);
       return root->materialDatabase()->materialDamageParameters(materialId).totalHealth();
@@ -495,7 +529,7 @@ Json LuaBindings::RootCallbacks::itemConfig(Root* root, Json const& descJson, Ma
   if (!root->itemDatabase()->hasItem(descriptor.name()))
     return {};
   auto config = root->itemDatabase()->itemConfig(descriptor.name(), descriptor.parameters(), level, seed);
-  return JsonObject{{"directory", config.directory}, {"config", config.config}, {"parameters", config.parameters}};
+  return JsonObject{{"directory", config.directory}, {"file", config.fileName}, {"config", config.config}, {"parameters", config.parameters}};
 }
 
 Json LuaBindings::RootCallbacks::createItem(Root* root, Json const& descriptor, Maybe<float> const& level, Maybe<uint64_t> const& seed) {
