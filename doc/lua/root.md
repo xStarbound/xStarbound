@@ -161,6 +161,8 @@ jarray{
 }
 ```
 
+Patches *directly* executed by preprocessor scripts (not via an invocation of `asset.patch` on a patch file) will not be listed.
+
 *Compatibility note:* Prior to xStarbound v3.4.2, `root.assetPatches` was an alias to `root.assetPatchSources` (see below).
 
 ---
@@ -171,7 +173,7 @@ jarray{
 
 Returns a list of file paths to any asset sources that contain JSON or Lua patches to the base asset at the specified asset path, or `nil` if no base asset exists at that path; passing a path containing a subpath or directives will result in a `nil` return.
 
-Patches *directly* executed by preprocessor scripts (not via an invocation of `asset.patch` on a patch file) will not be listed.
+Asset sources that only have patches which are *directly* executed by preprocessor scripts (not via an invocation of `asset.patch` on a patch file) will not be listed.
 
 ---
 
