@@ -767,6 +767,7 @@ void ItemDatabase::addCodexes() {
       codexItemData.name = codexItemName;
       codexItemData.friendlyName = codexPair.second->title();
       codexItemData.directory = codexPair.second->directory();
+      codexItemData.fileName = codexPair.second->fileName();
 
       auto customConfig = jsonMerge(codexConfig.get("defaultItemConfig"), codexPair.second->itemConfig()).toObject();
       customConfig["itemName"] = codexItemName;

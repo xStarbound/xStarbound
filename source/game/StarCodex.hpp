@@ -9,7 +9,7 @@ STAR_CLASS(Codex);
 
 class Codex {
 public:
-  Codex(Json const& config, String const& directory);
+  Codex(Json const& config, String const& assetPath);
   Json toJson() const;
 
   String id() const;
@@ -22,6 +22,7 @@ public:
   size_t pageCount() const;
   Json itemConfig() const;
   String directory() const;
+  String fileName() const;
 
 private:
   String m_id;
@@ -32,6 +33,7 @@ private:
   List<String> m_pages;
   Json m_itemConfig;
   String m_directory;
+  String m_fileName;
 };
 
 }
