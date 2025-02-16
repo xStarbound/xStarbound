@@ -69,13 +69,18 @@ Read this to see if xStarbound is compatible with your mods.
 **Has xStarbound support:** The following mods have special functionality that requires or is supported by xStarbound.
 
 - [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — fully supported by xStarbound.
+- [Alternate UI Sounds [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3360332852) — should be supported by xStarbound; report any issues.
 - [Back Weapon II](https://steamcommunity.com/sharedfiles/filedetails/?id=3405399202) — fully supported by xStarbound.
+- [Cheap As Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — currently fully supported by xStarbound, but due to stupidity, don't expect this to last.
 - [Drop pixels on death](https://steamcommunity.com/sharedfiles/filedetails/?id=3350355857) ([GitHub](https://github.com/bongus-jive/drop-money-on-death)) — fully supported by xStarbound.
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports StarExtensions (with reduced functionality) and is compatible with vanilla Starbound. Is *not* compatible with OpenStarbound.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
+- [Minecraft UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3412449426) — should be supported by xStarbound; report any issues.
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — fully supported by xStarbound.
+- [NEONPUNK Title Screen [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3359876550) — should be supported by xStarbound; report any visual issues.
+- [OCD Tooltip Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3355387636) — technically supported by xStarbound, but unnecessary.
 - [One-For-All Compact and Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3427751671) — fully supported by xStarbound.
 - [Planet Search](https://steamcommunity.com/sharedfiles/filedetails/?id=3269792617) — fully supported by xStarbound.
 - [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — all OpenStarbound-compatible commands are supported by xStarbound as of v3.1.6.
@@ -136,7 +141,7 @@ Read this to see if xStarbound is compatible with your mods.
 
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — would work if it didn't have an explicit StarExtensions check.
 - [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
-- [Futara's Dragon Engine](https://steamcommunity.com/sharedfiles/filedetails/?id=2297133082) — causes severe server- *and* client-side entity lag on xStarbound. Use 
+- [Futara's Dragon Engine](https://steamcommunity.com/sharedfiles/filedetails/?id=2297133082) — causes severe server- *and* client-side entity lag on xStarbound. Use Lukiwarble's [Starbound Optimizer](https://steamcommunity.com/sharedfiles/filedetails/?id=2777369762) instead.
 - [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) — due to poor coding in this mod, it causes a whole bunch of errors on xStarbound. Also depends on Futara's Dragon Engine and thus inherits its severe lag issue.
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
