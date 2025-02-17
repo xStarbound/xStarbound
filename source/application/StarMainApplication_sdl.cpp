@@ -835,11 +835,11 @@ private:
     }
   }
 
-  static const size_t MaximumCursorDimensions = 128;
-  static const size_t MaximumCursorPixelCount = MaximumCursorDimensions * MaximumCursorDimensions;
+  inline static constexpr size_t MaximumCursorDimensions = 128;
+  inline static constexpr size_t MaximumCursorPixelCount = MaximumCursorDimensions * MaximumCursorDimensions;
   bool setCursorImage(const String& id, const ImageConstPtr& image, unsigned scale, const Vec2I& offset) {
     auto imageSize = image->size().piecewiseMultiply(Vec2U::filled(scale));
-    if (!scale || imageSize.max() > MaximumCursorDimensions || (size_t)(imageSize[0] * imageSize[1]) > MaximumCursorPixelCount)
+    if (!scale || imageSize.max() > MaximumCursorDimensions || ((size_t)imageSize[0] * (size_t)imageSize[1]) > MaximumCursorPixelCount)
       return m_cursorVisible = false;
 
     auto& entry = m_cursorCache.get(m_currentCursor = { scale, offset, id }, [&](auto const&) {
