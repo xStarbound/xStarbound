@@ -127,7 +127,7 @@ _SBLOADED = {
 
 The value of this global variable is recognised as a JSON `null` when passed to any xStarbound callback that accepts JSON. Equivalent to Pluto's `json.null`.
 
-#### `bool, Variant<T..., String>` pcall(`Variant<LuaFunction<T...(Maybe<LuaValue...>)>, LuaThread>` functionOrThreadVar, `LuaValue...` args)
+#### `bool, Variant<T..., LuaValue..., String>` pcall(`Variant<LuaFunction<T...(Maybe<LuaValue...>)>, LuaThread>` functionOrThreadVar, `LuaValue...` args)
 
 The only difference from the standard `pcall` is that the Starbound version returns a more useful traceback by default when an error occurs.
 
@@ -172,6 +172,8 @@ The following variables, callbacks and libraries in Lua 5.4 and Pluto are disabl
 - `socket` library
 
 Additionally, see `require` above, since it's not available in some scripts regardless of whether `"safeScripts"` is enabled.
+
+Note that Pluto's `dumpvar` and `exportvar` are always available on xStarbound regardless of `"safeScripts"` status. Consider using `dumpvar` or `exportvar` instead of `sb.print` for script debugging.
 
 ### Debugging with `"safeScripts"` enabled
 

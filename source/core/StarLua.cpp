@@ -310,6 +310,7 @@ LuaEnginePtr LuaEngine::create(bool safe) {
       "xpcall",
       "range",
       "dumpvar",
+      "exportvar",
       "wcall",
       "warn"
     };
