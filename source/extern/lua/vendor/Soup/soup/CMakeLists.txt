@@ -24,6 +24,7 @@ add_library(soup STATIC
   Callback.hpp
   Canvas.hpp
   Capture.hpp
+  cacerts.hpp
   cat.hpp
   CertStore.hpp
   CidrSubnet4.hpp
