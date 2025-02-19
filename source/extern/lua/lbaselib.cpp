@@ -13,7 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <chrono>
 #include <thread>
 #include <unordered_set>
 
@@ -315,7 +314,7 @@ static int luaB_collectgarbage (lua_State *L) {
 }
 
 
-static int luaB_type (lua_State *L) {
+int luaB_type (lua_State *L) {
   int t = lua_type(L, 1);
   luaL_argcheck(L, t != LUA_TNONE, 1, "value expected");
   lua_pushstring(L, lua_typename(L, t));
@@ -680,6 +679,7 @@ static void luaB_dumpvar_impl (lua_State *L, int indents, std::unordered_set<Tab
   }
   parents.emplace(h);
   std::string dump(1, '{');
+  lua_checkstack(L, 5);
   lua_pushnil(L);
   bool empty = true;
   while (lua_next(L, -2)) {
@@ -691,13 +691,17 @@ static void luaB_dumpvar_impl (lua_State *L, int indents, std::unordered_set<Tab
     dump.append(indents, '\t');
     dump.push_back('[');
     lua_pushvalue(L, -2);
+    luaE_incCstack(L);
     luaB_dumpvar_impl(L, indents + 1, parents, is_export, true);
+    L->nCcalls--;
     dump.append(lua_tostring(L, -1));
     lua_pop(L, 2);
     dump.append("] = ");
 
     lua_pushvalue(L, -1);
+    luaE_incCstack(L);
     luaB_dumpvar_impl(L, indents + 1, parents, is_export);
+    L->nCcalls--;
     dump.append(lua_tostring(L, -1));
     lua_pop(L, 2);
     dump.append(",\n");

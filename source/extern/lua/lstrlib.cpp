@@ -685,7 +685,7 @@ static const char *match (MatchState *ms, const char *s, const char *p) {
             }
             case '+':  /* 1 or more repetitions */
               s++;  /* 1 match already done */
-              /* FALLTHROUGH */
+              [[fallthrough]];
             case '*':  /* 0 or more repetitions */
               s = max_expand(ms, s, p, ep);
               break;
@@ -1379,7 +1379,7 @@ static int str_format (lua_State *L) {
         case 'f':
           maxitem = MAX_ITEMF;  /* extra space for '%f' */
           buff = luaL_prepbuffsize(&b, maxitem);
-          /* FALLTHROUGH */
+          [[fallthrough]];
         case 'e': case 'E': case 'g': case 'G': {
           lua_Number n = luaL_checknumber(L, arg);
           checkformat(L, form, L_FMTFLAGSF, 1);
@@ -1748,7 +1748,7 @@ static int str_pack (lua_State *L) {
         totalsize += len + 1;
         break;
       }
-      case Kpadding: luaL_addchar(&b, LUAL_PACKPADBYTE);  /* FALLTHROUGH */
+      case Kpadding: luaL_addchar(&b, LUAL_PACKPADBYTE); [[fallthrough]];
       case Kpaddalign: case Knop:
         arg--;  /* undo increment */
         break;
@@ -2336,7 +2336,7 @@ static int str_replace (lua_State *L) {
 
 
 static int str_formatint (lua_State *L) {
-  luaL_check(L, !lua_isinteger(L, 1) && !lua_isstring(L, 1), "argument 'integer' for string.format_int must be an integer or a string which represents an integer");
+  luaL_check(L, !lua_isinteger(L, 1) && !lua_isstring(L, 1), "argument 'integer' for string.formatint must be an integer or a string which represents an integer");
 
   std::string num = lua_tostring(L, 1);
 
@@ -2352,7 +2352,7 @@ static int str_formatint (lua_State *L) {
         pos++;
       }
       else {
-        luaL_error(L, "argument 'integer' for string.format_int was a string, but does not represent a valid integer (bad character: '%c')", c);
+        luaL_error(L, "argument 'integer' for string.formatint was a string, but does not represent a valid integer (bad character: '%c')", c);
       }
     }
   }

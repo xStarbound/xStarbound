@@ -207,17 +207,16 @@ static void disablekeyword (LexState *ls, int token) {
 static void check_for_non_portable_code (LexState *ls) {
   if (ls->t.IsNonCompatible() && !ls->t.IsOverridable()) {
     if (ls->getKeywordState(ls->t.token) == KS_ENABLED_BY_PLUTO_UNINFORMED) {
-      if (luaX_lookahead(ls) == '=' || luaX_lookahead(ls) == ':' || luaX_lookahead(ls) == '.' ||
-        luaX_lookahead(ls) == '[' || luaX_lookahead(ls) == '(' || luaX_lookahead(ls) == '{' ||
-        luaX_lookahead(ls) == TK_STRING) { 
-          /* attempting a global function call, assignment, or table member access? */
-          /* FezzedOne: Or a function call? This is needed to inform the parser as to
-           * whether `catch` should be allowed to end blocks.
-           */
-          disablekeyword(ls, ls->t.token);
-          ls->uninformed_reserved.emplace(ls->t.token, ls->getLineNumber());
-          ls->setKeywordState(ls->t.token, KS_DISABLED_BY_PLUTO_INFORMED);
-          luaX_setpos(ls, luaX_getpos(ls));  /* update ls->t */
+      const auto next = luaX_lookahead(ls);
+      if (next == '=' || next == '.' || next == ':' || next == '['  /* attempting to create or use a global? */
+#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
+          || next == '(' || next == '{' || next == TK_STRING
+#endif
+        ) {
+        disablekeyword(ls, ls->t.token);
+        ls->uninformed_reserved.emplace(ls->t.token, ls->getLineNumber());
+        ls->setKeywordState(ls->t.token, KS_DISABLED_BY_PLUTO_INFORMED);
+        luaX_setpos(ls, luaX_getpos(ls));  /* update ls->t */
       }
       else
         ls->setKeywordState(ls->t.token, KS_ENABLED_BY_PLUTO_INFORMED);
@@ -350,10 +349,10 @@ static void check_match (LexState *ls, int what, int who, int where, const char*
           throw_warn(ls, "'else if' is not the same as 'elseif' in Lua/Pluto", "did you mean 'elseif'?", ls->else_if, WT_POSSIBLE_TYPO);
         const char *msg;
         if (who == TK_ARROW) {
-          msg = luaO_fmt(ls->L, "missing 'end' to terminate lambda starting on line %d, got %s", where, luaX_token2str(ls, luaX_lookahead(ls)));
+          msg = luaO_fmt(ls->L, "missing 'end' to terminate lambda starting on line %d", where);
         }
         else {
-          msg = luaO_fmt(ls->L, "missing 'end' to terminate %s on line %d, got %s", luaX_token2str(ls, who), where, luaX_token2str(ls, luaX_lookahead(ls)));
+          msg = luaO_fmt(ls->L, "missing 'end' to terminate %s on line %d", luaX_token2str(ls, who), where);
         }
         throwerr(ls, msg, "this was the last statement.", ls->getLineNumberOfLastNonEmptyLine());
       }
@@ -1284,8 +1283,6 @@ static void close_func (LexState *ls) {
 ** so it is handled in separate.
 */
 static int block_follow (LexState *ls, int withuntil) {
-  /* FezzedOne: Need to run this on the current token in case there's a `catch(...)`, `catch{...}` or `catch "..."` statement. */
-  check_for_non_portable_code(ls);
   switch (ls->t.token) {
     case '$': {
       int ret;
@@ -1294,13 +1291,11 @@ static int block_follow (LexState *ls, int withuntil) {
       luaX_prev(ls);
       return ret;
     }
-    case TK_CATCH: { /* FezzedOne: Fixed `catch` ending blocks early when it's disabled. */
-      return ls->getKeywordState(TK_CATCH) % 2 == 0;
-    }
     case TK_ELSE: case TK_ELSEIF:
     case TK_END: case TK_EOS:
-    case TK_PCATCH:
       return 1;
+    case TK_CATCH: case TK_PCATCH:
+      return ls->used_try;
     case TK_UNTIL: return withuntil;
     default: return 0;
   }
@@ -2277,6 +2272,12 @@ static void body (LexState *ls, expdesc *e, int ismethod, int line, TypeDesc *fu
   BodyState& bs = ls->bodystates.emplace();
   TString *varargname = nullptr;
   parlist(ls, (ismethod == 2 ? &bs.promotions : nullptr), &bs.fallbacks, &varargname, false);
+  if (ls->t.token != ')' && ismethod != 2 && luaX_lookbehind(ls).token == TK_NAME) {
+    const char *str = getstr(luaX_lookbehind(ls).seminfo.ts);
+    if (strcmp(str, "private") == 0 || strcmp(str, "protected") == 0 || strcmp(str, "public") == 0) {
+      throwerr(ls, luaO_fmt(ls->L, "attempt to use constructor promotion outside of '__construct' near %s", luaX_token2str(ls, ls->t)), "this is invalid syntax.");
+    }
+  }
   checknext(ls, ')');
   defaultarguments(ls, ismethod, bs.fallbacks);
   for (const auto& e : bs.promotions) {
@@ -2637,6 +2638,44 @@ static void safe_navigation (LexState *ls, expdesc *v) {
 }
 
 
+static void top_to_expdesc (LexState *ls, expdesc *v) {
+  lua_State *L = ls->L;
+  switch (lua_type(L, -1)) {
+    case LUA_TNUMBER: {
+      if (lua_isinteger(L, -1)) {
+        init_exp(v, VKINT, 0);
+        v->u.ival = lua_tointeger(L, -1);
+      }
+      else {
+        init_exp(v, VKFLT, 0);
+        v->u.nval = lua_tonumber(L, -1);
+      }
+      break;
+    }
+    case LUA_TSTRING: {
+      size_t len;
+      const char* str = lua_tolstring(L, -1, &len);
+      codestring(v, luaS_newlstr(L, str, len));
+      break;
+    }
+    case LUA_TTABLE: {
+      lua_pushnil(L);
+      newtable(ls, v, [ls](expdesc *key, expdesc *val) {
+        if (lua_next(ls->L, -2)) {
+          top_to_expdesc(ls, val);
+          lua_pop(ls->L, 1);
+          top_to_expdesc(ls, key);
+          return true;
+        }
+        return false;
+      });
+      break;
+    }
+    default: {
+      luaX_syntaxerror(ls, "unexpected return value in constexpr_call");
+    }
+  }
+}
 
 static void constexpr_call (LexState *ls, expdesc *v, lua_CFunction f) {
   auto line = ls->getLineNumber();
@@ -2685,28 +2724,7 @@ static void constexpr_call (LexState *ls, expdesc *v, lua_CFunction f) {
   if (status != LUA_OK) {
     throwerr(ls, lua_tostring(L, -1), "error in constexpr_call", line);
   }
-  switch (lua_type(L, -1)) {
-    case LUA_TNUMBER: {
-      if (lua_isinteger(L, -1)) {
-        init_exp(v, VKINT, 0);
-        v->u.ival = lua_tointeger(L, -1);
-      }
-      else {
-        init_exp(v, VKFLT, 0);
-        v->u.nval = lua_tonumber(L, -1);
-      }
-      break;
-    }
-    case LUA_TSTRING: {
-      size_t len;
-      const char* str = lua_tolstring(L, -1, &len);
-      codestring(v, luaS_newlstr(L, str, len));
-      break;
-    }
-    default: {
-      luaX_syntaxerror(ls, "unexpected return value in constexpr_call");
-    }
-  }
+  top_to_expdesc(ls, v);
   lua_pop(L, 1);
 }
 
@@ -2724,15 +2742,24 @@ int luaB_tonumber (lua_State *L);
 int luaB_utonumber (lua_State *L);
 int luaB_tostring (lua_State *L);
 int luaB_utostring (lua_State *L);
+int luaB_type (lua_State *L);
 
 static void const_expr (LexState *ls, expdesc *v) {
   switch (ls->t.token) {
     case TK_NAME: {
-      const Pluto::PreloadedLibrary* lib = nullptr;
+      const Pluto::ConstexprLibrary* lib = nullptr;
       for (const auto& library : Pluto::all_preloaded) {
         if (strcmp(library->name, getstr(ls->t.seminfo.ts)) == 0) {
           lib = library;
           break;
+        }
+      }
+      if (lib == nullptr) {
+        for (const auto& library : Pluto::all_constexpr) {
+          if (strcmp(library->name, getstr(ls->t.seminfo.ts)) == 0) {
+            lib = library;
+            break;
+          }
         }
       }
       if (lib != nullptr) {
@@ -2758,6 +2785,7 @@ static void const_expr (LexState *ls, expdesc *v) {
           && !check_constexpr_call(ls, v, "utonumber", luaB_utonumber)
           && !check_constexpr_call(ls, v, "tostring", luaB_tostring)
           && !check_constexpr_call(ls, v, "utostring", luaB_utostring)
+          && !check_constexpr_call(ls, v, "type", luaB_type)
         )
       {
         throwerr(ls, luaO_fmt(ls->L, "%s is not available in constant expression", getstr(ls->t.seminfo.ts)), "unrecognized name.");
@@ -3132,7 +3160,7 @@ static void expsuffix (LexState *ls, expdesc *v, int line, int flags, TypeHint *
         }
         luaX_next(ls);
         int nparams = 1;
-        if (!(flags & E_NO_METHOD_CALL) && !(flags & E_NO_CONSUME_COLON) && luaX_lookahead(ls) == ':') {
+        if (!(flags & E_NO_METHOD_CALL) && !(flags & E_NO_CONSUME_COLON) && ls->t.token != TK_EOS && luaX_lookahead(ls) == ':') {
           luaK_reserveregs(fs, 2);
           luaK_exp2nextreg(fs, v);
           fs->freereg -= 3;
@@ -3305,9 +3333,10 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
   expdesc ctrl;
   expr(ls, &ctrl);
   checknext(ls, TK_DO);
-  if (!vkhasregister(ctrl.k) || ctrl.t != ctrl.f) {
-    /* Sainan: Fixed infinite loop when the control expression has a jump instruction in it (as when `and` or `or` is used). */
-    luaK_exp2nextreg(ls->fs, &ctrl); 
+  if (!vkhasregister(ctrl.k)
+    || ctrl.t != ctrl.f  /* has jumps? */
+  ) {
+    luaK_exp2nextreg(ls->fs, &ctrl);
     if (tk == TK_ARROW) {
       prevpinnedreg = fs->pinnedreg;
       fs->pinnedreg = ctrl.u.reg;
@@ -4499,20 +4528,21 @@ static void ifstat (LexState *ls, int line, TypeHint *prop = nullptr) {
 }
 
 
-/* keep advancing until we hit non-nested '$else' or '$end' */
+/* keep advancing until we hit non-nested '$else', '$elseif' or '$end' */
 static void skip_constexpr_block (LexState *ls) {
   int depth = 0;
   while (ls->t.token != TK_EOS) {
     if (ls->t.token == '$') {
-      if (luaX_lookahead(ls) == TK_IF) {
+      const auto la_tk = luaX_lookahead(ls);
+      if (la_tk == TK_IF) {
         ++depth;
       }
-      else if (luaX_lookahead(ls) == TK_ELSE) {
+      else if (la_tk == TK_ELSE || la_tk == TK_ELSEIF) {
         if (depth == 0) {
           break;
         }
       }
-      else if (luaX_lookahead(ls) == TK_END) {
+      else if (la_tk == TK_END) {
         if (depth == 0) {
           break;
         }
@@ -4525,25 +4555,44 @@ static void skip_constexpr_block (LexState *ls) {
 }
 
 static void constexprifstat (LexState *ls, int line) {
+  bool hit = false;
+
   expdesc c;
   expr(ls, &c);
-  const bool disposition = luaK_isalwaystrue(ls, &c);
-  if (disposition == false) {
-    if (!luaK_isalwaysfalse(ls, &c)) {
-      throwerr(ls, "this condition cannot be evaluated at compile-time", "");
-    }
-  }
   if (!testnext(ls, TK_DO))
     checknext(ls, TK_THEN);
-  if (disposition == true) {
+  if (luaK_isalwaystrue(ls, &c)) {
+    hit = true;
     block(ls);
   }
   else {
+    if (!luaK_isalwaysfalse(ls, &c))
+      throwerr(ls, "this condition cannot be evaluated at compile-time", "");
     skip_constexpr_block(ls);
   }
-  checknext(ls, '$');
+
+  while (checknext(ls, '$'), testnext(ls, TK_ELSEIF)) {
+    expr(ls, &c);
+    if (!testnext(ls, TK_DO))
+      checknext(ls, TK_THEN);
+    if (luaK_isalwaystrue(ls, &c)) {
+      if (hit) {
+        skip_constexpr_block(ls);
+      }
+      else {
+        hit = true;
+        block(ls);
+      }
+    }
+    else {
+      if (!luaK_isalwaysfalse(ls, &c))
+        throwerr(ls, "this condition cannot be evaluated at compile-time", "");
+      skip_constexpr_block(ls);
+    }
+  }
+
   if (testnext(ls, TK_ELSE)) {
-    if (disposition == false) {
+    if (!hit) {
       block(ls);
     }
     else {
@@ -4551,6 +4600,7 @@ static void constexprifstat (LexState *ls, int line) {
     }
     checknext(ls, '$');
   }
+
   check_match(ls, TK_END, TK_IF, line);
 }
 
@@ -5168,6 +5218,8 @@ static void trystat (LexState *ls) {
 
   enterblock(ls->fs, &trybl, BlockType::BT_DEFAULT);
 
+  ls->used_try = true;
+
   const auto line = ls->getLineNumber();
   luaX_next(ls);
   const bool vararg = ls->fs->f->is_vararg;
@@ -5736,16 +5788,15 @@ static void builtinoperators (LexState *ls) {
       ls->tokens.emplace_back(Token(TK_NAME, luaX_newliteral(ls, "mt")));
       ls->tokens.emplace_back(Token(')'));
 
-      //   if not mt.__index or mt.__parent then
+      //   if not rawget(mt, "__index") then
       ls->tokens.emplace_back(Token(TK_IF));
       ls->tokens.emplace_back(Token(TK_NOT));
+      ls->tokens.emplace_back(Token(TK_NAME, luaX_newliteral(ls, "rawget")));
+      ls->tokens.emplace_back(Token('('));
       ls->tokens.emplace_back(Token(TK_NAME, luaX_newliteral(ls, "mt")));
-      ls->tokens.emplace_back(Token('.'));
-      ls->tokens.emplace_back(Token(TK_NAME, luaX_newliteral(ls, "__index")));
-      ls->tokens.emplace_back(Token(TK_OR));
-      ls->tokens.emplace_back(Token(TK_NAME, luaX_newliteral(ls, "mt")));
-      ls->tokens.emplace_back(Token('.'));
-      ls->tokens.emplace_back(Token(TK_NAME, luaX_newliteral(ls, "__parent")));
+      ls->tokens.emplace_back(Token(','));
+      ls->tokens.emplace_back(Token(TK_STRING, luaX_newliteral(ls, "__index")));
+      ls->tokens.emplace_back(Token(')'));
       ls->tokens.emplace_back(Token(TK_THEN));
 
       //     mt.__index = mt

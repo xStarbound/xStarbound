@@ -2,16 +2,19 @@
 
 #define LUA_LIB
 #include "lualib.h"
+#include "lstate.h" // luaE_incCstack
 
 #include "vendor/Soup/soup/xml.hpp"
 
 static soup::UniquePtr<soup::XmlNode> check_xml (lua_State *L, int i) {
   const auto type = lua_type(L, i);
   if (type == LUA_TTABLE) {
+    lua_checkstack(L, 3);
     lua_pushvalue(L, i);
-    auto tag = soup::make_unique<soup::XmlTag>();
     lua_pushliteral(L, "tag");
     if (lua_rawget(L, -2) == LUA_TSTRING) {
+      luaE_incCstack(L);
+      auto tag = soup::make_unique<soup::XmlTag>();
       tag->name = pluto_checkstring(L, -1);
       lua_pop(L, 1);  /* pop result of lua_rawget */
       lua_pushliteral(L, "attributes");
@@ -38,6 +41,7 @@ static soup::UniquePtr<soup::XmlNode> check_xml (lua_State *L, int i) {
         lua_pop(L, 1);  /* pop result of lua_rawget */
       }
       lua_pop(L, 1);  /* pop table from lua_pushvalue */
+      L->nCcalls--;
       return tag;
     }
   }
@@ -59,6 +63,7 @@ static int xml_encode (lua_State *L) {
 }
 
 static void pushxmltag (lua_State *L, const soup::XmlTag& tag) {
+  lua_checkstack(L, 4);
   lua_newtable(L);
   lua_pushliteral(L, "tag");
   pluto_pushstring(L, tag.name);
@@ -129,7 +134,13 @@ static int xml_decode (lua_State *L) {
   }
   size_t len;
   const char *data = luaL_checklstring(L, 1, &len);
-  auto root = soup::xml::parseAndDiscardMetadata(data, data + len, *mode);
+  soup::UniquePtr<soup::XmlTag> root;
+  try {
+    root = soup::xml::parseAndDiscardMetadata(data, data + len, *mode);
+  }
+  catch (const std::exception& e) {
+	luaL_error(L, e.what());
+  }
   pushxmltag(L, *root);
   return 1;
 }

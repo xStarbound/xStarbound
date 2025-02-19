@@ -61,7 +61,6 @@
 
 #if defined(LUA_USE_WINDOWS)
 #define LUA_DL_DLL	/* enable support for DLL */
-#define LUA_USE_C89	/* broadly, Windows is C89 */
 #endif
 
 
@@ -312,8 +311,13 @@
 // Additions by Pluto that are not compatible with `extern "C"` use PLUTO_API instead of LUA_API.
 #define PLUTO_API	PLUTO_DLLSPEC
 
-#define LUA_API			    extern "C" PLUTO_API
-#define LUA_API_NORETURN	extern "C" [[noreturn]] PLUTO_API
+#ifdef __cplusplus
+  #define LUA_API          extern "C" PLUTO_API
+  #define LUA_API_NORETURN extern "C" [[noreturn]] PLUTO_API
+#else
+  #define LUA_API          PLUTO_API
+  #define LUA_API_NORETURN PLUTO_API
+#endif
 
 /*
 ** More often than not the libs go together with the core.
@@ -823,8 +827,7 @@
 //#define PLUTO_FORCE_JUMPTABLE
 
 // If defined, Pluto won't imbue tables with a metatable by default.
-// FezzedOne: Still needs to be disabled for compatibility with some Starbound scripts.
-#define PLUTO_NO_DEFAULT_TABLE_METATABLE
+//#define PLUTO_NO_DEFAULT_TABLE_METATABLE
 
 /*
 ** {====================================================================
@@ -837,10 +840,7 @@
 
 // The list of globals covered by the "global-shadow" warning.
 #ifndef PLUTO_COMMON_GLOBAL_NAMES
-#define PLUTO_COMMON_GLOBAL_NAMES "table","string","json","arg","xsb","sb","null","world","universe","CommandProcessor",\
-  "player","entity","widget","config","monster","npc","physics","fireableItem","item","activeItem","root","pane",\
-  "interface","chat","object","objectAnimator","assets","quest","jobject","jarray","jsize","jremove","jresize",\
-  "shared","message","mcontroller","tech","voice","clipboard","playerAnimator"
+#define PLUTO_COMMON_GLOBAL_NAMES "table","string","arg"
 #endif
 
 // If defined, the "non-portable-code" warning is enabled by default.
@@ -861,7 +861,7 @@
 // If defined, Pluto will assign 'pluto_' to new keywords which break previously valid Lua identifiers.
 // So, for example, the 'switch' keyword becomes 'pluto_switch'. The 'pluto_' variants are valid even if this is not defined.
 // As of Pluto 0.7.0, scripts can individually set compatibility modes via 'pluto_use'.
-//#define PLUTO_COMPATIBLE_MODE // FezzedOne: As of v0.10.x, should no longer be needed for script compatibility.
+//#define PLUTO_COMPATIBLE_MODE
 
 #ifdef PLUTO_COMPATIBLE_MODE
     #define PLUTO_COMPATIBLE_SWITCH
@@ -874,6 +874,10 @@
     #define PLUTO_COMPATIBLE_TRY
     #define PLUTO_COMPATIBLE_CATCH
 #endif
+
+// If defined, Pluto's automatic keyword detection will more aggressively disable keywords if they're not used exactly as expected.
+// This will help when scripters use these keywords as globals across files or before their definition.
+//#define PLUTO_PARANOID_KEYWORD_DETECTION
 
 // If defined, Pluto disables optimisations of Lua macros that would make your code unable to be linked
 // against Lua if your code is using these macros with Pluto's definitions.
@@ -906,7 +910,6 @@
 */
 
 // If defined, Pluto will attempt to prevent infinite loops.
-// FezzedOne: Not needed; there's already a infinite loop check in xStarbound's Lua VM.
 //#define PLUTO_ILP_ENABLE
 
 #ifdef PLUTO_ILP_ENABLE
@@ -943,7 +946,6 @@
 ** =====================================================================}
 */
 
-// FezzedOne: Not needed; there's already an execution time limit in xStarbound's Lua VM.
 //#define PLUTO_ETL_ENABLE
 
 #ifdef PLUTO_ETL_ENABLE
@@ -971,7 +973,6 @@
 ** =====================================================================}
 */
 
-// FezzedOne: Might come in useful.
 //#define PLUTO_MEMORY_LIMIT 64'000'000 /* 64 MB (megabytes, not mebibytes!) */
 
 /*

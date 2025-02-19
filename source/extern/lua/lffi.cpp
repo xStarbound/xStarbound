@@ -126,7 +126,7 @@ static int push_ffi_value (lua_State *L, FfiType type, void *value) {
   SOUP_UNREACHABLE;
 }
 
-static uintptr_t check_ffi_value (lua_State *L, int i, FfiType type) {
+static uint64_t check_ffi_value (lua_State *L, int i, FfiType type) {
   switch (type) {
     case FFI_UNKNOWN:
       /* 'handling' this case makes the compiler happy */
@@ -134,33 +134,39 @@ static uintptr_t check_ffi_value (lua_State *L, int i, FfiType type) {
     case FFI_VOID:
       return 0;
     case FFI_I8:
-      return static_cast<uintptr_t>(static_cast<int8_t>(luaL_checkinteger(L, i)));
+      return static_cast<uint64_t>(static_cast<int8_t>(luaL_checkinteger(L, i)));
     case FFI_I16:
-      return static_cast<uintptr_t>(static_cast<int16_t>(luaL_checkinteger(L, i)));
+      return static_cast<uint64_t>(static_cast<int16_t>(luaL_checkinteger(L, i)));
     case FFI_I32:
-      return static_cast<uintptr_t>(static_cast<int32_t>(luaL_checkinteger(L, i)));
+      return static_cast<uint64_t>(static_cast<int32_t>(luaL_checkinteger(L, i)));
     case FFI_I64:
-      return static_cast<uintptr_t>(static_cast<int64_t>(luaL_checkinteger(L, i)));
+      return static_cast<uint64_t>(static_cast<int64_t>(luaL_checkinteger(L, i)));
     case FFI_U8:
-      return static_cast<uintptr_t>(static_cast<uint8_t>(luaL_checkinteger(L, i)));
+      return static_cast<uint64_t>(static_cast<uint8_t>(luaL_checkinteger(L, i)));
     case FFI_U16:
-      return static_cast<uintptr_t>(static_cast<uint16_t>(luaL_checkinteger(L, i)));
+      return static_cast<uint64_t>(static_cast<uint16_t>(luaL_checkinteger(L, i)));
     case FFI_U32:
-      return static_cast<uintptr_t>(static_cast<uint32_t>(luaL_checkinteger(L, i)));
+      return static_cast<uint64_t>(static_cast<uint32_t>(luaL_checkinteger(L, i)));
     case FFI_U64:
-      return static_cast<uintptr_t>(static_cast<uint64_t>(luaL_checkinteger(L, i)));
-    case FFI_F32:
-      return static_cast<uintptr_t>(static_cast<float>(luaL_checknumber(L, i)));
-    case FFI_F64:
-      return static_cast<uintptr_t>(static_cast<double>(luaL_checknumber(L, i)));
+      return static_cast<uint64_t>(luaL_checkinteger(L, i));
+    case FFI_F32: {
+      auto val = static_cast<float>(luaL_checknumber(L, i));
+      return static_cast<uint64_t>(*reinterpret_cast<uint32_t*>(&val));
+      static_assert(sizeof(float) == sizeof(uint32_t));
+    }
+    case FFI_F64: {
+      auto val = static_cast<double>(luaL_checknumber(L, i));
+      return *reinterpret_cast<uint64_t*>(&val);
+      static_assert(sizeof(double) == sizeof(uint64_t));
+    }
     case FFI_PTR:
       if (lua_type(L, i) != LUA_TUSERDATA)
         luaL_checktype(L, i, LUA_TLIGHTUSERDATA);
-      return reinterpret_cast<uintptr_t>(lua_touserdata(L, i));
+      return reinterpret_cast<uint64_t>(lua_touserdata(L, i));
     case FFI_STR:
       if (lua_type(L, i) == LUA_TNIL)
         return 0;
-      return reinterpret_cast<uintptr_t>(luaL_checkstring(L, i));
+      return reinterpret_cast<uint64_t>(luaL_checkstring(L, i));
   }
   SOUP_UNREACHABLE;
 }
@@ -191,13 +197,14 @@ struct FfiFuncWrapper {
   void* addr;
   std::vector<FfiType> args;
   FfiType ret;
+  soup::SharedPtr<soup::SharedLibrary> owner;
 };
 
-[[nodiscard]] static soup::SharedLibrary* checkffilib (lua_State *L, int i) {
-  return (soup::SharedLibrary*)luaL_checkudata(L, i, "pluto:ffi-library");
+[[nodiscard]] static soup::SharedPtr<soup::SharedLibrary>* checkffilib (lua_State *L, int i) {
+  return (soup::SharedPtr<soup::SharedLibrary>*)luaL_checkudata(L, i, "pluto:ffi-library");
 }
 
-[[nodiscard]] static soup::SharedLibrary* checkffilibfromtable (lua_State *L, int i) {
+[[nodiscard]] static soup::SharedPtr<soup::SharedLibrary>* checkffilibfromtable (lua_State *L, int i) {
   lua_pushliteral(L, "__object");
   if (!lua_gettable(L, i)) {
     luaL_typeerror(L, i, "pluto:ffi-library");
@@ -229,7 +236,16 @@ static int ffi_funcwrapper_call (lua_State *L) {
     args[i] = check_ffi_value(L, 1 + i, arg_type);
     ++i;
   }
-  uintptr_t retval = soup::ffi::call(fw->addr, args, i);
+  uintptr_t retval;
+  try {
+    retval = soup::ffi::call(fw->addr, args, i);
+  }
+  catch (std::exception& e) {
+    luaL_error(L, "C++ exception: %s", e.what());
+  }
+  catch (...) {
+    luaL_error(L, "C++ exception");
+  }
   return push_ffi_value(L, fw->ret, &retval);
 }
 
@@ -252,7 +268,8 @@ static int ffi_lib_wrap (lua_State *L) {
   auto fw = newfuncwrapper(L);
   fw->ret = check_ffi_type(L, 2);
   const char *name = luaL_checkstring(L, 3);
-  fw->addr = checkffilibfromtable(L, 1)->getAddress(name);
+  auto pSpLib = checkffilibfromtable(L, 1);
+  fw->addr = (*pSpLib)->getAddress(name);
   if (l_unlikely(fw->addr == nullptr)) {
     luaL_error(L, "could not find '%s' in library", name);
   }
@@ -264,12 +281,13 @@ static int ffi_lib_wrap (lua_State *L) {
   for (int i = 4; i != 4 + nargtypes; ++i) {
     fw->args.emplace_back(check_ffi_type(L, i));
   }
+  fw->owner = *pSpLib;
   return 1;
 }
 
 static int ffi_lib_value (lua_State *L) {
   const char *name = luaL_checkstring(L, 3);
-  void *addr = checkffilibfromtable(L, 1)->getAddress(luaL_checkstring(L, 3));
+  void *addr = checkffilibfromtable(L, 1)->get()->getAddress(luaL_checkstring(L, 3));
   if (l_unlikely(addr == nullptr)) {
     luaL_error(L, "could not find '%s' in library", name);
   }
@@ -277,7 +295,8 @@ static int ffi_lib_value (lua_State *L) {
 }
 
 static int ffi_lib_cdef (lua_State *L) {
-  const auto lib = checkffilibfromtable(L, 1);
+  const auto pSpLib = checkffilibfromtable(L, 1);
+  const auto lib = pSpLib->get();
   auto par = pluto_newclassinst(L, soup::rflParser, pluto_checkstring(L, 2));
   auto var = pluto_newclassinst(L, soup::rflVar);
   auto func = pluto_newclassinst(L, soup::rflFunc);
@@ -315,6 +334,7 @@ static int ffi_lib_cdef (lua_State *L) {
         if (l_unlikely(fw->args.back() == FFI_UNKNOWN))
           luaL_error(L, "malformed function");
       }
+      fw->owner = *pSpLib;
       lua_settable(L, 1);
     }
     else {
@@ -340,7 +360,8 @@ static int ffi_open (lua_State *L) {
   lua_newtable(L);
   lua_pushliteral(L, "__object");
   {
-    auto lib = new (lua_newuserdata(L, sizeof(soup::SharedLibrary))) soup::SharedLibrary(libname);
+    auto spLib = soup::make_shared<soup::SharedLibrary>(libname);
+    auto lib = new (lua_newuserdata(L, sizeof(soup::SharedPtr<soup::SharedLibrary>))) soup::SharedPtr<soup::SharedLibrary>(std::move(spLib));
     if (luaL_newmetatable(L, "pluto:ffi-library")) {
       lua_pushliteral(L, "__gc");
       lua_pushcfunction(L, [](lua_State *L) {
@@ -350,7 +371,7 @@ static int ffi_open (lua_State *L) {
       lua_settable(L, -3);
     }
     lua_setmetatable(L, -2);
-    if (!lib->isLoaded()) {
+    if (!(*lib)->isLoaded()) {
       luaL_error(L, "failed to load library '%s'", libname);
     }
   }
@@ -424,10 +445,8 @@ static int ffi_push_new (lua_State *L, int i) {
         luaL_error(L, "no member with name '%s'", memname.c_str());
       }
       const soup::rflType& type = strct->getMemberType(memname);
-      uintptr_t data = *reinterpret_cast<uintptr_t*>(reinterpret_cast<uintptr_t>(udata) + offset);
-      uintptr_t new_data = check_ffi_value(L, 3, rfl_type_to_ffi_type(type));
-      memcpy(&data, &new_data, type.getSize());
-      *reinterpret_cast<uintptr_t*>(reinterpret_cast<uintptr_t>(udata) + offset) = data;
+      uint64_t new_data = check_ffi_value(L, 3, rfl_type_to_ffi_type(type));
+      memcpy(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(udata) + offset), &new_data, type.getSize());
     }
     return 0;
   });
