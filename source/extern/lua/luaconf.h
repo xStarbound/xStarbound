@@ -877,7 +877,7 @@
 
 // If defined, Pluto's automatic keyword detection will more aggressively disable keywords if they're not used exactly as expected.
 // This will help when scripters use these keywords as globals across files or before their definition.
-//#define PLUTO_PARANOID_KEYWORD_DETECTION
+#define PLUTO_PARANOID_KEYWORD_DETECTION
 
 // If defined, Pluto disables optimisations of Lua macros that would make your code unable to be linked
 // against Lua if your code is using these macros with Pluto's definitions.
