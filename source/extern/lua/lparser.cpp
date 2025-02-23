@@ -3337,7 +3337,19 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
   int prevpinnedreg = -1;
   expdesc ctrl;
   expr(ls, &ctrl);
+
+  bool missingDo = false;
+
+#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
+  /* FezzedOne: If `do` is missing, create bytecode for a switch with no cases, 
+     effectively making it do nothing. */
+  missingDo = luaX_lookahead(ls) != TK_DO;
+  if (missingDo) disablekeyword(ls, TK_SWITCH);
+  else luaX_next(ls);
+  const auto switchPos = luaX_getpos(ls);
+#else
   checknext(ls, TK_DO);
+#endif
   if (!vkhasregister(ctrl.k)
     || ctrl.t != ctrl.f  /* has jumps? */
   ) {
@@ -3370,6 +3382,9 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
 
   std::vector<SwitchCase>& cases = ls->switchstates.top().cases;
 
+#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
+  if (!missingDo) {
+#endif
   while (gett(ls) != TK_END) {
     auto case_line = ls->getLineNumber();
     if (fs->nactvar != nactvar) {
@@ -3394,6 +3409,9 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
     ls->laststat.token = TK_EOS;  /* We don't want warnings for trailing control flow statements. */
     caselist(ls, ud);
   }
+#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
+  }
+#endif
 
   if (ls->laststat.token != TK_BREAK) {  /* last block did not have 'break'? */
     if (tk == ':') {  /* switch statement? */
@@ -3457,11 +3475,22 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
     luaK_freeexp(fs, &ctrl);
   }
 
+#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
+  if (missingDo) /* FezzedOne: Ignore checking for an `end` if `do` is missing. */
+#endif
   check_match(ls, TK_END, switchToken, line);
   leaveblock(fs);
   if (tk == TK_ARROW)
     fs->freereg = freereg;
   ls->switchstates.pop();
+
+#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
+  if (missingDo) {
+    /* FezzedOne: Turns out this `switch` is a variable name. Move back to before the now-disabled `switch` keyword, then reparse. */
+    luaX_setpos(ls, switchPos);
+    luaX_prev(ls);
+  }
+#endif
 }
 
 static void switchstat (LexState *ls) {
