@@ -208,10 +208,13 @@ static void check_for_non_portable_code (LexState *ls) {
   if (ls->t.IsNonCompatible() && !ls->t.IsOverridable()) {
     if (ls->getKeywordState(ls->t.token) == KS_ENABLED_BY_PLUTO_UNINFORMED) {
       const auto next = luaX_lookahead(ls);
+      const auto prev = luaX_lookbehind(ls).token;
       if (next == '=' || next == '.' || next == ':' || next == '['  /* attempting to create or use a global? */
 #ifdef PLUTO_PARANOID_KEYWORD_DETECTION
       /* FezzedOne: Need to paranoiacally check for commas, in case of comma-separated declarations, table entries, or returns. */
           || next == '(' || next == '{' || next == ',' || next == TK_STRING
+          || (ls->t.token != TK_CONTINUE && next == ';') /* FezzedOne: Fixed `switch;` getting parsed as a `switch` keyword / invalid switch expression. */
+          || (ls->t.token == TK_CONTINUE && (prev == '=' || prev == ',')) /* FezzedOne: Fixed compatibility issues around `x = continue` and `x = y, continue`. */
 #endif
         ) {
         disablekeyword(ls, ls->t.token);
@@ -5598,7 +5601,7 @@ static void statement (LexState *ls, TypeHint *prop) {
       if (testnext(ls, TK_FUNCTION))  /* local function? */
         localfunc(ls);
       else if (testnext2(ls, TK_CLASS, TK_PCLASS)) {
-        if (ls->t.token == '=') {
+        if (ls->t.token == '=' || ls->t.token == ',') { /* Commit b78765fb from Sainan/Pluto. */
           if (luaX_lookbehind(ls).token == TK_CLASS && ls->getKeywordState(TK_CLASS) == KS_ENABLED_BY_PLUTO_UNINFORMED) {
             luaX_prev(ls);
             disablekeyword(ls, TK_CLASS);
