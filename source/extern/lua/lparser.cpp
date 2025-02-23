@@ -211,10 +211,11 @@ static void check_for_non_portable_code (LexState *ls) {
       const auto prev = luaX_lookbehind(ls).token;
       if (next == '=' || next == '.' || next == ':' || next == '['  /* attempting to create or use a global? */
 #ifdef PLUTO_PARANOID_KEYWORD_DETECTION
+#define CONTINUE_TRY_OR_CATCH(token) ((token) == TK_CONTINUE || (token) == TK_TRY || (token) == TK_CATCH)
       /* FezzedOne: Need to paranoiacally check for commas, in case of comma-separated declarations, table entries, or returns. */
           || next == '(' || next == '{' || next == ',' || next == TK_STRING
-          || (ls->t.token != TK_CONTINUE && next == ';') /* FezzedOne: Fixed `switch;` getting parsed as a `switch` keyword / invalid switch expression. */
-          || (ls->t.token == TK_CONTINUE && (prev == '=' || prev == ',')) /* FezzedOne: Fixed compatibility issues around `x = continue` and `x = y, continue`. */
+          || (!CONTINUE_TRY_OR_CATCH(ls->t.token) && next == ';') /* FezzedOne: Fixed `switch;` getting parsed as a `switch` keyword / invalid switch expression. */
+          || (CONTINUE_TRY_OR_CATCH(ls->t.token) && (prev == '=' || prev == ',')) /* FezzedOne: Fixed compatibility issues around `x = continue` and `x = y, continue`. */
 #endif
         ) {
         disablekeyword(ls, ls->t.token);
