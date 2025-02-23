@@ -210,7 +210,8 @@ static void check_for_non_portable_code (LexState *ls) {
       const auto next = luaX_lookahead(ls);
       if (next == '=' || next == '.' || next == ':' || next == '['  /* attempting to create or use a global? */
 #ifdef PLUTO_PARANOID_KEYWORD_DETECTION
-          || next == '(' || next == '{' || next == TK_STRING
+      /* FezzedOne: Need to paranoiacally check for commas, in case of comma-separated declarations, table entries, or returns. */
+          || next == '(' || next == '{' || next == ',' || next == TK_STRING
 #endif
         ) {
         disablekeyword(ls, ls->t.token);
