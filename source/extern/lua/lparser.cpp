@@ -3328,6 +3328,14 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
   FuncState *fs = ls->fs;
   BlockCnt sbl;
 
+#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
+  /* FezzedOne: Create a jump instruction ahead of time, just in case we need to skip evaluating
+    a `switch` condition because `switch` turned out not to be a keyword. */
+  int badSwitchJump = luaK_jump(fs);
+  /* FezzedOne: The Lua PC right after the jump instruction. */
+  int goodSwitchPc = luaK_getlabel(fs);
+#endif
+
   lu_byte freereg = fs->freereg;
   if (tk == TK_ARROW)
     fs->freereg = luaY_nvarstack(fs); // To prevent assert in enterblock
@@ -3344,8 +3352,13 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
   /* FezzedOne: If `do` is missing, create bytecode for a switch with no cases, 
      effectively making it do nothing. */
   missingDo = luaX_lookahead(ls) != TK_DO;
-  if (missingDo) disablekeyword(ls, TK_SWITCH);
-  else luaX_next(ls);
+  if (missingDo) {
+    disablekeyword(ls, TK_SWITCH);
+  } else {
+    /* FezzedOne: If the `switch` is good, patch the jump into an effective no-op. */
+    luaK_patchlist(fs, badSwitchJump, goodSwitchPc);
+    luaX_next(ls);
+  }
   const auto switchPos = luaX_getpos(ls);
 #else
   checknext(ls, TK_DO);
@@ -3486,7 +3499,9 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
 
 #ifdef PLUTO_PARANOID_KEYWORD_DETECTION
   if (missingDo) {
-    /* FezzedOne: Turns out this `switch` is a variable name. Move back to before the now-disabled `switch` keyword, then reparse. */
+    /* FezzedOne: Turns out this `switch` is bad (a variable name). Patch the jump to skip the switch
+       condition instructions and move back to before the now-disabled `switch` keyword, then reparse. */
+    luaK_patchtohere(fs, badSwitchJump);
     luaX_setpos(ls, switchPos);
     luaX_prev(ls);
   }
