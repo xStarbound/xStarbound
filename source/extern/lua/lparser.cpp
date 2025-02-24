@@ -3489,7 +3489,7 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
   }
 
 #ifdef PLUTO_PARANOID_KEYWORD_DETECTION
-  if (missingDo) /* FezzedOne: Ignore checking for an `end` if `do` is missing. */
+  if (!missingDo) /* FezzedOne: Ignore checking for an `end` if `do` is missing. */
 #endif
   check_match(ls, TK_END, switchToken, line);
   leaveblock(fs);
