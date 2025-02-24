@@ -3351,7 +3351,7 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
 #ifdef PLUTO_PARANOID_KEYWORD_DETECTION
   /* FezzedOne: If `do` is missing, create bytecode for a switch with no cases, 
      effectively making it do nothing. */
-  missingDo = luaX_lookahead(ls) != TK_DO;
+  missingDo = ls->t.token != TK_DO;
   if (missingDo) {
     disablekeyword(ls, TK_SWITCH);
   } else {
