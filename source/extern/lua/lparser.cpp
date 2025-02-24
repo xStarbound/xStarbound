@@ -3322,6 +3322,9 @@ static std::vector<int> casecond (LexState *ls, const expdesc& ctrl, int tk) {
 static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), void *ud = nullptr) {
   const auto line = ls->getLineNumber();
   const auto switchToken = gett(ls);
+#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
+  const auto switchPos = luaX_getpos(ls);
+#endif
   luaX_next(ls); // Skip switch statement.
 
   ls->switchstates.emplace();
@@ -3351,7 +3354,7 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
 #ifdef PLUTO_PARANOID_KEYWORD_DETECTION
   /* FezzedOne: If `do` is missing, create bytecode for a switch with no cases, 
      effectively making it do nothing. */
-  missingDo = ls->t.token != TK_DO;
+  missingDo = gett(ls) != TK_DO;
   if (missingDo) {
     disablekeyword(ls, TK_SWITCH);
   } else {
@@ -3359,7 +3362,6 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
     luaK_patchlist(fs, badSwitchJump, goodSwitchPc);
     luaX_next(ls);
   }
-  const auto switchPos = luaX_getpos(ls);
 #else
   checknext(ls, TK_DO);
 #endif
@@ -3503,6 +3505,7 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
        condition instructions and move back to before the now-disabled `switch` keyword, then reparse. */
     luaK_patchtohere(fs, badSwitchJump);
     luaX_setpos(ls, switchPos);
+    luaX_next(ls);
   }
 #endif
 }
