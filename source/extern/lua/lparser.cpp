@@ -3503,7 +3503,6 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
        condition instructions and move back to before the now-disabled `switch` keyword, then reparse. */
     luaK_patchtohere(fs, badSwitchJump);
     luaX_setpos(ls, switchPos);
-    luaX_prev(ls);
   }
 #endif
 }
