@@ -137,7 +137,7 @@ Chat::Chat(UniverseClientPtr client, Maybe<ChatState> chatState) : m_client(clie
       if (savedFilterId->isType(Json::Type::Int)) {
         int filterId = (int)savedFilterId->toInt();
         auto tabGroup = fetchChild<ButtonGroup>("filterGroup");
-        if ((size_t)filterId < tabGroup->buttonCount())
+        if (tabGroup->button(filterId))
           tabGroup->select(filterId);
       }
     }
@@ -150,7 +150,7 @@ Chat::Chat(UniverseClientPtr client, Maybe<ChatState> chatState) : m_client(clie
     m_chatPrevIndex = chatState->chatPrevIndex;
     m_sendMode = chatState->sendMode;
     auto tabGroup = fetchChild<ButtonGroup>("filterGroup");
-    if ((size_t)chatState->filterId < tabGroup->buttonCount())
+    if (tabGroup->button(chatState->filterId))
       tabGroup->select(chatState->filterId);
     m_expanded = chatState->expanded;
   }
