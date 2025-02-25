@@ -8,7 +8,7 @@ void ButtonGroup::setCallback(WidgetCallbackFunc callback) {
 }
 
 ButtonWidget* ButtonGroup::button(int id) const {
-  return m_buttons.value(id);
+  return m_buttons.value(id, nullptr);
 }
 
 List<ButtonWidget*> ButtonGroup::buttons() const {
