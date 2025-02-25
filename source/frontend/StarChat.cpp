@@ -114,7 +114,7 @@ Chat::Chat(UniverseClientPtr client, Maybe<ChatState> chatState) : m_client(clie
           });
         }
       }
-      Logger::info("Read chat messages from '{}'", messagesFile);
+      // Logger::info("Read chat messages from '{}'", messagesFile);
     } catch (std::exception const& e) {
       m_receivedMessages.clear();
       Logger::error("Exception while reading chat messages from '{}': {}", messagesFile, e.what());
@@ -136,7 +136,9 @@ Chat::Chat(UniverseClientPtr client, Maybe<ChatState> chatState) : m_client(clie
     if (auto savedFilterId = chatSettings.opt("filter")) {
       if (savedFilterId->isType(Json::Type::Int)) {
         int filterId = (int)savedFilterId->toInt();
-        fetchChild<ButtonGroup>("filterGroup")->select(filterId);
+        auto tabGroup = fetchChild<ButtonGroup>("filterGroup");
+        if ((size_t)filterId < tabGroup->buttonCount())
+          tabGroup->select(filterId);
       }
     }
   }
@@ -147,7 +149,9 @@ Chat::Chat(UniverseClientPtr client, Maybe<ChatState> chatState) : m_client(clie
     m_historyOffset = chatState->historyOffset;
     m_chatPrevIndex = chatState->chatPrevIndex;
     m_sendMode = chatState->sendMode;
-    fetchChild<ButtonGroup>("filterGroup")->select(chatState->filterId);
+    auto tabGroup = fetchChild<ButtonGroup>("filterGroup");
+    if ((size_t)chatState->filterId < tabGroup->buttonCount())
+      tabGroup->select(chatState->filterId);
     m_expanded = chatState->expanded;
   }
 
