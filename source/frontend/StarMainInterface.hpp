@@ -44,6 +44,7 @@ STAR_CLASS(ContainerInteractor);
 STAR_CLASS(ScriptPane);
 STAR_CLASS(ChatBubbleManager);
 STAR_CLASS(CanvasWidget);
+STAR_CLASS(CharSelectionPane);
 
 STAR_STRUCT(GuiMessage);
 STAR_CLASS(MainInterface);
@@ -265,6 +266,12 @@ private:
 
   Vec2F m_cameraPosition;
   Maybe<Vec2F> m_cameraPositionOverride;
+
+  CharSelectionPanePtr m_charSwapPane;
+  CharSelectionPanePtr m_charAddPane;
+  CharSelectionPanePtr m_charRemovePane;
+
+  Maybe<ChatState> m_persistedChatState;
 };
 
 }

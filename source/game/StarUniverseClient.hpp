@@ -128,6 +128,7 @@ public:
   typedef std::function<void(bool)> ReloadPlayerCallback;
   ReloadPlayerCallback& playerReloadPreCallback();
   ReloadPlayerCallback& playerReloadCallback();
+  Callback& saveCallback();
 
   ClockConstPtr universeClock() const;
   CelestialLogConstPtr celestialLog() const;
@@ -214,6 +215,8 @@ private:
   List<Uuid> m_playersToLoad;
   List<Uuid> m_playersToRemove;
   Uuid m_mainPlayerUuid;
+
+  Callback m_saveCallback;
 };
 
 }

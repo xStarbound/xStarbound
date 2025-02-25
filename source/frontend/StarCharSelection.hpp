@@ -13,9 +13,11 @@ public:
   typedef function<void()> CreateCharCallback;
   typedef function<void(PlayerPtr const&)> SelectCharacterCallback;
   typedef function<void(Uuid)> DeleteCharacterCallback;
+  typedef function<bool(Uuid const&)> FilterCallback;
 
   CharSelectionPane(PlayerStoragePtr playerStorage, CreateCharCallback createCallback,
-      SelectCharacterCallback selectCallback, DeleteCharacterCallback deleteCallback);
+      SelectCharacterCallback selectCallback, DeleteCharacterCallback deleteCallback,
+      FilterCallback filterCallback = {});
 
   bool sendEvent(InputEvent const& event) override;
   void show() override;
@@ -31,6 +33,7 @@ private:
   CreateCharCallback m_createCallback;
   SelectCharacterCallback m_selectCallback;
   DeleteCharacterCallback m_deleteCallback;
+  FilterCallback m_filterCallback;
 };
 typedef shared_ptr<CharSelectionPane> CharSelectionPanePtr;
 }

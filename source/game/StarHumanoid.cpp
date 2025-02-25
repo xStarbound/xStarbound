@@ -313,6 +313,8 @@ Humanoid::Humanoid(Json const& config) {
 
   m_primaryHand.angle = 0;
   m_animationTimer = 0.0f;
+
+  m_humanoidRotationSettings = HumanoidRotationSettings::Null;
 }
 
 Humanoid::Humanoid(HumanoidIdentity const& identity)
@@ -331,6 +333,14 @@ void Humanoid::setIdentity(HumanoidIdentity const& identity) {
   m_backArmFrameset = getBackArmFromIdentity();
   m_frontArmFrameset = getFrontArmFromIdentity();
   m_vaporTrailFrameset = getVaporTrailFrameset();
+
+  auto config = Root::singleton().speciesDatabase()->species(identity.species)->humanoidConfig();
+
+  bool useBodyMask = config.optBool("useBodyMask").value(false);
+  bool useBodyHeadMask = config.optBool("useBodyHeadMask").value(false);
+
+  m_humanoidRotationSettings |= useBodyMask ? HumanoidRotationSettings::UseBodyMask : HumanoidRotationSettings::Null;
+  m_humanoidRotationSettings |= useBodyHeadMask ? HumanoidRotationSettings::UseBodyHeadMask : HumanoidRotationSettings::Null;
 }
 
 HumanoidIdentity const& Humanoid::identity() const {
@@ -854,6 +864,14 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
   else if (m_state == Lay)
     headPosition += m_headLayOffset;
 
+  auto getRotationMaskFromIdentity = [&](String animationFrame, bool isHeadMask) -> String {
+    return String(strf("?addmask=/humanoid/{}/{}mask/{}body.png:{}",
+      m_identity.imagePath ? *m_identity.imagePath : m_identity.species,
+      isHeadMask ? "head" : "",
+      GenderNames.getRight(m_identity.gender),
+      animationFrame));
+  };
+
   Vec2F headRotationOffset = Vec2F(0.0f, 0.0f);
   if (aimAngleToUse) {
     headRotationOffset = Vec2F::filled(*aimAngleToUse / (0.5f * Constants::pi)).piecewiseMultiply(m_maximumHeadRotationOffset);
@@ -904,16 +922,30 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
   }
 
   if (!m_bodyFrameset.empty() && !m_bodyHidden) {
-    String image;
+    String frame, image;
     if (dance.isValid() && danceStep->bodyFrame)
-      image = strf("{}:{}", m_bodyFrameset, *danceStep->bodyFrame);
+      frame = strf("{}", *danceStep->bodyFrame);
     else if (m_state == Idle)
-      image = strf("{}:{}", m_bodyFrameset, m_identity.personality.idle);
+      frame = strf("{}", m_identity.personality.idle);
     else
-      image = strf("{}:{}.{}", m_bodyFrameset, frameBase(m_state), bodyStateSeq);
-    auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, {});
+      frame = strf("{}.{}", frameBase(m_state), bodyStateSeq);
+    image = strf("{}:{}", m_bodyFrameset, frame);
+    bool bodyMaskToHead = m_humanoidRotationSettings & HumanoidRotationSettings::UseBodyHeadMask;
+    auto drawable = Drawable::makeImage(bodyMaskToHead ? image : std::move(image), 1.0f / TilePixels, true, {});
+    if (m_humanoidRotationSettings & HumanoidRotationSettings::UseBodyMask)
+      drawable.imagePart().addDirectives(getRotationMaskFromIdentity(frame, false));
     drawable.imagePart().addDirectives(getBodyDirectives(), true);
     addDrawable(std::move(drawable), m_bodyFullbright);
+    if (bodyMaskToHead) {
+      auto rotatedDrawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, {});
+      rotatedDrawable.imagePart().addDirectives(getRotationMaskFromIdentity(frame, true))
+        .addDirectives(getBodyDirectives(), true);
+      if (aimAngleToUse) {
+        rotatedDrawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+        rotatedDrawable.translate(headRotationOffset);
+      }
+      addDrawable(std::move(rotatedDrawable), m_bodyFullbright);
+    }
   }
 
   if (!m_legsArmorUnderlayFrameset.empty()) {

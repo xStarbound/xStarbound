@@ -79,6 +79,7 @@ Read this to see if xStarbound is compatible with your mods.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
 - [Minecraft UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3412449426) — should be supported by xStarbound; report any issues.
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — fully supported by xStarbound.
+- [Nekify](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) — head rotation masks are supported by xStarbound as of v3.4.4.
 - [NEONPUNK Title Screen [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3359876550) — should be supported by xStarbound; report any visual issues.
 - [OCD Tooltip Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3355387636) — technically supported by xStarbound, but unnecessary.
 - [One-For-All Compact and Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3427751671) — fully supported by xStarbound.
@@ -113,11 +114,10 @@ Read this to see if xStarbound is compatible with your mods.
 - [Updated Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=2641776549) — use this instead of Classic Quickbar (see below) to avoid having to disable `"safeScripts"`.
 - [WTM (WTM Teleporter Mod)](https://steamcommunity.com/sharedfiles/filedetails/?id=1268222595) — verified compatible with `"safeScripts"` enabled; the developer Hiran is also behind Digital Storage (see below).
 
-> **Note:** xStarbound does not and will not support StarExtensions' «body dynamics» and text-to-speech features, and currently doesn't support StarExtensions' species-specific head rotation parameters. Details:
+> **Note:** xStarbound does not and will not support StarExtensions' «body dynamics» and text-to-speech features. Details:
 >
 > - Armour, clothing and race mods with included SE «body dynamics» support are compatible, but the «non-jiggle» sprites will be displayed.
-> - Race *and* race-modifying mods with StarExtensions head rotation parameters, such as [Nekify](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913), may have visual sprite glitches — such as Neki ears being clipped off — while xStarbound's head rotation is enabled.
-> - Mods intended to patch in «body dynamics» support or StarExtensions-specific head rotation parameters for other mods simply will not work at all.
+> - Mods intended to patch in «body dynamics» support for other mods simply will not work at all.
 > - Race mods that support StarExtensions' text-to-speech feature will work just fine, but the text-to-speech functionality won't work.
 
 **Partially compatible:** The following mods are only partially compatible with xStarbound:

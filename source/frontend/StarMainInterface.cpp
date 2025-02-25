@@ -57,6 +57,7 @@
 #include "StarContainerInteractor.hpp"
 #include "StarChatBubbleManager.hpp"
 #include "StarNpc.hpp"
+#include "StarCharSelection.hpp"
 
 namespace Star {
 
@@ -80,8 +81,11 @@ MainInterface::~MainInterface() {
 }
 
 void MainInterface::clean() {
-  if (m_chat)
+  if (m_chat) {
     m_chat->saveMessages();
+    m_persistedChatState = m_chat->getState();
+  }
+  m_client->saveCallback() = {};
   m_paneManager.dismissAllPanes();
   m_paneManager.deregisterAllPanes();
 }
@@ -169,7 +173,7 @@ void MainInterface::reset() { // *Completely* reset the interface.
   m_collections = make_shared<ScriptPane>(m_client, "/interface/scripted/collections/collectionsgui.config", NullEntityId, this);
   m_paneManager.registerPane(MainInterfacePanes::Collections, PaneLayer::Window, m_collections);
 
-  m_chat = make_shared<Chat>(m_client);
+  m_chat = make_shared<Chat>(m_client, m_persistedChatState);
   m_paneManager.registerPane(MainInterfacePanes::Chat, PaneLayer::Hud, m_chat);
   m_clientCommandProcessor = make_shared<ClientCommandProcessor>(m_client, m_cinematicOverlay, &m_paneManager, m_config->macroCommands);
 
@@ -206,6 +210,70 @@ void MainInterface::reset() { // *Completely* reset the interface.
   m_paneManager.displayRegisteredPane(MainInterfacePanes::Chat);
   m_paneManager.displayRegisteredPane(MainInterfacePanes::TeamBar);
   m_paneManager.displayRegisteredPane(MainInterfacePanes::StatusPane);
+
+  m_charSwapPane = make_shared<CharSelectionPane>(m_client->playerStorage(),
+    [&](){}, // Creation callback.
+    [&](PlayerPtr const& player) {
+      if (m_client && player)
+        m_client->switchPlayer(player->uuid());
+    }, // Selection callback.
+    [&](Uuid uuid) { // Deletion callback.
+      if (m_client)
+        m_client->removePlayer(uuid);
+    },
+    [&](Uuid const& uuid) -> bool { // Filter callback.
+      return uuid != m_client->mainPlayer()->uuid();
+    }
+  );
+  {
+    m_charSwapPane->setAnchor(PaneAnchor::Center);
+    m_charSwapPane->unlockPosition();
+  }
+  m_paneManager.registerPane(MainInterfacePanes::CharacterSwap, PaneLayer::ModalWindow, m_charSwapPane);
+
+  m_charAddPane = make_shared<CharSelectionPane>(m_client->playerStorage(),
+    [&](){}, // Creation callback.
+    [&](PlayerPtr const& player) {
+      if (m_client && player)
+        m_client->addPlayer(player->uuid());
+    }, // Selection callback.
+    [&](Uuid uuid) { // Deletion callback.
+      if (m_client)
+        m_client->removePlayer(uuid);
+    }, 
+    [&](Uuid const& uuid) -> bool { // Filter callback.
+      return uuid != m_client->mainPlayer()->uuid() && !m_client->controlledPlayers().contains(uuid);
+    }
+  );
+  {
+    m_charAddPane->setAnchor(PaneAnchor::Center);
+    m_charAddPane->unlockPosition();
+  }
+  m_paneManager.registerPane(MainInterfacePanes::CharacterAdd, PaneLayer::ModalWindow, m_charAddPane);
+
+  m_charRemovePane = make_shared<CharSelectionPane>(m_client->playerStorage(),
+    [&](){}, // Creation callback.
+    [&](PlayerPtr const& player) {
+      if (m_client && player)
+        m_client->removePlayer(player->uuid());
+    }, // Selection callback.
+    [&](Uuid uuid) { // Deletion callback.
+      if (m_client)
+        m_client->removePlayer(uuid);
+    },
+    [&](Uuid const& uuid) -> bool { // Filter callback.
+      return uuid != m_client->mainPlayer()->uuid() && m_client->controlledPlayers().contains(uuid);
+    }
+  );
+  {
+    m_charRemovePane->setAnchor(PaneAnchor::Center);
+    m_charRemovePane->unlockPosition();
+  }
+  m_paneManager.registerPane(MainInterfacePanes::CharacterRemove, PaneLayer::ModalWindow, m_charRemovePane);
+
+  m_client->saveCallback() = [&]() {
+      m_chat->saveMessages();
+    };
 }
 
 MainInterface::RunningState MainInterface::currentState() const {

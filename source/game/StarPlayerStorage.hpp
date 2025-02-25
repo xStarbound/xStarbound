@@ -12,13 +12,15 @@ namespace Star {
 
 class PlayerStorage {
 public:
+  typedef function<bool(Uuid const&)> FilterCallback;
+
   PlayerStorage(String const& storageDir);
   ~PlayerStorage();
 
-  size_t playerCount() const;
-  List<Uuid> playerUuids() const;
+  size_t playerCount(FilterCallback filter = {}) const;
+  List<Uuid> playerUuids(FilterCallback filter = {}) const;
   // Returns nothing if index is out of bounds.
-  Maybe<Uuid> playerUuidAt(size_t index);
+  Maybe<Uuid> playerUuidAt(size_t index, FilterCallback filter = {});
   // Returns nothing if name doesn't match a player.
   Maybe<Uuid> playerUuidByName(String const& name, Maybe<Uuid> except = {});
 

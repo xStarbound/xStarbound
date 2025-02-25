@@ -89,21 +89,49 @@ PlayerStorage::~PlayerStorage() {
   writeMetadata();
 }
 
-size_t PlayerStorage::playerCount() const {
+size_t PlayerStorage::playerCount(FilterCallback filter) const {
   RecursiveMutexLocker locker(m_mutex);
-  return m_savedPlayersCache.size();
+  if (filter) {
+    size_t filteredPlayerCount = 0;
+    for (auto const& pair : m_savedPlayersCache) {
+      if (filter(pair.first)) filteredPlayerCount++;
+    }
+    return filteredPlayerCount;
+  } else {
+    return m_savedPlayersCache.size();
+  }
 }
 
-List<Uuid> PlayerStorage::playerUuids() const {
-  return m_savedPlayersCache.keys();
+List<Uuid> PlayerStorage::playerUuids(FilterCallback filter) const {
+  RecursiveMutexLocker locker(m_mutex);
+  if (filter) {
+    List<Uuid> filteredUuids;
+    for (auto const& pair : m_savedPlayersCache) {
+      if (filter(pair.first)) filteredUuids.emplaceAppend(pair.first);
+    }
+    return filteredUuids;
+  } else {
+    return m_savedPlayersCache.keys();
+  }
 }
 
-Maybe<Uuid> PlayerStorage::playerUuidAt(size_t index) {
+Maybe<Uuid> PlayerStorage::playerUuidAt(size_t index, FilterCallback filter) {
   RecursiveMutexLocker locker(m_mutex);
-  if (index < m_savedPlayersCache.size())
-    return m_savedPlayersCache.keyAt(index);
-  else
-    return {};
+  if (filter) {
+    List<Uuid> filteredUuids;
+    for (auto const& pair : m_savedPlayersCache) {
+      if (filter(pair.first)) filteredUuids.emplaceAppend(pair.first);
+    }
+    if (index < filteredUuids.size())
+      return filteredUuids.at(index);
+    else
+      return {};
+  } else {
+    if (index < m_savedPlayersCache.size())
+      return m_savedPlayersCache.keyAt(index);
+    else
+      return {};
+  }
 }
 
 Maybe<Uuid> PlayerStorage::playerUuidByName(String const& name, Maybe<Uuid> except) {

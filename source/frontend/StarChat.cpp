@@ -15,7 +15,7 @@
 
 namespace Star {
 
-Chat::Chat(UniverseClientPtr client) : m_client(client) {
+Chat::Chat(UniverseClientPtr client, Maybe<ChatState> chatState) : m_client(client) {
   m_chatPrevIndex = 0;
   m_historyOffset = 0;
 
@@ -58,11 +58,17 @@ Chat::Chat(UniverseClientPtr client) : m_client(client) {
   reader.registerCallback("filterGroup", [=](Widget* widget) {
       Json data = as<ButtonWidget>(widget)->data();
       auto filter = data.getArray("filter", {});
+      int filterId = as<ButtonGroup>(widget->parent())->checkedId();
       m_modeFilter.clear();
       for (auto mode : filter)
         m_modeFilter.insert(MessageContextModeNames.getLeft(mode.toString()));
       m_sendMode = ChatSendModeNames.getLeft(data.getString("sendMode", "Broadcast"));
       m_historyOffset = 0;
+      Root::singleton().configuration()->set("savedChatState", JsonObject{
+        {"mode", ChatSendModeNames.getRight(m_sendMode)},
+        {"expanded", m_expanded},
+        {"filter", filterId}
+      });
     });
 
   Maybe<String> defaultSendMode = assets->json("/interface/chat/chat.config").optString("defaultSendMode");
@@ -115,13 +121,42 @@ Chat::Chat(UniverseClientPtr client) : m_client(client) {
     }
   }
 
+  m_expanded = false;
+
+  Json chatSettings = root->configuration()->get("savedChatState");
+  if (chatSettings.isType(Json::Type::Object)) {
+    if (auto savedChatMode = chatSettings.opt("mode")) {
+      m_sendMode = savedChatMode->isType(Json::Type::String)
+        ? ChatSendModeNames.valueLeft(savedChatMode->toString(), m_sendMode)
+        : m_sendMode;
+    }
+    if (auto savedExpanded = chatSettings.opt("expanded")) {
+      m_expanded = savedExpanded->isType(Json::Type::Bool) ? savedExpanded->toBool() : m_expanded;
+    }
+    if (auto savedFilterId = chatSettings.opt("filter")) {
+      if (savedFilterId->isType(Json::Type::Int)) {
+        int filterId = (int)savedFilterId->toInt();
+        fetchChild<ButtonGroup>("filterGroup")->select(filterId);
+      }
+    }
+  }
+
+  if (chatState) {
+    m_textBox->setText(std::move(chatState->chatText));
+    m_timeChatLastActive = chatState->timeChatLastActive;
+    m_historyOffset = chatState->historyOffset;
+    m_chatPrevIndex = chatState->chatPrevIndex;
+    m_sendMode = chatState->sendMode;
+    fetchChild<ButtonGroup>("filterGroup")->select(chatState->filterId);
+    m_expanded = chatState->expanded;
+  }
+
   show();
 
   updateBottomButton();
 
   m_background = fetchChild<ImageStretchWidget>("background");
   m_defaultHeight = m_background->size()[1];
-  m_expanded = false;
   updateSize();
 }
 
@@ -271,7 +306,7 @@ void Chat::saveMessages() {
     }
     messagesToSave.reverse();
     File::writeFile(Json(messagesToSave).printJson(2), messagesFile);
-    Logger::info("Saved chat messages to '{}'", messagesFile);
+    // Logger::info("Saved chat messages to '{}'", messagesFile);
   } catch (std::exception const& e) {
     Logger::error("Exception while saving chat messages to '{}': {}", messagesFile, e.what());
   }
@@ -411,6 +446,11 @@ bool Chat::sendEvent(InputEvent const& event) {
       if (m_chatLog->inMember(*context()->mousePosition(event))) {
         m_expanded = !m_expanded;
         updateSize();
+        Root::singleton().configuration()->set("savedChatState", JsonObject{
+          {"mode", ChatSendModeNames.getRight(m_sendMode)},
+          {"expanded", m_expanded},
+          {"filter", fetchChild<ButtonGroup>("filterGroup")->checkedId()}
+        });
         return true;
       }
     }
@@ -456,6 +496,18 @@ void Chat::updateBottomButton() {
     m_bottomButton->setImages(bottomConfig.get("atbottom").getString("base"), bottomConfig.get("atbottom").getString("hover"));
   else
     m_bottomButton->setImages(bottomConfig.get("scrolling").getString("base"), bottomConfig.get("scrolling").getString("hover"));
+}
+
+ChatState Chat::getState() {
+  return ChatState{
+    m_textBox->getText(),
+    m_timeChatLastActive,
+    m_historyOffset,
+    m_chatPrevIndex,
+    m_sendMode,
+    fetchChild<ButtonGroup>("filterGroup")->checkedId(),
+    m_expanded
+  };
 }
 
 }

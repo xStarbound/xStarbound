@@ -360,6 +360,8 @@ void UniverseClient::update(float dt) {
       }
     }
 
+    if (m_saveCallback) m_saveCallback();
+
     m_storageTriggerDeadline = Time::monotonicMilliseconds() + assets->json("/client.config:storageTriggerInterval").toUInt();
   }
 
@@ -1211,6 +1213,10 @@ UniverseClient::ReloadPlayerCallback& UniverseClient::playerReloadPreCallback() 
 
 UniverseClient::ReloadPlayerCallback& UniverseClient::playerReloadCallback() {
   return m_playerReloadCallback;
+}
+
+UniverseClient::Callback& UniverseClient::saveCallback() {
+  return m_saveCallback;
 }
 
 ClockConstPtr UniverseClient::universeClock() const {

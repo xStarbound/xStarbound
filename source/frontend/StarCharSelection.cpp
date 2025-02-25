@@ -11,12 +11,14 @@ namespace Star {
 CharSelectionPane::CharSelectionPane(PlayerStoragePtr playerStorage,
     CreateCharCallback createCallback,
     SelectCharacterCallback selectCallback,
-    DeleteCharacterCallback deleteCallback)
+    DeleteCharacterCallback deleteCallback,
+    FilterCallback filterCallback)
   : m_playerStorage(playerStorage),
     m_downScroll(0),
     m_createCallback(createCallback),
     m_selectCallback(selectCallback),
-    m_deleteCallback(deleteCallback) {
+    m_deleteCallback(deleteCallback),
+    m_filterCallback(filterCallback) {
   auto& root = Root::singleton();
 
   GuiReader guiReader;
@@ -54,12 +56,12 @@ void CharSelectionPane::show() {
 }
 
 void CharSelectionPane::shiftCharacters(int shift) {
-  m_downScroll = std::max<int>(std::min<int>(m_downScroll + shift, m_playerStorage->playerCount() - 3), 0);
+  m_downScroll = std::max<int>(std::min<int>(m_downScroll + shift, m_playerStorage->playerCount(m_filterCallback) - 3), 0);
   updateCharacterPlates();
 }
 
 void CharSelectionPane::selectCharacter(unsigned buttonIndex) {
-  if (auto playerUuid = m_playerStorage->playerUuidAt(m_downScroll + buttonIndex)) {
+  if (auto playerUuid = m_playerStorage->playerUuidAt(m_downScroll + buttonIndex, m_filterCallback)) {
     auto player = m_playerStorage->loadPlayer(*playerUuid);
     if (player->isPermaDead() && !player->isAdmin()) {
       auto sound = Random::randValueFrom(
@@ -76,7 +78,7 @@ void CharSelectionPane::selectCharacter(unsigned buttonIndex) {
 void CharSelectionPane::updateCharacterPlates() {
   auto updatePlayerLine = [this](String name, unsigned scrollPosition) {
     auto charSelector = fetchChild<LargeCharPlateWidget>(name);
-    if (auto playerUuid = m_playerStorage->playerUuidAt(scrollPosition)) {
+    if (auto playerUuid = m_playerStorage->playerUuidAt(scrollPosition, m_filterCallback)) {
       charSelector->setPlayer(m_playerStorage->loadPlayer(*playerUuid));
       charSelector->enableDelete([this, playerUuid](Widget*) { m_deleteCallback(*playerUuid); });
     } else {
@@ -95,7 +97,7 @@ void CharSelectionPane::updateCharacterPlates() {
   else
     fetchChild("playerUpButton")->hide();
 
-  if (m_downScroll < m_playerStorage->playerCount() - 3)
+  if (m_downScroll < m_playerStorage->playerCount(m_filterCallback) - 3)
     fetchChild("playerDownButton")->show();
   else
     fetchChild("playerDownButton")->hide();

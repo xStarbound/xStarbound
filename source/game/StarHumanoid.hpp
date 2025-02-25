@@ -34,6 +34,13 @@ enum class HumanoidEmote {
   Eat,
   Sleep
 };
+
+enum HumanoidRotationSettings : uint32_t {
+  Null = 0,
+  UseBodyMask = 1 << 0,
+  UseBodyHeadMask = 1 << 1
+};
+
 extern EnumMap<HumanoidEmote> const HumanoidEmoteNames;
 size_t const EmoteSize = 14;
 
@@ -442,6 +449,8 @@ private:
   String m_defaultDeathParticles;
 
   Json m_defaultMovementParameters;
+
+  uint32_t m_humanoidRotationSettings;
 };
 
 }

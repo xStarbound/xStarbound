@@ -827,7 +827,7 @@
 //#define PLUTO_FORCE_JUMPTABLE
 
 // If defined, Pluto won't imbue tables with a metatable by default.
-//#define PLUTO_NO_DEFAULT_TABLE_METATABLE
+#define PLUTO_NO_DEFAULT_TABLE_METATABLE
 
 /*
 ** {====================================================================
@@ -877,7 +877,7 @@
 
 // If defined, Pluto's automatic keyword detection will more aggressively disable keywords if they're not used exactly as expected.
 // This will help when scripters use these keywords as globals across files or before their definition.
-//#define PLUTO_PARANOID_KEYWORD_DETECTION
+#define PLUTO_PARANOID_KEYWORD_DETECTION
 
 // If defined, Pluto disables optimisations of Lua macros that would make your code unable to be linked
 // against Lua if your code is using these macros with Pluto's definitions.
@@ -910,6 +910,7 @@
 */
 
 // If defined, Pluto will attempt to prevent infinite loops.
+// FezzedOne: Not needed; there's already a infinite loop check in xStarbound's Lua VM.
 //#define PLUTO_ILP_ENABLE
 
 #ifdef PLUTO_ILP_ENABLE
@@ -946,6 +947,7 @@
 ** =====================================================================}
 */
 
+// FezzedOne: Not needed; there's already an execution time limit in xStarbound's Lua VM.
 //#define PLUTO_ETL_ENABLE
 
 #ifdef PLUTO_ETL_ENABLE
@@ -973,6 +975,7 @@
 ** =====================================================================}
 */
 
+// FezzedOne: Might come in useful.
 //#define PLUTO_MEMORY_LIMIT 64'000'000 /* 64 MB (megabytes, not mebibytes!) */
 
 /*

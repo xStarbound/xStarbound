@@ -16,7 +16,7 @@ STAR_CLASS(Chat);
 
 class Chat : public Pane {
 public:
-  Chat(UniverseClientPtr client);
+  Chat(UniverseClientPtr client, Maybe<ChatState> chatState = {});
 
   void startChat();
   void startCommand();
@@ -48,6 +48,8 @@ public:
   void scrollUp();
   void scrollDown();
   void scrollBottom();
+
+  ChatState getState();
 
 private:
   struct LogMessage {

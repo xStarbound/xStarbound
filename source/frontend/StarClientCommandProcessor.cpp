@@ -441,8 +441,10 @@ String ClientCommandProcessor::upgradeShip(String const& argumentsString) {
 String ClientCommandProcessor::swap(String const& argumentsString) {
   auto arguments = m_parser.tokenizeToStringList(argumentsString);
 
-  if (arguments.size() == 0)
-    return "Not enough arguments to /swap";
+  if (arguments.size() == 0) {
+    m_paneManager->displayRegisteredPane(MainInterfacePanes::CharacterSwap);
+    return "Showing character list";
+  }
 
   if (m_universeClient->switchPlayer(arguments[0]))
     return "Player swapped";
@@ -465,8 +467,10 @@ String ClientCommandProcessor::swapUuid(String const& argumentsString) {
 String ClientCommandProcessor::add(String const& argumentsString) {
   auto arguments = m_parser.tokenizeToStringList(argumentsString);
 
-  if (arguments.size() == 0)
-    return "Not enough arguments to /add";
+  if (arguments.size() == 0) {
+    m_paneManager->displayRegisteredPane(MainInterfacePanes::CharacterAdd);
+    return "Showing character list";
+  }
 
   if (m_universeClient->addPlayer(arguments[0]))
     return "Player added";
@@ -489,8 +493,10 @@ String ClientCommandProcessor::addUuid(String const& argumentsString) {
 String ClientCommandProcessor::remove(String const& argumentsString) {
   auto arguments = m_parser.tokenizeToStringList(argumentsString);
 
-  if (arguments.size() == 0)
-    return "Not enough arguments to /remove";
+  if (arguments.size() == 0) {
+    m_paneManager->displayRegisteredPane(MainInterfacePanes::CharacterRemove);
+    return "Showing character list";
+  }
 
   if (m_universeClient->removePlayer(arguments[0]))
     return "Player removed";

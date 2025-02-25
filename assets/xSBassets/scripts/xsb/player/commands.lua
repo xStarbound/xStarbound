@@ -70,10 +70,13 @@ local function xsbGuide(subCommand)
         return guideText
     elseif subCommand == "character" then
         return [===[^#f33;<character commands>^reset;
+Swap via selection menu: ^cyan;/swap^reset;
 Swap character by name: ^cyan;/swap [name or part of name]^reset;
 Swap character by UUID: ^cyan;/swapuuid [UUID]^reset;
+Add loaded character via selection menu: ^cyan;/add^reset;
 Add loaded character by name: ^cyan;/add [name or part of name]^reset;
 Add loaded character by UUID: ^cyan;/adduuid [UUID]^reset;
+Remove loaded character via selection menu: ^cyan;/remove^reset;
 Remove loaded character by name: ^cyan;/remove [name or part of name]^reset;
 Remove loaded character by UUID: ^cyan;/removeuuid [UUID]^reset;
 Edit humanoid identity: ^cyan;/identity^reset; (run for subcommands)

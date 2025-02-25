@@ -54,6 +54,16 @@ struct ChatReceivedMessage {
   String text;
 };
 
+struct ChatState {
+  String chatText;
+  int64_t timeChatLastActive;
+  int historyOffset;
+  unsigned chatPrevIndex;
+  ChatSendMode sendMode;
+  int filterId;
+  bool expanded;
+};
+
 DataStream& operator>>(DataStream& ds, ChatReceivedMessage& receivedMessage);
 DataStream& operator<<(DataStream& ds, ChatReceivedMessage const& receivedMessage);
 
