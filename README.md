@@ -141,6 +141,7 @@ Read this to see if xStarbound is compatible with your mods.
 
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — would work if it didn't have an explicit StarExtensions check.
 - [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
+- [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — quite buggy at the moment; not even working properly on OpenStarbound due to the bugs.
 - [Futara's Dragon Engine](https://steamcommunity.com/sharedfiles/filedetails/?id=2297133082) — causes severe server- *and* client-side entity lag on xStarbound. Use Lukiwarble's [Starbound Optimizer](https://steamcommunity.com/sharedfiles/filedetails/?id=2777369762) instead.
 - [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) — due to poor coding in this mod, it causes a whole bunch of errors on xStarbound. Also depends on Futara's Dragon Engine and thus inherits its severe lag issue.
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
@@ -149,7 +150,7 @@ Read this to see if xStarbound is compatible with your mods.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load on xClient and may cause crashes! However, xServer fully supports the server-side part of SE's «overground» tile placement feature.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
 - [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
-- [Wardrobe Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3433498458) — quite buggy at the moment; not even compatible with OpenStarbound due to the bugs.
+- [Wardrobe Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3433498458) — quite buggy at the moment; not even working properly on OpenStarbound due to the bugs.
 - [ZB SAIL: Standalone](https://steamcommunity.com/sharedfiles/filedetails/?id=3336389472) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xStarbound has differently named callbacks) and is redundant anyway because xStarbound already fully supports this feature.
 - Mods that patch in StarExtensions «body dynamics» support for other mods. These won't do anything.
