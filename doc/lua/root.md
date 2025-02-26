@@ -113,6 +113,8 @@ The following `root` callbacks are available:
 
 Returns a list of file paths for all loaded asset sources. If the game loads any assets created by preprocessor scripts, file paths to any asset sources that contained those scripts, with `::onLoad` (for any assets created by on-load scripts) or `::postLoad` (for any assets created by post-load scripts), will be added to this list.
 
+Analogous to `assets.sources`; see `$docs/lua/assets.md` for more details.
+
 **Note:** `root.assetSourcePaths` on StarExtensions and OpenStarbound has an optional boolean parameter which if `true`, returns a `JsonObject<Json>` where each key is the file path and each value is the metadata. To get metadata for a given asset source in xStarbound, use `root.assetSourceMetadata`.
 
 ---
@@ -123,6 +125,8 @@ Returns a list of file paths for all loaded asset sources. If the game loads any
 
 Returns a list of paths for all asset files in the specified asset source. Ignores the metadata file.
 
+Analogous to `assets.sourcePaths`; see `$docs/lua/assets.md` for more details.
+
 ---
 
 #### `List<AssetPath<>>` root.assetsByExtension(`String` extension)
@@ -131,19 +135,24 @@ Returns a list of paths for all asset files in the specified asset source. Ignor
 
 Returns a list of all assets that have a given file extension. Extension matches are case-insensitive; any initial period in the specified extension is optional.
 
+Analogous to `assets.byExtension`; see `$docs/lua/assets.md` for more details.
+
 ---
 
-#### `Maybe<FilePath>` root.assetSource(`AssetPath<>` assetPath)
+#### `Maybe<FilePath>` root.assetSource(`RawAssetPath` assetPath)
+#### `Maybe<FilePath>` root.assetOrigin(`RawAssetPath` assetPath)
 
-> **Only available on xStarbound. The equivalent in StarExtensions and OpenStarbound is `root.assetOrigin`.**
+> **`root.assetSource` is only available on xStarbound. `root.assetOrigin` is available on xStarbound, OpenStarbound and StarExtensions.**
 
 Returns the file path to the asset source containing the loaded version of the asset at the specified asset path, or `nil` if no asset exists at that path; passing a path containing a subpath or directives will result in a `nil` return.
 
 If the loaded version of the asset was created by an asset preprocessor script, the path will be followed by `::onLoad` for an asset created by an on-load script or `::postLoad` for an asset created by a post-load script.
 
+Analogous to `assets.source` and `assets.origin`; see `$docs/lua/assets.md` for more details.
+
 ---
 
-#### `Json` root.assetPatches(`AssetPath<>` assetPath)
+#### `Json` root.assetPatches(`RawAssetPath` assetPath)
 
 > **Only available on xStarbound v3.4.2+, StarExtensions and OpenStarbound.**
 
@@ -167,7 +176,7 @@ Patches *directly* executed by preprocessor scripts (not via an invocation of `a
 
 ---
 
-#### `Maybe<List<FilePath>>` root.assetPatchSources(`AssetPath<>` assetPath)
+#### `Maybe<List<FilePath>>` root.assetPatchSources(`RawAssetPath` assetPath)
 
 > **`root.assetPatchSources` is available only on xStarbound.**
 

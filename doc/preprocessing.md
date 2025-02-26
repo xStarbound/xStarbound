@@ -56,7 +56,12 @@ Also, for each loaded asset source, patches for a given PNG image asset file are
 
 **Note:** Because capital letters are sorted before lower-case ones when asset files are sorted, a `.patch.Pluto` file with capital letters in its extension will be executed before any `.patch.lua` file whose extension is fully lower-case, among other things.
 
-**xStarbound note:** If a Pluto/Lua patch throws an unhandled error, any patch test fails, or any patch returns anything that isn't valid top-level JSON, that patch is skipped on xStarbound v3.4.2+, rather than sometimes invalidating the entire asset file. Such errors are still logged on xStarbound, as a matter of course.
+**xStarbound-specific changes:** The following behaviours are specific to xStarbound:
+
+- *Robust patch error handling (v3.4.2+):* If a Pluto/Lua patch throws an unhandled error, any patch test fails, or any patch returns anything that isn't valid top-level JSON, that patch is skipped on xStarbound, rather than sometimes invalidating the entire asset file. Such errors are still logged on xStarbound, as a matter of course.
+- *Preprocessor script front-loading (v3.4.4.1+):* During the execution of preprocessor scripts, xStarbound now loads a replacement «front-loaded» script with the `.frontload` extension (e.g., `$preprocessorScript.lua.frontload`) instead of the original (e.g., `$preprocessorScript.lua`) if any `.frontload` script file is found in any asset source loaded and/or preprocessed before the script runs (or in the same asset source as the base script). If multiple front-loaded scripts are loaded by execution time, the *last* one in load order is used. A `.frontload` script is the only way to replace a given *on-load* script from another asset source.
+  
+  *Note:* Since asset sources that add front-loaded *on-load* script replacements cannot «see» the original script, mods that need to patch on-load scripts should «front-load» a dummy script and replace its functionality with a post-load script when the original script *can* be «seen» later on (i.e., in a post-load script); the original script is still accessible via `assets.bytes` unless replaced with another script of the same name (see below).
 
 ----
 

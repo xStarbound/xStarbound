@@ -41,6 +41,7 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
 
   callbacks.registerCallbackWithSignature<StringList, String>("assetsByExtension", bind(RootCallbacks::assetsByExtension, root, _1));
   callbacks.registerCallbackWithSignature<Maybe<String>, String>("assetSource", bind(RootCallbacks::assetSource, root, _1));
+  callbacks.registerCallbackWithSignature<Maybe<String>, String>("assetOrigin", bind(RootCallbacks::assetSource, root, _1));
   callbacks.registerCallbackWithSignature<Maybe<List<String>>, String>("assetPatchSources", bind(RootCallbacks::assetPatchSources, root, _1));
   callbacks.registerCallbackWithSignature<List<String>>("assetSources", bind(RootCallbacks::assetSources, root));
   callbacks.registerCallbackWithSignature<Maybe<List<String>>, String>("assetSourcePaths", bind(RootCallbacks::assetSourcePaths, root, _1));
@@ -352,35 +353,14 @@ Json LuaBindings::RootCallbacks::assetJson(Root* root, String const& path) {
 }
 
 Maybe<String> LuaBindings::RootCallbacks::assetSource(Root *root, String const &path) {
-  String sourceName;
-  bool sourceFound = false;
-  try {
-    sourceName = root->assets()->assetSource(path);
-    sourceFound = true;
-  }
-  catch (AssetException const &e)
-  {
-    return {};
-  }
-  if (sourceFound)
-    return sourceName;
+  if (root->assets()->assetDescriptor(path))
+    return root->assets()->assetSource(path);
   return {};
 }
 
 Maybe<List<String>> LuaBindings::RootCallbacks::assetPatchSources(Root *root, String const &path)
 {
-  String sourceName;
-  bool sourceFound = false;
-  try
-  {
-    sourceName = root->assets()->assetSource(path);
-    sourceFound = true;
-  }
-  catch (AssetException const &e)
-  {
-    return {};
-  }
-  if (sourceFound)
+  if (root->assets()->assetDescriptor(path))
     return root->assets()->assetPatchSources(path);
   return {};
 }

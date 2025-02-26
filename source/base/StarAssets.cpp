@@ -124,7 +124,7 @@ Assets::Assets(Settings settings, StringList assetSources) {
     luaEngine->setGlobal(name, table);
   };
 
-  auto makeBaseAssetCallbacks = [this]() {
+  auto makeBaseAssetCallbacks = [this](bool addMetadataCallback) {
     LuaCallbacks callbacks;
     callbacks.registerCallbackWithSignature<Json, String>("json", bind(&Assets::json, this, _1));
 
@@ -179,34 +179,80 @@ Assets::Assets(Settings settings, StringList assetSources) {
     // Won't return any assets that haven't yet been loaded.
     callbacks.registerCallback("exists", [this](Maybe<String> const& path) -> bool {
       if (path)
-        return m_files.contains(*path);
+        return this->assetExists(*path);
       return false;
     });
 
     // FezzedOne: Lists all patches for a given asset. Returns `nil` if that asset doesn't (yet) exist.
     // Won't return any patches that haven't yet been loaded.
-    callbacks.registerCallback("patchSources", [this](String const& path) -> Maybe<StringList> {
-      StringList patchSourceList{};
-      if (auto file = m_files.ptr(path)) {
-        for (auto patchSource : file->patchSources) {
-          patchSourceList.append(patchSource.first);
+    auto patchSources = [this](String const& path, Maybe<bool> returnFilePaths) -> Json {
+      if (returnFilePaths && *returnFilePaths) {
+        if (auto assetDescriptor = this->assetDescriptor(path)) {
+          JsonArray returnValue{};
+          auto& patchSources = assetDescriptor->patchSources;
+          returnValue.reserve(patchSources.size());
+          for (auto& sourcePair : patchSources) {
+            auto sourcePath = this->assetSourcePath(sourcePair.second);
+            returnValue.emplaceAppend(JsonArray{sourcePath ? *sourcePath : Json(), sourcePair.first});
+          }
+          return returnValue;
         }
-        return patchSourceList;
+        return Json();
+      } else {
+        JsonArray patchSourceList{};
+        if (auto file = this->assetDescriptor(path)) {
+          for (auto patchSource : file->patchSources) {
+            patchSourceList.append(patchSource.first);
+          }
+          return patchSourceList;
+        }
+        return Json();
+      }
+    };
+
+    callbacks.registerCallback("patches", patchSources);
+    callbacks.registerCallback("patchSources", patchSources);
+
+    // FezzedOne: Lists all asset source file paths, regardless of whether they're loaded yet.
+    callbacks.registerCallback("sources", [this]() -> StringList {
+      return this->assetSources();
+    });
+
+    callbacks.registerCallback("sourcePaths", [this](String const& path) -> Maybe<StringList> {
+      try {
+        return this->assetSourcePaths(path);
+      } catch (MapException const &e) {
+        return {};
       }
       return {};
     });
 
-    // FezzedOne: Lists all asset source file paths, regardless of whether they're loaded yet.
-    callbacks.registerCallback("sources", [this]() -> StringList {
-      return m_assetSources;
+    // Added WereTech's `assets.origin` from OpenStarbound.
+    callbacks.registerCallback("source", [this](String const& path) -> Maybe<String> {
+      if (this->assetDescriptor(path))
+        return this->assetSource(path);
+      return {};
     });
+
+    callbacks.registerCallback("origin", [this](String const& path) -> Maybe<String> {
+      if (this->assetDescriptor(path))
+        return this->assetSource(path);
+      return {};
+    });
+
+    if (addMetadataCallback) {
+      callbacks.registerCallback("sourceMetadata", [this](String const& path) -> Json {
+        if (!m_assetSourcePaths.hasLeftValue(path)) return Json();
+        return this->assetSourceMetadata(path);
+      });
+    }
 
     return callbacks;
   };
 
   pushGlobalContext("sb", LuaBindings::makeUtilityCallbacks());
   pushGlobalContext("xsb", LuaBindings::makeXsbCallbacks());
-  pushGlobalContext("assets", makeBaseAssetCallbacks());
+  pushGlobalContext("assets", makeBaseAssetCallbacks(true));
 
   List<pair<String, AssetSourcePtr>> sources;
 
@@ -271,7 +317,7 @@ Assets::Assets(Settings settings, StringList assetSources) {
           if (memoryAssets) {
             // Kae: Re-add the assets callbacks with more callbacks.
             context.remove("assets");
-            auto callbacks = makeBaseAssetCallbacks();
+            auto callbacks = makeBaseAssetCallbacks(false);
             callbacks.registerCallback("add", [this, &source, &memoryAssets](LuaEngine& engine, String const& path, LuaValue const& data) {
               ByteArray bytes;
               Image imageCopy;
@@ -355,8 +401,19 @@ Assets::Assets(Settings settings, StringList assetSources) {
           /* End of inlined lambda. */
 
           for (auto& jPath : *scriptGroup) {
-            auto path = jPath.toString();
-            auto script = source->read(path);
+            const String path = jPath.toString();
+            ByteArray script;
+            // FezzedOne: Made preprocessor scripts replaceable before they're run.
+            const String frontLoadPath = strf("{}.frontload", path);
+            if (m_files.contains(frontLoadPath)) {
+              const Json sourceName = m_files.get(frontLoadPath).source->metadata().value("name", "<no name>");
+              Logger::info("Using replacement '{}' script from '{}'",
+                frontLoadPath,
+                sourceName.isType(Json::Type::String) ? sourceName.toString() : sourceName.repr());
+              script = this->read(frontLoadPath);
+            } else {
+              script = source->read(path);
+            }
             context.load(script, path);
           }
         } catch (LuaException const& e) {

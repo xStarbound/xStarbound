@@ -44,6 +44,8 @@ The following `assets` callbacks are available to both preprocessor and patch sc
 
 Returns a list of all loaded assets that have the specified file extension. A leading period is optional — `"lua"` works just as well as `".lua"`. See *Asset file extensions* below for more details on extensions.
 
+Analogous to `root.assetsByExtension`; see `$docs/lua/root.md` for more details.
+
 ----
 
 #### `List<AssetPath<>>` assets.scan(`String` beginOrEnd, `Maybe<String>` end)
@@ -54,19 +56,65 @@ If only `beginOrEnd` is specified, returns a list of all loaded assets whose ass
 
 ----
 
-#### `List<FilePath>` assets.sources()
+#### `List<AssetPath<>>` assets.sourcePaths(`FilePath` sourcePath)
 
-> **Only available on xStarbound.**
+Returns a list of paths for all asset files in the specified asset source. Ignores the metadata file.
 
-Returns a list of all asset sources detected by the game, regardless of whether they're loaded. Does not include memory asset sources.
+If invoked in a preprocessor script from a given asset source, files added or removed by that script will *not* be listed since the new memory asset source isn't yet finalised.
+
+Analogous to `root.assetSourcePaths`; see `$docs/lua/root.md` for more details.
 
 ----
 
-#### `Maybe<List<FilePath>>` assets.patchSources(`RawAssetPath` path)
+#### `List<FilePath>` assets.sources()
+
+> **`assets.sources` is only available on xStarbound. `assets.sourcePaths` is available on xStarbound and OpenStarbound v0.1.9+. The OpenStarbound version has an optional boolean parameter (that returns a metadata map) ignored by xStarbound.**
+
+Returns a list of all asset sources detected by the game, regardless of whether they're loaded. Does not include memory asset sources.
+
+Analogous to `root.assetSources` on xStarbound and `root.assetSourcePaths` on OpenStarbound and StarExtensions; see `$docs/lua/root.md` for more details.
+
+----
+
+#### `Maybe<FilePath>` assets.origin(`RawAssetPath` path)
+#### `Maybe<FilePath>` assets.source(`RawAssetPath` path)
+
+> **`assets.source` is only available on xStarbound. `assets.origin` is available on xStarbound and OpenStarbound v0.1.9+.**
+
+Returns the file path to the asset source for a *loaded* asset.
+
+If the loaded version of the asset was created by an asset preprocessor script, the path will be followed by `::onLoad` for an asset created by an on-load script or `::postLoad` for an asset created by a post-load script.
+
+Changes made by `assets.add` or `assets.remove` are reflected immediately for this callback.
+
+Analogous to `root.assetOrigin` and `root.assetSource`; see `$docs/lua/root.md` for more details.
+
+----
+
+#### `Json` assets.patches(`RawAssetPath` path, [`bool` returnFilePaths])
+#### `Json` assets.patchSources(`RawAssetPath` path, [`bool` returnFilePaths])
 
 > **Only available on xStarbound.**
 
-Returns a list of file paths to all *loaded* patch sources for the specified asset; if the specified asset doesn't exist or isn't loaded, returns `nil`. The output immediately reflects changes made by `assets.patch`, even if the memory source containing the patch isn't yet finalised.
+If `returnFilePaths` is `false`, `nil` or unspecified, returns a JSON array listing file paths to all *loaded* patch sources for the specified asset; if the specified asset doesn't exist or isn't loaded, returns `nil`.
+
+If `returnFilePaths` is `true`, returns a list of asset patches for the specified asset, or `nil` if the asset doesn't exist. The list has the following format:
+
+```lua
+jarray{
+  jarray{
+    -- [1] The filesystem path (`FilePath`) to the asset source supplying the patch.
+    "/home/user/.local/share/Steam/steamapps/common/Starbound/assets/SomeMod.pak",
+    -- [2] The asset path (`AssetPath<>`) for the patch itself.
+    "/client.config.patch"
+  },
+  ...
+}
+```
+
+Patches directly executed by a preprocessor script will not be listed. The output immediately reflects changes made by `assets.patch`, even if the memory source containing the patch isn't yet finalised.
+
+Analogous to `root.assetPatches` (if using `returnFilePaths`) and `root.assetPatchSources` (without `returnFilePaths`); see `$docs/lua/root.md` for more details.
 
 ----
 
@@ -169,22 +217,6 @@ Creates a raw, blank `ByteArray` (see `bytes.md` for methods) of zero length.
 
 ----
 
-## Preprocessor-only callbacks
-
-The following `assets` callbacks are available only to preprocessor scripts:
-
-----
-
-#### `List<FilePath>` assets.loadedSources()
-
-> **Only available on xStarbound.**
-
-Returns a list of all *loaded* asset sources. Includes all memory asset sources loaded *prior* to the preprocessor scripts for this asset source — i.e., it won't include the memory asset source being worked on by a preprocessor script, since it isn't finalised yet.
-
-**Note:** A memory asset source will not be added when finalised if it ends up containing no added files.
-
-----
-
 #### `Maybe<JsonObject>` assets.sourceMetadata(`FilePath` assetSource)
 
 > **Only available on xStarbound.**
@@ -214,7 +246,25 @@ jobject{
 
 If invoked on a non-finalised memory asset source (see `assets.loadedSources` above), returns `nil` because it isn't finalised yet.
 
-Analogous to the post-preprocessing callback `root.assetSourceMetadata` (see `root.md`). See `$doc/preprocessing.md` for more documentation on asset source metadata files.
+Analogous to the callback `root.assetSourceMetadata` (see `root.md`). See `$doc/preprocessing.md` for more documentation on asset source metadata files.
+
+> *Note:* This callback was available only in preprocessor scripts prior to xStarbound v3.4.4.1.
+
+----
+
+## Preprocessor-only callbacks
+
+The following `assets` callbacks are available only to preprocessor scripts:
+
+----
+
+#### `List<FilePath>` assets.loadedSources()
+
+> **Only available on xStarbound.**
+
+Returns a list of all *loaded* asset sources. Includes all memory asset sources loaded *prior* to the preprocessor scripts for this asset source — i.e., it won't include the memory asset source being worked on by a preprocessor script, since it isn't finalised yet.
+
+**Note:** A memory asset source will not be added when finalised if it ends up containing no added files.
 
 ----
 
@@ -301,5 +351,6 @@ The following patch extensions are recognised by the engine during asset preproc
 - JSON asset patch files: `patch`, `patch<X>` (where `<X>` is a number between 0 and 9, inclusive)
 - Lua asset patch files: `patch.pluto`, `patch.lua` (but `assets.patch` can also make the engine invoke any arbitrary script file as a patch)
 - Lua preprocessor files: `pluto`, `lua` (only loaded if explicitly configured)
+- Front-loaded Lua preprocessor files: `pluto.frontload`, `lua.frontload` (see `$docs/preprocessing.md`)
 
 Aside from the above extensions recognised by the engine, mod scripts may be set up to recognise other file extensions.
