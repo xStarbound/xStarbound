@@ -97,8 +97,8 @@ public:
   bool operator!=(FlatHashTable const& rhs) const;
 
 private:
-  static constexpr size_t MinCapacity = 8;
-  static constexpr double MaxFillLevel = 0.7;
+  static constexpr size_t MinCapacity = 4;
+  static constexpr double MaxFillLevel = 0.9;
 
   // Scans for the next bucket value that is non-empty
   static Bucket* scan(Bucket* p);
