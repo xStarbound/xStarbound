@@ -87,11 +87,19 @@ bool ItemDescriptor::isEmpty() const {
 }
 
 bool ItemDescriptor::operator==(ItemDescriptor const& rhs) const {
-  return std::tie(m_name, m_count, m_parameters) == std::tie(rhs.m_name, rhs.m_count, rhs.m_parameters);
+  // FezzedOne: `std::tuple`s have an undefined comparison order for `operator==`, so
+  // defined the order to avoid unnecessary performance issues.
+  if (m_count != rhs.m_count) return false;
+  if (m_name != rhs.m_name) return false;
+  if (m_parameters != rhs.m_parameters) return false;
+  return true;
+  // return std::tie(m_name, m_count, m_parameters) == std::tie(rhs.m_name, rhs.m_count, rhs.m_parameters);
 }
 
 bool ItemDescriptor::operator!=(ItemDescriptor const& rhs) const {
-  return std::tie(m_name, m_count, m_parameters) != std::tie(rhs.m_name, rhs.m_count, rhs.m_parameters);
+  // FezzedOne: Same for `operator!=`.
+  return !ItemDescriptor::operator==(rhs);
+  // return std::tie(m_name, m_count, m_parameters) != std::tie(rhs.m_name, rhs.m_count, rhs.m_parameters);
 }
 
 bool ItemDescriptor::matches(ItemDescriptor const& other, bool exactMatch) const {
