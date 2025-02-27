@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 
-set(XSB_VERSION 3.4.4.1)
-set(XSB_ASSET_VERSION 3.4.4)
+set(XSB_VERSION 3.4.4.2)
+set(XSB_ASSET_VERSION 3.4.4.2)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 

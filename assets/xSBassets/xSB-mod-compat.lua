@@ -253,3 +253,36 @@ pluto_catch e then
     logError(modName, e)
 end
 ::skipUndeVenisPatch::
+
+--- Compatibility patch for James' Wardrobe Cumulative Patch ---
+
+if not "[oSB] Wardrobe Cumulative Patch" in loadedMods then goto skipWardrobeCumulativePatch end
+modName = "James' Wardrobe Cumulative Patch"
+
+pluto_try
+    local wardrobeScriptPath = "/wardrobe_postload.lua"
+    local wardrobeScript = assets.bytes(wardrobeScriptPath)
+
+    local wardrobeScriptPatch = [==[
+        assets.sourcePaths = function(addMetadata)
+            if addMetadata then
+                local assetSources = assets.sources()
+                local returnValue = jobject{}
+                for assetSources as source do
+                    returnValue[source] = assets.sourceMetadata(source)
+                end
+                return returnValue
+            else
+                return assets.sources()
+            end
+        end
+
+        ---<< ORIGINAL WARDROBE PATCH SCRIPT BEGINS HERE >>---
+    ]==] .. "\n"
+    assets.add(wardrobeScriptPath .. ".frontload", wardrobeScriptPatch .. wardrobeScript)
+
+    logInfo(modName)
+pluto_catch e then
+    logError(modName, e)
+end
+::skipWardrobeCumulativePatch::
