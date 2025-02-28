@@ -1,3 +1,6 @@
 [submodule "source/extern/opus"]
 	path = source/extern/opus
 	url = https://github.com/xiph/opus.git
+[submodule "tracy"]
+	path = tracy
+	url = https://github.com/wolfpld/tracy.git
