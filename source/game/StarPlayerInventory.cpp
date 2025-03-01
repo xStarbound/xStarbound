@@ -43,7 +43,7 @@ PlayerInventory::PlayerInventory() {
   // To avoid client-side lag spikes on very large modpacks, persistently preload these infrequently accessed configs.
   auto config = Root::singleton().assets()->json("/player.config:inventory", true);
   auto currenciesConfig = Root::singleton().assets()->json("/currencies.config", true);
-  Root::singleton().assets()->json("/player.config:inventoryFilters", true);
+  volatile Json _ = Root::singleton().assets()->json("/player.config:inventoryFilters", true); (void)_;
 
   m_inventorySettings = InventorySettings::Default;
   if (config.optBool("allowAnyBagItem").value(false))
