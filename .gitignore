@@ -9,7 +9,7 @@ build-qt/
 build-runtime/
 build-tests/
 build-tracy/
-build-tracy-tests/
+build-tests-tracy/
 build-windows/
 build-windows-msvc/
 build/
