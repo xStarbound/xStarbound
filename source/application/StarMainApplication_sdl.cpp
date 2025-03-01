@@ -16,6 +16,11 @@
 #include <dwmapi.h>
 #endif
 
+// Include Tracy here to measure frame times.
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#endif
+
 namespace Star {
 
 Maybe<Key> keyFromSdlKeyCode(SDL_Keycode sym) {
@@ -420,11 +425,26 @@ public:
 
       bool quit = false;
       while (true) {
+#if defined TRACY_ENABLE
+        FrameMarkStart("SDL cursor cache cleanup");
+#endif
         cleanup();
+#if defined TRACY_ENABLE
+        FrameMarkEnd("SDL cursor cache cleanup");
+#endif
 
+#if defined TRACY_ENABLE
+        FrameMarkStart("Input processing");
+#endif
         for (auto const& event : processEvents())
           m_application->processInput(event);
+#if defined TRACY_ENABLE
+        FrameMarkEnd("Input processing");
+#endif
 
+#if defined TRACY_ENABLE
+        FrameMarkStart("Steam/Discord API update");
+#endif
         if (m_platformServices)
           m_platformServices->update();
 
@@ -432,19 +452,35 @@ public:
           SDL_ShowCursor(1);
         else
           SDL_ShowCursor(m_cursorVisible ? 1 : 0);
+#if defined TRACY_ENABLE
+        FrameMarkEnd("Steam/Discord API update");
+#endif
 
+#if defined TRACY_ENABLE
+        FrameMarkStart("Game update loops");
+#endif
         int updatesBehind = max<int>(round(m_updateTicker.ticksBehind()), 1);
         updatesBehind = min<int>(updatesBehind, m_maxFrameSkip + 1);
         for (int i = 0; i < updatesBehind; ++i) {
           m_application->update();
           m_updateRate = m_updateTicker.tick();
         }
+#if defined TRACY_ENABLE
+        FrameMarkEnd("Game update loops");
+#endif
 
+#if defined TRACY_ENABLE
+        FrameMarkStart("Rendering");
+#endif
         m_renderer->startFrame();
         m_application->render();
         m_renderer->finishFrame();
         SDL_GL_SwapWindow(m_sdlWindow);
         m_renderRate = m_renderTicker.tick();
+#if defined TRACY_ENABLE
+        FrameMarkEnd("Rendering");
+        FrameMarkNamed("CLIENT APPLICATION FRAME");
+#endif
 
         if (m_quitRequested) {
           Logger::info("Application: quit requested");
@@ -461,9 +497,15 @@ public:
           break;
         }
 
+#if defined TRACY_ENABLE
+        FrameMarkStart("Free wait time");
+#endif
         int64_t spareMilliseconds = round(m_updateTicker.spareTime() * 1000);
         if (spareMilliseconds > 0)
           Thread::sleepPrecise(spareMilliseconds);
+#if defined TRACY_ENABLE
+        FrameMarkEnd("Free wait time");
+#endif
       }
     } catch (std::exception const& e) {
       Logger::error("Application: exception thrown, shutting down: {}", outputException(e, true));

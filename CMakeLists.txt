@@ -31,6 +31,8 @@ option(PACKAGE_XSB_ASSETS "Adds a command to create a packed.pak from xsb-assets
 option(STAR_INSTALL_TOOLS "Install user and modding tools (asset_packer, planet_mapgen etc.)" ON)
 option(STAR_INSTALL_EXTRA_TOOLS "Install extra development tools (benchmarks etc.)" OFF)
 
+option(XSB_ENABLE_TRACY "Enable the Tracy performance profiler" OFF)
+
 set(STAR_GAME_RESOURCE_BASE_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE FILEPATH "Location of the game assets to be used for running inside the build dir. Defaults to project root.")
 
 # Only request vcpkg dependencies if required to decrease build time
@@ -225,6 +227,10 @@ if(DEFINED STAR_BUILD_QT_TOOLS)
     message(STATUS "Building Qt tools: ${STAR_BUILD_QT_TOOLS}")
 endif()
 
+if(DEFINED BUILD_TESTING)
+    message(STATUS "Building tests: ${BUILD_TESTING}")
+endif()
+
 if(DEFINED STAR_ENABLE_STEAM_INTEGRATION)
     message(STATUS "Using Steam platform services: ${STAR_ENABLE_STEAM_INTEGRATION}")
 endif()
@@ -344,6 +350,11 @@ if(STAR_COMPILER_GNU)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
     endif()
 
+    if(XSB_ENABLE_TRACY)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DTRACY_ENABLE")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRACY_ENABLE")
+    endif()
+
     set(CMAKE_C_FLAGS_DEBUG "-g -Og")
     set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
 
@@ -400,6 +411,11 @@ elseif(STAR_COMPILER_CLANG)
     elseif()
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -D_REENTRANT")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_REENTRANT")
+    endif()
+
+    if(XSB_ENABLE_TRACY)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DTRACY_ENABLE")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRACY_ENABLE")
     endif()
 
     set(CMAKE_C_FLAGS_DEBUG "-g")
@@ -459,6 +475,11 @@ elseif(STAR_COMPILER_MSVC)
     if(STAR_ENABLE_STATIC_MSVC_RUNTIME)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MT")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT")
+    endif()
+
+    if(XSB_ENABLE_TRACY)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /DTRACY_ENABLE")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DTRACY_ENABLE")
     endif()
 
     set(CMAKE_C_FLAGS_DEBUG "/Zi /Od")
@@ -680,6 +701,18 @@ endif()
 # build settings...
 
 set(BUILD_SHARED_LIBS false)
+
+if (XSB_ENABLE_TRACY)
+    set(TRACY_ENABLE ON)
+    set(TRACY_ONLY_LOCALHOST ON)
+    set(TRACY_CALLSTACK ON)
+    set(TRACY_ON_DEMAND ON)
+    add_subdirectory(tracy)
+    get_target_property(tracy_includes Tracy::TracyClient INCLUDE_DIRECTORIES)
+    set(STAR_EXT_LIBS ${STAR_EXT_LIBS}
+        Tracy::TracyClient
+    )
+endif()
 
 add_subdirectory(source)
 

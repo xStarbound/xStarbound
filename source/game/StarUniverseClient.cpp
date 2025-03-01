@@ -28,6 +28,12 @@
 #include "StarStatusController.hpp"
 #include "scripting/StarWorldLuaBindings.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+#endif
+
 namespace Star {
 
 UniverseClient::UniverseClient(PlayerStoragePtr playerStorage, StatisticsPtr statistics) {
@@ -262,6 +268,8 @@ SystemWorldClientPtr UniverseClient::systemWorldClient() const {
 }
 
 void UniverseClient::update(float dt) {
+  ZoneScoped;
+
   auto assets = Root::singleton().assets();
 
   if (!isConnected())

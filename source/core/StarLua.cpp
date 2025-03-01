@@ -3,6 +3,11 @@
 #include "StarTime.hpp"
 #include "StarLogging.hpp"
 
+#ifdef TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+  #include "tracy/TracyLua.hpp"
+#endif
+
 namespace Star {
 
 std::ostream& operator<<(std::ostream& os, LuaValue const& value) {
@@ -418,6 +423,10 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   self->setGlobal("jresize", self->createFunction(&LuaDetail::jcontResize));
 
   self->setGlobal("shared", self->createTable());
+
+#ifdef TRACY_ENABLE
+  tracy::LuaRegister(self->m_state); // Adds `tracy` table when Tracy is enabled.
+#endif
   return self;
 }
 

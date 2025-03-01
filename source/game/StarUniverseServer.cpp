@@ -20,6 +20,13 @@
 #include "StarBiomeDatabase.hpp"
 #include "StarUniverseServerLuaBindings.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 UniverseServer::UniverseServer(String const& storageDir)
@@ -475,7 +482,10 @@ void UniverseServer::run() {
   TcpServerPtr tcpServer;
 
   while (!m_stop) {
+    ZoneScopedN("UNIVERSE SERVER TICK");
     if (m_tcpState == TcpState::Yes && !tcpServer) {
+      ZoneScopedN("Server connection handling");
+
       auto& root = Root::singleton();
       auto configuration = root.configuration();
       auto assets = root.assets();
@@ -516,6 +526,7 @@ void UniverseServer::run() {
     LogMap::set("universe_time", m_universeClock->time());
 
     try {
+      ZoneScopedN("Server update tick");
       processUniverseFlags();
       removeTimedBan();
       sendPendingChat();

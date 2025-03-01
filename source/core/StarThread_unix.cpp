@@ -26,6 +26,10 @@
 #define MAX_THREAD_NAMELEN 16
 #endif
 
+#ifdef TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#endif
+
 namespace Star {
 
 struct ThreadImpl {

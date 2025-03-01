@@ -22,6 +22,13 @@
 #include "StarInputLuaBindings.hpp"
 #include "StarVoiceLuaBindings.hpp"
 
+// Include Tracy here to measure frame times.
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+#endif
+
 namespace Star {
 
 Json const AdditionalAssetsSettings = Json::parseJson(R"JSON(
@@ -381,6 +388,8 @@ void ClientApplication::processInput(InputEvent const& event) {
 }
 
 void ClientApplication::update() {
+  ZoneScoped;
+
   float dt = GlobalTimestep * GlobalTimescale;
   if (m_state >= MainAppState::Title) {
     if (auto p2pNetworkingService = appController()->p2pNetworkingService()) {

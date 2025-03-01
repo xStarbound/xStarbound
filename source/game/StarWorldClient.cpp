@@ -22,6 +22,13 @@
 #include "StarInspectableEntity.hpp"
 #include "StarCurve25519.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 const std::string SECRET_BROADCAST_PUBLIC_KEY = "SecretBroadcastPublicKey";
@@ -463,6 +470,8 @@ RectI WorldClient::clientWindow() const {
 }
 
 void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
+  ZoneScoped;
+
   renderData.clear();
   if (!inWorld())
     return;
@@ -579,6 +588,13 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
         directives = &globalDirectives.get();
   }
   m_entityMap->forAllEntities([&](EntityPtr const& entity) {
+      ZoneScopedN("Entity rendering");
+#ifdef TRACY_ENABLE
+      const EntityId entityId = entity->entityId();
+      const char* const entityTypeStr = EntityTypeNames.getRight(entity->entityType()).utf8().c_str();
+      ZoneTextF("%s entity %i", entityTypeStr, entityId);
+#endif
+
       if (m_startupHiddenEntities.contains(entity->entityId()))
         return;
 
@@ -1189,6 +1205,8 @@ void WorldClient::setLuaCallbacks(String const& groupName, LuaCallbacks const& c
 }
 
 void WorldClient::update(float dt) {
+  ZoneScoped;
+
   if (!inWorld())
     return;
 
@@ -1265,6 +1283,12 @@ void WorldClient::update(float dt) {
   List<EntityId> toRemove;
   List<EntityId> clientPresenceEntities;
   m_entityMap->updateAllEntities([&](EntityPtr const& entity) {
+      ZoneScopedN("Client entity update");
+  #ifdef TRACY_ENABLE
+      const EntityId entityId = entity->entityId();
+      const char* const entityTypeStr = EntityTypeNames.getRight(entity->entityType()).utf8().c_str();
+      ZoneTextF("%s entity %i", entityTypeStr, entityId);
+  #endif
       entity->update(dt, m_currentStep);
 
       if (entity->shouldDestroy() && entity->entityMode() == EntityMode::Master)
