@@ -95,7 +95,8 @@ static void validatePath(StringView const& path, bool canContainSubPath, bool ca
     }
   }
 
-  if (subPath)
+  // FezzedOne: Fixed this just in case it's used for a `root.validatePath` or `assets.validatePath` Lua callback later on.
+  if (subPath && !canContainSubPath) 
     throw AssetException::format("Path '{}' cannot contain sub-path", path);
 
   if (end != NPos && str[end] == '?' && !canContainDirectives)
