@@ -266,7 +266,7 @@ Windows users can download a prebuilt Tracy profiler [here](https://github.com/w
 
 #### Tracy Pluto/Lua callbacks
 
-`tracy` callbacks are now available in all script contexts on Tracy-instrumented builds of xStarbound. See section 3.12 of [Tracy's manual](tracy.pdf) for more information. (Don't forget to use an `if tracy` clause to check if you're on a Tracy-instrumented build first!)
+`tracy` callbacks are now available in all script contexts on Tracy-instrumented builds of xStarbound, allowing modders to instrument and profile their scripts. See section 3.12 of [Tracy's manual](tracy.pdf) for more information. (Don't forget to use an `if tracy` clause to check if you're on a Tracy-instrumented build first!)
 
 ## Discord
 
