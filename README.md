@@ -250,11 +250,23 @@ The basic process for building on other OSes:
 4. If you're using Git, run `git clone https://github.com/xStarbound/xStarbound.git` in a terminal or command prompt, or use a graphical Git utility to download the repo.
 5. In the xStarbound directory, run `cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/`. On some OSes, you may need to add the full path to your CMake executable to the beginning of the command. If necessary, add `-DCMAKE_C_COMPILER=<path to C++ compiler> -DCMAKE_CXX_COMPILER=<path to C++ compiler>`. Note that a CMake build preset already exists for modern macOS; consider using that if you have build issues.
 
-### Packaging and Installing xSB Assets
+### Packaging and installing xSB assets
 
 The build system can automatically take care of packaging the additional xSB assets and install the resulting .pak file automatically. To enable asset packing, pass `-DPACKAGE_XSB_ASSETS=ON` to the CMake command, e.g. after the `--preset` argument. This will create a directory `xsb-assets` in the project's main dir, and package the resources in `assets/xSBassets` into a `packed.pak` file.
 
-It is important to note that automatic packaging will _only_ work if the built binaries (specifically asset_packer[.exe]) run on the host system. If you are cross-compiling, e.g. for a different CPU architecture (building for ARM64 on a x64 OS) or a different OS (building with MinGW on Linux, or with WSL on Windows), this feature cannot be used. In this case, you have to manually package the assets with an asset_packer that runs locally, and copy the resulting file to `xsb-assets/packed.pak` _before installing the project_. Due to how CPack works, this is only feasible when packaging manually from the install dir.
+It is important to note that automatic packaging will _only_ work if the built binaries (specifically `asset_packer[.exe]`) run on the host system. If you are cross-compiling, e.g. for a different CPU architecture (building for ARM64 on a x64 OS) or a different OS (building with MinGW on Linux, or with WSL on Windows), this feature cannot be used. In this case, you have to manually package the assets with an asset_packer that runs locally, and copy the resulting file to `xsb-assets/packed.pak` _before installing the project_. Due to how CPack works, this is only feasible when packaging manually from the install dir.
+
+### Tracy profiler support
+
+xStarbound now supports [the Tracy profiler](https://github.com/wolfpld/tracy)! To build xStarbound with Tracy, tack `-DXSB_ENABLE_TRACY` onto the end of the *first* CMake configuration command from the appropriate build instructions for your OS/platform.
+
+To build the Tracy profiler on Linux, `cd $xsb/tracy`, then `mkdir -p build; cmake -B build/ -DCMAKE_BUILD_TYPE=Release; cmake --build build/ --config Release --parallel`. The profiler binary will be a file called `tracy-profiler` in `$xsb/tracy/build/`; feel free to move this to `~/.local/bin/` or wherever else you find convenient.
+
+Windows users can download a prebuilt Tracy profiler [here](https://github.com/wolfpld/tracy/releases/latest) or build it themselves using the build instructions in section 2.3 of [Tracy's manual](tracy.pdf).
+
+#### Tracy Pluto/Lua callbacks
+
+`tracy` callbacks are now available in all script contexts on Tracy-instrumented builds of xStarbound. See section 3.12 of [Tracy's manual](tracy.pdf) for more information. (Don't forget to use an `if tracy` clause to check if you're on a Tracy-instrumented build first!)
 
 ## Discord
 
