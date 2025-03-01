@@ -1,4 +1,5 @@
 #include "StarWorldServer.hpp"
+#include "StarGameTypes.hpp"
 #include "StarLogging.hpp"
 #include "StarIterator.hpp"
 #include "StarDataStreamExtra.hpp"
@@ -24,6 +25,13 @@
 #include "StarWarpTargetEntity.hpp"
 #include "StarUniverseSettings.hpp"
 #include "StarUniverseServerLuaBindings.hpp"
+
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
 
 namespace Star {
 
@@ -625,6 +633,7 @@ void WorldServer::setExpiryTime(float expiryTime) {
 }
 
 void WorldServer::update(float dt) {
+  ZoneScopedN("World server update");
   ++m_currentStep;
 
   constexpr double conversionFactor = 60.0;
@@ -651,6 +660,12 @@ void WorldServer::update(float dt) {
 
   List<EntityId> toRemove;
   m_entityMap->updateAllEntities([&](EntityPtr const& entity) {
+      ZoneScopedN("Server entity update");
+  #ifdef TRACY_ENABLE
+      const EntityId entityId = entity->entityId();
+      const char* const entityTypeStr = EntityTypeNames.getRight(entity->entityType()).utf8().c_str();
+      ZoneTextF("%s entity %i", entityTypeStr, entityId);
+  #endif
       entity->update(dt, m_currentStep);
 
       if (auto tileEntity = as<TileEntity>(entity)) {
