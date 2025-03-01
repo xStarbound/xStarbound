@@ -1,6 +1,14 @@
 #include "StarLuaRoot.hpp"
 #include "StarAssets.hpp"
 
+#ifdef TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+  #include "tracy/TracyLua.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 LuaRoot::LuaRoot() {
@@ -194,6 +202,7 @@ void LuaRoot::ScriptCache::clear() {
 }
 
 void LuaRoot::ScriptCache::loadContextScript(LuaContext& context, String const& assetPath) {
+  ZoneScoped;
   RecursiveMutexLocker locker(mutex);
   if (!scriptLoaded(assetPath))
     loadScript(context.engine(), assetPath);

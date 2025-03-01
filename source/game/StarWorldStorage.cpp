@@ -12,10 +12,19 @@
 #include "StarMaterialDatabase.hpp"
 #include "StarLiquidsDatabase.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 /* xStarbound: Automatic world file repacking. Now much less often needed because xStarbound now has OpenStarbound's BTreeDB5 defragmentation. */
 void WorldStorage::repackWorldFile(String const& fileName, String const& fileType) {
+  ZoneScoped;
+  
   const String repackExtension = ".repack";
   auto config = Root::singleton().configuration();
   if (!config->get("disableRepacking").optBool().value(false)) {
@@ -360,6 +369,8 @@ void WorldStorage::generateQueue(Maybe<size_t> sectorGenerationLevelLimit, funct
 }
 
 void WorldStorage::tick(float dt) {
+  ZoneScoped;
+  
   try {
     // Tick down generation queue entries, and erase any that are expired.
     eraseWhere(m_generationQueue, [dt](auto& p) {
@@ -697,6 +708,8 @@ float WorldStorage::randomizedSectorTTL() const {
 }
 
 pair<bool, size_t> WorldStorage::generateSectorToLevel(Sector const& sector, SectorGenerationLevel targetGenerationLevel, size_t sectorGenerationLevelLimit) {
+  ZoneScoped;
+  
   if (!m_tileArray->sectorValid(sector))
     return {false, 0};
 
@@ -809,6 +822,8 @@ void WorldStorage::loadSectorToLevel(Sector const& sector, SectorLoadLevel targe
 }
 
 void WorldStorage::unloadSectorToLevel(Sector const& sector, SectorLoadLevel targetLoadLevel, bool force) {
+  ZoneScoped;
+  
   // FezzedOne: Fix for a rare segfault upon unloading a world.
   if (!m_tileArray)
     return;

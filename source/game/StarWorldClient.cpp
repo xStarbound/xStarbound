@@ -209,6 +209,8 @@ bool WorldClient::respawnInWorld() const {
 
 void WorldClient::removeEntity(EntityId entityId, bool andDie)
 {
+  ZoneScoped;
+
   auto entity = m_entityMap->entity(entityId);
   if (!entity)
     return;
@@ -859,6 +861,8 @@ Array<Vec3F, 6> WorldClient::getShaderParameters() {
 }
 
 void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
+  ZoneScoped;
+
   auto& root = Root::singleton();
   auto materialDatabase = root.materialDatabase();
   auto itemDatabase = root.itemDatabase();
@@ -1065,15 +1069,18 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
         if (auto player = m_entityMap->get<Player>(damage->remoteDamageNotification.sourceEntityId)) {
           if (auto publicKey = player->effectsAnimator()->globalTagPtr("\0SE_VOICE_SIGNING_KEY"s)) {
             auto raw = view.substr(75);
-            if (m_broadcastCallback && Curve25519::verify(
-              (uint8_t const*)view.data() + LEGACY_VOICE_PREFIX.size(),
-              (uint8_t const*)publicKey->utf8Ptr(),
-              (void*)raw.data(),
-                     raw.size()
-            )) {
-              auto broadcastData = "Voice\0"s;
-              broadcastData.append(raw.data(), raw.size());
-              m_broadcastCallback(player, broadcastData);
+            if (m_broadcastCallback) {
+              ZoneScopedN("Inbound voice networking");
+              if (Curve25519::verify(
+                (uint8_t const*)view.data() + LEGACY_VOICE_PREFIX.size(),
+                (uint8_t const*)publicKey->utf8Ptr(),
+                (void*)raw.data(),
+                       raw.size()
+              )) {
+                auto broadcastData = "Voice\0"s;
+                broadcastData.append(raw.data(), raw.size());
+                m_broadcastCallback(player, broadcastData);
+              }
             }
           }
         }

@@ -3,6 +3,13 @@
 #include "StarVlqEncoding.hpp"
 #include "StarLogging.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 /* Added Kae's BTreeDB5 defragmenting code from OpenStarbound. */
 
 namespace Star {
@@ -1186,6 +1193,8 @@ void BTreeDatabase::commitWrites() {
 }
 
 bool BTreeDatabase::tryFlatten() {
+  ZoneScoped;
+
   if (m_headFreeIndexBlock == InvalidBlockIndex || m_rootIsLeaf || !m_device->isWritable())
     return false;
   

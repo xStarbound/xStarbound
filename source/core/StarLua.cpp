@@ -6,6 +6,9 @@
 #ifdef TRACY_ENABLE
   #include "tracy/Tracy.hpp"
   #include "tracy/TracyLua.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
 #endif
 
 namespace Star {
@@ -88,6 +91,10 @@ bool LuaContext::containsPath(String path) const {
 }
 
 void LuaContext::load(char const* contents, size_t size, char const* name) {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  ZoneTextF("Script '%s'", name);
+#endif
   engine().contextLoad(handleIndex(), contents, size, name);
 }
 
@@ -488,6 +495,11 @@ unsigned LuaEngine::recursionLimit() const {
 }
 
 ByteArray LuaEngine::compile(char const* contents, size_t size, char const* name) {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  ZoneTextF("Script '%s'", name);
+#endif
+  
   lua_checkstack(m_state, 1);
 
   handleError(m_state, luaL_loadbuffer(m_state, contents, size, name));

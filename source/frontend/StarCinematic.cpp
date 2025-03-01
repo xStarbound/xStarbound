@@ -6,6 +6,13 @@
 #include "StarGuiContext.hpp"
 #include "StarPlayer.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 const float vWidth = 960.0f;
@@ -18,6 +25,8 @@ Cinematic::Cinematic() {
 }
 
 void Cinematic::load(Json const& definition) {
+  ZoneScoped;
+
   stop();
 
   // FezzedOne: Fixed potential crash to menu when loading a cinematic of the wrong type.
@@ -128,6 +137,8 @@ bool Cinematic::completable() const {
 }
 
 void Cinematic::render() {
+  ZoneScoped;
+
   if (completed())
     return;
 

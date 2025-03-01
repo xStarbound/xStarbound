@@ -11,6 +11,13 @@
 #include "StarRefPtr.hpp"
 #include "StarDirectives.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 class LuaEngine;
@@ -1853,6 +1860,10 @@ Ret LuaContext::eval(String const& lua) {
 
 template <typename Ret, typename... Args>
 Ret LuaContext::invokePath(String const& key, Args const&... args) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  ZoneTextF("Function '%s'", key);
+#endif
   auto p = getPath(key);
   if (auto f = p.ptr<LuaFunction>())
     return f->invoke<Ret>(args...);

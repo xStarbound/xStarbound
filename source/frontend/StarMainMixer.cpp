@@ -9,6 +9,13 @@
 #include "StarWorldPainter.hpp"
 #include "StarVoice.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 MainMixer::MainMixer(unsigned sampleRate, unsigned channels) {
@@ -24,6 +31,8 @@ void MainMixer::setWorldPainter(WorldPainterPtr worldPainter) {
 }
 
 void MainMixer::update(float dt, bool muteSfx, bool muteMusic, bool muteInstruments) {
+  ZoneScoped;
+
   auto assets = Root::singleton().assets();
 
   auto updateGroupVolume = [&](MixerGroup group, bool muted, String const& settingName) {

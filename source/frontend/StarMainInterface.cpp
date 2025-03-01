@@ -59,6 +59,13 @@
 #include "StarNpc.hpp"
 #include "StarCharSelection.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 GuiMessage::GuiMessage() : message(), cooldown(), springState() {}
@@ -591,6 +598,7 @@ void MainInterface::handleInteractAction(InteractAction interactAction) {
 }
 
 void MainInterface::update(float dt) {
+  ZoneScoped;
   m_paneManager.update(dt);
   m_cursor.update(dt);
 

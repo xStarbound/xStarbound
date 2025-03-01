@@ -53,6 +53,13 @@
 #include "StarRadioMessageDatabase.hpp"
 #include "StarCollectionDatabase.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 namespace {
@@ -199,6 +206,7 @@ Root::~Root() {
 }
 
 void Root::reload() {
+  ZoneScoped;
   Logger::info("Root: Reloading from disk");
 
   {
@@ -823,6 +831,10 @@ template <typename T>
 shared_ptr<T> Root::loadMemberFunction(shared_ptr<T>& ptr, Mutex& mutex, char const* name, function<shared_ptr<T>()> loadFunction) {
   MutexLocker locker(mutex);
   if (!ptr) {
+    ZoneScopedN("Root::loadMemberFunction");
+#ifdef TRACY_ENABLE
+    ZoneTextF("Loading %s", name);
+#endif
     auto startSeconds = Time::monotonicTime();
     ptr = loadFunction();
     Logger::info("Root: Loaded {} in {} seconds", name, Time::monotonicTime() - startSeconds);

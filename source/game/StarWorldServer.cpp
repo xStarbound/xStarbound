@@ -81,6 +81,7 @@ WorldServer::WorldServer(WorldChunks const& chunks) {
 }
 
 WorldServer::~WorldServer() {
+  ZoneScoped;
   for (auto& p : m_scriptContexts)
     p.second->uninit();
 
@@ -352,6 +353,8 @@ List<EntityId> WorldServer::players() const {
 }
 
 void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> const& packets) {
+  ZoneScoped;
+  
   auto const& clientInfo = m_clientInfo.get(clientId);
   auto& root = Root::singleton();
   auto entityFactory = root.entityFactory();
@@ -633,7 +636,7 @@ void WorldServer::setExpiryTime(float expiryTime) {
 }
 
 void WorldServer::update(float dt) {
-  ZoneScopedN("World server update");
+  ZoneScopedN("WorldServer::update");
   ++m_currentStep;
 
   constexpr double conversionFactor = 60.0;
@@ -641,18 +644,24 @@ void WorldServer::update(float dt) {
     // FezzedOne: The interpolation tracker is updated in seconds, not steps. So to fix that, convert seconds to (standardised) steps.
     pair.second->interpolationTracker.update(Time::monotonicTime() * conversionFactor);
 
-  List<WorldAction> triggeredActions;
-  eraseWhere(m_timers, [&triggeredActions](pair<int, WorldAction>& timer) {
-      if (--timer.first <= 0) {
-        triggeredActions.append(timer.second);
-        return true;
-      }
-      return false;
-    });
-  for (auto const& action : triggeredActions)
-    action(this);
+  {
+    ZoneScopedN("Triggered world actions");
+    List<WorldAction> triggeredActions;
+    eraseWhere(m_timers, [&triggeredActions](pair<int, WorldAction>& timer) {
+        if (--timer.first <= 0) {
+          triggeredActions.append(timer.second);
+          return true;
+        }
+        return false;
+      });
+    for (auto const& action : triggeredActions)
+      action(this);
+  }
 
-  m_spawner.update(dt);
+  {
+    ZoneScopedN("World spawner update");
+    m_spawner.update(dt);
+  }
 
   bool doBreakChecks = m_tileEntityBreakCheckTimer.wrapTick(m_currentStep) && m_needsGlobalBreakCheck;
   if (doBreakChecks)
@@ -683,8 +692,11 @@ void WorldServer::update(float dt) {
       return a->entityType() < b->entityType();
     });
 
-  for (auto& pair : m_scriptContexts)
-    pair.second->update(pair.second->updateDt(dt));
+  {
+    ZoneScopedN("World scripts");
+    for (auto& pair : m_scriptContexts)
+      pair.second->update(pair.second->updateDt(dt));
+  }
 
   updateDamage(dt);
   if (shouldRunThisStep("wiringUpdate"))
@@ -1306,6 +1318,8 @@ bool WorldServer::isFloatingDungeonWorld() const {
 }
 
 void WorldServer::init(bool firstTime) {
+  ZoneScoped;
+
   auto& root = Root::singleton();
   auto assets = root.assets();
   auto liquidsDatabase = root.liquidsDatabase();
@@ -2132,6 +2146,8 @@ void WorldServer::freshenCollision(RectI const& region) {
 }
 
 void WorldServer::removeEntity(EntityId entityId, bool andDie) {
+  ZoneScoped;
+
   auto entity = m_entityMap->entity(entityId);
   if (!entity)
     return;

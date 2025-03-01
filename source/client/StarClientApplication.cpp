@@ -27,6 +27,7 @@
   #include "tracy/Tracy.hpp"
 #else
   #define ZoneScoped
+  #define ZoneScopedN(name)
 #endif
 
 namespace Star {
@@ -870,91 +871,98 @@ void ClientApplication::updateTitle(float dt) {
 }
 
 void ClientApplication::updateRunning(float dt) {
+  ZoneScoped;
   try {
-    auto p2pNetworkingService = appController()->p2pNetworkingService();
-    bool clientIPJoinable = m_root->configuration()->get("clientIPJoinable").toBool();
-    bool clientP2PJoinable = m_root->configuration()->get("clientP2PJoinable").toBool();
-    Maybe<pair<uint16_t, uint16_t>> party = make_pair(m_universeClient->players(), m_universeClient->maxPlayers());
+    {
+      ZoneScopedN("Steam/Discord networking update");
+      auto p2pNetworkingService = appController()->p2pNetworkingService();
+      bool clientIPJoinable = m_root->configuration()->get("clientIPJoinable").toBool();
+      bool clientP2PJoinable = m_root->configuration()->get("clientP2PJoinable").toBool();
+      Maybe<pair<uint16_t, uint16_t>> party = make_pair(m_universeClient->players(), m_universeClient->maxPlayers());
 
-    if (m_state == MainAppState::MultiPlayer) {
-      if (p2pNetworkingService) {
-        p2pNetworkingService->setAcceptingP2PConnections(false);
-        if (clientP2PJoinable && m_currentRemoteJoin)
-          p2pNetworkingService->setJoinRemote(*m_currentRemoteJoin);
-        else
-          p2pNetworkingService->setJoinUnavailable();
-      }
-    } else {
-      m_universeServer->setListeningTcp(clientIPJoinable);
-      if (p2pNetworkingService) {
-        p2pNetworkingService->setAcceptingP2PConnections(clientP2PJoinable);
-        if (clientP2PJoinable) {
-          p2pNetworkingService->setJoinLocal(m_universeServer->maxClients());
-        } else {
-          p2pNetworkingService->setJoinUnavailable();
-          party = {};
+      if (m_state == MainAppState::MultiPlayer) {
+        if (p2pNetworkingService) {
+          p2pNetworkingService->setAcceptingP2PConnections(false);
+          if (clientP2PJoinable && m_currentRemoteJoin)
+            p2pNetworkingService->setJoinRemote(*m_currentRemoteJoin);
+          else
+            p2pNetworkingService->setJoinUnavailable();
+        }
+      } else {
+        m_universeServer->setListeningTcp(clientIPJoinable);
+        if (p2pNetworkingService) {
+          p2pNetworkingService->setAcceptingP2PConnections(clientP2PJoinable);
+          if (clientP2PJoinable) {
+            p2pNetworkingService->setJoinLocal(m_universeServer->maxClients());
+          } else {
+            p2pNetworkingService->setJoinUnavailable();
+            party = {};
+          }
         }
       }
+      
+      if (p2pNetworkingService)
+        p2pNetworkingService->setActivityData("In Game", party);
     }
-    
-    if (p2pNetworkingService)
-      p2pNetworkingService->setActivityData("In Game", party);
 
-    if (!m_mainInterface->inputFocus() && !m_cinematicOverlay->suppressInput()) {
-      m_player->setShifting(isActionTaken(InterfaceAction::PlayerShifting));
+    {
+      ZoneScopedN("Input update");
+      if (!m_mainInterface->inputFocus() && !m_cinematicOverlay->suppressInput()) {
+        m_player->setShifting(isActionTaken(InterfaceAction::PlayerShifting));
 
-      if (isActionTaken(InterfaceAction::PlayerRight))
-        m_player->moveRight();
-      if (isActionTaken(InterfaceAction::PlayerLeft))
-        m_player->moveLeft();
-      if (isActionTaken(InterfaceAction::PlayerUp))
-        m_player->moveUp();
-      if (isActionTaken(InterfaceAction::PlayerDown))
-        m_player->moveDown();
-      if (isActionTaken(InterfaceAction::PlayerJump))
-        m_player->jump();
+        if (isActionTaken(InterfaceAction::PlayerRight))
+          m_player->moveRight();
+        if (isActionTaken(InterfaceAction::PlayerLeft))
+          m_player->moveLeft();
+        if (isActionTaken(InterfaceAction::PlayerUp))
+          m_player->moveUp();
+        if (isActionTaken(InterfaceAction::PlayerDown))
+          m_player->moveDown();
+        if (isActionTaken(InterfaceAction::PlayerJump))
+          m_player->jump();
 
-      if (isActionTaken(InterfaceAction::PlayerTechAction1))
-        m_player->special(1);
-      if (isActionTaken(InterfaceAction::PlayerTechAction2))
-        m_player->special(2);
-      if (isActionTaken(InterfaceAction::PlayerTechAction3))
-        m_player->special(3);
+        if (isActionTaken(InterfaceAction::PlayerTechAction1))
+          m_player->special(1);
+        if (isActionTaken(InterfaceAction::PlayerTechAction2))
+          m_player->special(2);
+        if (isActionTaken(InterfaceAction::PlayerTechAction3))
+          m_player->special(3);
 
-      if (isActionTakenEdge(InterfaceAction::PlayerInteract))
-        m_player->beginTrigger();
-      else if (!isActionTaken(InterfaceAction::PlayerInteract))
-        m_player->endTrigger();
+        if (isActionTakenEdge(InterfaceAction::PlayerInteract))
+          m_player->beginTrigger();
+        else if (!isActionTaken(InterfaceAction::PlayerInteract))
+          m_player->endTrigger();
 
-      if (isActionTakenEdge(InterfaceAction::PlayerDropItem))
-        m_player->dropItem();
+        if (isActionTakenEdge(InterfaceAction::PlayerDropItem))
+          m_player->dropItem();
 
-      if (isActionTakenEdge(InterfaceAction::EmoteBlabbering))
-        m_player->addEmote(HumanoidEmote::Blabbering);
-      if (isActionTakenEdge(InterfaceAction::EmoteShouting))
-        m_player->addEmote(HumanoidEmote::Shouting);
-      if (isActionTakenEdge(InterfaceAction::EmoteHappy))
-        m_player->addEmote(HumanoidEmote::Happy);
-      if (isActionTakenEdge(InterfaceAction::EmoteSad))
-        m_player->addEmote(HumanoidEmote::Sad);
-      if (isActionTakenEdge(InterfaceAction::EmoteNeutral))
-        m_player->addEmote(HumanoidEmote::NEUTRAL);
-      if (isActionTakenEdge(InterfaceAction::EmoteLaugh))
-        m_player->addEmote(HumanoidEmote::Laugh);
-      if (isActionTakenEdge(InterfaceAction::EmoteAnnoyed))
-        m_player->addEmote(HumanoidEmote::Annoyed);
-      if (isActionTakenEdge(InterfaceAction::EmoteOh))
-        m_player->addEmote(HumanoidEmote::Oh);
-      if (isActionTakenEdge(InterfaceAction::EmoteOooh))
-        m_player->addEmote(HumanoidEmote::OOOH);
-      if (isActionTakenEdge(InterfaceAction::EmoteBlink))
-        m_player->addEmote(HumanoidEmote::Blink);
-      if (isActionTakenEdge(InterfaceAction::EmoteWink))
-        m_player->addEmote(HumanoidEmote::Wink);
-      if (isActionTakenEdge(InterfaceAction::EmoteEat))
-        m_player->addEmote(HumanoidEmote::Eat);
-      if (isActionTakenEdge(InterfaceAction::EmoteSleep))
-        m_player->addEmote(HumanoidEmote::Sleep);
+        if (isActionTakenEdge(InterfaceAction::EmoteBlabbering))
+          m_player->addEmote(HumanoidEmote::Blabbering);
+        if (isActionTakenEdge(InterfaceAction::EmoteShouting))
+          m_player->addEmote(HumanoidEmote::Shouting);
+        if (isActionTakenEdge(InterfaceAction::EmoteHappy))
+          m_player->addEmote(HumanoidEmote::Happy);
+        if (isActionTakenEdge(InterfaceAction::EmoteSad))
+          m_player->addEmote(HumanoidEmote::Sad);
+        if (isActionTakenEdge(InterfaceAction::EmoteNeutral))
+          m_player->addEmote(HumanoidEmote::NEUTRAL);
+        if (isActionTakenEdge(InterfaceAction::EmoteLaugh))
+          m_player->addEmote(HumanoidEmote::Laugh);
+        if (isActionTakenEdge(InterfaceAction::EmoteAnnoyed))
+          m_player->addEmote(HumanoidEmote::Annoyed);
+        if (isActionTakenEdge(InterfaceAction::EmoteOh))
+          m_player->addEmote(HumanoidEmote::Oh);
+        if (isActionTakenEdge(InterfaceAction::EmoteOooh))
+          m_player->addEmote(HumanoidEmote::OOOH);
+        if (isActionTakenEdge(InterfaceAction::EmoteBlink))
+          m_player->addEmote(HumanoidEmote::Blink);
+        if (isActionTakenEdge(InterfaceAction::EmoteWink))
+          m_player->addEmote(HumanoidEmote::Wink);
+        if (isActionTakenEdge(InterfaceAction::EmoteEat))
+          m_player->addEmote(HumanoidEmote::Eat);
+        if (isActionTakenEdge(InterfaceAction::EmoteSleep))
+          m_player->addEmote(HumanoidEmote::Sleep);
+      }
     }
 
     /* FezzedOne: Getting rid of this for now. */
@@ -982,13 +990,17 @@ void ClientApplication::updateRunning(float dt) {
     if (checkDisconnection())
       return;
 
-    m_voice->setInput(m_input->bindHeld("xsb", "pushToTalk"));
     DataStreamBuffer voiceData;
-    voiceData.setByteOrder(ByteOrder::LittleEndian);
-    //voiceData.writeBytes(VoiceBroadcastPrefix.utf8Bytes()); transmitting with SE compat for now
-    bool needstoSendVoice = m_voice->send(voiceData, 5000);
+    bool needsToSendVoice = false;
+    {
+      ZoneScopedN("Voice audio encoding");
+      m_voice->setInput(m_input->bindHeld("xsb", "pushToTalk"));
+      voiceData.setByteOrder(ByteOrder::LittleEndian);
+      //voiceData.writeBytes(VoiceBroadcastPrefix.utf8Bytes()); transmitting with SE compat for now
+      needsToSendVoice = m_voice->send(voiceData, 5000);
+    }
   
-    // FezzedOne: Needs to be moved up here to prevent a callback from returning a position of {0, 0} the tick after a world is loaded.  
+    // FezzedOne: Needs to be moved up here to prevent a callback from returning a position of {0, 0} the tick after a world is loaded.
     updateCamera(dt);
     m_universeClient->update(dt);
     // FezzedOne: Make sure inputs are always passed to the active player.
@@ -1005,6 +1017,7 @@ void ClientApplication::updateRunning(float dt) {
         broadcastCallback = [&](PlayerPtr player, StringView broadcast) -> bool {
           auto& view = broadcast.utf8();
           if (view.rfind(VoiceBroadcastPrefix.utf8(), 0) != NPos) {
+            ZoneScopedN("Voice audio decoding");
             auto entityId = player->entityId();
             auto speaker = m_voice->speaker(connectionForEntity(entityId));
             speaker->entityId = entityId;
@@ -1017,7 +1030,8 @@ void ClientApplication::updateRunning(float dt) {
       }
 
       if (worldClient->inWorld()) {
-        if (needstoSendVoice) {
+        if (needsToSendVoice) {
+          ZoneScopedN("Outbound voice networking");
           auto signature = Curve25519::sign(voiceData.ptr(), voiceData.size());
           std::string_view signatureView((char*)signature.data(), signature.size());
           std::string_view audioDataView(voiceData.ptr(), voiceData.size());
@@ -1045,10 +1059,14 @@ void ClientApplication::updateRunning(float dt) {
     appController()->setAcceptingTextInput(inputActive);
     m_input->setTextInputActive(inputActive);
 
-    for (auto const& interactAction : m_player->pullInteractActions())
-      m_mainInterface->handleInteractAction(interactAction);
+    {
+      ZoneScopedN("Voice networking");
+      for (auto const& interactAction : m_player->pullInteractActions())
+        m_mainInterface->handleInteractAction(interactAction);
+    }
 
     if (m_universeServer) {
+      ZoneScopedN("Steam/Discord connection handling");
       if (auto p2pNetworkingService = appController()->p2pNetworkingService()) {
         for (auto& p2pClient : p2pNetworkingService->acceptP2PConnections())
           m_universeServer->addClient(UniverseConnection(P2PPacketSocket::open(std::move(p2pClient))));
@@ -1100,6 +1118,8 @@ bool ClientApplication::isActionTakenEdge(InterfaceAction action) const {
 }
 
 void ClientApplication::updateCamera(float dt) {
+  ZoneScoped;
+
   if (!m_universeClient->worldClient())
     return;
 

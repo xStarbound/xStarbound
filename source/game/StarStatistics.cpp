@@ -5,6 +5,13 @@
 #include "StarJsonExtra.hpp"
 #include "StarLogging.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 Statistics::Statistics(String const& storageDirectory, StatisticsServicePtr service) {
@@ -70,6 +77,7 @@ bool Statistics::reset() {
 }
 
 void Statistics::update() {
+  ZoneScoped;
   if (m_service) {
     if (auto error = m_service->error()) {
       Logger::error("Statistics platform service error: {}", *error);

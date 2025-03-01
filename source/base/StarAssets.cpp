@@ -23,6 +23,13 @@
 #include "StarImageLuaBindings.hpp"
 #include "StarUtilityLuaBindings.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 static void validateBasePath(std::string_view const& basePath) {
@@ -293,6 +300,7 @@ Assets::Assets(Settings settings, StringList assetSources) {
   };
 
   auto runLoadScripts = [&](String const& groupName, String const& sourcePath, AssetSourcePtr source, List<pair<String, AssetSourcePtr>> const& sources) {
+    ZoneScopedN("Assets::runLoadScripts");
     // Runs any load scripts specified in the asset source's `_metadata` file. Not to be confused with `.patch.lua` scripts!
     auto metadata = source->metadata();
     if (auto scripts = metadata.ptr("scripts")) {

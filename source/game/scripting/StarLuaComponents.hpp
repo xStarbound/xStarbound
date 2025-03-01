@@ -10,6 +10,13 @@
 #include "StarWorldLuaBindings.hpp"
 #include "StarInputLuaBindings.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 class WorldClient;
@@ -194,6 +201,11 @@ private:
 
 template <typename Ret, typename... V>
 Maybe<Ret> LuaBaseComponent::invoke(String const& name, V&&... args) {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  ZoneTextF("Function '%s'", name);
+#endif
+
   if (!checkInitialization())
     return {};
 
@@ -211,6 +223,7 @@ Maybe<Ret> LuaBaseComponent::invoke(String const& name, V&&... args) {
 
 template <typename Ret>
 Maybe<Ret> LuaBaseComponent::eval(String const& code) {
+  ZoneScoped;
   if (!checkInitialization())
     return {};
 

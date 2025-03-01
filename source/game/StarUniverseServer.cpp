@@ -578,6 +578,7 @@ void UniverseServer::run() {
 }
 
 void UniverseServer::processUniverseFlags() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
 
@@ -616,6 +617,7 @@ void UniverseServer::processUniverseFlags() {
 }
 
 void UniverseServer::sendPendingChat() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
   for (auto const& p : m_clients) {
@@ -625,6 +627,7 @@ void UniverseServer::sendPendingChat() {
 }
 
 void UniverseServer::updateTeams() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
 
@@ -653,6 +656,7 @@ void UniverseServer::updateTeams() {
 }
 
 void UniverseServer::updateShips() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
 
@@ -696,6 +700,7 @@ void UniverseServer::updateShips() {
 }
 
 void UniverseServer::sendClockUpdates() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
 
@@ -714,6 +719,7 @@ void UniverseServer::sendClientContextUpdate(ServerClientContextPtr clientContex
 }
 
 void UniverseServer::sendClientContextUpdates() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
 
@@ -722,6 +728,7 @@ void UniverseServer::sendClientContextUpdates() {
 }
 
 void UniverseServer::kickErroredPlayers() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   for (auto const& worldId : m_worlds.keys()) {
     if (auto world = getWorld(worldId)) {
@@ -732,6 +739,7 @@ void UniverseServer::kickErroredPlayers() {
 }
 
 void UniverseServer::reapConnections() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
 
   int64_t startTime = Time::monotonicMilliseconds();
@@ -779,6 +787,7 @@ void UniverseServer::reapConnections() {
 }
 
 void UniverseServer::processPlanetTypeChanges() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
 
   for (auto const& worldId : m_worlds.keys()) {
@@ -792,6 +801,7 @@ void UniverseServer::processPlanetTypeChanges() {
 }
 
 void UniverseServer::warpPlayers() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
 
@@ -866,6 +876,7 @@ void UniverseServer::warpPlayers() {
 }
 
 void UniverseServer::flyShips() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
 
@@ -955,6 +966,7 @@ void UniverseServer::flyShips() {
 }
 
 void UniverseServer::arriveShips() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
 
@@ -1012,6 +1024,7 @@ void UniverseServer::arriveShips() {
 }
 
 void UniverseServer::respondToCelestialRequests() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
 
@@ -1033,6 +1046,7 @@ void UniverseServer::respondToCelestialRequests() {
 }
 
 void UniverseServer::processChat() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
 
@@ -1055,6 +1069,7 @@ void UniverseServer::processChat() {
 }
 
 void UniverseServer::clearBrokenWorlds() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
 
   if (Time::monotonicMilliseconds() >= m_clearBrokenWorldsDeadline) {
@@ -1074,6 +1089,7 @@ void UniverseServer::clearBrokenWorlds() {
 }
 
 void UniverseServer::handleWorldMessages() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
 
@@ -1097,6 +1113,7 @@ void UniverseServer::handleWorldMessages() {
 }
 
 void UniverseServer::shutdownInactiveWorlds() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
 
@@ -1172,6 +1189,7 @@ void UniverseServer::shutdownInactiveWorlds() {
 }
 
 void UniverseServer::doTriggeredStorage() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   ReadLocker clientsLocker(m_clientsLock);
 
@@ -1458,6 +1476,7 @@ void UniverseServer::doPermBan(ConnectionId clientId, String const& reason, pair
 }
 
 void UniverseServer::removeTimedBan() {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
   auto currentTime = Time::monotonicMilliseconds();
   eraseWhere(m_tempBans, [currentTime](TimeoutBan const& b) {
@@ -1489,6 +1508,7 @@ void UniverseServer::systemWorldUpdated(SystemWorldServerThread* systemWorldServ
 }
 
 void UniverseServer::packetsReceived(UniverseConnectionServer*, ConnectionId clientId, List<PacketPtr> packets) {
+  ZoneScoped;
   ReadLocker clientsLocker(m_clientsLock);
   if (auto clientContext = m_clients.value(clientId)) {
     clientsLocker.unlock();

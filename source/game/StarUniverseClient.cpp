@@ -32,6 +32,7 @@
   #include "tracy/Tracy.hpp"
 #else
   #define ZoneScoped
+  #define ZoneScopedN(name)
 #endif
 
 namespace Star {
@@ -268,7 +269,7 @@ SystemWorldClientPtr UniverseClient::systemWorldClient() const {
 }
 
 void UniverseClient::update(float dt) {
-  ZoneScoped;
+  ZoneScopedN("Universe client update");
 
   auto assets = Root::singleton().assets();
 
@@ -283,45 +284,53 @@ void UniverseClient::update(float dt) {
       warpPlayer(parseWarpAction(playerWarp->action), (bool)playerWarp->animation, playerWarp->animation.value("default"), playerWarp->deploy);
   }
 
-  if (m_pendingWarp) {
-    if (m_mainPlayer->fastRespawn())
-      m_warpDelay.setDone();
-    if ((m_warping && !m_mainPlayer->isTeleportingOut()) || (!m_warping && m_warpDelay.tick(dt))) {
-      m_connection->pushSingle(make_shared<PlayerWarpPacket>(take(m_pendingWarp), m_mainPlayer->isDeploying()));
-      m_warpDelay.reset();
-      if (m_warping) {
-        m_warpCinemaCancelTimer = GameTimer(assets->json("/client.config:playerWarpCinemaMinimumTime").toFloat());
+  {
+    ZoneScopedN("Warp cinematics/animations");
+    if (m_pendingWarp) {
+      if (m_mainPlayer->fastRespawn())
+        m_warpDelay.setDone();
+      if ((m_warping && !m_mainPlayer->isTeleportingOut()) || (!m_warping && m_warpDelay.tick(dt))) {
+        m_connection->pushSingle(make_shared<PlayerWarpPacket>(take(m_pendingWarp), m_mainPlayer->isDeploying()));
+        m_warpDelay.reset();
+        if (m_warping) {
+          m_warpCinemaCancelTimer = GameTimer(assets->json("/client.config:playerWarpCinemaMinimumTime").toFloat());
 
-        bool isDeploying = m_mainPlayer->isDeploying();
-        String cinematicJsonPath = isDeploying ? "/client.config:deployCinematic" : "/client.config:warpCinematic";
-        String cinematicAssetPath = assets->json(cinematicJsonPath).toString()
-        .replaceTags(StringMap<String>{{"species", m_mainPlayer->species()}});
+          bool isDeploying = m_mainPlayer->isDeploying();
+          String cinematicJsonPath = isDeploying ? "/client.config:deployCinematic" : "/client.config:warpCinematic";
+          String cinematicAssetPath = assets->json(cinematicJsonPath).toString()
+          .replaceTags(StringMap<String>{{"species", m_mainPlayer->species()}});
 
-        if (assets->assetExists(cinematicAssetPath)) {
-          Json cinematic = jsonMerge(assets->json(cinematicJsonPath + "Base"), assets->json(cinematicAssetPath));
-          if (!(m_mainPlayer->alwaysRespawnInWorld() || m_mainPlayer->fastRespawn()))
-            m_mainPlayer->setPendingCinematic(cinematic);
+          if (assets->assetExists(cinematicAssetPath)) {
+            Json cinematic = jsonMerge(assets->json(cinematicJsonPath + "Base"), assets->json(cinematicAssetPath));
+            if (!(m_mainPlayer->alwaysRespawnInWorld() || m_mainPlayer->fastRespawn()))
+              m_mainPlayer->setPendingCinematic(cinematic);
+          }
         }
+      }
+    }
+
+    // Don't cancel the warp cinema until at LEAST the
+    // playerWarpCinemaMinimumTime has passed, even if warping is faster than
+    // that. Unless the player has fast respawn enabled, of course.
+    if (m_warpCinemaCancelTimer) {
+      m_warpCinemaCancelTimer->tick();
+      if (m_mainPlayer->fastRespawn())
+        m_warpCinemaCancelTimer->setDone();
+      if (m_warpCinemaCancelTimer->ready() && !m_warping) {
+        m_warpCinemaCancelTimer = {};
+        m_mainPlayer->setPendingCinematic(Json());
+        m_mainPlayer->teleportIn();
       }
     }
   }
 
-  // Don't cancel the warp cinema until at LEAST the
-  // playerWarpCinemaMinimumTime has passed, even if warping is faster than
-  // that. Unless the player has fast respawn enabled, of course.
-  if (m_warpCinemaCancelTimer) {
-    m_warpCinemaCancelTimer->tick();
-    if (m_mainPlayer->fastRespawn())
-      m_warpCinemaCancelTimer->setDone();
-    if (m_warpCinemaCancelTimer->ready() && !m_warping) {
-      m_warpCinemaCancelTimer = {};
-      m_mainPlayer->setPendingCinematic(Json());
-      m_mainPlayer->teleportIn();
-    }
+  {
+    ZoneScopedN("Packet reception");
+    m_connection->receive();
+  } {
+    ZoneScopedN("Packet handling");
+    handlePackets(std::move(m_connection->pull()));
   }
-
-  m_connection->receive();
-  handlePackets(std::move(m_connection->pull()));
 
   if (!isConnected())
     return;
@@ -332,8 +341,11 @@ void UniverseClient::update(float dt) {
 
   if (!m_pause) {
     m_worldClient->update(dt);
-    for (auto& p : m_scriptContexts)
-      p.second->update();
+    {
+      ZoneScopedN("Universe client scripts");
+      for (auto& p : m_scriptContexts)
+        p.second->update();
+    }
   }
   m_connection->push(m_worldClient->getOutgoingPackets());
 
@@ -1274,6 +1286,8 @@ void UniverseClient::setPause(bool pause) {
 }
 
 void UniverseClient::handlePackets(List<PacketPtr> const& packets) {
+  ZoneScoped;
+
   for (auto const& packet : packets) {
     if (auto clientContextUpdate = as<ClientContextUpdatePacket>(packet)) {
       m_clientContext->readUpdate(clientContextUpdate->updateData);
