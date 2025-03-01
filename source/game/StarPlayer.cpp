@@ -1414,14 +1414,12 @@ uint64_t Player::itemsCanHold(ItemPtr const& items) const {
 }
 
 ItemPtr Player::pickupItems(ItemPtr const& items) {
-  ZoneScoped;
   if (isDead() || !items || m_inventory->itemsCanFit(items) == 0)
     return items;
 
   triggerPickupEvents(items);
 
   if (items->pickupSound().size()) {
-    ZoneScoped;
     m_effectsAnimator->setSoundPool("pickup", {items->pickupSound()});
     float pitch = 1.f - ((float)items->count() / (float)items->maxStack()) * 0.5f;
     m_effectsAnimator->setSoundPitchMultiplier("pickup", clamp(pitch * Random::randf(0.8f, 1.2f), 0.f, 2.f));
@@ -1438,68 +1436,46 @@ void Player::giveItem(ItemPtr const& item) {
 }
 
 void Player::triggerPickupEvents(ItemPtr const& item) {
-  ZoneScoped;
   if (item) {
-    {
-      ZoneScoped;
-      for (auto b : item->learnBlueprintsOnPickup())
-        addBlueprint(b);
-    }
+    for (auto b : item->learnBlueprintsOnPickup())
+      addBlueprint(b);
 
-    {
-      ZoneScoped;
-      for (auto pair : item->collectablesOnPickup())
-        addCollectable(pair.first, pair.second);
-    }
+    for (auto pair : item->collectablesOnPickup())
+      addCollectable(pair.first, pair.second);
 
-    {
-      ZoneScoped;
-      // FezzedOne: Fixed crash to menu whenever an item's `"radioMessagesOnPickup"` is of the wrong type.
-      auto radioMessageList = item->instanceValue("radioMessagesOnPickup", JsonArray());
-      radioMessageList = radioMessageList.isType(Json::Type::Array) ? radioMessageList : JsonArray();
-      for (auto m : radioMessageList.iterateArray()) {
-        if (m.isType(Json::Type::Array)) {
-          if (m.size() >= 2 && m.get(1).canConvert(Json::Type::Float))
-            queueRadioMessage(m.get(0), m.get(1).toFloat());
-        } else {
-          queueRadioMessage(m);
-        }
+    // FezzedOne: Fixed crash to menu whenever an item's `"radioMessagesOnPickup"` is of the wrong type.
+    auto radioMessageList = item->instanceValue("radioMessagesOnPickup", JsonArray());
+    radioMessageList = radioMessageList.isType(Json::Type::Array) ? radioMessageList : JsonArray();
+    for (auto m : radioMessageList.iterateArray()) {
+      if (m.isType(Json::Type::Array)) {
+        if (m.size() >= 2 && m.get(1).canConvert(Json::Type::Float))
+          queueRadioMessage(m.get(0), m.get(1).toFloat());
+      } else {
+        queueRadioMessage(m);
       }
     }
 
-    {
-      ZoneScoped;
-      if (auto cinematic = item->instanceValue("cinematicOnPickup", Json()))
-        setPendingCinematic(cinematic, true);
+    if (auto cinematic = item->instanceValue("cinematicOnPickup", Json()))
+      setPendingCinematic(cinematic, true);
+
+    for (auto const& quest : item->pickupQuestTemplates()) {
+      if (m_questManager->canStart(quest))
+        m_questManager->offer(make_shared<Quest>(quest, 0, this));
     }
 
-    {
-      ZoneScoped;
-      for (auto const& quest : item->pickupQuestTemplates()) {
-        if (m_questManager->canStart(quest))
-          m_questManager->offer(make_shared<Quest>(quest, 0, this));
-      }
+    if (auto consume = item->instanceValue("consumeOnPickup", Json())) {
+      if (consume.isType(Json::Type::Bool) && consume.toBool())
+        item->consume(item->count());
     }
 
-    {
-      ZoneScoped;
-      if (auto consume = item->instanceValue("consumeOnPickup", Json())) {
-        if (consume.isType(Json::Type::Bool) && consume.toBool())
-          item->consume(item->count());
-      }
-    }
+    auto itemCategory = item->instanceValue("eventCategory", item->category());
+    itemCategory = itemCategory.isType(Json::Type::String) ? itemCategory : String("");
 
-    {
-      ZoneScoped;
-      auto itemCategory = item->instanceValue("eventCategory", item->category());
-      itemCategory = itemCategory.isType(Json::Type::String) ? itemCategory : String("");
-
-      statistics()->recordEvent("item", JsonObject{
-          {"itemName", item->name()},
-          {"count", item->count()},
-          {"category", itemCategory}
-        });
-    }
+    statistics()->recordEvent("item", JsonObject{
+        {"itemName", item->name()},
+        {"count", item->count()},
+        {"category", itemCategory}
+      });
   }
 }
 

@@ -88,7 +88,8 @@ public:
     None,
     Working,
     PostProcess,
-    Load
+    Load,
+    LoadAndPersist
   };
 
   struct AssetId {
@@ -112,6 +113,7 @@ public:
 
     double time = 0.0;
     bool needsPostProcessing = false;
+    bool overridePersistence = false;
   };
 
   struct JsonData : AssetData {
@@ -210,15 +212,15 @@ public:
   // path refers to a key in the top-level object, and may use dot notation
   // for deeper field access and [] notation for array access.  Example:
   // "/path/to/json:key1.key2.key3[4]".
-  Json json(String const& path) const;
+  Json json(String const& path, bool forcePersistence = false) const;
 
   // Either returns the json v, or, if v is a string type, returns the json
   // pointed to by interpreting v as a string path.
-  Json fetchJson(Json const& v, String const& dir = "/") const;
+  Json fetchJson(Json const& v, String const& dir = "/", bool forcePersistence = false) const;
 
   // Load all the given jsons using background processing.
-  void queueJsons(StringList const& paths) const;
-  void queueJsons(CaseInsensitiveStringSet const& paths) const;
+  void queueJsons(StringList const& paths, bool forcePersistence = false) const;
+  void queueJsons(CaseInsensitiveStringSet const& paths, bool forcePersistence = false) const;
 
   // Returns *either* an image asset or a sub-frame.  Frame files are JSON
   // descriptor files that reference a particular image and label separate
@@ -227,13 +229,13 @@ public:
   // <full-path-minus-extension>.frames or default.frames, going up to assets
   // root.  May return the same ImageConstPtr for different paths if the paths
   // are equivalent or they are aliases of other image paths.
-  ImageConstPtr image(AssetPath const& path) const;
+  ImageConstPtr image(AssetPath const& path, bool forcePersistence = false) const;
   // Load images using background processing
-  void queueImages(StringList const& paths) const;
-  void queueImages(CaseInsensitiveStringSet const& paths) const;
+  void queueImages(StringList const& paths, bool forcePersistence = false) const;
+  void queueImages(CaseInsensitiveStringSet const& paths, bool forcePersistence = false) const;
   // Return the given image *if* it is already loaded, otherwise queue it for
   // loading.
-  ImageConstPtr tryImage(AssetPath const& path) const;
+  ImageConstPtr tryImage(AssetPath const& path, bool forcePersistence = false) const;
 
   // Returns the best associated FramesSpecification for a given image path, if
   // it exists.  The given path must not contain sub-paths or directives, and
@@ -242,19 +244,22 @@ public:
   FramesSpecificationConstPtr imageFrames(String const& path) const;
 
   // Returns a pointer to a shared audio asset;
-  AudioConstPtr audio(String const& path) const;
+  AudioConstPtr audio(String const& path, bool forcePersistence = false) const;
   // Load audios using background processing
-  void queueAudios(StringList const& paths) const;
-  void queueAudios(CaseInsensitiveStringSet const& paths) const;
+  void queueAudios(StringList const& paths, bool forcePersistence = false) const;
+  void queueAudios(CaseInsensitiveStringSet const& paths, bool forcePersistence = false) const;
   // Return the given audio *if* it is already loaded, otherwise queue it for
   // loading.
-  AudioConstPtr tryAudio(String const& path) const;
+  AudioConstPtr tryAudio(String const& path, bool forcePersistence = false) const;
 
   // Returns pointer to shared font asset
-  FontConstPtr font(String const& path) const;
+  FontConstPtr font(String const& path, bool forcePersistence = false) const;
 
   // Returns a bytes asset (Reads asset as an opaque binary blob)
-  ByteArrayConstPtr bytes(String const& path) const;
+  ByteArrayConstPtr bytes(String const& path, bool forcePersistence = false) const;
+
+  // FezzedOne: Allows a given asset to expire.
+  void allowExpiry(String const& path);
 
   // Bypass asset caching and open an asset file directly.
   IODevicePtr openFile(String const& basePath) const;
@@ -265,13 +270,14 @@ public:
   // Run a cleanup pass and remove any assets past their time to live.
   void cleanup();
 
+private: // FezzedOne: These all should be private!
   static FramesSpecification parseFramesSpecification(Json const& frameConfig, String path);
 
-  void queueAssets(List<AssetId> const& assetIds) const;
+  void queueAssets(List<AssetId> const& assetIds, bool forcePersistence = false) const;
   // From OpenStarbound. Assets mutex must be locked before calling.
-  void queueAsset(AssetId const& assetId) const;
-  shared_ptr<AssetData> tryAsset(AssetId const& id) const;
-  shared_ptr<AssetData> getAsset(AssetId const& id) const;
+  void queueAsset(AssetId const& assetId, bool forcePersistence = false) const;
+  shared_ptr<AssetData> tryAsset(AssetId const& id, bool forcePersistence = false) const;
+  shared_ptr<AssetData> getAsset(AssetId const& id, bool forcePersistence = false) const;
 
   void workerMain();
 
@@ -298,15 +304,15 @@ public:
   // Load / post process an asset and log any exception.  Returns true if the
   // work was performed (whether successful or not), false if the work is
   // blocking on something.
-  bool doLoad(AssetId const& id) const;
-  bool doPost(AssetId const& id) const;
+  bool doLoad(AssetId const& id, bool forcePersistence = false) const;
+  bool doPost(AssetId const& id, bool forcePersistence = false) const;
 
   // Assets can recursively depend on other assets, so the main entry point for
   // loading assets is in this separate method, and is safe for other loading
   // methods to call recursively.  If there is an error loading the asset, this
   // method will throw.  If, and only if, the asset is blocking on another busy
   // asset, this method will return null.
-  shared_ptr<AssetData> loadAsset(AssetId const& id) const;
+  shared_ptr<AssetData> loadAsset(AssetId const& id, bool forcePersistence = false) const;
 
   shared_ptr<AssetData> loadJson(AssetPath const& path) const;
   shared_ptr<AssetData> loadImage(AssetPath const& path) const;

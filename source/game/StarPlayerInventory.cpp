@@ -40,7 +40,10 @@ bool PlayerInventory::itemAllowedAsEquipment(ItemPtr const& item, EquipmentSlot 
 }
 
 PlayerInventory::PlayerInventory() {
-  auto config = Root::singleton().assets()->json("/player.config:inventory");
+  // To avoid client-side lag spikes on very large modpacks, persistently preload these infrequently accessed configs.
+  auto config = Root::singleton().assets()->json("/player.config:inventory", true);
+  auto currenciesConfig = Root::singleton().assets()->json("/currencies.config", true);
+  Root::singleton().assets()->json("/player.config:inventoryFilters", true);
 
   m_inventorySettings = InventorySettings::Default;
   if (config.optBool("allowAnyBagItem").value(false))
@@ -67,7 +70,6 @@ PlayerInventory::PlayerInventory() {
     m_bagsNetState[name].resize(size);
   }
 
-  auto currenciesConfig = Root::singleton().assets()->json("/currencies.config");
   for (auto p : currenciesConfig.iterateObject())
     m_currencies[p.first] = 0;
 

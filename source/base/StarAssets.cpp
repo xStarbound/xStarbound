@@ -133,7 +133,9 @@ Assets::Assets(Settings settings, StringList assetSources) {
 
   auto makeBaseAssetCallbacks = [this](bool addMetadataCallback) {
     LuaCallbacks callbacks;
-    callbacks.registerCallbackWithSignature<Json, String>("json", bind(&Assets::json, this, _1));
+    callbacks.registerCallback("json", [this](String const& path) {
+      return json(path);
+    });
 
     callbacks.registerCallback("byExtension", [this](String const& ext) -> StringList {
       StringList assetList{};
@@ -597,68 +599,68 @@ CaseInsensitiveStringSet Assets::scanExtension(String const& extension) const {
   return find != m_filesByExtension.end() ? find->second : NullExtensionScan;
 }
 
-Json Assets::json(String const& path) const {
+Json Assets::json(String const& path, bool forcePersistence) const {
   auto components = AssetPath::split(path);
   validatePath(components, true, false);
 
-  return as<JsonData>(getAsset(AssetId{AssetType::Json, std::move(components)}))->json;
+  return as<JsonData>(getAsset(AssetId{AssetType::Json, std::move(components)}, forcePersistence))->json;
 }
 
-Json Assets::fetchJson(Json const& v, String const& dir) const {
+Json Assets::fetchJson(Json const& v, String const& dir, bool forcePersistence) const {
   if (v.isType(Json::Type::String))
-    return Assets::json(AssetPath::relativeTo(dir, v.toString()));
+    return Assets::json(AssetPath::relativeTo(dir, v.toString()), forcePersistence);
   else
     return v;
 }
 
-void Assets::queueJsons(StringList const& paths) const {
+void Assets::queueJsons(StringList const& paths, bool forcePersistence) const {
   queueAssets(paths.transformed([](String const& path) {
     auto components = AssetPath::split(path);
     validatePath(components, true, false);
 
     return AssetId{AssetType::Json, {components.basePath, {}, {}}};
-  }));
+  }), forcePersistence);
 }
 
-void Assets::queueJsons(CaseInsensitiveStringSet const& paths) const {
+void Assets::queueJsons(CaseInsensitiveStringSet const& paths, bool forcePersistence) const {
   MutexLocker assetsLocker(m_assetsMutex);
   for (String const& path : paths) {
     auto components = AssetPath::split(path);
     validatePath(components, true, false);
 
-    queueAsset(AssetId{AssetType::Json, {components.basePath, {}, {}}});
+    queueAsset(AssetId{AssetType::Json, {components.basePath, {}, {}}}, forcePersistence);
   };
 }
 
-ImageConstPtr Assets::image(AssetPath const& path) const {
+ImageConstPtr Assets::image(AssetPath const& path, bool forcePersistence) const {
   validatePath(path, true, true);
 
-  return as<ImageData>(getAsset(AssetId{AssetType::Image, path}))->image;
+  return as<ImageData>(getAsset(AssetId{AssetType::Image, path}, forcePersistence))->image;
 }
 
-void Assets::queueImages(StringList const& paths) const {
+void Assets::queueImages(StringList const& paths, bool forcePersistence) const {
   queueAssets(paths.transformed([](String const& path) {
     auto components = AssetPath::split(path);
     validatePath(components, true, true);
 
     return AssetId{AssetType::Image, std::move(components)};
-  }));
+  }), forcePersistence);
 }
 
-void Assets::queueImages(CaseInsensitiveStringSet const& paths) const {
+void Assets::queueImages(CaseInsensitiveStringSet const& paths, bool forcePersistence) const {
   MutexLocker assetsLocker(m_assetsMutex);
   for (String const& path : paths) {
     auto components = AssetPath::split(path);
     validatePath(components, true, true);
 
-    queueAsset(AssetId{AssetType::Image, std::move(components)});
+    queueAsset(AssetId{AssetType::Image, std::move(components)}, forcePersistence);
   };
 }
 
-ImageConstPtr Assets::tryImage(AssetPath const& path) const {
+ImageConstPtr Assets::tryImage(AssetPath const& path, bool forcePersistence) const {
   validatePath(path, true, true);
 
-  if (auto imageData = as<ImageData>(tryAsset(AssetId{AssetType::Image, path})))
+  if (auto imageData = as<ImageData>(tryAsset(AssetId{AssetType::Image, path}, forcePersistence)))
     return imageData->image;
   else
     return {};
@@ -672,57 +674,79 @@ FramesSpecificationConstPtr Assets::imageFrames(String const& path) const {
   return bestFramesSpecification(path);
 }
 
-AudioConstPtr Assets::audio(String const& path) const {
+AudioConstPtr Assets::audio(String const& path, bool forcePersistence) const {
   auto components = AssetPath::split(path);
   validatePath(components, false, false);
 
-  return as<AudioData>(getAsset(AssetId{AssetType::Audio, std::move(components)}))->audio;
+  return as<AudioData>(getAsset(AssetId{AssetType::Audio, std::move(components)}, forcePersistence))->audio;
 }
 
-void Assets::queueAudios(StringList const& paths) const {
+void Assets::queueAudios(StringList const& paths, bool forcePersistence) const {
   queueAssets(paths.transformed([](String const& path) {
     const auto components = AssetPath::split(path);
     validatePath(components, false, false);
 
     return AssetId{AssetType::Audio, std::move(components)};
-  }));
+  }), forcePersistence);
 }
 
-void Assets::queueAudios(CaseInsensitiveStringSet const& paths) const {
+void Assets::queueAudios(CaseInsensitiveStringSet const& paths, bool forcePersistence) const {
   MutexLocker assetsLocker(m_assetsMutex);
   for (String const& path : paths) {
     auto components = AssetPath::split(path);
     validatePath(components, false, true);
 
-    queueAsset(AssetId{AssetType::Audio, std::move(components)});
+    queueAsset(AssetId{AssetType::Audio, std::move(components)}, forcePersistence);
   };
 }
 
-AudioConstPtr Assets::tryAudio(String const& path) const {
+AudioConstPtr Assets::tryAudio(String const& path, bool forcePersistence) const {
   auto components = AssetPath::split(path);
   validatePath(components, false, false);
 
-  if (auto audioData = as<AudioData>(tryAsset(AssetId{AssetType::Audio, std::move(components)})))
+  if (auto audioData = as<AudioData>(tryAsset(AssetId{AssetType::Audio, std::move(components)}, forcePersistence)))
     return audioData->audio;
   else
     return {};
 }
 
-FontConstPtr Assets::font(String const& path) const {
+FontConstPtr Assets::font(String const& path, bool forcePersistence) const {
   auto components = AssetPath::split(path);
   validatePath(components, false, false);
 
-  return as<FontData>(getAsset(AssetId{AssetType::Font, std::move(components)}))->font;
+  return as<FontData>(getAsset(AssetId{AssetType::Font, std::move(components)}, forcePersistence))->font;
 }
 
-ByteArrayConstPtr Assets::bytes(String const& path) const {
+ByteArrayConstPtr Assets::bytes(String const& path, bool forcePersistence) const {
   auto components = AssetPath::split(path);
   validatePath(components, false, false);
 
-  return as<BytesData>(getAsset(AssetId{AssetType::Bytes, std::move(components)}))->bytes;
+  return as<BytesData>(getAsset(AssetId{AssetType::Bytes, std::move(components)}, forcePersistence))->bytes;
+}
+
+void Assets::allowExpiry(String const& path) {
+  auto components = AssetPath::split(path);
+  validatePath(components, false, false);
+
+  MutexLocker assetsLocker(m_assetsMutex);
+
+  auto assetToFind = m_assetsCache.find(AssetId{AssetType::Json, components});
+  if (assetToFind == m_assetsCache.end())
+    assetToFind = m_assetsCache.find(AssetId{AssetType::Image, components});
+  if (assetToFind == m_assetsCache.end())
+    assetToFind = m_assetsCache.find(AssetId{AssetType::Audio, components});
+  if (assetToFind == m_assetsCache.end())
+    assetToFind = m_assetsCache.find(AssetId{AssetType::Font, components});
+  if (assetToFind == m_assetsCache.end())
+    assetToFind = m_assetsCache.find(AssetId{AssetType::Bytes, components});
+  if (assetToFind != m_assetsCache.end())
+    assetToFind->second->overridePersistence = false;
 }
 
 IODevicePtr Assets::openFile(String const& path) const {
+  // FezzedOne: Since this is public and the internal `open` accesses `m_files`, this needs a lock.
+  MutexLocker assetsLocker(m_assetsMutex);
+
   return open(path);
 }
 
@@ -770,23 +794,23 @@ size_t Assets::AssetIdHash::operator()(AssetId const& id) const {
 }
 
 bool Assets::JsonData::shouldPersist() const {
-  return !json.unique();
+  return !json.unique() || overridePersistence;
 }
 
 bool Assets::ImageData::shouldPersist() const {
-  return !alias && !image.unique();
+  return (!alias && !image.unique()) || overridePersistence;
 }
 
 bool Assets::AudioData::shouldPersist() const {
-  return !audio.unique();
+  return !audio.unique() || overridePersistence;
 }
 
 bool Assets::FontData::shouldPersist() const {
-  return !font.unique();
+  return !font.unique() || overridePersistence;
 }
 
 bool Assets::BytesData::shouldPersist() const {
-  return !bytes.unique();
+  return !bytes.unique() || overridePersistence;
 }
 
 FramesSpecification Assets::parseFramesSpecification(Json const& frameConfig, String path) {
@@ -882,34 +906,37 @@ FramesSpecification Assets::parseFramesSpecification(Json const& frameConfig, St
   return framesSpecification;
 }
 
-void Assets::queueAssets(List<AssetId> const& assetIds) const {
+void Assets::queueAssets(List<AssetId> const& assetIds, bool forcePersistence) const {
   MutexLocker assetsLocker(m_assetsMutex);
 
   for (auto const& id : assetIds)
-    queueAsset(id);
+    queueAsset(id, forcePersistence);
 }
 
-void Assets::queueAsset(AssetId const& assetId) const {
+void Assets::queueAsset(AssetId const& assetId, bool forcePersistence) const {
   auto i = m_assetsCache.find(assetId);
   if (i != m_assetsCache.end()) {
-    if (i->second)
+    if (i->second) {
       freshen(i->second);
+      if (forcePersistence) i->second->overridePersistence = true;
+    }
   } else {
     auto j = m_queue.find(assetId);
     if (j == m_queue.end()) {
-      m_queue[assetId] = QueuePriority::Load;
+      m_queue[assetId] = forcePersistence ? QueuePriority::LoadAndPersist : QueuePriority::Load;
       m_assetsQueued.signal();
     }
   }
 }
 
-shared_ptr<Assets::AssetData> Assets::tryAsset(AssetId const& id) const {
+shared_ptr<Assets::AssetData> Assets::tryAsset(AssetId const& id, bool forcePersistence) const {
   MutexLocker assetsLocker(m_assetsMutex);
 
   auto i = m_assetsCache.find(id);
   if (i != m_assetsCache.end()) {
     if (i->second) {
       freshen(i->second);
+      if (forcePersistence) i->second->overridePersistence = true;
       return i->second;
     } else {
       throw AssetException::format("Error loading asset {}", id.path);
@@ -917,14 +944,14 @@ shared_ptr<Assets::AssetData> Assets::tryAsset(AssetId const& id) const {
   } else {
     auto j = m_queue.find(id);
     if (j == m_queue.end()) {
-      m_queue[id] = QueuePriority::Load;
+      m_queue[id] = forcePersistence ? QueuePriority::LoadAndPersist : QueuePriority::Load;
       m_assetsQueued.signal();
     }
     return {};
   }
 }
 
-shared_ptr<Assets::AssetData> Assets::getAsset(AssetId const& id) const {
+shared_ptr<Assets::AssetData> Assets::getAsset(AssetId const& id, bool forcePersistence) const {
   MutexLocker assetsLocker(m_assetsMutex);
 
   while (true) {
@@ -933,6 +960,7 @@ shared_ptr<Assets::AssetData> Assets::getAsset(AssetId const& id) const {
       if (j->second) {
         auto asset = j->second;
         freshen(asset);
+        if (forcePersistence) asset->overridePersistence = true;
         return asset;
       } else {
         throw AssetException::format("Error loading asset {}", id.path);
@@ -940,7 +968,7 @@ shared_ptr<Assets::AssetData> Assets::getAsset(AssetId const& id) const {
     } else {
       // Try to load the asset in-thread, if we cannot, then the asset has been
       // queued so wait for a worker thread to finish it.
-      if (!doLoad(id))
+      if (!doLoad(id, forcePersistence))
         m_assetsDone.wait(m_assetsMutex);
     }
   }
@@ -958,15 +986,15 @@ void Assets::workerMain() {
 
     // Find the highest priority queue entry
     for (auto const& pair : m_queue) {
-      if (pair.second == QueuePriority::Load || pair.second == QueuePriority::PostProcess) {
+      if (pair.second == QueuePriority::LoadAndPersist || pair.second == QueuePriority::Load || pair.second == QueuePriority::PostProcess) {
         assetId = pair.first;
         queuePriority = pair.second;
-        if (pair.second == QueuePriority::Load)
+        if (pair.second == QueuePriority::LoadAndPersist || pair.second == QueuePriority::Load)
           break;
       }
     }
 
-    if (queuePriority != QueuePriority::Load && queuePriority != QueuePriority::PostProcess) {
+    if (queuePriority != QueuePriority::LoadAndPersist && queuePriority != QueuePriority::Load && queuePriority != QueuePriority::PostProcess) {
       // Nothing in the queue that needs work
       m_assetsQueued.wait(m_assetsMutex);
       continue;
@@ -975,8 +1003,10 @@ void Assets::workerMain() {
     bool workIsBlocking;
     if (queuePriority == QueuePriority::PostProcess)
       workIsBlocking = !doPost(assetId);
+    else if (queuePriority == QueuePriority::LoadAndPersist)
+      workIsBlocking = !doLoad(assetId, true);
     else
-      workIsBlocking = !doLoad(assetId);
+      workIsBlocking = !doLoad(assetId, false);
 
     if (workIsBlocking) {
       // We are blocking on some sort of busy asset, so need to wait on
@@ -1221,11 +1251,11 @@ Json Assets::readJson(String const& path) const {
   }
 }
 
-bool Assets::doLoad(AssetId const& id) const {
+bool Assets::doLoad(AssetId const& id, bool forcePersistence) const {
   try {
     // loadAsset automatically manages the queue and freshens the asset
     // data.
-    return (bool)loadAsset(id);
+    return (bool)loadAsset(id, forcePersistence);
   } catch (std::exception const& e) {
     Logger::error("Exception caught loading asset: {}, {}", id.path, outputException(e, true));
   } catch (...) {
@@ -1240,7 +1270,7 @@ bool Assets::doLoad(AssetId const& id) const {
   return true;
 }
 
-bool Assets::doPost(AssetId const& id) const {
+bool Assets::doPost(AssetId const& id, bool forcePersistence) const {
   shared_ptr<AssetData> assetData;
   try {
     assetData = m_assetsCache.get(id);
@@ -1257,13 +1287,14 @@ bool Assets::doPost(AssetId const& id) const {
     assetData->needsPostProcessing = false;
     m_assetsCache[id] = assetData;
     freshen(assetData);
+    if (forcePersistence) assetData->overridePersistence = true;
     m_assetsDone.broadcast();
   }
 
   return true;
 }
 
-shared_ptr<Assets::AssetData> Assets::loadAsset(AssetId const& id) const {
+shared_ptr<Assets::AssetData> Assets::loadAsset(AssetId const& id, bool forcePersistence) const {
   if (auto asset = m_assetsCache.value(id))
     return asset;
 
@@ -1286,6 +1317,8 @@ shared_ptr<Assets::AssetData> Assets::loadAsset(AssetId const& id) const {
       } else if (id.type == AssetType::Bytes) {
         assetData = loadBytes(id.path);
       }
+
+      if (forcePersistence) assetData->overridePersistence = true;
 
     } catch (StarException const& e) {
       if (id.type == AssetType::Image && m_settings.missingImage) {
