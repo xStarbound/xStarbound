@@ -702,7 +702,10 @@ void WorldServer::update(float dt) {
   if (shouldRunThisStep("wiringUpdate"))
     m_wireProcessor->process();
 
-  m_sky->update(dt);
+  {
+    ZoneScopedN("Sky update");
+    m_sky->update(dt);
+  }
 
   List<RectI> clientWindows;
   List<RectI> clientMonitoringRegions;
@@ -712,27 +715,38 @@ void WorldServer::update(float dt) {
       clientMonitoringRegions.appendAll(m_geometry.splitRect(region));
   }
 
-  m_weather.setClientVisibleRegions(clientWindows);
-  m_weather.update(dt);
-  for (auto projectile : m_weather.pullNewProjectiles())
-    addEntity(std::move(projectile));
+  {
+    ZoneScopedN("Weather update");
+    m_weather.setClientVisibleRegions(clientWindows);
+    m_weather.update(dt);
+    for (auto projectile : m_weather.pullNewProjectiles())
+      addEntity(std::move(projectile));
+  }
 
   if (shouldRunThisStep("liquidUpdate")) {
+    ZoneScopedN("Liquid update");
     m_liquidEngine->setProcessingLimit(m_fidelityConfig.optUInt("liquidEngineBackgroundProcessingLimit"));
     m_liquidEngine->setNoProcessingLimitRegions(clientMonitoringRegions);
     m_liquidEngine->update();
   }
 
-  if (shouldRunThisStep("fallingBlocksUpdate"))
+  if (shouldRunThisStep("fallingBlocksUpdate")) {
+    ZoneScopedN("Falling tile update");
     m_fallingBlocksAgent->update();
+  }
 
-  if (auto delta = shouldRunThisStep("blockDamageUpdate"))
+  if (auto delta = shouldRunThisStep("blockDamageUpdate")) {
+    ZoneScopedN("Tile damage update");
     updateDamagedBlocks(*delta * GlobalTimestep);
+  }
 
-  if (auto delta = shouldRunThisStep("worldStorageTick"))
+  if (auto delta = shouldRunThisStep("worldStorageTick")) {
+    ZoneScopedN("World storage tick");
     m_worldStorage->tick(*delta * GlobalTimestep);
+  }
 
   if (auto delta = shouldRunThisStep("worldStorageGenerate")) {
+    ZoneScopedN("World generation tick");
     m_worldStorage->generateQueue(m_fidelityConfig.optUInt("worldStorageGenerationLevelLimit"), [this](WorldStorage::Sector a, WorldStorage::Sector b) {
         auto distanceToClosestPlayer = [this](WorldStorage::Sector sector) {
           Vec2F sectorCenter = RectF(*m_worldStorage->regionForSector(sector)).center();
@@ -748,18 +762,29 @@ void WorldServer::update(float dt) {
       });
   }
 
-  for (EntityId entityId : toRemove)
-    removeEntity(entityId, true);
-
-  for (auto const& pair : m_clientInfo) {
-    for (auto const& monitoredRegion : pair.second->monitoringRegions(m_entityMap))
-      signalRegion(monitoredRegion.padded(jsonToVec2I(m_serverConfig.get("playerActiveRegionPad"))));
-    queueUpdatePackets(pair.first);
+  {
+    ZoneScopedN("Entity removals");
+    for (EntityId entityId : toRemove)
+      removeEntity(entityId, true);
   }
-  m_netStateCache.clear();
 
-  for (auto& pair : m_clientInfo)
-    pair.second->pendingForward = false;
+  {
+    ZoneScopedN("Queue for world update packets");
+    for (auto const& pair : m_clientInfo) {
+      ZoneScopedN("Client update");
+  #ifdef TRACY_ENABLE
+      ZoneTextF("For client %i", (unsigned short)pair.first);
+  #endif
+      for (auto const& monitoredRegion : pair.second->monitoringRegions(m_entityMap))
+        signalRegion(monitoredRegion.padded(jsonToVec2I(m_serverConfig.get("playerActiveRegionPad"))));
+      queueUpdatePackets(pair.first);
+    }
+    m_netStateCache.clear();
+  
+
+    for (auto& pair : m_clientInfo)
+      pair.second->pendingForward = false;
+  }
 
   m_expiryTimer.tick(dt);
 

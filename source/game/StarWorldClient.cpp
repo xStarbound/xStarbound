@@ -1247,21 +1247,24 @@ void WorldClient::update(float dt) {
   // m_globalLightingMultiplier = {};
   // m_shaderParameters = Array<Vec3F, 6>::filled(Vec3F::filled(0.0f));
 
-  float expireTime = min(float(m_latency + 800), 2000.f);
-  auto now = Time::monotonicMilliseconds();
-  eraseWhere(m_predictedTiles, [&](auto& pair) {
-    float expiry = (float)(now - pair.second.time) / expireTime;
-    auto center = Vec2F(pair.first) + Vec2F::filled(0.5f);
-    auto size = Vec2F::filled(0.875f - expiry * 0.875f);
-    auto poly = PolyF(RectF::withCenter(center, size));
-    SpatialLogger::logPoly("world", poly, Color::Cyan.mix(Color::Red, expiry).toRgba());
-    if (expiry >= 1.0f) {
-      dirtyCollision(RectI::withSize(pair.first, { 1, 1 }));
-      return true;
-    } else {
-      return false;
-    }
-  });
+  {
+    ZoneScopedN("Tile prediction expiry");
+    float expireTime = min(float(m_latency + 800), 2000.f);
+    auto now = Time::monotonicMilliseconds();
+    eraseWhere(m_predictedTiles, [&](auto& pair) {
+      float expiry = (float)(now - pair.second.time) / expireTime;
+      auto center = Vec2F(pair.first) + Vec2F::filled(0.5f);
+      auto size = Vec2F::filled(0.875f - expiry * 0.875f);
+      auto poly = PolyF(RectF::withCenter(center, size));
+      SpatialLogger::logPoly("world", poly, Color::Cyan.mix(Color::Red, expiry).toRgba());
+      if (expiry >= 1.0f) {
+        dirtyCollision(RectI::withSize(pair.first, { 1, 1 }));
+        return true;
+      } else {
+        return false;
+      }
+    });
+  }
 
   // Secret broadcasts are transmitted through DamageNotifications for vanilla server compatibility.
   // Because DamageNotification packets are spoofable, we have to sign the data so other clients can validate that it is legitimate.
@@ -1276,50 +1279,65 @@ void WorldClient::update(float dt) {
   constexpr double conversionFactor = 60.0;
   m_interpolationTracker.update(Time::monotonicTime() * conversionFactor);
 
-  List<WorldAction> triggeredActions;
-  eraseWhere(m_timers, [&triggeredActions](pair<int, WorldAction>& timer) {
-      if (--timer.first <= 0) {
-        triggeredActions.append(timer.second);
-        return true;
-      }
-      return false;
-    });
-  for (auto const& action : triggeredActions)
-    action(this);
+  {
+    ZoneScopedN("Triggered actions");
+    List<WorldAction> triggeredActions;
+    eraseWhere(m_timers, [&triggeredActions](pair<int, WorldAction>& timer) {
+        if (--timer.first <= 0) {
+          triggeredActions.append(timer.second);
+          return true;
+        }
+        return false;
+      });
+    for (auto const& action : triggeredActions)
+      action(this);
+  }
 
   List<EntityId> toRemove;
   List<EntityId> clientPresenceEntities;
-  m_entityMap->updateAllEntities([&](EntityPtr const& entity) {
-      ZoneScopedN("Client entity update");
-  #ifdef TRACY_ENABLE
-      const EntityId entityId = entity->entityId();
-      const char* const entityTypeStr = EntityTypeNames.getRight(entity->entityType()).utf8().c_str();
-      ZoneTextF("%s entity %i", entityTypeStr, entityId);
-  #endif
-      entity->update(dt, m_currentStep);
+  {
+    ZoneScopedN("Client entity updates");
+    m_entityMap->updateAllEntities([&](EntityPtr const& entity) {
+        ZoneScopedN("Client entity update");
+    #ifdef TRACY_ENABLE
+        const EntityId entityId = entity->entityId();
+        const char* const entityTypeStr = EntityTypeNames.getRight(entity->entityType()).utf8().c_str();
+        ZoneTextF("%s entity %i", entityTypeStr, entityId);
+    #endif
+        entity->update(dt, m_currentStep);
 
-      if (entity->shouldDestroy() && entity->entityMode() == EntityMode::Master)
-        toRemove.append(entity->entityId());
-      if (entity->isMaster() && entity->clientEntityMode() == ClientEntityMode::ClientPresenceMaster)
-        clientPresenceEntities.append(entity->entityId());
-    }, [](EntityPtr const& a, EntityPtr const& b) {
-      return a->entityType() < b->entityType();
-    });
+        if (entity->shouldDestroy() && entity->entityMode() == EntityMode::Master)
+          toRemove.append(entity->entityId());
+        if (entity->isMaster() && entity->clientEntityMode() == ClientEntityMode::ClientPresenceMaster)
+          clientPresenceEntities.append(entity->entityId());
+      }, [](EntityPtr const& a, EntityPtr const& b) {
+        return a->entityType() < b->entityType();
+      });
+  
+    m_clientState.setClientPresenceEntities(std::move(clientPresenceEntities));
+  }
 
-  m_clientState.setClientPresenceEntities(std::move(clientPresenceEntities));
+  {
+    ZoneScopedN("Damage updates");
+    m_damageManager->update(dt);
+    handleDamageNotifications();
+  }
 
-  m_damageManager->update(dt);
-  handleDamageNotifications();
-
-  m_sky->setAltitude(m_clientState.windowCenter()[1]);
-  m_sky->update(dt);
-
+  {
+    ZoneScopedN("Sky update");
+    m_sky->setAltitude(m_clientState.windowCenter()[1]);
+    m_sky->update(dt);
+  }
   RectI particleRegion = m_clientState.window().padded(m_clientConfig.getInt("particleRegionPadding"));
 
-  m_weather.setVisibleRegion(particleRegion);
-  m_weather.update(dt);
+  {
+    ZoneScopedN("Weather update");
+    m_weather.setVisibleRegion(particleRegion);
+    m_weather.update(dt);
+  }
 
   if (!m_mainPlayer->isDead()) {
+    ZoneScopedN("Item drop requests");
     // Clear m_requestedDrops every so often in case of entity id reuse or
     // desyncs etc
     if (m_currentStep % m_clientConfig.getInt("itemRequestReset") == 0)
@@ -1345,80 +1363,103 @@ void WorldClient::update(float dt) {
     m_requestedDrops.clear();
   }
 
-  sparkDamagedBlocks();
+  {
+    ZoneScopedN("Tile sparking update");
+    sparkDamagedBlocks();
+  }
 
-  m_particles->addParticles(m_weather.pullNewParticles());
-  m_particles->update(dt, RectF(particleRegion), m_weather.wind());
+  {
+    ZoneScopedN("Particle update");
+    m_particles->addParticles(m_weather.pullNewParticles());
+    m_particles->update(dt, RectF(particleRegion), m_weather.wind());
+  }
 
-  if (auto audioSample = m_ambientSounds.updateAmbient(currentAmbientNoises(), m_sky->isDayTime()))
-    m_samples.append(audioSample);
-  if (auto audioSample = m_ambientSounds.updateWeather(currentWeatherNoises()))
-    m_samples.append(audioSample);
+  {
+    ZoneScopedN("Audio update");
+    if (auto audioSample = m_ambientSounds.updateAmbient(currentAmbientNoises(), m_sky->isDayTime()))
+      m_samples.append(audioSample);
+    if (auto audioSample = m_ambientSounds.updateWeather(currentWeatherNoises()))
+      m_samples.append(audioSample);
 
-  if (inSpace()) {
-    m_samples.appendAll(m_sky->pullSounds());
+    if (inSpace()) {
+      m_samples.appendAll(m_sky->pullSounds());
 
-    if (m_spaceSound && m_spaceSound->finished()) {
-      m_spaceSound = {};
-      m_activeSpaceSound = "";
-    }
+      if (m_spaceSound && m_spaceSound->finished()) {
+        m_spaceSound = {};
+        m_activeSpaceSound = "";
+      }
 
-    auto skyAmbientNoise = m_sky->ambientNoise();
-    if (skyAmbientNoise != m_activeSpaceSound) {
-      if (m_spaceSound) {
-        m_spaceSound->stop(skyAmbientNoise == "" ? 3.0 : 0.0);
-      } else {
-        m_activeSpaceSound = skyAmbientNoise;
-        if (!m_activeSpaceSound.empty()) {
-          m_spaceSound = make_shared<AudioInstance>(*assets->audio(m_activeSpaceSound));
-          m_samples.append(m_spaceSound);
+      auto skyAmbientNoise = m_sky->ambientNoise();
+      if (skyAmbientNoise != m_activeSpaceSound) {
+        if (m_spaceSound) {
+          m_spaceSound->stop(skyAmbientNoise == "" ? 3.0 : 0.0);
+        } else {
+          m_activeSpaceSound = skyAmbientNoise;
+          if (!m_activeSpaceSound.empty()) {
+            m_spaceSound = make_shared<AudioInstance>(*assets->audio(m_activeSpaceSound));
+            m_samples.append(m_spaceSound);
+          }
         }
       }
     }
+
+    if (auto newAltMusic = m_mainPlayer->pullPendingAltMusic()) {
+      if (newAltMusic->first)
+        playAltMusic(newAltMusic->first.get(), newAltMusic->second);
+      else
+        stopAltMusic(newAltMusic->second);
+    }
+
+    if (auto audioSample = m_altMusicTrack.updateAmbient(currentAltMusicTrack(), true))
+      m_music.append(audioSample);
+
+    if (auto audioSample = m_musicTrack.updateAmbient(currentMusicTrack(), m_sky->isDayTime()))
+      m_music.append(audioSample);
   }
 
-  if (auto newAltMusic = m_mainPlayer->pullPendingAltMusic()) {
-    if (newAltMusic->first)
-      playAltMusic(newAltMusic->first.get(), newAltMusic->second);
-    else
-      stopAltMusic(newAltMusic->second);
+  {
+    ZoneScopedN("Client entity removals");
+    for (EntityId entityId : toRemove)
+      removeEntity(entityId, true);
   }
 
-  if (auto audioSample = m_altMusicTrack.updateAmbient(currentAltMusicTrack(), true))
-    m_music.append(audioSample);
-
-  if (auto audioSample = m_musicTrack.updateAmbient(currentMusicTrack(), m_sky->isDayTime()))
-    m_music.append(audioSample);
-
-  for (EntityId entityId : toRemove)
-    removeEntity(entityId, true);
-
-  queueUpdatePackets();
+  {
+    ZoneScopedN("Queue for world client update packets");
+    queueUpdatePackets();
+  }
 
   if (m_pingTime.isNothing()) {
+    ZoneScopedN("Ping packet transmission");
     m_pingTime = Time::monotonicMilliseconds();
     m_outgoingPackets.append(make_shared<PingPacket>());
   }
   LogMap::set("client_ping", m_latency);
 
-  // Remove active sectors that are outside of the current monitoring region
-  Set<ClientTileSectorArray::Sector> neededSectors;
-  auto monitoredRegions = m_clientState.monitoringRegions([this](EntityId entityId) -> Maybe<RectI> {
-      if (auto entity = this->entity(entityId))
-        return RectI::integral(entity->metaBoundBox().translated(entity->position()));
-      return {};
-    });
-  for (auto monitoredRegion : monitoredRegions)
-    neededSectors.addAll(m_tileArray->validSectorsFor(monitoredRegion.padded(WorldSectorSize)));
+  List<ClientTileSectorArray::Sector> loadedSectors;
 
-  auto loadedSectors = m_tileArray->loadedSectors();
-  for (auto sector : loadedSectors) {
-    if (!neededSectors.contains(sector))
-      m_tileArray->unloadSector(sector);
+  {
+    ZoneScopedN("Sector unloading");
+    // Remove active sectors that are outside of the current monitoring region
+    Set<ClientTileSectorArray::Sector> neededSectors;
+    auto monitoredRegions = m_clientState.monitoringRegions([this](EntityId entityId) -> Maybe<RectI> {
+        if (auto entity = this->entity(entityId))
+          return RectI::integral(entity->metaBoundBox().translated(entity->position()));
+        return {};
+      });
+    for (auto monitoredRegion : monitoredRegions)
+      neededSectors.addAll(m_tileArray->validSectorsFor(monitoredRegion.padded(WorldSectorSize)));
+
+    loadedSectors = m_tileArray->loadedSectors();
+    for (auto sector : loadedSectors) {
+      if (!neededSectors.contains(sector))
+        m_tileArray->unloadSector(sector);
+    }
   }
 
-  if (m_collisionDebug)
+  if (m_collisionDebug) {
+    ZoneScopedN("Tile collision rendering");
     renderCollisionDebug();
+  }
 
   LogMap::set("client_entities", m_entityMap->size());
   LogMap::set("client_sectors", toString(loadedSectors.size()));
