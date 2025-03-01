@@ -8,6 +8,8 @@ build-mingw/
 build-qt/
 build-runtime/
 build-tests/
+build-tracy/
+build-tracy-tests/
 build-windows/
 build-windows-msvc/
 build/
