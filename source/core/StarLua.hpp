@@ -1862,7 +1862,7 @@ template <typename Ret, typename... Args>
 Ret LuaContext::invokePath(String const& key, Args const&... args) const {
   ZoneScoped;
 #ifdef TRACY_ENABLE
-  ZoneTextF("Function '%s'", key);
+  ZoneTextF("Function '%s'", key.utf8().c_str());
 #endif
   auto p = getPath(key);
   if (auto f = p.ptr<LuaFunction>())

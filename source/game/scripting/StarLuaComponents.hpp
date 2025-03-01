@@ -203,7 +203,7 @@ template <typename Ret, typename... V>
 Maybe<Ret> LuaBaseComponent::invoke(String const& name, V&&... args) {
   ZoneScoped;
 #ifdef TRACY_ENABLE
-  ZoneTextF("Function '%s'", name);
+  ZoneTextF("Function '%s'", name.utf8().c_str());
 #endif
 
   if (!checkInitialization())
