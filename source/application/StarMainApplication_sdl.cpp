@@ -479,6 +479,7 @@ public:
         m_renderRate = m_renderTicker.tick();
 #if defined TRACY_ENABLE
         FrameMarkEnd("Rendering");
+        FrameMark;
         FrameMarkNamed("CLIENT APPLICATION FRAME");
 #endif
 
