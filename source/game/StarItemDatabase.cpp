@@ -580,7 +580,7 @@ void ItemDatabase::addItemSet(ItemType type, String const& extension) {
   for (auto file : assets->scanExtension(extension)) {
     ItemData data;
     try {
-      auto config = assets->json(file, true); // FezzedOne: Persist all item configs to prevent lag spikes.
+      auto config = assets->json(file); // FezzedOne: Persist all item configs to prevent lag spikes.
       data.type = type;
       data.assetsConfig = file;
       data.name = config.get("itemName").toString();

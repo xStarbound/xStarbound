@@ -68,6 +68,8 @@ EnumMap<Player::State> const Player::StateNames{
 
 Player::Player(PlayerConfigPtr config, Uuid uuid) {
   auto assets = Root::singleton().assets();
+  // FezzedOne: Pre-cache the player config to prevent various lag spikes.
+  volatile Json _ = assets->json("/player.config", true); (void)_;
 
   m_config = config;
   m_client = nullptr;
