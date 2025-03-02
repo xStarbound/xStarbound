@@ -480,7 +480,6 @@ public:
 #if defined TRACY_ENABLE
         FrameMarkEnd("Rendering");
         FrameMark;
-        FrameMarkNamed("CLIENT APPLICATION FRAME");
 #endif
 
         if (m_quitRequested) {

@@ -1,5 +1,12 @@
 #include "StarCellularLighting.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 CellularLightingCalculator::CellularLightingCalculator(bool monochrome) {
@@ -74,6 +81,8 @@ void CellularLightingCalculator::addPointLight(Vec2F const& position, Vec3F cons
 }
 
 void CellularLightingCalculator::calculate(Image& output) {
+  ZoneScoped;
+
   Vec2S arrayMin = Vec2S(m_queryRegion.min() - m_calculationRegion.min());
   Vec2S arrayMax = Vec2S(m_queryRegion.max() - m_calculationRegion.min());
 

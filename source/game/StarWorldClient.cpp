@@ -500,12 +500,15 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
   renderData.geometry = m_geometry;
 
   ClientRenderCallback lightingRenderCallback;
-  m_entityMap->forAllEntities([&](EntityPtr const& entity) {
-    if (m_startupHiddenEntities.contains(entity->entityId()))
-      return;
+  {
+    ZoneScopedN("Rendering entity light sources");
+    m_entityMap->forAllEntities([&](EntityPtr const& entity) {
+      if (m_startupHiddenEntities.contains(entity->entityId()))
+        return;
 
-    entity->renderLightSources(&lightingRenderCallback);
-  });
+      entity->renderLightSources(&lightingRenderCallback);
+    });
+  }
 
   renderLightSources = std::move(lightingRenderCallback.lightSources);
 
@@ -519,17 +522,20 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
 
   Vec2U lightSize(lightRange.size());
 
-  if (!m_lightingTicked) {
-    // If this is the first lighting tick, reset the "old" light map.
-    MutexLocker olmLocker(m_oldLightMapMutex);
-    m_oldLightMap.reset(lightSize, PixelFormat::RGB24);
-    olmLocker.unlock();
-  } else {
-    // If this is *not* the first lighting tick, use the old light map until the new one is available, rather than a clean slate.
-    // This *should* stop the occasional flickering.
-    MutexLocker olmLocker(m_oldLightMapMutex);
-    renderData.lightMap = m_oldLightMap;
-    olmLocker.unlock();
+  {
+    ZoneScopedN("Waiting on lightmap");
+    if (!m_lightingTicked) {
+      // If this is the first lighting tick, reset the "old" light map.
+      MutexLocker olmLocker(m_oldLightMapMutex);
+      m_oldLightMap.reset(lightSize, PixelFormat::RGB24);
+      olmLocker.unlock();
+    } else {
+      // If this is *not* the first lighting tick, use the old light map until the new one is available, rather than a clean slate.
+      // This *should* stop the occasional flickering.
+      MutexLocker olmLocker(m_oldLightMapMutex);
+      renderData.lightMap = m_oldLightMap;
+      olmLocker.unlock();
+    }
   }
 
   renderData.tileLightMap.reset(lightSize, PixelFormat::RGBA32);
@@ -539,6 +545,8 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
     renderData.lightMap.reset(lightSize, PixelFormat::RGB24);
     renderData.lightMap.fill(Vec3B(255, 255, 255));
   } else {
+    ZoneScopedN("Lighting calculations");
+
     m_lightingCalculator.begin(lightRange);
 
     if (!m_asyncLighting)
@@ -1830,6 +1838,7 @@ RpcPromise<InteractAction> WorldClient::interact(InteractRequest const& request)
 }
 
 void WorldClient::lightingTileGather() {
+  ZoneScoped;
   Vec3F environmentLight = m_sky->environmentLight().toRgbF();
   float undergroundLevel = m_worldTemplate->undergroundLevel();
   auto liquidsDatabase = Root::singleton().liquidsDatabase();
@@ -1870,6 +1879,8 @@ void WorldClient::lightingMain() {
     }
 
     if (WorldRenderData* renderData = m_renderData) {
+      ZoneScopedN("Lighting thread tick");
+
       int64_t start = Time::monotonicMicroseconds();
 
       lightingTileGather();
@@ -1880,6 +1891,10 @@ void WorldClient::lightingMain() {
       m_oldLightMap = renderData->lightMap;
       m_lightingTicked = true;
       olmLocker.unlock();
+
+#if defined TRACY_ENABLE
+      FrameMarkNamed("Lighting tick");
+#endif
 
       m_renderData = nullptr;
       LogMap::set("async_light_calc", strf(u8"{:05d}\u00b5s", Time::monotonicMicroseconds() - start));

@@ -2,6 +2,13 @@
 #include "StarIterator.hpp"
 #include "StarLogging.hpp"
 
+#if defined TRACY_ENABLE
+  #include "tracy/Tracy.hpp"
+#else
+  #define ZoneScoped
+  #define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 ParticleManager::ParticleManager(WorldGeometry const& worldGeometry, ClientTileSectorArrayPtr const& tileSectorArray)
@@ -28,6 +35,8 @@ void ParticleManager::setUndergroundLevel(float undergroundLevel) {
 }
 
 void ParticleManager::update(float dt, RectF const& cullRegion, float wind) {
+  ZoneScoped;
+
   if (!m_tileSectorArray)
     return;
 
