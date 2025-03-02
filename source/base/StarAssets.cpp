@@ -656,7 +656,10 @@ void Assets::queueJsons(CaseInsensitiveStringSet const& paths, bool forcePersist
 ImageConstPtr Assets::image(AssetPath const& path, bool forcePersistence) const {
   ZoneScoped;
 #ifdef TRACY_ENABLE
-  ZoneTextF("Image asset '%s'", AssetPath::join(path).utf8().c_str());
+  if (path.subPath)
+    ZoneTextF("Image asset '%s:%s'", path.basePath.utf8().c_str(), (*path.subPath).utf8().c_str());
+  else
+    ZoneTextF("Image asset '%s'", path.basePath.utf8().c_str());
 #endif
   validatePath(path, true, true);
 
@@ -695,7 +698,10 @@ void Assets::queueImages(CaseInsensitiveStringSet const& paths, bool forcePersis
 ImageConstPtr Assets::tryImage(AssetPath const& path, bool forcePersistence) const {
   ZoneScoped;
 #ifdef TRACY_ENABLE
-  ZoneTextF("Image asset '%s'", AssetPath::join(path).utf8().c_str());
+  if (path.subPath)
+    ZoneTextF("Image asset '%s:%s'", path.basePath.utf8().c_str(), (*path.subPath).utf8().c_str());
+  else
+    ZoneTextF("Image asset '%s'", path.basePath.utf8().c_str());
 #endif
   validatePath(path, true, true);
 
