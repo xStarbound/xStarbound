@@ -700,6 +700,31 @@ void UniverseClient::stopLua() {
   m_scriptContexts.clear();
 }
 
+// FezzedOne: Added message handling for universe client and pane scripts.
+Maybe<Json> UniverseClient::receiveMessage(String const& message, bool localMessage, JsonArray const& args) {
+  Maybe<Json> result = {};
+  JsonArray results = {};
+  bool isChatMessage = message == "chatMessage" || message == "newChatMessage";
+  if (m_interfaceMessageCallback) {
+    if (isChatMessage) {
+      results = m_interfaceMessageCallback(message, localMessage, args).value(JsonArray{}).toArray();
+    } else {
+      result = m_interfaceMessageCallback(message, localMessage, args);
+    }
+  }
+  for (auto& context : m_scriptContexts) {
+    if (isChatMessage) {
+      results.append(context.second->handleMessage(message, localMessage, args).value(Json()));
+    } else {
+      if (auto res = context.second->handleMessage(message, localMessage, args)) {
+        result = res;
+        break;
+      }
+    }
+  }
+  return isChatMessage ? Json(results) : result;
+}
+
 bool UniverseClient::playerIsLoaded(Uuid const& uuid) {
   if (m_loadedPlayers.contains(uuid)) {
     return m_loadedPlayers[uuid].loaded;
@@ -1233,6 +1258,10 @@ UniverseClient::ReloadPlayerCallback& UniverseClient::playerReloadPreCallback() 
 
 UniverseClient::ReloadPlayerCallback& UniverseClient::playerReloadCallback() {
   return m_playerReloadCallback;
+}
+
+UniverseClient::InterfaceMessageCallback& UniverseClient::interfaceMessageCallback() {
+  return m_interfaceMessageCallback;
 }
 
 UniverseClient::Callback& UniverseClient::saveCallback() {

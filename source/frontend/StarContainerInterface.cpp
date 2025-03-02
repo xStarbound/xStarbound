@@ -25,6 +25,9 @@
 
 namespace Star {
 
+Mutex ContainerPane::s_globalContainerPaneMutex = {};
+List<ContainerPane*> ContainerPane::s_globalClientPaneRegistry = {};
+
 ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, ContainerInteractorPtr containerInteractor, MainInterface* mainInterface) {
   m_worldClient = worldClient;
   m_player = player;
@@ -167,6 +170,18 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
       fetchChild<ImageWidget>("objectImage")->setDrawables(containerObject->cursorHintDrawables());
 
   m_expectingSwap = ExpectingSwap::None;
+
+  {
+    MutexLocker locker(ContainerPane::s_globalContainerPaneMutex);
+    ContainerPane::s_globalClientPaneRegistry.append(this);
+  }
+}
+
+ContainerPane::~ContainerPane() {
+  {
+    MutexLocker locker(ContainerPane::s_globalContainerPaneMutex);
+    ContainerPane::s_globalClientPaneRegistry.remove(this);
+  }
 }
 
 void ContainerPane::displayed() {
@@ -321,6 +336,27 @@ void ContainerPane::update(float dt) {
       }
     }
   }
+}
+
+Maybe<Json> ContainerPane::receivePaneMessages(const String &message, bool localMessage, const JsonArray &args) {
+  Maybe<Json> result = {};
+  bool isChatMessage = message == "chatMessage" || message == "newChatMessage";
+  JsonArray results = JsonArray{};
+  {
+    MutexLocker locker(ContainerPane::s_globalContainerPaneMutex);
+    for (auto const& pane : ContainerPane::s_globalClientPaneRegistry) {
+      if (pane->m_script) {
+        if (isChatMessage) {
+          if (auto arrayResult = pane->m_script->handleMessage(message, localMessage, args))
+            results.append(*arrayResult);
+        } else {
+          result = pane->m_script->handleMessage(message, localMessage, args);
+          if (result) break;
+        }
+      }
+    }
+  }
+  return isChatMessage ? Json(results) : result;
 }
 
 }

@@ -6,6 +6,7 @@
 #include "StarContainerInteractor.hpp"
 #include "StarMainInterface.hpp"
 #include "StarGuiReader.hpp"
+#include "StarThread.hpp"
 
 namespace Star {
 
@@ -20,12 +21,15 @@ STAR_CLASS(ContainerPane);
 class ContainerPane : public Pane {
 public:
   ContainerPane(WorldClientPtr worldClient, PlayerPtr player, ContainerInteractorPtr containerInteractor, MainInterface* mainInterface = nullptr);
+  ~ContainerPane();
 
   void displayed() override;
   void dismissed() override;
   PanePtr createTooltip(Vec2I const& screenPosition) override;
 
   bool giveContainerResult(ContainerResult result);
+
+  static Maybe<Json> receivePaneMessages(String const& message, bool localMessage, JsonArray const& args);
 
 protected:
   void update(float dt) override;
@@ -54,7 +58,9 @@ private:
 
   GuiReader m_reader;
 
-  Maybe<LuaWorldComponent<LuaUpdatableComponent<LuaBaseComponent>>> m_script;
+  Maybe<LuaMessageHandlingComponent<LuaWorldComponent<LuaUpdatableComponent<LuaBaseComponent>>>> m_script;
+  static Mutex s_globalContainerPaneMutex;
+  static List<ContainerPane*> s_globalClientPaneRegistry;
 };
 
 }
