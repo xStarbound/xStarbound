@@ -1000,6 +1000,11 @@ Maybe<Json> Player::receiveMessage(ConnectionId fromConnection, String const& me
         results.append(m_deployment->receiveMessage(message, localMessage, args).value(Json()));
         results.append(m_techController->receiveMessage(message, localMessage, args).value(Json()));
         results.append(m_questManager->receiveMessage(message, localMessage, args).value(Json()));
+        if (m_client) {
+          JsonArray clientAndPaneResults = m_client->receiveMessage(message, localMessage, args).value(JsonArray()).toArray();
+          for (auto& p : clientAndPaneResults)
+            results.append(p);
+        }
         for (auto& p : m_genericScriptContexts)
           results.append(p.second->handleMessage(message, localMessage, args).value(Json()));
         return Json(results);
@@ -1015,6 +1020,8 @@ Maybe<Json> Player::receiveMessage(ConnectionId fromConnection, String const& me
           result = m_techController->receiveMessage(message, localMessage, args);
         if (!result)
           result = m_questManager->receiveMessage(message, localMessage, args);
+        if (m_client && !result)
+          result = m_client->receiveMessage(message, localMessage, args);
         for (auto& p : m_genericScriptContexts) {
           if (result)
             break;

@@ -601,6 +601,10 @@ CaseInsensitiveStringSet Assets::scanExtension(String const& extension) const {
 }
 
 Json Assets::json(String const& path, bool forcePersistence) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  ZoneTextF("JSON asset '%s'", path.utf8().c_str());
+#endif
   auto components = AssetPath::split(path);
   validatePath(components, true, false);
 
@@ -608,13 +612,24 @@ Json Assets::json(String const& path, bool forcePersistence) const {
 }
 
 Json Assets::fetchJson(Json const& v, String const& dir, bool forcePersistence) const {
-  if (v.isType(Json::Type::String))
-    return Assets::json(AssetPath::relativeTo(dir, v.toString()), forcePersistence);
+  ZoneScoped;
+  bool isString = v.isType(Json::Type::String);
+  String str = isString ? v.toString() : "[JSON]";
+#ifdef TRACY_ENABLE
+  ZoneTextF("JSON asset '%s' in directory '%s'", str.utf8().c_str(), dir.utf8().c_str());
+#endif
+  if (isString)
+    return Assets::json(AssetPath::relativeTo(dir, str), forcePersistence);
   else
     return v;
 }
 
 void Assets::queueJsons(StringList const& paths, bool forcePersistence) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  String pathList = paths.join("\n");
+  ZoneTextF("JSON assets:\n", pathList.utf8().c_str());
+#endif
   queueAssets(paths.transformed([](String const& path) {
     auto components = AssetPath::split(path);
     validatePath(components, true, false);
@@ -624,6 +639,11 @@ void Assets::queueJsons(StringList const& paths, bool forcePersistence) const {
 }
 
 void Assets::queueJsons(CaseInsensitiveStringSet const& paths, bool forcePersistence) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  String pathList = StringList(paths.values()).join("\n");
+  ZoneTextF("JSON assets:\n", pathList.utf8().c_str());
+#endif
   MutexLocker assetsLocker(m_assetsMutex);
   for (String const& path : paths) {
     auto components = AssetPath::split(path);
@@ -634,12 +654,21 @@ void Assets::queueJsons(CaseInsensitiveStringSet const& paths, bool forcePersist
 }
 
 ImageConstPtr Assets::image(AssetPath const& path, bool forcePersistence) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  ZoneTextF("Image asset '%s'", path.utf8().c_str());
+#endif
   validatePath(path, true, true);
 
   return as<ImageData>(getAsset(AssetId{AssetType::Image, path}, forcePersistence))->image;
 }
 
 void Assets::queueImages(StringList const& paths, bool forcePersistence) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  String pathList = paths.join("\n");
+  ZoneTextF("Image assets:\n", pathList.utf8().c_str());
+#endif
   queueAssets(paths.transformed([](String const& path) {
     auto components = AssetPath::split(path);
     validatePath(components, true, true);
@@ -649,6 +678,11 @@ void Assets::queueImages(StringList const& paths, bool forcePersistence) const {
 }
 
 void Assets::queueImages(CaseInsensitiveStringSet const& paths, bool forcePersistence) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  String pathList = StringList(paths.values()).join("\n");
+  ZoneTextF("Image assets:\n", pathList.utf8().c_str());
+#endif
   MutexLocker assetsLocker(m_assetsMutex);
   for (String const& path : paths) {
     auto components = AssetPath::split(path);
@@ -659,6 +693,10 @@ void Assets::queueImages(CaseInsensitiveStringSet const& paths, bool forcePersis
 }
 
 ImageConstPtr Assets::tryImage(AssetPath const& path, bool forcePersistence) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  ZoneTextF("Image asset '%s'", path.utf8().c_str());
+#endif
   validatePath(path, true, true);
 
   if (auto imageData = as<ImageData>(tryAsset(AssetId{AssetType::Image, path}, forcePersistence)))
@@ -668,6 +706,10 @@ ImageConstPtr Assets::tryImage(AssetPath const& path, bool forcePersistence) con
 }
 
 FramesSpecificationConstPtr Assets::imageFrames(String const& path) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  ZoneTextF("Frames for image asset '%s'", path.utf8().c_str());
+#endif
   auto components = AssetPath::split(path);
   validatePath(components, false, false);
 
@@ -676,6 +718,10 @@ FramesSpecificationConstPtr Assets::imageFrames(String const& path) const {
 }
 
 AudioConstPtr Assets::audio(String const& path, bool forcePersistence) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  ZoneTextF("Audio asset '%s'", path.utf8().c_str());
+#endif
   auto components = AssetPath::split(path);
   validatePath(components, false, false);
 
@@ -683,6 +729,11 @@ AudioConstPtr Assets::audio(String const& path, bool forcePersistence) const {
 }
 
 void Assets::queueAudios(StringList const& paths, bool forcePersistence) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  String pathList = paths.join("\n");
+  ZoneTextF("Audio assets:\n", pathList.utf8().c_str());
+#endif
   queueAssets(paths.transformed([](String const& path) {
     const auto components = AssetPath::split(path);
     validatePath(components, false, false);
@@ -692,6 +743,11 @@ void Assets::queueAudios(StringList const& paths, bool forcePersistence) const {
 }
 
 void Assets::queueAudios(CaseInsensitiveStringSet const& paths, bool forcePersistence) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  String pathList = StringList(paths.values()).join("\n");
+  ZoneTextF("Audio assets:\n", pathList.utf8().c_str());
+#endif
   MutexLocker assetsLocker(m_assetsMutex);
   for (String const& path : paths) {
     auto components = AssetPath::split(path);
@@ -702,6 +758,10 @@ void Assets::queueAudios(CaseInsensitiveStringSet const& paths, bool forcePersis
 }
 
 AudioConstPtr Assets::tryAudio(String const& path, bool forcePersistence) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  ZoneTextF("Audio asset '%s'", path.utf8().c_str());
+#endif
   auto components = AssetPath::split(path);
   validatePath(components, false, false);
 
@@ -712,6 +772,10 @@ AudioConstPtr Assets::tryAudio(String const& path, bool forcePersistence) const 
 }
 
 FontConstPtr Assets::font(String const& path, bool forcePersistence) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  ZoneTextF("Font asset '%s'", path.utf8().c_str());
+#endif
   auto components = AssetPath::split(path);
   validatePath(components, false, false);
 
@@ -719,6 +783,10 @@ FontConstPtr Assets::font(String const& path, bool forcePersistence) const {
 }
 
 ByteArrayConstPtr Assets::bytes(String const& path, bool forcePersistence) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  ZoneTextF("Asset '%s'", path.utf8().c_str());
+#endif
   auto components = AssetPath::split(path);
   validatePath(components, false, false);
 
@@ -1002,14 +1070,18 @@ void Assets::workerMain() {
     }
 
     bool workIsBlocking;
-    if (queuePriority == QueuePriority::PostProcess)
+    if (queuePriority == QueuePriority::PostProcess) {
+      ZoneScopedN("Worker thread: Post-processing asset");
       workIsBlocking = !doPost(assetId);
-    else if (queuePriority == QueuePriority::LoadAndPersist)
+    } else if (queuePriority == QueuePriority::LoadAndPersist) {
+      ZoneScopedN("Worker thread: Loading asset");
       workIsBlocking = !doLoad(assetId, true);
-    else
+    } else {
+      ZoneScopedN("Worker thread: Loading asset");
       workIsBlocking = !doLoad(assetId, false);
-
+    }
     if (workIsBlocking) {
+      ZoneScopedN("Worker thread: Waiting on asset");
       // We are blocking on some sort of busy asset, so need to wait on
       // something to complete here, rather than spinning and burning cpu.
       m_assetsDone.wait(m_assetsMutex);
@@ -1025,6 +1097,7 @@ void Assets::workerMain() {
 
 template <typename Function>
 decltype(auto) Assets::unlockDuring(Function f) const {
+  ZoneScoped;
   m_assetsMutex.unlock();
   try {
     auto r = f();
@@ -1037,6 +1110,10 @@ decltype(auto) Assets::unlockDuring(Function f) const {
 }
 
 FramesSpecificationConstPtr Assets::bestFramesSpecification(String const& image) const {
+  ZoneScoped;
+#ifdef TRACY_ENABLE
+  ZoneTextF("Frames for image asset '%s'", image.utf8().c_str());
+#endif
   if (auto framesSpecification = m_framesSpecifications.maybe(image)) {
     return *framesSpecification;
   }
@@ -1501,6 +1578,7 @@ shared_ptr<Assets::AssetData> Assets::loadBytes(AssetPath const& path) const {
 }
 
 shared_ptr<Assets::AssetData> Assets::postProcessAudio(shared_ptr<AssetData> const& original) const {
+  ZoneScoped;
   return unlockDuring([&]() -> shared_ptr<AssetData> {
     if (auto audioData = as<AudioData>(original)) {
       if (audioData->audio->totalTime() < m_settings.audioDecompressLimit) {

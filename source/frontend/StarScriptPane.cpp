@@ -23,6 +23,9 @@
 
 namespace Star {
 
+Mutex ScriptPane::s_globalScriptPaneMutex = {};
+List<ScriptPane*> ScriptPane::s_globalClientPaneRegistry = {};
+
 ScriptPane::ScriptPane(UniverseClientPtr client, Json config, EntityId sourceEntityId, MainInterface* mainInterface) : BaseScriptPane(config, mainInterface) {
   auto& root = Root::singleton();
   auto assets = root.assets();
@@ -34,6 +37,18 @@ ScriptPane::ScriptPane(UniverseClientPtr client, Json config, EntityId sourceEnt
   m_script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_client->mainPlayer()->effectsAnimator().get()));
   m_script.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_client->mainPlayer()->statusController()));
   m_script.addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client.get()));
+
+  {
+    MutexLocker locker(ScriptPane::s_globalScriptPaneMutex);
+    ScriptPane::s_globalClientPaneRegistry.append(this);
+  }
+}
+
+ScriptPane::~ScriptPane() {
+  {
+    MutexLocker locker(ScriptPane::s_globalScriptPaneMutex);
+    ScriptPane::s_globalClientPaneRegistry.remove(this);
+  }
 }
 
 void ScriptPane::displayed() {
@@ -102,6 +117,25 @@ bool ScriptPane::openWithInventory() const {
 
 EntityId ScriptPane::sourceEntityId() const {
   return m_sourceEntityId;
+}
+
+Maybe<Json> ScriptPane::receivePaneMessages(const String &message, bool localMessage, const JsonArray &args) {
+  Maybe<Json> result = {};
+  bool isChatMessage = message == "chatMessage" || message == "newChatMessage";
+  JsonArray results = JsonArray{};
+  {
+    MutexLocker locker(ScriptPane::s_globalScriptPaneMutex);
+    for (auto const& pane : ScriptPane::s_globalClientPaneRegistry) {
+      if (isChatMessage) {
+        if (auto arrayResult = pane->m_script.handleMessage(message, localMessage, args))
+            results.append(*arrayResult);
+      } else {
+        result = pane->m_script.handleMessage(message, localMessage, args);
+        if (result) break;
+      }
+    }
+  }
+  return isChatMessage ? Json(results) : result;
 }
 
 }

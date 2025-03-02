@@ -48,7 +48,7 @@ protected:
   bool m_interactive;
 
   bool m_callbacksAdded;
-  LuaUpdatableComponent<LuaBaseComponent> m_script;
+  LuaMessageHandlingComponent<LuaUpdatableComponent<LuaBaseComponent>> m_script;
   MainInterface* m_mainInterface; // If null, means the pane wasn't initialised from the main game interface.
 };
 

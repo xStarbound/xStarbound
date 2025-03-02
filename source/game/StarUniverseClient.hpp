@@ -126,8 +126,10 @@ public:
 
   typedef std::function<void()> Callback;
   typedef std::function<void(bool)> ReloadPlayerCallback;
+  typedef std::function<Maybe<Json>(const String&, bool, const JsonArray&)> InterfaceMessageCallback;
   ReloadPlayerCallback& playerReloadPreCallback();
   ReloadPlayerCallback& playerReloadCallback();
+  InterfaceMessageCallback& interfaceMessageCallback();
   Callback& saveCallback();
 
   ClockConstPtr universeClock() const;
@@ -142,6 +144,8 @@ public:
   bool paused() const;
 
   bool switchingPlayer() const;
+
+  Maybe<Json> receiveMessage(String const& message, bool localMessage, JsonArray const& args);
 
 private:
   struct ServerInfo {
@@ -202,7 +206,7 @@ private:
 
   LuaRootPtr m_luaRoot;
 
-  typedef LuaUpdatableComponent<LuaBaseComponent> ScriptComponent;
+  typedef LuaMessageHandlingComponent<LuaUpdatableComponent<LuaBaseComponent>> ScriptComponent;
   typedef shared_ptr<ScriptComponent> ScriptComponentPtr;
   StringMap<ScriptComponentPtr> m_scriptContexts;
 
@@ -217,6 +221,7 @@ private:
   Uuid m_mainPlayerUuid;
 
   Callback m_saveCallback;
+  InterfaceMessageCallback m_interfaceMessageCallback;
 };
 
 }

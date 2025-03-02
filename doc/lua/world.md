@@ -6,7 +6,7 @@ The `world` table is available in the following script contexts:
 
 - universe client scripts (client-side, only on xStarbound)
 - world context scripts (server-side)
-- pane scripts (client-side)
+- pane scripts (client-side, *not* including pane scripts run in the game's main menu)
 - container interface scripts (client-side)
 - monster, NPC and object scripts (client-side for client-mastered entities, server-side for server-mastered entities)
 - monster and object animation scripts (client-side)

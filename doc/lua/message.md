@@ -1,6 +1,6 @@
 # `message` and `RpcPromise` methods
 
-> *World messages are available only on xStarbound and OpenStarbound.*
+> *World messages are available only on xStarbound and OpenStarbound. Universe client and pane message handlers are available only on xStarbound v3.4.5+.*
 
 The `message` table contains a single callback, `setHandler`, which allows entities to receive messages sent using `world.sendEntityMessage` or `universe.sendWorldMessage`. Entities which can receive messages include:
 
@@ -19,6 +19,14 @@ Additionally, messages can be handled by a variety of script contexts that run o
 - player companion scripts
 - player generic scripts
 - status scripts
+
+Additionally, on xStarbound, messages can be handled by the following contexts:
+
+- universe client scripts
+- pane scripts with access to `world` (i.e., *not* run in the game's main menu)
+- container pane scripts
+
+Sending a message to any player controlled by an xClient client also sends that message to the client's universe client scripts, scripted panes and container pane scripts.
 
 Lastly, world server scripts can receive world messages, but cannot receive entity messages. For communication between a world server script and server-side scripted entities on that world, use `world.callScriptedEntity` for world-to-entity communication and `world.callScriptContext` for entity-to-world communication.
 

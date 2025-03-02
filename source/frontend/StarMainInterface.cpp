@@ -88,6 +88,7 @@ MainInterface::~MainInterface() {
 }
 
 void MainInterface::clean() {
+  m_client->interfaceMessageCallback() = {};
   if (m_chat) {
     m_chat->saveMessages();
     m_persistedChatState = m_chat->getState();
@@ -281,6 +282,22 @@ void MainInterface::reset() { // *Completely* reset the interface.
   m_client->saveCallback() = [&]() {
       m_chat->saveMessages();
     };
+
+  m_client->interfaceMessageCallback() = [](const String& message, bool localMessage, const JsonArray& args) -> Maybe<Json> {
+    Maybe<Json> result = {};
+    JsonArray results = {};
+    bool isChatMessage = message == "chatMessage" || message == "newChatMessage";
+    if (isChatMessage) {
+      for (auto r : ScriptPane::receivePaneMessages(message, localMessage, args).value(JsonArray{}).toArray())
+        results.append(r);
+      for (auto r : ContainerPane::receivePaneMessages(message, localMessage, args).value(JsonArray{}).toArray())
+        results.append(r);
+    } else {
+      result = ScriptPane::receivePaneMessages(message, localMessage, args);
+      if (!result) result = ContainerPane::receivePaneMessages(message, localMessage, args);
+    }
+    return isChatMessage ? Json(results) : result;
+  };
 }
 
 MainInterface::RunningState MainInterface::currentState() const {
