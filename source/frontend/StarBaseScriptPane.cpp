@@ -43,15 +43,7 @@ BaseScriptPane::BaseScriptPane(Json config, MainInterface* mainInterface, bool c
   }
 
   if (construct)
-    m_reader->construct(assets->fetchJson(m_config.get("gui")), this);
-
-  for (auto pair : m_config.getObject("canvasClickCallbacks", {}))
-    m_canvasClickCallbacks.set(findChild<CanvasWidget>(pair.first), pair.second.toString());
-  for (auto pair : m_config.getObject("canvasKeyCallbacks", {}))
-    m_canvasKeyCallbacks.set(findChild<CanvasWidget>(pair.first), pair.second.toString());
-
-  m_script.setScripts(jsonToStringList(m_config.get("scripts", JsonArray())));
-  m_script.setUpdateDelta(m_config.getUInt("scriptDelta", 1));
+    this->construct(config);
 
   m_callbacksAdded = false;
 }
@@ -95,12 +87,14 @@ void BaseScriptPane::tick(float dt) {
   Pane::tick(dt);
 
   for (auto p : m_canvasClickCallbacks) {
+    if (!p.first) continue;
     for (auto const& clickEvent : p.first->pullClickEvents())
       // FezzedOne: Added this for consistency with the one below.
       m_script.invoke(p.second, jsonFromVec2I(clickEvent.position), (uint8_t)clickEvent.button,
         clickEvent.buttonDown, MouseButtonNames.getRight(clickEvent.button));
   }
   for (auto p : m_canvasKeyCallbacks) {
+    if (!p.first) continue;
     for (auto const& keyEvent : p.first->pullKeyEvents())
       // FezzedOne: For OpenStarbound script compatibility. 
       m_script.invoke(p.second, (int)keyEvent.key, keyEvent.keyDown, KeyNames.getRight(keyEvent.key));
@@ -161,6 +155,19 @@ Maybe<String> BaseScriptPane::cursorOverride(Vec2I const& screenPosition) {
 
 GuiReaderPtr BaseScriptPane::reader() {
   return m_reader;
+}
+
+void BaseScriptPane::construct(Json config) {
+  auto assets = Root::singleton().assets();
+  m_reader->construct(assets->fetchJson(config.get("gui")), this);
+
+  for (auto pair : config.getObject("canvasClickCallbacks", {}))
+    m_canvasClickCallbacks.set(findChild<CanvasWidget>(pair.first), pair.second.toString());
+  for (auto pair : config.getObject("canvasKeyCallbacks", {}))
+    m_canvasKeyCallbacks.set(findChild<CanvasWidget>(pair.first), pair.second.toString());
+
+  m_script.setScripts(jsonToStringList(config.get("scripts", JsonArray())));
+  m_script.setUpdateDelta(config.getUInt("scriptDelta", 1));
 }
 
 }

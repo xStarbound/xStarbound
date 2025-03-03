@@ -30,6 +30,8 @@ public:
   Json const& config() const;
   Json const& rawConfig() const;
 
+  void construct(Json config);
+
   bool interactive() const override;
 
   PanePtr createTooltip(Vec2I const& screenPosition) override;
