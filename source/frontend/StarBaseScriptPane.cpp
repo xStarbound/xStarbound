@@ -6,6 +6,7 @@
 #include "StarConfigLuaBindings.hpp"
 #include "StarLuaGameConverters.hpp"
 #include "StarInterfaceLuaBindings.hpp"
+#include "StarVoiceLuaBindings.hpp"
 #include "StarWidgetLuaBindings.hpp"
 #include "StarCanvasWidget.hpp"
 #include "StarItemTooltip.hpp"
@@ -60,6 +61,7 @@ void BaseScriptPane::displayed() {
     m_script.addCallbacks("config", LuaBindings::makeConfigCallbacks( [this](String const& name, Json const& def) {
       return m_config.query(name, def);
     }));
+    m_script.addCallbacks("voice", LuaBindings::makeVoiceCallbacks());
     m_script.addCallbacks("input", LuaBindings::makeInputCallbacks());
     // FezzedOne: The clipboard callbacks don't actually use the main interface, so it's fine to put a null pointer there.
     m_script.addCallbacks("clipboard", LuaBindings::makeClipboardCallbacks(nullptr));
