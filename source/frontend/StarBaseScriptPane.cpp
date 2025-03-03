@@ -15,7 +15,7 @@
 
 namespace Star {
 
-BaseScriptPane::BaseScriptPane(Json config, MainInterface* mainInterface) : Pane(), m_rawConfig(config), m_mainInterface(mainInterface) {
+BaseScriptPane::BaseScriptPane(Json config, MainInterface* mainInterface, bool construct) : Pane(), m_rawConfig(config), m_mainInterface(mainInterface) {
   auto& root = Root::singleton();
   auto assets = root.assets();
 
@@ -41,7 +41,8 @@ BaseScriptPane::BaseScriptPane(Json config, MainInterface* mainInterface) : Pane
     });
   }
 
-  m_reader->construct(assets->fetchJson(m_config.get("gui")), this);
+  if (construct)
+    m_reader->construct(assets->fetchJson(m_config.get("gui")), this);
 
   for (auto pair : m_config.getObject("canvasClickCallbacks", {}))
     m_canvasClickCallbacks.set(findChild<CanvasWidget>(pair.first), pair.second.toString());

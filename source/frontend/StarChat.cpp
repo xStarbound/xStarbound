@@ -25,8 +25,9 @@
 
 namespace Star {
 
-Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatState> chatState, Json const& baseConfig) : BaseScriptPane(baseConfig, mainInterface), m_client(client) {
+Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatState> chatState, Json const& baseConfig) : BaseScriptPane(baseConfig, mainInterface, false), m_client(client) {
   m_scripted = baseConfig.get("scripts", Json()).isType(Json::Type::Array);
+  if (m_scripted) Logger::info("[xSB::Debug] Chat pane has the following scripts: {}", baseConfig.get("scripts", Json()).repr());
   m_script.setLuaRoot(make_shared<LuaRoot>());
   m_script.addCallbacks("world", LuaBindings::makeWorldCallbacks((World*)m_client->worldClient().get()));
   m_chatPrevIndex = 0;
@@ -63,7 +64,6 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
   m_colorCodes[MessageContext::RadioMessage] = config.query("colors.radioMessage").toString();
   m_colorCodes[MessageContext::World] = config.query("colors.world").toString();
 
-
   if (!m_scripted) {
     m_reader->registerCallback("textBox", [=](Widget*) { startChat(); });
     m_reader->registerCallback("upButton", [=](Widget*) { scrollUp(); });
@@ -85,6 +85,9 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
           {"filter", filterId}
         });
       });
+    Logger::info("[xSB::Debug] Added default chat pane callbacks.");
+  } else {
+    Logger::info("[xSB::Debug] Not adding default chat pane callbacks.");
   }
 
   m_reader->construct(baseConfig.get("gui"));

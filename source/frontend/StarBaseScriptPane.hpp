@@ -17,7 +17,7 @@ STAR_CLASS(BaseScriptPane);
 
 class BaseScriptPane : public Pane {
 public:
-  BaseScriptPane(Json config, MainInterface* mainInterface = nullptr);
+  BaseScriptPane(Json config, MainInterface* mainInterface = nullptr, bool construct = true);
 
   virtual void show() override;
   void displayed() override;
