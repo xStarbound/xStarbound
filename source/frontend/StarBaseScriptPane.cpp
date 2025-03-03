@@ -15,7 +15,8 @@
 
 namespace Star {
 
-BaseScriptPane::BaseScriptPane(Json config, MainInterface* mainInterface, bool construct) : Pane(), m_rawConfig(config), m_mainInterface(mainInterface) {
+BaseScriptPane::BaseScriptPane(Json config, MainInterface* mainInterface, bool construct, bool removeHoakyChatCallbacks)
+: Pane(), m_rawConfig(config), m_removeHoakyChatCallbacks(removeHoakyChatCallbacks), m_mainInterface(mainInterface) {
   auto& root = Root::singleton();
   auto assets = root.assets();
 
@@ -72,7 +73,8 @@ void BaseScriptPane::displayed() {
     m_script.addCallbacks("clipboard", LuaBindings::makeClipboardCallbacks(nullptr));
     if (m_mainInterface) {
       m_script.addCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface));
-      m_script.addCallbacks("chat", LuaBindings::makeChatCallbacks(m_mainInterface));
+      m_script.addCallbacks("chat",
+        LuaBindings::makeChatCallbacks(m_mainInterface, m_removeHoakyChatCallbacks));
     }
     m_callbacksAdded = true;
   }

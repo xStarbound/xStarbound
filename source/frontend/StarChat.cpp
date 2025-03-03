@@ -25,7 +25,8 @@
 
 namespace Star {
 
-Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatState> chatState, Json const& baseConfig) : BaseScriptPane(baseConfig, mainInterface, false), m_client(client) {
+Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatState> chatState, Json const& baseConfig) 
+: BaseScriptPane(baseConfig, mainInterface, false, true), m_client(client) {
   m_scripted = baseConfig.get("scripts", Json()).isType(Json::Type::Array);
   m_script.setLuaRoot(make_shared<LuaRoot>());
   m_script.addCallbacks("world", LuaBindings::makeWorldCallbacks((World*)m_client->worldClient().get()));
@@ -175,7 +176,6 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
     m_script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_client->mainPlayer()->effectsAnimator().get()));
     m_script.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_client->mainPlayer()->statusController()));
     m_script.addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client.get()));
-    m_script.addCallbacks("chat", LuaBindings::makeChatCallbacks(mainInterface, true));
   }
 
   show();

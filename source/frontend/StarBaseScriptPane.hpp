@@ -17,7 +17,7 @@ STAR_CLASS(BaseScriptPane);
 
 class BaseScriptPane : public Pane {
 public:
-  BaseScriptPane(Json config, MainInterface* mainInterface = nullptr, bool construct = true);
+  BaseScriptPane(Json config, MainInterface* mainInterface = nullptr, bool construct = true, bool removeHoakyChatCallbacks = false);
 
   virtual void show() override;
   void displayed() override;
@@ -48,6 +48,7 @@ protected:
   bool m_interactive;
 
   bool m_callbacksAdded;
+  bool m_removeHoakyChatCallbacks;
   mutable LuaMessageHandlingComponent<LuaUpdatableComponent<LuaBaseComponent>> m_script;
   MainInterface* m_mainInterface; // If null, means the pane wasn't initialised from the main game interface.
 };
