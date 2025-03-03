@@ -13,49 +13,63 @@
 #include "StarPlayerStorage.hpp"
 #include "StarTeamClient.hpp"
 
+#include "StarPlayer.hpp"
+#include "StarConfigLuaBindings.hpp"
+#include "StarPlayerLuaBindings.hpp"
+#include "StarEntityLuaBindings.hpp"
+#include "StarStatusControllerLuaBindings.hpp"
+#include "StarCelestialLuaBindings.hpp"
+#include "StarLuaGameConverters.hpp"
+
 namespace Star {
 
-Chat::Chat(UniverseClientPtr client, Maybe<ChatState> chatState) : m_client(client) {
+Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatState> chatState, Json const& baseConfig) : BaseScriptPane(baseConfig, mainInterface), m_client(client) {
+  m_scripted = baseConfig.get("scripts", Json()).isType(Json::Type::Array);
+  m_script.setLuaRoot(make_shared<LuaRoot>());
+  m_script.addCallbacks("world", LuaBindings::makeWorldCallbacks((World*)m_client->worldClient().get()));
   m_chatPrevIndex = 0;
   m_historyOffset = 0;
 
   auto root = Root::singletonPtr();
   auto assets = root->assets();
+  auto config = baseConfig.get("config");
   m_timeChatLastActive = Time::monotonicMilliseconds();
-  auto fontConfig = assets->json("/interface/chat/chat.config:config.font");
+  auto fontConfig = config.get("font");
   m_fontSize = fontConfig.getInt("baseSize");
   m_fontDirectives = fontConfig.queryString("directives", "");
   m_font = fontConfig.queryString("type", "");
-  m_chatLineHeight = assets->json("/interface/chat/chat.config:config.lineHeight").toFloat();
-  m_chatVisTime = assets->json("/interface/chat/chat.config:config.visTime").toFloat();
-  m_fadeRate = assets->json("/interface/chat/chat.config:config.fadeRate").toDouble();
-  m_chatHistoryLimit = assets->json("/interface/chat/chat.config:config.chatHistoryLimit").toInt();
+  m_chatLineHeight = config.get("lineHeight").toFloat();
+  m_chatVisTime = config.get("visTime").toFloat();
+  m_fadeRate = config.get("fadeRate").toDouble();
+  m_chatHistoryLimit = config.get("chatHistoryLimit").toInt();
+  m_chatFormatString = config.optString("chatFormatString").value("<{}^reset;> {}");
 
-  m_portraitTextOffset = jsonToVec2I(assets->json("/interface/chat/chat.config:config.portraitTextOffset"));
-  m_portraitImageOffset = jsonToVec2I(assets->json("/interface/chat/chat.config:config.portraitImageOffset"));
-  m_portraitScale = assets->json("/interface/chat/chat.config:config.portraitScale").toFloat();
-  m_portraitVerticalMargin = assets->json("/interface/chat/chat.config:config.portraitVerticalMargin").toFloat();
-  m_portraitBackground = assets->json("/interface/chat/chat.config:config.portraitBackground").toString();
+  m_portraitTextOffset = jsonToVec2I(config.get("portraitTextOffset"));
+  m_portraitImageOffset = jsonToVec2I(config.get("portraitImageOffset"));
+  m_portraitScale = config.get("portraitScale").toFloat();
+  m_portraitVerticalMargin = config.get("portraitVerticalMargin").toFloat();
+  m_portraitBackground = config.get("portraitBackground").toString();
 
-  m_bodyHeight = assets->json("/interface/chat/chat.config:config.bodyHeight").toInt();
-  m_expandedBodyHeight = assets->json("/interface/chat/chat.config:config.expandedBodyHeight").toInt();
+  m_bodyHeight = config.get("bodyHeight").toInt();
+  m_expandedBodyHeight = config.get("expandedBodyHeight").toInt();
 
-  m_colorCodes[MessageContext::Local] = assets->json("/interface/chat/chat.config:config.colors.local").toString();
-  m_colorCodes[MessageContext::Party] = assets->json("/interface/chat/chat.config:config.colors.party").toString();
-  m_colorCodes[MessageContext::Broadcast] = assets->json("/interface/chat/chat.config:config.colors.broadcast").toString();
-  m_colorCodes[MessageContext::Whisper] = assets->json("/interface/chat/chat.config:config.colors.whisper").toString();
-  m_colorCodes[MessageContext::CommandResult] = assets->json("/interface/chat/chat.config:config.colors.commandResult").toString();
-  m_colorCodes[MessageContext::RadioMessage] = assets->json("/interface/chat/chat.config:config.colors.radioMessage").toString();
-  m_colorCodes[MessageContext::World] = assets->json("/interface/chat/chat.config:config.colors.world").toString();
+  m_colorCodes[MessageContext::Local] = config.query("colors.local").toString();
+  m_colorCodes[MessageContext::Party] = config.query("colors.party").toString();
+  m_colorCodes[MessageContext::Broadcast] = config.query("colors.broadcast").toString();
+  m_colorCodes[MessageContext::Whisper] = config.query("colors.whisper").toString();
+  m_colorCodes[MessageContext::CommandResult] = config.query("colors.commandResult").toString();
+  m_colorCodes[MessageContext::RadioMessage] = config.query("colors.radioMessage").toString();
+  m_colorCodes[MessageContext::World] = config.query("colors.world").toString();
 
-  GuiReader reader;
 
-  reader.registerCallback("textBox", [=](Widget*) { startChat(); });
-  reader.registerCallback("upButton", [=](Widget*) { scrollUp(); });
-  reader.registerCallback("downButton", [=](Widget*) { scrollDown(); });
-  reader.registerCallback("bottomButton", [=](Widget*) { scrollBottom(); });
+  if (!m_scripted) {
 
-  reader.registerCallback("filterGroup", [=](Widget* widget) {
+  m_reader->registerCallback("textBox", [=](Widget*) { startChat(); });
+  m_reader->registerCallback("upButton", [=](Widget*) { scrollUp(); });
+  m_reader->registerCallback("downButton", [=](Widget*) { scrollDown(); });
+  m_reader->registerCallback("bottomButton", [=](Widget*) { scrollBottom(); });
+
+  m_reader->registerCallback("filterGroup", [=](Widget* widget) {
       Json data = as<ButtonWidget>(widget)->data();
       auto filter = data.getArray("filter", {});
       int filterId = as<ButtonGroup>(widget->parent())->checkedId();
@@ -70,6 +84,9 @@ Chat::Chat(UniverseClientPtr client, Maybe<ChatState> chatState) : m_client(clie
         {"filter", filterId}
       });
     });
+  }
+
+  m_reader->construct(baseConfig.get("gui"));
 
   Maybe<String> defaultSendMode = assets->json("/interface/chat/chat.config").optString("defaultSendMode");
   if (defaultSendMode) {
@@ -79,85 +96,90 @@ Chat::Chat(UniverseClientPtr client, Maybe<ChatState> chatState) : m_client(clie
     m_sendMode = ChatSendMode::Broadcast;
   }
 
-  reader.construct(assets->json("/interface/chat/chat.config:gui"), this);
 
+  m_chatLog = fetchChild<CanvasWidget>("chatLog");
+  m_bottomButton = fetchChild<ButtonWidget>("bottomButton");
+  m_upButton = fetchChild<ButtonWidget>("upButton");
   m_textBox = fetchChild<TextBoxWidget>("textBox");
   m_say = fetchChild<LabelWidget>("say");
 
-  m_chatLog = fetchChild<CanvasWidget>("chatLog");
-  if (auto logPadding = fontConfig.optQuery("padding")) {
-    m_chatLogPadding = jsonToVec2I(logPadding.get());
-    m_chatLog->setSize(m_chatLog->size() + m_chatLogPadding * 2);
-    m_chatLog->setPosition(m_chatLog->position() - m_chatLogPadding);
-  }
-  else
-    m_chatLogPadding = Vec2I();
+  if (!m_scripted) {
+    if (auto logPadding = fontConfig.optQuery("padding")) {
+      m_chatLogPadding = jsonToVec2I(logPadding.get());
+      m_chatLog->setSize(m_chatLog->size() + m_chatLogPadding * 2);
+      m_chatLog->setPosition(m_chatLog->position() - m_chatLogPadding);
+    } else {
+      m_chatLogPadding = Vec2I();
+    }
 
-  m_bottomButton = fetchChild<ButtonWidget>("bottomButton");
-  m_upButton = fetchChild<ButtonWidget>("upButton");
+    m_chatHistory.appendAll(m_client->playerStorage()->getMetadata("chatHistory").opt().apply(jsonToStringList).value());
 
-  m_chatHistory.appendAll(m_client->playerStorage()->getMetadata("chatHistory").opt().apply(jsonToStringList).value());
+    auto messagesFile = root->toStoragePath("messages.json");
+    if (File::isFile(messagesFile)) {
+      try {
+        auto chatMessages = Json::parseJson(File::readFileString(messagesFile)).toArray();
+        for (auto& rawMessage : chatMessages) {
+          if (auto message = rawMessage.optObject()) {
+            String mode = (*message).get("mode").toString(),
+                  portrait = (*message).get("portrait").toString(),
+                  text = (*message).get("text").toString();
+            m_receivedMessages.prepend({
+              MessageContextModeNames.valueLeft(mode, MessageContext::Mode::Local),
+              portrait,
+              text
+            });
+          }
+        }
+        // Logger::info("Read chat messages from '{}'", messagesFile);
+      } catch (std::exception const& e) {
+        m_receivedMessages.clear();
+        Logger::error("Exception while reading chat messages from '{}': {}", messagesFile, e.what());
+      }
+    }
 
-  auto messagesFile = root->toStoragePath("messages.json");
-  if (File::isFile(messagesFile)) {
-    try {
-      auto chatMessages = Json::parseJson(File::readFileString(messagesFile)).toArray();
-      for (auto& rawMessage : chatMessages) {
-        if (auto message = rawMessage.optObject()) {
-          String mode = (*message).get("mode").toString(),
-                portrait = (*message).get("portrait").toString(),
-                text = (*message).get("text").toString();
-          m_receivedMessages.prepend({
-            MessageContextModeNames.valueLeft(mode, MessageContext::Mode::Local),
-            portrait,
-            text
-          });
+    m_expanded = false;
+
+    Json chatSettings = root->configuration()->get("savedChatState");
+    if (chatSettings.isType(Json::Type::Object)) {
+      if (auto savedChatMode = chatSettings.opt("mode")) {
+        m_sendMode = savedChatMode->isType(Json::Type::String)
+          ? ChatSendModeNames.valueLeft(savedChatMode->toString(), m_sendMode)
+          : m_sendMode;
+      }
+      if (auto savedExpanded = chatSettings.opt("expanded")) {
+        m_expanded = savedExpanded->isType(Json::Type::Bool) ? savedExpanded->toBool() : m_expanded;
+      }
+      if (auto savedFilterId = chatSettings.opt("filter")) {
+        if (savedFilterId->isType(Json::Type::Int)) {
+          int filterId = (int)savedFilterId->toInt();
+          auto tabGroup = fetchChild<ButtonGroup>("filterGroup");
+          if (tabGroup->button(filterId))
+            tabGroup->select(filterId);
         }
       }
-      // Logger::info("Read chat messages from '{}'", messagesFile);
-    } catch (std::exception const& e) {
-      m_receivedMessages.clear();
-      Logger::error("Exception while reading chat messages from '{}': {}", messagesFile, e.what());
     }
-  }
 
-  m_expanded = false;
-
-  Json chatSettings = root->configuration()->get("savedChatState");
-  if (chatSettings.isType(Json::Type::Object)) {
-    if (auto savedChatMode = chatSettings.opt("mode")) {
-      m_sendMode = savedChatMode->isType(Json::Type::String)
-        ? ChatSendModeNames.valueLeft(savedChatMode->toString(), m_sendMode)
-        : m_sendMode;
+    if (chatState) {
+      m_textBox->setText(std::move(chatState->chatText));
+      m_timeChatLastActive = chatState->timeChatLastActive;
+      m_historyOffset = chatState->historyOffset;
+      m_chatPrevIndex = chatState->chatPrevIndex;
+      m_sendMode = chatState->sendMode;
+      auto tabGroup = fetchChild<ButtonGroup>("filterGroup");
+      if (tabGroup->button(chatState->filterId))
+        tabGroup->select(chatState->filterId);
+      m_expanded = chatState->expanded;
     }
-    if (auto savedExpanded = chatSettings.opt("expanded")) {
-      m_expanded = savedExpanded->isType(Json::Type::Bool) ? savedExpanded->toBool() : m_expanded;
-    }
-    if (auto savedFilterId = chatSettings.opt("filter")) {
-      if (savedFilterId->isType(Json::Type::Int)) {
-        int filterId = (int)savedFilterId->toInt();
-        auto tabGroup = fetchChild<ButtonGroup>("filterGroup");
-        if (tabGroup->button(filterId))
-          tabGroup->select(filterId);
-      }
-    }
-  }
-
-  if (chatState) {
-    m_textBox->setText(std::move(chatState->chatText));
-    m_timeChatLastActive = chatState->timeChatLastActive;
-    m_historyOffset = chatState->historyOffset;
-    m_chatPrevIndex = chatState->chatPrevIndex;
-    m_sendMode = chatState->sendMode;
-    auto tabGroup = fetchChild<ButtonGroup>("filterGroup");
-    if (tabGroup->button(chatState->filterId))
-      tabGroup->select(chatState->filterId);
-    m_expanded = chatState->expanded;
+  } else {
+    m_script.addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(m_client->mainPlayer().get())));
+    m_script.addCallbacks("player", LuaBindings::makePlayerCallbacks(m_client->mainPlayer().get()));
+    m_script.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_client->mainPlayer()->statusController()));
+    m_script.addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client.get()));
   }
 
   show();
 
-  updateBottomButton();
+  // updateBottomButton();
 
   m_background = fetchChild<ImageStretchWidget>("background");
   m_defaultHeight = m_background->size()[1];
@@ -166,6 +188,9 @@ Chat::Chat(UniverseClientPtr client, Maybe<ChatState> chatState) : m_client(clie
 
 void Chat::update(float dt) {
   Pane::update(dt);
+
+  if (m_scripted)
+    return;
 
   auto team = m_client->teamClient()->currentTeam();
   for (auto button : fetchChild<ButtonGroup>("filterGroup")->buttons()) {
@@ -178,40 +203,64 @@ void Chat::update(float dt) {
 }
 
 void Chat::startChat() {
-  show();
-  m_textBox->focus();
+  if (m_scripted)
+    m_script.invoke("startChat");
+  else {
+    show();
+    m_textBox->focus();
+  }
 }
 
 void Chat::startCommand() {
-  show();
-  m_textBox->setText("/");
-  m_textBox->focus();
+  if (m_scripted)
+    m_script.invoke("startCommand");
+  else {
+    show();
+    m_textBox->setText("/");
+    m_textBox->focus();
+  }
 }
 
 bool Chat::hasFocus() const {
+  if (m_scripted)
+    return m_script.invoke<bool>("hasFocus").value();
   return m_textBox->hasFocus();
 }
 
 void Chat::stopChat() {
-  m_textBox->setText("");
-  m_textBox->blur();
-  m_timeChatLastActive = Time::monotonicMilliseconds();
+  if (m_scripted)
+    m_script.invoke("stopChat");
+  else {
+    m_textBox->setText("");
+    m_textBox->blur();
+    m_timeChatLastActive = Time::monotonicMilliseconds();
+  }
 }
 
 String Chat::currentChat() const {
+  if (m_scripted)
+    return m_script.invoke<String>("currentChat").value();
   return m_textBox->getText();
 }
 
-void Chat::setCurrentChat(String const& chat) {
-  m_textBox->setText(chat);
+bool Chat::setCurrentChat(String const& chat, bool moveCursor) {
+  if (m_scripted)
+    return m_script.invoke<bool>("setCurrentChat").value();
+  return m_textBox->setText(chat, true, moveCursor);
 }
 
 void Chat::clearCurrentChat() {
-  m_textBox->setText("");
-  m_chatPrevIndex = 0;
+  if (m_scripted)
+    m_script.invoke("clearCurrentChat");
+  else {
+    m_textBox->setText("");
+    m_chatPrevIndex = 0;
+  }
 }
 
 ChatSendMode Chat::sendMode() const {
+  if (m_scripted)
+    return ChatSendModeNames.getLeft(m_script.invoke<String>("sendMode").value());
   return m_sendMode;
 }
 
@@ -241,6 +290,13 @@ void Chat::addMessages(List<ChatReceivedMessage> const& messages, bool showPane)
   if (messages.empty())
     return;
 
+  if (m_scripted) {
+    m_script.invoke("addMessages", messages.transformed([](ChatReceivedMessage const& message) {
+      return message.toJson();
+    }), showPane);
+    return;
+  }
+
   GuiContext& guiContext = GuiContext::singleton();
 
   for (auto const& message : messages) {
@@ -253,7 +309,7 @@ void Chat::addMessages(List<ChatReceivedMessage> const& messages, bool showPane)
     StringList lines;
     if (message.fromNick != "" && message.portrait == "")
       // FezzedOne: Since the chat renderer already wraps text, let's try *not* wrapping text twice.
-      lines = StringList{strf("<{}^reset;> {}", message.fromNick, message.text)};
+      lines = StringList{strf(m_chatFormatString.utf8Ptr(), message.fromNick, message.text)};
       // lines = guiContext.wrapInterfaceText(strf("<{}^reset;> {}", message.fromNick, message.text), wrapWidth);
     else
       lines = StringList{message.text};
@@ -410,7 +466,7 @@ float Chat::visible() const {
 }
 
 bool Chat::sendEvent(InputEvent const& event) {
-  if (active()) {
+  if (!m_scripted && active()) {
     if (hasFocus()) {
       if (event.is<KeyDownEvent>()) {
         auto actions = context()->actions(event);
@@ -502,7 +558,7 @@ void Chat::updateBottomButton() {
     m_bottomButton->setImages(bottomConfig.get("scrolling").getString("base"), bottomConfig.get("scrolling").getString("hover"));
 }
 
-ChatState Chat::getState() {
+Maybe<ChatState> Chat::getState() {
   return ChatState{
     m_textBox->getText(),
     m_timeChatLastActive,

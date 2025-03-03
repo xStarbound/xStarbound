@@ -3,6 +3,7 @@
 
 #include "StarDataStream.hpp"
 #include "StarGameTypes.hpp"
+#include "StarJson.hpp"
 
 namespace Star {
 
@@ -44,6 +45,9 @@ struct ChatReceivedMessage {
   ChatReceivedMessage();
   ChatReceivedMessage(MessageContext context, ConnectionId fromConnection, String const& fromNick, String const& text);
   ChatReceivedMessage(MessageContext context, ConnectionId fromConnection, String const& fromNick, String const& text, String const& portrait);
+  ChatReceivedMessage(Json const& json);
+
+  Json toJson() const;
 
   MessageContext context;
 

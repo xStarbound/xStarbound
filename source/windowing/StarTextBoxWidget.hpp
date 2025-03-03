@@ -14,8 +14,14 @@ public:
 
   virtual void update(float dt) override;
 
-  String getText() const;
-  bool setText(String const& text, bool callback = true);
+  String const& getText() const;
+  bool setText(String const& text, bool callback = true, bool moveCursor = true);
+
+  String const& getHint() const;
+  void setHint(String const& hint);
+
+  size_t const& getCursorPosition() const;
+  void setCursorPosition(size_t cursorPosition);
 
   bool getHidden() const;
   void setHidden(bool hidden);
@@ -41,7 +47,7 @@ public:
 
   void setDrawBorder(bool drawBorder);
   void setTextAlign(HorizontalAnchor hAnchor);
-  int getCursorOffset();
+  size_t getCursorOffset();
 
   virtual void mouseOver() override;
   virtual void mouseOut() override;
@@ -70,7 +76,7 @@ private:
   String m_font;
   int m_fontSize;
   int m_maxWidth;
-  int m_cursorOffset;
+  size_t m_cursorOffset;
   bool m_isHover;
   bool m_isPressed;
   SpecialRepeatKeyCodes m_repeatCode;

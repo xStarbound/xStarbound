@@ -205,6 +205,22 @@ Returns the current position of the cursor relative to the lower-left corner of 
 
 ----
 
+#### `bool` interface.hudVisible()
+
+**Only available on xStarbound v3.4.5.1+ and OpenStarbound.**
+
+Returns whether the interface HUD is visible.
+
+----
+
+#### `void` interface.setHudVisible(`bool` visible)
+
+**Only available on xStarbound v3.4.5.1+ and OpenStarbound.**
+
+Sets whether the interface HUD should be visible.
+
+----
+
 #### `void` interface.addChatMessage(`Json` chatMessageConfig, `Maybe<bool>` showChat)
 #### `void` chat.addMessage(`Maybe<String>` messageText, `Json` chatMessageConfig)
 
@@ -277,9 +293,9 @@ Returns the chat sending mode currently selected in the chat box. This can be ei
 
 ----
 
-#### `void` chat.setInput(`String` newChatInput)
+#### `bool` chat.setInput(`String` newChatInput)
 
-Sets the text in the chat input box to the specified value.
+Sets the text in the chat input box to the specified value. Returns whether the chat input was set.
 
 ----
 

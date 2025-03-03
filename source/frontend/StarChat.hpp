@@ -2,6 +2,7 @@
 #define STAR_CHAT_HPP
 
 #include "StarPane.hpp"
+#include "StarBaseScriptPane.hpp"
 #include "StarChatTypes.hpp"
 
 namespace Star {
@@ -14,9 +15,9 @@ STAR_CLASS(ImageStretchWidget);
 STAR_CLASS(CanvasWidget);
 STAR_CLASS(Chat);
 
-class Chat : public Pane {
+class Chat : public BaseScriptPane {
 public:
-  Chat(UniverseClientPtr client, Maybe<ChatState> chatState = {});
+  Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatState> chatState = {}, Json const& baseConfig = {});
 
   void startChat();
   void startCommand();
@@ -35,7 +36,7 @@ public:
   void addHistory(String const& chat);
 
   String currentChat() const;
-  void setCurrentChat(String const& chat);
+  bool setCurrentChat(String const& chat, bool moveCursor = false);
   void clearCurrentChat();
 
   ChatSendMode sendMode() const;
@@ -49,7 +50,7 @@ public:
   void scrollDown();
   void scrollBottom();
 
-  ChatState getState();
+  Maybe<ChatState> getState();
 
 private:
   struct LogMessage {
@@ -61,6 +62,7 @@ private:
   void updateBottomButton();
 
   UniverseClientPtr m_client;
+  bool m_scripted;
 
   TextBoxWidgetPtr m_textBox;
   LabelWidgetPtr m_say;
@@ -94,6 +96,7 @@ private:
   float m_portraitScale;
   int m_portraitVerticalMargin;
   String m_portraitBackground;
+  String m_chatFormatString;
 
   Map<MessageContext::Mode, String> m_colorCodes;
   Deque<LogMessage> m_receivedMessages;

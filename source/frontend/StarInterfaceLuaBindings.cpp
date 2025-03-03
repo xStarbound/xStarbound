@@ -90,9 +90,10 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface) {
       return {};
   });
 
-  callbacks.registerCallback("setInput", [mainInterface](String const& chatInput) {
+  callbacks.registerCallback("setInput", [mainInterface](String const& chatInput) -> bool {
     if (mainInterface->chat())
-      mainInterface->chat()->setCurrentChat(chatInput);
+      return mainInterface->chat()->setCurrentChat(chatInput);
+    return false;
   });
 
   callbacks.registerCallback("clear", [mainInterface](Maybe<size_t> numMessages) {
@@ -121,6 +122,12 @@ LuaCallbacks LuaBindings::makeClipboardCallbacks(MainInterface* mainInterface) {
 
 LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface, bool unsafeVersion) {
   LuaCallbacks callbacks;
+
+  // From OpenStarbound.
+  callbacks.registerCallbackWithSignature<bool>(
+    "hudVisible", bind(mem_fn(&MainInterface::hudVisible), mainInterface));
+  callbacks.registerCallbackWithSignature<void, bool>(
+    "setHudVisible", bind(mem_fn(&MainInterface::setHudVisible), mainInterface, _1));
 
   callbacks.registerCallback("bindCanvas", [mainInterface](String const& canvasName, Maybe<bool> ignoreInterfaceScale) -> Maybe<CanvasWidgetPtr> {
     if (auto canvas = mainInterface->fetchCanvas(canvasName, ignoreInterfaceScale.value(false)))

@@ -22,9 +22,9 @@ TextBoxWidget::TextBoxWidget(String const& startingText, String const& hint, Wid
   m_cursorVert = Vec2I();
   m_overfillMode = true;
 
-  m_maxWidth = assets->json("/interface.config:textBoxDefaultWidth").toInt();
+  m_maxWidth = (int)assets->json("/interface.config:textBoxDefaultWidth").toInt();
   auto fontConfig = assets->json("/interface.config:font");
-  m_fontSize = fontConfig.getInt("baseSize");
+  m_fontSize = (int)fontConfig.getInt("baseSize");
   m_processingDirectives = fontConfig.getString("defaultDirectives");
   m_font = fontConfig.queryString("defaultFont", "");
   m_color = Color::rgb(jsonToVec3B(fontConfig.getArray("defaultColor")));
@@ -51,7 +51,7 @@ void TextBoxWidget::renderImpl() {
   context()->setFont(m_font);
   if ((m_maxWidth != -1) && m_overfillMode) {
     context()->setFontSize(m_fontSize);
-    int shift = std::max(0, getCursorOffset() - m_maxWidth);
+    size_t shift = std::max<size_t>(0, getCursorOffset() - (size_t)m_maxWidth);
     pos += Vec2F(-shift, 0);
   }
 
@@ -92,7 +92,7 @@ void TextBoxWidget::renderImpl() {
     context()->drawInterfacePolyLines(PolyF(screenBoundRect()), Color(Color::White).toRgba());
 }
 
-int TextBoxWidget::getCursorOffset() { // horizontal only
+size_t TextBoxWidget::getCursorOffset() { // horizontal only
   float scale;
   context()->setFont(m_font);
   context()->setFontSize(m_fontSize);
@@ -130,7 +130,7 @@ void TextBoxWidget::update(float dt) {
     if (Time::monotonicMilliseconds() >= m_repeatKeyThreshold) {
       m_repeatKeyThreshold += 50;
       if (m_repeatCode == SpecialRepeatKeyCodes::Delete) {
-        if (m_cursorOffset < (int)m_text.size())
+        if (m_cursorOffset < m_text.size())
           modText(m_text.substr(0, m_cursorOffset) + m_text.substr(m_cursorOffset + 1));
       } else if (m_repeatCode == SpecialRepeatKeyCodes::Backspace) {
         if (m_cursorOffset > 0) {
@@ -140,13 +140,11 @@ void TextBoxWidget::update(float dt) {
       } else if (m_repeatCode == SpecialRepeatKeyCodes::Left) {
         if (m_cursorOffset > 0) {
           m_cursorOffset--;
-          if (m_cursorOffset < 0)
-            m_cursorOffset = 0;
         }
       } else if (m_repeatCode == SpecialRepeatKeyCodes::Right) {
-        if (m_cursorOffset < (int)m_text.size()) {
+        if (m_cursorOffset < m_text.size()) {
           m_cursorOffset++;
-          if (m_cursorOffset > (int)m_text.size())
+          if (m_cursorOffset > m_text.size())
             m_cursorOffset = m_text.size();
         }
       }
@@ -154,11 +152,11 @@ void TextBoxWidget::update(float dt) {
   }
 }
 
-String TextBoxWidget::getText() const {
+String const& TextBoxWidget::getText() const {
   return m_text;
 }
 
-bool TextBoxWidget::setText(String const& text, bool callback) {
+bool TextBoxWidget::setText(String const& text, bool callback, bool moveCursor) {
   if (m_text == text)
     return true;
 
@@ -166,11 +164,29 @@ bool TextBoxWidget::setText(String const& text, bool callback) {
     return false;
 
   m_text = text;
-  m_cursorOffset = m_text.size();
+  size_t textSize = m_text.size();
+  if (moveCursor || m_cursorOffset > textSize)
+    m_cursorOffset = textSize;
   m_repeatCode = SpecialRepeatKeyCodes::None;
   if (callback)
     m_callback(this);
   return true;
+}
+
+String const& TextBoxWidget::getHint() const {
+  return m_hint;
+}
+
+void TextBoxWidget::setHint(String const& hint) {
+  m_hint = hint;
+}
+
+size_t const& TextBoxWidget::getCursorPosition() const {
+  return m_cursorOffset;
+}
+
+void TextBoxWidget::setCursorPosition(size_t cursorPosition) {
+  m_cursorOffset = clamp<size_t>(cursorPosition, 0, m_text.size());
 }
 
 bool TextBoxWidget::getHidden() const {
@@ -333,8 +349,8 @@ bool TextBoxWidget::innerSendEvent(InputEvent const& event) {
       }
     }
 
-    auto calculateSteps = [&](bool dir) {
-      int steps = 1;
+    auto calculateSteps = [&](bool dir) -> size_t {
+      size_t steps = 1;
       if ((keyDown->mods & (KeyMod::LCtrl | KeyMod::RCtrl)) != KeyMod::NoMod || (keyDown->mods & (KeyMod::LAlt | KeyMod::RAlt)) != KeyMod::NoMod) {
         if (dir) // right
           steps = m_text.findNextBoundary(m_cursorOffset) - m_cursorOffset;
@@ -347,9 +363,9 @@ bool TextBoxWidget::innerSendEvent(InputEvent const& event) {
     };
 
     if (keyDown->key == Key::Backspace) {
-      int steps = calculateSteps(false);
+      size_t steps = calculateSteps(false);
       m_repeatCode = SpecialRepeatKeyCodes::Backspace;
-      for (int i = 0; i < steps; i++) {
+      for (size_t i = 0; i < steps; i++) {
         if (m_cursorOffset > 0) {
           if (modText(m_text.substr(0, m_cursorOffset - 1) + m_text.substr(m_cursorOffset)))
             m_cursorOffset -= 1;
@@ -358,18 +374,18 @@ bool TextBoxWidget::innerSendEvent(InputEvent const& event) {
       return true;
     }
     if (keyDown->key == Key::Delete) {
-      int steps = calculateSteps(true);
+      size_t steps = calculateSteps(true);
       m_repeatCode = SpecialRepeatKeyCodes::Delete;
-      for (int i = 0; i < steps; i++) {
-        if (m_cursorOffset < (int)m_text.size())
+      for (size_t i = 0; i < steps; i++) {
+        if (m_cursorOffset < m_text.size())
           modText(m_text.substr(0, m_cursorOffset) + m_text.substr(m_cursorOffset + 1));
       }
       return true;
     }
     if (keyDown->key == Key::Left) {
-      int steps = calculateSteps(false);
+      size_t steps = calculateSteps(false);
       m_repeatCode = SpecialRepeatKeyCodes::Left;
-      for (int i = 0; i < steps; i++) {
+      for (size_t i = 0; i < steps; i++) {
         m_cursorOffset--;
         if (m_cursorOffset < 0)
           m_cursorOffset = 0;
@@ -377,11 +393,11 @@ bool TextBoxWidget::innerSendEvent(InputEvent const& event) {
       return true;
     }
     if (keyDown->key == Key::Right) {
-      int steps = calculateSteps(true);
+      size_t steps = calculateSteps(true);
       m_repeatCode = SpecialRepeatKeyCodes::Right;
-      for (int i = 0; i < steps; i++) {
+      for (size_t i = 0; i < steps; i++) {
         m_cursorOffset++;
-        if (m_cursorOffset > (int)m_text.size())
+        if (m_cursorOffset > m_text.size())
           m_cursorOffset = m_text.size();
       }
       return true;

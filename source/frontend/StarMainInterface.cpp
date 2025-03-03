@@ -181,7 +181,7 @@ void MainInterface::reset() { // *Completely* reset the interface.
   m_collections = make_shared<ScriptPane>(m_client, "/interface/scripted/collections/collectionsgui.config", NullEntityId, this);
   m_paneManager.registerPane(MainInterfacePanes::Collections, PaneLayer::Window, m_collections);
 
-  m_chat = make_shared<Chat>(m_client, m_persistedChatState);
+  m_chat = make_shared<Chat>(this, m_client, m_persistedChatState, Root::singleton().assets()->json("/interface/chat/chat.config"));
   m_paneManager.registerPane(MainInterfacePanes::Chat, PaneLayer::Hud, m_chat);
   m_clientCommandProcessor = make_shared<ClientCommandProcessor>(m_client, m_cinematicOverlay, &m_paneManager, m_config->macroCommands);
 
@@ -1046,6 +1046,14 @@ void MainInterface::queueItemPickupText(ItemPtr const& item) {
 
 bool MainInterface::fixedCamera() const {
   return m_clientCommandProcessor->fixedCameraEnabled();
+}
+
+bool MainInterface::hudVisible() const {
+  return !m_disableHud;
+}
+
+void MainInterface::setHudVisible(bool visible) {
+  m_disableHud = !visible;
 }
 
 void MainInterface::warpToOrbitedWorld(bool deploy) {

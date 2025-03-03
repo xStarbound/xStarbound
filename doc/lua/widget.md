@@ -121,7 +121,7 @@ Removes the specified child widget from the specified widget.
 
 ---
 
-## Widget specific callbacks
+## Widget-specific callbacks
 
 These callbacks only work for some widget types.
 
@@ -331,6 +331,38 @@ Sets the item in the specified item slot widget.
 #### `void` widget.setItemSlotProgress(`String` widgetName, `float` progress)
 
 Sets the progress overlay on the item slot to the specified value (between 0 and 1).
+
+---
+
+#### `Maybe<String>` widget.getHint(`String` widgetName)
+
+> **Only available on xStarbound v3.4.5.1+ and OpenStarbound v0.1.9+.**
+
+Gets the hint text of a text box widget. Returns `nil` if the widget in question doesn't exist or isn't a text box.
+
+---
+
+#### `void` widget.setHint(`String` widgetName, `String` hint)
+
+> **Only available on xStarbound v3.4.5.1+ and OpenStarbound v0.1.9+.**
+
+Sets the hint text of a text box widget.
+
+---
+
+#### `Maybe<size_t>` widget.getCursorPosition(`String` widgetName)
+
+> **Only available on xStarbound v3.4.5.1+ and OpenStarbound v0.1.9+.**
+
+Gets the cursor position of a text box widget. Returns `nil` if the widget in question doesn't exist or isn't a text box.
+
+---
+
+#### `void` widget.setCursorPosition(`String` widgetName, `int` cursorPosition)
+
+> **Only available on xStarbound v3.4.5.1+ and OpenStarbound v0.1.9+.**
+
+Sets the cursor position of a text box widget.
 
 ---
 

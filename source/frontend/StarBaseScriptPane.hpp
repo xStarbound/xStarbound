@@ -35,7 +35,7 @@ public:
   PanePtr createTooltip(Vec2I const& screenPosition) override;
   Maybe<String> cursorOverride(Vec2I const& screenPosition) override;
 protected:
-  virtual GuiReaderPtr reader();
+  virtual GuiReaderPtr reader() override;
   Json m_config;
   Json m_rawConfig;
   bool m_dismissable;
@@ -48,7 +48,7 @@ protected:
   bool m_interactive;
 
   bool m_callbacksAdded;
-  LuaMessageHandlingComponent<LuaUpdatableComponent<LuaBaseComponent>> m_script;
+  mutable LuaMessageHandlingComponent<LuaUpdatableComponent<LuaBaseComponent>> m_script;
   MainInterface* m_mainInterface; // If null, means the pane wasn't initialised from the main game interface.
 };
 

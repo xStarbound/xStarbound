@@ -517,6 +517,36 @@ LuaCallbacks LuaBindings::makeWidgetCallbacks(Widget* parentWidget, GuiReaderPtr
       }
     });
 
+    callbacks.registerCallback("setHint", [parentWidget](String const& widgetName, String const& hint) {
+      if (auto widget = parentWidget->fetchChild(widgetName)) {
+        if (auto textBox = as<TextBoxWidget>(widget))
+          textBox->setHint(hint);
+      }
+    });   
+  
+    callbacks.registerCallback("getHint", [parentWidget](String const& widgetName) -> Maybe<String> {
+      if (auto widget = parentWidget->fetchChild(widgetName)) {
+        if (auto textBox = as<TextBoxWidget>(widget))
+          return textBox->getHint();
+      }
+      return {};
+    });
+  
+    callbacks.registerCallback("setCursorPosition", [parentWidget](String const& widgetName, size_t cursorPosition) {
+      if (auto widget = parentWidget->fetchChild(widgetName)) {
+        if (auto textBox = as<TextBoxWidget>(widget))
+          textBox->setCursorPosition(cursorPosition);
+      }
+    });
+  
+    callbacks.registerCallback("getCursorPosition", [parentWidget](String const& widgetName) -> Maybe<size_t> {
+      if (auto widget = parentWidget->fetchChild(widgetName)) {
+        if (auto textBox = as<TextBoxWidget>(widget))
+          return textBox->getCursorPosition();
+      }
+      return {};
+    });
+
   return callbacks;
 }
 

@@ -161,6 +161,9 @@ public:
   UniverseClientPtr universeClient() const;
   ChatPtr chat() const;
 
+  bool hudVisible() const;
+  void setHudVisible(bool visible);
+
 private:
   PanePtr createEscapeDialog();
 
