@@ -43,7 +43,7 @@ BaseScriptPane::BaseScriptPane(Json config, MainInterface* mainInterface, bool c
   }
 
   if (construct)
-    this->construct(config);
+    this->construct(m_config);
 
   m_callbacksAdded = false;
 }
