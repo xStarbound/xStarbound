@@ -87,7 +87,7 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
       });
   }
 
-  construct(baseConfig.get("gui"));
+  construct(baseConfig);
 
   Maybe<String> defaultSendMode = assets->json("/interface/chat/chat.config").optString("defaultSendMode");
   if (defaultSendMode) {
