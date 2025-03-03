@@ -45,8 +45,9 @@ void LuaBaseComponent::addCallbacks(String groupName, LuaCallbacks callbacks) {
   if (!m_callbacks.insert(groupName, callbacks).second) {
     if (m_baseCallbacks.contains(groupName))
       return;
-    else
-      throw LuaComponentException::format("Duplicate callbacks named '{}' in LuaBaseComponent", groupName);
+    else // FezzedOne: Allowed `addCallbacks` to overwrite callbacks.
+      LuaBaseComponent::removeCallbacks(groupName); 
+    // throw LuaComponentException::format("Duplicate callbacks named '{}' in LuaBaseComponent", groupName);
   }
 
   if (m_context)
