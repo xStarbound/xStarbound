@@ -27,7 +27,6 @@ namespace Star {
 
 Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatState> chatState, Json const& baseConfig) : BaseScriptPane(baseConfig, mainInterface, false), m_client(client) {
   m_scripted = baseConfig.get("scripts", Json()).isType(Json::Type::Array);
-  if (m_scripted) Logger::info("[xSB::Debug] Chat pane has the following scripts: {}", baseConfig.get("scripts", Json()).repr());
   m_script.setLuaRoot(make_shared<LuaRoot>());
   m_script.addCallbacks("world", LuaBindings::makeWorldCallbacks((World*)m_client->worldClient().get()));
   m_chatPrevIndex = 0;
@@ -85,12 +84,9 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
           {"filter", filterId}
         });
       });
-    Logger::info("[xSB::Debug] Added default chat pane callbacks.");
-  } else {
-    Logger::info("[xSB::Debug] Not adding default chat pane callbacks.");
   }
 
-  m_reader->construct(baseConfig.get("gui"));
+  m_reader->construct(baseConfig.get("gui"), this);
 
   Maybe<String> defaultSendMode = assets->json("/interface/chat/chat.config").optString("defaultSendMode");
   if (defaultSendMode) {
