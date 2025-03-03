@@ -933,9 +933,27 @@ See `message.md` for information on `RpcPromise` objects.
 
 ---
 
-#### `bool` world.loungeableOccupied(`EntityId` entityId)
+#### `bool` world.loungeableOccupied(`EntityId` entityId, `Maybe<int>` anchorIndex)
 
-Checks whether the specified loungeable entity is currently occupied and returns `true` if it is occupied, `false` if it is unoccupied, or `nil` if it is not a loungeable entity.
+> *The `anchorIndex` parameter is only available on xStarbound v1.4.5.1+ and OpenStarbound v0.1.8+. On stock Starbound, an anchor index of 0 is always assumed.*
+
+Checks whether the specified anchor on the specified loungeable entity is currently occupied and returns `true` if it is occupied, `false` if it is unoccupied, or `nil` if it is not a loungeable entity or the anchor doesn't exist. Indexes start at `0`, not `1`.
+
+---
+
+#### `Maybe<List<EntityId>>` world.loungingEntities(`EntityId` entityId, `Maybe<int>` anchorIndex)
+
+> **This callback is only available on xStarbound v1.4.5.1+ and OpenStarbound v0.1.8+.**
+
+Returns a list of entities lounging in the specified anchor on the specified loungeable entity, or `nil` if it is not a loungeable entity or the anchor doesn't exist. Indexes start at `0`, not `1`.
+
+---
+
+#### `Maybe<int>` world.loungeableAnchorCount(`EntityId` entityId)
+
+> **This callback is only available on xStarbound v1.4.5.1+ and OpenStarbound v0.1.8+.**
+
+Returns the number of anchors on the specified loungeable entity, or `nil` if it is not a loungeable entity.
 
 ---
 
