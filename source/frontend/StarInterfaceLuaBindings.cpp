@@ -199,10 +199,11 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface, b
 
   // FezzedOne: Sends a chat message *exactly* as if it were sent through the vanilla chat interface, returning any *client-side*
   // command results as a list of strings.
-  callbacks.registerCallback("doChat", [mainInterface](String chatText, Maybe<bool> addToHistory) -> Maybe<List<String>> {
-      bool addToHistoryBool = false;
-      if (addToHistory) addToHistoryBool = *addToHistory;
-      return mainInterface->doChatCallback(chatText, addToHistoryBool);
+  callbacks.registerCallback("doChat", [mainInterface](String chatText, Maybe<bool> addToHistory, Maybe<String> sendMode) -> Maybe<List<String>> {
+    bool addToHistoryBool = false;
+    if (addToHistory) addToHistoryBool = *addToHistory;
+    Maybe<ChatSendMode> chatSendMode = sendMode ? ChatSendModeNames.maybeLeft(*sendMode) : Maybe<ChatSendMode>{};
+    return mainInterface->doChatCallback(chatText, addToHistoryBool, chatSendMode);
   });
 
   callbacks.registerCallback("drawDrawable", [mainInterface](Drawable drawable, Vec2F const& screenPos, float pixelRatio, Maybe<Vec4B> const& colour) {
