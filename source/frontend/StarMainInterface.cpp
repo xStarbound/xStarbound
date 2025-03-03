@@ -215,7 +215,6 @@ void MainInterface::reset() { // *Completely* reset the interface.
   m_chatBubbleManager = make_shared<ChatBubbleManager>();
 
   m_paneManager.displayRegisteredPane(MainInterfacePanes::ActionBar);
-  m_paneManager.displayRegisteredPane(MainInterfacePanes::Chat);
   m_paneManager.displayRegisteredPane(MainInterfacePanes::TeamBar);
   m_paneManager.displayRegisteredPane(MainInterfacePanes::StatusPane);
 
@@ -619,6 +618,12 @@ void MainInterface::handleInteractAction(InteractAction interactAction) {
 
 void MainInterface::update(float dt) {
   ZoneScoped;
+
+  // FezzedOne: Need to make sure the entity map is correctly initialised first
+  // because some chat scripts expect to be able to send entity messages on `init`.
+  if (m_client->worldClient()->inWorld() && !m_paneManager.isDisplayed(m_chat))
+    m_paneManager.displayRegisteredPane(MainInterfacePanes::Chat);
+
   m_paneManager.update(dt);
   m_cursor.update(dt);
 
