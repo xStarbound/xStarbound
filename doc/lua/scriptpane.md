@@ -41,6 +41,30 @@ Closes the pane. Will invoke the script's `dismiss` function.
 
 ---
 
+#### `void` pane.show()
+
+> **Only available on xStarbound v1.4.5.1+ and OpenStarbound.**
+
+Shows the pane.
+
+---
+
+#### `void` pane.hide()
+
+> **Only available on xStarbound v1.4.5.1+ and OpenStarbound.**
+
+Hides the pane.
+
+---
+
+#### `bool` pane.hasFocus()
+
+> **Only available on xStarbound v1.4.5.1+ and OpenStarbound.**
+
+Returns whether the pane is currently focussed.
+
+---
+
 #### `void` pane.playSound(`String` sound, [`int` loops], [`float` volume])
 
 Plays the specified sound asset, optionally looping the specified number of times or at the specified volume.
@@ -97,7 +121,7 @@ Creates a new widget with the specified config and adds it to the pane, optional
 
 > **Note:** On xStarbound, if you need to access a newly added widget, use `pane.toWidget` and then invoke appropriate callbacks on the newly added sub-widget. This has actual safety checking. Also consider doing this on OpenStarbound to avoid crashes.
 
-> **Warning for OpenStarbound modders:** Invoking these callbacks will cause a segfault when the widget is removed with `pane.removeWidget` or other means, or when they're smuggled outside the context.
+> **Warning for OpenStarbound modders:** Invoking these callbacks will cause a CTD after the widget is removed with `pane.removeWidget` or other means, or after they're smuggled outside the context.
 
 ---
 

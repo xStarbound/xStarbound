@@ -357,6 +357,12 @@ LuaCallbacks Pane::makePaneCallbacks() {
 
   callbacks.registerCallback("dismiss", [this]() { dismiss(); });
 
+  callbacks.registerCallback("show", [this]() { show(); });
+
+  callbacks.registerCallback("hide", [this]() { hide(); });
+
+  callbacks.registerCallback("hasFocus", [this]() -> bool { return hasFocus(); });
+
   callbacks.registerCallback("playSound",
     [this](String const& audio, Maybe<int> loops, Maybe<float> volume) {
       auto assets = Root::singleton().assets();
