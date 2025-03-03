@@ -150,9 +150,9 @@ Sends/enters a chat message exactly as if it were sent through the vanilla chat 
 
 If `addToHistory` is `true`, the sent/entered chat message is put in the player's sent chat message history (accessible with the arrow keys in the chat box).
 
-The `sendMode`, if specified, can be either `"Broadcast"`, `"Local"` or `"Party"`. If not specified, the current chat send mode is used unless it's invoked in a chat pane script or as `interface.doChat`, where `"Broadcast"` is always used as the default.
+The `sendMode`, if specified, can be either `"Broadcast"`, `"Local"` or `"Party"`. If not specified, the current chat send mode is used unless `chat.command` is used in a chat pane script, where `"Broadcast"` is always used as the default.
 
-**Note:** Use this callback to invoke `/add`, `/adduuid`, `/swap`, `/swapuuid`, `/remove` or `/removeuuid` in scripts, since there are currently no separate xClient callbacks for swapping, removing or adding players. The actual operation will be executed on the next game tick, before any invoked functions are called in scripts.
+**Note:** `interface.doChat` invokes `sendMode` in chat pane scripts, so don't have `sendMode` invoke this callback to prevent a recursion error!
 
 ----
 
@@ -226,8 +226,6 @@ Sets whether the interface HUD should be visible.
 
 #### `void` chat.addMessage(`Maybe<String>` messageText, `Maybe<JsonObject>` chatMessageConfig)
 
-> **Note:** Not available in chat pane scripts; invoke the script's `addMessages` function instead.
-
 > **Note:** The alias `interface.addChatMessage` was removed in xStarbound v3.4.5.1.
 
 Adds a chat message visible only on this client. It takes two parameters — a JSON object conforming to the `"chatMessage"` format above (any omitted entries default to the values shown above) and an optional `bool` for whether the chat pane should be shown when the message is added. If no parameters are passed, the callback does nothing (rather than causing an error).
@@ -258,6 +256,8 @@ jobject{
 Note that *either* the chat text *or* the chat message config must be specified in order to add a message. Passing `nil` in *both* fields means nothing happens.
 
 To actually *send* messages, use `interface.doChat` (see above), `chat.command` (see above) `chat.send` (below) or `player.sendChat` (see `player.md`).
+
+**Note:** This callback invokes `addMessages` in chat pane scripts, so don't have `addMessages` invoke this callback to prevent a recursion error!
 
 ----
 
@@ -291,35 +291,35 @@ This is useful for parsing arguments passed to command message handlers in a rea
 
 #### `String` chat.input()
 
-> **Note:** Not available in chat pane scripts on xStarbound. Invoke the script's `currentChat` function instead.
-
 Gets any text currently in the chat box. Returns `""` if the chat box isn't focussed, even if it contains any text. Nearly identical to `player.getChatText` (see `player.md`).
+
+**Note:** This callback invokes `currentChat` in chat pane scripts, so don't have `currentChat` invoke this callback to prevent a recursion error!
 
 ----
 
 #### `String` chat.mode()
 
-> **Note:** Not available in chat pane scripts on xStarbound. Invoke the script's `sendMode` function instead.
-
 Returns the chat sending mode currently selected in the chat box. This can be either `"Broadcast"`, `"Local"` or `"Party"`.
+
+**Note:** This callback invokes `sendMode` in chat pane scripts, so don't have `sendMode` invoke this callback to prevent a recursion error!
 
 ----
 
 #### `bool` chat.setInput(`String` newChatInput)
 
-> **Note:** Not available in chat pane scripts on xStarbound. Invoke the script's `setCurrentChat` function instead.
-
 Sets the text in the chat input box to the specified value. Returns whether the chat input was set.
+
+**Note:** This callback invokes `setCurrentChat` in chat pane scripts, so don't have `setCurrentChat` invoke this callback to prevent a recursion error!
 
 ----
 
 #### `void` chat.clear(`Maybe<size_t>` numberOfMessages)
 
-> **Note:** Not available in chat pane scripts on xStarbound; invoke the script's `clearMessages` function instead.
-
 If `numberOfMessages` is not specified, clears the entire received message history, including whatever is saved to `$storage/messages.json`, up to the point this binding is invoked (once it gets saved again).
 
 If `numberOfMessages` *is* specified, clears only the last `n` messages, where `n` is the specified number, or all messages if there are `n` or fewer in the history.
+
+**Note:** This callback invokes `clearMessages` in chat pane scripts, so don't have `clearMessages` invoke this callback to prevent a recursion error!
 
 ----
 

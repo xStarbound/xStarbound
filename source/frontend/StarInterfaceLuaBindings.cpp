@@ -30,17 +30,24 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface, bool r
 
   // FezzedOne: Sends a chat message *exactly* as if it were sent through the vanilla chat interface, returning any *client-side*
   // command results as a list of strings. Intended for compatibility with SE's `chat.command`.
-  callbacks.registerCallback("command", [mainInterface](String chatText, Maybe<bool> addToHistory) -> Maybe<List<String>> {
-    // if (chatText.beginsWith("/swap ") || chatText.beginsWith("/swapuuid ")) {
-    //   return {};
-    // } else {
+  if (removeHoakyCallbacks) {
+    // We're in a chat pane script. Avoid a forced call to `sendMode` to reduce wonkiness.
+    callbacks.registerCallback("command", [mainInterface](String chatText, Maybe<bool> addToHistory, Maybe<String> sendMode) -> Maybe<List<String>> {
       bool addToHistoryBool = false;
       if (addToHistory) addToHistoryBool = *addToHistory;
-      return mainInterface->doChatCallback(chatText, addToHistoryBool);
-    // }
-  });
+      Maybe<ChatSendMode> chatSendMode = sendMode ? ChatSendModeNames.valueLeft(*sendMode, ChatSendMode::Broadcast) : ChatSendMode::Broadcast;
+      return mainInterface->doChatCallback(chatText, addToHistoryBool, chatSendMode);
+    });
+  } else {
+    callbacks.registerCallback("command", [mainInterface](String chatText, Maybe<bool> addToHistory, Maybe<String> sendMode) -> Maybe<List<String>> {
+      bool addToHistoryBool = false;
+      if (addToHistory) addToHistoryBool = *addToHistory;
+      Maybe<ChatSendMode> chatSendMode = sendMode ? ChatSendModeNames.maybeLeft(*sendMode) : Maybe<ChatSendMode>{};
+      return mainInterface->doChatCallback(chatText, addToHistoryBool, chatSendMode);
+    });
+  }
 
-  if (!removeHoakyCallbacks) {
+  {
     callbacks.registerCallback("addMessage", [mainInterface](Maybe<String> const& text, Json const& chatMessageConfig) {
       if (chatMessageConfig) {
         Json newChatMessageConfig = JsonObject();
@@ -193,13 +200,9 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface, b
   // FezzedOne: Sends a chat message *exactly* as if it were sent through the vanilla chat interface, returning any *client-side*
   // command results as a list of strings.
   callbacks.registerCallback("doChat", [mainInterface](String chatText, Maybe<bool> addToHistory) -> Maybe<List<String>> {
-    // if (chatText.beginsWith("/swap ") || chatText.beginsWith("/swapuuid ")) {
-    //   return {};
-    // } else {
       bool addToHistoryBool = false;
       if (addToHistory) addToHistoryBool = *addToHistory;
       return mainInterface->doChatCallback(chatText, addToHistoryBool);
-    // }
   });
 
   callbacks.registerCallback("drawDrawable", [mainInterface](Drawable drawable, Vec2F const& screenPos, float pixelRatio, Maybe<Vec4B> const& colour) {
@@ -217,33 +220,33 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface, b
     return mainInterface->cursorPosition();
   });
 
-  callbacks.registerCallback("addChatMessage", [mainInterface](Json const& chatMessageConfig, Maybe<bool> showChat) {
-    if (chatMessageConfig) {
-      bool showChatBool = false;
-      if (showChat)
-        showChatBool = *showChat;
+  // callbacks.registerCallback("addChatMessage", [mainInterface](Json const& chatMessageConfig, Maybe<bool> showChat) {
+  //   if (chatMessageConfig) {
+  //     bool showChatBool = false;
+  //     if (showChat)
+  //       showChatBool = *showChat;
 
-      Json newChatMessageConfig = JsonObject();
-      if (chatMessageConfig.type() == Json::Type::Object)
-        newChatMessageConfig = chatMessageConfig;
-      Json newContext = newChatMessageConfig.getObject("context", JsonObject());
+  //     Json newChatMessageConfig = JsonObject();
+  //     if (chatMessageConfig.type() == Json::Type::Object)
+  //       newChatMessageConfig = chatMessageConfig;
+  //     Json newContext = newChatMessageConfig.getObject("context", JsonObject());
 
-      MessageContext::Mode messageMode = MessageContextModeNames.valueLeft(newContext.getString("mode", "Local"), MessageContext::Mode::Local);
-      String messageChannelName = newContext.getString("channel", "");
+  //     MessageContext::Mode messageMode = MessageContextModeNames.valueLeft(newContext.getString("mode", "Local"), MessageContext::Mode::Local);
+  //     String messageChannelName = newContext.getString("channel", "");
 
-      ConnectionId messageConnectionId = (uint16_t)newChatMessageConfig.getInt("connection", 0);
-      String messageNick = newChatMessageConfig.getString("nick", "");
-      String messagePortrait = newChatMessageConfig.getString("portrait", "");
-      String messageText = newChatMessageConfig.getString("message", "");
+  //     ConnectionId messageConnectionId = (uint16_t)newChatMessageConfig.getInt("connection", 0);
+  //     String messageNick = newChatMessageConfig.getString("nick", "");
+  //     String messagePortrait = newChatMessageConfig.getString("portrait", "");
+  //     String messageText = newChatMessageConfig.getString("message", "");
 
-      ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(messageMode, messageChannelName),
-                                                             messageConnectionId,
-                                                             messageNick,
-                                                             messageText,
-                                                             messagePortrait);
-      mainInterface->addChatMessage(messageToAdd, showChatBool);
-    }
-  });
+  //     ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(messageMode, messageChannelName),
+  //                                                            messageConnectionId,
+  //                                                            messageNick,
+  //                                                            messageText,
+  //                                                            messagePortrait);
+  //     mainInterface->addChatMessage(messageToAdd, showChatBool);
+  //   }
+  // });
 
   return callbacks;
 }

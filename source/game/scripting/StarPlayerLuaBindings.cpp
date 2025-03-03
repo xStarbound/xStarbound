@@ -713,13 +713,11 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player, bool removeChatCal
   callbacks.registerCallback("shipUpdatesIgnored", [player]() -> bool
                              { return player->shipUpdatesIgnored(); });
 
-  if (!removeChatCallbacks) {
-    callbacks.registerCallback("getChatText", [player]() -> String
-                              { return player->chatText(); });
+  callbacks.registerCallback("getChatText", [player]() -> String
+                            { return player->chatText(); });
 
-    callbacks.registerCallback("chatHasFocus", [player]() -> bool
-                              { return player->chatOpen(); });
-  }
+  callbacks.registerCallback("chatHasFocus", [player]() -> bool
+                            { return player->chatOpen(); });
 
   callbacks.registerCallback("overrideTypingIndicator", [player](bool overridden)
                              { player->overrideChatIndicator(overridden); });

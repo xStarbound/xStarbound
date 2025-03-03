@@ -946,17 +946,17 @@ Gets whether shipworld updates are ignored. This setting is saved in the player 
 
 #### `String` player.getChatText()
 
-> **Note:** Not available in chat pane scripts on xStarbound; invoke the script's `currentChat` function instead.
-
 Gets any text currently in the chat box. Does *not* return `""` if the chat box isn't focussed but contains any text. Nearly identical to `chat.input` (see `interface.md`).
+
+**Note:** This callback invokes `currentChat` in chat pane scripts (see `interface.md`), so don't have `currentChat` invoke this callback to prevent a recursion error!
 
 ---
 
 #### `bool` player.chatHasFocus()
 
-> **Note:** Not available in chat pane scripts on xStarbound; invoke the script's `hasFocus` function instead.
-
 Gets whether the chat box is focussed.
+
+**Note:** This callback invokes `hasFocus` in chat pane scripts (see `interface.md`), so don't have `hasFocus` invoke this callback to prevent a recursion error!
 
 ---
 

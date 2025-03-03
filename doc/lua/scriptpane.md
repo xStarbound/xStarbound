@@ -63,6 +63,8 @@ Hides the pane.
 
 Returns whether the pane is currently focussed.
 
+**Note:** This callback invokes `hasFocus` in chat pane scripts (see `interface.md`), so don't have `hasFocus` invoke this callback to prevent a recursion error!
+
 ---
 
 #### `void` pane.playSound(`String` sound, [`int` loops], [`float` volume])
