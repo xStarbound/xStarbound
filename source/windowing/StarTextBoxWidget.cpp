@@ -51,8 +51,8 @@ void TextBoxWidget::renderImpl() {
   context()->setFont(m_font);
   if ((m_maxWidth != -1) && m_overfillMode) {
     context()->setFontSize(m_fontSize);
-    size_t shift = std::max<size_t>(0, getCursorOffset() - (size_t)m_maxWidth);
-    pos += Vec2F(-shift, 0);
+    intmax_t shift = std::max<intmax_t>(0, getCursorOffset() - (intmax_t)m_maxWidth);
+    pos += Vec2F((float) -shift, 0);
   }
 
   context()->setFontSize(m_fontSize);
@@ -92,7 +92,7 @@ void TextBoxWidget::renderImpl() {
     context()->drawInterfacePolyLines(PolyF(screenBoundRect()), Color(Color::White).toRgba());
 }
 
-size_t TextBoxWidget::getCursorOffset() { // horizontal only
+intmax_t TextBoxWidget::getCursorOffset() { // horizontal only
   float scale;
   context()->setFont(m_font);
   context()->setFontSize(m_fontSize);
@@ -117,9 +117,9 @@ size_t TextBoxWidget::getCursorOffset() { // horizontal only
   if (m_textHidden) {
     int width = context()->stringInterfaceWidth("*");
     size_t chars = m_text.size();
-    return (int)std::ceil((width * chars) * scale - (width * (chars - m_cursorOffset)));
+    return (intmax_t)std::ceil((width * chars) * scale - (width * (chars - m_cursorOffset)));
   } else {
-  return (int)std::ceil(context()->stringInterfaceWidth(m_text) * scale
+  return (intmax_t)std::ceil(context()->stringInterfaceWidth(m_text) * scale
                       - context()->stringInterfaceWidth(m_text.substr(m_cursorOffset, m_text.size())));
   }
 }
