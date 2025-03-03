@@ -47,7 +47,7 @@ public:
 
   void setDrawBorder(bool drawBorder);
   void setTextAlign(HorizontalAnchor hAnchor);
-  intmax_t getCursorOffset();
+  int getCursorOffset();
 
   virtual void mouseOver() override;
   virtual void mouseOut() override;
