@@ -570,4 +570,10 @@ Maybe<ChatState> Chat::getState() {
   };
 }
 
+Maybe<Json> Chat::receiveEntityMessage(const String &message, bool localMessage, const JsonArray &args) const {
+  if (m_scripted)
+    return m_script.handleMessage(message, localMessage, args);
+  return {};
+}
+
 }

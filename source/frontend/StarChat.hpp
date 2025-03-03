@@ -52,6 +52,8 @@ public:
 
   Maybe<ChatState> getState();
 
+  Maybe<Json> receiveEntityMessage(const String &message, bool localMessage, const JsonArray &args) const;
+
 private:
   struct LogMessage {
     MessageContext::Mode mode;

@@ -283,7 +283,7 @@ void MainInterface::reset() { // *Completely* reset the interface.
       m_chat->saveMessages();
     };
 
-  m_client->interfaceMessageCallback() = [](const String& message, bool localMessage, const JsonArray& args) -> Maybe<Json> {
+  m_client->interfaceMessageCallback() = [&](const String& message, bool localMessage, const JsonArray& args) -> Maybe<Json> {
     Maybe<Json> result = {};
     JsonArray results = {};
     bool isChatMessage = message == "chatMessage" || message == "newChatMessage";
@@ -292,9 +292,12 @@ void MainInterface::reset() { // *Completely* reset the interface.
         results.append(r);
       for (auto r : ContainerPane::receivePaneMessages(message, localMessage, args).value(JsonArray{}).toArray())
         results.append(r);
+      if (auto r = m_chat->receiveEntityMessage(message, localMessage, args))
+        results.append(*r);
     } else {
       result = ScriptPane::receivePaneMessages(message, localMessage, args);
       if (!result) result = ContainerPane::receivePaneMessages(message, localMessage, args);
+      if (!result) result = m_chat->receiveEntityMessage(message, localMessage, args);
     }
     return isChatMessage ? Json(results) : result;
   };
