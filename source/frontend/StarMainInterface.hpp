@@ -111,7 +111,7 @@ public:
   void drawDrawable(Drawable drawable, Vec2F const& screenPos, float pixelRatio, Vec4B const& color);
 
   void doChat(String const& chat, bool addToHistory);
-  Maybe<List<String>> doChatCallback(String& chat, bool addToHistory);
+  Maybe<List<String>> doChatCallback(String& chat, bool addToHistory, Maybe<ChatSendMode> sendMode = {});
 
   void addChatMessage(ChatReceivedMessage const& message, bool showChat);
 

@@ -1,5 +1,6 @@
 #include "StarChat.hpp"
 #include "StarGuiReader.hpp"
+#include "StarInterfaceLuaBindings.hpp"
 #include "StarRoot.hpp"
 #include "StarUniverseClient.hpp"
 #include "StarButtonWidget.hpp"
@@ -64,27 +65,26 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
 
 
   if (!m_scripted) {
+    m_reader->registerCallback("textBox", [=](Widget*) { startChat(); });
+    m_reader->registerCallback("upButton", [=](Widget*) { scrollUp(); });
+    m_reader->registerCallback("downButton", [=](Widget*) { scrollDown(); });
+    m_reader->registerCallback("bottomButton", [=](Widget*) { scrollBottom(); });
 
-  m_reader->registerCallback("textBox", [=](Widget*) { startChat(); });
-  m_reader->registerCallback("upButton", [=](Widget*) { scrollUp(); });
-  m_reader->registerCallback("downButton", [=](Widget*) { scrollDown(); });
-  m_reader->registerCallback("bottomButton", [=](Widget*) { scrollBottom(); });
-
-  m_reader->registerCallback("filterGroup", [=](Widget* widget) {
-      Json data = as<ButtonWidget>(widget)->data();
-      auto filter = data.getArray("filter", {});
-      int filterId = as<ButtonGroup>(widget->parent())->checkedId();
-      m_modeFilter.clear();
-      for (auto mode : filter)
-        m_modeFilter.insert(MessageContextModeNames.getLeft(mode.toString()));
-      m_sendMode = ChatSendModeNames.getLeft(data.getString("sendMode", "Broadcast"));
-      m_historyOffset = 0;
-      Root::singleton().configuration()->set("savedChatState", JsonObject{
-        {"mode", ChatSendModeNames.getRight(m_sendMode)},
-        {"expanded", m_expanded},
-        {"filter", filterId}
+    m_reader->registerCallback("filterGroup", [=](Widget* widget) {
+        Json data = as<ButtonWidget>(widget)->data();
+        auto filter = data.getArray("filter", {});
+        int filterId = as<ButtonGroup>(widget->parent())->checkedId();
+        m_modeFilter.clear();
+        for (auto mode : filter)
+          m_modeFilter.insert(MessageContextModeNames.getLeft(mode.toString()));
+        m_sendMode = ChatSendModeNames.getLeft(data.getString("sendMode", "Broadcast"));
+        m_historyOffset = 0;
+        Root::singleton().configuration()->set("savedChatState", JsonObject{
+          {"mode", ChatSendModeNames.getRight(m_sendMode)},
+          {"expanded", m_expanded},
+          {"filter", filterId}
+        });
       });
-    });
   }
 
   m_reader->construct(baseConfig.get("gui"));
@@ -97,14 +97,13 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
     m_sendMode = ChatSendMode::Broadcast;
   }
 
-
-  m_chatLog = fetchChild<CanvasWidget>("chatLog");
-  m_bottomButton = fetchChild<ButtonWidget>("bottomButton");
-  m_upButton = fetchChild<ButtonWidget>("upButton");
-  m_textBox = fetchChild<TextBoxWidget>("textBox");
-  m_say = fetchChild<LabelWidget>("say");
-
   if (!m_scripted) {
+    m_chatLog = fetchChild<CanvasWidget>("chatLog");
+    m_bottomButton = fetchChild<ButtonWidget>("bottomButton");
+    m_upButton = fetchChild<ButtonWidget>("upButton");
+    m_textBox = fetchChild<TextBoxWidget>("textBox");
+    m_say = fetchChild<LabelWidget>("say");
+
     if (auto logPadding = fontConfig.optQuery("padding")) {
       m_chatLogPadding = jsonToVec2I(logPadding.get());
       m_chatLog->setSize(m_chatLog->size() + m_chatLogPadding * 2);
@@ -173,19 +172,23 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
     }
   } else {
     m_script.addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(m_client->mainPlayer()).get()));
-    m_script.addCallbacks("player", LuaBindings::makePlayerCallbacks(m_client->mainPlayer().get()));
+    m_script.addCallbacks("player", LuaBindings::makePlayerCallbacks(m_client->mainPlayer().get(), true));
     m_script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_client->mainPlayer()->effectsAnimator().get()));
     m_script.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_client->mainPlayer()->statusController()));
     m_script.addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client.get()));
+    m_script.removeCallbacks("chat");
+    m_script.addCallbacks("chat", LuaBindings::makeChatCallbacks(mainInterface, true));
   }
 
   show();
 
-  // updateBottomButton();
+  if (!m_scripted) {
+    // updateBottomButton();
 
-  m_background = fetchChild<ImageStretchWidget>("background");
-  m_defaultHeight = m_background->size()[1];
-  updateSize();
+    m_background = fetchChild<ImageStretchWidget>("background");
+    m_defaultHeight = m_background->size()[1];
+    updateSize();
+  }
 }
 
 void Chat::update(float dt) {
@@ -225,7 +228,7 @@ void Chat::startCommand() {
 
 bool Chat::hasFocus() const {
   if (m_scripted)
-    return m_script.invoke<bool>("hasFocus").value();
+    return m_script.invoke<Maybe<bool>>("hasFocus").value().value(false);
   return m_textBox->hasFocus();
 }
 
@@ -241,13 +244,13 @@ void Chat::stopChat() {
 
 String Chat::currentChat() const {
   if (m_scripted)
-    return m_script.invoke<String>("currentChat").value();
+    return m_script.invoke<Maybe<String>>("currentChat").value().value("");
   return m_textBox->getText();
 }
 
 bool Chat::setCurrentChat(String const& chat, bool moveCursor) {
   if (m_scripted)
-    return m_script.invoke<bool>("setCurrentChat").value();
+    return m_script.invoke<Maybe<bool>>("setCurrentChat").value().value(false);
   return m_textBox->setText(chat, true, moveCursor);
 }
 
@@ -262,7 +265,10 @@ void Chat::clearCurrentChat() {
 
 ChatSendMode Chat::sendMode() const {
   if (m_scripted)
-    return ChatSendModeNames.getLeft(m_script.invoke<String>("sendMode").value());
+    return ChatSendModeNames.valueLeft(
+      m_script.invoke<Maybe<String>>("sendMode").value().value(""), 
+      ChatSendMode::Broadcast
+    );
   return m_sendMode;
 }
 
@@ -340,6 +346,11 @@ void Chat::addMessages(List<ChatReceivedMessage> const& messages, bool showPane)
 }
 
 void Chat::clearMessages(Maybe<size_t> numMessages) {
+  if (m_scripted) {
+    m_script.invoke("clearMessages", numMessages);
+    return;
+  }
+
   if (m_receivedMessages.empty())
     return;
 
@@ -386,6 +397,8 @@ void Chat::addHistory(String const& chat) {
 
 void Chat::renderImpl() {
   Pane::renderImpl();
+  if (m_scripted)
+    return;
   if (m_textBox->hasFocus())
     m_timeChatLastActive = Time::monotonicMilliseconds();
   Vec4B fade = {255, 255, 255, 255};
@@ -561,6 +574,7 @@ void Chat::updateBottomButton() {
 }
 
 Maybe<ChatState> Chat::getState() {
+  if (m_scripted) return {};
   return ChatState{
     m_textBox->getText(),
     m_timeChatLastActive,

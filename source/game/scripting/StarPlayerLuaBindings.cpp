@@ -54,7 +54,7 @@ Maybe<InventorySlot> toInventorySlot(LuaValue const& luaValue) {
     return {};
 }
 
-LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
+LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player, bool removeChatCallbacks) {
   LuaCallbacks callbacks;
 
   // FezzedOne: `"save"` works identically to `"getPlayerJson"`, and is here for OpenSB compatibility.
@@ -713,11 +713,13 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player) {
   callbacks.registerCallback("shipUpdatesIgnored", [player]() -> bool
                              { return player->shipUpdatesIgnored(); });
 
-  callbacks.registerCallback("getChatText", [player]() -> String
-                             { return player->chatText(); });
+  if (!removeChatCallbacks) {
+    callbacks.registerCallback("getChatText", [player]() -> String
+                              { return player->chatText(); });
 
-  callbacks.registerCallback("chatHasFocus", [player]() -> bool
-                             { return player->chatOpen(); });
+    callbacks.registerCallback("chatHasFocus", [player]() -> bool
+                              { return player->chatOpen(); });
+  }
 
   callbacks.registerCallback("overrideTypingIndicator", [player](bool overridden)
                              { player->overrideChatIndicator(overridden); });

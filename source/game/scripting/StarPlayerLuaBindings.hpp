@@ -8,7 +8,7 @@ namespace Star {
 STAR_CLASS(Player);
 
 namespace LuaBindings {
-  LuaCallbacks makePlayerCallbacks(Player* player);
+  LuaCallbacks makePlayerCallbacks(Player* player, bool removeChatCallbacks = false);
 }
 }
 

@@ -982,7 +982,7 @@ void MainInterface::doChat(String const& chat, bool addToHistory) {
     m_chat->addHistory(chat);
 }
 
-Maybe<List<String>> MainInterface::doChatCallback(String& chat, bool addToHistory) {
+Maybe<List<String>> MainInterface::doChatCallback(String& chat, bool addToHistory, Maybe<ChatSendMode> sendMode) {
   if (chat.empty())
     return {};
 
@@ -998,7 +998,7 @@ Maybe<List<String>> MainInterface::doChatCallback(String& chat, bool addToHistor
 
     m_lastCommand = std::move(chat);
   } else {
-    m_client->sendChat(chat, m_chat->sendMode());
+    m_client->sendChat(chat, sendMode ? *sendMode : m_chat->sendMode());
   }
 
   if (addToHistory)

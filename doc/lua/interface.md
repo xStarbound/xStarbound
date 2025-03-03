@@ -20,6 +20,7 @@ These tables are available in the following contexts:
 - active item animation scripts
 - monster and object animation scripts
 - pane scripts
+- chat pane scripts (on xStarbound)
 - container interface scripts
 
 The `voice` table is also available in the following context:
@@ -142,12 +143,14 @@ Note that with the default tooltip sprite at `$assets/interface/rightBarTooltipB
 
 ----
 
-#### `Maybe<StringList>` chat.command(`String` chatText, `Maybe<bool>` addToHistory)
-#### `Maybe<StringList>` interface.doChat(`String` chatText, `Maybe<bool>` addToHistory)
+#### `Maybe<StringList>` chat.command(`String` chatText, `Maybe<bool>` addToHistory, `Maybe<String>` sendMode)
+#### `Maybe<StringList>` interface.doChat(`String` chatText, `Maybe<bool>` addToHistory, `Maybe<String>` sendMode)
 
 Sends/enters a chat message exactly as if it were sent through the vanilla chat interface, returning any *client-side* command results as a list of strings, or `nil` if no such results were returned.
 
 If `addToHistory` is `true`, the sent/entered chat message is put in the player's sent chat message history (accessible with the arrow keys in the chat box).
+
+The `sendMode`, if specified, can be either `"Broadcast"`, `"Local"` or `"Party"`. If not specified, the current chat send mode is used unless it's invoked in a chat pane script or as `interface.doChat`, where `"Broadcast"` is always used as the default.
 
 **Note:** Use this callback to invoke `/add`, `/adduuid`, `/swap`, `/swapuuid`, `/remove` or `/removeuuid` in scripts, since there are currently no separate xClient callbacks for swapping, removing or adding players. The actual operation will be executed on the next game tick, before any invoked functions are called in scripts.
 
@@ -221,8 +224,11 @@ Sets whether the interface HUD should be visible.
 
 ----
 
-#### `void` interface.addChatMessage(`Json` chatMessageConfig, `Maybe<bool>` showChat)
-#### `void` chat.addMessage(`Maybe<String>` messageText, `Json` chatMessageConfig)
+#### `void` chat.addMessage(`Maybe<String>` messageText, `Maybe<JsonObject>` chatMessageConfig)
+
+> **Note:** Not available in chat pane scripts; invoke the script's `addMessages` function instead.
+
+> **Note:** The alias `interface.addChatMessage` was removed in xStarbound v3.4.5.1.
 
 Adds a chat message visible only on this client. It takes two parameters — a JSON object conforming to the `"chatMessage"` format above (any omitted entries default to the values shown above) and an optional `bool` for whether the chat pane should be shown when the message is added. If no parameters are passed, the callback does nothing (rather than causing an error).
 
@@ -241,15 +247,17 @@ jobject{
   nick = "", -- The sender's nickname. If an empty string, no nick is shown in chat.
   portrait = "", -- The chat portrait. Is an empty string if there's no portrait.
   -- Not used for messages that don't have a `"RadioMessage"` mode.
-  message = "" -- The chat message, of course.
+  message = "", -- The chat message, of course.
+  showPane = true -- Whether to show the chat pane. Optional; defaults to `true`.
+  -- Ignored by a scripted chat pane.
 }
 ```
 
-For `chat.addMessage`, `messageText`, if specified, is used instead of any message text in `chatMessageConfig`. The chat pane will be shown when the message is added.
+`messageText`, if specified, is used instead of any message text in `chatMessageConfig`. The chat pane will be shown when the message is added.
 
-For `interface.addChatMessage`, the chat pane will only be shown if `showChat` is `true`. Otherwise, the message is added "silently" without popping the chat pane up.
+Note that *either* the chat text *or* the chat message config must be specified in order to add a message. Passing `nil` in *both* fields means nothing happens.
 
-To actually *send* messages, use `interface.doChat` (see above), `chat.send` (below) or `player.sendChat` (see `player.md`).
+To actually *send* messages, use `interface.doChat` (see above), `chat.command` (see above) `chat.send` (below) or `player.sendChat` (see `player.md`).
 
 ----
 
@@ -283,11 +291,15 @@ This is useful for parsing arguments passed to command message handlers in a rea
 
 #### `String` chat.input()
 
+> **Note:** Not available in chat pane scripts on xStarbound. Invoke the script's `currentChat` function instead.
+
 Gets any text currently in the chat box. Returns `""` if the chat box isn't focussed, even if it contains any text. Nearly identical to `player.getChatText` (see `player.md`).
 
 ----
 
 #### `String` chat.mode()
+
+> **Note:** Not available in chat pane scripts on xStarbound. Invoke the script's `sendMode` function instead.
 
 Returns the chat sending mode currently selected in the chat box. This can be either `"Broadcast"`, `"Local"` or `"Party"`.
 
@@ -295,13 +307,17 @@ Returns the chat sending mode currently selected in the chat box. This can be ei
 
 #### `bool` chat.setInput(`String` newChatInput)
 
+> **Note:** Not available in chat pane scripts on xStarbound. Invoke the script's `setCurrentChat` function instead.
+
 Sets the text in the chat input box to the specified value. Returns whether the chat input was set.
 
 ----
 
 #### `void` chat.clear(`Maybe<size_t>` numberOfMessages)
 
-If `numberOfMessages` is not specified, clears the entire received message history, including whatever is saved to `$storage/messages.json` up to the point this binding is invoked (once it gets saved again).
+> **Note:** Not available in chat pane scripts on xStarbound; invoke the script's `clearMessages` function instead.
+
+If `numberOfMessages` is not specified, clears the entire received message history, including whatever is saved to `$storage/messages.json`, up to the point this binding is invoked (once it gets saved again).
 
 If `numberOfMessages` *is* specified, clears only the last `n` messages, where `n` is the specified number, or all messages if there are `n` or fewer in the history.
 
@@ -614,6 +630,24 @@ Sets the specified speaker's local volume.
 Gets the specified speaker's world position. Returns `{0, 0}` if the speaker hasn't been seen before, doesn't exist or has no currently rendered primary player.
 
 **Technical note:** If the speaker *had* a rendered primary player but now doesn't, the returned position is actually that primary player's last position before the player disappeared. This also applies to the position in speaker entries returned by `voice.speaker` and `voice.speakers`.
+
+----
+
+## Chat pane scripts
+
+> **Only available on OpenStarbound v0.1.8+ and xStarbound v3.4.5.1+.**
+
+If a `"scripts"` array is present in `$assets/interface/chat/chat.config`, the game will run a scripted chat pane as configured in that file instead of the default engine-controlled chat pane. When a scripted pane is used (on xStarbound), the engine does not expect any of the widgets it would normally expect for the engine-controlled pane. The following functions are called by the engine when running chat pane scripts, with their expected function signatures.
+
+- **`void` addMessages(`List<JsonObject>`):** Invoked when the engine adds a message to the chat pane. Message objects are in the same format used by `chat.addMessage` and `interface.addChatMessage` (see above). This function should add the messages to your scripted chat pane's chat history view (and maybe persistently save them).
+- **`void` startChat():** Invoked when the user presses the **Start Chat** (`"ChatBegin"`) keybind (which defaults to **<kbd>Enter</kbd>**).
+- **`void` startCommand():** Invoked when the user presses the **Start Command** (`"ChatBeginCommand"`) keybind (which defaults to **<kbd>/</kbd>**).
+- **`void` stopChat():** Invoked when the user presses the **Stop Chat** (`"ChatStop"`) keybind (which defaults to **<kbd>Esc</kbd>**) or the **Send Chat** (`"ChatSendLine"`) keybind (which defaults to **<kbd>Enter</kbd>**). This function should handle de-focussing the chat pane.
+- **`Maybe<bool>` hasFocus():** Invoked whenever the engine wants to check whether the chat box (the text box where the user enters a chat message) has focus; a returned `nil` is assumed `false`. This function is executed every tick by xStarbound to check whether the chat pane is focussed, and the returned result will be passed to `player.chatHasFocus` (see `player.md`).
+- **`Maybe<bool>` setCurrentChat(`String` newChat):** Invoked whenever `chat.setInput` (see above) is invoked in another script; a returned `nil` is assumed `false`. The expected return value should indicate whether the chat input has been set.
+- **`Maybe<String>` currentChat():** Invoked whenever `chat.input` (see above) or `player.getChatText` (see `player.md`) is invoked in another script. The expected return value should be whatever is in the chat box. A returned `nil` is assumed to be an empty string (`""`).
+- **`void` clearCurrentChat():** Invoked when the user presses the **Send Chat** (`"ChatSendLine"`) keybind (which defaults to **<kbd>Enter</kbd>**). This function should handle clearing the chat text in the chat box. Note that the engine sends the actual chat message just before invoking this function, so you don't need to call `interface.doChat`, `chat.send` or `chat.command` yourself.
+- **`Maybe<String>` sendMode():** Invoked whenever the engine wants to know the current chat mode or when `chat.mode` is invoked in another script. The return value must be either `"Broadcast"`, `"Local"` or `"Party"`; if it's `nil` or any other string, xStarbound will assume it's `"Broadcast"`.
 
 ----
 

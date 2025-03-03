@@ -13,7 +13,7 @@
 namespace Star {
 
 // For SE compatibility, so that mods don't need to get rewritten.
-LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface) {
+LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface, bool removeHoakyCallbacks) {
   LuaCallbacks callbacks;
 
   callbacks.registerCallback("send", [mainInterface](String const &text, Maybe<String> const &sendMode, Maybe<bool> suppressBubble) {
@@ -40,66 +40,69 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface) {
     // }
   });
 
-  callbacks.registerCallback("addMessage", [mainInterface](Maybe<String> const& text, Json const& chatMessageConfig) {
-    if (chatMessageConfig) {
-      Json newChatMessageConfig = JsonObject();
-      if (chatMessageConfig.type() == Json::Type::Object)
-        newChatMessageConfig = chatMessageConfig;
+  if (!removeHoakyCallbacks) {
+    callbacks.registerCallback("addMessage", [mainInterface](Maybe<String> const& text, Json const& chatMessageConfig) {
+      if (chatMessageConfig) {
+        Json newChatMessageConfig = JsonObject();
+        if (chatMessageConfig.type() == Json::Type::Object)
+          newChatMessageConfig = chatMessageConfig;
 
-      MessageContext::Mode messageMode = MessageContextModeNames.valueLeft(newChatMessageConfig.getString("mode", "CommandResult"), MessageContext::Mode::CommandResult);
-      String messageChannelName = newChatMessageConfig.getString("channel", "");
+        MessageContext::Mode messageMode = MessageContextModeNames.valueLeft(newChatMessageConfig.getString("mode", "CommandResult"), MessageContext::Mode::CommandResult);
+        String messageChannelName = newChatMessageConfig.getString("channel", "");
 
-      ConnectionId messageConnectionId = (uint16_t)newChatMessageConfig.getInt("connection", 0);
-      String messageNick = newChatMessageConfig.getString("fromNick", "");
-      String messagePortrait = newChatMessageConfig.getString("portrait", "");
-      String messageText;
-      if (text)
-        messageText = *text;
+        ConnectionId messageConnectionId = (uint16_t)newChatMessageConfig.getInt("connection", 0);
+        String messageNick = newChatMessageConfig.getString("fromNick", "");
+        String messagePortrait = newChatMessageConfig.getString("portrait", "");
+        String messageText;
+        if (text)
+          messageText = *text;
+        else
+          messageText = newChatMessageConfig.getString("text", "");
+
+        bool showChatBool = newChatMessageConfig.optBool("showPane").value(true);
+
+        ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(messageMode, messageChannelName),
+                                                              messageConnectionId,
+                                                              messageNick,
+                                                              messageText,
+                                                              messagePortrait);
+        mainInterface->addChatMessage(messageToAdd, showChatBool);
+      } else if (text) {
+        ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(MessageContext::Mode::CommandResult, ""),
+                                                              (uint16_t)0,
+                                                              "",
+                                                              *text,
+                                                              "");
+        mainInterface->addChatMessage(messageToAdd, true);
+      }
+    });
+
+    callbacks.registerCallback("input", [mainInterface]() -> String {
+      if (mainInterface->chat())
+        return mainInterface->chat()->currentChat();
       else
-        messageText = newChatMessageConfig.getString("text", "");
+        return "";
+    });
 
-      bool showChatBool = newChatMessageConfig.optBool("showPane").value(true);
+    callbacks.registerCallback("mode", [mainInterface]() -> Maybe<String> {
+      if (mainInterface->chat())
+        return Maybe<String>(ChatSendModeNames.getRight(mainInterface->chat()->sendMode()));
+      else
+        return {};
+    });
 
-      ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(messageMode, messageChannelName),
-                                                             messageConnectionId,
-                                                             messageNick,
-                                                             messageText,
-                                                             messagePortrait);
-      mainInterface->addChatMessage(messageToAdd, showChatBool);
-    } else if (text) {
-      ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(MessageContext::Mode::CommandResult, ""),
-                                                             (uint16_t)0,
-                                                             "",
-                                                             *text,
-                                                             "");
-      mainInterface->addChatMessage(messageToAdd, true);
-    }
-  });
 
-  callbacks.registerCallback("input", [mainInterface]() -> String {
-    if (mainInterface->chat())
-      return mainInterface->chat()->currentChat();
-    else
-      return "";
-  });
+    callbacks.registerCallback("setInput", [mainInterface](String const& chatInput) -> bool {
+      if (mainInterface->chat())
+        return mainInterface->chat()->setCurrentChat(chatInput);
+      return false;
+    });
 
-  callbacks.registerCallback("mode", [mainInterface]() -> Maybe<String> {
-    if (mainInterface->chat())
-      return Maybe<String>(ChatSendModeNames.getRight(mainInterface->chat()->sendMode()));
-    else
-      return {};
-  });
-
-  callbacks.registerCallback("setInput", [mainInterface](String const& chatInput) -> bool {
-    if (mainInterface->chat())
-      return mainInterface->chat()->setCurrentChat(chatInput);
-    return false;
-  });
-
-  callbacks.registerCallback("clear", [mainInterface](Maybe<size_t> numMessages) {
-    if (mainInterface->chat())
-      mainInterface->chat()->clearMessages(numMessages);
-  });
+    callbacks.registerCallback("clear", [mainInterface](Maybe<size_t> numMessages) {
+      if (mainInterface->chat())
+        mainInterface->chat()->clearMessages(numMessages);
+    });
+  }
 
   return callbacks;
 }
