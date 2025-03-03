@@ -139,7 +139,9 @@ Additionally, Starbound's `require` does *not* return the newly initialised scri
 
 The above means that, among other things, third-party libraries which expect to be loaded via a return value from `require` will need some minor modifications to be properly usable in Starbound Lua.
 
-`require` is *not* available in patch or preprocessor scripts. I.e., if `assets` is available (see `assets.md`), `require` is a `nil` value, not a callback.
+If `require` is used in a preprocessor script, it can only load scripts that were pre-loaded as assets prior to the execution of the `require`. `require` *can* be used to load a script that was just created with `assets.add`.
+
+> **Note:** On OpenStarbound, `require` is *not* available in patch or preprocessor scripts. I.e., if `assets` is available (see `assets.md`), `require` is a `nil` value, not a callback.
 
 #### `bool, Variant<String, LuaValue...>` coroutine.resume(`LuaThread` coroutine, [`LuaValue...` args])
 

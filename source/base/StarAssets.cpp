@@ -324,6 +324,24 @@ Assets::Assets(Settings settings, StringList assetSources) {
         try {
           auto context = luaEngine->createContext();
 
+          // FezzedOne: Added `require` to preprocessor scripts.
+          context.setRequireFunction([&](LuaContext& context, LuaString const& module) {
+            if (!context.get("_SBLOADED").is<LuaTable>())
+              context.set("_SBLOADED", context.createTable());
+            auto t = context.get<LuaTable>("_SBLOADED");
+            if (!t.contains(module)) {
+              t.set(module, true);
+              const String path = module.toString();
+              ByteArray script;
+              if (m_files.contains(path)) {
+                script = this->read(path);
+              } else {
+                script = source->read(path);
+              }
+              context.load(script, path);
+            }
+          });
+
           /* FezzedOne: Inlined `decorateLuaContext` to fix an optimisation-related segfault on some builds. */
           if (memoryAssets) {
             // Kae: Re-add the assets callbacks with more callbacks.
@@ -1214,8 +1232,28 @@ ImageConstPtr Assets::readImage(String const& path) const {
         if (patchPath.endsWith(".lua") || patchPath.endsWith(".pluto")) {
           luaLocker.lock();
           LuaContextPtr& context = m_patchContexts[patchPath];
+          bool startedNewContext = false;
           if (!context) {
             context = make_shared<LuaContext>(luaEngine->createContext());
+          }
+          // FezzedOne: Added `require` to image patch scripts.
+          context->setRequireFunction([&](LuaContext& context, LuaString const& module) {
+            if (!context.get("_SBLOADED").is<LuaTable>())
+              context.set("_SBLOADED", context.createTable());
+            auto t = context.get<LuaTable>("_SBLOADED");
+            if (!t.contains(module)) {
+              t.set(module, true);
+              const String path = module.toString();
+              ByteArray script;
+              if (m_files.contains(path)) {
+                script = this->read(path);
+              } else {
+                script = patchSource->read(path);
+              }
+              context.load(script, path);
+            }
+          });
+          if (startedNewContext) {
             context->load(patchStream, patchPath);
           }
           auto newResult = context->invokePath<LuaValue>("patch", result, path);
@@ -1291,8 +1329,26 @@ Json Assets::readJson(String const& path) const {
           startedNewContext = true;
         }
         try {
-          if (startedNewContext)
+          // FezzedOne: Added `require` to JSON patch scripts.
+          context->setRequireFunction([&](LuaContext& context, LuaString const& module) {
+            if (!context.get("_SBLOADED").is<LuaTable>())
+              context.set("_SBLOADED", context.createTable());
+            auto t = context.get<LuaTable>("_SBLOADED");
+            if (!t.contains(module)) {
+              t.set(module, true);
+              const String path = module.toString();
+              ByteArray script;
+              if (m_files.contains(path)) {
+                script = this->read(path);
+              } else {
+                script = patchSource->read(path);
+              }
+              context.load(script, path);
+            }
+          });
+          if (startedNewContext) {
             context->load(patchStream, patchPath);
+          }
           newResult = context->invokePath<Json>("patch", result, path);
         } catch (std::exception const& e) {
           Logger::error("Ignored failed Pluto/Lua patch from file {} in source: '{}' at '{}'. Caused by: {}",
