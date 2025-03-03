@@ -365,6 +365,8 @@ void Chat::clearMessages(Maybe<size_t> numMessages) {
 }
 
 void Chat::saveMessages() {
+  if (m_scripted) return;
+
   auto root = Root::singletonPtr();
   auto messagesFile = root->toStoragePath("messages.json");
   try {
@@ -437,7 +439,7 @@ void Chat::renderImpl() {
     String messageString = channelColorCode + message.text;
 
     float messageHeight = 0;
-    float lineHeightMargin =  + ((m_chatLineHeight * m_fontSize) - m_fontSize);
+    float lineHeightMargin = ((m_chatLineHeight * m_fontSize) - m_fontSize);
     unsigned wrapWidth = m_chatLog->size()[0] - m_chatLogPadding[0];
 
     if (message.portrait != "") {
