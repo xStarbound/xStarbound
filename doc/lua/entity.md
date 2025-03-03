@@ -5,6 +5,7 @@ The `entity` table contains functions that are common among all entities. Every 
 Accessible in:
 
 - generic player scripts (only on xStarbound)
+- pane scripts (only on xStarbound)
 - companion system scripts
 - quest scripts
 - tech scripts

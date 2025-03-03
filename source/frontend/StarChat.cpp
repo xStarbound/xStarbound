@@ -19,6 +19,7 @@
 #include "StarEntityLuaBindings.hpp"
 #include "StarStatusControllerLuaBindings.hpp"
 #include "StarCelestialLuaBindings.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarLuaGameConverters.hpp"
 
 namespace Star {
@@ -171,8 +172,9 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
       m_expanded = chatState->expanded;
     }
   } else {
-    m_script.addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(m_client->mainPlayer().get())));
+    m_script.addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(m_client->mainPlayer()).get()));
     m_script.addCallbacks("player", LuaBindings::makePlayerCallbacks(m_client->mainPlayer().get()));
+    m_script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_client->mainPlayer()->effectsAnimator().get()));
     m_script.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_client->mainPlayer()->statusController()));
     m_script.addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client.get()));
   }

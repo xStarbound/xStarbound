@@ -14,6 +14,7 @@
 #include "StarObject.hpp"
 #include "StarPlayerInventory.hpp"
 #include "StarConfigLuaBindings.hpp"
+#include "StarEntityLuaBindings.hpp"
 #include "StarPlayerLuaBindings.hpp"
 #include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarStatusControllerLuaBindings.hpp"
@@ -45,6 +46,7 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
     m_script->addCallbacks("config", LuaBindings::makeConfigCallbacks( [guiConfig](String const& name, Json const& def) {
         return guiConfig.query(name, def);
       }));
+    m_script->addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(m_player).get()));
     m_script->addCallbacks("player", LuaBindings::makePlayerCallbacks(m_player.get()));
     m_script->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_player->effectsAnimator().get()));
     m_script->addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_player->statusController()));
