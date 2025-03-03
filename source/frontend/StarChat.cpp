@@ -473,6 +473,9 @@ void Chat::hide() {
 }
 
 float Chat::visible() const {
+  if (m_scripted)
+    return m_script.invoke<Maybe<float>>("visible").value().value(1.0f);
+
   double difference = (Time::monotonicMilliseconds() - m_timeChatLastActive) / 1000.0;
   if (difference < m_chatVisTime)
     return 1;

@@ -648,6 +648,9 @@ If a `"scripts"` array is present in `$assets/interface/chat/chat.config`, the g
 - **`Maybe<String>` currentChat():** Invoked whenever `chat.input` (see above) or `player.getChatText` (see `player.md`) is invoked in another script. The expected return value should be whatever is in the chat box. A returned `nil` is assumed to be an empty string (`""`).
 - **`void` clearCurrentChat():** Invoked when the user presses the **Send Chat** (`"ChatSendLine"`) keybind (which defaults to **<kbd>Enter</kbd>**). This function should handle clearing the chat text in the chat box. Note that the engine sends the actual chat message just before invoking this function, so you don't need to call `interface.doChat`, `chat.send` or `chat.command` yourself.
 - **`Maybe<String>` sendMode():** Invoked whenever the engine wants to know the current chat mode or when `chat.mode` is invoked in another script. The return value must be either `"Broadcast"`, `"Local"` or `"Party"`; if it's `nil` or any other string, xStarbound will assume it's `"Broadcast"`.
+- **`Maybe<float>` visible():** Invoked whenever the engine wants to know how transparent the chat box ought to be. If the returned value is less than 0.1, the engine considers the chat pane «invisible» for the purpose of determining whether to render radio messages. If `nil` is returned, the engine assumes a transparency value of 1.0 (fully «opaque»).
+
+Any missing function with a non-`void` return value will cause the engine to assume it has returned with a `nil` and use an appropriate default value.
 
 ----
 
