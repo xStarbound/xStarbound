@@ -186,8 +186,9 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
 
     m_background = fetchChild<ImageStretchWidget>("background");
     m_defaultHeight = m_background->size()[1];
-    updateSize();
   }
+  
+  updateSize();
 }
 
 void Chat::update(float dt) {
@@ -561,10 +562,12 @@ void Chat::scrollBottom() {
 }
 
 void Chat::updateSize() {
-  auto height = m_expanded ? m_expandedBodyHeight : m_bodyHeight;
-  m_background->setSize(Vec2I(m_background->size()[0], m_defaultHeight + height));
-  m_chatLog->setSize(Vec2I(m_chatLog->size()[0], height));
-  m_upButton->setPosition(Vec2I(m_upButton->position()[0], m_chatLog->position()[1] + m_chatLog->size()[1] - m_upButton->size()[1]));
+  if (!m_scripted) {
+    auto height = m_expanded ? m_expandedBodyHeight : m_bodyHeight;
+    m_background->setSize(Vec2I(m_background->size()[0], m_defaultHeight + height));
+    m_chatLog->setSize(Vec2I(m_chatLog->size()[0], height));
+    m_upButton->setPosition(Vec2I(m_upButton->position()[0], m_chatLog->position()[1] + m_chatLog->size()[1] - m_upButton->size()[1]));
+  }
   determineSizeFromChildren();
 }
 

@@ -621,7 +621,7 @@ void MainInterface::update(float dt) {
 
   // FezzedOne: Need to make sure the entity map is correctly initialised first
   // because some chat scripts expect to be able to send entity messages on `init`.
-  if (m_client->worldClient()->inWorld() && !m_paneManager.isDisplayed(m_chat))
+  if (m_client->worldClient()->inWorld())
     m_paneManager.displayRegisteredPane(MainInterfacePanes::Chat);
 
   m_paneManager.update(dt);
