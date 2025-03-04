@@ -1,6 +1,6 @@
 # `pane` in non-container panes
 
-These `pane` bindings are available in thend include functions not specifically related to widgets within the pane. They are available in the following script contexts:
+These `pane` bindings include functions not specifically related to widgets within the pane. They are available in the following script contexts:
 
 - pane scripts (including the **Voice Settings** and **Mod Binds** dialogues on xStarbound and OpenStarbound)
 - container interface scripts
