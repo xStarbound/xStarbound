@@ -18,9 +18,12 @@ function module:init()
         else
             entityName = "^#888;::^reset,#aaa,set;"
         end
-        chat.addMessage(
-            { context = { mode = "CommandResult" }, nick = "", message = entityName .. " " .. message, showPane = false },
-        )
+        chat.addMessage({
+            context = { mode = "CommandResult" },
+            nick = "",
+            message = entityName .. " " .. message,
+            showPane = false,
+        })
         world.sendEntityMessage(player.id(), "newChatMessage", {
             mode = "Whisper",
             nickname = player.name(),
