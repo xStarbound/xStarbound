@@ -47,6 +47,7 @@ private:
   String list(ConnectionId connectionId, String const& argumentString);
   String clientCoordinate(ConnectionId connectionId, String const& argumentString);
   String serverReload(ConnectionId connectionId, String const& argumentString);
+  String serverHotReload(ConnectionId connectionId, String const& argumentString);
   String eval(ConnectionId connectionId, String const& lua);
   String entityEval(ConnectionId connectionId, String const& lua);
   String enableSpawning(ConnectionId connectionId, String const& argumentString);

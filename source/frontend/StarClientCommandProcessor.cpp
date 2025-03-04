@@ -21,6 +21,7 @@ ClientCommandProcessor::ClientCommandProcessor(UniverseClientPtr universeClient,
     m_paneManager(paneManager), m_macroCommands(std::move(macroCommands)) {
   m_builtinCommands = {
     {"reload", bind(&ClientCommandProcessor::reload, this)},
+    {"hotreload", bind(&ClientCommandProcessor::hotReload, this)},
     {"whoami", bind(&ClientCommandProcessor::whoami, this)},
     {"gravity", bind(&ClientCommandProcessor::gravity, this)},
     {"debug", bind(&ClientCommandProcessor::debug, this, _1)},
@@ -138,7 +139,12 @@ bool ClientCommandProcessor::fixedCameraEnabled() const {
 
 String ClientCommandProcessor::reload() {
   Root::singleton().reload();
-  return "Client Star::Root reloaded";
+  return "Reloaded all client asset databases";
+}
+
+String ClientCommandProcessor::hotReload() {
+  Root::singleton().hotReload();
+  return "Hot-reloaded client assets";
 }
 
 String ClientCommandProcessor::whoami() {

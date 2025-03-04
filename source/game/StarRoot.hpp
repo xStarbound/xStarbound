@@ -185,6 +185,9 @@ public:
   RadioMessageDatabaseConstPtr radioMessageDatabase();
   CollectionDatabaseConstPtr collectionDatabase();
 
+  // From OpenStarbound: For hot-reloading assets.
+  void hotReload();
+
 private:
   static StringList scanForAssetSources(StringList const& directories);
   template <typename T, typename... Params>

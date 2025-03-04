@@ -680,7 +680,16 @@ String CommandProcessor::serverReload(ConnectionId connectionId, String const&) 
   auto& root = Root::singleton();
   root.reload();
   root.fullyLoad();
-  return "";
+  return "Reloaded all server asset databases";
+}
+
+String CommandProcessor::serverHotReload(ConnectionId connectionId, String const&) {
+  if (auto errorMsg = adminCheck(connectionId, "trigger root reload"))
+    return *errorMsg;
+
+  auto& root = Root::singleton();
+  root.hotReload();
+  return "Hot-reloaded server assets";
 }
 
 String CommandProcessor::eval(ConnectionId connectionId, String const& lua) {
@@ -960,6 +969,9 @@ String CommandProcessor::handleCommand(ConnectionId connectionId, String const& 
 
   } else if (command == "serverreload") {
     return serverReload(connectionId, argumentString);
+
+  } else if (command == "serverhotreload") {
+    return serverHotReload(connectionId, argumentString);
 
   } else if (command == "eval") {
     return eval(connectionId, argumentString);

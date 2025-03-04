@@ -270,6 +270,9 @@ public:
   // Run a cleanup pass and remove any assets past their time to live.
   void cleanup();
 
+  // From OpenStarbound: Hot-reload assets.
+  void hotReload();
+
 private: // FezzedOne: These all should be private!
   static FramesSpecification parseFramesSpecification(Json const& frameConfig, String path);
 

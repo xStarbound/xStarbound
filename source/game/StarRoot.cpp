@@ -335,6 +335,11 @@ void Root::reload() {
   m_reloadListeners.trigger();
 }
 
+void Root::hotReload() {
+  MutexLocker assetsLock(m_assetsMutex);
+  m_assets->hotReload();
+}
+
 void Root::reloadWithMods(StringList modDirectories) {
   MutexLocker locker(m_modsMutex);
   m_modDirectories = std::move(modDirectories);
