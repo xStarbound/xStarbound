@@ -21,7 +21,7 @@ function module:init()
         chat.addMessage(nil, {
             context = { mode = "CommandResult" },
             nick = "",
-            message = entityName .. " " .. message,
+            text = entityName .. " " .. message,
             showPane = false,
         })
         world.sendEntityMessage(player.id(), "newChatMessage", {
