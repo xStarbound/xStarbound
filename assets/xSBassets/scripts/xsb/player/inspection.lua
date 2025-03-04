@@ -18,7 +18,7 @@ function module:init()
         else
             entityName = "^#888;::^reset,#aaa,set;"
         end
-        chat.addMessage({
+        chat.addMessage(nil, {
             context = { mode = "CommandResult" },
             nick = "",
             message = entityName .. " " .. message,
