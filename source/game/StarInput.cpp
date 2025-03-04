@@ -112,10 +112,12 @@ Json Input::inputEventToJson(InputEvent const& input) {
       {"mousePosition", jsonFromVec2I(mouseUp->mousePosition)}
     };
   } else if (auto mouseWheel = input.ptr<MouseWheelEvent>()) {
+    // FezzedOne: Fixed a minor compatibility issue.
     type = "MouseWheel";
     data = JsonObject{
-      {"mouseWheel", MouseWheelNames.getRight(mouseWheel->mouseWheel)},
-      {"mousePosition", jsonFromVec2I(mouseWheel->mousePosition)}
+      {"mouseWheel", mouseWheel->mouseWheel == MouseWheel::Up ? 1 : -1},
+      {"mousePosition", jsonFromVec2I(mouseWheel->mousePosition)},
+      {"mouseWheelName", MouseWheelNames.getRight(mouseWheel->mouseWheel)}
     };
   } else if (auto mouseMove = input.ptr<MouseMoveEvent>()) {
     type = "MouseMove";

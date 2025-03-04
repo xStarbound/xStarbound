@@ -518,9 +518,10 @@ jarray{
     type = "MouseWheel" -- Event type for a mouse button being released
     -- this tick.
     data = jobject{
-      mouseWheel = "MouseWheelUp", -- The scroll direction. Is a `MouseWheel`
-      -- value (see below).
-      mousePosition = jarray{926, 530} -- Ditto.
+      mouseWheel = 1, -- The scroll direction. `1` for up, `-1` for down.
+      mousePosition = jarray{926, 530}, -- Ditto.
+      mouseWheelName = "MouseWheelUp" -- The `MouseWheel` value for the
+      -- scroll direction (see below).
     }
   },
   jobject{
@@ -816,8 +817,8 @@ There are a large number of valid string names for keys, keymods, mouse buttons,
 
 ### `MouseWheel`
 
-- `"MouseWheelUp"`
-- `"MouseWheelDown"`
+- `"MouseWheelUp"` (equivalent to `1`)
+- `"MouseWheelDown"` (equivalent to `-1`)
 
 ### `ControllerAxis`
 
