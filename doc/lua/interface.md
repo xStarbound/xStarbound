@@ -72,7 +72,7 @@ Binds a canvas widget, returning a `CanvasWidget` object. If `ignoreInterfaceSca
 - `"CharacterAdd"`
 - `"CharacterRemove"`
 
-**Note:** On xClient v3.5+, this callback will return `nil` in any Lua context where a callback table could unsafely linger after registered panes are deregistered (which happens whenever the client swaps players), i.e., it will return callbacks *only* in pane and universe client scripts. If you need to use callbacks on a registered pane from any other script, set up a dummy script pane and appropriate pane message handlers, or ask xStarbound maintainers to add scripting support to your favourite registered pane — chat panes already have such support. (This callback's behaviour was changed in universe client scripts on xClient v3.5 due to a change in uninitialisation order.)
+**Note:** On xClient, this callback will return `nil` in any Lua context where a callback table could unsafely linger after registered panes are deregistered (which happens whenever the client swaps players), i.e., it will return callbacks *only* in pane and universe client scripts. If you need to use callbacks on a registered pane from any other script, set up a universe client script or dummy script pane and appropriate message handlers, or ask xStarbound maintainers to add scripting support to your favourite registered pane — chat panes already have such support.
 
 > **Warning:** If you're on OpenStarbound, do *not* attempt to use the returned callbacks after the "bound" pane is deregistered or uninitialised! Deregistration and uninitialisation happen whenever a player is swapped on xStarbound. Invoking callbacks on a dead pane *will* cause a segfault!
 
