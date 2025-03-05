@@ -128,14 +128,9 @@ Read this to see if xStarbound is compatible with your mods.
 - [1x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=1782208070) — won't do anything and is redundant.
 - [3x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=2681858844) — ditto.
 - [4x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=2870596125) — ditto.
-- [Bottinator22's mods](https://steamcommunity.com/profiles/76561197964469434/myworkshopfiles/?appid=211820) — these have issues with xStarbound's Lua sandbox. You'll probably have to disable `"safeScripts"` in `xclient.config` if you use any of these mods.
-- [Classic Quickbar](https://steamcommunity.com/sharedfiles/filedetails/?id=2957136802) ([GitHub](https://github.com/bongus-jive/classic-quickbar)) — not compatible with xStarbound's Lua sandbox. You must disable `"safeScripts"` in your `xclient.config` to use this mod. The keybind is supported by xStarbound.
-- [Digital Storage](https://steamcommunity.com/sharedfiles/filedetails/?id=946227505) — the server-side scripts are not compatible with xStarbound's Lua sandbox. To use this mod, you must disable `"safeScripts"` *server-side* — in your `xclient.config` in single-player, or in the host's `xclient.config` or server's `xserver.config`.
 - [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) and its [two](https://steamcommunity.com/sharedfiles/filedetails/?id=2954344118) [counterparts](https://steamcommunity.com/sharedfiles/filedetails/?id=2954354494) — their PNG compression does not play well with xClient's hardware cursor, potentially making it invisible. Use `/cursor off` if you want to use these mods.
 - [Project Knightfall](https://steamcommunity.com/sharedfiles/filedetails/?id=2010883172) ([GitHub](https://github.com/Nitrosteel/Project-Knightfall)) — some added UIs have minor issues with xStarbound's Lua sandbox.
 - [Русификатор Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2980671752) — technically fully compatible, but the mod it patches isn't compatible anyway.
-- [Stardust Core](https://steamcommunity.com/sharedfiles/filedetails/?id=764887546) and [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — these mods' scripts are not compatible with xStarbound's Lua sandbox. Either disable `"safeScripts"` or use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) instead.
-- [Stardust Suite](https://github.com/zetaPRIME/sb.StardustSuite) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — Ditto.
 - [Starloader](https://steamcommunity.com/sharedfiles/filedetails/?id=2936533996) ([GitHub](https://github.com/Starbound-Neon/StarLoader)) — fully compatible as long as `"safeScripts"` is disabled in your `xclient.config` (but be careful with that!).
 - [Unitilities | Lua Modding Library](https://steamcommunity.com/sharedfiles/filedetails/?id=2826961297) — the Hasibound-specific functionality is not supported by xStarbound.
 - Other UI scaling mods — these won't do anything and are redundant. Mods that do other stuff besides scaling the UI should work.
@@ -143,11 +138,16 @@ Read this to see if xStarbound is compatible with your mods.
 **Not compatible:** The following mods are *NOT* compatible with xStarbound:
 
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — would work if it didn't have an explicit StarExtensions check.
+- [Bottinator22's mods](https://steamcommunity.com/profiles/76561197964469434/myworkshopfiles/?appid=211820) — these have issues with xStarbound's Lua sandbox.
 - [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
+- [Classic Quickbar](https://steamcommunity.com/sharedfiles/filedetails/?id=2957136802) ([GitHub](https://github.com/bongus-jive/classic-quickbar)) — not compatible with xStarbound's Lua sandbox.
+- [Digital Storage](https://steamcommunity.com/sharedfiles/filedetails/?id=946227505) — the server-side scripts are not compatible with xStarbound's Lua sandbox.
 - [Futara's Dragon Engine](https://steamcommunity.com/sharedfiles/filedetails/?id=2297133082) — causes severe server- *and* client-side entity lag on xStarbound. Use Lukiwarble's [Starbound Optimizer](https://steamcommunity.com/sharedfiles/filedetails/?id=2777369762) instead.
 - [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) — due to poor coding in this mod, it causes a whole bunch of errors on xStarbound. Also depends on Futara's Dragon Engine and thus inherits its severe lag issue.
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
+- [Stardust Core](https://steamcommunity.com/sharedfiles/filedetails/?id=764887546) and [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — these mods' scripts are not compatible with xStarbound's Lua sandbox. Use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) instead.
+- [Stardust Suite](https://github.com/zetaPRIME/sb.StardustSuite) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — Ditto.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load on xClient and may cause crashes! However, xServer fully supports the server-side part of SE's «overground» tile placement feature.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
 - [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
