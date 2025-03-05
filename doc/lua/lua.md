@@ -253,7 +253,7 @@ array[4] = nil -- Assigns `nil` to the fourth element. Array is now `[null, null
 
 > **IMPORTANT NOTICE FOR SCRIPT MODDERS: Legacy support for shared Lua/Pluto states, and therefore unsafe cross-context Lua/Pluto state sharing and calls via sandbox exploits (i.e., smuggling values and calls through type metatables or base library tables), have been *deprecated and completely removed* in xStarbound v3.5 — disabling `"safeScripts"` *no longer* enables this functionality. Mods that use sandbox exploits to share state or make cross-context calls are *NO LONGER SUPPORTED* by xStarbound.**
 
-> **WARNING:** On stock Starbound, StarExtensions, OpenStarbound and the like, **be careful about sharing references to engine callbacks or methods via `shared` or any metatable/table hacks, as calling them *WILL* cause segfaults ("access violations" on Windows)!** When in doubt, use message handlers.
+> **WARNING:** On stock Starbound, StarExtensions, OpenStarbound and the like, **be careful about sharing references to engine callbacks or methods via `shared` or any metatable/table hacks, as calling them *WILL* cause segfaults («access violations» on Windows)!** When in doubt, use message handlers.
 >
 > Lua doesn't keep track of user-created references to callbacks after those callbacks get their lease "revoked" by the engine, which happens right after `uninit` finishes running in the context where the callback is leased, or for those "one-off" scripts without `uninit`, right after the script finishes running.
 
