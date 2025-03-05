@@ -231,7 +231,7 @@ local object = jobject{
   otherKey = true
 }
 
-object.thisKey = null -- Assigns `null` to `"thisKey"` on xStarbound, but removes this key elsewhere.
+object.thisKey = null -- Assigns `null` to `"thisKey"` on xStarbound, but removes this key otherwise.
 
 object.someKey = nil -- Assigns `null` to `"someKey"`.
 object.otherKey = nil -- Removes `"otherKey"`
