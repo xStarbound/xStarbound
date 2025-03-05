@@ -255,7 +255,7 @@ array[4] = nil -- Assigns `nil` to the fourth element. Array is now `[null, null
 
 > **WARNING:** On stock Starbound, StarExtensions, OpenStarbound and the like, **be careful about sharing references to engine callbacks or methods via `shared` or any metatable/table hacks, as calling them *WILL* cause segfaults ("access violations" on Windows)!** When in doubt, use message handlers.
 >
-> Lua/Pluto doesn't keep track of user-created references to callbacks after those callbacks get their lease "revoked" by the engine, which happens right after `uninit` finishes running in the context where the callback is leased, or for those "one-off" scripts without `uninit`, right after the script finishes running.
+> Lua doesn't keep track of user-created references to callbacks after those callbacks get their lease "revoked" by the engine, which happens right after `uninit` finishes running in the context where the callback is leased, or for those "one-off" scripts without `uninit`, right after the script finishes running.
 
 There are four main ways to share data and make calls across Lua contexts on xStarbound:
 
@@ -297,7 +297,7 @@ The following is a list of common Lua functions called by the engine when runnin
 
 > **Note:** For scripting purposes, swapping to an unloaded player with `/swap` or `/swapuuid` counts as removing the old player and adding the new one.
 
-- **`void` init()`:** Called upon initialisation in all script contexts except versioning scripts, asset preprocessor scripts and asset patch scripts.
+- **`void` init():** Called upon initialisation in all script contexts except versioning scripts, asset preprocessor scripts and asset patch scripts.
   - For entity, status controller, generic player, companion and deployment scripts, initialisation happens when the entity is spawned in the world. Players are spawned in a world any time they warp to a new world, get added, or get revived.
   - For active and fireable items, initialisation happens when the item is initially held in an NPC or player's hand.
   - For status effects, initialisation happens when the status effect is added to the entity, and also when the entity is initialised while the effect is active.
@@ -305,7 +305,7 @@ The following is a list of common Lua functions called by the engine when runnin
   - For local animator scripts, initialisation happens when the associated entity, tech or item is loaded on the client. For client-controlled players, unloading happens every time a player warps to a new world, gets added, or gets revived.
   - For scripted panes, initialisation happens when the pane is first opened, *before* `displayed` (see below) is invoked.
   - See `statistics.md` for statistics scripts.
-- **`void` uninit()`:** Called upon uninitialisation in all script contexts except versioning scripts, asset preprocessor scripts and asset patch scripts.
+- **`void` uninit():** Called upon uninitialisation in all script contexts except versioning scripts, asset preprocessor scripts and asset patch scripts.
   - For entity, status controller, generic player, companion and deployment scripts, uninitialisation happens when the entity is despawned in the world. Players are despawned in a world any time they warp away from the world, get removed or die.
   - For active and fireable items, uninitialisation happens when the item stops being held in the NPC or player's hand.
   - For status effects, uninitialisation happens when the status effect expires or is removed from the entity, and also when the entity is uninitialised while the effect is active.
