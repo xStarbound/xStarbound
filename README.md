@@ -4,15 +4,17 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
 
 Compiled builds for Linux and Windows should be available in the usual place on this repository.
 
-> **FYI:** If you're connecting to an OpenStarbound server or hosting for OpenStarbound clients, scroll down to *Network compatibility*!
+> ⚠️ **Notice: Several previously partially compatible mods have become *totally incompatible* with xStarbound as of v3.5. See [Mod compatibility](#mod-compatibility) below for more info.**
+
+> ℹ️ **FYI:** If you're connecting to an OpenStarbound server or hosting for OpenStarbound clients, scroll down to *Network compatibility*!
 
 ## Changes
 
 - Several new commands (by @fezzedone)! Type `/xclient` for info on the new client-side commands, or `/help` (on xServer, an xClient host or in single-player on xClient) to see the new server-side ones.
 - Nicer (and optimised) non-pixelated humanoid tech and status effect scaling for players and NPCs (reimplementation by @fezzedone).
 - Now runs [Pluto](https://pluto-lang.org/), a fork of Lua 5.4!
-- Full Lua sandboxing when `"safeScripts"` is enabled! By @fezzedone.
-  - To replace the old, potentially crash-prone sandbox-breaking code used by certain mods, new Lua callbacks for safely saving and reading variables in global variable tables with the same expected cross-context scopes.
+- Full Lua sandboxing! By @fezzedone.
+  - To replace the old, potentially crash-prone sandbox-breaking code used by certain mods, xStarbound supports pane message handlers and Lua callbacks for safely saving and reading variables in global variable tables with the same expected cross-context scopes.
   - **Note:** This causes some mod compatibility issues; see below for affected mods.
 - Full, up-to-date Lua API documentation. (Aside from a lot of engine calls into Lua scripts.)
 - Support for underlaying and overlaying cosmetic items, by @fezzedone. Two types of layering are supported:
@@ -66,7 +68,9 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 
 Read this to see if xStarbound is compatible with your mods.
 
-**Has xStarbound support:** The following mods have special functionality that requires or is supported by xStarbound.
+### ☑️ Has xStarbound support
+
+The following mods have special functionality that requires or is supported by xStarbound.
 
 - [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — fully supported by xStarbound.
 - [Alternate UI Sounds [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3360332852) — should be supported by xStarbound; report any issues.
@@ -103,7 +107,9 @@ Read this to see if xStarbound is compatible with your mods.
 - [xWEdit](https://github.com/fezzedone/xWEdit) — this WEdit fork requires xStarbound for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
 - Mods that change the size or number of bags in the inventory or hotbar — as of xSB v2.4, xStarbound gives these mods full compatibility with vanilla multiplayer and existing characters «out of the box».
 
-**Compatible:** Any mod not listed in the «partially compatible» or «not compatible» category should be compatible. Major mods that have been tested to be compatible:
+### ✅ Compatible
+
+Any mod not listed in the «partially compatible» or «not compatible» category should be compatible. Major mods that have been tested to be compatible:
 
 - [Arcana](https://steamcommunity.com/workshop/filedetails/?id=2359135864) — use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) to satisfy this mod's «Stardust Core Lite» dependency (see that mod below for why).
 - [Avali (Triage) Race Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=729558042).
@@ -112,7 +118,7 @@ Read this to see if xStarbound is compatible with your mods.
 - [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — the keybind is not supported by xStarbound solely due to an explicit StarExtensions check.
 - [Maple32](https://steamcommunity.com/sharedfiles/filedetails/?id=2568667104&searchtext=maple32).
 - [NPC Mechs](https://steamcommunity.com/sharedfiles/filedetails/?id=1788644520) — compatible, but requires the compatibility patch in this repo.
-- [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034). Note that the Classic Quickbar extension (see below) has sandbox-related compatibility issues!
+- [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034). Note that the Classic Quickbar extension (see below) has sandbox-related compatibility issues.
 - [Shellguard: Starbound Expansion Remastered](https://steamcommunity.com/sharedfiles/filedetails/?id=1563376005).
 - [Updated Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=2641776549) — use this instead of Classic Quickbar (see below) to avoid having to disable `"safeScripts"`.
 - [WTM (WTM Teleporter Mod)](https://steamcommunity.com/sharedfiles/filedetails/?id=1268222595) — verified compatible with `"safeScripts"` enabled; the developer Hiran is also behind Digital Storage (see below).
@@ -123,7 +129,9 @@ Read this to see if xStarbound is compatible with your mods.
 > - Mods intended to patch in «body dynamics» support for other mods simply will not work at all.
 > - Race mods that support StarExtensions' text-to-speech feature will work just fine, but the text-to-speech functionality won't work.
 
-**Partially compatible:** The following mods are only partially compatible with xStarbound:
+### ⚠️ Partially compatible
+
+The following mods are only partially compatible with xStarbound:
 
 - [1x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=1782208070) — won't do anything and is redundant.
 - [3x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=2681858844) — ditto.
@@ -135,7 +143,9 @@ Read this to see if xStarbound is compatible with your mods.
 - [Unitilities | Lua Modding Library](https://steamcommunity.com/sharedfiles/filedetails/?id=2826961297) — the Hasibound-specific functionality is not supported by xStarbound.
 - Other UI scaling mods — these won't do anything and are redundant. Mods that do other stuff besides scaling the UI should work.
 
-**Not compatible:** The following mods are *NOT* compatible with xStarbound:
+### ❌ Not compatible
+
+The following mods are *NOT* compatible with xStarbound:
 
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — would work if it didn't have an explicit StarExtensions check.
 - [Bottinator22's mods](https://steamcommunity.com/profiles/76561197964469434/myworkshopfiles/?appid=211820) — these have issues with xStarbound's Lua sandbox.
