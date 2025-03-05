@@ -386,9 +386,8 @@ bool TextBoxWidget::innerSendEvent(InputEvent const& event) {
       size_t steps = calculateSteps(false);
       m_repeatCode = SpecialRepeatKeyCodes::Left;
       for (size_t i = 0; i < steps; i++) {
-        m_cursorOffset--;
-        if (m_cursorOffset < 0)
-          m_cursorOffset = 0;
+        if (m_cursorOffset != 0)
+          m_cursorOffset--;
       }
       return true;
     }
