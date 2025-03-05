@@ -15,7 +15,7 @@ Additionally, `interface.bindRegisteredPane` (see `interface.md`) can also retur
 
 Returns a table of widget callbacks (see `widget.md`). The returned callbacks are "bound" to *this* pane as a widget.
 
-> **Warning:** If you have `"safeScripts"` disabled on xStarbound, or regardless of this on other clients, do *not* smuggle and use the returned callbacks after the "bound" pane is deregistered or uninitialised! Doing so anyway *will* cause a segfault!
+> **Warning:** On non-xStarbound clients, do *not* smuggle and use the returned callbacks after the "bound" pane is deregistered or uninitialised! Doing so anyway *will* cause a segfault!
 
 ---
 

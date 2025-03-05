@@ -171,11 +171,9 @@ Sets an instance value (parameter) of the item.
 
 Attempts to call the specified function name with the specified argument values in the context of an active item held in the opposing hand and synchronously returns the result if successful.
 
-On xStarbound with `"safeScripts"` enabled, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
+On xStarbound, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
 
-> **Warning:** If `"safeScripts"` is disabled on xStarbound, and regardless of this on other Starbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value.
->
-> If unsafe passing is allowed, you should avoid passing Lua bindings or anything that can call them. Calling active item bindings after the active item has been removed from the game *will* almost certainly cause segfaults or memory corruption!
+> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such clients and servers, you should avoid passing Lua bindings or anything that can call them. Calling active item bindings after the active item has been removed from the game *will* almost certainly cause segfaults or memory corruption!
 
 ---
 

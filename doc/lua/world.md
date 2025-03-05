@@ -40,7 +40,7 @@ Returns a global script variable (if `getGlobal` is called with a specified stri
 
 On xClient, these variables are shared across all client-side script contexts where the `world` table is available, and persist until disconnection. On xServer, these variables are shared across all script contexts running on a given world, and persist until that world is unloaded.
 
-**Note:** These callbacks are a safer preferred alternative to using `shared` and smuggling global context variables through metatables and library tables.
+**Note:** These callbacks are xStarbound's alternative to using `shared` and smuggling global context variables through metatables and library tables, which xStarbound no longer supports.
 
 ---
 
@@ -53,7 +53,7 @@ Sets a global script variable (if `setGlobal` is called with a specified string 
 
 On xClient, these variables are shared across all client-side script contexts where the `world` table is available, and persist until disconnection. On xServer, these variables are shared across all script contexts running on a given world, and persist until that world is unloaded.
 
-**Note:** These callbacks are a safer preferred alternative to using `shared` and smuggling global context variables through metatables and library tables, which is disallowed on xStarbound when `"safeScripts"` is enabled.
+**Note:** These callbacks are xStarbound's alternative to using `shared` and smuggling global context variables through metatables and library tables, which xStarbound no longer supports.
 
 ---
 
@@ -529,12 +529,12 @@ Queries for entities in a specified area of the world and returns a list of thei
 - __boundMode__ - Specifies the bounding mode for determining whether entities fall within the query area. Valid options are `"position"`, `"collisionarea"` and `"metaboundbox"`. Defaults to `"collisionarea"` if unspecified.
 - __order__ - A `String` used to specify how the results will be ordered. If this is set to `"nearest"` the entities will be sorted by ascending distance from the first positional argument. If this is set to `"random"` the list of results will be shuffled. If not specified, the list of entities will be in an undefined order.
 - __callScript__ - Specifies a `String` name of a function that should be called in the script context of all scripted entities matching the query. Accepts Lua dot notation.
-- __callScriptArgs__ - Specifies a list of arguments — `Json` values if `"safeScripts"` is enabled on xStarbound, or `LuaValue`s otherwise — that will be passed to the function called by `callScript`.
-- __callScriptResult__ - Specifies a value — `Json` if `"safeScripts"` is enabled on xStarbound, or a `LuaValue` otherwise — that the function called by callScript must return; entities whose script calls do not return this value will be excluded from the results. Defaults to `true`. On xStarbound, `null` or `json.null` may be passed if you want to make sure the called function returns a `nil` or nothing.
+- __callScriptArgs__ - Specifies a list of arguments — `Json` values on xStarbound, or `LuaValue`s otherwise — that will be passed to the function called by `callScript`.
+- __callScriptResult__ - Specifies a value — `Json` on xStarbound, or a `LuaValue` otherwise — that the function called by `callScript` must return; entities whose script calls do not return this value will be excluded from the results. Defaults to `true`. On xStarbound, `null` or `json.null` may be passed if you want to make sure the called function returns a `nil` or nothing.
 
-On xStarbound with `"safeScripts"` enabled, all `callScript` arguments and the `callScriptResult` must be valid JSON, and an error will be thrown after the first script call if the returned result isn't convertible to valid JSON before comparison happens.
+On xStarbound, all `callScript` arguments and the `callScriptResult` must be valid JSON, and an error will be thrown after the first script call if the returned result isn't convertible to valid JSON before comparison happens.
 
-**Warning:** If `"safeScripts"` is disabled on xStarbound, and regardless of this on other Starbound servers and clients, potentially unsafe Lua values can be passed through `callScriptArgs` and `callScriptResult`. If unsafe passing is allowed, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
+**Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `callScriptArgs` and `callScriptResult`. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
 
 ---
 
@@ -902,18 +902,16 @@ A combination of `world.containerItemApply` and `world.containerSwapItemsNoCombi
 
 ---
 
-#### `Json` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`Json...` args])
-#### `LuaValue` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`LuaValue...` args])
+#### [xStarbound] `Json` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`Json...` args])
+#### [Non-xStarbound] `LuaValue` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`LuaValue...` args])
 
 Attempts to call the specified function name in the context of the specified scripted entity with any specified arguments and returns the result of that call. This method is synchronous and thus can only be used on local master entities, i.e. scripts run on the server may only call scripted entities (on the same world) that are also server-side mastered, and scripts run on the client may only call scripted entities that are client-side mastered on that client.
 
-On xStarbound with `"safeScripts"` enabled, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
+On xStarbound, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
 
 For more featureful entity messaging, use `world.sendEntityMessage`. To call a world script context, use `world.callScriptContext` server-side or set up an appropriate message handler in a server-side script and send an entity message that invokes it client-side.
 
-> **Warning:** If `"safeScripts"` is disabled on xStarbound, and regardless of this on other Starbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value.
->
-> If unsafe passing is allowed, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
+> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
 
 ---
 
@@ -1023,20 +1021,18 @@ The following `world` bindings are available only in server-side scripts.
 
 ---
 
-#### `Json` world.callScriptContext(`String` contextName, `String` functionName, [`Json...` args])
-#### `LuaValue` world.callScriptContext(`String` contextName, `String` functionName, [`LuaValue...` args])
+#### [xStarbound] `Json` world.callScriptContext(`String` contextName, `String` functionName, [`Json...` args])
+#### [OpenStarbound] `LuaValue` world.callScriptContext(`String` contextName, `String` functionName, [`LuaValue...` args])
 
 > **Available only on xStarbound and OpenStarbound.**
 
 Attempts to call the specified function name in the specified world script context (on the same world as the context or entity calling this binding) with any specified arguments and returns the result of that call.
 
-On xStarbound with `"safeScripts"` enabled, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
+On xStarbound, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
 
 To message *other* worlds, use `universe.sendWorldMessage` in a world context script (see `universeserver.md`). If you need to message another world from a server-side entity, use `world.callScriptContext` to "pass through" to a `universe.sendWorldMessage` call. Both client- and server-side entities may also use `world.sendEntityMessage` for "passthrough".
 
-> **Warning:** If `"safeScripts"` is disabled on xStarbound, and regardless of this on other Starbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value.
->
-> If unsafe passing is allowed, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
+> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
 
 ---
 

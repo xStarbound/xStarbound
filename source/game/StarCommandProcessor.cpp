@@ -729,17 +729,10 @@ String CommandProcessor::entityEval(ConnectionId connectionId, String const& lua
             targetEntity = entity;
         }
 
-        if (config->get("safeScripts").toBool()) {
-          if (auto res = targetEntity->evalScriptJson(lua))
-            message = res->repr();
-          else
-            message = "Error evaluating script in entity context, check log";
-        } else {
-          if (auto res = targetEntity->evalScript(lua))
-            message = toString(*res);
-          else
-            message = "Error evaluating script in entity context, check log";
-        }
+        if (auto res = targetEntity->evalScript(lua))
+          message = toString(*res);
+        else
+          message = "Error evaluating script in entity context, check log";
       });
 
   return done ? message : "Failed to evaluate script";

@@ -326,10 +326,10 @@ void LuaWorldComponent<Base>::init(World* world) {
     uninit();
 
   auto config = Root::singleton().configuration();
-  if (config->get("safeScripts").toBool())
-    Base::setLuaRoot(make_shared<LuaRoot>());
-  else
-    Base::setLuaRoot(world->luaRoot());
+  // if (config->get("safeScripts").toBool())
+  Base::setLuaRoot(make_shared<LuaRoot>());
+  // else
+  //   Base::setLuaRoot(world->luaRoot());
 
   auto assets = Root::singleton().assets();
 

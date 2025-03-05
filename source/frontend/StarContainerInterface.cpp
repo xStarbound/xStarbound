@@ -62,7 +62,7 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
     // FezzedOne: The clipboard callbacks don't actually use the main interface, so it's fine to put a null pointer there.
     m_script->addCallbacks("clipboard", LuaBindings::makeClipboardCallbacks(nullptr));
     if (mainInterface) {
-      m_script->addCallbacks("interface", LuaBindings::makeInterfaceCallbacks(mainInterface));
+      m_script->addCallbacks("interface", LuaBindings::makeInterfaceCallbacks(mainInterface, true));
       m_script->addCallbacks("chat", LuaBindings::makeChatCallbacks(mainInterface));
     }
 

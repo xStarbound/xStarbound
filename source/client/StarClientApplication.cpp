@@ -157,10 +157,12 @@ void ClientApplication::startup(StringList const& cmdLineArgs) {
 }
 
 void ClientApplication::shutdown() {
+  if (m_mainInterface)
+    m_mainInterface->clean();
+
   if (m_universeClient)
     m_universeClient->disconnect();
 
-  // FezzedOne: Fixed `bindRegisteredPane` returning `nil` on `uninit` when closing the client.
   m_mainInterface.reset();
 
   if (m_universeServer) {
@@ -509,16 +511,13 @@ void ClientApplication::changeState(MainAppState newState) {
   }
 
   if (oldState > MainAppState::Title && m_state <= MainAppState::Title) {
-    // FezzedOne: Moved up here just to ensure no unsafe `world` calls can
-    // happen when `uninit` is called on script panes. Even though the main
-    // interface does own a shared pointer to the universe client, but
-    // still.
-    m_cinematicOverlay->stop();
+    m_mainInterface->clean();
+
     if (m_universeClient)
       m_universeClient->disconnect();
 
-    // FezzedOne: Fixed `bindRegisteredPane` sometimes returning `nil` on `uninit`.
     m_mainInterface.reset();
+    m_cinematicOverlay->stop();
 
     if (m_universeServer) {
       m_universeServer->stop();
@@ -725,14 +724,8 @@ void ClientApplication::changeState(MainAppState newState) {
     m_titleScreen->stopMusic();
 
     m_mainInterface = make_shared<MainInterface>(m_universeClient, m_worldPainter, m_cinematicOverlay);
-    // FezzedOne: Fixed a segfault caused by invoking lingering callbacks returned by `bindRegisteredPane` after a player swap while `"safeScripts"` is
-    // enabled by removing the ability to have lingering tables in any context where the Lua root *isn't* purged upon a swap.
-    if (m_root->configuration()->get("safeScripts").toBool()) {
-      m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), true), 1);
-      m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), false), 2);
-    } else {
-      m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), true));
-    }
+    m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), true), 1);
+    m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), false), 2);
     m_universeClient->setLuaCallbacks("clipboard", LuaBindings::makeClipboardCallbacks(m_mainInterface.get()));
     m_universeClient->setLuaCallbacks("chat", LuaBindings::makeChatCallbacks(m_mainInterface.get()));
     m_universeClient->startLua();

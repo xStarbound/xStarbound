@@ -66,7 +66,7 @@ void BaseScriptPane::displayed() {
     // FezzedOne: The clipboard callbacks don't actually use the main interface, so it's fine to put a null pointer there.
     m_script.addCallbacks("clipboard", LuaBindings::makeClipboardCallbacks(nullptr));
     if (m_mainInterface) {
-      m_script.addCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface));
+      m_script.addCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface, true));
       m_script.addCallbacks("chat",
         LuaBindings::makeChatCallbacks(m_mainInterface, m_removeHoakyChatCallbacks));
     }

@@ -77,19 +77,19 @@ namespace LuaBindings {
       });
     }
 
-    bool safeScriptsEnabled = config->get("safeScripts").toBool();
+    // bool safeScriptsEnabled = config->get("safeScripts").toBool();
 
     Maybe<String> callScript = options.get<Maybe<String>>("callScript"); 
     List<LuaValue> callScriptArgs = {}; LuaValue callScriptResult = LuaNil;
     LuaVariadic<Json> callScriptArgsJson = {}; Json callScriptResultJson = Json();
     if (callScript) {
-      if (safeScriptsEnabled) {
-        callScriptArgsJson = options.get<Maybe<List<Json>>>("callScriptArgs").value();
-        callScriptResultJson = options.get<Maybe<Json>>("callScriptResult").value(Json{true});
-      } else {
-        callScriptArgs = options.get<Maybe<List<LuaValue>>>("callScriptArgs").value();
-        callScriptResult = options.get<Maybe<LuaValue>>("callScriptResult").value(LuaBoolean(true));
-      }
+      // if (safeScriptsEnabled) {
+      callScriptArgsJson = options.get<Maybe<List<Json>>>("callScriptArgs").value();
+      callScriptResultJson = options.get<Maybe<Json>>("callScriptResult").value(Json{true});
+      // } else {
+      //   callScriptArgs = options.get<Maybe<List<LuaValue>>>("callScriptArgs").value();
+      //   callScriptResult = options.get<Maybe<LuaValue>>("callScriptResult").value(LuaBoolean(true));
+      // }
     }
 
     Maybe<Line2F> lineQuery = options.get<Maybe<Line2F>>("line");
@@ -119,16 +119,15 @@ namespace LuaBindings {
         if (!scriptedEntity || !scriptedEntity->isMaster())
           return false;
 
-        if (safeScriptsEnabled) {
-          // LuaVariadic<Json> jsonArgs = callScriptArgsJson;
-          Maybe<Json> res = scriptedEntity->callScript(*callScript, callScriptArgsJson);
-          if (!res || *res != callScriptResultJson)
-            return false;
-        } else {
-          auto res = scriptedEntity->callScript(*callScript, luaUnpack(callScriptArgs));
-          if (!res || *res != callScriptResult)
-            return false;
-        }
+        // if (safeScriptsEnabled) {
+        Maybe<Json> res = scriptedEntity->callScript(*callScript, callScriptArgsJson);
+        if (!res || *res != callScriptResultJson)
+          return false;
+        // } else {
+        //   auto res = scriptedEntity->callScript(*callScript, luaUnpack(callScriptArgs));
+        //   if (!res || *res != callScriptResult)
+        //     return false;
+        // }
       }
 
       auto position = entity->position();
@@ -1393,14 +1392,14 @@ namespace LuaBindings {
     auto context = as<WorldServer>(world)->scriptContext(contextName);
     if (!context)
       throw StarException::format("Context '{}' does not exist", contextName);
-    if (Root::singleton().configuration()->get("safeScripts").toBool()) {
-      auto jsonArgs = LuaVariadic<Json>{};
-      for (auto& arg : args) {
-        jsonArgs.emplaceAppend(engine.luaTo<Json>(arg));
-      }
-      return engine.luaFrom<Maybe<Json>>(context->invoke<Json>(function, jsonArgs));
-    } else
-      return context->invoke<LuaValue>(function, args);
+    // if (Root::singleton().configuration()->get("safeScripts").toBool()) {
+    auto jsonArgs = LuaVariadic<Json>{};
+    for (auto& arg : args) {
+      jsonArgs.emplaceAppend(engine.luaTo<Json>(arg));
+    }
+    return engine.luaFrom<Maybe<Json>>(context->invoke<Json>(function, jsonArgs));
+    // } else
+    //   return context->invoke<LuaValue>(function, args);
   }
 
   void WorldDebugCallbacks::debugPoint(Vec2F const& arg1, Color const& arg2) {
@@ -1975,14 +1974,14 @@ namespace LuaBindings {
     auto entity = as<ScriptedEntity>(world->entity(entityId));
     if (!entity || !entity->isMaster())
       throw StarException::format("Entity {} does not exist or is not a local master scripted entity", entityId);
-    if (Root::singleton().configuration()->get("safeScripts").toBool()) {
-      auto jsonArgs = LuaVariadic<Json>{};
-      for (auto& arg : args) {
-        jsonArgs.emplaceAppend(engine.luaTo<Json>(arg));
-      }
-      return engine.luaFrom<Maybe<Json>>(entity->callScript(function, jsonArgs));
-    } else
-      return entity->callScript(function, args);
+    // if (Root::singleton().configuration()->get("safeScripts").toBool()) {
+    auto jsonArgs = LuaVariadic<Json>{};
+    for (auto& arg : args) {
+      jsonArgs.emplaceAppend(engine.luaTo<Json>(arg));
+    }
+    return engine.luaFrom<Maybe<Json>>(entity->callScript(function, jsonArgs));
+    // } else
+    //   return entity->callScript(function, args);
   }
 
   RpcPromise<Vec2F> WorldEntityCallbacks::findUniqueEntity(World* world, String const& uniqueId) {

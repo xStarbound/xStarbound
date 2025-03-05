@@ -197,12 +197,12 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
 
     // FezzedOne: I'll never know why the gods-damned world client couldn't access the universe client to begin with.
     m_worldClient = make_shared<WorldClient>(m_mainPlayer, this);
-    bool safeScripts = root.configuration()->get("safeScripts").toBool();
+    // bool safeScripts = root.configuration()->get("safeScripts").toBool();
     for (auto& pair : m_luaCallbacks) {
       // Make sure non-universe scripts get the safe version of `interface`.
-      if (!safeScripts || pair.first != "interface")
+      if (pair.first != "interface") // || !safeScripts
         m_worldClient->setLuaCallbacks(pair.first, pair.second);
-      if (safeScripts && pair.first == "safeInterface")
+      if (pair.first == "safeInterface") // && safeScripts
         m_worldClient->setLuaCallbacks("interface", pair.second);
     }
 
@@ -675,6 +675,8 @@ void UniverseClient::setLuaCallbacks(String const& groupName, LuaCallbacks const
 void UniverseClient::startLua() {
   if (!m_luaRoot)
     m_luaRoot = make_shared<LuaRoot>();
+  auto clientConfig = Root::singleton().assets()->json("/client.config");
+  m_luaRoot->tuneAutoGarbageCollection(clientConfig.getFloat("luaGcPause"), clientConfig.getFloat("luaGcStepMultiplier"));
   setLuaCallbacks("celestial", LuaBindings::makeCelestialCallbacks(this));
   if (m_worldClient)
     setLuaCallbacks("world", LuaBindings::makeWorldCallbacks(as<World>(m_worldClient.get())));
@@ -698,6 +700,12 @@ void UniverseClient::stopLua() {
     p.second->uninit();
 
   m_scriptContexts.clear();
+
+  // FezzedOne: In order to safely inject `world` callbacks into universe client scripts, we must reset the
+  // Lua VM when the world client is reset. We must also reset the Lua VM whenever a player is swapped in
+  // order to prevent smuggling of bound `interface`, `pane` and `widget` callbacks in universe client scripts.
+  if (m_luaRoot) m_luaRoot->shutdown();
+  m_luaRoot.reset();
 }
 
 // FezzedOne: Added message handling for universe client and pane scripts.
@@ -733,10 +741,6 @@ bool UniverseClient::playerIsLoaded(Uuid const& uuid) {
 }
 
 void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) {
-  bool safeScriptsEnabled = false;
-  if (m_playerReloadPreCallback && resetInterfaces)
-    safeScriptsEnabled = Root::singleton().configuration()->get("safeScripts").toBool();
-
   for (auto& loadedPlayer : m_loadedPlayers) {
     if (!loadedPlayer.second.loaded) return;
 
@@ -746,7 +750,6 @@ void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) 
     bool playerInWorld = player->inWorld();
     if (!playerInWorld) continue;
 
-    bool alreadyLoaded = false;
     auto worldPtr = m_mainPlayer->world();
     auto world = as<WorldClient>(worldPtr);
     auto uuid = player->uuid();
@@ -756,10 +759,8 @@ void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) 
     bool alreadyHasId = playerInWorld || !world->inWorld();
     EntityId entityId = alreadyHasId ? player->entityId() : entitySpace.first; // entitySpace.first;
 
-    bool safeScriptsEnabled = false;
-
     if (m_playerReloadPreCallback) {
-      if (resetInterfaces && safeScriptsEnabled)
+      if (resetInterfaces)
         // FezzedOne: Needed because of `interface.bindRegisteredPane`.
         stopLua();
       m_playerReloadPreCallback(resetInterfaces);
@@ -789,7 +790,7 @@ void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) 
       // FezzedOne: Fixed `bindRegisteredPane` not being able to bind any panes on `init`
       // after a full reload.
       m_playerReloadCallback(resetInterfaces);
-      if (resetInterfaces && safeScriptsEnabled) {
+      if (resetInterfaces) {
         // FezzedOne: Needed because of `interface.bindRegisteredPane`.
         m_luaRoot = make_shared<LuaRoot>();
         startLua();
@@ -883,13 +884,8 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
   m_mainPlayer->setBusyState(PlayerBusyState::None);
   m_mainPlayer->passChatOpen(false);
 
-  bool safeScriptsEnabled = (bool)m_playerReloadPreCallback && 
-                            resetInterfaces &&
-                            Root::singleton().configuration()->get("safeScripts").toBool();
-
   if (m_playerReloadPreCallback) {
-    if (resetInterfaces && safeScriptsEnabled)
-      // FezzedOne: Needed because of `interface.bindRegisteredPane`.
+    if (resetInterfaces)
       stopLua();
     m_playerReloadPreCallback(resetInterfaces);
   }
@@ -955,8 +951,7 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     // FezzedOne: Fixed `bindRegisteredPane` not being able to bind any panes on `init`
     // after a swap.
     m_playerReloadCallback(resetInterfaces);
-    if (resetInterfaces && safeScriptsEnabled) {
-      // FezzedOne: Needed because of `interface.bindRegisteredPane`.
+    if (resetInterfaces) {
       m_luaRoot = make_shared<LuaRoot>();
       startLua();
     }
@@ -1403,12 +1398,6 @@ void UniverseClient::reset() {
 
   m_loadedPlayers = {};
   m_connection.reset();
-
-  // FezzedOne: In order to safely inject `world` callbacks into universe client scripts, must reset the Lua root when the world client is reset.
-  auto clientConfig = Root::singleton().assets()->json("/client.config");
-  if (m_luaRoot) m_luaRoot->shutdown();
-  m_luaRoot = make_shared<LuaRoot>();
-  m_luaRoot->tuneAutoGarbageCollection(clientConfig.getFloat("luaGcPause"), clientConfig.getFloat("luaGcStepMultiplier"));
 }
 
 }

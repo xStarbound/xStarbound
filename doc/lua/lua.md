@@ -100,8 +100,8 @@ Since `require` is modified, all Pluto libraries except `exception` are preloade
 - `json` - [JSON library](https://pluto-lang.org/docs/Runtime%20Environment/JSON). `json.null` is recognised by Starbound's engine as a JSON `null` in all cases.
 - `pluto_assert` - [Assertion library](https://pluto-lang.org/docs/Runtime%20Environment/Assert).
 - `scheduler` - [Scheduler library](https://pluto-lang.org/docs/Runtime%20Environment/Scheduler).
-- `socket` - [Socket library](https://pluto-lang.org/docs/Runtime%20Environment/Socket) (not available with `"safeScripts"` for obvious reasons).
-- `url` - [URL library](https://pluto-lang.org/docs/Runtime%20Environment/Socket). Not available with `"safeScripts"` for obvious reasons).
+- `socket` - [Socket library](https://pluto-lang.org/docs/Runtime%20Environment/Socket) Not available with `"safeScripts"` for obvious reasons.
+- `url` - [URL library](https://pluto-lang.org/docs/Runtime%20Environment/Socket). Not available with `"safeScripts"` for obvious reasons.
 - `vector3` - [Vector3 library](https://pluto-lang.org/docs/Runtime%20Environment/Vector3). Three-element vectors aren't particularly useful in Starbound though. For two-element vector manipulation, use `require "/scripts/util/vec2.lua`.
 - `xml` - [XML library](https://pluto-lang.org/docs/Runtime%20Environment/XML).
 
@@ -148,6 +148,8 @@ If `require` is used in a preprocessor script, it can only load scripts that wer
 The only difference from the standard `coroutine.resume` is that the Starbound version logs a more useful traceback by default when an error occurs.
 
 ## `"safeScripts"`
+
+> **NOTICE: Support for unsafe legacy shared Lua states on xStarbound with `"safeScripts"` disabled has been deprecated in xStarbound v3.5. See *Function calls and data transfer across Lua/Pluto contexts* below for more.**
 
 `"safeScripts"` in `xclient.config` disables certain base Lua callbacks and libraries that allow potentially unsafe OS/filesystem access when `true` (the default), limiting the damage that malicious mods can do to your system.
 
@@ -247,26 +249,36 @@ local array = jarray{nil, nil, true, nil} -- Array is actually `[null, null, tru
 array[4] = nil -- Assigns `nil` to the fourth element. Array is now `[null, null, true, null]`.
 ```
 
-## `"safeScripts"`, world globals, `shared` and Lua context smuggling
+## Function calls and data transfer across Lua/Pluto contexts
 
-> **Note:** On xStarbound v3.0+ with `"safeScripts"` enabled, unsafe Lua callback references and other unsafe Lua values can no longer cause cryptic segfaults (known as "access violations" on Windows), since they can no longer ever be invoked past their "lease" outside of their respective script contexts.
+> **NOTICE FOR SCRIPT MODDERS: xStarbound v3.5+ has completely removed legacy support (via disabling `"safeScripts"`) for unsafe cross-context Lua/Pluto state sharing, which allowed mods to transfer values via type metatables or base libraries. Mods that use legacy state sharing methods are *NO LONGER SUPPORTED*. You must now use xStarbound’s officially supported cross-context communication systems — see below! — as an alternative.**
 
-> **WARNING:** On stock Starbound, StarExtensions, OpenStarbound and the like, or if you have `"safeScripts"` disabled on xStarbound, **be careful about sharing references to engine callbacks or methods via `shared` or any metatable/table hacks, as calling them *WILL* cause segfaults ("access violations" on Windows)!** When in doubt, use message handlers and keep `"safeScripts"` enabled on xStarbound.
+> **WARNING:** On stock Starbound, StarExtensions, OpenStarbound and the like, **be careful about sharing references to engine callbacks or methods via `shared` or any metatable/table hacks, as calling them *WILL* cause segfaults ("access violations" on Windows)!** When in doubt, use message handlers.
 >
 > Lua/Pluto doesn't keep track of user-created references to callbacks after those callbacks get their lease "revoked" by the engine, which happens right after `uninit` finishes running in the context where the callback is leased, or for those "one-off" scripts without `uninit`, right after the script finishes running.
 
-There are six ways to share data across Lua contexts on xStarbound (and only five on other clients and servers):
+There are four main ways to share data and make calls across Lua contexts on xStarbound:
 
-- `world.sendEntityMessage`, `universe.sendWorldMessage` and appropriate message handlers allow JSON values to be shared across contexts and even across world states.
+- `world.sendEntityMessage`, `universe.sendWorldMessage` and appropriate message handlers allow JSON values to be shared and function/callback calls to be made across contexts and even across world states. In addition to all the script contexts that can have message handlers in stock Starbound, OpenStarbound, etc., xStarbound supports setting message handlers in pane and universe client scripts as of v3.4.5.1+.
 - `world.getGlobal`, `world.getGlobals`, `world.setGlobal` and `world.setGlobals` allow JSON values to be shared across contexts that have access to `world`. Only available on xStarbound.
-  - Client-side, there is only a single world globals table that only gets cleared upon disconnection.
+  - Client-side, there is only a single world globals table that only gets cleared upon disconnection, exiting the client or returning to the main menu.
   - Server-side, each world has its own globals table that gets cleared when the world is unloaded.
-- The `shared` table is available in all Lua contexts for sharing Lua values across contexts in the same Lua state. *On xStarbound with `"safeScripts"` disabled and on other clients and servers regardless, this is potentially unsafe — calling "overleased" shared callback functions, or code containing calls to them, will cause segfaults!*
-- Lua/Pluto values can be shared across contexts with `world.callScriptedEntity`, `world.callScriptContext`, `activeItem.callOtherHandScript` and the `callScriptArgs` argument to `world.entityQuery`. JSON sanitisation is enforced on all values shared this way when `"safeScripts"` is enabled on xStarbound. *On xStarbound with `"safeScripts"` disabled and on other clients and servers regardless, this is unsafe, like `shared`!*
-- Values stored in Lua/Pluto base library tables (`math`, `os`, `table`, `json`, etc.) are shared across contexts, just as for `shared`. (The metatables of these tables are inaccessible though.) *On xStarbound with `"safeScripts"` disabled and on other clients and servers regardless, this is unsafe, like `shared`!*
-- The "type metatables" shared across all values of each Lua type, other than tables and "full" userdata objects (not light userdata), are shared across contexts. *On xStarbound with `"safeScripts"` disabled and on other clients and servers regardless, this is unsafe, like `shared`!*
+- The `shared` table is available in all Lua contexts for sharing Lua values across contexts in the same Lua state. *On non-xStarbound clients and servers, this is potentially unsafe — calling «overleased» shared callback functions, or code containing calls to them, will cause segfaults!*
+- JSON-serialisable values — or on non-xStarbound servers and clients, Lua/Pluto values — can be shared across contexts, and function/callback calls can be made across contexts, with `world.callScriptedEntity`, `world.callScriptContext`, `activeItem.callOtherHandScript` and the `callScriptArgs` argument to `world.entityQuery`. JSON sanitisation is enforced on all values shared this way on xStarbound. *On non-xStarbound clients and servers regardless, this is potentially unsafe, like `shared`!*
 
-Lua values cannot be shared across Lua states. For reference, Lua states on xStarbound with `"safeScripts"` enabled, and regardless of that on stock Starbound *et al.*, are separated as follows:
+Two other ways of sharing data and making calls across Lua contexts exist on non-xStarbound clients and servers:
+
+- Values stored in Lua/Pluto base library tables (`math`, `os`, `table`, `json`, etc.) are shared across contexts, just as for `shared`. (The metatables of these tables are inaccessible though.) *This has very limited utility on xStarbound due to its enforced sandbox isolation. On non-xStarbound clients and servers, this is unsafe, like `shared`!*
+- The "type metatables" shared across all values of each Lua type, other than tables and "full" userdata objects (not light userdata), are shared across contexts. *This has very limited utility on xStarbound due to its enforced sandbox isolation. On non-xStarbound clients and servers, this is unsafe, like `shared`!*
+
+Lua values cannot be shared across Lua states. On xStarbound, *all* Lua contexts are run in fully isolated Lua/Pluto states, with the following safe exceptions:
+
+- Universe client script contexts, which still share their state with each other.
+- World server script contexts, which still share their state with each other on a per-world basis.
+
+These are safe because the Lua states share the same callback set across all scripts and never run after `world` and interface-related callbacks are revoked.
+
+However, on stock Starbound, OpenStarbound, *et al.*, Lua states are only weakly separated as follows:
 
 - Most client-side scripts for players, monsters, etc., share the same state with each other. The exceptions are noted below.
 - Client-side universe scripts share their state with each other, but *not* with other client-side scripts.
@@ -277,14 +289,7 @@ Lua values cannot be shared across Lua states. For reference, Lua states on xSta
 - Client-side statistics scripts share their state with each other, but not with any other client-side scripts.
 - The **Mod Binds** and **Voice Options** dialogues have their own states which they *don't* share with each other.
 
-The above applies to xStarbound when `"safeScripts"` is disabled, but when `"safeScripts"` is enabled, *all* Lua contexts are fully isolated from each other, with the following safe exceptions:
-
-- Universe client script contexts, which still share their state.
-- World server script contexts, which still share their state on a per-world basis.
-
-These are safe because the Lua states share the same callback set across all scripts and never run after `world` and interface-related callbacks are revoked.
-
-> **Note:** `shared` and the world script globals table share their state across *all* loaded primary and secondary players (and across player swaps!) on xStarbound, so be careful when using them to store global player state. Consider adding UUID checks (via `player.uniqueId`) if you need to "isolate" such global states — UUIDs are guaranteed to be unique to each loaded player as long as you use `player.uniqueId` or `entity.uniqueId` (but *not* `world.entityUniqueId`, which can return a non-unique vanity UUID!).
+> **Note:** World globals are shared across *all* loaded primary and secondary players (and across player swaps!) on xStarbound, so be careful when using world globals to store global player state. Consider adding UUID checks (via `player.uniqueId`) if you need to "isolate" such global states — UUIDs are guaranteed to be unique to each loaded player as long as you use `player.uniqueId` or `entity.uniqueId` (but *not* `world.entityUniqueId`, which can return a non-unique vanity UUID!).
 
 ## Common Lua functions called by the engine
 
