@@ -251,7 +251,7 @@ array[4] = nil -- Assigns `nil` to the fourth element. Array is now `[null, null
 
 ## Function calls and data transfer across Lua/Pluto contexts
 
-> **NOTICE FOR SCRIPT MODDERS: xStarbound v3.5+ has completely removed legacy support (via disabling `"safeScripts"`) for unsafe cross-context Lua/Pluto state sharing, which allowed mods to transfer values via type metatables or base libraries. Mods that use legacy state sharing methods are *NO LONGER SUPPORTED*. You must now use xStarbound’s officially supported cross-context communication systems — see below! — as an alternative.**
+> **IMPORTANT NOTICE FOR SCRIPT MODDERS: Legacy support for shared Lua/Pluto states and therefore unsafe cross-context Lua/Pluto state sharing and calls via sandbox exploits (i.e., smuggling values and calls through type metatables or base library tables) has been *deprecated and completely removed* in xStarbound v3.5 — disabling `"safeScripts"` *no longer* enables this functionality. Mods that use sandbox exploits to share state or make cross-context calls are *NO LONGER SUPPORTED* by xStarbound.**
 
 > **WARNING:** On stock Starbound, StarExtensions, OpenStarbound and the like, **be careful about sharing references to engine callbacks or methods via `shared` or any metatable/table hacks, as calling them *WILL* cause segfaults ("access violations" on Windows)!** When in doubt, use message handlers.
 >
@@ -268,8 +268,8 @@ There are four main ways to share data and make calls across Lua contexts on xSt
 
 Two other ways of sharing data and making calls across Lua contexts exist on non-xStarbound clients and servers:
 
-- Values stored in Lua/Pluto base library tables (`math`, `os`, `table`, `json`, etc.) are shared across contexts, just as for `shared`. (The metatables of these tables are inaccessible though.) *This has very limited utility on xStarbound due to its enforced sandbox isolation. On non-xStarbound clients and servers, this is unsafe, like `shared`!*
-- The "type metatables" shared across all values of each Lua type, other than tables and "full" userdata objects (not light userdata), are shared across contexts. *This has very limited utility on xStarbound due to its enforced sandbox isolation. On non-xStarbound clients and servers, this is unsafe, like `shared`!*
+- Values stored in Lua/Pluto base library tables (`math`, `os`, `table`, `json`, etc.) are shared across contexts, just as for `shared`. (The metatables of these tables are inaccessible though.) *This has very limited utility on xStarbound due to enforced sandbox isolation. On non-xStarbound clients and servers, this is unsafe, like `shared`!*
+- The "type metatables" shared across all values of each Lua type, other than tables and "full" userdata objects (not light userdata), are shared across contexts. *This has very limited utility on xStarbound due to enforced sandbox isolation. On non-xStarbound clients and servers, this is unsafe, like `shared`!*
 
 Lua values cannot be shared across Lua states. On xStarbound, *all* Lua contexts are run in fully isolated Lua/Pluto states, with the following safe exceptions:
 
