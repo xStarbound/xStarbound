@@ -6,7 +6,7 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 
 > ⚠️ **Notice: Several previously partially compatible mods have become *totally incompatible* with xStarbound as of v3.5. See [Mod compatibility](#mod-compatibility) below for more info.**
 
-> ℹ️ **FYI:** If you're connecting to an OpenStarbound server or hosting for OpenStarbound clients, scroll down to *Network compatibility*!
+> 🪧 **FYI:** If you're connecting to an OpenStarbound server or hosting for OpenStarbound clients, scroll down to *Network compatibility*!
 
 ## Changes
 
