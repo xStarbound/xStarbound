@@ -440,7 +440,7 @@ Returns true if the given item's tags include the specified tag and false otherw
 
 #### `JsonArray` root.allRecipes([`StringList` groups])
 
-> **This callback is available only on xStarbound v3.4.2+ and OpenStarbound. Additionally, only xStarbound v3.4.2+ supports the `types` parameter.**
+> **This callback is available only on xStarbound v3.4.2+ and OpenStarbound. Additionally, only xStarbound v3.4.2+ supports the `groups` parameter.**
 
 Returns a list of item recipes of the following format:
 
