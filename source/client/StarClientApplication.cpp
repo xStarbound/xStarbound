@@ -511,7 +511,8 @@ void ClientApplication::changeState(MainAppState newState) {
   }
 
   if (oldState > MainAppState::Title && m_state <= MainAppState::Title) {
-    m_mainInterface->clean();
+    if (m_mainInterface)
+      m_mainInterface->clean();
 
     if (m_universeClient)
       m_universeClient->disconnect();
@@ -590,7 +591,8 @@ void ClientApplication::changeState(MainAppState newState) {
         return;
 
       // m_mainInterface->takeScriptPanes(*heldScriptPanes);
-      m_mainInterface->clean();
+      if (m_mainInterface)
+        m_mainInterface->clean();
     };
 
     m_universeClient->playerReloadCallback() = [&](bool resetInterface) {
@@ -598,7 +600,7 @@ void ClientApplication::changeState(MainAppState newState) {
       // if (auto inventory = paneManager->registeredPane<InventoryPane>(MainInterfacePanes::Inventory))
       //   inventory->clearChangedSlots();
 
-      if (resetInterface) {
+      if (m_mainInterface && resetInterface) {
         m_mainInterface->reset();
         // m_mainInterface->reviveScriptPanes(*heldScriptPanes);
         // heldScriptPanes->clear();
