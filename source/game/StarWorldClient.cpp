@@ -2475,7 +2475,7 @@ RpcPromise<Json> WorldClient::sendEntityMessage(Variant<EntityId, String> const&
       entity = m_entityMap->uniqueEntity(entityId.get<String>());
 
     // Only fail with "unknown entity" if we know this entity should exist on the
-    // client, because it's entity id indicates it is master here.
+    // client, because its entity ID indicates it is master here.
     if (entityId.is<EntityId>() && !entity && m_clientId == connectionForEntity(entityId.get<EntityId>())) {
       return RpcPromise<Json>::createFailed("Unknown entity");
     } else if (entity && entity->isMaster()) {
