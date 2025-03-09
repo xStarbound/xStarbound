@@ -76,7 +76,7 @@ EnumMap<Rarity> const RarityNames{
 
 std::pair<EntityId, EntityId> connectionEntitySpace(ConnectionId connectionId) {
   if (connectionId == ServerConnectionId) {
-    return {MinServerEntityId, MaxServerEntityId};
+    return {MinServerEntityId + 1, MaxServerEntityId};
   } else if (connectionId >= MinClientConnectionId && connectionId <= MaxClientConnectionId) {
     EntityId beginIdSpace = (EntityId)connectionId * -65536;
     EntityId endIdSpace = beginIdSpace + 65535;

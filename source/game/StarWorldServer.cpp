@@ -538,7 +538,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       bool isWorldMessage = false;
       if (entityMessagePacket->entityId.is<EntityId>()) {
         auto intEntityId = entityMessagePacket->entityId.get<EntityId>();
-        if (intEntityId == 0) isWorldMessage = true;
+        if (intEntityId == 1) isWorldMessage = true;
         entity = m_entityMap->entity(intEntityId);
       } else {
         entity = m_entityMap->entity(loadUniqueEntity(entityMessagePacket->entityId.get<String>()));
@@ -2352,7 +2352,7 @@ RpcPromise<Json> WorldServer::sendEntityMessage(Variant<EntityId, String> const&
   bool isWorldMessage = false;
   if (entityId.is<EntityId>()) {
     auto intEntityId = entityId.get<EntityId>();
-    if (intEntityId == 0) isWorldMessage = true;
+    if (intEntityId == 1) isWorldMessage = true;
     entity = m_entityMap->entity(entityId.get<EntityId>());
   } else {
     entity = m_entityMap->entity(loadUniqueEntity(entityId.get<String>()));

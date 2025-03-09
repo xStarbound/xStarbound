@@ -137,7 +137,7 @@ WorldChunks WorldStorage::getWorldChunksFromFile(String const& file) {
 WorldStorage::WorldStorage(Vec2U const& worldSize, IODevicePtr const& device, WorldGeneratorFacadePtr const& generatorFacade)
   : WorldStorage() {
   m_tileArray = make_shared<ServerTileSectorArray>(worldSize);
-  m_entityMap = make_shared<EntityMap>(worldSize, MinServerEntityId, MaxServerEntityId);
+  m_entityMap = make_shared<EntityMap>(worldSize, MinServerEntityId + 1, MaxServerEntityId);
   m_generatorFacade = generatorFacade;
   m_floatingDungeonWorld = false;
 
@@ -166,7 +166,7 @@ WorldStorage::WorldStorage(IODevicePtr const& device, WorldGeneratorFacadePtr co
 
   Vec2U worldSize = readWorldMetadata(*m_db.find(metadataKey())).worldSize;
   m_tileArray = make_shared<ServerTileSectorArray>(worldSize);
-  m_entityMap = make_shared<EntityMap>(worldSize, MinServerEntityId, MaxServerEntityId);
+  m_entityMap = make_shared<EntityMap>(worldSize, MinServerEntityId + 1, MaxServerEntityId);
 }
 
 WorldStorage::WorldStorage(WorldChunks const& chunks, WorldGeneratorFacadePtr const& generatorFacade) : WorldStorage() {
@@ -182,7 +182,7 @@ WorldStorage::WorldStorage(WorldChunks const& chunks, WorldGeneratorFacadePtr co
 
   Vec2U worldSize = readWorldMetadata(*m_db.find(metadataKey())).worldSize;
   m_tileArray = make_shared<ServerTileSectorArray>(worldSize);
-  m_entityMap = make_shared<EntityMap>(worldSize, MinServerEntityId, MaxServerEntityId);
+  m_entityMap = make_shared<EntityMap>(worldSize, MinServerEntityId + 1, MaxServerEntityId);
 }
 
 WorldStorage::~WorldStorage() {

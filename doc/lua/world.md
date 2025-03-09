@@ -913,6 +913,8 @@ For more featureful entity messaging, use `world.sendEntityMessage`. To call a w
 
 > **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
 
+> **Note:** On xServer v3.5.1+, entity ID 1 is reserved for the world server itself, so that messaging entity ID sends the message to world server script contexts. Actual entities start at ID 2. This entity ID needs to be reserved on xServer so that non-xClient clients can message the server.
+
 ---
 
 #### `RpcPromise<Json>` world.sendEntityMessage(`Variant<EntityId, String>` entityId, `String` messageType, [`Json...` args])

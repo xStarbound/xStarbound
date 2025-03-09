@@ -28,7 +28,9 @@ Additionally, on xClient, messages can be handled by the following contexts:
 
 Sending a message to any player controlled by an xClient client also sends that message to the client's universe client scripts, scripted panes and container pane scripts.
 
-Lastly, world server scripts can receive (on xServer and OpenStarbound servers) world messages and (on xServer v3.5.1+) entity messages with a specified entity ID of `0` from any entity on the same world (regardless of whether the entity is server- or client-mastered). For communication between a world server script and server-side scripted entities on that world, you can also use `world.callScriptedEntity` for world-to-entity communication and `world.callScriptContext` for entity-to-world communication; this is your only option on an OpenStarbound server.
+Lastly, world server scripts can receive (on xServer and OpenStarbound servers) world messages and (on xServer v3.5.1+) entity messages with a specified entity ID of `1`[^1] from any entity on the same world (regardless of whether the entity is server- or client-mastered). For communication between a world server script and server-side scripted entities on that world, you can also use `world.callScriptedEntity` for world-to-entity communication and `world.callScriptContext` for entity-to-world communication; this is your only option on an OpenStarbound server.
+
+[^1]: xServer v3.5.1+ reserves entity ID `1` specifically for receiving world server messages from entities.
 
 ---
 
