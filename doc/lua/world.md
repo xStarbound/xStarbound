@@ -915,7 +915,7 @@ For more featureful entity messaging, use `world.sendEntityMessage`. To call a w
 
 ---
 
-#### `RpcPromise<Json>` world.sendEntityMessage(`Variant<EntityId, String>` entityId, `String` messageType, [`LuaValue` args ...])
+#### `RpcPromise<Json>` world.sendEntityMessage(`Variant<EntityId, String>` entityId, `String` messageType, [`Json...` args])
 
 Sends an asynchronous message to an entity with the specified entity ID or unique ID with the specified message type and arguments and returns an `RpcPromise` which can be used to receive the result of the message when available. See the message table for information on entity message handling. This function **should not be called in any entity's `init` function**, as the sending entity will not have been fully loaded.
 
