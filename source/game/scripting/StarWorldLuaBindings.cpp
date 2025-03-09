@@ -548,6 +548,9 @@ namespace LuaBindings {
     }
 
     if (auto serverWorld = as<WorldServer>(world)) {
+      callbacks.registerCallback("metadata", [serverWorld]() -> Json { return serverWorld->getMetadata(); });
+      callbacks.registerCallback("setMetadata", [serverWorld](Json const& newMetadata) { serverWorld->setMetadata(newMetadata); });
+
       callbacks.registerCallbackWithSignature<bool, EntityId, bool>("breakObject", bind(ServerWorldCallbacks::breakObject, serverWorld, _1, _2));
       callbacks.registerCallbackWithSignature<bool, RectF>("isVisibleToPlayer", bind(ServerWorldCallbacks::isVisibleToPlayer, serverWorld, _1));
       callbacks.registerCallbackWithSignature<bool, RectF>("loadRegion", bind(ServerWorldCallbacks::loadRegion, serverWorld, _1));

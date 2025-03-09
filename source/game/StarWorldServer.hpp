@@ -180,6 +180,9 @@ public:
   RpcPromise<Json> sendEntityMessage(Variant<EntityId, String> const& entity, String const& message, JsonArray const& args = {}) override;
   bool isTileProtected(Vec2I const& pos) const override;
 
+  Json getMetadata() const;
+  void setMetadata(Json const& newMetadata);
+
   void setTileProtection(DungeonId dungeonId, bool isProtected);
   // used to globally, temporarily disable protection for certain operations
   void setTileProtectionEnabled(bool enabled);

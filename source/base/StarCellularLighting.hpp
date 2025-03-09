@@ -33,6 +33,7 @@ public:
   // for the given calculation region before calling 'calculate'.
   RectI calculationRegion() const;
 
+  bool validIndex(Vec2I const& position);
   size_t baseIndexFor(Vec2I const& position);
 
   void setCellIndex(size_t cellIndex, Vec3F const& light, bool obstacle);
@@ -81,6 +82,11 @@ private:
   RectI m_queryRegion;;
   RectI m_calculationRegion;
 };
+
+inline bool CellularLightingCalculator::validIndex(Vec2I const& position) {
+  // FezzedOne: Check to ensure underflows don't happen.
+  return (position[0] - m_calculationRegion.xMin()) >= 0 && (position[1] - m_calculationRegion.yMin()) >= 0;
+}
 
 inline size_t CellularLightingCalculator::baseIndexFor(Vec2I const& position) {
   return (position[0] - m_calculationRegion.xMin()) * m_calculationRegion.height() + position[1] - m_calculationRegion.yMin();

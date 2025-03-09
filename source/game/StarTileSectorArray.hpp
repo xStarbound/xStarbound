@@ -142,7 +142,8 @@ template <typename Tile, unsigned SectorSize>
 unsigned const TileSectorArray<Tile, SectorSize>::SectorSize;
 
 template <typename Tile, unsigned SectorSize>
-TileSectorArray<Tile, SectorSize>::TileSectorArray() {}
+// FezzedOne: Ensure the default tile is actually initialised so we never get a material or matmod ID of `0` for an out-of-bounds tile.
+TileSectorArray<Tile, SectorSize>::TileSectorArray() : m_default(Tile()) {}
 
 template <typename Tile, unsigned SectorSize>
 TileSectorArray<Tile, SectorSize>::TileSectorArray(Vec2U const& size, Tile defaultTile) {

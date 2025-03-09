@@ -169,12 +169,13 @@ struct PredictedTile {
 // Just the parts of a tile that are used to render.  The members here are laid
 // out specifically to avoid padding bytes so that a fast path can be taken
 // when hashing for chunk render caching.
+// FezzedOne: Ensure that material and mod IDs are never initialised to 0.
 struct RenderTile {
-  MaterialId foreground;
-  ModId foregroundMod;
+  MaterialId foreground = NullMaterialId;
+  ModId foregroundMod = NoModId;
 
-  MaterialId background;
-  ModId backgroundMod;
+  MaterialId background = NullMaterialId;
+  ModId backgroundMod = NoModId;
 
   MaterialHue foregroundHueShift;
   MaterialHue foregroundModHueShift;

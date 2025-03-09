@@ -535,13 +535,25 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
 
     } else if (auto entityMessagePacket = as<EntityMessagePacket>(packet)) {
       EntityPtr entity;
-      if (entityMessagePacket->entityId.is<EntityId>())
-        entity = m_entityMap->entity(entityMessagePacket->entityId.get<EntityId>());
-      else
+      bool isWorldMessage = false;
+      if (entityMessagePacket->entityId.is<EntityId>()) {
+        auto intEntityId = entityMessagePacket->entityId.get<EntityId>();
+        if (intEntityId == 0) isWorldMessage = true;
+        entity = m_entityMap->entity(intEntityId);
+      } else {
         entity = m_entityMap->entity(loadUniqueEntity(entityMessagePacket->entityId.get<String>()));
+      }
 
       if (!entity) {
-        clientInfo->outgoingPackets.append(make_shared<EntityMessageResponsePacket>(makeLeft("Unknown entity"), entityMessagePacket->uuid));
+        if (isWorldMessage) {
+          auto response = this->receiveMessage(clientId, entityMessagePacket->message, entityMessagePacket->args);
+          if (response)
+            clientInfo->outgoingPackets.append(make_shared<EntityMessageResponsePacket>(makeRight(response.take()), entityMessagePacket->uuid));
+          else
+            clientInfo->outgoingPackets.append(make_shared<EntityMessageResponsePacket>(makeLeft("Message not handled by world server"), entityMessagePacket->uuid));
+        } else {
+          clientInfo->outgoingPackets.append(make_shared<EntityMessageResponsePacket>(makeLeft("Unknown entity"), entityMessagePacket->uuid));
+        }
       } else {
         if (entity->isMaster()) {
           if (entity->inWorld()) {
@@ -2337,13 +2349,24 @@ RpcPromise<Vec2F> WorldServer::findUniqueEntity(String const& uniqueId) {
 
 RpcPromise<Json> WorldServer::sendEntityMessage(Variant<EntityId, String> const& entityId, String const& message, JsonArray const& args) {
   EntityPtr entity;
-  if (entityId.is<EntityId>())
+  bool isWorldMessage = false;
+  if (entityId.is<EntityId>()) {
+    auto intEntityId = entityId.get<EntityId>();
+    if (intEntityId == 0) isWorldMessage = true;
     entity = m_entityMap->entity(entityId.get<EntityId>());
-  else
+  } else {
     entity = m_entityMap->entity(loadUniqueEntity(entityId.get<String>()));
+  }
 
   if (!entity) {
-    return RpcPromise<Json>::createFailed("Unknown entity");
+    if (isWorldMessage) {
+      if (auto resp = this->receiveMessage(ServerConnectionId, message, args))
+        return RpcPromise<Json>::createFulfilled(resp.take());
+      else
+        return RpcPromise<Json>::createFailed("Message not handled by world server");
+    } else {
+      return RpcPromise<Json>::createFailed("Unknown entity");
+    }
   } else if (entity->isMaster()) {
     if (auto resp = entity->receiveMessage(ServerConnectionId, message, args))
       return RpcPromise<Json>::createFulfilled(resp.take());
@@ -2488,6 +2511,58 @@ void WorldServer::writeMetadata() {
   };
 
   m_worldStorage->setWorldMetadata(versioningDatabase->makeCurrentVersionedJson("WorldMetadata", metadata));
+}
+
+Json WorldServer::getMetadata() const {
+  return JsonObject{
+    {"playerStart", jsonFromVec2F(m_playerStart)},
+    {"respawnInWorld", m_respawnInWorld},
+    {"adjustPlayerStart", m_adjustPlayerStart},
+    {"worldTemplate", m_worldTemplate->store()},
+    {"centralStructure", m_centralStructure.store()},
+    {"protectedDungeonIds", jsonFromSet(m_protectedDungeonIds)},
+    {"worldProperties", m_worldProperties},
+    {"spawningEnabled", m_spawner.active()},
+    {"dungeonIdGravity", m_dungeonIdGravity.pairs().transformed([](auto const& p) -> Json {
+        return JsonArray{p.first, p.second};
+      })},
+    {"dungeonIdBreathable", m_dungeonIdBreathable.pairs().transformed([](auto const& p) -> Json {
+        return JsonArray{p.first, p.second};
+      })}
+  };
+}
+
+void WorldServer::setMetadata(Json const& newMetadata) {
+  if (newMetadata.opt("playerStart"))
+    m_playerStart = jsonToVec2F(newMetadata.get("playerStart"));
+  m_respawnInWorld = newMetadata.optBool("respawnInWorld").value(m_respawnInWorld);
+  m_adjustPlayerStart = newMetadata.optBool("adjustPlayerStart").value(m_adjustPlayerStart);
+  // m_worldTemplate = make_shared<WorldTemplate>(newMetadata.get("worldTemplate"));
+  // m_centralStructure = WorldStructure(newMetadata.get("centralStructure"));
+  if (newMetadata.opt("protectedDungeonIds"))
+    m_protectedDungeonIds = jsonToSet<DungeonId>(newMetadata.get("protectedDungeonIds"), mem_fn(&Json::toUInt));
+  if (newMetadata.opt("worldProperties"))
+    m_worldProperties = jsonMergeNull(m_worldProperties, newMetadata.getObject("worldProperties")).toObject();
+  if (newMetadata.opt("spawningEnabled"))
+    m_spawner.setActive(newMetadata.getBool("spawningEnabled"));
+
+  if (newMetadata.opt("dungeonIdGravity"))
+    m_dungeonIdGravity = transform<HashMap<DungeonId, float>>(newMetadata.getArray("dungeonIdGravity"), [](Json const& p) {
+        return make_pair(p.getInt(0), p.getFloat(1));
+      });
+
+  if (newMetadata.opt("dungeonIdBreathable"))
+    m_dungeonIdBreathable = transform<HashMap<DungeonId, bool>>(newMetadata.getArray("dungeonIdBreathable"), [](Json const& p) {
+        return make_pair(p.getInt(0), p.getBool(1));
+      });
+
+  // FezzedOne: To be able to set certain world parameters that are iffy to set dynamically, write them to storage. The world will
+  // then have to be reloaded to see any changes.
+
+  auto versioningDatabase = Root::singleton().versioningDatabase();
+
+  m_worldStorage->setWorldMetadata(versioningDatabase->makeCurrentVersionedJson(
+    "WorldMetadata", jsonMergeNull(getMetadata(), newMetadata)));
 }
 
 bool WorldServer::isVisibleToPlayer(RectF const& region) const {

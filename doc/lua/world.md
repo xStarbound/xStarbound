@@ -1021,6 +1021,22 @@ The following `world` bindings are available only in server-side scripts.
 
 ---
 
+#### `Json` world.metadata()
+
+> **Available only on xServer v3.5.1+.**
+
+Returns the metadata for this world.
+
+#### `void` world.setMetadata(`Json` newMetadata)
+
+> **Available only on xServer v3.5.1+.**
+
+Merges the given world metadata with the world's existing metadata using a JSON merge. For this callback, explicit `null`s (see `$docs/lua/lua.md`) will override existing non-`null` object values. Most modifications take effect immediately; however, modifications to the `"worldTemplate"` and `"centralStructure"` will not take effect until the world is fully unloaded and reloaded.
+
+> **WARNING: Invalid values in the `"worldTemplate"` and `"centralStructure"` objects *may render the world file UNLOADABLE*! If you suspect *ANY* value passed into `"worldTemplate"` or `"centralStructure"` may not be valid, *BACK UP YOUR WORLD FILE*.**
+
+> **WARNING: Changing the `"worldTemplate"` → `"size"` value in a way that «truncates» parts of the existing world *WILL PERMANENTLY DELETE ANYTHING «TRUNCATED», including container objects and their contents*, when the world is reloaded! If the world file you're modifying is at all important to you, *BACK UP THE WORLD before making world size changes*!**
+
 #### [xStarbound] `Json` world.callScriptContext(`String` contextName, `String` functionName, [`Json...` args])
 #### [OpenStarbound] `LuaValue` world.callScriptContext(`String` contextName, `String` functionName, [`LuaValue...` args])
 

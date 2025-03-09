@@ -218,10 +218,11 @@ void CellularLightArray<LightTraits>::begin(size_t newWidth, size_t newHeight) {
     m_width = newWidth;
     m_height = newHeight;
 
-    m_cells.reset(new Cell[m_width * m_height]());
+    // FezzedOne: Added a dummy cell to «catch» out-of-bounds hits.
+    m_cells.reset(new Cell[m_width * m_height + 1]());
 
   } else {
-    std::fill(m_cells.get(), m_cells.get() + m_width * m_height, Cell{LightValue{}, false});
+    std::fill(m_cells.get(), m_cells.get() + (m_width * m_height + 1), Cell{LightValue{}, false});
   }
 }
 
@@ -257,26 +258,34 @@ bool CellularLightArray<LightTraits>::getObstacle(size_t x, size_t y) const {
 
 template <typename LightTraits>
 auto CellularLightArray<LightTraits>::cell(size_t x, size_t y) const -> Cell const & {
-  starAssert(x < m_width && y < m_height);
-  return m_cells[x * m_height + y];
+  if (x < m_width && y < m_height)
+    return m_cells[x * m_height + y];
+  else
+    return m_cells[m_width * m_height]; // If out of bounds, fill the dummy cell.
 }
 
 template <typename LightTraits>
 auto CellularLightArray<LightTraits>::cell(size_t x, size_t y) -> Cell & {
-  starAssert(x < m_width && y < m_height);
-  return m_cells[x * m_height + y];
+  if (x < m_width && y < m_height)
+    return m_cells[x * m_height + y];
+  else
+    return m_cells[m_width * m_height]; // If out of bounds, fill the dummy cell.
 }
 
 template <typename LightTraits>
 auto CellularLightArray<LightTraits>::cellAtIndex(size_t index) const -> Cell const & {
-  starAssert(index < m_width * m_height);
-  return m_cells[index];
+  if (index < m_width * m_height)
+    return m_cells[index];
+  else
+    return m_cells[m_width * m_height]; // If out of bounds, fill the dummy cell.
 }
 
 template <typename LightTraits>
 auto CellularLightArray<LightTraits>::cellAtIndex(size_t index) -> Cell & {
-  starAssert(index < m_width * m_height);
-  return m_cells[index];
+  if (index < m_width * m_height)
+    return m_cells[index];
+  else
+    return m_cells[m_width * m_height]; // If out of bounds, fill the dummy cell.
 }
 
 template <typename LightTraits>

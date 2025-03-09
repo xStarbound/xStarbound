@@ -512,7 +512,13 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
 
   renderLightSources = std::move(lightingRenderCallback.lightSources);
 
+  #define MAX_WINDOW_SIZE_X 1440
+  #define MAX_WINDOW_SIZE_Y 810
   RectI window = m_clientState.window();
+  bool lightingWindowTooLarge = false;
+  if (window.size()[0] > MAX_WINDOW_SIZE_X && window.size()[1] > MAX_WINDOW_SIZE_Y)
+  // Should prevent crashes from allocating a too-large image buffer for lighting.
+    lightingWindowTooLarge = true;
   RectI tileRange = window.padded(bufferTiles);
   RectI lightRange = window.padded(1);
   //Kae: Padded by one to fix light spread issues at the edges of the frame.
@@ -521,6 +527,8 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
   renderData.lightMinPosition = lightRange.min();
 
   Vec2U lightSize(lightRange.size());
+  if (lightingWindowTooLarge)
+    lightSize = Vec2U(MAX_WINDOW_SIZE_X, MAX_WINDOW_SIZE_Y);
 
   {
     ZoneScopedN("Waiting on lightmap");
@@ -541,7 +549,7 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
   renderData.tileLightMap.reset(lightSize, PixelFormat::RGBA32);
   renderData.tileLightMap.fill(Vec4B::filled(0));
 
-  if (m_fullBright) {
+  if (m_fullBright || lightingWindowTooLarge) {
     renderData.lightMap.reset(lightSize, PixelFormat::RGB24);
     renderData.lightMap.fill(Vec3B(255, 255, 255));
   } else {
@@ -1847,6 +1855,7 @@ void WorldClient::lightingTileGather() {
   // Each column in tileEvalColumns is guaranteed to be no larger than the sector size.
 
   m_tileArray->tileEvalColumns(m_lightingCalculator.calculationRegion(), [&](Vec2I const& pos, ClientTile const* column, size_t ySize) {
+    // if (!m_lightingCalculator.validIndex(pos)) return;
     size_t baseIndex = m_lightingCalculator.baseIndexFor(pos);
     for (size_t y = 0; y < ySize; ++y) {
       auto& tile = column[y];
