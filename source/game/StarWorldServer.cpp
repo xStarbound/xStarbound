@@ -537,11 +537,12 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       EntityPtr entity;
       bool isWorldMessage = false;
       if (entityMessagePacket->entityId.is<EntityId>()) {
-        auto intEntityId = entityMessagePacket->entityId.get<EntityId>();
-        if (intEntityId == 1) isWorldMessage = true;
-        entity = m_entityMap->entity(intEntityId);
+        entity = m_entityMap->entity(entityMessagePacket->entityId.get<EntityId>());
       } else {
-        entity = m_entityMap->entity(loadUniqueEntity(entityMessagePacket->entityId.get<String>()));
+        if (entityMessagePacket->entityId.get<String>() == "server")
+          isWorldMessage = true;
+        else
+          entity = m_entityMap->entity(loadUniqueEntity(entityMessagePacket->entityId.get<String>()));
       }
 
       if (!entity) {
@@ -2351,11 +2352,12 @@ RpcPromise<Json> WorldServer::sendEntityMessage(Variant<EntityId, String> const&
   EntityPtr entity;
   bool isWorldMessage = false;
   if (entityId.is<EntityId>()) {
-    auto intEntityId = entityId.get<EntityId>();
-    if (intEntityId == 1) isWorldMessage = true;
     entity = m_entityMap->entity(entityId.get<EntityId>());
   } else {
-    entity = m_entityMap->entity(loadUniqueEntity(entityId.get<String>()));
+    if (entityId.get<String>() == "server")
+      isWorldMessage = true;
+    else
+      entity = m_entityMap->entity(loadUniqueEntity(entityId.get<String>()));
   }
 
   if (!entity) {

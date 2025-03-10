@@ -482,7 +482,14 @@ auto TileSectorArray<Tile, SectorSize>::splitRect(RectI rect) const -> StaticLis
 
 template <typename Tile, unsigned SectorSize>
 RectI TileSectorArray<Tile, SectorSize>::yClampRect(RectI const& r) const {
-  return RectI(r.xMin(), clamp<int>(r.yMin(), 0, m_worldSize[1]), r.xMax(), clamp<int>(r.yMax(), 0, m_worldSize[1]));
+  // FezzedOne: Clamped the max X value to prevent out-of-bounds accesses in certain niche situations.
+  // Starbound can handle tile wrapping, but can't handle showing one tile twice in the same view.
+  return RectI(
+    r.xMin(), 
+    clamp<int>(r.yMin(), 0, m_worldSize[1]), 
+    clamp<int>(r.xMax(), r.xMin(), r.xMin() + m_worldSize[0]), 
+    clamp<int>(r.yMax(), 0, m_worldSize[1])
+  );
 }
 
 }

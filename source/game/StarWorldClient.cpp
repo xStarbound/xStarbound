@@ -520,6 +520,9 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
   // Should prevent crashes from allocating a too-large image buffer for lighting.
     lightingWindowTooLarge = true;
   RectI tileRange = window.padded(bufferTiles);
+  // FezzedOne: Clamped the tile rendering range to the width of the world to prevent double accesses and segfaults in edge-case scenarios.
+  Vec2I tileRangeMin = tileRange.min(), tileRangeMax = tileRange.max();
+  tileRange.setXMax(clamp<int>(tileRangeMax[0], tileRangeMin[0], tileRangeMin[0] + (int)m_geometry.size()[0] - 1));
   RectI lightRange = window.padded(1);
   //Kae: Padded by one to fix light spread issues at the edges of the frame.
 

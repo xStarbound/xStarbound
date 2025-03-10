@@ -630,8 +630,8 @@ static int llex (LexState *ls, SemInfo *seminfo, int *column) {
             ls->appendLineBuff(ls->current);
             save_and_next(ls);  /* skip until end of line (or end of file) */
           }
-          if (strstr(luaZ_buffer(ls->buff), "@pluto_warnings") != nullptr)
-            ls->lexPushWarningOverride().processComment(luaZ_buffer(ls->buff));
+          // if (strstr(luaZ_buffer(ls->buff), "@pluto_warnings") != nullptr)
+          //   ls->lexPushWarningOverride().processComment(luaZ_buffer(ls->buff));
           luaZ_resetbuffer(ls->buff);
           if (ls->getLineBuff().find("@fallthrough") != std::string::npos)
             return TK_FALLTHROUGH;
