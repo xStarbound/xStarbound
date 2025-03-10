@@ -16,6 +16,7 @@ Due to the particular requirements and caveats of Starbound callbacks, all callb
   - **`float`:** A 32-bit float.
   - **`int`:** A Lua integer; `type` will return `"number"` on these. Technically a 64-bit signed integer. Used where the exact integer type is unimportant to normal use of a callback or function.
   - **`EntityId`:** Used for in-game entity IDs, which should be treated differently from standard numbers. A 32-bit signed integer.
+  - **`DungeonId`:** Used for in-game dungeon IDs, which should be treated differently from standard numbers. Technically a 16-bit *unsigned* integer, but the «meta» dungeon IDs take useful advantage of integer underflow.
   - **`int64_t`, `uint64_t`:** A 64-bit signed or unsigned integer, respectively.
   - **`int32_t`, `uint32_t`:** A 32-bit signed or unsigned integer, respectively.
   - **`int16_t`, `uint16_t`:** A 16-bit signed or unsigned integer, respectively.

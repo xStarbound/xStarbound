@@ -2537,6 +2537,7 @@ Json WorldServer::getMetadata() const {
 void WorldServer::setMetadata(Json const& newMetadata) {
   auto versioningDatabase = Root::singleton().versioningDatabase();
   auto oldMetadata = getMetadata();
+  auto referenceClock = m_sky->referenceClock();
   m_worldStorage->setWorldMetadata(versioningDatabase->makeCurrentVersionedJson(
     "WorldMetadata", jsonMergeNull(oldMetadata, newMetadata)));
   try {
@@ -2547,6 +2548,15 @@ void WorldServer::setMetadata(Json const& newMetadata) {
       "WorldMetadata", oldMetadata));
     readMetadata();
   }
+
+  m_sky->setReferenceClock(referenceClock);
+  m_weather.setup(m_worldTemplate->weathers(), m_worldTemplate->undergroundLevel(), m_geometry, [this](Vec2I const& pos) {
+    auto const& tile = m_tileArray->tile(pos);
+    return !isRealMaterial(tile.background);
+  });
+
+  for (auto const& pair : m_clientInfo) // Immediately update any clients present on the world.
+    pair.second->outgoingPackets.append(make_shared<WorldParametersUpdatePacket>(netStoreVisitableWorldParameters(m_worldTemplate->worldParameters())));
 }
 
 bool WorldServer::isVisibleToPlayer(RectF const& region) const {
