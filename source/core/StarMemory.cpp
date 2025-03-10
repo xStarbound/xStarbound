@@ -6,8 +6,8 @@
 #elif defined STAR_USE_JEMALLOC
 #include "jemalloc/jemalloc.h"
 #elif defined STAR_USE_RPMALLOC
-#include "rpmalloc/rpmalloc.h"
-#include "rpmalloc/rpnew.h"
+#include "rpmalloc.h"
+#include "rpnew.h"
 #endif
 
 namespace Star {

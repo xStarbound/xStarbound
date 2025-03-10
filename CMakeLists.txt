@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 set(XSB_VERSION 3.5.1)
-set(XSB_ASSET_VERSION 3.4.5.1)
+set(XSB_ASSET_VERSION 3.5.1)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
@@ -15,9 +15,9 @@ cmake_dependent_option(STAR_ENABLE_STEAM_INTEGRATION "Use Steam platform service
 cmake_dependent_option(STAR_ENABLE_DISCORD_INTEGRATION "Use Discord platform services" OFF "STAR_BUILD_GUI" OFF)
 
 option(STAR_LUA_APICHECK "Use Lua API checks" OFF)
-cmake_dependent_option(STAR_USE_RPMALLOC "Use rpmalloc allocators" OFF "NOT STAR_USE_RPMALLOC" OFF)
-cmake_dependent_option(STAR_USE_JEMALLOC "Use jemalloc allocators" OFF "NOT STAR_USE_MIMALLOC" OFF)
-cmake_dependent_option(STAR_USE_MIMALLOC "Use mi-malloc allocators" OFF "NOT STAR_USE_JEMALLOC" OFF)
+option(STAR_USE_RPMALLOC "Use rpmalloc allocators" OFF)
+option(STAR_USE_JEMALLOC "Use jemalloc allocators" OFF)
+option(STAR_USE_MIMALLOC "Use mi-malloc allocators" OFF)
 
 option(BUILD_TESTING "Build unit and game tests (NOTE: game tests require all game asset packs to run)" OFF)
 option(STAR_MEMORY_SANITIZER "Build executables with memory sanitizers enabled" OFF)
