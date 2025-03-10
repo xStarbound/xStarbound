@@ -921,6 +921,8 @@ For more featureful entity messaging, use `world.sendEntityMessage`. To call a w
 
 Sends an asynchronous message to an entity with the specified entity ID or unique ID with the specified message type and arguments and returns an `RpcPromise` which can be used to receive the result of the message when available. See the message table for information on entity message handling. This function **should not be called in any entity's `init` function**, as the sending entity will not have been fully loaded.
 
+Sending a message to the unique ID `"server"` sends that message to world server script contexts running on the world the messaging entity is located on.
+
 See `message.md` for information on message handlers and `RpcPromise` objects.
 
 ---
