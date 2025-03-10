@@ -50,7 +50,7 @@ Json const AdditionalDefaultConfiguration = Json::parseJson(R"JSON(
 
 int main(int argc, char** argv) {
 #ifdef STAR_USE_RPMALLOC
-  ::rpmalloc_initialize();
+  ::rpmalloc_initialize(0);
 #endif
   try {
     RootLoader rootLoader({AdditionalAssetsSettings, AdditionalDefaultConfiguration, String("xserver.log"), LogLevel::Info, false, String("xserver.config")});

@@ -43,7 +43,7 @@ public:
 
 int main(int argc, char** argv) {
 #ifdef STAR_USE_RPMALLOC
-  ::rpmalloc_initialize();
+  ::rpmalloc_initialize(0);
 #endif
   testing::InitGoogleTest(&argc, argv);
   testing::AddGlobalTestEnvironment(new TestEnvironment(RootLoader({{}, {}, {}, LogLevel::Error, true, {}}).commandParseOrDie(argc, argv).first));

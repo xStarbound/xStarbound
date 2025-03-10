@@ -83,7 +83,7 @@ void fixEmbeddedTilesets(String const& searchRoot, String const& tilesetPath) {
 
 int main(int argc, char* argv[]) {
 #ifdef STAR_USE_RPMALLOC
-  ::rpmalloc_initialize();
+  ::rpmalloc_initialize(0);
 #endif
   try {
     RootLoader rootLoader({{}, {}, {}, LogLevel::Info, false, {}});

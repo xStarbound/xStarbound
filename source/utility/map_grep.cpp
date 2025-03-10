@@ -97,7 +97,7 @@ MatchCriteria parseMatchCriteria(String const& criteriaStr) {
 
 int main(int argc, char** argv) {
 #ifdef STAR_USE_RPMALLOC
-  ::rpmalloc_initialize();
+  ::rpmalloc_initialize(0);
 #endif
   try {
     RootLoader rootLoader({{}, {}, {}, LogLevel::Warn, false, {}});

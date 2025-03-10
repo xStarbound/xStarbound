@@ -9,7 +9,7 @@ using namespace Star;
 
 int main(int argc, char** argv) {
 #ifdef STAR_USE_RPMALLOC
-  ::rpmalloc_initialize();
+  ::rpmalloc_initialize(0);
 #endif
   try {
     if (argc != 3) {

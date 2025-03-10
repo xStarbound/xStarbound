@@ -19,7 +19,7 @@ namespace Star {
 
 #define STAR_MAIN_APPLICATION(ApplicationClass)                                          \
   int __stdcall WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {                              \
-    ::rpmalloc_initialize();                                                             \
+    ::rpmalloc_initialize(0);                                                             \
     int nArgs;                                                                           \
     LPWSTR* argsList = CommandLineToArgvW(GetCommandLineW(), &nArgs);                    \
     Star::StringList args;                                                               \
@@ -51,7 +51,7 @@ namespace Star {
 
 #define STAR_MAIN_APPLICATION(ApplicationClass)                                                                    \
   int main(int argc, char** argv) {                                                                                \
-    ::rpmalloc_initialize();                                                                                       \
+    ::rpmalloc_initialize(0);                                                                                       \
     int returnVal = Star::runMainApplication(Star::make_unique<ApplicationClass>(), Star::StringList(argc, argv)); \
     ::rpmalloc_finalize();                                                                                         \
     return returnVal;                                                                                              \
