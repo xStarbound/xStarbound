@@ -1149,6 +1149,9 @@ Here's an abridged sample metadata «descriptor» showing the more important and
                 "verticalOrigin": 50,
                 "parallaxOffset": [143, 0],
                 "unlit": false,
+                // Can be "nightVisible", "dayVisible", "nightCloudVisible" or "dayCloudVisible".
+                // Other correlations can be added in `$assets/parallax/timeOfDayCorrelation.functions`.
+                // An empty string means this parallax layer is always visible.
                 "timeOfDayCorrelation": "",
                 "parallaxValue": [1.2000000476837158, 1.2000000476837158],
                 "zLevel": 2.4000000953674316,
