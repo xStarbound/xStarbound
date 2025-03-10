@@ -6,8 +6,18 @@
 #elif defined STAR_USE_JEMALLOC
 #include "jemalloc/jemalloc.h"
 #elif defined STAR_USE_RPMALLOC
-#include "rpmalloc.h"
-// #include "rpnew.h"
+  #if !defined _WIN32
+    #include "rpmalloc.h"
+  #else // Windows needs manual function overriding.
+    #include "rpnew.h"
+
+    // bool rpmalloc_linker_dummy() {
+    //   rpmalloc_linker_reference();
+    //   return true;
+    // }
+
+    // static bool _rpmalloc_dummy = rpmalloc_linker_dummy();
+  #endif
 #endif
 
 namespace Star {
