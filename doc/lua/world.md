@@ -1037,11 +1037,191 @@ Returns the metadata for this world.
 
 Merges the given world metadata with the world's existing metadata using a JSON merge. For this callback, explicit `null`s (see `$docs/lua/lua.md`) will override existing non-`null` object values. Most modifications take effect immediately; however, certain modifications to the `"worldTemplate"` and `"centralStructure"` (particularly changes to the world's size) will not take effect until the world is fully unloaded and reloaded.
 
+Here's an abridged sample metadata «descriptor» showing the more important and/or interesting bits:
+
+```json
+{
+  "spawningEnabled": true, // Whether monster/NPC spawning is enabled.
+  "centralStructure": {
+    // Used on dungeon worlds.
+    "config": null,
+    "backgroundBlocks": [],
+    "region": [0, 0, 0, 0],
+    "flaggedBlocks": {},
+    "foregroundBlocks": [],
+    "foregroundOverlays": [],
+    "anchorPosition": [0, 0],
+    "backgroundOverlays": [],
+    "objects": []
+  },
+  "adjustPlayerStart": true,
+  "protectedDungeonIds": [1, 65524],
+  "playerStart": [64, 685],
+  "dungeonIdBreathable": [],
+  "respawnInWorld": false, // Whether players respawn in the world.
+  "worldTemplate": { // This is the big one.
+    "seed": 5421766494617969501, // The world generation seed.
+    "celestialParameters": {
+      // Stuff used for navigation screen and the orbital background on
+      // shipworlds orbiting this world.
+      /* ... */
+    },
+    "skyParameters": {
+      "skyColoring": {
+        "dayColors": [
+          [115, 224, 255],
+          [255, 255, 255]
+        ],
+        "mainColor": [255, 255, 255],
+        "morningLightColor": [140, 71, 0],
+        "eveningColors": [
+          [125, 17, 158],
+          [210, 52, 50]
+        ],
+        "morningColors": [
+          [242, 120, 0],
+          [255, 230, 176]
+        ],
+        "nightLightColor": [40, 20, 60],
+        "nightColors": [
+          [24, 38, 53, 80],
+          [58, 42, 70, 160]
+        ],
+        "dayLightColor": [200, 200, 200],
+        "eveningLightColor": [160, 120, 180]
+      },
+      "ambientLightLevel": null, // May be a `Vec3B` colour.
+      "surfaceLevel": 1100,
+      // The height where the world's underground backgrounds transition to and from the sky.
+      "horizonImages": [ /* ... */ ], // The images used for this world when a ship is orbiting it.
+      // The images used for displaying this world's moons
+      // and/or parent planet in the sky.
+      "satellites": [ /* ... */ ] 
+      /* ... */
+    },
+    "worldParameters": {
+      // This world's tech overrides. Used in the tech challenge instance worlds.
+      // Either null or an array of named techs to force on players. If it's an empty array,
+      // all player techs are disabled.
+      "overrideTech": null, 
+      // All sorts of world parameters.
+      "airless": false, // Whether the world is breathable.
+      "gravity": 80, // The world's gravity level.
+      "beamUpRule": "Surface", // Any one of "Nowhere", "Surface", "Anywhere" or "AnywhereWithWarning".
+      "dayLength": 766.78564453125, // The length of the planet's day in seconds.
+      "weatherPool": [ // The world's pool of possible weather types.
+        {
+          "weight": 0.05,
+          "item": "rain"
+        },
+        {
+          "weight": 0.025,
+          "item": "storm"
+        },
+        {
+          "weight": 0.0125,
+          "item": "glowingrain"
+        },
+        {
+          "weight": 0.0625,
+          "item": "drizzle"
+        },
+        {
+          "weight": 0.85,
+          "item": "clear"
+        }
+      ]
+      /* ... */
+    },
+    "regionData": {
+      // Tons of tidbits for world biome regions. The most important values are these:
+      "worldSize" : [3000, 2000], // Change this when you change the actual world size to
+      // get of permanent null collision geometry.
+      "biomes": [ // Each biome has its own parallax.
+        {
+          "parallax": {
+            "parallaxTreeVariant": null,
+            "seed": 2303973848620045286,
+            "hueShift": 0,
+            "imageDirectory": "/parallax/images/",
+            "layers": [
+              {
+                "verticalOrigin": 50,
+                "parallaxOffset": [143, 0],
+                "unlit": false,
+                "timeOfDayCorrelation": "",
+                "parallaxValue": [1.2000000476837158, 1.2000000476837158],
+                "zLevel": 2.4000000953674316,
+                "textures": ["/parallax/images/tile/magmarock/base/1.png"],
+                "speed": 0,
+                "tileLimitTop": null,
+                "repeat": [1, 1],
+                "tileLimitBottom": null,
+                "fadePercent": 0,
+                "speedY": 0,
+                "lightMapped": true,
+                "directives": ""
+              }
+            ],
+            "verticalOrigin": 50
+          },
+          "ambientNoises": { // Ambient background noises.
+            "day": {
+              "tracks": ["/sfx/environmental/magma_underground.ogg"]
+            },
+            "night": {
+              "tracks": ["/sfx/environmental/magma_underground.ogg"]
+            }
+          },
+          "musicTrack": { // Background music tracks.
+            "day": {
+              "tracks": [
+                "/music/epsilon-indi.ogg"
+                /* ... */
+              ]
+            },
+            "night": {
+              "tracks": [
+                "/music/jupiter.ogg"
+                /* ... */
+              ]
+            }
+          }
+          /* ... */
+        },
+        {
+          "parallax": { /* ... */ },
+          "ambientNoises": { /* ... */ },
+          "musicTrack": { /* ... */ }
+          /* ... */
+        },
+        {
+          "parallax": null, // A null parallax is basically no parallax.
+          "ambientNoises": null, // Null means no ambient noises.
+          "musicTrack": null // Null means no music tracks play.
+          /* ... */
+        }
+        /* ... */
+      ]
+      /* ... */
+    },
+    "size": [3000, 2000] // The world's size.
+  },
+  "worldProperties": { /*... */ }, // World properties set by scripts.
+  "dungeonIdGravity": [ // An array of dungeon ID / gravity level combinations.
+    // Use this to set a different gravity level for certain dungeon IDs.
+    [65524, 0],
+    [65525, 0]
+  ]
+}
+    
+```
+
 > **Caution:** xStarbound will try to recover worlds if invalid values are specified, but even so, invalid values in the `"worldTemplate"` and `"centralStructure"` objects *may render the world file unloadable*! It's recommended to back up any important worlds before playing around with their metadata.
 
 > **Note:** Changing the `"worldTemplate"` → `"size"` value in a way that «truncates» parts of the existing world will retain the truncated chunks — they'll just be invisible. Although no data is technically lost, if the world file you're modifying is at all important to you, it is *highly recommended to back up the world before making any world size changes* — size truncation *can* change the positions of objects, NPCs, etc., in undesired ways.
 
-> **WARNING: Very small world widths — below about 1000 tiles — *CAN* crash and softlock non-xClient clients on that world! Be careful with small world sizes if non-xClient clients are allowed to connect!**
+> **WARNING: Very small world widths — below about 1000 tiles — *CAN* crash and softlock non-xClient clients on that world! Be careful with small world sizes if non-xClient clients are going to be allowed on the world!**
 
 #### [xStarbound] `Json` world.callScriptContext(`String` contextName, `String` functionName, [`Json...` args])
 #### [OpenStarbound] `LuaValue` world.callScriptContext(`String` contextName, `String` functionName, [`LuaValue...` args])

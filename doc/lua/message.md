@@ -30,7 +30,7 @@ Sending a message to any player controlled by an xClient client also sends that 
 
 Lastly, world server scripts can receive (on xServer and OpenStarbound servers) world messages and (on xServer v3.5.1+) entity messages with a specified unique entity ID of `"server"` [^1] from any entity on the same world (regardless of whether the entity is server- or client-mastered). For communication between a world server script and server-side scripted entities on that world, you can also use `world.callScriptedEntity` for world-to-entity communication and `world.callScriptContext` for entity-to-world communication; this is your only option on an OpenStarbound server.
 
-[^1]: xServer v3.5.1+ reserves the unique entity ID `"server"` specifically for receiving world server messages from entities.
+[^1]: xServer v3.5.1+ reserves the unique «entity ID» `"server"` specifically for receiving world server messages from entities; *any* client can message this «entity ID» to message the world server directly. Messages with a `[world server]` target type below are directly handled by server-side worlds, not entities, and thus need to be sent to `"server"`.
 
 ---
 
@@ -322,7 +322,6 @@ Attempts to apply the specified augment stack to the item in the specified stack
 
 Normally entirely handled by the client and server engines. The client sends this message whenever an augment is right-clicked into any slot with a non-matching item in it.
 
-
 #### `bool` `"consumeItems"` [container object] (`ItemDescriptor` items)
 
 Attempts to take items matching the specified descriptor out of the container, returning any taken item stack. The container must have at least the number of matching items specified in the descriptor's count (or at least one item if no count is specified), or otherwise no items will be taken and `nil` will be returned.
@@ -340,3 +339,21 @@ Normally entirely handled by the client and server engines. The client sends thi
 Attempts to take the specified number of items out of a stack in the specified slot, returning any taken item stack. Takes no items and returns `nil` if the stack has fewer than the specified number of items in it.
 
 Normally entirely handled by the client and server engines. The client sends this message whenever the **Loot All** or **Clear** button is clicked on a container, followed by one or more `"putItem"` messages if it turns out the player didn't have enough inventory space for everything.
+
+---
+
+## Built-in scripted world and entity messages
+
+Several messages handled by «built-in» scripts on xStarbound are noted below.
+
+---
+
+#### `Json` `"metadata"` [world server] ()
+
+Returns the world's metadata if `"allowWorldMetadataChanges"` is `true` (or truthy) in the server's `xserver.config` or host's `xclient.config` (your client is the host in single-player); otherwise returns `nil`. Identical to the server-side `world.metadata` callback aside from the configuration restriction; see that callback in `$docs/lua/world.md` for more info.
+
+---
+
+#### `void` `"setMetadata"` [world server] (`Json` newMetadata)
+
+Modifies the world's metadata if `"allowWorldMetadataChanges"` is `true` (or truthy) in the server's `xserver.config` or host's `xclient.config` (your client is the host in single-player); otherwise does nothing. Identical to the server-side `world.setMetadata` callback aside from the configuration restriction; see that callback in `$docs/lua/world.md` for more info.
