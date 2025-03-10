@@ -9,7 +9,7 @@
 #include <locale.h>
 
 #ifdef STAR_USE_RPMALLOC
-#include "rpmalloc/rpmalloc.h"
+  #include "rpmalloc.h"
 #endif
 
 namespace Star {

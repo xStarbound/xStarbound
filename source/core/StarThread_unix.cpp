@@ -17,17 +17,13 @@
 #include <errno.h>
 
 #ifdef STAR_USE_RPMALLOC
-#include "rpmalloc/rpmalloc.h"
+  #include "rpmalloc.h"
 #endif
 
 #ifdef MAXCOMLEN
 #define MAX_THREAD_NAMELEN MAXCOMLEN
 #else
 #define MAX_THREAD_NAMELEN 16
-#endif
-
-#ifdef TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
 #endif
 
 namespace Star {
