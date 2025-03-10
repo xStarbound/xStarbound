@@ -7,7 +7,7 @@
 #include "jemalloc/jemalloc.h"
 #elif defined STAR_USE_RPMALLOC
 #include "rpmalloc.h"
-#include "rpnew.h"
+// #include "rpnew.h"
 #endif
 
 namespace Star {
@@ -118,7 +118,7 @@ void* operator new[](std::size_t size) {
   return ptr;
 }
 
-// Globally override new and delete.  As the per standard, new and delete must
+// Globally override new and delete.  As per the standard, new and delete must
 // be defined in global scope, and must not be inline.
 
 void* operator new(std::size_t size, std::nothrow_t const&) noexcept {

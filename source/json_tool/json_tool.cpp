@@ -482,7 +482,7 @@ int main(int argc, char** argv) {
     returnVal = 1;
   }
 #ifdef STAR_USE_RPMALLOC
-  :rpmalloc_finalize();
+  ::rpmalloc_finalize();
 #endif
   return returnVal;
 }
