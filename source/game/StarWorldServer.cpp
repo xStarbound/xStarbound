@@ -2555,8 +2555,12 @@ void WorldServer::setMetadata(Json const& newMetadata) {
     return !isRealMaterial(tile.background);
   });
 
-  for (auto const& pair : m_clientInfo) // Immediately update any clients present on the world.
+  auto layoutJson = m_worldTemplate->worldLayout()->toJson();
+  for (auto const& pair : m_clientInfo) { // Immediately update any clients present on the world.
     pair.second->outgoingPackets.append(make_shared<WorldParametersUpdatePacket>(netStoreVisitableWorldParameters(m_worldTemplate->worldParameters())));
+    pair.second->outgoingPackets.append(make_shared<WorldLayoutUpdatePacket>(layoutJson));
+    pair.second->outgoingPackets.append(make_shared<CentralStructureUpdatePacket>(m_centralStructure.store()));
+  }
 }
 
 bool WorldServer::isVisibleToPlayer(RectF const& region) const {
