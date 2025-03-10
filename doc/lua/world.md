@@ -1037,9 +1037,11 @@ Returns the metadata for this world.
 
 Merges the given world metadata with the world's existing metadata using a JSON merge. For this callback, explicit `null`s (see `$docs/lua/lua.md`) will override existing non-`null` object values. Most modifications take effect immediately; however, certain modifications to the `"worldTemplate"` and `"centralStructure"` (particularly changes to the world's size) will not take effect until the world is fully unloaded and reloaded.
 
-> **WARNING: Invalid values in the `"worldTemplate"` and `"centralStructure"` objects *may render the world file UNLOADABLE*! If you suspect *ANY* value passed into `"worldTemplate"` or `"centralStructure"` may not be valid, *BACK UP YOUR WORLD FILE*.**
+> **Caution:** xStarbound will try to recover worlds if invalid values are specified, but even so, invalid values in the `"worldTemplate"` and `"centralStructure"` objects *may render the world file unloadable*! It's recommended to back up any important worlds before playing around with their metadata.
 
-**Note:** Changing the `"worldTemplate"` → `"size"` value in a way that «truncates» parts of the existing world will retain the truncated chunks — they'll just be invisible. Although no data is technically lost, if the world file you're modifying is at all important to you, it is *highly recommended to back up the world before making any world size changes* — size truncation *can* change the positions of objects, NPCs, etc., in undesired ways.
+> **Note:** Changing the `"worldTemplate"` → `"size"` value in a way that «truncates» parts of the existing world will retain the truncated chunks — they'll just be invisible. Although no data is technically lost, if the world file you're modifying is at all important to you, it is *highly recommended to back up the world before making any world size changes* — size truncation *can* change the positions of objects, NPCs, etc., in undesired ways.
+
+> **WARNING: Very small world widths — below about 1000 tiles — *CAN* crash and softlock non-xClient clients on that world! Be careful with small world sizes if non-xClient clients are allowed to connect!**
 
 #### [xStarbound] `Json` world.callScriptContext(`String` contextName, `String` functionName, [`Json...` args])
 #### [OpenStarbound] `LuaValue` world.callScriptContext(`String` contextName, `String` functionName, [`LuaValue...` args])

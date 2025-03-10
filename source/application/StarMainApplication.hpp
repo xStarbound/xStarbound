@@ -17,16 +17,16 @@ namespace Star {
 
 #include "rpmalloc.h"
 
-#define STAR_MAIN_APPLICATION(ApplicationClass)                                          \
-  int __stdcall WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {                              \
-    ::rpmalloc_initialize(0);                                                             \
-    int nArgs;                                                                           \
-    LPWSTR* argsList = CommandLineToArgvW(GetCommandLineW(), &nArgs);                    \
-    Star::StringList args;                                                               \
-    for (int i = 0; i < nArgs; ++i) args.append(Star::String(argsList[i]));              \
-    int returnVal Star::runMainApplication(Star::make_unique<ApplicationClass>(), args); \
-    ::rpmalloc_finalize();                                                               \
-    return returnVal;                                                                    \
+#define STAR_MAIN_APPLICATION(ApplicationClass)                                            \
+  int __stdcall WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {                                \
+    ::rpmalloc_initialize(0);                                                              \
+    int nArgs;                                                                             \
+    LPWSTR* argsList = CommandLineToArgvW(GetCommandLineW(), &nArgs);                      \
+    Star::StringList args;                                                                 \
+    for (int i = 0; i < nArgs; ++i) args.append(Star::String(argsList[i]));                \
+    int returnVal = Star::runMainApplication(Star::make_unique<ApplicationClass>(), args); \
+    ::rpmalloc_finalize();                                                                 \
+    return returnVal;                                                                      \
   }
 
 
@@ -51,7 +51,7 @@ namespace Star {
 
 #define STAR_MAIN_APPLICATION(ApplicationClass)                                                                    \
   int main(int argc, char** argv) {                                                                                \
-    ::rpmalloc_initialize(0);                                                                                       \
+    ::rpmalloc_initialize(0);                                                                                      \
     int returnVal = Star::runMainApplication(Star::make_unique<ApplicationClass>(), Star::StringList(argc, argv)); \
     ::rpmalloc_finalize();                                                                                         \
     return returnVal;                                                                                              \
