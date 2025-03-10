@@ -1039,7 +1039,7 @@ Merges the given world metadata with the world's existing metadata using a JSON 
 
 > **WARNING: Invalid values in the `"worldTemplate"` and `"centralStructure"` objects *may render the world file UNLOADABLE*! If you suspect *ANY* value passed into `"worldTemplate"` or `"centralStructure"` may not be valid, *BACK UP YOUR WORLD FILE*.**
 
-> **WARNING: Changing the `"worldTemplate"` → `"size"` value in a way that «truncates» parts of the existing world *WILL PERMANENTLY DELETE ANYTHING «TRUNCATED», including container objects and their contents*, when the world is reloaded! If the world file you're modifying is at all important to you, *BACK UP THE WORLD before making world size changes*!**
+**Note:** Changing the `"worldTemplate"` → `"size"` value in a way that «truncates» parts of the existing world will retain the truncated chunks — they'll just be invisible. Although no data is technically lost, if the world file you're modifying is at all important to you, it is *highly recommended to back up the world before making any world size changes* — size truncation *can* change the positions of objects, NPCs, etc., in undesired ways.
 
 #### [xStarbound] `Json` world.callScriptContext(`String` contextName, `String` functionName, [`Json...` args])
 #### [OpenStarbound] `LuaValue` world.callScriptContext(`String` contextName, `String` functionName, [`LuaValue...` args])
