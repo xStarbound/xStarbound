@@ -1003,7 +1003,8 @@ TileDamageResult WorldServer::damageTiles(List<Vec2I> const& positions, TileLaye
             for (auto const& space : entity->spaces())
               entitySpacesSet.add(m_geometry.xwrap(entity->tilePosition() + space));
 
-            bool broken = entity->damageTiles(entitySpacesSet.intersection(damagePositionSet).values(), sourcePosition, tileDamage);
+            List<Vec2I> intersection = entitySpacesSet.intersection(damagePositionSet).values();
+            bool broken = !intersection.empty() && entity->damageTiles(intersection, sourcePosition, tileDamage);
             if (sourceEntity.isValid() && broken) {
               Maybe<String> name;
               if (auto object = as<Object>(entity))

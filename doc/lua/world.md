@@ -1100,6 +1100,8 @@ Here's an abridged sample metadata «descriptor» showing the more important and
       /* ... */
     },
     "worldParameters": {
+      "worldSize" : [3000, 2000], // Change this when you change the actual world size to
+      // get of permanent null collision geometry.
       // This world's tech overrides. Used in the tech challenge instance worlds.
       // Either null or an array of named techs to force on players. If it's an empty array,
       // all player techs are disabled.
