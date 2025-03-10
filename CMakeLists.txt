@@ -410,8 +410,8 @@ elseif(STAR_COMPILER_CLANG)
 
     if(NOT (STAR_SYSTEM_FAMILY_WINDOWS OR STAR_SYSTEM_MACOS))
         if(STAR_RECENT_COMPILER)
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=x86-64-v3")
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64-v3")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=x86-64-v3 -DXXH_X86DISPATCH_ALLOW_AVX")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64-v3 -DXXH_X86DISPATCH_ALLOW_AVX")
         endif()
     endif()
 
