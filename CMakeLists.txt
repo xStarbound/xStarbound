@@ -241,6 +241,8 @@ endif()
 
 message(STATUS "Using Lua API checks: ${STAR_LUA_APICHECK}")
 message(STATUS "Using jemalloc: ${STAR_USE_JEMALLOC}")
+message(STATUS "Using mimalloc: ${STAR_USE_MIMALLOC}")
+message(STATUS "Using rpmalloc: ${STAR_USE_RPMALLOC}")
 
 # Set C defines and cmake variables based on the build settings we have now
 # determined...
