@@ -1035,7 +1035,7 @@ Returns the metadata for this world.
 
 > **Available only on xServer v3.5.1+.**
 
-Merges the given world metadata with the world's existing metadata using a JSON merge. For this callback, explicit `null`s (see `$docs/lua/lua.md`) will override existing non-`null` object values. Most modifications take effect immediately; however, modifications to the `"worldTemplate"` and `"centralStructure"` will not take effect until the world is fully unloaded and reloaded.
+Merges the given world metadata with the world's existing metadata using a JSON merge. For this callback, explicit `null`s (see `$docs/lua/lua.md`) will override existing non-`null` object values. Most modifications take effect immediately; however, certain modifications to the `"worldTemplate"` and `"centralStructure"` (particularly changes to the world's size) will not take effect until the world is fully unloaded and reloaded.
 
 > **WARNING: Invalid values in the `"worldTemplate"` and `"centralStructure"` objects *may render the world file UNLOADABLE*! If you suspect *ANY* value passed into `"worldTemplate"` or `"centralStructure"` may not be valid, *BACK UP YOUR WORLD FILE*.**
 
