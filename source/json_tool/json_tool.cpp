@@ -3,7 +3,7 @@
 #include "editor_gui.hpp"
 
 #ifdef STAR_USE_RPMALLOC
-#include "rpmalloc/rpmalloc.h"
+#include "rpmalloc.h"
 #endif
 
 // Tool for scripting and mass-editing of JSON+Comments files without affecting

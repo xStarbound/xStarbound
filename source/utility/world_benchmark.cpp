@@ -7,7 +7,7 @@
 using namespace Star;
 
 #ifdef STAR_USE_RPMALLOC
-#include "rpmalloc/rpmalloc.h"
+#include "rpmalloc.h"
 #endif
 
 using namespace Star;

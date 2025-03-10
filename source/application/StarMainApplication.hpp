@@ -15,7 +15,7 @@ namespace Star {
 
 #if defined STAR_USE_RPMALLOC
 
-#include "rpmalloc/rpmalloc.h"
+#include "rpmalloc.h"
 
 #define STAR_MAIN_APPLICATION(ApplicationClass)                                          \
   int __stdcall WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {                              \
@@ -47,7 +47,7 @@ namespace Star {
 
 #if defined STAR_USE_RPMALLOC
 
-#include "rpmalloc/rpmalloc.h"
+#include "rpmalloc.h"
 
 #define STAR_MAIN_APPLICATION(ApplicationClass)                                                                    \
   int main(int argc, char** argv) {                                                                                \

@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 
 #ifdef STAR_USE_RPMALLOC
-#include "rpmalloc/rpmalloc.h"
+#include "rpmalloc.h"
 #define ENABLE_OVERRIDE 1
 #endif
 
