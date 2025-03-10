@@ -20,7 +20,7 @@ cmake_dependent_option(STAR_USE_JEMALLOC "Use jemalloc allocators" OFF "NOT STAR
 cmake_dependent_option(STAR_USE_MIMALLOC "Use mi-malloc allocators" OFF "NOT STAR_USE_JEMALLOC" OFF)
 
 option(BUILD_TESTING "Build unit and game tests (NOTE: game tests require all game asset packs to run)" OFF)
-cmake_dependent_option(STAR_MEMORY_SANITIZER "Build executables with memory sanitizers enabled" OFF "BUILD_TESTING" OFF)
+option(STAR_MEMORY_SANITIZER "Build executables with memory sanitizers enabled" OFF)
 option(BUILD_INNOSETUP "Configures an InnoSetup project in the build directory to run on the install prefix" OFF)
 
 # Beware: This will NOT work when cross-compiling to an incompatible architecture (e.g. aarch64 on x86_64) or a different OS (e.g. MinGW)!

@@ -2533,36 +2533,18 @@ Json WorldServer::getMetadata() const {
 }
 
 void WorldServer::setMetadata(Json const& newMetadata) {
-  if (newMetadata.opt("playerStart"))
-    m_playerStart = jsonToVec2F(newMetadata.get("playerStart"));
-  m_respawnInWorld = newMetadata.optBool("respawnInWorld").value(m_respawnInWorld);
-  m_adjustPlayerStart = newMetadata.optBool("adjustPlayerStart").value(m_adjustPlayerStart);
-  // m_worldTemplate = make_shared<WorldTemplate>(newMetadata.get("worldTemplate"));
-  // m_centralStructure = WorldStructure(newMetadata.get("centralStructure"));
-  if (newMetadata.opt("protectedDungeonIds"))
-    m_protectedDungeonIds = jsonToSet<DungeonId>(newMetadata.get("protectedDungeonIds"), mem_fn(&Json::toUInt));
-  if (newMetadata.opt("worldProperties"))
-    m_worldProperties = jsonMergeNull(m_worldProperties, newMetadata.getObject("worldProperties")).toObject();
-  if (newMetadata.opt("spawningEnabled"))
-    m_spawner.setActive(newMetadata.getBool("spawningEnabled"));
-
-  if (newMetadata.opt("dungeonIdGravity"))
-    m_dungeonIdGravity = transform<HashMap<DungeonId, float>>(newMetadata.getArray("dungeonIdGravity"), [](Json const& p) {
-        return make_pair(p.getInt(0), p.getFloat(1));
-      });
-
-  if (newMetadata.opt("dungeonIdBreathable"))
-    m_dungeonIdBreathable = transform<HashMap<DungeonId, bool>>(newMetadata.getArray("dungeonIdBreathable"), [](Json const& p) {
-        return make_pair(p.getInt(0), p.getBool(1));
-      });
-
-  // FezzedOne: To be able to set certain world parameters that are iffy to set dynamically, write them to storage. The world will
-  // then have to be reloaded to see any changes.
-
   auto versioningDatabase = Root::singleton().versioningDatabase();
-
+  auto oldMetadata = getMetadata();
   m_worldStorage->setWorldMetadata(versioningDatabase->makeCurrentVersionedJson(
-    "WorldMetadata", jsonMergeNull(getMetadata(), newMetadata)));
+    "WorldMetadata", jsonMergeNull(oldMetadata, newMetadata)));
+  try {
+    readMetadata();
+  } catch (std::exception const& e) {
+    Logger::error("WorldServer: Exception occurred while modifying world metadata, restored old metadata: {}", e.what());
+    m_worldStorage->setWorldMetadata(versioningDatabase->makeCurrentVersionedJson(
+      "WorldMetadata", oldMetadata));
+    readMetadata();
+  }
 }
 
 bool WorldServer::isVisibleToPlayer(RectF const& region) const {

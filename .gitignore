@@ -12,6 +12,7 @@ build-tracy/
 build-tests-tracy/
 build-windows/
 build-windows-msvc/
+build-debug/
 build/
 dist/
 dist-qt/
