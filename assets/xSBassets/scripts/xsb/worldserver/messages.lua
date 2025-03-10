@@ -6,12 +6,16 @@ function module:init()
         return world.setExpiryTime(tonumber(time) or 0)
     end)
 
-	message.setHandler("metadata", function(_, _)
-        return world.metadata()
+	message.setHandler("metadata", function(_, isLocal)
+        if root.getConfiguration("allowWorldMetadataChanges") then
+            return world.metadata()
+        end
     end)
 
-	message.setHandler("setMetadata", function(_, _, newMetadata)
-        return world.setMetadata(newMetadata)
+	message.setHandler("setMetadata", function(_, isLocal, newMetadata)
+        if root.getConfiguration("allowWorldMetadataChanges") then
+            return world.setMetadata(newMetadata)
+        end
     end)
 end
 
