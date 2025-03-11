@@ -197,7 +197,8 @@ VersionedJson WorldStorage::worldMetadata() {
 }
 
 void WorldStorage::setWorldMetadata(VersionedJson const& metadata) {
-  m_db.insert(metadataKey(), writeWorldMetadata({Vec2U(m_tileArray->size()), metadata}));
+  auto worldSize = jsonToVec2U(metadata.toJson().get("worldTemplate").get("size"));
+  m_db.insert(metadataKey(), writeWorldMetadata({worldSize /* Vec2U(m_tileArray->size()) */, metadata}));
 }
 
 ServerTileSectorArrayPtr const& WorldStorage::tileArray() const {

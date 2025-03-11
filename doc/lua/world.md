@@ -1060,6 +1060,7 @@ Here's an abridged sample metadata «descriptor» showing the more important and
   "dungeonIdBreathable": [],
   "respawnInWorld": false, // Whether players respawn in the world.
   "worldTemplate": { // This is the big one.
+    "size": [3000, 2000], // The world's size.
     "seed": 5421766494617969501, // The world generation seed.
     "celestialParameters": {
       // Stuff used for navigation screen and the orbital background on
@@ -1209,8 +1210,7 @@ Here's an abridged sample metadata «descriptor» showing the more important and
         /* ... */
       ]
       /* ... */
-    },
-    "size": [3000, 2000] // The world's size.
+    }
   },
   "worldProperties": { /*... */ }, // World properties set by scripts.
   "dungeonIdGravity": [ // An array of dungeon ID / gravity level combinations.
