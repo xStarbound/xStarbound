@@ -23,6 +23,8 @@ namespace Star {
 CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFunc, PlayerPtr existingPlayer) {
   m_isExistingPlayer = m_skipRandomisation = (bool)existingPlayer;
   m_previewPlayer = existingPlayer;
+  m_speciesChanged = m_genderChanged = m_coloursChanged = m_personalityChanged = m_hairChanged =
+  m_facialHairChanged = m_facialMaskChanged = false;
 
   auto& root = Root::singleton();
 
