@@ -1101,8 +1101,7 @@ Here's an abridged sample metadata «descriptor» showing the more important and
       /* ... */
     },
     "worldParameters": {
-      "worldSize" : [3000, 2000], // Change this when you change the actual world size to
-      // get of permanent null collision geometry.
+      "worldSize" : [3000, 2000], // Redundant world size parameter.
       // This world's tech overrides. Used in the tech challenge instance worlds.
       // Either null or an array of named techs to force on players. If it's an empty array,
       // all player techs are disabled.
@@ -1138,8 +1137,7 @@ Here's an abridged sample metadata «descriptor» showing the more important and
     },
     "regionData": {
       // Tons of tidbits for world biome regions. The most important values are these:
-      "worldSize" : [3000, 2000], // Change this when you change the actual world size to
-      // get of permanent null collision geometry.
+      "worldSize" : [3000, 2000], // Redundant world size parameter.
       "biomes": [ // Each biome has its own parallax.
         {
           "parallax": {
@@ -1224,7 +1222,7 @@ Here's an abridged sample metadata «descriptor» showing the more important and
 
 > **Caution:** xStarbound will try to recover worlds if invalid values are specified, but even so, invalid values in the `"worldTemplate"` and `"centralStructure"` objects *may render the world file unloadable*! It's recommended to back up any important worlds before playing around with their metadata.
 
-> **Note:** Changing the `"worldTemplate"` → `"size"` value in a way that «truncates» parts of the existing world will retain the truncated chunks — they'll just be invisible. Although no data is technically lost, if the world file you're modifying is at all important to you, it is *highly recommended to back up the world before making any world size changes* — size truncation *can* change the positions of objects, NPCs, etc., in undesired ways.
+> **Note:** Changing the `"worldTemplate"` → `"size"` value in a way that «truncates» parts of the existing world will retain the truncated chunks — they'll just be invisible. Although no data is technically lost, if the world file you're modifying is at all important to you, it is *highly recommended to back up the world before making any world size changes*.
 
 > **WARNING: Very small world widths — below about 1000 tiles — *CAN* crash and softlock non-xClient clients on that world! Be careful with small world sizes if non-xClient clients are going to be allowed on the world!**
 
