@@ -18,13 +18,15 @@ public:
   // The callback here is either called with null (when the user hits the
   // cancel button) or the newly created player (when the user hits the save
   // button).
-  CharCreationPane(function<void(PlayerPtr)> requestCloseFunc);
+  CharCreationPane(function<void(PlayerPtr)> requestCloseFunc, PlayerPtr existingPlayer = nullptr);
 
   void randomize();
   void randomizeName();
 
   virtual void tick(float dt) override;
   virtual bool sendEvent(InputEvent const& event) override;
+  virtual void dismissed() override;
+  virtual void displayed() override;
 
   virtual PanePtr createTooltip(Vec2I const&) override;
 
@@ -40,6 +42,8 @@ private:
 
   PlayerPtr m_previewPlayer;
 
+  Maybe<HumanoidIdentity> m_oldIdentity;
+
   StringList m_speciesList;
 
   size_t m_speciesChoice;
@@ -54,6 +58,16 @@ private:
   size_t m_pantsChoice;
   size_t m_pantsColor;
   size_t m_personality;
+
+  bool m_isExistingPlayer;
+  bool m_skipRandomisation;
+  bool m_speciesChanged;
+  bool m_genderChanged;
+  bool m_coloursChanged;
+  bool m_personalityChanged;
+  bool m_hairChanged;
+  bool m_facialHairChanged;
+  bool m_facialMaskChanged;
 };
 
 }

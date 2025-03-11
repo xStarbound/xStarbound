@@ -45,6 +45,7 @@ STAR_CLASS(ScriptPane);
 STAR_CLASS(ChatBubbleManager);
 STAR_CLASS(CanvasWidget);
 STAR_CLASS(CharSelectionPane);
+STAR_CLASS(CharCreationPane);
 
 STAR_STRUCT(GuiMessage);
 STAR_CLASS(MainInterface);
@@ -273,6 +274,7 @@ private:
   CharSelectionPanePtr m_charSwapPane;
   CharSelectionPanePtr m_charAddPane;
   CharSelectionPanePtr m_charRemovePane;
+  CharCreationPanePtr m_charEditor;
 
   Maybe<ChatState> m_persistedChatState;
 };

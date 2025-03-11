@@ -79,6 +79,7 @@ Add loaded character by UUID: ^cyan;/adduuid [UUID]^reset;
 Remove loaded character via selection menu: ^cyan;/remove^reset;
 Remove loaded character by name: ^cyan;/remove [name or part of name]^reset;
 Remove loaded character by UUID: ^cyan;/removeuuid [UUID]^reset;
+Open character editor: ^cyan;/editor^reset;
 Edit humanoid identity: ^cyan;/identity^reset; (run for subcommands)
 View character's game mode: ^cyan;/gamemode^reset; (nothing after the command)
 Change character's game mode: ^cyan;/gamemode [casual/survival/hardcore]^reset; (requires ^cyan;/admin^reset;)

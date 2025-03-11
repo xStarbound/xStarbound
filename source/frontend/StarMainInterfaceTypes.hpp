@@ -37,7 +37,8 @@ enum class MainInterfacePanes {
   Collections,
   CharacterSwap,
   CharacterAdd,
-  CharacterRemove
+  CharacterRemove,
+  CharacterEdit
 };
 
 extern EnumMap<MainInterfacePanes> const MainInterfacePanesNames;

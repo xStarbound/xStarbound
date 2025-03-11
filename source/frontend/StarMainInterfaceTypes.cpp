@@ -32,7 +32,8 @@ EnumMap<MainInterfacePanes> const MainInterfacePanesNames{
   {MainInterfacePanes::Collections, "Collections"},
   {MainInterfacePanes::CharacterSwap, "CharacterSwap"},
   {MainInterfacePanes::CharacterAdd, "CharacterAdd"},
-  {MainInterfacePanes::CharacterRemove, "CharacterRemove"}
+  {MainInterfacePanes::CharacterRemove, "CharacterRemove"},
+  {MainInterfacePanes::CharacterEdit, "CharacterEdit"}
 };
 
 MainInterfaceConfigPtr MainInterfaceConfig::loadFromAssets() {

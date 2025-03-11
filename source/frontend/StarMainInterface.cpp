@@ -58,6 +58,7 @@
 #include "StarChatBubbleManager.hpp"
 #include "StarNpc.hpp"
 #include "StarCharSelection.hpp"
+#include "StarCharCreation.hpp"
 
 #if defined TRACY_ENABLE
   #include "tracy/Tracy.hpp"
@@ -300,6 +301,13 @@ void MainInterface::reset() { // *Completely* reset the interface.
     }
     return isChatMessage ? Json(results) : result;
   };
+
+  m_charEditor = make_shared<CharCreationPane>([=](PlayerPtr editedPlayer) {
+    m_paneManager.dismissRegisteredPane(MainInterfacePanes::CharacterEdit);
+  }, m_client->mainPlayer());
+  m_charEditor->setAnchor(PaneAnchor::Center);
+  m_charEditor->unlockPosition();
+  m_paneManager.registerPane(MainInterfacePanes::CharacterEdit, PaneLayer::ModalWindow, m_charEditor);
 }
 
 MainInterface::RunningState MainInterface::currentState() const {

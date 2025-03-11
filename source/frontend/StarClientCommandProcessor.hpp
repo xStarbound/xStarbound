@@ -66,6 +66,7 @@ private:
   String remove(String const& argumentsString);
   String removeUuid(String const& argumentsString);
   String timeScale(String const& argumentsString);
+  String editor(String const& argumentString);
 
   UniverseClientPtr m_universeClient;
   CinematicPtr m_cinematicOverlay;

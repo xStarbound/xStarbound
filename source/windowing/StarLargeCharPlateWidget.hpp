@@ -13,7 +13,7 @@ STAR_CLASS(Player);
 STAR_CLASS(LargeCharPlateWidget);
 class LargeCharPlateWidget : public ButtonWidget {
 public:
-  LargeCharPlateWidget(WidgetCallbackFunc mainCallback, PlayerPtr player = PlayerPtr());
+  LargeCharPlateWidget(WidgetCallbackFunc mainCallback, PlayerPtr player = PlayerPtr(), bool noCreationText = false);
 
   void mouseOut() override;
 

@@ -1,0 +1,12 @@
+{
+    "paneLayout": {
+        "mode": {
+            "data": {
+                "editorDescription": "Must be an admin to change game mode!"
+            }
+        },
+        "name": {
+            "regex": ".*"
+        }
+    }
+}

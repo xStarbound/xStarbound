@@ -2515,6 +2515,9 @@ bool Player::checkSpecies(String const &species, Maybe<String> const& maybeCallb
 void Player::setSpecies(String const& species) {
   if (checkSpecies(species)) { // FezzedOne: Only sets the species if it actually exists. Prevents crashes.
     m_identity.species = species;
+    auto speciesToUse = m_identity.imagePath ? *m_identity.imagePath : species;
+    auto speciesDef = Root::singleton().speciesDatabase()->species(speciesToUse);
+    m_humanoid = make_shared<Humanoid>(speciesDef->humanoidConfig());
     updateIdentity();
   }
 }
@@ -2540,8 +2543,14 @@ void Player::setPersonality(Personality const& personality) {
 }
 
 void Player::setImagePath(Maybe<String> const& imagePath) {
-  m_identity.imagePath = imagePath;
-  updateIdentity();
+  String speciesName = imagePath ? *imagePath : m_identity.species;
+  if (checkSpecies(speciesName)) { // FezzedOne: Only sets the image path if it actually exists. Prevents crashes.
+    m_identity.imagePath = imagePath;
+    auto speciesToUse = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
+    auto speciesDef = Root::singleton().speciesDatabase()->species(speciesToUse);
+    m_humanoid = make_shared<Humanoid>(speciesDef->humanoidConfig());
+    updateIdentity();
+  };
 }
 
 HumanoidPtr Player::humanoid() {
@@ -2558,12 +2567,20 @@ Json Player::getIdentity() const {
 }
 
 void Player::setIdentity(HumanoidIdentity identity) {
+  String speciesName = identity.imagePath ? *identity.imagePath : identity.species;
+  String oldSpeciesName = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
+  bool speciesChanged = speciesName != oldSpeciesName;
   m_identity = std::move(identity);
+  if (speciesChanged) {
+    auto speciesDef = Root::singleton().speciesDatabase()->species(speciesName);
+    m_humanoid = make_shared<Humanoid>(speciesDef->humanoidConfig());
+  }
   updateIdentity();
 }
 
-void Player::setIdentity(Json const &newIdentity)
-{
+void Player::setIdentity(Json const &newIdentity) {
+  Maybe<String> oldImagePath = m_identity.imagePath;
+  String oldSpecies = oldImagePath ? *oldImagePath : m_identity.species;
   Json oldIdentity = m_identity.toJson();
   Json mergedIdentity = oldIdentity;
   if (newIdentity.type() == Json::Type::Object) {
@@ -2577,11 +2594,22 @@ void Player::setIdentity(Json const &newIdentity)
       }
     }
     String speciesName = mergedIdentity.getString("species");
+    String imagePath = mergedIdentity.optString("imagePath").value(speciesName);
     if (!checkSpecies(speciesName, String("setIdentity")))
     { // FezzedOne: If the new species doesn't exist, retain the old species.
       mergedIdentity = mergedIdentity.set("species", oldIdentity.getString("species"));
+      speciesName = oldSpecies;
+    }
+    if (!checkSpecies(imagePath, String("setIdentity")))
+    { // FezzedOne: If the new image path is invalid, retain the old image path.
+      mergedIdentity = mergedIdentity.set("imagePath", oldIdentity.getString("imagePath"));
+      imagePath = oldImagePath ? *oldImagePath : speciesName;
     }
     m_identity = HumanoidIdentity(mergedIdentity);
+    if (imagePath != oldSpecies) {
+      auto speciesDef = Root::singleton().speciesDatabase()->species(imagePath);
+      m_humanoid = make_shared<Humanoid>(speciesDef->humanoidConfig());
+    }
     updateIdentity();
     // FezzedOne: Fixed bug where changing gender does not immediately swap armour sprites.
     refreshArmor();

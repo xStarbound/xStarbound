@@ -6,7 +6,8 @@
 
 namespace Star {
 
-LargeCharPlateWidget::LargeCharPlateWidget(WidgetCallbackFunc mainCallback, PlayerPtr player) : m_player(player) {
+LargeCharPlateWidget::LargeCharPlateWidget(WidgetCallbackFunc mainCallback, PlayerPtr player, bool noCreationText)
+: m_player(player) {
   m_portraitScale = 0;
 
   setSize(ButtonWidget::size());
@@ -49,7 +50,7 @@ LargeCharPlateWidget::LargeCharPlateWidget(WidgetCallbackFunc mainCallback, Play
   m_mode->setPosition(m_modeOffset);
   m_mode->setAnchor(HorizontalAnchor::LeftAnchor, VerticalAnchor::BottomAnchor);
 
-  m_createCharText = assets->json("/interface.config:largeCharPlate.noPlayerText").toString();
+  m_createCharText = noCreationText ? "" : assets->json("/interface.config:largeCharPlate.noPlayerText").toString();
   m_createCharTextColor = Color::rgb(jsonToVec3B(assets->json("/interface.config:largeCharPlate.noPlayerTextColor")));
   m_playerNameOffset = jsonToVec2I(assets->json("/interface.config:largeCharPlate.playerNameOffset"));
 

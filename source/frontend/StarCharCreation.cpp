@@ -20,100 +20,132 @@
 
 namespace Star {
 
-CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFunc) {
+CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFunc, PlayerPtr existingPlayer) {
+  m_isExistingPlayer = m_skipRandomisation = (bool)existingPlayer;
+  m_previewPlayer = existingPlayer;
+
   auto& root = Root::singleton();
 
   m_speciesList = jsonToStringList(root.assets()->json("/interface/windowconfig/charcreation.config:speciesOrdering"));
 
   GuiReader guiReader;
-  guiReader.registerCallback("cancel", [=](Widget*) { requestCloseFunc({}); });
+  guiReader.registerCallback("cancel", [=](Widget*) {
+      if (m_isExistingPlayer && m_previewPlayer && m_oldIdentity)
+        m_previewPlayer->setIdentity(*m_oldIdentity);
+      requestCloseFunc({}); 
+    });
   guiReader.registerCallback("saveChar", [=](Widget*) {
       if (fetchChild<ButtonWidget>("btnSkipIntro")->isChecked())
         m_previewPlayer->log()->setIntroComplete(true);
+      m_oldIdentity = {};
       requestCloseFunc(m_previewPlayer);
-      createPlayer();
-      randomize();
-      randomizeName();
+      if (!m_isExistingPlayer) {
+        createPlayer();
+        randomize();
+        randomizeName();
+      }
     });
 
   guiReader.registerCallback("mainSkinColor.up", [=](Widget*) {
       m_bodyColor++;
+      m_coloursChanged = true;
       changed();
     });
   guiReader.registerCallback("mainSkinColor.down", [=](Widget*) {
       m_bodyColor--;
+      m_coloursChanged = true;
       changed();
     });
   guiReader.registerCallback("alty.up", [=](Widget*) {
       m_alty++;
+      m_coloursChanged = true;
+      m_facialMaskChanged = true;
       changed();
     });
   guiReader.registerCallback("alty.down", [=](Widget*) {
       m_alty--;
+      m_coloursChanged = true;
+      m_facialMaskChanged = true;
       changed();
     });
   guiReader.registerCallback("hairStyle.up", [=](Widget*) {
       m_hairChoice++;
+      m_hairChanged = true;
       changed();
     });
   guiReader.registerCallback("hairStyle.down", [=](Widget*) {
       m_hairChoice--;
+      m_hairChanged = true;
       changed();
     });
   guiReader.registerCallback("shirt.up", [=](Widget*) {
+      if (m_isExistingPlayer) return;
       m_shirtChoice++;
       fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
       changed();
     });
   guiReader.registerCallback("shirt.down", [=](Widget*) {
+      if (m_isExistingPlayer) return;
       m_shirtChoice--;
       fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
       changed();
     });
   guiReader.registerCallback("pants.up", [=](Widget*) {
+      if (m_isExistingPlayer) return;
       m_pantsChoice++;
       fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
       changed();
     });
   guiReader.registerCallback("pants.down", [=](Widget*) {
+      if (m_isExistingPlayer) return;
       m_pantsChoice--;
       fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
       changed();
     });
   guiReader.registerCallback("heady.up", [=](Widget*) {
       m_heady++;
+      m_coloursChanged = true;
+      m_facialHairChanged = true;
       changed();
     });
   guiReader.registerCallback("heady.down", [=](Widget*) {
       m_heady--;
+      m_coloursChanged = true;
+      m_facialHairChanged = true;
       changed();
     });
   guiReader.registerCallback("shirtColor.up", [=](Widget*) {
+      if (m_isExistingPlayer) return;
       m_shirtColor++;
       fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
       changed();
     });
   guiReader.registerCallback("shirtColor.down", [=](Widget*) {
+      if (m_isExistingPlayer) return;
       m_shirtColor--;
       fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
       changed();
     });
   guiReader.registerCallback("pantsColor.up", [=](Widget*) {
+      if (m_isExistingPlayer) return;
       m_pantsColor++;
       fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
       changed();
     });
   guiReader.registerCallback("pantsColor.down", [=](Widget*) {
+      if (m_isExistingPlayer) return;
       m_pantsColor--;
       fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
       changed();
     });
   guiReader.registerCallback("personality.up", [=](Widget*) {
       m_personality++;
+      m_personalityChanged = true;
       changed();
     });
   guiReader.registerCallback("personality.down", [=](Widget*) {
       m_personality--;
+      m_personalityChanged = true;
       changed();
     });
   guiReader.registerCallback("toggleClothing", [=](Widget*) {
@@ -129,12 +161,19 @@ CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFu
       size_t speciesChoice = convert<ButtonWidget>(button)->buttonGroupId();
       if (speciesChoice < m_speciesList.size() && speciesChoice != m_speciesChoice) {
         m_speciesChoice = speciesChoice;
-        randomize();
-        randomizeName();
+        if (!m_skipRandomisation) {
+          m_speciesChanged = true;
+          randomize();
+        }
+        if (!m_isExistingPlayer)
+          randomizeName();
+        changed();
       }
     });
   guiReader.registerCallback("gender", [=](Widget* button) {
       m_genderChoice = convert<ButtonWidget>(button)->buttonGroupId();
+      if (!m_skipRandomisation)
+        m_genderChanged = true;
       changed();
     });
 
@@ -144,15 +183,73 @@ CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFu
     });
 
   guiReader.construct(root.assets()->json("/interface/windowconfig/charcreation.config:paneLayout"), this);
+  
+  if (m_previewPlayer && m_isExistingPlayer) {
+    m_oldIdentity = m_previewPlayer->identity();
+    fetchChild<ButtonWidget>("btnSkipIntro")->disable();
+    setLabel("labelMode", "");
+    fetchChild<TextBoxWidget>("name")->setText(m_previewPlayer->name());
+    String speciesName = m_previewPlayer->species();
+    if (m_speciesList.contains(speciesName)) {
+      if (auto bw = fetchChild<ButtonWidget>(strf("species.{}", m_speciesList.indexOf(speciesName))))
+        bw->check();
+    }
+    auto speciesDefinition = Root::singleton().speciesDatabase()->species(speciesName);
+    auto species = speciesDefinition->options();
+    auto genderOptions = species.genderOptions.wrap(m_genderChoice);
+    int genderIdx = pmod<int64_t>((int64_t)m_previewPlayer->gender(), species.genderOptions.size());
+    if (auto genderButton = fetchChild<ButtonWidget>(strf("gender.{}", genderIdx)))
+      genderButton->check();
 
-  createPlayer();
+    if (auto portrait = fetchChild<PortraitWidget>("charPreview"))
+      portrait->setEntity(m_previewPlayer);
+    else
+      throw CharCreationException("The charPreview portrait has the wrong type.");
 
-  RandomSource random;
-  m_speciesChoice = random.randu32() % m_speciesList.size();
-  m_genderChoice = random.randu32();
-  m_modeChoice = 1;
-  randomize();
-  randomizeName();
+    m_skipRandomisation = false;
+  } else {
+    createPlayer();
+
+    RandomSource random;
+    m_speciesChoice = random.randu32() % m_speciesList.size();
+    m_genderChoice = random.randu32();
+    m_modeChoice = 1;
+    randomize();
+    randomizeName();
+  }
+}
+
+void CharCreationPane::dismissed() {
+  Pane::dismissed();
+  try {
+    if (m_isExistingPlayer && m_previewPlayer && m_oldIdentity)
+      m_previewPlayer->setIdentity(*m_oldIdentity);
+  } catch (std::exception const& e) {
+    Logger::error("CharCreationPane: Exception thrown while dismissing CharCreationPane: {}", e.what());
+  }
+}
+
+void CharCreationPane::displayed() {
+  Pane::displayed();
+  if (!m_isExistingPlayer) return;
+
+  m_skipRandomisation = true;
+  m_oldIdentity = m_previewPlayer->identity();
+  setLabel("labelMode", "");
+  fetchChild<TextBoxWidget>("name")->setText(m_previewPlayer->name());
+  String speciesName = m_previewPlayer->species();
+  if (m_speciesList.contains(speciesName)) {
+    if (auto bw = fetchChild<ButtonWidget>(strf("species.{}", m_speciesList.indexOf(speciesName))))
+      bw->check();
+  }
+  auto speciesDefinition = Root::singleton().speciesDatabase()->species(speciesName);
+  auto species = speciesDefinition->options();
+  auto genderOptions = species.genderOptions.wrap(m_genderChoice);
+  int genderIdx = pmod<int64_t>((int64_t)m_previewPlayer->gender(), species.genderOptions.size());
+  if (auto genderButton = fetchChild<ButtonWidget>(strf("gender.{}", genderIdx)))
+    genderButton->check();
+
+  m_skipRandomisation = false;
 }
 
 void CharCreationPane::createPlayer() {
@@ -228,7 +325,9 @@ bool CharCreationPane::sendEvent(InputEvent const& event) {
 }
 
 void CharCreationPane::randomizeName() {
-  auto species = Root::singleton().speciesDatabase()->species(m_speciesList[m_speciesChoice]);
+  size_t speciesChoice = m_speciesChoice < m_speciesList.size() ? m_speciesChoice : 0;
+  String speciesName = m_isExistingPlayer ? m_previewPlayer->species() : m_speciesList[speciesChoice];
+  auto species = Root::singleton().speciesDatabase()->species(speciesName);
   auto tb = fetchChild<TextBoxWidget>("name");
   auto genderOption = species->options().genderOptions.wrap(m_genderChoice);
   int limiter = 100;
@@ -244,7 +343,8 @@ void CharCreationPane::changed() {
   auto& root = Root::singleton();
 
   auto textBox = fetchChild<TextBoxWidget>("name");
-  auto speciesDefinition = Root::singleton().speciesDatabase()->species(m_speciesList[m_speciesChoice]);
+  size_t speciesChoice = m_speciesChoice < m_speciesList.size() ? m_speciesChoice : 0;
+  auto speciesDefinition = Root::singleton().speciesDatabase()->species(m_speciesList[speciesChoice]);
   auto species = speciesDefinition->options();
   auto genderOptions = species.genderOptions.wrap(m_genderChoice);
   int genderIdx = pmod<int64_t>(m_genderChoice, species.genderOptions.size());
@@ -274,9 +374,16 @@ void CharCreationPane::changed() {
   if (auto genderButton = fetchChild<ButtonWidget>(strf("gender.{}", genderIdx)))
     genderButton->check();
 
-  auto modeButton = fetchChild<ButtonWidget>(strf("mode.{}", m_modeChoice));
-  modeButton->check();
-  setLabel("labelMode", modeButton->data().getString("description", "fail"));
+  if (m_isExistingPlayer && m_previewPlayer && !m_previewPlayer->isAdmin()) {
+    auto modeGroup = fetchChild<ButtonGroupWidget>("mode");
+    auto modeButton = fetchChild<ButtonWidget>(strf("mode.{}", (size_t)m_previewPlayer->modeType()));
+    modeButton->check();
+    setLabel("labelMode", modeGroup->data().getString("editorDescription", "fail"));
+  } else {
+    auto modeButton = fetchChild<ButtonWidget>(strf("mode.{}", m_modeChoice));
+    modeButton->check();
+    setLabel("labelMode", modeButton->data().getString("description", "fail"));
+  }
 
   // Update the gender images for the new species
   for (size_t i = 0; i < species.genderOptions.size(); i++)
@@ -349,31 +456,55 @@ void CharCreationPane::changed() {
   auto pants = gender.pantsOptions.wrap(m_pantsChoice);
 
   m_previewPlayer->setModeType((PlayerMode)m_modeChoice);
-
+ 
   m_previewPlayer->setName(textBox->getText());
 
-  m_previewPlayer->setSpecies(species.species);
-  m_previewPlayer->setBodyDirectives(bodyColor + altColor);
+  if (!m_isExistingPlayer || m_speciesChanged) {
+    m_previewPlayer->setSpecies(species.species);
+    m_previewPlayer->setImagePath({}); // FezzedOne: Clear the image path to prevent unintuitive behaviour.
+    m_previewPlayer->humanoid() = make_shared<Humanoid>(speciesDefinition->humanoidConfig());
+  }
 
-  m_previewPlayer->setGender(GenderNames.getLeft(gender.name));
+  if (!m_isExistingPlayer || m_coloursChanged) {
+    m_previewPlayer->setBodyDirectives(bodyColor + altColor);
+    m_previewPlayer->setHairDirectives(hairColor);
+    m_previewPlayer->setFacialHairDirectives(facialHairDirective);
+    m_previewPlayer->setFacialMaskDirectives(facialMaskDirective);
+    m_previewPlayer->setEmoteDirectives(bodyColor + altColor);
+  }
 
-  m_previewPlayer->setHairGroup(gender.hairGroup);
-  m_previewPlayer->setHairType(hair);
-  m_previewPlayer->setHairDirectives(hairColor);
+  if (!m_isExistingPlayer || m_genderChanged)
+    m_previewPlayer->setGender(GenderNames.getLeft(gender.name));
 
-  m_previewPlayer->setEmoteDirectives(bodyColor + altColor);
+  if (!m_isExistingPlayer || m_genderChanged || m_speciesChanged) {
+    m_previewPlayer->setFacialHairGroup(facialHairGroup);
+    m_previewPlayer->setFacialMaskGroup(facialMaskGroup);
+    m_previewPlayer->setHairGroup(gender.hairGroup);
+  }
 
-  m_previewPlayer->setFacialHair(facialHairGroup, facialHair, facialHairDirective);
+  if (!m_isExistingPlayer || m_hairChanged)
+    m_previewPlayer->setHairType(hair);
+  
+  if (!m_isExistingPlayer || m_facialHairChanged)
+    m_previewPlayer->setFacialHairType(facialHair);
 
-  m_previewPlayer->setFacialMask(facialMaskGroup, facialMask, facialMaskDirective);
+  if (!m_isExistingPlayer || m_facialMaskChanged)
+    m_previewPlayer->setFacialMaskType(facialMask);
 
-  auto personality = speciesDefinition->personalities().wrap(m_personality);
-  m_previewPlayer->setPersonality(personality);
+  if (!m_isExistingPlayer || m_personalityChanged) {
+    auto personality = speciesDefinition->personalities().wrap(m_personality);
+    m_previewPlayer->setPersonality(personality);
+  }
 
-  setShirt(shirt, m_shirtColor);
-  setPants(pants, m_pantsColor);
+  if (!m_isExistingPlayer) {
+    setShirt(shirt, m_shirtColor);
+    setPants(pants, m_pantsColor);
 
-  m_previewPlayer->finalizeCreation();
+    m_previewPlayer->finalizeCreation();
+  }
+
+  m_speciesChanged = m_genderChanged = m_coloursChanged = m_personalityChanged = m_hairChanged =
+    m_facialHairChanged = m_facialMaskChanged = false;
 }
 
 void CharCreationPane::setShirt(String const& shirt, size_t colorIndex) {

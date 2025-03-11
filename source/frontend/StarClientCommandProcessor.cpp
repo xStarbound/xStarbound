@@ -59,7 +59,8 @@ ClientCommandProcessor::ClientCommandProcessor(UniverseClientPtr universeClient,
     {"adduuid", bind(&ClientCommandProcessor::addUuid, this, _1)},
     {"remove", bind(&ClientCommandProcessor::remove, this, _1)},
     {"removeuuid", bind(&ClientCommandProcessor::removeUuid, this, _1)},
-    {"timescale", bind(&ClientCommandProcessor::timeScale, this, _1)}
+    {"timescale", bind(&ClientCommandProcessor::timeScale, this, _1)},
+    {"editor", bind(&ClientCommandProcessor::editor, this, _1)}
   };
 }
 
@@ -530,6 +531,13 @@ String ClientCommandProcessor::timeScale(String const& argumentsString) {
 
   GlobalTimescale = clamp(lexicalCast<float>(arguments[0]), 0.001f, 256.0f);
   return strf("Set application timescale to {:6.6f}x", GlobalTimescale);
+}
+
+String ClientCommandProcessor::editor(String const& argumentsString) {
+  auto arguments = m_parser.tokenizeToStringList(argumentsString);
+
+  m_paneManager->displayRegisteredPane(MainInterfacePanes::CharacterEdit);
+  return "Showing character editor";
 }
 
 }
