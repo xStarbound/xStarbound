@@ -601,7 +601,7 @@ In addition to the identity callbacks above, the following getters and setters m
 **Notes:** A few notes:
 
 - Any `nil` or unspecified value is ignored, *unless* it's an image path, in which case the image path is cleared.
-- Invalid species names and genders — for reference, valid genders are `"male"` and `"female"` — are ignored and will log an error.
+- Invalid species names, image paths and genders — for reference, valid genders are `"male"` and `"female"` — are ignored and will log a warning (for species or image paths) or throw an error (for genders).
 - The "favourite colour" is the one used for the beams and highlights of "beam" items like the matter manipulator. The beams, but not the highlights, are affected by the alpha (fourth) value.
 
 **Personality:** A `Personality` table looks like this:
