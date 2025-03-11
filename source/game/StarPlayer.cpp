@@ -2544,7 +2544,7 @@ void Player::setPersonality(Personality const& personality) {
 
 void Player::setImagePath(Maybe<String> const& imagePath) {
   String speciesName = imagePath ? *imagePath : m_identity.species;
-  if (checkSpecies(speciesName)) { // FezzedOne: Only sets the image path if it actually exists. Prevents crashes.
+  if (checkSpecies(speciesName, String("setImagePath"))) { // FezzedOne: Only sets the image path if it actually exists. Prevents crashes.
     m_identity.imagePath = imagePath;
     auto speciesToUse = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
     auto speciesDef = Root::singleton().speciesDatabase()->species(speciesToUse);
