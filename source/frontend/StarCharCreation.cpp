@@ -460,9 +460,8 @@ void CharCreationPane::changed() {
   m_previewPlayer->setName(textBox->getText());
 
   if (!m_isExistingPlayer || m_speciesChanged) {
-    m_previewPlayer->setSpecies(species.species);
     m_previewPlayer->setImagePath({}); // FezzedOne: Clear the image path to prevent unintuitive behaviour.
-    m_previewPlayer->humanoid() = make_shared<Humanoid>(speciesDefinition->humanoidConfig());
+    m_previewPlayer->setSpecies(species.species);
   }
 
   if (!m_isExistingPlayer || m_coloursChanged) {
