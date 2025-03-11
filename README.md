@@ -27,13 +27,14 @@ Compiled builds for Linux and Windows should be available in the usual place on 
   - `/swap` and `/swapuuid`: Swaps to a different character. If the character isn't loaded, replaces your current character.
   - `/remove` and `/removeuuid`: Removes a character you're not currently controlling.
   - There are some game balance restrictions — dead characters won't respawn until you beam to your ship. The restrictions can be disabled via the Lua API on a per-character basis.
+- An in-game character editor — use `/editor`. Works properly with modpacks too. By @fezzedone.
 - xStarbound now has OpenStarbound's world file flattening and bloat fixes! By @novaenia.
 - xStarbound automatically repacks shipworld and celestial world files when loading them, saving you quite a bit of disk space and, for xClient, reducing server lag caused by shipworlds. By @fezzedone.
   - Shipworld repacking is client-side; celestial world repacking is server-side.
   - Disable this automatic repacking by adding `"disableRepacking": true` to `xclient.config` or `xserver.config`.
 - Additional Lua callbacks to make player characters fully scriptable, just like NPCs!
 - The UI scale can now be adjusted in the graphics settings dialogue, complete with configurable keybinds and support for fractional scales (@fezzedone). There are also keybinds for changing the in-game camera zoom (@novaenia). Both the UI scale and zoom level are scriptable (@fezzedone). UI scaling mods are no longer needed (and in fact no longer do anything) in xStarbound!
-- Chat message history is now saved to `messages.json` in your storage directory instead of being reset on every disconnection. Use the new `/clear` command on xClient to clear the chat history instead.
+- Chat message history is now saved to `messages.json` in your storage directory instead of being reset on every disconnection (@fezzedone). Use the new `/clear` command on xClient to clear the chat history instead.
 - Inventory and action bar expansion (or reduction) mods are now fully compatible with vanilla multiplayer with no changes needed on the mod's part. Additionally, these mods can now be safely added or removed without item loss or crashes as long as characters are loaded in xStarbound. Added by @WasabiRaptor and @fezzedone.
   - Loading a character after changes to inventory or action bar mods will drop any items that no longer fit on the ground beside the player (which will be picked up if there still is inventory space), instead of showing an error dialogue.
   - *Warning for users of vanilla clients and other client mods:* If you load any characters that have their inventories resized but haven't yet dropped overflowed items on a non-xStarbound client — this can happen if you open xStarbound after changing mods, but don't actually load some characters before switching to another client — you may lose items, so load your characters in xStarbound and save your items first!
