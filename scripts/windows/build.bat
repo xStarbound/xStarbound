@@ -94,7 +94,7 @@ if "%buildInstaller%"=="yes" (
     xcopy /y /f "cmake-build-windows-x64\source\utility\!relOrDbg!\*.dll" dist-windows\install-tree\xsb-win64\
     :: Comment out the following line if using any Windows version older than Windows 10 1803.
     cd dist-windows\install-tree & tar -cavf ..\installer\windows.zip * & cd ..\..
-    "%PROGRAMFILES(X86)%\Inno Setup 6\ISCC.exe" "/DXSBSourcePath=..\..\dist-windows\install-tree\" /Odist-windows\installer cmake-build-windows-x64\inno-installer\xsb-installer.iss
+    "%PROGRAMFILES(X86)%\Inno Setup 6\ISCC.exe" "/DXSBSourcePath=..\..\dist-windows\install-tree\" "/DXSBDistPath=..\..\dist-windows\install-tree\" /Odist-windows\installer cmake-build-windows-x64\inno-installer\xsb-installer.iss
     if !ERRORLEVEL! neq 0 (
         color 04
         set buildError=!ERRORLEVEL!
