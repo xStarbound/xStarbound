@@ -186,7 +186,12 @@ CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFu
   
   if (m_previewPlayer && m_isExistingPlayer) {
     m_oldIdentity = m_previewPlayer->identity();
-    fetchChild<ButtonWidget>("btnSkipIntro")->disable();
+    fetchChild<LabelWidget>("lblSkipIntro")->hide();
+    {
+      auto skipIntroButton = fetchChild<ButtonWidget>("btnSkipIntro");
+      skipIntroButton->disable();
+      skipIntroButton->hide();
+    }
     setLabel("labelMode", "");
     fetchChild<TextBoxWidget>("name")->setText(m_previewPlayer->name());
     String speciesName = m_previewPlayer->species();
