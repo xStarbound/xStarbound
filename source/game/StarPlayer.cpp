@@ -2508,7 +2508,7 @@ bool Player::checkSpecies(String const &species, Maybe<String> const& maybeCallb
   }
 
   if (!speciesFound)
-    Logger::error("{}: Nonexistent species '{}'.", callbackName, species);
+    Logger::warn("{}: Nonexistent species / image path '{}'; retained the old one.", callbackName, species);
   return speciesFound;
 }
 
