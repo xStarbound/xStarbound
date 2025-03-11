@@ -277,6 +277,7 @@ void CharCreationPane::randomize() {
   m_pantsChoice = random.randu32();
   m_pantsColor = random.randu32();
   m_personality = random.randu32();
+  m_coloursChanged = m_personalityChanged = m_hairChanged = m_facialHairChanged = m_facialMaskChanged = false;
   changed();
 }
 
