@@ -456,34 +456,36 @@ elseif(STAR_COMPILER_CLANG)
     endif()
 
 elseif(STAR_COMPILER_MSVC)
-    # /MP      - Multi-processor building
-    # /EHsc    - Enable normal C++ exception handling
-    # /bigobj  - More sections in .obj files (Cannot build in Debug without it)
-    # /MT      - Use multi-threaded statically linked C runtime library
-    # /GA      - Optimize for windows application
-    # /Ox      - Full optimization
-    # /fp:fast - Equivalent to -ffast-math
-    # /GS-     - Disable buffers security check
-    # /Zi      - Generates debugging information without Edit and Continue
-    # /Gy      - Use function-level linking
-    # /wd4996  - Disable warnings about unsafe C functions
-    # /wd4351  - Disable warnings about new behavior of default initialization of
-    #            arrays (which is the correct behavior anyway)
-    # /wd4800  - Disable warnings about using non-bool as true or false (useless
-    #            performance warning)
-    # /wd4244  - Disable warnings about type conversion loss of data, it's a nice
-    #            warning, but it triggers on lots and lots of harmless things that no
-    #            other compiler warns about, like passing an int as a float parameter
-    # /wd4305  - Disable warnings about truncation from double to float
-    # /wd4267  - Disable warnings about 64 - 32 bit truncation
-    # /wd4456  - Disable warnings about hiding previous local declaration
-    # /wd4503  - Silence warnings about MSVC generating a name so long it has to
-    #            truncate it
-    # /wd4250  - Silence "XX inherits YY via dominance"
-    # /wd4624  - Silence implicitly deleted destructor warnings that show up when
-    #            using unions in interesting ways.
+    # /std:c11                 - For C atomics support, needed by rpmalloc.
+    # /experimental:c11atomics - C atomics are apparently still experimental on MSVC. Requires VS 2022+!
+    # /MP                      - Multi-processor building
+    # /EHsc                    - Enable normal C++ exception handling
+    # /bigobj                  - More sections in .obj files (Cannot build in Debug without it)
+    # /MT                      - Use multi-threaded statically linked C runtime library
+    # /GA                      - Optimize for windows application
+    # /Ox                      - Full optimization
+    # /fp:fast                 - Equivalent to -ffast-math
+    # /GS-                     - Disable buffers security check
+    # /Zi                      - Generates debugging information without Edit and Continue
+    # /Gy                      - Use function-level linking
+    # /wd4996                  - Disable warnings about unsafe C functions
+    # /wd4351                  - Disable warnings about new behavior of default initialization of
+    #                            arrays (which is the correct behavior anyway)
+    # /wd4800                  - Disable warnings about using non-bool as true or false (useless
+    #                            performance warning)
+    # /wd4244                  - Disable warnings about type conversion loss of data, it's a nice
+    #                            warning, but it triggers on lots and lots of harmless things that no
+    #                            other compiler warns about, like passing an int as a float parameter
+    # /wd4305                  - Disable warnings about truncation from double to float
+    # /wd4267                  - Disable warnings about 64 - 32 bit truncation
+    # /wd4456                  - Disable warnings about hiding previous local declaration
+    # /wd4503                  - Silence warnings about MSVC generating a name so long it has to
+    #                            truncate it
+    # /wd4250                  - Silence "XX inherits YY via dominance"
+    # /wd4624                  - Silence implicitly deleted destructor warnings that show up when
+    #                            using unions in interesting ways.
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:c11 /MP /EHsc /bigobj /wd4996 /wd4351 /wd4800 /wd4244 /wd4305 /wd4267 /wd4456 /wd4503 /wd4250 /wd4624")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:c11 /experimental:c11atomics /MP /EHsc /bigobj /wd4996 /wd4351 /wd4800 /wd4244 /wd4305 /wd4267 /wd4456 /wd4503 /wd4250 /wd4624")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /MP /EHsc /bigobj /wd4996 /wd4351 /wd4800 /wd4244 /wd4305 /wd4267 /wd4456 /wd4503 /wd4250 /wd4624 /Zc:__cplusplus")
 
     if(STAR_ENABLE_STATIC_MSVC_RUNTIME)

@@ -1176,7 +1176,7 @@ PanePtr MainInterface::createEscapeDialog() {
 
   escapeDialogReader.construct(assets->json("/interface.config:escapeDialog"), escapeDialogPtr);
 
-  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(
+  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText( /* Dummy comment to force MSVC rebuild. */
     strf("^font=iosevka-extrabold,set;^#822;xClient^reset,#999,font=iosevka-semibold,set; v{} [{}]\nStarbound v{}\n{}",
     xSbVersionString, StarArchitectureString, StarVersionString,
     "^font=iosevka-semibold,set;By ^#800;FezzedOne^reset,#999;, xStarbound and OpenStarbound\ncontributors, and Chucklefish"));
