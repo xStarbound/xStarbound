@@ -1,8 +1,8 @@
-# `interface`, `input`, `voice`, `chat` and `clipboard`
+# `interface`, `input`, `voice`, `chat`, `clipboard` and `camera`
 
 > **These callbacks are available only on xStarbound, OpenStarbound and StarExtensions.**
 
-The `interface`, `input`, `voice`, `chat` and `clipboard` tables contain bindings that perform actions that relate to the client window, voice chat and game input/output handling.
+The `interface`, `input`, `voice`, `chat`, `clipboard` and `camera` tables contain bindings that perform actions that relate to the client window, voice chat, game input/output handling and the world camera.
 
 These tables are available in the following contexts:
 
@@ -100,24 +100,65 @@ Sets the interface scale. The scale is clamped to a value between `0.5` and `100
 ----
 
 #### `float` interface.worldPixelRatio()
+#### `float` camera.pixelRatio()
 
-> **Available only on xStarbound.**
+> **`interface.worldPixelRatio` is available only on xStarbound.**
 
 Returns the current world zoom level, expressed as the number of world pixels per screen pixel in either dimension.
 
 ----
 
 #### `void` interface.setWorldPixelRatio(`float` newScale)
+#### `void` camera.setPixelRatio(`float` newScale, `Maybe<bool>` smooth)
 
-> **Available only on xStarbound.**
+> **`interface.setWorldPixelRatio` is available only on xStarbound.**
 
 Sets the world zoom level. The zoom level is clamped to a value between `0.25` and `100.0`, inclusive. Note that a lower zoom ratio will cause more world chunks to load.
+
+`interface.setWorldPixelRatio` does a smooth zoom transition by default, while `camera.setPixelRatio` does not, although if `smooth` is `true`, it will do a smooth transition.
 
 ----
 
 #### `Vec2F` interface.cameraPosition()
+#### `Vec2F` camera.position()
 
 Returns the current world position of the "camera", i.e., the centre of the game world view, in world tile coordinates.
+
+----
+
+#### `Vec2U` camera.screenSize()
+
+Returns the size of the game window (not including any titlebar or other window decorations) in raw screen pixels. If the game is full-screen, returns the full-screen resolution.
+
+----
+
+#### `RectF` camera.worldScreenRect()
+
+Returns the bounds of the game window or screen (not including any titlebar or other window decorations) in *world coordinates*. Useful for determining whether an entity is visible in game or not.
+
+----
+
+#### `RectI` camera.worldTileRect()
+
+Returns the bounds of the game window or scereen (not including any titlebar or other window decorations) in *world tile coordinates*, including any partially visible tiles. Useful for determining whether a tile, object or other tile-positioned entity is visible in game or not.
+
+----
+
+#### `Vec2F` camera.worldTileRect()
+
+Returns the position of the lower left corner of the lowermost and leftmost tile visible (even if only partially) on screen in *raw screen pixels*. The returned coordinates will be zero or negative in both axes — a screen pixel position that's usually just off-screen.
+
+----
+
+#### `Vec2F` camera.screenToWorld(`Vec2F` worldCoord)
+
+Converts the given *world coordinates* to *screen pixel coordinates*. The origin for the screen pixel coordinates is the lower-left corner of the game window or screen (excluding any window decorations).
+
+----
+
+#### `Vec2F` camera.worldToScreen(`Vec2F` worldCoord)
+
+Converts the given *screen pixel coordinates* to *world coordinates*. The origin for world coordinates is the point at which the world's transition seam — the line where the world's X coordinate «overflows» or «underflows» — intersects the bottom of the world.
 
 ----
 
@@ -471,13 +512,19 @@ jarray{ -- Array of binds.
 }
 ```
 
+----
+
 #### `JsonArray` input.getDefaultBinds(`String` category, `String` bindId)
 
 Gets the default binds for the specified bind ID, as configured in its `.binds` file. Returns the binds in the same format used by `input.setBinds` for setting binds.
 
+----
+
 #### `JsonArray` input.getBinds(`String` category, `String` bindId)
 
 Gets the current binds for the specified bind ID, as configured in `$storage/xclient.config`. Returns the binds in the same format used by `input.setBinds` for setting binds.
+
+----
 
 #### `JsonArray` input.events()
 
@@ -543,9 +590,13 @@ jarray{
 }
 ```
 
+----
+
 #### `StringList` voice.devices()
 
 Lists all available microphone devices detected by xClient.
+
+----
 
 #### `JsonObject` voice.getSettings()
 
@@ -571,11 +622,15 @@ jobject{
 
 These voice settings are saved under the `"voice"` key in `$storage/xclient.config`.
 
+----
+
 #### `void` voice.mergeSettings(`JsonObject` newSettings)
 
 Changes the voice chat settings whose keys are specified in the JSON object passed to this callback. See `voice.getSettings` for the settings format. All settings keys are optional, and the `version` key cannot be changed with this callback.
 
 Settings changes take effect immediately.
+
+----
 
 #### `JsonObject` voice.speaker(`Maybe<SpeakerId>` speakerId)
 
@@ -610,6 +665,8 @@ If a speaker ID the client hasn't seen before is specified, the returned informa
 
 **Note:** If a speaker is using xClient, the player entity associated with the speaker is always his client's current primary player, not any secondaries.
 
+----
+
 #### `List<JsonObject>` voice.speakers(`Maybe<bool>` onlyPlaying)
 
 If `onlyPlaying` is `true`, `nil` or unspecified, returns a list of speakers detected by the client who are currently speaking (or leaving their mics open).
@@ -618,21 +675,31 @@ If `onlyPlaying` is `false`, returns a list of all speakers the client has ever 
 
 The list entries are in the speaker format returned by `voice.speaker`.
 
+----
+
 #### `bool` voice.speakerMuted(`SpeakerId` speakerId)
 
 Returns whether the specified speaker is locally muted.
+
+----
 
 #### `void` voice.setSpeakerMuted(`SpeakerId` speakerId, `bool` muted)
 
 Sets whether the specified speaker is locally muted.
 
+----
+
 #### `float` voice.speakerVolume(`SpeakerId` speakerId)
 
 Returns the specified speaker's local volume.
 
+----
+
 #### `void` voice.setSpeakerVolume(`SpeakerId` speakerId, `float` volume)
 
 Sets the specified speaker's local volume.
+
+----
 
 #### `Vec2F` voice.setSpeakerVolume(`SpeakerId` speakerId, `float` volume)
 
