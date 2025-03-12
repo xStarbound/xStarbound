@@ -402,7 +402,7 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   loadBaseLibrary(self->m_state, "vector3", luaopen_vector3);
   loadBaseLibrary(self->m_state, "base32", luaopen_base32);
   loadBaseLibrary(self->m_state, "base64", luaopen_base64);
-  lua_pop(self->m_state, 5);
+  lua_pop(self->m_state, 18);
 
   if (!safe) { // FezzedOne: Dangerous stuff, this.
     loadBaseLibrary(self->m_state, "io", luaopen_io);
@@ -411,7 +411,7 @@ LuaEnginePtr LuaEngine::create(bool safe) {
     loadBaseLibrary(self->m_state, "http", luaopen_http);
     loadBaseLibrary(self->m_state, "socket", luaopen_socket);
     loadBaseLibrary(self->m_state, "ffi", luaopen_ffi);
-    lua_pop(self->m_state, 3);
+    lua_pop(self->m_state, 6);
   }
 
   // Make a shallow copy of the default script environment and save it for
