@@ -7,13 +7,13 @@ function module:init()
     end)
 
 	message.setHandler("metadata", function(_, isLocal)
-        if root.getConfiguration("allowWorldMetadataChanges") then
+        if isLocal or root.getConfiguration("allowWorldMetadataChanges") then
             return world.metadata()
         end
     end)
 
 	message.setHandler("setMetadata", function(_, isLocal, newMetadata)
-        if root.getConfiguration("allowWorldMetadataChanges") then
+        if isLocal or root.getConfiguration("allowWorldMetadataChanges") then
             return world.setMetadata(newMetadata)
         end
     end)
