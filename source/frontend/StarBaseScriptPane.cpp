@@ -13,6 +13,7 @@
 #include "StarItemGridWidget.hpp"
 #include "StarSimpleTooltip.hpp"
 #include "StarImageWidget.hpp"
+#include "StarWorldPainter.hpp"
 
 namespace Star {
 
@@ -67,6 +68,7 @@ void BaseScriptPane::displayed() {
     m_script.addCallbacks("clipboard", LuaBindings::makeClipboardCallbacks(nullptr));
     if (m_mainInterface) {
       m_script.addCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface, true));
+      m_script.addCallbacks("camera", LuaBindings::makeCameraCallbacks(&m_mainInterface->worldPainter()->camera()));
       m_script.addCallbacks("chat",
         LuaBindings::makeChatCallbacks(m_mainInterface, m_removeHoakyChatCallbacks));
     }

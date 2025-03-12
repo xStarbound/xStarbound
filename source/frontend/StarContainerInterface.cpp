@@ -23,6 +23,7 @@
 #include "StarInput.hpp"
 #include "StarInterfaceLuaBindings.hpp"
 #include "StarInputLuaBindings.hpp"
+#include "StarWorldPainter.hpp"
 
 namespace Star {
 
@@ -63,6 +64,7 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
     m_script->addCallbacks("clipboard", LuaBindings::makeClipboardCallbacks(nullptr));
     if (mainInterface) {
       m_script->addCallbacks("interface", LuaBindings::makeInterfaceCallbacks(mainInterface, true));
+      m_script->addCallbacks("camera", LuaBindings::makeCameraCallbacks(&mainInterface->worldPainter()->camera()));
       m_script->addCallbacks("chat", LuaBindings::makeChatCallbacks(mainInterface));
     }
 

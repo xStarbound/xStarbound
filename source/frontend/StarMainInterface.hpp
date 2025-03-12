@@ -161,6 +161,7 @@ public:
 
   UniverseClientPtr universeClient() const;
   ChatPtr chat() const;
+  WorldPainterPtr worldPainter() const;
 
   bool hudVisible() const;
   void setHudVisible(bool visible);

@@ -1842,4 +1842,8 @@ ChatPtr MainInterface::chat() const {
   return m_chat;
 }
 
+WorldPainterPtr MainInterface::worldPainter() const {
+  return m_worldPainter;
+}
+
 }
