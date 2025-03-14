@@ -24,7 +24,7 @@ CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFu
   m_isExistingPlayer = m_skipRandomisation = (bool)existingPlayer;
   m_previewPlayer = existingPlayer;
   m_speciesChanged = m_genderChanged = m_coloursChanged = m_personalityChanged = m_hairChanged =
-  m_facialHairChanged = m_facialMaskChanged = false;
+  m_facialHairChanged = m_facialMaskChanged = m_modeChanged = false;
 
   auto& root = Root::singleton();
 
@@ -181,6 +181,7 @@ CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFu
 
   guiReader.registerCallback("mode", [=](Widget* button) {
       m_modeChoice = convert<ButtonWidget>(button)->buttonGroupId();
+      m_modeChanged = true;
       changed();
     });
 
@@ -471,7 +472,8 @@ void CharCreationPane::changed() {
   auto shirt = gender.shirtOptions.wrap(m_shirtChoice);
   auto pants = gender.pantsOptions.wrap(m_pantsChoice);
 
-  m_previewPlayer->setModeType((PlayerMode)m_modeChoice);
+  if (!m_isExistingPlayer || m_modeChanged)
+    m_previewPlayer->setModeType((PlayerMode)m_modeChoice);
  
   m_previewPlayer->setName(textBox->getText());
 
@@ -519,7 +521,7 @@ void CharCreationPane::changed() {
   }
 
   m_speciesChanged = m_genderChanged = m_coloursChanged = m_personalityChanged = m_hairChanged =
-    m_facialHairChanged = m_facialMaskChanged = false;
+    m_facialHairChanged = m_facialMaskChanged = m_modeChanged = false;
 }
 
 void CharCreationPane::setShirt(String const& shirt, size_t colorIndex) {
