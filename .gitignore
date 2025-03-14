@@ -65,3 +65,9 @@ _deps
 # macOS stuff
 macos/dist
 .DS_Store
+
+# Sourcetrail stuff
+sourcetrail_dependencies/
+*.srctrlbm
+*.srctrldb
+*.srctrlprj
