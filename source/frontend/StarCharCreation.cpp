@@ -24,7 +24,7 @@ CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFu
   m_isExistingPlayer = m_skipRandomisation = (bool)existingPlayer;
   m_previewPlayer = existingPlayer;
   m_speciesChanged = m_genderChanged = m_coloursChanged = m_personalityChanged = m_hairChanged =
-  m_facialHairChanged = m_facialMaskChanged = m_modeChanged = false;
+  m_facialHairChanged = m_facialMaskChanged = m_modeChanged = m_nameChanged = false;
 
   auto& root = Root::singleton();
 
@@ -475,7 +475,8 @@ void CharCreationPane::changed() {
   if (!m_isExistingPlayer || m_modeChanged)
     m_previewPlayer->setModeType((PlayerMode)m_modeChoice);
  
-  m_previewPlayer->setName(textBox->getText());
+  if (!m_isExistingPlayer || m_nameChanged)
+    m_previewPlayer->setName(textBox->getText());
 
   if (!m_isExistingPlayer || m_speciesChanged) {
     m_previewPlayer->setImagePath({}); // FezzedOne: Clear the image path to prevent unintuitive behaviour.
@@ -521,7 +522,7 @@ void CharCreationPane::changed() {
   }
 
   m_speciesChanged = m_genderChanged = m_coloursChanged = m_personalityChanged = m_hairChanged =
-    m_facialHairChanged = m_facialMaskChanged = m_modeChanged = false;
+    m_facialHairChanged = m_facialMaskChanged = m_modeChanged = m_nameChanged = false;
 }
 
 void CharCreationPane::setShirt(String const& shirt, size_t colorIndex) {
@@ -549,10 +550,12 @@ void CharCreationPane::setPants(String const& pants, size_t colorIndex) {
 }
 
 void CharCreationPane::nameBoxCallback(Widget* object) {
-  if (as<TextBoxWidget>(object))
+  if (as<TextBoxWidget>(object)) {
+    m_nameChanged = true;
     changed();
-  else
+  } else {
     throw GuiException("Invalid object type, expected TextBoxWidget.");
+  }
 }
 
 PanePtr CharCreationPane::createTooltip(Vec2I const& screenPosition) {

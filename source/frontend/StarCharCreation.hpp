@@ -69,6 +69,7 @@ private:
   bool m_facialHairChanged;
   bool m_facialMaskChanged;
   bool m_modeChanged;
+  bool m_nameChanged;
 };
 
 }
