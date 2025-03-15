@@ -393,13 +393,15 @@ void CharCreationPane::changed() {
 
   if (m_isExistingPlayer && m_previewPlayer && !m_previewPlayer->isAdmin()) {
     auto modeGroup = fetchChild<ButtonGroupWidget>("mode");
-    auto modeButton = fetchChild<ButtonWidget>(strf("mode.{}", (size_t)m_previewPlayer->modeType()));
-    modeButton->check();
+    if (auto modeButton = fetchChild<ButtonWidget>(strf("mode.{}", (size_t)m_previewPlayer->modeType())))
+      modeButton->check();
     setLabel("labelMode", modeGroup->data().getString("editorDescription", "fail"));
   } else {
-    auto modeButton = fetchChild<ButtonWidget>(strf("mode.{}", m_modeChoice));
-    modeButton->check();
-    setLabel("labelMode", modeButton->data().getString("description", "fail"));
+    if (auto modeButton = fetchChild<ButtonWidget>(strf("mode.{}",
+      (m_isExistingPlayer && !m_modeChanged) ? (size_t)m_previewPlayer->modeType() : m_modeChoice))) {
+        modeButton->check();
+        setLabel("labelMode", modeButton->data().getString("description", "fail"));
+      }
   }
 
   // Update the gender images for the new species
