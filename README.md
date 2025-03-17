@@ -99,7 +99,7 @@ The following mods have special functionality that requires or is supported by x
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xStarbound as of v2.3.7.
 - [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111), [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) and other mods based on the framework — xStarbound supports «nice» non-pixelated scaling as of v2.4.1.1.
 - [Spawnable Item Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=733665104) — SIP's universal mod support requires xStarbound v2.5+ or OpenStarbound.
-- [StarCustomChat](https://github.com/KrashV/StarCustomChat) ([Temporary pre-merge xSB fork](https://github.com/FezzedOne/StarCustomChat)) — fully supported by xStarbound as of SCC v1.9.x / xSB v1.4.5.1. (Waiting on OpenStarbound to support a newly added xSB feature...)
+- [StarCustomChat](https://steamcommunity.com/sharedfiles/filedetails/?id=3208917628) ([GitHub](https://github.com/KrashV/StarCustomChat)) and [StarCustomChatRP](https://steamcommunity.com/sharedfiles/filedetails/?id=3445409664) — fully supported by xStarbound as of SCC v1.9.2 / xSB v3.5.1.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xStarbound.
 - [Time Control Command](https://steamcommunity.com/sharedfiles/filedetails/?id=3256623666) ([GitHub](https://github.com/bongus-jive/TimeControlCommand)) — fully supported by xStarbound.
 - [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — fully supported by xStarbound as of xSB v3.4.2.
