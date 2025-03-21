@@ -75,6 +75,7 @@ The following mods have special functionality that requires or is supported by x
 
 - [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — fully supported by xStarbound.
 - [Alternate UI Sounds [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3360332852) — should be supported by xStarbound; report any issues.
+- [Armor Augment Slot](https://steamcommunity.com/sharedfiles/filedetails/?id=3448934708) — requires xStarbound or Openstarbound.
 - [Back Weapon II](https://steamcommunity.com/sharedfiles/filedetails/?id=3405399202) — fully supported by xStarbound.
 - [Cheap As Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — currently fully supported by xStarbound, but due to stupidity, don't expect this to last.
 - [Drop pixels on death](https://steamcommunity.com/sharedfiles/filedetails/?id=3350355857) ([GitHub](https://github.com/bongus-jive/drop-money-on-death)) — fully supported by xStarbound.
