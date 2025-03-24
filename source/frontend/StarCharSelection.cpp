@@ -71,8 +71,10 @@ void CharSelectionPane::selectCharacter(unsigned buttonIndex) {
         context()->playAudio(sound);
     } else
       m_selectCallback(player);
-  } else
+  } else {
     m_createCallback();
+  }
+  updateCharacterPlates();
 }
 
 void CharSelectionPane::updateCharacterPlates() {
@@ -80,7 +82,10 @@ void CharSelectionPane::updateCharacterPlates() {
     auto charSelector = fetchChild<LargeCharPlateWidget>(name);
     if (auto playerUuid = m_playerStorage->playerUuidAt(scrollPosition, m_filterCallback)) {
       charSelector->setPlayer(m_playerStorage->loadPlayer(*playerUuid));
-      charSelector->enableDelete([this, playerUuid](Widget*) { m_deleteCallback(*playerUuid); });
+      charSelector->enableDelete([this, playerUuid](Widget*) {
+        m_deleteCallback(*playerUuid);
+        updateCharacterPlates();
+      });
     } else {
       charSelector->setPlayer(PlayerPtr());
       charSelector->disableDelete();

@@ -100,7 +100,9 @@ StringList ClientCommandProcessor::handleCommand(String const& commandLine) {
       }
     } else {
       auto player = m_universeClient->mainPlayer();
-      if (auto messageResult = player->receiveMessage(connectionForEntity(player->entityId()), strf("/{}", command), { allArguments })) {
+      if (auto messageResult = player->receiveMessage(
+          connectionForEntity(player->entityId()), strf("/{}", command), { allArguments }
+        )) {
         if (messageResult->isType(Json::Type::String)) {
           auto messageStr = *messageResult->stringPtr();
           if (messageStr != "") {
@@ -109,7 +111,7 @@ StringList ClientCommandProcessor::handleCommand(String const& commandLine) {
               result.append(s.empty() ? " " : s);
             }
           }
-        } else {
+        } else if (!messageResult->isNull()) { // FezzedOne: Ensure commands don't display a `null` when their handler doesn't return anything, 'cause that's annoying.
           String processedResult = messageResult->repr(1, true);
           result.append(processedResult);
         }
