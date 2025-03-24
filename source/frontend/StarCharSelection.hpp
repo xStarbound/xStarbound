@@ -21,6 +21,7 @@ public:
 
   bool sendEvent(InputEvent const& event) override;
   void show() override;
+  void update(float dt) override;
   void updateCharacterPlates();
 
 private:
@@ -34,6 +35,8 @@ private:
   SelectCharacterCallback m_selectCallback;
   DeleteCharacterCallback m_deleteCallback;
   FilterCallback m_filterCallback;
+
+  bool m_listNeedsUpdate;
 };
 typedef shared_ptr<CharSelectionPane> CharSelectionPanePtr;
 }

@@ -18,7 +18,8 @@ CharSelectionPane::CharSelectionPane(PlayerStoragePtr playerStorage,
     m_createCallback(createCallback),
     m_selectCallback(selectCallback),
     m_deleteCallback(deleteCallback),
-    m_filterCallback(filterCallback) {
+    m_filterCallback(filterCallback),
+    m_listNeedsUpdate(false) {
   auto& root = Root::singleton();
 
   GuiReader guiReader;
@@ -53,6 +54,15 @@ void CharSelectionPane::show() {
 
   m_downScroll = 0;
   updateCharacterPlates();
+  m_listNeedsUpdate = false;
+}
+
+void CharSelectionPane::update(float dt) {
+  Pane::update(dt);
+  if (m_listNeedsUpdate) {
+    updateCharacterPlates();
+    m_listNeedsUpdate = false;
+  }
 }
 
 void CharSelectionPane::shiftCharacters(int shift) {
@@ -74,7 +84,7 @@ void CharSelectionPane::selectCharacter(unsigned buttonIndex) {
   } else {
     m_createCallback();
   }
-  updateCharacterPlates();
+  m_listNeedsUpdate = true;
 }
 
 void CharSelectionPane::updateCharacterPlates() {
@@ -84,7 +94,7 @@ void CharSelectionPane::updateCharacterPlates() {
       charSelector->setPlayer(m_playerStorage->loadPlayer(*playerUuid));
       charSelector->enableDelete([this, playerUuid](Widget*) {
         m_deleteCallback(*playerUuid);
-        updateCharacterPlates();
+        m_listNeedsUpdate = true;
       });
     } else {
       charSelector->setPlayer(PlayerPtr());
