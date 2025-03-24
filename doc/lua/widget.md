@@ -366,6 +366,22 @@ Sets the cursor position of a text box widget.
 
 ---
 
+#### `void` widget.setImageStretchSet(`String` widgetName, `Maybe<JsonObject>` imageStretchSet)
+
+> **Only available on xStarbound v3.5.2.2+ and OpenStarbound v0.1.9+.**
+
+Sets the image stretch set of an image stretch widget. The image stretch set is specified as follows:
+
+```lua
+jobject{
+  ["begin"] = "image1.png" -- The beginning image.
+  ["inner"] = "image2.png" -- The body image.
+  ["end"] = "image3.png" -- The end image.
+}
+```
+
+---
+
 #### `CanvasWidget` widget.bindCanvas(`String` widgetName)
 
 Binds the canvas widget with the specified name as a `CanvasWidget` userdata object for easy access. The `CanvasWidget` has the following methods:

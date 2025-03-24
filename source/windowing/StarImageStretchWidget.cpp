@@ -7,6 +7,13 @@ ImageStretchWidget::ImageStretchWidget(ImageStretchSet const& imageStretchSet, G
 
 }
 
+// @KrashV: Added the ability to change the images of an image stretch widget.
+void ImageStretchWidget::setImageStretchSet(String const& beginImage, String const& innerImage, String const& endImage) {
+  m_imageStretchSet.begin = beginImage;
+  m_imageStretchSet.inner = innerImage;
+  m_imageStretchSet.end = endImage;
+}
+
 void ImageStretchWidget::renderImpl() {
   context()->drawImageStretchSet(m_imageStretchSet, RectF(screenBoundRect()), m_direction);
 }

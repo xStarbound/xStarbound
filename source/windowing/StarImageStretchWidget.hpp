@@ -12,6 +12,9 @@ public:
   ImageStretchWidget(ImageStretchSet const& imageStretchSet, GuiDirection direction);
   virtual ~ImageStretchWidget() {}
 
+  // @KrashV: Added the ability to change the images of an image stretch widget.
+  void setImageStretchSet(String const& beginImage, String const& innerImage, String const& endImage);
+
 protected:
   virtual void renderImpl();
 
