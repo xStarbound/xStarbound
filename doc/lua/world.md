@@ -604,6 +604,14 @@ Returns `true` if an entity with the specified ID exists in the world and `false
 
 ---
 
+#### `Maybe<bool>` world.entityMaster(`EntityId` entityId)
+
+> **Available only on xStarbound v3.5.2.3+.**
+
+Returns `true` if the entity with the specified ID is locally mastered (controlled by the client or server that is invoking this callback, and therefore targetable with `world.callScriptedEntity`), `false` if the entity is not locally mastered, or `nil` if the entity doesn't exist or isn't scriptable.
+
+---
+
 #### `DamageTeam` world.entityDamageTeam(`EntityId` entityId)
 
 Returns the current damage team (team type and team number) of the specified entity, or `nil` if the entity doesn't exist.
@@ -905,15 +913,15 @@ A combination of `world.containerItemApply` and `world.containerSwapItemsNoCombi
 #### [xStarbound] `Json` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`Json...` args])
 #### [Non-xStarbound] `LuaValue` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`LuaValue...` args])
 
-Attempts to call the specified function name in the context of the specified scripted entity with any specified arguments and returns the result of that call. This method is synchronous and thus can only be used on local master entities, i.e. scripts run on the server may only call scripted entities (on the same world) that are also server-side mastered, and scripts run on the client may only call scripted entities that are client-side mastered on that client.
+Attempts to call the specified function (or callback) name in the context of the specified scripted entity with any specified arguments and returns the result of that call. This method is synchronous and thus can only be used on local master entities, i.e. scripts run on the server may only call scripted entities (on the same world) that are also server-side mastered, and scripts run on the client may only call scripted entities that are client-side mastered on that client.
 
 On xStarbound, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
 
 For more featureful entity messaging, use `world.sendEntityMessage`. To call a world script context, use `world.callScriptContext` server-side or set up an appropriate message handler in a server-side script and send an entity message that invokes it client-side.
 
-> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
+> **Note:** On xStarbound v3.5.2.3+, this callback will log a warning and return `nil` if the entity is not locally mastered or doesn't exist. On other servers and clients, an error will be thrown instead.
 
-> **Note:** On xServer v3.5.1+, entity ID 1 is reserved for the world server itself, so that messaging entity ID sends the message to world server script contexts. Actual entities start at ID 2. This entity ID needs to be reserved on xServer so that non-xClient clients can message the server.
+> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
 
 ---
 
@@ -1231,11 +1239,13 @@ Here's an abridged sample metadata «descriptor» showing the more important and
 
 > **Available only on xStarbound and OpenStarbound.**
 
-Attempts to call the specified function name in the specified world script context (on the same world as the context or entity calling this binding) with any specified arguments and returns the result of that call.
+Attempts to call the specified function (or callback) name in the specified world script context (on the same world as the context or entity calling this binding) with any specified arguments and returns the result of that call.
 
 On xStarbound, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
 
 To message *other* worlds, use `universe.sendWorldMessage` in a world context script (see `universeserver.md`). If you need to message another world from a server-side entity, use `world.callScriptContext` to "pass through" to a `universe.sendWorldMessage` call. Both client- and server-side entities may also use `world.sendEntityMessage` for "passthrough".
+
+> **Note:** On xStarbound v3.5.2.3+, this callback will log a warning and return `nil` if the entity is not locally mastered or doesn't exist. On other servers and clients, an error will be thrown instead.
 
 > **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
 

@@ -328,6 +328,12 @@ namespace LuaBindings {
     callbacks.registerCallbackWithSignature<Maybe<PlatformerAStar::Path>, Vec2F, Vec2F, ActorMovementParameters, PlatformerAStar::Parameters>("findPlatformerPath", bind(WorldCallbacks::findPlatformerPath, world, _1, _2, _3, _4));
     callbacks.registerCallbackWithSignature<PlatformerAStar::PathFinder, Vec2F, Vec2F, ActorMovementParameters, PlatformerAStar::Parameters>("platformerPathStart", bind(WorldCallbacks::platformerPathStart, world, _1, _2, _3, _4));
 
+    callbacks.registerCallback("entityMaster", [world](LuaEngine& engine, EntityId entityId) -> Maybe<bool> {
+      if (auto entity = as<ScriptedEntity>(world->entity(entityId)))
+        return entity->isMaster();
+      return {};
+    });
+
     callbacks.registerCallback("type", [world](LuaEngine& engine) -> LuaString {
         if (auto serverWorld = as<WorldServer>(world)) {
           if (auto worldParameters = serverWorld->worldTemplate()->worldParameters())
@@ -1393,8 +1399,11 @@ namespace LuaBindings {
 
   Maybe<LuaValue> ServerWorldCallbacks::callScriptContext(World* world, LuaEngine& engine, String const& contextName, String const& function, LuaVariadic<LuaValue> const& args) {
     auto context = as<WorldServer>(world)->scriptContext(contextName);
-    if (!context)
-      throw StarException::format("Context '{}' does not exist", contextName);
+    if (!context) {
+      // throw StarException::format("Context '{}' does not exist", contextName);
+      Logger::warn("callScriptContext: Context '{}' does not exist", contextName);
+      return {};
+    }
     // if (Root::singleton().configuration()->get("safeScripts").toBool()) {
     auto jsonArgs = LuaVariadic<Json>{};
     for (auto& arg : args) {
@@ -1975,8 +1984,11 @@ namespace LuaBindings {
 
   Maybe<LuaValue> WorldEntityCallbacks::callScriptedEntity(World* world, LuaEngine& engine, EntityId entityId, String const& function, LuaVariadic<LuaValue> const& args) {
     auto entity = as<ScriptedEntity>(world->entity(entityId));
-    if (!entity || !entity->isMaster())
-      throw StarException::format("Entity {} does not exist or is not a local master scripted entity", entityId);
+    if (!entity || !entity->isMaster()) {
+      // throw StarException::format("Entity {} does not exist or is not a local master scripted entity", entityId);
+      Logger::warn("callScriptedEntity: Entity {} does not exist or is not a local master scripted entity", entityId);
+      return {};
+    }
     // if (Root::singleton().configuration()->get("safeScripts").toBool()) {
     auto jsonArgs = LuaVariadic<Json>{};
     for (auto& arg : args) {
