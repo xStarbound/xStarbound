@@ -4,9 +4,9 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
 
 Compiled builds for Linux and Windows should be available in the usual place on this repository.
 
-> ⚠️ **Notice: Several previously partially compatible mods have become *totally incompatible* with xStarbound as of v3.5. See [Mod compatibility](#mod-compatibility) below for more info.**
+> ⚠️ **Notice: Several previously partially compatible mods have become _totally incompatible_ with xStarbound as of v3.5. See [Mod compatibility](#mod-compatibility) below for more info.**
 
-> 🪧 **FYI:** If you're connecting to an OpenStarbound server or hosting for OpenStarbound clients, scroll down to *Network compatibility*!
+> 🪧 **FYI:** If you're connecting to an OpenStarbound server or hosting for OpenStarbound clients, scroll down to _Network compatibility_!
 
 ## Changes
 
@@ -18,10 +18,12 @@ Compiled builds for Linux and Windows should be available in the usual place on 
   - **Note:** This causes some mod compatibility issues; see below for affected mods.
 - Full, up-to-date Lua API documentation. (Aside from a lot of engine calls into Lua scripts.)
 - Support for underlaying and overlaying cosmetic items, by @fezzedone. Two types of layering are supported:
-    - *Underlays:* You can right-click an item in any armour or inventory slot to *underlay* it below any item in the associated cosmetic slot. Underlaid items have a red border by default. For instance, you can layer a wig under a hat by putting the hat in the cosmetic slot, the wig in the armour slot and right-clicking the wig. Underlaid armour grants its usual effects; note that particle effects associated with an underlaid item as `"effectSources"` won't spawn, even if the underlaid item is visible. Underlaid items are indicated with a red border.
-    - *Overlays:* You can right-click while holding **<kbd>Shift</kbd>** with an armour or clothing item in your swap slot to stack and overlay it onto another armour or clothing item of the same slot type in your armour slots or inventory — you can stack as many items as you want! To remove or «pop» the topmost item from an overlay stack, **<kbd>Shift</kbd> + Right Click** with an *empty* swap slot — you'll see the «popped» item in your swap slot. Items are layered in the order they are stacked, with the lowest-layered item (aside from underlays) being the base item shown in the tooltip. Stacked cosmetic items have a red stack count indicator, and their tooltip preview shows what the entire stack looks like on your player. Overlaid cosmetic items do *not* give players any additional game effects or spawn particles — they are purely cosmetic.
-  
+
+  - _Underlays:_ You can right-click an item in any armour or inventory slot to _underlay_ it below any item in the associated cosmetic slot. Underlaid items have a red border by default. For instance, you can layer a wig under a hat by putting the hat in the cosmetic slot, the wig in the armour slot and right-clicking the wig. Underlaid armour grants its usual effects; note that particle effects associated with an underlaid item as `"effectSources"` won't spawn, even if the underlaid item is visible. Underlaid items are indicated with a red border.
+  - _Overlays:_ You can right-click while holding **<kbd>Shift</kbd>** with an armour or clothing item in your swap slot to stack and overlay it onto another armour or clothing item of the same slot type in your armour slots or inventory — you can stack as many items as you want! To remove or «pop» the topmost item from an overlay stack, **<kbd>Shift</kbd> + Right Click** with an _empty_ swap slot — you'll see the «popped» item in your swap slot. Items are layered in the order they are stacked, with the lowest-layered item (aside from underlays) being the base item shown in the tooltip. Stacked cosmetic items have a red stack count indicator, and their tooltip preview shows what the entire stack looks like on your player. Overlaid cosmetic items do _not_ give players any additional game effects or spawn particles — they are purely cosmetic.
+
   Underlaid items can have overlays. This client feature is compatible with vanilla multiplayer, but other players must have xClient to see your underlays and overlays.
+
 - Control multiple characters on a single client! Is fully multiplayer-compatible. By @fezzedone. Replaces OpenStarbound's character swapping feature.
   - `/add` and `/adduuid`: Loads and adds a player character from your saves.
   - `/swap` and `/swapuuid`: Swaps to a different character. If the character isn't loaded, replaces your current character.
@@ -37,8 +39,8 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 - Chat message history is now saved to `messages.json` in your storage directory instead of being reset on every disconnection (@fezzedone). Use the new `/clear` command on xClient to clear the chat history instead.
 - Inventory and action bar expansion (or reduction) mods are now fully compatible with vanilla multiplayer with no changes needed on the mod's part. Additionally, these mods can now be safely added or removed without item loss or crashes as long as characters are loaded in xStarbound. Added by @WasabiRaptor and @fezzedone.
   - Loading a character after changes to inventory or action bar mods will drop any items that no longer fit on the ground beside the player (which will be picked up if there still is inventory space), instead of showing an error dialogue.
-  - *Warning for users of vanilla clients and other client mods:* If you load any characters that have their inventories resized but haven't yet dropped overflowed items on a non-xStarbound client — this can happen if you open xStarbound after changing mods, but don't actually load some characters before switching to another client — you may lose items, so load your characters in xStarbound and save your items first!
-  - The networked inventory and action bar config can be configured separately with a patch to `$assets/player.config`; see [`$src/assets/xSBassets/player.config.patch`](https://github.com/fezzedone/xStarbound/blob/main/assets/xSBassets/player.config.patch) for the new parameters. Such a patch mod is *required* for an xClient client to join a non-xServer server with inventory or action bar mods installed, but allows joining the server with mismatched mods (assuming mismatched assets are allowed).
+  - _Warning for users of vanilla clients and other client mods:_ If you load any characters that have their inventories resized but haven't yet dropped overflowed items on a non-xStarbound client — this can happen if you open xStarbound after changing mods, but don't actually load some characters before switching to another client — you may lose items, so load your characters in xStarbound and save your items first!
+  - The networked inventory and action bar config can be configured separately with a patch to `$assets/player.config`; see [`$src/assets/xSBassets/player.config.patch`](https://github.com/fezzedone/xStarbound/blob/main/assets/xSBassets/player.config.patch) for the new parameters. Such a patch mod is _required_ for an xClient client to join a non-xServer server with inventory or action bar mods installed, but allows joining the server with mismatched mods (assuming mismatched assets are allowed).
 - Anything that the game converts to a Perfectly Generic Item now has its parameters saved in the item and will be restored once any missing mods are reinstalled (@WasabiRaptor and @fezzedone). Requires xServer (or xClient on the host) for server-side items (such as those in containers on worlds, even shipworlds!) and xClient for single-player and client-side items (those in the player's inventory).
 - Supports scriptable asset preprocessing. By @novaenia; fixed and greatly enhanced by @fezzedone.
 - Modded techs and status effects no longer cause crashes to the menu when the offending mod is removed (@WasabiRaptor and @novaenia).
@@ -58,7 +60,7 @@ Compiled builds for Linux and Windows should be available in the usual place on 
   - You can also resize the placement area of tiles on the fly.
 - Client- and server-side support for placing foreground tiles with a custom collision type (rewrite by @novaenia from StarExtensions; requires xServer or xClient on the host). Compatible with the overground placement feature of StarExtensions and OpenStarbound clients. [xWEdit](https://github.com/fezzedone/xWEdit), a fork of WEdit with support for these features, is available; xWEdit requires xClient for full client-side functionality, but partially works with OpenStarbound clients (not StarExtensions!).
   - Additionally, objects can be placed under non-solid foreground tiles (@novaenia).
-- Support for placing tiles in mid-air, not connected to existing ones, via an extra argument to `world.placeMaterial()` (requires *both* xClient and, in multiplayer, xServer/xClient on the host). By @fezzedone.
+- Support for placing tiles in mid-air, not connected to existing ones, via an extra argument to `world.placeMaterial()` (requires _both_ xClient and, in multiplayer, xServer/xClient on the host). By @fezzedone.
 - Some polish to UI (@fezzedone and @novaenia).
 - A multiplayer server list that lets you save your server IPs and accounts (@KrashV).
 - Terraria-like placement animations for objects, tiles and liquids (@fezzedone). Can be disabled with an asset mod if you don't like them.
@@ -82,7 +84,7 @@ The following mods have special functionality that requires or is supported by x
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
-- [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports StarExtensions (with reduced functionality) and is compatible with stock Starbound. Is *not* compatible with OpenStarbound.
+- [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports StarExtensions (with reduced functionality) and is compatible with stock Starbound. Is _not_ compatible with OpenStarbound.
 - [LR's Storage Dimension](https://steamcommunity.com/sharedfiles/filedetails/?id=3432253227) — automatic recipe detection is fully supported by xStarbound.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
 - [Minecraft UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3412449426) — should be supported by xStarbound; report any issues.
@@ -96,7 +98,7 @@ The following mods have special functionality that requires or is supported by x
 - [Recipe Browser](https://steamcommunity.com/sharedfiles/filedetails/?id=2018183533) — Recipe Browser's universal mod support requires xStarbound or OpenStarbound.
 - [RPG Growth Keybind Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3368499316) — get this mod if you're using RPG Growth with xStarbound or OpenStarbound.
 - [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — fully supported by xStarbound, including keybinds, as of v3.1.6. (Bravo for getting rid of the sandbox-breaking code, Patman!)
-- [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — fully supported by xStarbound as of v3.1.6; requires `"safeScripts"` to be *enabled*.
+- [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — fully supported by xStarbound as of v3.1.6; requires `"safeScripts"` to be _enabled_.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xStarbound as of v2.3.7.
 - [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111), [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) and other mods based on the framework — xStarbound supports «nice» non-pixelated scaling as of v2.4.1.1.
 - [Spawnable Item Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=733665104) — SIP's universal mod support requires xStarbound v2.5+ or OpenStarbound.
@@ -149,16 +151,15 @@ The following mods are only partially compatible with xStarbound:
 
 ### ❌ Not compatible
 
-The following mods are *NOT* compatible with xStarbound:
+The following mods are _NOT_ compatible with xStarbound:
 
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — would work if it didn't have an explicit StarExtensions check.
 - [Bottinator22's mods](https://steamcommunity.com/profiles/76561197964469434/myworkshopfiles/?appid=211820) — these have issues with xStarbound's Lua sandbox.
 - [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [Classic Quickbar](https://steamcommunity.com/sharedfiles/filedetails/?id=2957136802) ([GitHub](https://github.com/bongus-jive/classic-quickbar)) — not compatible with xStarbound's Lua sandbox.
 - [Cumulative Dynamic Lights](https://steamcommunity.com/sharedfiles/filedetails/?id=3444407977) — not compatible because it depends on OpenStarbound's lighting system changes.
-- [D8: Weaponry](https://steamcommunity.com/sharedfiles/filedetails/?id=3331782262) — this mod's scripts are not compatible with xStarbound's Lua sandbox.
 - [Digital Storage](https://steamcommunity.com/sharedfiles/filedetails/?id=946227505) — the server-side scripts are not compatible with xStarbound's Lua sandbox.
-- [Futara's Dragon Engine](https://steamcommunity.com/sharedfiles/filedetails/?id=2297133082) — causes severe server- *and* client-side entity lag on xStarbound. Use Lukiwarble's [Starbound Optimizer](https://steamcommunity.com/sharedfiles/filedetails/?id=2777369762) instead.
+- [Futara's Dragon Engine](https://steamcommunity.com/sharedfiles/filedetails/?id=2297133082) — causes severe server- _and_ client-side entity lag on xStarbound. Use Lukiwarble's [Starbound Optimizer](https://steamcommunity.com/sharedfiles/filedetails/?id=2777369762) instead.
 - [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) — due to poor coding in this mod, it causes a whole bunch of errors on xStarbound. Also depends on Futara's Dragon Engine and thus inherits its severe lag issue.
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
@@ -180,7 +181,7 @@ Due to recent changes in OpenStarbound's network protocol, xStarbound's network 
 
 ## Building
 
-This repository is already set up for easy building (mostly @kblaschke's work, with an updated Windows build script and some additional fixes by @fezzedone). Follow the appropriate instructions for your OS if listed; if your OS *isn't* listed, adjustments generally shouldn't be too complex.
+This repository is already set up for easy building (mostly @kblaschke's work, with an updated Windows build script and some additional fixes by @fezzedone). Follow the appropriate instructions for your OS if listed; if your OS _isn't_ listed, adjustments generally shouldn't be too complex.
 
 ### Linux
 
@@ -191,11 +192,11 @@ Wayland should work OOTB if you're using the `xclient.sh`. If you're running the
 1. If you're on SteamOS, run `sudo steamos-readonly disable`.
 2. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's «base development» package.
 3. Install CMake, Git and the required build libraries for xStarbound:
-   - *Arch-based distros (CachyOS, Endeavour, etc.):* `sudo pacman -S clang cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland qt6-svg qt6-base sdl2 libpng freetype2 libvorbis opus glew` (you may need to `-Syu` first)
-   - *RPM/`dnf`-based distros:* `sudo dnf install gcc-c++ clang cmake git ninja-build mesa-libGLU libXrender libXi libxkbcommon egl-wayland qt6-qtbase qt6-qtsvg SDL2-devel libpng-devel freetype-devel libvorbis-devel opus-devel glew-devel` (yes, Fedora doesn't come with a C++ compiler preinstalled!)
-   - *Debian/`apt`-based distros:* `sudo apt install clang cmake git ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev qt6-base qt6-svg libsdl2-dev libpng-dev libfreetype6-dev libvorbis-dev libopus-dev libglew-dev`
-   - *Gentoo:* `sudo emerge -a sys-devel/clang dev-vcs/git dev-build/cmake dev-build/ninja media-libs/mesa virtual/glu x11-misc/xcb x11-libs/libGLw x11-libs/libXrender x11-libs/libXi x11-libs/libxkbcommon gui-libs/egl-wayland media-libs/libsdl2 dev-qt/qtbase dev-qt/qtsvg media-libs/freetype media-libs/libvorbis media-libs/libpng media-libs/opus media-libs/glew`
-   - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu clang cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland qt6-svg qt6-base sdl2 libpng freetype2 libvorbis opus; sudo steamos-readonly enable`
+   - _Arch-based distros (CachyOS, Endeavour, etc.):_ `sudo pacman -S clang cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland qt6-svg qt6-base sdl2 libpng freetype2 libvorbis opus glew` (you may need to `-Syu` first)
+   - _RPM/`dnf`-based distros:_ `sudo dnf install gcc-c++ clang cmake git ninja-build mesa-libGLU libXrender libXi libxkbcommon egl-wayland qt6-qtbase qt6-qtsvg SDL2-devel libpng-devel freetype-devel libvorbis-devel opus-devel glew-devel` (yes, Fedora doesn't come with a C++ compiler preinstalled!)
+   - _Debian/`apt`-based distros:_ `sudo apt install clang cmake git ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev qt6-base qt6-svg libsdl2-dev libpng-dev libfreetype6-dev libvorbis-dev libopus-dev libglew-dev`
+   - _Gentoo:_ `sudo emerge -a sys-devel/clang dev-vcs/git dev-build/cmake dev-build/ninja media-libs/mesa virtual/glu x11-misc/xcb x11-libs/libGLw x11-libs/libXrender x11-libs/libXi x11-libs/libxkbcommon gui-libs/egl-wayland media-libs/libsdl2 dev-qt/qtbase dev-qt/qtsvg media-libs/freetype media-libs/libvorbis media-libs/libpng media-libs/opus media-libs/glew`
+   - _SteamOS:_ `sudo steamos-readonly disable; sudo pacman -Syu clang cmake git ninja mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland qt6-svg qt6-base sdl2 libpng freetype2 libvorbis opus; sudo steamos-readonly enable`
 4. `git clone --recursive https://github.com/xStarbound/xStarbound.git` (`--recursive` is needed to clone the Opus sources in `$src/extern/opus`, which may be necessary on some configurations)
 5. `cd xStarbound/`
 6. `CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -DCMAKE_BUILD_TYPE=Release -DSTAR_ENABLE_STEAM_INTEGRATION=ON -DSTAR_USE_RPMALLOC=ON -DPACKAGE_XSB_ASSETS=ON -S . -B build/ -G Ninja` (Clang is recommended now, but you can use `gcc` and `g++` instead for GCC)
@@ -210,22 +211,22 @@ Wayland should work OOTB if you're using the `xclient.sh`. If you're running the
 
 To build a statically linked version of xStarbound (assuming `bash` or `zsh`):
 
-> **Important:** It is *highly* recommended you use an older LTS distribution such as Debian 11 or 12, or Ubuntu 20.x or 22.x, in order to guarantee portability. You can use a Docker, Toolbox or Podman container for this. If the chosen distro does not have CMake 3.25+ available in its repositories, download the latest `tar.gz` archive from [CMake's website](https://cmake.org/download/), extract it somewhere, and add its `bin/` directory to your `$PATH` *instead* of installing it via the package manager.
+> **Important:** It is _highly_ recommended you use an older LTS distribution such as Debian 11 or 12, or Ubuntu 20.x or 22.x, in order to guarantee portability. You can use a Docker, Toolbox or Podman container for this. If the chosen distro does not have CMake 3.25+ available in its repositories, download the latest `tar.gz` archive from [CMake's website](https://cmake.org/download/), extract it somewhere, and add its `bin/` directory to your `$PATH` _instead_ of installing it via the package manager.
 
 1. If you're on SteamOS, run `sudo steamos-readonly disable`.
 2. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's «base development» package.
 3. Install CMake, Git and the required build libraries for xStarbound:
-   - *Arch-based distros (CachyOS, Endeavour, etc.):* `sudo pacman -S clang cmake git ninja patchelf mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland` (you may need to `-Syu` first)
-   - *RPM/`dnf`-based distros:* `sudo dnf install gcc-c++ clang cmake git ninja-build patchelf mesa-libGLU libXrender libXi libxkbcommon egl-wayland xcb* libX11-xcb` (yes, Fedora doesn't come with a compiler preinstalled!)
-   - *Debian/`apt`-based distros:* `sudo apt install clang cmake git ninja-build patchelf build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev libxcb-*`
-   - *Gentoo:* `sudo emerge -a sys-devel/clang dev-vcs/git dev-build/cmake dev-build/ninja dev-util/patchelf media-libs/mesa virtual/glu x11-misc/xcb x11-libs/libGLw x11-libs/libXrender x11-libs/libXi x11-libs/libxkbcommon gui-libs/egl-wayland`
-   - *SteamOS:* `sudo steamos-readonly disable; sudo pacman -Syu clang cmake git ninja patchelf mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland; sudo steamos-readonly enable`
+   - _Arch-based distros (CachyOS, Endeavour, etc.):_ `sudo pacman -S clang cmake git ninja patchelf mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland` (you may need to `-Syu` first)
+   - _RPM/`dnf`-based distros:_ `sudo dnf install gcc-c++ clang cmake git ninja-build patchelf mesa-libGLU libXrender libXi libxkbcommon egl-wayland xcb* libX11-xcb` (yes, Fedora doesn't come with a compiler preinstalled!)
+   - _Debian/`apt`-based distros:_ `sudo apt install clang cmake git ninja-build patchelf build-essential libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libegl1-mesa-dev libxcb-*`
+   - _Gentoo:_ `sudo emerge -a sys-devel/clang dev-vcs/git dev-build/cmake dev-build/ninja dev-util/patchelf media-libs/mesa virtual/glu x11-misc/xcb x11-libs/libGLw x11-libs/libXrender x11-libs/libXi x11-libs/libxkbcommon gui-libs/egl-wayland`
+   - _SteamOS:_ `sudo steamos-readonly disable; sudo pacman -Syu clang cmake git ninja patchelf mesa libx11 glu libxcb libxrender libxi libxkbcommon libxkbcommon-x11 egl-wayland; sudo steamos-readonly enable`
 4. `mkdir -p ~/.local/opt; git clone https://github.com/microsoft/vcpkg.git ~/.local/opt/vcpkg`
 5. `cd ~/.local/opt/vcpkg; ./bootstrap-vcpkg.sh -disableMetrics` (yes, VCPKG sends telemetry by default)
 6. `cd $devDirectory` (where `$devDirectory` is the folder you want to put the xStarbound source in)
 7. `git clone --recursive https://github.com/xStarbound/xStarbound.git` (`--recursive` is needed to clone the Opus sources in `$src/extern/opus`, which may be necessary on some configurations)
 8. `cd xStarbound/; export VCPKG_ROOT="${HOME}/.local/opt/vcpkg"; export PATH="${VCPKG_ROOT}:${PATH}"`
-9.  `CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake --build cmake-build-linux-x86_64/ --preset "linux-vcpkg-x86_64-release" -G Ninja` (Clang is recommended on up-to-date distros; GCC — `gcc` and `g++` — on less up-to-date ones)
+9. `CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake --build cmake-build-linux-x86_64/ --preset "linux-vcpkg-x86_64-release" -G Ninja` (Clang is recommended on up-to-date distros; GCC — `gcc` and `g++` — on less up-to-date ones)
 10. `cmake --build build/`
 11. `cmake --install build/ --prefix ${sbInstall}/` (replace `${sbInstall}` with the path to your Starbound install)
 12. `cp scripts/linux/{xclient-static,xserver,mod_uploader}.sh ${sbInstall}/linux/`
@@ -241,26 +242,26 @@ See [`$xsbSrc/nix/README.md`](nix/README.md) as well as the [`nix/` directory](n
 To build and install xStarbound on Windows 10 or 11:
 
 1. Download and install [Visual Studio 2022](https://visualstudio.microsoft.com/vs/whatsnew/) and [CMake](https://cmake.org/download/). For Visual Studio, make sure to install C++ support (and optionally the game dev stuff) when the VS installer asks you what to install. For CMake, make sure you download and use the `.msi` installer for 64-bit Windows.
-2. Install [Git](https://git-scm.com/download/win); the build script *requires* Git. On the «Adjusting your PATH environment» page of the installation wizard, make sure to select the *second* option[^gitOptions], which the wizard recommends anyway.
+2. Install [Git](https://git-scm.com/download/win); the build script _requires_ Git. On the «Adjusting your PATH environment» page of the installation wizard, make sure to select the _second_ option[^gitOptions], which the wizard recommends anyway.
 3. Open up Git Bash and run `git clone --recursive https://github.com/xStarbound/xStarbound.git`.
 4. Go into `scripts\windows\` and double-click `build.bat`. CMake and VCPKG will take care of the entire build process.
 5. If the build succeeds, you will be prompted to select your Starbound install directory.
 6. Optionally configure Steam, GoG or [MultiBound2](https://github.com/zetaPRIME/MultiBound2) to launch `xsb-win64\xclient.exe`.
 
-[^gitOptions]: Linux/WSL nerds *can* use the third option; xStarbound's build script doesn't depend on the overridden CLI tools.
+[^gitOptions]: Linux/WSL nerds _can_ use the third option; xStarbound's build script doesn't depend on the overridden CLI tools.
 
-> **Building on older Windows versions:** Building on earlier versions of Windows is *not* recommended, although it *should* still be possible to build xStarbound on Windows 7, 8 or 8.1 if you can get VS 2022 installed.
+> **Building on older Windows versions:** Building on earlier versions of Windows is _not_ recommended, although it _should_ still be possible to build xStarbound on Windows 7, 8 or 8.1 if you can get VS 2022 installed.
 
 ### Other OSes
 
 The basic process for building on other OSes:
 
 1. Install CMake, a C++ compiler toolchain and (optionally) Git.
-   - On *macOS 10.11+*, you should use [Homebrew](https://brew.sh/) to install CMake, Git and the needed build dependencies on your system. Manual installation of dependencies via wizards or drag-and-drop is likely to cause build issues or be a pain to work with.
-   - If you're targeting *older versions of macOS / OS X*, look into [Tigerbrew](https://github.com/mistydemeo/tigerbrew). Expect to do more tinkering and/or manual installation of build dependencies.
-   - Most *BSDs* and other reasonably up-to-date *\*nix OSes* (like Haiku) should have the necessary packages in their ports system or equivalent. Make sure to disable Steam and Discord integrations.
-   - For *Windows XP* or *Vista* targets, your best bet is to use Visual Studio 2017 or 2019 on a newer version of Windows or on WINE with the `v141_xp` toolchain (it doesn't work on VS 2022!). Make sure to disable Steam and Discord integrations.
-   - Targetting *older Windows versions*, *pre-OSX Mac OS*, *Android*, the *Switch* or any other niche device or OS is left as an exercise for the reader.
+   - On _macOS 10.11+_, you should use [Homebrew](https://brew.sh/) to install CMake, Git and the needed build dependencies on your system. Manual installation of dependencies via wizards or drag-and-drop is likely to cause build issues or be a pain to work with.
+   - If you're targeting _older versions of macOS / OS X_, look into [Tigerbrew](https://github.com/mistydemeo/tigerbrew). Expect to do more tinkering and/or manual installation of build dependencies.
+   - Most _BSDs_ and other reasonably up-to-date _\*nix OSes_ (like Haiku) should have the necessary packages in their ports system or equivalent. Make sure to disable Steam and Discord integrations.
+   - For _Windows XP_ or _Vista_ targets, your best bet is to use Visual Studio 2017 or 2019 on a newer version of Windows or on WINE with the `v141_xp` toolchain (it doesn't work on VS 2022!). Make sure to disable Steam and Discord integrations.
+   - Targetting _older Windows versions_, _pre-OSX Mac OS_, _Android_, the _Switch_ or any other niche device or OS is left as an exercise for the reader.
 2. If you can, install any dependencies needed to build SDL2 and GLEW on your OS. If you can't, hopefully VCPKG runs on your build OS and/or has packages for your target OS. If not, get ready for a lot of tinkering.
 3. If you're not using Git or don't have it installed, download the latest xStarbound source ZIP, extract it somewhere and go to step 5. Otherwise go to the next step.
 4. If you're using Git, run `git clone https://github.com/xStarbound/xStarbound.git` in a terminal or command prompt, or use a graphical Git utility to download the repo.
@@ -270,11 +271,11 @@ The basic process for building on other OSes:
 
 The build system can automatically take care of packaging the additional xSB assets and install the resulting .pak file automatically. To enable asset packing, pass `-DPACKAGE_XSB_ASSETS=ON` to the CMake command, e.g. after the `--preset` argument. This will create a directory `xsb-assets` in the project's main dir, and package the resources in `assets/xSBassets` into a `packed.pak` file.
 
-It is important to note that automatic packaging will _only_ work if the built binaries (specifically `asset_packer[.exe]`) run on the host system. If you are cross-compiling, e.g. for a different CPU architecture (building for ARM64 on a x64 OS) or a different OS (building with MinGW on Linux, or with WSL on Windows), this feature cannot be used. In this case, you have to manually package the assets with an asset_packer that runs locally, and copy the resulting file to `xsb-assets/packed.pak` _before installing the project_. Due to how CPack works, this is only feasible when packaging manually from the install dir.
+It is important to note that automatic packaging will _only_ work if the built binaries (specifically `asset_packer[.exe]`) run on the host system. If you are cross-compiling, e.g. for a different CPU architecture (building for ARM64 on a x64 OS) or a different OS (building with MinGW on Linux, or with WSL on Windows), this feature cannot be used. In this case, you have to manually package the assets with an asset*packer that runs locally, and copy the resulting file to `xsb-assets/packed.pak` \_before installing the project*. Due to how CPack works, this is only feasible when packaging manually from the install dir.
 
 ### Tracy profiler support
 
-xStarbound now supports [the Tracy profiler](https://github.com/wolfpld/tracy)! To build xStarbound with Tracy, tack `-DXSB_ENABLE_TRACY` onto the end of the *first* CMake configuration command from the appropriate build instructions for your OS/platform.
+xStarbound now supports [the Tracy profiler](https://github.com/wolfpld/tracy)! To build xStarbound with Tracy, tack `-DXSB_ENABLE_TRACY` onto the end of the _first_ CMake configuration command from the appropriate build instructions for your OS/platform.
 
 To build the Tracy profiler on Linux, `cd $xsb/tracy`, then `mkdir -p build; cmake -B build/ -DCMAKE_BUILD_TYPE=Release; cmake --build build/ --config Release --parallel`. The profiler binary will be a file called `tracy-profiler` in `$xsb/tracy/build/`; feel free to move this to `~/.local/bin/` or wherever else you find convenient.
 
@@ -312,3 +313,4 @@ Attributions for the fonts that come with xStarbound:
 - **Space Mono:** By Colophon Foundry. Link: https://fonts.google.com/specimen/Space+Mono
 - **UnifontEX:** By @stgiga (fork of GNU Unifont). Link: https://stgiga.github.io/UnifontEX/ (GitHub: https://github.com/stgiga/UnifontEX)
 - **VCR OSD Mono:** By Riciery Leal. Link: https://www.dafont.com/vcr-osd-mono.font
+
