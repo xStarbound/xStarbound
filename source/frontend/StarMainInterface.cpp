@@ -1,70 +1,70 @@
 #include "StarMainInterface.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarLogging.hpp"
-#include "StarLexicalCast.hpp"
+#include "StarActionBar.hpp"
+#include "StarActiveItem.hpp"
+#include "StarAiInterface.hpp"
+#include "StarAiTypes.hpp"
+#include "StarAssets.hpp"
+#include "StarCanvasWidget.hpp"
+#include "StarCelestialDatabase.hpp"
+#include "StarCharCreation.hpp"
+#include "StarCharSelection.hpp"
+#include "StarChat.hpp"
+#include "StarChatBubbleManager.hpp"
+#include "StarCinematic.hpp"
+#include "StarClientCommandProcessor.hpp"
+#include "StarClientContext.hpp"
+#include "StarCodexInterface.hpp"
+#include "StarConfirmationDialog.hpp"
+#include "StarContainerEntity.hpp"
+#include "StarContainerInteractor.hpp"
 #include "StarContainerInterface.hpp"
 #include "StarCraftingInterface.hpp"
-#include "StarMerchantInterface.hpp"
-#include "StarRoot.hpp"
-#include "StarUniverseClient.hpp"
-#include "StarCodexInterface.hpp"
-#include "StarSongbookInterface.hpp"
-#include "StarQuestInterface.hpp"
-#include "StarQuestManager.hpp"
-#include "StarPopupInterface.hpp"
-#include "StarConfirmationDialog.hpp"
-#include "StarJoinRequestDialog.hpp"
-#include "StarImageMetadataDatabase.hpp"
-#include "StarGuiReader.hpp"
-#include "StarPaneManager.hpp"
-#include "StarClientCommandProcessor.hpp"
-#include "StarChat.hpp"
-#include "StarOptionsMenu.hpp"
-#include "StarActionBar.hpp"
-#include "StarWireInterface.hpp"
-#include "StarTeamBar.hpp"
-#include "StarStatusPane.hpp"
-#include "StarCanvasWidget.hpp"
-#include "StarLabelWidget.hpp"
-#include "StarItemSlotWidget.hpp"
-#include "StarPlayer.hpp"
-#include "StarPlayerLog.hpp"
-#include "StarMonster.hpp"
-#include "StarItemDrop.hpp"
-#include "StarAssets.hpp"
-#include "StarPlayerInventory.hpp"
-#include "StarCelestialDatabase.hpp"
-#include "StarItem.hpp"
-#include "StarAiInterface.hpp"
 #include "StarDrawable.hpp"
 #include "StarFireableItem.hpp"
-#include "StarClientContext.hpp"
-#include "StarToolUserEntity.hpp"
-#include "StarTeleportDialog.hpp"
-#include "StarCinematic.hpp"
-#include "StarNameplatePainter.hpp"
-#include "StarQuestIndicatorPainter.hpp"
-#include "StarScriptPane.hpp"
-#include "StarContainerEntity.hpp"
-#include "StarWarpTargetEntity.hpp"
-#include "StarPlayerUniverseMap.hpp"
-#include "StarWorldTemplate.hpp"
-#include "StarRadioMessagePopup.hpp"
-#include "StarAiTypes.hpp"
-#include "StarActiveItem.hpp"
+#include "StarGuiReader.hpp"
+#include "StarImageMetadataDatabase.hpp"
 #include "StarInspectionTool.hpp"
-#include "StarQuestTracker.hpp"
-#include "StarContainerInteractor.hpp"
-#include "StarChatBubbleManager.hpp"
+#include "StarItem.hpp"
+#include "StarItemDrop.hpp"
+#include "StarItemSlotWidget.hpp"
+#include "StarJoinRequestDialog.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLabelWidget.hpp"
+#include "StarLexicalCast.hpp"
+#include "StarLogging.hpp"
+#include "StarMerchantInterface.hpp"
+#include "StarMonster.hpp"
+#include "StarNameplatePainter.hpp"
 #include "StarNpc.hpp"
-#include "StarCharSelection.hpp"
-#include "StarCharCreation.hpp"
+#include "StarOptionsMenu.hpp"
+#include "StarPaneManager.hpp"
+#include "StarPlayer.hpp"
+#include "StarPlayerInventory.hpp"
+#include "StarPlayerLog.hpp"
+#include "StarPlayerUniverseMap.hpp"
+#include "StarPopupInterface.hpp"
+#include "StarQuestIndicatorPainter.hpp"
+#include "StarQuestInterface.hpp"
+#include "StarQuestManager.hpp"
+#include "StarQuestTracker.hpp"
+#include "StarRadioMessagePopup.hpp"
+#include "StarRoot.hpp"
+#include "StarScriptPane.hpp"
+#include "StarSongbookInterface.hpp"
+#include "StarStatusPane.hpp"
+#include "StarTeamBar.hpp"
+#include "StarTeleportDialog.hpp"
+#include "StarToolUserEntity.hpp"
+#include "StarUniverseClient.hpp"
+#include "StarWarpTargetEntity.hpp"
+#include "StarWireInterface.hpp"
+#include "StarWorldTemplate.hpp"
 
 #if defined TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
+#include "tracy/Tracy.hpp"
 #else
-  #define ZoneScoped
-  #define ZoneScopedN(name)
+#define ZoneScoped
+#define ZoneScopedN(name)
 #endif
 
 namespace Star {
@@ -72,7 +72,7 @@ namespace Star {
 GuiMessage::GuiMessage() : message(), cooldown(), springState() {}
 
 GuiMessage::GuiMessage(String const& message, float cooldown, float spring)
-  : message(message), cooldown(cooldown), springState(spring) {}
+    : message(message), cooldown(cooldown), springState(spring) {}
 
 MainInterface::MainInterface(UniverseClientPtr client, WorldPainterPtr painter, CinematicPtr cinematicOverlay) {
   m_guiContext = GuiContext::singletonPtr();
@@ -101,7 +101,7 @@ void MainInterface::clean() {
 
 void MainInterface::reset() { // *Completely* reset the interface.
   m_state = Running;
-  
+
   m_disableHud = false;
 
   m_cursorScreenPos = Vec2I();
@@ -126,18 +126,18 @@ void MainInterface::reset() { // *Completely* reset the interface.
 
   m_inventoryWindow = make_shared<InventoryPane>(this, m_client->mainPlayer(), m_containerInteractor);
   m_paneManager.registerPane(MainInterfacePanes::Inventory, PaneLayer::Window, m_inventoryWindow, [this](PanePtr const&) {
-      if (auto player = m_client->mainPlayer())
-          player->clearSwap();
-      if (m_containerPane) {
-        m_containerPane->dismiss();
-        m_containerPane = {};
-        m_containerInteractor->closeContainer();
-      }
-      for (EntityId id : m_interactionScriptPanes.keys()) {
-        if (m_paneManager.isDisplayed(m_interactionScriptPanes[id]) && as<ScriptPane>(m_interactionScriptPanes[id])->openWithInventory())
-          m_interactionScriptPanes[id]->dismiss();
-      }
-    });
+    if (auto player = m_client->mainPlayer())
+      player->clearSwap();
+    if (m_containerPane) {
+      m_containerPane->dismiss();
+      m_containerPane = {};
+      m_containerInteractor->closeContainer();
+    }
+    for (EntityId id : m_interactionScriptPanes.keys()) {
+      if (m_paneManager.isDisplayed(m_interactionScriptPanes[id]) && as<ScriptPane>(m_interactionScriptPanes[id])->openWithInventory())
+        m_interactionScriptPanes[id]->dismiss();
+    }
+  });
 
   m_overflowMessage = make_shared<GuiMessage>("", 0);
 
@@ -219,60 +219,51 @@ void MainInterface::reset() { // *Completely* reset the interface.
   m_paneManager.displayRegisteredPane(MainInterfacePanes::TeamBar);
   m_paneManager.displayRegisteredPane(MainInterfacePanes::StatusPane);
 
-  m_charSwapPane = make_shared<CharSelectionPane>(m_client->playerStorage(),
-    [&](){}, // Creation callback.
-    [&](PlayerPtr const& player) {
+  m_charSwapPane = make_shared<CharSelectionPane>(m_client->playerStorage(), [&]() {}, // Creation callback.
+      [&](PlayerPtr const& player) {
       if (m_client && player)
-        m_client->switchPlayer(player->uuid());
-    }, // Selection callback.
-    [&](Uuid uuid) { // Deletion callback.
-      if (m_client)
-        m_client->removePlayer(uuid);
-    },
-    [&](Uuid const& uuid) -> bool { // Filter callback.
-      return uuid != m_client->mainPlayer()->uuid();
-    }
-  );
+        m_client->switchPlayer(player->uuid()); },                                                // Selection callback.
+      [&](Uuid uuid) {                                                                 // Deletion callback.
+        if (m_client)
+          m_client->removePlayer(uuid);
+      },
+      [&](Uuid const& uuid) -> bool { // Filter callback.
+        return uuid != m_client->mainPlayer()->uuid();
+      });
   {
     m_charSwapPane->setAnchor(PaneAnchor::Center);
     m_charSwapPane->unlockPosition();
   }
   m_paneManager.registerPane(MainInterfacePanes::CharacterSwap, PaneLayer::ModalWindow, m_charSwapPane);
 
-  m_charAddPane = make_shared<CharSelectionPane>(m_client->playerStorage(),
-    [&](){}, // Creation callback.
-    [&](PlayerPtr const& player) {
+  m_charAddPane = make_shared<CharSelectionPane>(m_client->playerStorage(), [&]() {}, // Creation callback.
+      [&](PlayerPtr const& player) {
       if (m_client && player)
-        m_client->addPlayer(player->uuid());
-    }, // Selection callback.
-    [&](Uuid uuid) { // Deletion callback.
-      if (m_client)
-        m_client->removePlayer(uuid);
-    }, 
-    [&](Uuid const& uuid) -> bool { // Filter callback.
-      return uuid != m_client->mainPlayer()->uuid() && !m_client->controlledPlayers().contains(uuid);
-    }
-  );
+        m_client->addPlayer(player->uuid()); },                                               // Selection callback.
+      [&](Uuid uuid) {                                                                // Deletion callback.
+        if (m_client)
+          m_client->removePlayer(uuid);
+      },
+      [&](Uuid const& uuid) -> bool { // Filter callback.
+        return uuid != m_client->mainPlayer()->uuid() && !m_client->controlledPlayers().contains(uuid);
+      });
   {
     m_charAddPane->setAnchor(PaneAnchor::Center);
     m_charAddPane->unlockPosition();
   }
   m_paneManager.registerPane(MainInterfacePanes::CharacterAdd, PaneLayer::ModalWindow, m_charAddPane);
 
-  m_charRemovePane = make_shared<CharSelectionPane>(m_client->playerStorage(),
-    [&](){}, // Creation callback.
-    [&](PlayerPtr const& player) {
+  m_charRemovePane = make_shared<CharSelectionPane>(m_client->playerStorage(), [&]() {}, // Creation callback.
+      [&](PlayerPtr const& player) {
       if (m_client && player)
-        m_client->removePlayer(player->uuid());
-    }, // Selection callback.
-    [&](Uuid uuid) { // Deletion callback.
-      if (m_client)
-        m_client->removePlayer(uuid);
-    },
-    [&](Uuid const& uuid) -> bool { // Filter callback.
-      return uuid != m_client->mainPlayer()->uuid() && m_client->controlledPlayers().contains(uuid);
-    }
-  );
+        m_client->removePlayer(player->uuid()); },                                                  // Selection callback.
+      [&](Uuid uuid) {                                                                   // Deletion callback.
+        if (m_client)
+          m_client->removePlayer(uuid);
+      },
+      [&](Uuid const& uuid) -> bool { // Filter callback.
+        return uuid != m_client->mainPlayer()->uuid() && m_client->controlledPlayers().contains(uuid);
+      });
   {
     m_charRemovePane->setAnchor(PaneAnchor::Center);
     m_charRemovePane->unlockPosition();
@@ -280,8 +271,8 @@ void MainInterface::reset() { // *Completely* reset the interface.
   m_paneManager.registerPane(MainInterfacePanes::CharacterRemove, PaneLayer::ModalWindow, m_charRemovePane);
 
   m_client->saveCallback() = [&]() {
-      m_chat->saveMessages();
-    };
+    m_chat->saveMessages();
+  };
 
   m_client->interfaceMessageCallback() = [&](const String& message, bool localMessage, const JsonArray& args) -> Maybe<Json> {
     Maybe<Json> result = {};
@@ -304,7 +295,8 @@ void MainInterface::reset() { // *Completely* reset the interface.
 
   m_charEditor = make_shared<CharCreationPane>([=](PlayerPtr editedPlayer) {
     m_paneManager.dismissRegisteredPane(MainInterfacePanes::CharacterEdit);
-  }, m_client->mainPlayer());
+  },
+      m_client->mainPlayer());
   m_charEditor->setAnchor(PaneAnchor::Center);
   m_charEditor->unlockPosition();
   m_paneManager.registerPane(MainInterfacePanes::CharacterEdit, PaneLayer::ModalWindow, m_charEditor);
@@ -335,7 +327,7 @@ void MainInterface::openCraftingWindow(Json const& config, EntityId sourceEntity
   m_paneManager.displayPane(PaneLayer::Window, m_craftingWindow, [this](PanePtr const&) {
     if (auto player = m_client->mainPlayer())
       player->clearSwap();
-    });
+  });
 }
 
 void MainInterface::openMerchantWindow(Json const& config, EntityId sourceEntityId) {
@@ -351,21 +343,20 @@ void MainInterface::openMerchantWindow(Json const& config, EntityId sourceEntity
   m_paneManager.displayPane(PaneLayer::Window,
       m_merchantWindow,
       [this](PanePtr const&) {
-      if (auto player = m_client->mainPlayer())
-        player->clearSwap();
-      m_paneManager.dismissRegisteredPane(MainInterfacePanes::Inventory);
-    });
+        if (auto player = m_client->mainPlayer())
+          player->clearSwap();
+        m_paneManager.dismissRegisteredPane(MainInterfacePanes::Inventory);
+      });
   m_paneManager.displayRegisteredPane(MainInterfacePanes::Inventory);
 
   m_paneManager.bringPaneAdjacent(m_paneManager.registeredPane(MainInterfacePanes::Inventory),
-    m_merchantWindow, Root::singleton().assets()->json("/interface.config:bringAdjacentWindowGap").toFloat());
+      m_merchantWindow, Root::singleton().assets()->json("/interface.config:bringAdjacentWindowGap").toFloat());
 }
 
 void MainInterface::togglePlainCraftingWindow() {
   m_paneManager.toggleRegisteredPane(MainInterfacePanes::CraftingPlain);
 
-  if (m_craftingWindow && m_craftingWindow->isDisplayed()
-      && m_craftingWindow != m_paneManager.registeredPane(MainInterfacePanes::CraftingPlain))
+  if (m_craftingWindow && m_craftingWindow->isDisplayed() && m_craftingWindow != m_paneManager.registeredPane(MainInterfacePanes::CraftingPlain))
     m_paneManager.dismissPane(m_craftingWindow);
 
   m_craftingWindow = m_plainCraftingWindow;
@@ -471,9 +462,10 @@ bool MainInterface::handleInputEvent(InputEvent const& event) {
     return false;
 
   } else if (auto mouseDown = event.ptr<MouseButtonDownEvent>()) {
-    if (mouseDown->mouseButton == MouseButton::Left || mouseDown->mouseButton == MouseButton::Right
-        || mouseDown->mouseButton == MouseButton::Middle)
+    if (mouseDown->mouseButton == MouseButton::Left || mouseDown->mouseButton == MouseButton::Right || mouseDown->mouseButton == MouseButton::Middle)
       return overlayClick(mouseDown->mousePosition, mouseDown->mouseButton);
+    else
+      return false;
 
   } else if (auto mouseUp = event.ptr<MouseButtonUpEvent>()) {
     if (mouseUp->mouseButton == MouseButton::Left)
@@ -584,12 +576,11 @@ void MainInterface::handleInteractAction(InteractAction interactAction) {
               planetName = "???";
             }
 
-            currentLocation = TeleportBookmark {
-              {m_client->playerWorld(), SpawnTargetUniqueEntity(*uniqueEntityId)},
-              planetName,
-              config.getString("bookmarkName", ""),
-              icon
-            };
+            currentLocation = TeleportBookmark{
+                {m_client->playerWorld(), SpawnTargetUniqueEntity(*uniqueEntityId)},
+                planetName,
+                config.getString("bookmarkName", ""),
+                icon};
 
             if (!m_client->mainPlayer()->universeMap()->teleportBookmarks().contains(currentLocation) || !config.getBool("canTeleport", true)) {
               auto editBookmarkDialog = make_shared<EditBookmarkDialog>(m_client->mainPlayer()->universeMap());
@@ -662,14 +653,11 @@ void MainInterface::update(float dt) {
   EntityId newMouseOverTarget = NullEntityId;
   m_stickyTargetingTimer.tick(dt);
   auto mouseoverEntities = m_client->worldClient()->query<DamageBarEntity>(RectF::withCenter(cursorWorldPos, Vec2F(1, 1)), [=](shared_ptr<DamageBarEntity> const& entity) {
-      return entity != player
-        && entity->damageBar() == DamageBarType::Default
-        && (entity->getTeam().type == TeamType::Enemy || entity->getTeam().type == TeamType::PVP)
-        && m_client->worldClient()->lightLevel(entity->position()) > 0;
-    });
+    return entity != player && entity->damageBar() == DamageBarType::Default && (entity->getTeam().type == TeamType::Enemy || entity->getTeam().type == TeamType::PVP) && m_client->worldClient()->lightLevel(entity->position()) > 0;
+  });
   sortByComputedValue(mouseoverEntities, [&](DamageBarEntityPtr const& a) {
-      return m_client->worldClient()->geometry().diff(a->position(), cursorWorldPos).magnitude();
-    });
+    return m_client->worldClient()->geometry().diff(a->position(), cursorWorldPos).magnitude();
+  });
   if (mouseoverEntities.size() > 0) {
     newMouseOverTarget = mouseoverEntities[0]->entityId();
   } else if (m_lastMouseoverTarget == NullEntityId && player->lastDamagedTarget() != NullEntityId && player->timeSinceLastGaveDamage() < m_stickyTargetingTimer.time / 2) {
@@ -709,13 +697,13 @@ void MainInterface::update(float dt) {
   if (m_specialDamageBarTarget == NullEntityId && m_client->mainPlayer()->inWorld()) {
     List<DamageBarEntityPtr> specialDamageTargets;
     m_client->worldClient()->forAllEntities([&specialDamageTargets](EntityPtr const& entity) {
-        if (auto damageBarEntity = as<DamageBarEntity>(entity))
-          if (damageBarEntity->damageBar() == DamageBarType::Special)
-            specialDamageTargets.append(damageBarEntity);
-      });
+      if (auto damageBarEntity = as<DamageBarEntity>(entity))
+        if (damageBarEntity->damageBar() == DamageBarType::Special)
+          specialDamageTargets.append(damageBarEntity);
+    });
     sortByComputedValue(specialDamageTargets, [&](DamageBarEntityPtr entity) {
-        return m_client->worldClient()->geometry().diff(entity->position(), m_client->mainPlayer()->position());
-      });
+      return m_client->worldClient()->geometry().diff(entity->position(), m_client->mainPlayer()->position());
+    });
 
     if (specialDamageTargets.size() > 0)
       m_specialDamageBarTarget = specialDamageTargets[0]->entityId();
@@ -734,12 +722,11 @@ void MainInterface::update(float dt) {
         m_radioMessagePopup->setMessage(*radioMessage);
         m_paneManager.displayRegisteredPane(MainInterfacePanes::RadioMessagePopup);
         ChatReceivedMessage message = {
-          {MessageContext::RadioMessage},
-          ServerConnectionId,
-          Text::stripEscapeCodes(radioMessage->senderName),
-          Text::stripEscapeCodes(radioMessage->text),
-          Text::stripEscapeCodes(radioMessage->portraitImage.replace("<frame>", "0"))
-        };
+            {MessageContext::RadioMessage},
+            ServerConnectionId,
+            Text::stripEscapeCodes(radioMessage->senderName),
+            Text::stripEscapeCodes(radioMessage->text),
+            Text::stripEscapeCodes(radioMessage->portraitImage.replace("<frame>", "0"))};
         m_chat->addMessages({message}, false);
       } else {
         m_paneManager.dismissRegisteredPane(MainInterfacePanes::RadioMessagePopup);
@@ -782,8 +769,8 @@ void MainInterface::update(float dt) {
     if (auto req = m_queuedJoinRequests.maybeTakeLast()) {
       m_paneManager.displayRegisteredPane(MainInterfacePanes::JoinRequest);
       m_joinRequestDialog->displayRequest(req->first, [req](P2PJoinRequestReply reply) mutable {
-          req->second.fulfill(reply);
-        });
+        req->second.fulfill(reply);
+      });
     }
   }
 
@@ -893,12 +880,11 @@ void MainInterface::update(float dt) {
         name = npc->name();
 
       ChatReceivedMessage message = {
-        { MessageContext::World },
-        ServerConnectionId,
-        Text::stripEscapeCodes(name),
-        Text::stripEscapeCodes(portraitAction.text),
-        Text::stripEscapeCodes(portraitAction.portrait.replace("<frame>", "0"))
-      };
+          {MessageContext::World},
+          ServerConnectionId,
+          Text::stripEscapeCodes(name),
+          Text::stripEscapeCodes(portraitAction.text),
+          Text::stripEscapeCodes(portraitAction.portrait.replace("<frame>", "0"))};
       m_chat->addMessages({message}, false);
     }
 
@@ -907,8 +893,7 @@ void MainInterface::update(float dt) {
   }
 
   if (auto container = m_client->worldClient()->get<ContainerEntity>(m_containerInteractor->openContainerId())) {
-    if (!m_client->worldClient()->playerCanReachEntity(container->entityId())
-        || !container->isInteractive())
+    if (!m_client->worldClient()->playerCanReachEntity(container->entityId()) || !container->isInteractive())
       m_containerInteractor->closeContainer();
   }
 
@@ -1033,8 +1018,7 @@ void MainInterface::queueMessage(String const& message) {
   queueMessage(message, m_config->messageTime, 0.0f);
 }
 
-void MainInterface::queueJoinRequest(pair<String, RpcPromiseKeeper<P2PJoinRequestReply>> request)
-{
+void MainInterface::queueJoinRequest(pair<String, RpcPromiseKeeper<P2PJoinRequestReply>> request) {
   m_queuedJoinRequests.push_back(request);
 }
 
@@ -1097,9 +1081,7 @@ void MainInterface::warpTo(WarpAction const& warpAction) {
       m_confirmationDialog->dismiss();
 
     m_paneManager.displayRegisteredPane(MainInterfacePanes::Confirmation);
-    m_confirmationDialog->displayConfirmation("/interface/windowconfig/beamupconfirmation.config", [this, warpAction] (Widget*) {
-        m_client->warpPlayer(warpAction, true, "beam");
-      }, [](Widget*) {});
+    m_confirmationDialog->displayConfirmation("/interface/windowconfig/beamupconfirmation.config", [this, warpAction](Widget*) { m_client->warpPlayer(warpAction, true, "beam"); }, [](Widget*) {});
   } else {
     m_client->warpPlayer(warpAction, true, "beam");
   }
@@ -1148,7 +1130,7 @@ void MainInterface::takeScriptPanes(List<ScriptPaneInfo>& out) {
 void MainInterface::reviveScriptPanes(List<ScriptPaneInfo>& panes) {
   for (auto& info : panes) { // this is evil and stupid
     info.scriptPane->~ScriptPane();
-    new(info.scriptPane.get()) ScriptPane(m_client, info.config, info.sourceEntityId);
+    new (info.scriptPane.get()) ScriptPane(m_client, info.config, info.sourceEntityId);
     info.scriptPane->setVisibility(info.visible);
     displayScriptPane(info.scriptPane, info.sourceEntityId);
     info.scriptPane->setPosition(info.position);
@@ -1163,23 +1145,21 @@ PanePtr MainInterface::createEscapeDialog() {
 
   GuiReader escapeDialogReader;
   escapeDialogReader.registerCallback("returnToGame", [escapeDialogPtr](Widget*) {
-      escapeDialogPtr->dismiss();
-    });
+    escapeDialogPtr->dismiss();
+  });
   escapeDialogReader.registerCallback("showOptions", [escapeDialogPtr, this](Widget*) {
-      escapeDialogPtr->dismiss();
-      m_paneManager.displayRegisteredPane(MainInterfacePanes::Options);
-    });
+    escapeDialogPtr->dismiss();
+    m_paneManager.displayRegisteredPane(MainInterfacePanes::Options);
+  });
   escapeDialogReader.registerCallback("saveAndQuit", [escapeDialogPtr, this](Widget*) {
-      m_state = ReturnToTitle;
-      escapeDialogPtr->dismiss();
-    });
+    m_state = ReturnToTitle;
+    escapeDialogPtr->dismiss();
+  });
 
   escapeDialogReader.construct(assets->json("/interface.config:escapeDialog"), escapeDialogPtr);
 
-  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText( /* Dummy comment to force MSVC rebuild. */
-    strf("^font=iosevka-extrabold,set;^#822;xClient^reset,#999,font=iosevka-semibold,set; v{} [{}]\nStarbound v{}\n{}",
-    xSbVersionString, StarArchitectureString, StarVersionString,
-    "^font=iosevka-semibold,set;By ^#800;FezzedOne^reset,#999;, xStarbound and OpenStarbound\ncontributors, and Chucklefish"));
+  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(/* Dummy comment to force MSVC rebuild. */
+      strf("^font=iosevka-extrabold,set;^#822;xClient^reset,#999,font=iosevka-semibold,set; v{} [{}]\nStarbound v{}\n{}", xSbVersionString, StarArchitectureString, StarVersionString, "^font=iosevka-semibold,set;By ^#800;FezzedOne^reset,#999;, xStarbound and OpenStarbound\ncontributors, and Chucklefish"));
   escapeDialog->fetchChild<LabelWidget>("lblcopyright")->setText("");
   return escapeDialog;
 }
@@ -1321,7 +1301,7 @@ void MainInterface::renderMonsterHealthBar() {
     auto bounds = Drawable::boundBoxAll(portrait, true);
     if (m_portraitScale <= 0.0f)
       m_portraitScale = max(0.0625f, max(bounds.size().x() / portraitMaxSize.x(), bounds.size().y() / portraitMaxSize.y()));
-    Drawable::translateAll(portrait, {-bounds.xMin() - (bounds.width() * 0.5f), -bounds.yMin() }); // crop out whitespace, align bottom center
+    Drawable::translateAll(portrait, {-bounds.xMin() - (bounds.width() * 0.5f), -bounds.yMin()}); // crop out whitespace, align bottom center
     Drawable::scaleAll(portrait, 1.0f / (m_portraitScale * 2.0f));
 
     for (auto drawable : portrait)
@@ -1391,7 +1371,7 @@ void MainInterface::renderMainBar() {
   }
 
   auto drawStateButton = [this](MainInterfacePanes paneType, Vec2I pos, PolyI poly,
-      String image, String hoverImage, String openImage, String hoverOpenImage, String toolTip) {
+                             String image, String hoverImage, String openImage, String hoverOpenImage, String toolTip) {
     if (m_paneManager.registeredPaneIsDisplayed(paneType)) {
       if (overButton(poly, m_cursorScreenPos)) {
         m_guiContext->drawQuad(hoverOpenImage, Vec2F(pos), interfaceScale());
@@ -1450,13 +1430,13 @@ void MainInterface::renderMainBar() {
 
   Vec2I collectionsButtonPos = barPos + Vec2I(Vec2F(m_config->mainBarCollectionsButtonOffset) * interfaceScale());
   drawStateButton(MainInterfacePanes::Collections,
-    collectionsButtonPos,
-    m_config->mainBarCollectionsButtonPoly,
-    m_config->collectionsImage,
-    m_config->collectionsImageHover,
-    m_config->collectionsImageOpen,
-    m_config->collectionsImageHoverOpen,
-    assets->json("/interface.config:cursorTooltip.collectionsText").toString());
+      collectionsButtonPos,
+      m_config->mainBarCollectionsButtonPoly,
+      m_config->collectionsImage,
+      m_config->collectionsImageHover,
+      m_config->collectionsImageOpen,
+      m_config->collectionsImageHoverOpen,
+      assets->json("/interface.config:cursorTooltip.collectionsText").toString());
 
   // when the player can't deploy or beam, show the deploy button disabled
   // when the player can beam up they can't deploy down, show beaming up button in deploy button's place
@@ -1525,7 +1505,7 @@ void MainInterface::renderDebug() {
     return;
   }
   SpatialLogger::setObserved(true);
-  
+
   if (m_clientCommandProcessor->debugHudEnabled()) {
     auto assets = Root::singleton().assets();
     m_guiContext->setFontSize(m_config->debugFontSize);
@@ -1547,14 +1527,13 @@ void MainInterface::renderDebug() {
 
     int counter = 0;
     for (auto const& pair : logMapValues) {
-      TextPositioning positioning = { Vec2F(debugOffset[0], windowHeight() - debugOffset[1] - m_config->fontSize * interfaceScale() * counter++) };
+      TextPositioning positioning = {Vec2F(debugOffset[0], windowHeight() - debugOffset[1] - m_config->fontSize * interfaceScale() * counter++)};
       String& text = formatted.emplace_back(strf("{}^lightgray;:^green,set; {}", pair.first, pair.second));
       m_debugTextRect.combine(m_guiContext->determineTextSize(text, positioning).padded(m_config->debugBackgroundPad));
     }
 
     if (!m_debugTextRect.isNull()) {
-      RenderQuad& quad = m_guiContext->renderer()->immediatePrimitives()
-        .emplace_back(std::in_place_type_t<RenderQuad>(), m_debugTextRect, m_config->debugBackgroundColor.toRgba(), 0.0f).get<RenderQuad>();
+      RenderQuad& quad = m_guiContext->renderer()->immediatePrimitives().emplace_back(std::in_place_type_t<RenderQuad>(), m_debugTextRect, m_config->debugBackgroundColor.toRgba(), 0.0f).get<RenderQuad>();
 
       quad.b.color[3] = quad.c.color[3] = 0;
     };
@@ -1563,7 +1542,7 @@ void MainInterface::renderDebug() {
 
     counter = 0;
     for (auto const& pair : logMapValues) {
-      TextPositioning positioning = { Vec2F(debugOffset[0], windowHeight() - debugOffset[1] - m_config->fontSize * interfaceScale() * counter) };
+      TextPositioning positioning = {Vec2F(debugOffset[0], windowHeight() - debugOffset[1] - m_config->fontSize * interfaceScale() * counter)};
       m_guiContext->renderText(formatted[counter], positioning);
       ++counter;
     }
@@ -1792,7 +1771,7 @@ bool MainInterface::overlayClick(Vec2I const& mousePos, MouseButton mouseButton)
 }
 
 void MainInterface::displayScriptPane(ScriptPanePtr& scriptPane, EntityId sourceEntity) {
- // keep any number of script panes open with null source entities
+  // keep any number of script panes open with null source entities
   if (sourceEntity != NullEntityId)
     m_interactionScriptPanes[sourceEntity] = scriptPane;
 
@@ -1846,4 +1825,4 @@ WorldPainterPtr MainInterface::worldPainter() const {
   return m_worldPainter;
 }
 
-}
+} // namespace Star
