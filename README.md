@@ -154,7 +154,7 @@ The following mods are only partially compatible with xStarbound:
 The following mods are _NOT_ compatible with xStarbound:
 
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — would work if it didn't have an explicit StarExtensions check.
-- [Bottinator22's mods](https://steamcommunity.com/profiles/76561197964469434/myworkshopfiles/?appid=211820) — these have issues with xStarbound's Lua sandbox.
+- [Abyssal Fragment Tech](https://steamcommunity.com/sharedfiles/filedetails/?id=3376261728) — this still has issues with xStarbound's Lua sandbox.
 - [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [Classic Quickbar](https://steamcommunity.com/sharedfiles/filedetails/?id=2957136802) ([GitHub](https://github.com/bongus-jive/classic-quickbar)) — not compatible with xStarbound's Lua sandbox.
 - [Cumulative Dynamic Lights](https://steamcommunity.com/sharedfiles/filedetails/?id=3444407977) — not compatible because it depends on OpenStarbound's lighting system changes.
@@ -168,6 +168,7 @@ The following mods are _NOT_ compatible with xStarbound:
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load on xClient and may cause crashes! However, xServer fully supports the server-side part of SE's «overground» tile placement feature.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
 - [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
+- [Worm Race](https://steamcommunity.com/sharedfiles/filedetails/?id=2577846803) and [Clientside Playable Worm](https://steamcommunity.com/sharedfiles/filedetails/?id=3135929503) — these still have issues with xStarbound's Lua sandbox.
 - [ZB SAIL: Standalone](https://steamcommunity.com/sharedfiles/filedetails/?id=3336389472) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xStarbound has differently named callbacks) and is redundant anyway because xStarbound already fully supports this feature.
 - Mods that patch in StarExtensions «body dynamics» support for other mods. These won't do anything.
@@ -313,4 +314,3 @@ Attributions for the fonts that come with xStarbound:
 - **Space Mono:** By Colophon Foundry. Link: https://fonts.google.com/specimen/Space+Mono
 - **UnifontEX:** By @stgiga (fork of GNU Unifont). Link: https://stgiga.github.io/UnifontEX/ (GitHub: https://github.com/stgiga/UnifontEX)
 - **VCR OSD Mono:** By Riciery Leal. Link: https://www.dafont.com/vcr-osd-mono.font
-
