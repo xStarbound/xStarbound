@@ -92,7 +92,7 @@ The following mods have special functionality that requires or is supported by x
 - [Neki](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) ([GitHub](https://github.com/hyperjuni/Neki)) and [Nekibound](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) — head rotation no longer clips Neki ears in xStarbound as of v3.4.4.
 - [NEONPUNK Title Screen [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3359876550) — should be supported by xStarbound; report any visual issues.
 - [OCD Tooltip Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3355387636) — technically supported by xStarbound, but unnecessary.
-- [One-For-All Compact and Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3427751671) — fully supported by xStarbound.
+- [One-For-All Compact and Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3427751671) and [One-For-All Compact Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3457819726)— fully supported by xStarbound.
 - [Planet Search](https://steamcommunity.com/sharedfiles/filedetails/?id=3269792617) — fully supported by xStarbound.
 - [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — all OpenStarbound-compatible commands are supported by xStarbound as of v3.1.6.
 - [Recipe Browser](https://steamcommunity.com/sharedfiles/filedetails/?id=2018183533) — Recipe Browser's universal mod support requires xStarbound or OpenStarbound.
