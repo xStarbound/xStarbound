@@ -33,13 +33,13 @@ The `input` table is also available in the following context:
 
 The following bindings are available across all five tables:
 
-----
+---
 
 #### `Maybe<CanvasWidget>` interface.bindCanvas(`String` canvasName, [`bool` ignoreInterfaceScale])
 
 Binds a canvas widget, returning a `CanvasWidget` object. If `ignoreInterfaceScale` is true, the returned `CanvasWidget` object's methods will return and take positional values in actual display pixels instead of scaled pixels.
 
-----
+---
 
 #### `Maybe<LuaCallbacks>` interface.bindRegisteredPane(`String` registeredPaneName)
 
@@ -73,15 +73,15 @@ Binds a canvas widget, returning a `CanvasWidget` object. If `ignoreInterfaceSca
 - `"CharacterRemove"` (xStarbound only)
 - `"CharacterEdit"` (xStarbound only)
 
-**Note:** On xClient, this callback will return `nil` in any Lua context where a callback table could unsafely linger after registered panes are deregistered (which happens whenever the client swaps players), i.e., it will return callbacks *only* in pane and universe client scripts. If you need to use callbacks on a registered pane from any other script, set up a universe client script or dummy script pane and appropriate message handlers, or ask xStarbound maintainers to add scripting support to your favourite registered pane — chat panes already have such support.
+**Note:** On xClient, this callback will return `nil` in any Lua context where a callback table could unsafely linger after registered panes are deregistered (which happens whenever the client swaps players), i.e., it will return callbacks _only_ in pane and universe client scripts. If you need to use callbacks on a registered pane from any other script, set up a universe client script or dummy script pane and appropriate message handlers, or ask xStarbound maintainers to add scripting support to your favourite registered pane — chat panes already have such support.
 
-----
+---
 
 #### `void` interface.displayRegisteredPane(`String` registeredPaneName)
 
 Displays one of the game's registered panes. Uses the same registered pane names as `interface.bindRegisteredPane` above.
 
-----
+---
 
 #### `float` interface.scale()
 
@@ -89,7 +89,7 @@ Displays one of the game's registered panes. Uses the same registered pane names
 
 Returns the current interface scale, expressed as the number of interface pixels per screen pixel in either dimension.
 
-----
+---
 
 #### `float` interface.setScale(`float` newScale)
 
@@ -97,18 +97,20 @@ Returns the current interface scale, expressed as the number of interface pixels
 
 Sets the interface scale. The scale is clamped to a value between `0.5` and `100.0`, inclusive.
 
-----
+---
 
 #### `float` interface.worldPixelRatio()
+
 #### `float` camera.pixelRatio()
 
 > **`interface.worldPixelRatio` is available only on xStarbound.**
 
 Returns the current world zoom level, expressed as the number of world pixels per screen pixel in either dimension.
 
-----
+---
 
 #### `void` interface.setWorldPixelRatio(`float` newScale)
+
 #### `void` camera.setPixelRatio(`float` newScale, `Maybe<bool>` smooth)
 
 > **`interface.setWorldPixelRatio` is available only on xStarbound.**
@@ -117,50 +119,51 @@ Sets the world zoom level. The zoom level is clamped to a value between `0.25` a
 
 `interface.setWorldPixelRatio` does a smooth zoom transition by default, while `camera.setPixelRatio` does not, although if `smooth` is `true`, it will do a smooth transition.
 
-----
+---
 
 #### `Vec2F` interface.cameraPosition()
+
 #### `Vec2F` camera.position()
 
 Returns the current world position of the "camera", i.e., the centre of the game world view, in world tile coordinates.
 
-----
+---
 
 #### `Vec2U` camera.screenSize()
 
 Returns the size of the game window (not including any titlebar or other window decorations) in raw screen pixels. If the game is full-screen, returns the full-screen resolution.
 
-----
+---
 
 #### `RectF` camera.worldScreenRect()
 
-Returns the bounds of the game window or screen (not including any titlebar or other window decorations) in *world coordinates*. Useful for determining whether an entity is visible in game or not.
+Returns the bounds of the game window or screen (not including any titlebar or other window decorations) in _world coordinates_. Useful for determining whether an entity is visible in game or not.
 
-----
+---
 
 #### `RectI` camera.worldTileRect()
 
-Returns the bounds of the game window or scereen (not including any titlebar or other window decorations) in *world tile coordinates*, including any partially visible tiles. Useful for determining whether a tile, object or other tile-positioned entity is visible in game or not.
+Returns the bounds of the game window or scereen (not including any titlebar or other window decorations) in _world tile coordinates_, including any partially visible tiles. Useful for determining whether a tile, object or other tile-positioned entity is visible in game or not.
 
-----
+---
 
 #### `Vec2F` camera.worldTileRect()
 
-Returns the position of the lower left corner of the lowermost and leftmost tile visible (even if only partially) on screen in *raw screen pixels*. The returned coordinates will be zero or negative in both axes — a screen pixel position that's usually just off-screen.
+Returns the position of the lower left corner of the lowermost and leftmost tile visible (even if only partially) on screen in _raw screen pixels_. The returned coordinates will be zero or negative in both axes — a screen pixel position that's usually just off-screen.
 
-----
+---
 
 #### `Vec2F` camera.screenToWorld(`Vec2F` worldCoord)
 
-Converts the given *world coordinates* to *screen pixel coordinates*. The origin for the screen pixel coordinates is the lower-left corner of the game window or screen (excluding any window decorations).
+Converts the given _world coordinates_ to _screen pixel coordinates_. The origin for the screen pixel coordinates is the lower-left corner of the game window or screen (excluding any window decorations).
 
-----
+---
 
 #### `Vec2F` camera.worldToScreen(`Vec2F` worldCoord)
 
-Converts the given *screen pixel coordinates* to *world coordinates*. The origin for world coordinates is the point at which the world's transition seam — the line where the world's X coordinate «overflows» or «underflows» — intersects the bottom of the world.
+Converts the given _screen pixel coordinates_ to _world coordinates_. The origin for world coordinates is the point at which the world's transition seam — the line where the world's X coordinate «overflows» or «underflows» — intersects the bottom of the world.
 
-----
+---
 
 #### `void` interface.overrideCameraPosition(`Vec2F` newPosition)
 
@@ -168,11 +171,11 @@ Converts the given *screen pixel coordinates* to *world coordinates*. The origin
 
 Overrides the current position of the "camera" for a single tick. Unlike `player.overrideCameraPosition` (see `player.md`), this override prevents the **Camera Look** key from being used and takes effect when called from a script running on a secondary player.
 
-----
+---
 
 #### `void` interface.queueMessage(`String` newMessage, [`float` cooldown], [`float` springState])
 
-Queues a status message, visible at the bottom of the screen. If a cooldown is specified, the queued message will hold up "playback" of subsequent messages for that many seconds. 
+Queues a status message, visible at the bottom of the screen. If a cooldown is specified, the queued message will hold up "playback" of subsequent messages for that many seconds.
 
 If a spring state value is specified, it represents the decimal percentage of the status message that will be immediately visible when it appears. If this value is less than `1.0`, the message will then gradually rise up to become fully visible.
 
@@ -180,7 +183,7 @@ Status messages queued with this callback on a secondary player will be shown th
 
 Also see `player.queueStatusMessage` in `player.md`.
 
-----
+---
 
 #### `void` interface.setCursorText(`Maybe<String>` cursorText, `Maybe<bool>` overrideGameTooltips)
 
@@ -190,12 +193,13 @@ Sets the cursor tooltip text. If any text is specified, the tooltip will be visi
 
 Note that with the default tooltip sprite at `$assets/interface/rightBarTooltipBg.png`, there isn't all that much space for text, so be terse. Or make the sprite larger with a mod — the engine bases tooltip alignment on the image's actual size.
 
-----
+---
 
 #### `Maybe<StringList>` chat.command(`String` chatText, `Maybe<bool>` addToHistory, `Maybe<String>` sendMode)
+
 #### `Maybe<StringList>` interface.doChat(`String` chatText, `Maybe<bool>` addToHistory, `Maybe<String>` sendMode)
 
-Sends/enters a chat message exactly as if it were sent through the vanilla chat interface, returning any *client-side* command results as a list of strings, or `nil` if no such results were returned.
+Sends/enters a chat message exactly as if it were sent through the vanilla chat interface, returning any _client-side_ command results as a list of strings, or `nil` if no such results were returned.
 
 If `addToHistory` is `true`, the sent/entered chat message is put in the player's sent chat message history (accessible with the arrow keys in the chat box).
 
@@ -203,7 +207,7 @@ The `sendMode`, if specified, can be either `"Broadcast"`, `"Local"` or `"Party"
 
 **Note:** `interface.doChat` invokes `sendMode` in chat pane scripts, so don't have `sendMode` invoke this callback to prevent a recursion error!
 
-----
+---
 
 #### `void` interface.drawDrawable(`JsonObject` drawable, `Vec2F` screenPos, `float` pixelRatio, `Maybe<Vec4B>` colour)
 
@@ -217,7 +221,7 @@ jobject{
     line = { { 45, 67 }, { 557, 443 } }, -- With this key, this drawable will be a line.
     -- The value is an array of two `Vec2F`s determining the beginning and end of the line.
     poly = { { 45, 67 }, { 50, 560 }, -- With this key, this drawable will be a polygon.
-             { 459, 5594 }, { 557, 120 } }, 
+             { 459, 5594 }, { 557, 120 } },
     -- The value is a `Poly` array of any number of `Vec2F`s that determines the points in the polygon.
     -- The polygon will be filled in with the specified `colour`.
 --- The following key is *required* for lines. ---
@@ -235,27 +239,27 @@ jobject{
 }
 ```
 
-The `screenPos` is the position of the drawable's "origin". For images, this is their centre (or lower-left corner if `centered` is `false`). For lines and polygons, this is the origin for all specified `Vec2` coordinates in the JSON object. The `screenPos` is *always* in raw screen pixels and never adjusted for interface scale, but coordinates in the drawable JSON are *multiplied* by the specified `pixelRatio`.
+The `screenPos` is the position of the drawable's "origin". For images, this is their centre (or lower-left corner if `centered` is `false`). For lines and polygons, this is the origin for all specified `Vec2` coordinates in the JSON object. The `screenPos` is _always_ in raw screen pixels and never adjusted for interface scale, but coordinates in the drawable JSON are _multiplied_ by the specified `pixelRatio`.
 
 The `pixelRatio` scales the entire drawable by the given amount. As the name implies, this is normally used to scale the drawable to the interface scale (which can be gotten with `interface.scale`).
 
-Lastly, if `colour` is specified, the drawable will be the specified RGBA colour. For images, specifying a `colour` is equivalent to executing a `?multiply` operation with the hex form of the chosen colour *after* any specified directives. For lines and polygons, their colour is the specified `colour`, or a plain white (`{255, 255, 255, 255}`) if not specified.
+Lastly, if `colour` is specified, the drawable will be the specified RGBA colour. For images, specifying a `colour` is equivalent to executing a `?multiply` operation with the hex form of the chosen colour _after_ any specified directives. For lines and polygons, their colour is the specified `colour`, or a plain white (`{255, 255, 255, 255}`) if not specified.
 
 The drawable will be rendered for one game tick, so this callback should generally be called every tick.
 
-----
+---
 
 #### `Vec2U` interface.windowSize()
 
 Returns the current size of the game window (or if full-screen, the current screen resolution) in screen pixels.
 
-----
+---
 
 #### `Vec2U` interface.cursorPosition()
 
 Returns the current position of the cursor relative to the lower-left corner of the game window (or if full-screen, the screen).
 
-----
+---
 
 #### `bool` interface.hudVisible()
 
@@ -263,7 +267,7 @@ Returns the current position of the cursor relative to the lower-left corner of 
 
 Returns whether the interface HUD is visible.
 
-----
+---
 
 #### `void` interface.setHudVisible(`bool` visible)
 
@@ -271,7 +275,7 @@ Returns whether the interface HUD is visible.
 
 Sets whether the interface HUD should be visible.
 
-----
+---
 
 #### `void` chat.addMessage(`Maybe<String>` messageText, `Maybe<JsonObject>` chatMessageConfig)
 
@@ -302,31 +306,33 @@ jobject{
 
 `messageText`, if specified, is used instead of any message text in `chatMessageConfig`. The chat pane will be shown when the message is added.
 
-Note that *either* the chat text *or* the chat message config must be specified in order to add a message. Passing `nil` in *both* fields means nothing happens.
+Note that _either_ the chat text _or_ the chat message config must be specified in order to add a message. Passing `nil` in _both_ fields means nothing happens.
 
-To actually *send* messages, use `interface.doChat` (see above), `chat.command` (see above) `chat.send` (below) or `player.sendChat` (see `player.md`).
+To actually _send_ messages, use `interface.doChat` (see above), `chat.command` (see above) `chat.send` (below) or `player.sendChat` (see `player.md`).
 
 **Note:** This callback invokes `addMessages` in chat pane scripts, so don't have `addMessages` invoke this callback to prevent a recursion error!
 
-----
+---
 
 #### `void` chat.send(`String` text, `Maybe<String>` sendMode, `Maybe<bool>` suppressBubble)
 
-Sends a chat message, *skipping* client-side command processing. Arguments are as follows:
+> _Note:_ On OpenStarbound, the `suppressBubble` parameter is instead `spawnBubble`, which if `true`, always spawns a chat bubble when the chat message is sent; if `false`, it never spawns one; if `nil` or unspecified, a chat bubble is spawned if the chat text doesn't begin with `/`. StarExtensions lacks a third parameter and has OpenStarbound's default chat bubble behaviour.
+
+Sends a chat message, _skipping_ client-side command processing. Arguments are as follows:
 
 - `text`: The text to send.
 - `sendMode`: If specified, may be any one of `"Local"`, `"Broadcast"` or `"Party"` (anything else resolves to `"Broadcast"`). Defaults to `"Local"`.
 - `suppressBubble`: If `true`, no chat bubble is spawned when the chat message is sent.
 
-The message will be sent immediately regardless of whether the player is primary or secondary, but the chat bubble will always spawn above the *primary* player.
+The message will be sent immediately regardless of whether the player is primary or secondary, but the chat bubble will always spawn above the _primary_ player.
 
 Identical in functionality to `player.sendChat` (see `player.md`), except that `sendMode` defaults to `"Broadcast"`. This `chat` callback was originally added for compatibility with StarExtensions mods.
 
-----
+---
 
 #### `List<String>` chat.parseArguments(`String` text, `String` sendMode, `bool` suppressBubble)
 
-> *Returns `List<Json>` on OpenStarbound and StarExtensions, since on those mods, this callback invokes different (and non-standard!) parsing of strings containing JSON object or array notation.
+> \*Returns `List<Json>` on OpenStarbound and StarExtensions, since on those mods, this callback invokes different (and non-standard!) parsing of strings containing JSON object or array notation.
 
 Parses a line of raw text into a list of substrings, handling whitespace and escape codes as if the arguments were passed to any halfway decent CLI shell (i.e., not Windows' CMD). More specifically, the following rules are used:
 
@@ -336,7 +342,7 @@ Parses a line of raw text into a list of substrings, handling whitespace and esc
 
 This is useful for parsing arguments passed to command message handlers in a reasonably sane manner.
 
-----
+---
 
 #### `String` chat.input()
 
@@ -344,7 +350,7 @@ Gets any text currently in the chat box. Returns `""` if the chat box isn't focu
 
 **Note:** This callback invokes `currentChat` in chat pane scripts, so don't have `currentChat` invoke this callback to prevent a recursion error!
 
-----
+---
 
 #### `String` chat.mode()
 
@@ -352,7 +358,7 @@ Returns the chat sending mode currently selected in the chat box. This can be ei
 
 **Note:** This callback invokes `sendMode` in chat pane scripts, so don't have `sendMode` invoke this callback to prevent a recursion error!
 
-----
+---
 
 #### `bool` chat.setInput(`String` newChatInput)
 
@@ -360,17 +366,17 @@ Sets the text in the chat input box to the specified value. Returns whether the 
 
 **Note:** This callback invokes `setCurrentChat` in chat pane scripts, so don't have `setCurrentChat` invoke this callback to prevent a recursion error!
 
-----
+---
 
 #### `void` chat.clear(`Maybe<size_t>` numberOfMessages)
 
 If `numberOfMessages` is not specified, clears the entire received message history, including whatever is saved to `$storage/messages.json`, up to the point this binding is invoked (once it gets saved again).
 
-If `numberOfMessages` *is* specified, clears only the last `n` messages, where `n` is the specified number, or all messages if there are `n` or fewer in the history.
+If `numberOfMessages` _is_ specified, clears only the last `n` messages, where `n` is the specified number, or all messages if there are `n` or fewer in the history.
 
 **Note:** This callback invokes `clearMessages` in chat pane scripts, so don't have `clearMessages` invoke this callback to prevent a recursion error!
 
-----
+---
 
 #### `bool` clipboard.hasText()
 
@@ -378,7 +384,7 @@ Returns whether the OS's clipboard currently has any (UTF-8) text on it.
 
 **Note:** On the Linux build, this callback will return `false` if there are more than about 50,000 raw bytes of text on the clipboard. This is due to SDL2's lack of support for X11's incremental paste (and the equivalent on Wayland).
 
-----
+---
 
 #### `Maybe<String>` clipboard.getText()
 
@@ -386,7 +392,7 @@ If the OS's clipboard has any text on it, returns the text. Otherwise returns `n
 
 **Note:** On the Linux build, this callback will return `nil` if the clipboard text is too long; see `clipboard.hasText`.
 
-----
+---
 
 #### `Maybe<String>` clipboard.setText(`String` newClipboardText)
 
@@ -394,84 +400,87 @@ Sets the text on the OS clipboard. If successful, returns `nil`, but if there is
 
 **Note:** On the Linux build, this callback won't set the clipboard text and will return an error if the text is too long; see `clipboard.hasText`.
 
-----
+---
 
 #### `Maybe<uint32_t>` input.bindDown(`String` category, `String` bindId)
 
 Returns whether the specified bind ID in the specified category has any of its binds initially pressed (but not held!) this tick. If so, the number of times any of the binds in question are pressed this tick is returned; otherwise, `nil` is returned.
 
-----
+---
 
 #### `bool` input.bindHeld(`String` category, `String` bindId)
+
 #### `bool` input.bind(`String` category, `String` bindId)
 
-> *`input.bind` is not available on OpenStarbound.*
+> _`input.bind` is not available on OpenStarbound._
 
 Returns whether the specified bind ID in the specified category has any of its binds being held this tick.
 
-----
+---
 
 #### `Maybe<uint32_t>` input.bindUp(`String` category, `String` bindId)
 
 Returns whether the specified bind ID in the specified category has any of its binds released this tick. If so, the number of times any of the binds in question are released this tick is returned; otherwise, `nil` is returned.
 
-----
+---
 
 #### `Maybe<uint32_t>` input.keyDown(`Key` key, `Maybe<List<KeyMod>>` mods)
 
 Returns whether the specified key is initially pressed (but not held!) this tick. If so, the number of times the key is pressed this tick is returned; otherwise, `nil` is returned.
 
-If any key modifiers are supplied (even an empty array), *all* of the specified modifier keys, and *no* others, must be held this tick for any presses to count; otherwise, `nil` is returned.
+If any key modifiers are supplied (even an empty array), _all_ of the specified modifier keys, and _no_ others, must be held this tick for any presses to count; otherwise, `nil` is returned.
 
-As a caveat, the states of Num Lock, Caps Lock and Scroll Lock are *ignored* if those modifier keys aren't specified, so e.g., you *can* hold down Caps Lock and still have the input "count", even if `"Caps"` isn't in the list.
+As a caveat, the states of Num Lock, Caps Lock and Scroll Lock are _ignored_ if those modifier keys aren't specified, so e.g., you _can_ hold down Caps Lock and still have the input "count", even if `"Caps"` isn't in the list.
 
-**Note:** See *Keys, keymods, mouse buttons, etc.* below for a list of valid `Key` and `KeyMod` strings.
+**Note:** See _Keys, keymods, mouse buttons, etc._ below for a list of valid `Key` and `KeyMod` strings.
 
-----
+---
 
 #### `bool` input.keyHeld(`Key` key)
+
 #### `bool` input.key(`Key` key)
 
-> *`input.key` is not available on OpenStarbound.*
+> _`input.key` is not available on OpenStarbound._
 
 Returns whether the specified key is being held this tick.
 
-----
+---
 
 #### `Maybe<uint32_t>` input.keyUp(`Key` key)
 
 Returns whether the specified key is released this tick. If so, the number of times the key was released this tick is returned; otherwise, `nil` is returned.
 
-----
+---
 
 #### `Maybe<List<Vec2I>>` input.mouseDown(`MouseButton` mouseButton)
 
 Returns whether the specified mouse button is initially pressed (i.e., clicked, but not held!) at least once this tick. If so, a list of game screen cursor positions (with their origin at the lower left corner of the game window) where the specified button is initially clicked (one for each time the button is clicked) is returned. Otherwise, `nil` is returned.
 
-**Note:** See *Keys, keymods, mouse buttons, etc.* below for a list of valid `MouseButton` strings.
+**Note:** See _Keys, keymods, mouse buttons, etc._ below for a list of valid `MouseButton` strings.
 
-----
+---
 
 #### `bool` input.mouseHeld(`MouseButton` mouseButton)
+
 #### `bool` input.mouse(`MouseButton` mouseButton)
 
-> *`input.mouse` is not available on OpenStarbound.*
+> _`input.mouse` is not available on OpenStarbound._
 
 Returns whether the specified mouse button is being held this tick.
 
-----
+---
 
 #### `Maybe<List<Vec2I>>` input.mouseUp(`MouseButton` mouseButton)
 
 Returns whether the specified mouse button is released at least once this tick. If so, a list of game screen positions where the mouse button is released this tick (one for each release) is returned. Otherwise, `nil` is returned.
 
-----
+---
 
 #### `void` input.resetBinds(`String` category, `String` bindId)
 
 Resets the specified bind ID in the specified category to the default binds configured in its `.binds` file.
 
-----
+---
 
 #### `void` input.setBinds(`String` category, `String` bindId, `JsonArray` newBindList)
 
@@ -483,14 +492,14 @@ jarray{ -- Array of binds.
     type = "key", -- A keybind.
     value = "W", -- The key that must be pressed to activate the bind.
     -- See the `Key` names below for valid key names.
-    mods = jarray{"LShift"} -- Here, *at least* the specified modifiers 
+    mods = jarray{"LShift"} -- Here, *at least* the specified modifiers
     -- must be pressed or held to count. Extra modifiers are okay, and
     -- the state of the three lock keys is *completely* ignored even if
     -- they are specified in the modifiers array. Optional; if
     -- unspecified, defaults to an empty `jarray{}`. See the `KeyMod`
     -- names below for valid key modifier names.
   },
-  { 
+  {
     type = "mouse", -- A mouse bind.
     value = "MouseMiddle", -- The mouse button that must be
     -- clicked to activate the bind. See the `MouseButton` names below
@@ -512,19 +521,19 @@ jarray{ -- Array of binds.
 }
 ```
 
-----
+---
 
 #### `JsonArray` input.getDefaultBinds(`String` category, `String` bindId)
 
 Gets the default binds for the specified bind ID, as configured in its `.binds` file. Returns the binds in the same format used by `input.setBinds` for setting binds.
 
-----
+---
 
 #### `JsonArray` input.getBinds(`String` category, `String` bindId)
 
 Gets the current binds for the specified bind ID, as configured in `$storage/xclient.config`. Returns the binds in the same format used by `input.setBinds` for setting binds.
 
-----
+---
 
 #### `JsonArray` input.events()
 
@@ -539,7 +548,7 @@ jarray{
     -- this tick.
     data = jobject{
       key = "S", -- The key that is pressed. Is a `Key` value (see below).
-      mods = jarray{"LShift"} -- Any modifier keys held while the key above was pressed. -- Note that modifier key presses and releases get "logged" as their own events. 
+      mods = jarray{"LShift"} -- Any modifier keys held while the key above was pressed. -- Note that modifier key presses and releases get "logged" as their own events.
       -- The modifiers are `KeyMod` values (see below).
     }
   },
@@ -590,13 +599,13 @@ jarray{
 }
 ```
 
-----
+---
 
 #### `StringList` voice.devices()
 
 Lists all available microphone devices detected by xClient.
 
-----
+---
 
 #### `JsonObject` voice.getSettings()
 
@@ -622,7 +631,7 @@ jobject{
 
 These voice settings are saved under the `"voice"` key in `$storage/xclient.config`.
 
-----
+---
 
 #### `void` voice.mergeSettings(`JsonObject` newSettings)
 
@@ -630,7 +639,7 @@ Changes the voice chat settings whose keys are specified in the JSON object pass
 
 Settings changes take effect immediately.
 
-----
+---
 
 #### `JsonObject` voice.speaker(`Maybe<SpeakerId>` speakerId)
 
@@ -655,7 +664,7 @@ jobject{
   smoothDecibels = 42.3443, -- Same as above, but with interpolated
   -- smoothing based on the speaker's "decibel history" over the
   -- last 10 ticks.
-  position = jarray{456.545, 892.442} -- The world position of the 
+  position = jarray{456.545, 892.442} -- The world position of the
   -- speaker's primary player entity, or `jarray{0, 0}` if no such
   -- entity is currently rendered.
 }
@@ -665,7 +674,7 @@ If a speaker ID the client hasn't seen before is specified, the returned informa
 
 **Note:** If a speaker is using xClient, the player entity associated with the speaker is always his client's current primary player, not any secondaries.
 
-----
+---
 
 #### `List<JsonObject>` voice.speakers(`Maybe<bool>` onlyPlaying)
 
@@ -675,39 +684,39 @@ If `onlyPlaying` is `false`, returns a list of all speakers the client has ever 
 
 The list entries are in the speaker format returned by `voice.speaker`.
 
-----
+---
 
 #### `bool` voice.speakerMuted(`SpeakerId` speakerId)
 
 Returns whether the specified speaker is locally muted.
 
-----
+---
 
 #### `void` voice.setSpeakerMuted(`SpeakerId` speakerId, `bool` muted)
 
 Sets whether the specified speaker is locally muted.
 
-----
+---
 
 #### `float` voice.speakerVolume(`SpeakerId` speakerId)
 
 Returns the specified speaker's local volume.
 
-----
+---
 
 #### `void` voice.setSpeakerVolume(`SpeakerId` speakerId, `float` volume)
 
 Sets the specified speaker's local volume.
 
-----
+---
 
 #### `Vec2F` voice.setSpeakerVolume(`SpeakerId` speakerId, `float` volume)
 
 Gets the specified speaker's world position. Returns `{0, 0}` if the speaker hasn't been seen before, doesn't exist or has no currently rendered primary player.
 
-**Technical note:** If the speaker *had* a rendered primary player but now doesn't, the returned position is actually that primary player's last position before the player disappeared. This also applies to the position in speaker entries returned by `voice.speaker` and `voice.speakers`.
+**Technical note:** If the speaker _had_ a rendered primary player but now doesn't, the returned position is actually that primary player's last position before the player disappeared. This also applies to the position in speaker entries returned by `voice.speaker` and `voice.speakers`.
 
-----
+---
 
 ## Chat pane scripts
 
@@ -729,7 +738,7 @@ If a `"scripts"` array is present in `$assets/interface/chat/chat.config`, the g
 
 Any missing function with a non-`void` return value will cause the engine to assume it has returned with a `nil` and use an appropriate default value.
 
-----
+---
 
 ## Keys, keymods, mouse buttons, etc.
 
@@ -929,3 +938,4 @@ There are a large number of valid string names for keys, keymods, mouse buttons,
 - `"Paddle4"` (P4 paddle on an Xbox Elite controller)
 - `"Touchpad"` (touchpad on a PS4 or PS5 controller)
 - `"Invalid"` (your controller is broken or defective if it has one of these)
+

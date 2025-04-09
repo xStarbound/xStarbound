@@ -6,7 +6,7 @@ The `world` table is available in the following script contexts:
 
 - universe client scripts (client-side, only on xStarbound)
 - world context scripts (server-side)
-- pane scripts (client-side, *not* including pane scripts run in the game's main menu)
+- pane scripts (client-side, _not_ including pane scripts run in the game's main menu)
 - container interface scripts (client-side)
 - monster, NPC and object scripts (client-side for client-mastered entities, server-side for server-mastered entities)
 - monster and object animation scripts (client-side)
@@ -32,6 +32,7 @@ The following `world` bindings are available in both client- and server-side scr
 ---
 
 #### `Json` world.getGlobal(`Maybe<String>` key)
+
 #### `Json` world.getGlobals()
 
 > **Available only on xStarbound.**
@@ -45,6 +46,7 @@ On xClient, these variables are shared across all client-side script contexts wh
 ---
 
 #### `Json` world.setGlobal(`Maybe<String>` key, `Json` value)
+
 #### `Json` world.setGlobals(`JsonObject` newGlobals)
 
 > **Available only on xStarbound.**
@@ -77,7 +79,7 @@ Returns a vector describing the size of the current world in world tiles.
 
 #### `float` world.magnitude(`Vec2F` position1, `Vec2F` position2)
 
-Returns the magnitude of the distance between the specified world positions. Use this rather than simple vector subtraction to handle world wrapping.
+Returns the distance (known as a vector magnitude mathematically) between the specified world positions. Use this rather than simple vector subtraction to handle world wrapping.
 
 ---
 
@@ -263,7 +265,7 @@ Returns the duration of a day on the current world.
 
 > **Only available on xStarbound.**
 
-Returns the biome at the given world tile position for this world, or `nil` if there's no biome there. If `getBlockBiome` is `false` or unspecified, this returns the biome that affects the visible *parallax*; if `true`, this returns any biome or sub-biome at the location, even if it *doesn't* affect parallax.
+Returns the biome at the given world tile position for this world, or `nil` if there's no biome there. If `getBlockBiome` is `false` or unspecified, this returns the biome that affects the visible _parallax_; if `true`, this returns any biome or sub-biome at the location, even if it _doesn't_ affect parallax.
 
 ---
 
@@ -327,7 +329,7 @@ Attempts to synchronously pathfind between the specified positions using the spe
 
 The `movementParameters` are standard actor movement parameters. See `$xSBassets/scripts/pathing.lua` for examples of the `searchParameters`.
 
-> *On xStarbound, enabling `multiJump` in the `airJumpProfile` within `movementParameters` allows the A\* platformer to use mid-air jumps in pathing.*
+> _On xStarbound, enabling `multiJump` in the `airJumpProfile` within `movementParameters` allows the A\* platformer to use mid-air jumps in pathing._
 
 Example of a returned list of path nodes:
 
@@ -355,11 +357,11 @@ jarray{
 
 #### `PathFinder` world.platformerPathStart(`Vec2F` startPosition, `Vec2F` endPosition, `JsonObject` movementParameters, `JsonObject` searchParameters)
 
-Creates and returns a Lua userdata value which can be used for pathfinding over multiple frames. 
+Creates and returns a Lua userdata value which can be used for pathfinding over multiple frames.
 
 The `movementParameters` are standard actor movement parameters. See `$xSBassets/scripts/pathing.lua` for examples of the `searchParameters`.
 
-> *On xStarbound, enabling `multiJump` in the `airJumpProfile` within `movementParameters` allows the A\* platformer to use mid-air jumps in pathing.*
+> _On xStarbound, enabling `multiJump` in the `airJumpProfile` within `movementParameters` allows the A\* platformer to use mid-air jumps in pathing._
 
 The `PathFinder` returned has the following two methods:
 
@@ -463,7 +465,7 @@ Sets the colour variant of the material at the specified position and layer to t
 
 Damages all tiles in the specified layer and positions by the specified amount. The source position of the damage determines the initial direction of the damage particles. Damage types are: `"plantish"`, `"blockish"`, `"beamish"`, `"explosive"`, `"fire"`, `"tilling"`. Harvest level determines whether destroyed materials or mods will drop as items. Returns `true` if any damage was done and `false` otherwise.
 
-> **Technical note:** Tiles with a configured `"health"` value of infinity (`math.huge` in Lua) can only be destroyed with an infinite amount of damage (again, `math.huge` in Lua). The only way to set such a `"health"` value is with a Lua patch script (*not* a preprocessor script!), as this is the only way to set any value *after* text parsing, which considers any `inf` or `Infinity` values invalid (as per the JSON standard).
+> **Technical note:** Tiles with a configured `"health"` value of infinity (`math.huge` in Lua) can only be destroyed with an infinite amount of damage (again, `math.huge` in Lua). The only way to set such a `"health"` value is with a Lua patch script (_not_ a preprocessor script!), as this is the only way to set any value _after_ text parsing, which considers any `inf` or `Infinity` values invalid (as per the JSON standard).
 
 ---
 
@@ -480,13 +482,14 @@ Returns a list of existing tiles within `radius` of the given position, on the s
 ---
 
 #### `bool` world.placeMaterial(`Vec2I` position, `String` layerName, `String` materialName, [`int` hueShift], [`bool` allowOverlap], [`bool` allowDisconnected])
+
 #### `bool` world.placeMaterial(`Vec2I` position, `String` layerName, `String` materialName, [`int` hueShift], [`bool` allowOverlap])
 
-> *`allowDisconnected` is only available on xStarbound, and layer names are only available on xStarbound and OpenStarbound.*
+> _`allowDisconnected` is only available on xStarbound, and layer names are only available on xStarbound and OpenStarbound._
 
 Attempts to place the specified material in the specified position and layer. If `allowOverlap` is `true`, the material can be placed in a space occupied by mobile entities, otherwise such placement attempts will fail. If `allowDisconnected` is `true`, the material does not need to be connected to any other tiles to be placed. Returns `true` if the placement succeeds and `false` otherwise.
 
-> **Note on `allowDisconnected`:** The client-side use of `allowDisconnected` to ignore the requirement for newly placed tiles to be connected to existing tiles currently requires *both* xClient *and* xServer (although this may change), or only xClient if you're in single-player. Server-side use of `allowDisconnected` only requires xServer.
+> **Note on `allowDisconnected`:** The client-side use of `allowDisconnected` to ignore the requirement for newly placed tiles to be connected to existing tiles currently requires _both_ xClient _and_ xServer (although this may change), or only xClient if you're in single-player. Server-side use of `allowDisconnected` only requires xServer.
 
 > **Note on `layerName`:** The `layerName` may optionally include any one of the following collision modifiers (e.g. `"foreground+none"`, `"background+block"`):
 >
@@ -512,8 +515,9 @@ Attempts to place the specified mod in the specified position and layer. If allo
 
 Queries for entities in a specified area of the world and returns a list of their entity IDs. Area can be specified either as the `Vec2F` lower left and upper right positions of a rectangle, or as the `Vec2F` center and `float` radius of a circular area. The following additional parameters can be specified in the `options` table:
 
-- __withoutEntityId__ - Specifies an `EntityId` that will be excluded from the returned results
-- __includedTypes__ - Specifies a list of one or more `String` entity types that the query will return. The valid entity type names are:
+- **withoutEntityId** - Specifies an `EntityId` that will be excluded from the returned results
+- **includedTypes** - Specifies a list of one or more `String` entity types that the query will return. The valid entity type names are:
+
   - `"plant"`
   - `"object"`
   - `"vehicle"`
@@ -526,15 +530,16 @@ Queries for entities in a specified area of the world and returns a list of thei
   - `"player"`
 
   In addition to standard entity type names, this list can include `"mobile"` for all mobile entity types or `"creature"` for players, monsters and NPCs.
-- __boundMode__ - Specifies the bounding mode for determining whether entities fall within the query area. Valid options are `"position"`, `"collisionarea"` and `"metaboundbox"`. Defaults to `"collisionarea"` if unspecified.
-- __order__ - A `String` used to specify how the results will be ordered. If this is set to `"nearest"` the entities will be sorted by ascending distance from the first positional argument. If this is set to `"random"` the list of results will be shuffled. If not specified, the list of entities will be in an undefined order.
-- __callScript__ - Specifies a `String` name of a function that should be called in the script context of all scripted entities matching the query. Accepts Lua dot notation.
-- __callScriptArgs__ - Specifies a list of arguments — `Json` values on xStarbound, or `LuaValue`s otherwise — that will be passed to the function called by `callScript`.
-- __callScriptResult__ - Specifies a value — `Json` on xStarbound, or a `LuaValue` otherwise — that the function called by `callScript` must return; entities whose script calls do not return this value will be excluded from the results. Defaults to `true`. On xStarbound, `null` or `json.null` may be passed if you want to make sure the called function returns a `nil` or nothing.
+
+- **boundMode** - Specifies the bounding mode for determining whether entities fall within the query area. Valid options are `"position"`, `"collisionarea"` and `"metaboundbox"`. Defaults to `"collisionarea"` if unspecified.
+- **order** - A `String` used to specify how the results will be ordered. If this is set to `"nearest"` the entities will be sorted by ascending distance from the first positional argument. If this is set to `"random"` the list of results will be shuffled. If not specified, the list of entities will be in an undefined order.
+- **callScript** - Specifies a `String` name of a function that should be called in the script context of all scripted entities matching the query. Accepts Lua dot notation.
+- **callScriptArgs** - Specifies a list of arguments — `Json` values on xStarbound, or `LuaValue`s otherwise — that will be passed to the function called by `callScript`.
+- **callScriptResult** - Specifies a value — `Json` on xStarbound, or a `LuaValue` otherwise — that the function called by `callScript` must return; entities whose script calls do not return this value will be excluded from the results. Defaults to `true`. On xStarbound, `null` or `json.null` may be passed if you want to make sure the called function returns a `nil` or nothing.
 
 On xStarbound, all `callScript` arguments and the `callScriptResult` must be valid JSON, and an error will be thrown after the first script call if the returned result isn't convertible to valid JSON before comparison happens.
 
-**Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `callScriptArgs` and `callScriptResult`. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
+**Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `callScriptArgs` and `callScriptResult`. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game _will_ almost certainly cause segfaults or memory corruption!
 
 ---
 
@@ -552,7 +557,7 @@ Identical to `world.entityQuery`, but only considers NPCs.
 
 #### `List<EntityId>` world.objectQuery(`Vec2F` position, `Variant<Vec2F, float` positionOrRadius, [`Json` options])
 
-Similar to `world.entityQuery`, but only considers objects. Allows an additional option, __name__, which specifies a `String` object type name and will only return objects of that type.
+Similar to `world.entityQuery`, but only considers objects. Allows an additional option, **name**, which specifies a `String` object type name and will only return objects of that type.
 
 ---
 
@@ -570,7 +575,7 @@ Identical to `world.entityQuery`, but only considers players.
 
 #### `List<EntityId>` world.loungeableQuery(`Vec2F` position, `Variant<Vec2F, float` positionOrRadius, [`Json` options])
 
-Similar to world.entityQuery but only considers loungeable entities. Allows an additional option, __orientation__, which specifies the `String` name of a loungeable orientation ("sit", "lay" or "stand") and only returns loungeable entities which use that orientation.
+Similar to world.entityQuery but only considers loungeable entities. Allows an additional option, **orientation**, which specifies the `String` name of a loungeable orientation ("sit", "lay" or "stand") and only returns loungeable entities which use that orientation.
 
 ---
 
@@ -667,7 +672,7 @@ Returns the current velocity of the entity if it is a vehicle, monster, NPC or p
 
 #### `Maybe<RectF>` world.entityMetaBoundBox(`EntityId` entityId)
 
-Returns the meta bound box of the specified entity, if any. This bound box is used by the game as the bound box for entity interactions and chunkloading. In regards to entity interactions, a middle-click or **Interact** bind press within an entity's meta bound box, provided it is within the player's interaction range and the entity is marked as interactive (*or* provided that `/admin` or overreach mode is enabled), will trigger an interaction with the entity, notwithstanding other conflicting meta bound boxes partially or completely inside the returned one.
+Returns the meta bound box of the specified entity, if any. This bound box is used by the game as the bound box for entity interactions and chunkloading. In regards to entity interactions, a middle-click or **Interact** bind press within an entity's meta bound box, provided it is within the player's interaction range and the entity is marked as interactive (_or_ provided that `/admin` or overreach mode is enabled), will trigger an interaction with the entity, notwithstanding other conflicting meta bound boxes partially or completely inside the returned one.
 
 ---
 
@@ -681,7 +686,7 @@ Returns the specified player entity's stock of the specified currency type, or `
 
 Returns the total count (sum of the stack counts of all matching items) of the specified item in the specified player's inventory, `0` if no matching items (or stacks) are found, or `nil` if the entity is not a player. If `exactMatch` is `true`, both the item name and parameters in the specified descriptor must match a given item stack in order for that stack to be counted; if `false`, only the item name needs to match for a given item stack to be counted, and any parameters are permissible.
 
-> **Note:** If the specified player has any inventory slots or bags that aren't networked, any matching items in these «hidden» slots will *not* be counted.
+> **Note:** If the specified player has any inventory slots or bags that aren't networked, any matching items in these «hidden» slots will _not_ be counted.
 
 ---
 
@@ -730,7 +735,7 @@ Generates a portrait of the specified entity in the specified portrait mode and 
 - `"full"`: The entity's full body.
 - `"fullneutral"`: The entity's full body, posed «neutrally» in the species' first configured personality (normally `idle.1`).
 - `"fullnude"`: The entity's full body, without any armour or clothing. Note that any «clothing» in the form of modified humanoid directives is still rendered.
-- `"fullneutralnude"`: The entity's full body, posed «neutrally» *and* without clothing (as above).
+- `"fullneutralnude"`: The entity's full body, posed «neutrally» _and_ without clothing (as above).
 
 ---
 
@@ -911,6 +916,7 @@ A combination of `world.containerItemApply` and `world.containerSwapItemsNoCombi
 ---
 
 #### [xStarbound] `Json` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`Json...` args])
+
 #### [Non-xStarbound] `LuaValue` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`LuaValue...` args])
 
 Attempts to call the specified function (or callback) name in the context of the specified scripted entity with any specified arguments and returns the result of that call. This method is synchronous and thus can only be used on local master entities, i.e. scripts run on the server may only call scripted entities (on the same world) that are also server-side mastered, and scripts run on the client may only call scripted entities that are client-side mastered on that client.
@@ -921,7 +927,7 @@ For more featureful entity messaging, use `world.sendEntityMessage`. To call a w
 
 > **Note:** On xStarbound v3.5.2.3+, this callback will log a warning and return `nil` if the entity is not locally mastered or doesn't exist. On other servers and clients, an error will be thrown instead.
 
-> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
+> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game _will_ almost certainly cause segfaults or memory corruption!
 
 ---
 
@@ -945,7 +951,7 @@ See `message.md` for information on `RpcPromise` objects.
 
 #### `bool` world.loungeableOccupied(`EntityId` entityId, `Maybe<int>` anchorIndex)
 
-> *The `anchorIndex` parameter is only available on xStarbound v1.4.5.1+ and OpenStarbound v0.1.8+. On stock Starbound, an anchor index of 0 is always assumed.*
+> _The `anchorIndex` parameter is only available on xStarbound v1.4.5.1+ and OpenStarbound v0.1.8+. On stock Starbound, an anchor index of 0 is always assumed._
 
 Checks whether the specified anchor on the specified loungeable entity is currently occupied and returns `true` if it is occupied, `false` if it is unoccupied, or `nil` if it is not a loungeable entity or the anchor doesn't exist. Indexes start at `0`, not `1`.
 
@@ -1067,7 +1073,8 @@ Here's an abridged sample metadata «descriptor» showing the more important and
   "playerStart": [64, 685],
   "dungeonIdBreathable": [],
   "respawnInWorld": false, // Whether players respawn in the world.
-  "worldTemplate": { // This is the big one.
+  "worldTemplate": {
+    // This is the big one.
     "size": [3000, 2000], // The world's size.
     "seed": 5421766494617969501, // The world generation seed.
     "celestialParameters": {
@@ -1102,24 +1109,29 @@ Here's an abridged sample metadata «descriptor» showing the more important and
       "ambientLightLevel": null, // May be a `Vec3B` colour.
       "surfaceLevel": 1100,
       // The height where the world's underground backgrounds transition to and from the sky.
-      "horizonImages": [ /* ... */ ], // The images used for this world when a ship is orbiting it.
+      "horizonImages": [
+        /* ... */
+      ], // The images used for this world when a ship is orbiting it.
       // The images used for displaying this world's moons
       // and/or parent planet in the sky.
-      "satellites": [ /* ... */ ] 
+      "satellites": [
+        /* ... */
+      ]
       /* ... */
     },
     "worldParameters": {
-      "worldSize" : [3000, 2000], // Redundant world size parameter.
+      "worldSize": [3000, 2000], // Redundant world size parameter.
       // This world's tech overrides. Used in the tech challenge instance worlds.
       // Either null or an array of named techs to force on players. If it's an empty array,
       // all player techs are disabled.
-      "overrideTech": null, 
+      "overrideTech": null,
       // All sorts of world parameters.
       "airless": false, // Whether the world is breathable.
       "gravity": 80, // The world's gravity level.
       "beamUpRule": "Surface", // Any one of "Nowhere", "Surface", "Anywhere" or "AnywhereWithWarning".
       "dayLength": 766.78564453125, // The length of the planet's day in seconds.
-      "weatherPool": [ // The world's pool of possible weather types.
+      "weatherPool": [
+        // The world's pool of possible weather types.
         {
           "weight": 0.05,
           "item": "rain"
@@ -1145,8 +1157,9 @@ Here's an abridged sample metadata «descriptor» showing the more important and
     },
     "regionData": {
       // Tons of tidbits for world biome regions. The most important values are these:
-      "worldSize" : [3000, 2000], // Redundant world size parameter.
-      "biomes": [ // Each biome has its own parallax.
+      "worldSize": [3000, 2000], // Redundant world size parameter.
+      "biomes": [
+        // Each biome has its own parallax.
         {
           "parallax": {
             "parallaxTreeVariant": null,
@@ -1177,7 +1190,8 @@ Here's an abridged sample metadata «descriptor» showing the more important and
             ],
             "verticalOrigin": 50
           },
-          "ambientNoises": { // Ambient background noises.
+          "ambientNoises": {
+            // Ambient background noises.
             "day": {
               "tracks": ["/sfx/environmental/magma_underground.ogg"]
             },
@@ -1185,7 +1199,8 @@ Here's an abridged sample metadata «descriptor» showing the more important and
               "tracks": ["/sfx/environmental/magma_underground.ogg"]
             }
           },
-          "musicTrack": { // Background music tracks.
+          "musicTrack": {
+            // Background music tracks.
             "day": {
               "tracks": [
                 "/music/epsilon-indi.ogg"
@@ -1202,9 +1217,15 @@ Here's an abridged sample metadata «descriptor» showing the more important and
           /* ... */
         },
         {
-          "parallax": { /* ... */ },
-          "ambientNoises": { /* ... */ },
-          "musicTrack": { /* ... */ }
+          "parallax": {
+            /* ... */
+          },
+          "ambientNoises": {
+            /* ... */
+          },
+          "musicTrack": {
+            /* ... */
+          }
           /* ... */
         },
         {
@@ -1218,23 +1239,26 @@ Here's an abridged sample metadata «descriptor» showing the more important and
       /* ... */
     }
   },
-  "worldProperties": { /*... */ }, // World properties set by scripts.
-  "dungeonIdGravity": [ // An array of dungeon ID / gravity level combinations.
+  "worldProperties": {
+    /*... */
+  }, // World properties set by scripts.
+  "dungeonIdGravity": [
+    // An array of dungeon ID / gravity level combinations.
     // Use this to set a different gravity level for certain dungeon IDs.
     [65524, 0],
     [65525, 0]
   ]
 }
-    
 ```
 
-> **Caution:** xStarbound will try to recover worlds if invalid values are specified, but even so, invalid values in the `"worldTemplate"` and `"centralStructure"` objects *may render the world file unloadable*! It's recommended to back up any important worlds before playing around with their metadata.
+> **Caution:** xStarbound will try to recover worlds if invalid values are specified, but even so, invalid values in the `"worldTemplate"` and `"centralStructure"` objects _may render the world file unloadable_! It's recommended to back up any important worlds before playing around with their metadata.
 
-> **Note:** Changing the `"worldTemplate"` → `"size"` value in a way that «truncates» parts of the existing world will retain the truncated chunks — they'll just be invisible. Although no data is technically lost, if the world file you're modifying is at all important to you, it is *highly recommended to back up the world before making any world size changes*.
+> **Note:** Changing the `"worldTemplate"` → `"size"` value in a way that «truncates» parts of the existing world will retain the truncated chunks — they'll just be invisible. Although no data is technically lost, if the world file you're modifying is at all important to you, it is _highly recommended to back up the world before making any world size changes_.
 
-> **WARNING: Very small world widths — below about 1000 tiles — *CAN* crash and softlock non-xClient clients on that world! Be careful with small world sizes if non-xClient clients are going to be allowed on the world!**
+> **WARNING: Very small world widths — below about 1000 tiles — _CAN_ crash and softlock non-xClient clients on that world! Be careful with small world sizes if non-xClient clients are going to be allowed on the world!**
 
 #### [xStarbound] `Json` world.callScriptContext(`String` contextName, `String` functionName, [`Json...` args])
+
 #### [OpenStarbound] `LuaValue` world.callScriptContext(`String` contextName, `String` functionName, [`LuaValue...` args])
 
 > **Available only on xStarbound and OpenStarbound.**
@@ -1243,11 +1267,11 @@ Attempts to call the specified function (or callback) name in the specified worl
 
 On xStarbound, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
 
-To message *other* worlds, use `universe.sendWorldMessage` in a world context script (see `universeserver.md`). If you need to message another world from a server-side entity, use `world.callScriptContext` to "pass through" to a `universe.sendWorldMessage` call. Both client- and server-side entities may also use `world.sendEntityMessage` for "passthrough".
+To message _other_ worlds, use `universe.sendWorldMessage` in a world context script (see `universeserver.md`). If you need to message another world from a server-side entity, use `world.callScriptContext` to "pass through" to a `universe.sendWorldMessage` call. Both client- and server-side entities may also use `world.sendEntityMessage` for "passthrough".
 
 > **Note:** On xStarbound v3.5.2.3+, this callback will log a warning and return `nil` if the entity is not locally mastered or doesn't exist. On other servers and clients, an error will be thrown instead.
 
-> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game *will* almost certainly cause segfaults or memory corruption!
+> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game _will_ almost certainly cause segfaults or memory corruption!
 
 ---
 
@@ -1389,7 +1413,7 @@ Returns the current time for the world's sky.
 
 #### `void` world.setSkyTime(`double` time)
 
-Sets the current time for the world's sky to the specified value. If `math.huge` is specified, disables the pegging of the world's clock to the universe clock *without* setting the time; if `-math.huge` is specified, re-enables the clock pegging, which will change the world's sky time to conform with the universe clock on the same tick if there's a mismatch. Clock pegging is automatically (re-)enabled whenever a world is unloaded and reloaded; i.e., it's *not* saved to the world file automatically, so find a way to save what the world's time should be if you wish to do so.
+Sets the current time for the world's sky to the specified value. If `math.huge` is specified, disables the pegging of the world's clock to the universe clock _without_ setting the time; if `-math.huge` is specified, re-enables the clock pegging, which will change the world's sky time to conform with the universe clock on the same tick if there's a mismatch. Clock pegging is automatically (re-)enabled whenever a world is unloaded and reloaded; i.e., it's _not_ saved to the world file automatically, so find a way to save what the world's time should be if you wish to do so.
 
 **Note:** This callback is buggy to the point of uselessness on the stock Starbound server and various other servers — any newly set time would just get reverted on the same world tick. xStarbound fixes this bug by keeping track of whether the world's clock is actually overridden and assigning special meanings to the infinity values.
 
@@ -1601,7 +1625,7 @@ Returns a map of player UUIDs to player names in the client's saves. Only saves 
 
 Returns a map of player UUIDs to player save data objects (`JsonObject`) in the client's saves. Only saves that have been validated during pre-loading (and thus are successfully loadable) will be listed.
 
-> **Note:** This callback returns a *lot* of data and may cause a frame spike when invoked. Consider using `world.ownPlayerSave` (in the singular) instead if you only want to load a specific save.
+> **Note:** This callback returns a _lot_ of data and may cause a frame spike when invoked. Consider using `world.ownPlayerSave` (in the singular) instead if you only want to load a specific save.
 
 ---
 
@@ -1611,7 +1635,7 @@ Returns a map of player UUIDs to player save data objects (`JsonObject`) in the 
 
 Returns the player save data for the player with the specified UUID, or `nil` if the player save does not exist on the client or is invalid.
 
-> **Note:** This callback may return a *lot* of data and cause a frame spike when invoked. Try to avoid invoking it every tick.
+> **Note:** This callback may return a _lot_ of data and cause a frame spike when invoked. Try to avoid invoking it every tick.
 
 ---
 
@@ -1621,7 +1645,7 @@ Returns the player save data for the player with the specified UUID, or `nil` if
 
 Returns whether the player with the specified UUID is currently dead — `true` if dead, `false` if alive. A dead player will not respawn unless the current world allows for dead players to respawn or the dead player has `"alwaysRespawnOnWorld"` active.
 
-Note that permadead players will only respawn if the *primary* player is an admin and any other respawning conditions are met for the permadead player as a *secondary*.
+Note that permadead players will only respawn if the _primary_ player is an admin and any other respawning conditions are met for the permadead player as a _secondary_.
 
 Will return `nil` if the player doesn't exist, the player save failed validation (and thus is not loadable) or the specified UUID is invalid.
 
@@ -1632,3 +1656,4 @@ Will return `nil` if the player doesn't exist, the player save failed validation
 > **Available only on xStarbound v3.1+.**
 
 Returns whether the player with the specified UUID is currently loaded and active. Note that this callback will return `false` instead of throwing an error if the specified UUID is invalid.
+

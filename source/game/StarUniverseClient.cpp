@@ -1,38 +1,38 @@
 #include "StarUniverseClient.hpp"
-#include "StarEntityMap.hpp"
-#include "StarLexicalCast.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarLogging.hpp"
-#include "StarVersion.hpp"
-#include "StarRoot.hpp"
-#include "StarConfiguration.hpp"
-#include "StarProjectileDatabase.hpp"
-#include "StarPlayerStorage.hpp"
-#include "StarPlayer.hpp"
-#include "StarPlayerLog.hpp"
 #include "StarAssets.hpp"
-#include "StarTime.hpp"
-#include "StarNetPackets.hpp"
-#include "StarTcp.hpp"
-#include "StarWorldClient.hpp"
-#include "StarSystemWorldClient.hpp"
-#include "StarClientContext.hpp"
-#include "StarTeamClient.hpp"
-#include "StarSha256.hpp"
-#include "StarEncode.hpp"
-#include "StarPlayerCodexes.hpp"
-#include "StarQuestManager.hpp"
-#include "StarPlayerUniverseMap.hpp"
-#include "StarWorldTemplate.hpp"
 #include "StarCelestialLuaBindings.hpp"
+#include "StarClientContext.hpp"
+#include "StarConfiguration.hpp"
+#include "StarEncode.hpp"
+#include "StarEntityMap.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLexicalCast.hpp"
+#include "StarLogging.hpp"
+#include "StarNetPackets.hpp"
+#include "StarPlayer.hpp"
+#include "StarPlayerCodexes.hpp"
+#include "StarPlayerLog.hpp"
+#include "StarPlayerStorage.hpp"
+#include "StarPlayerUniverseMap.hpp"
+#include "StarProjectileDatabase.hpp"
+#include "StarQuestManager.hpp"
+#include "StarRoot.hpp"
+#include "StarSha256.hpp"
 #include "StarStatusController.hpp"
+#include "StarSystemWorldClient.hpp"
+#include "StarTcp.hpp"
+#include "StarTeamClient.hpp"
+#include "StarTime.hpp"
+#include "StarVersion.hpp"
+#include "StarWorldClient.hpp"
+#include "StarWorldTemplate.hpp"
 #include "scripting/StarWorldLuaBindings.hpp"
 
 #if defined TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
+#include "tracy/Tracy.hpp"
 #else
-  #define ZoneScoped
-  #define ZoneScopedN(name)
+#define ZoneScoped
+#define ZoneScopedN(name)
 #endif
 
 namespace Star {
@@ -93,7 +93,7 @@ void UniverseClient::setMainPlayer(PlayerPtr player) {
     m_playerStorage->moveToFront(m_mainPlayer->uuid());
     if (selectedFromTitleScreen)
       m_shouldUpdateMainPlayerShip = m_mainPlayer->shipUpdatesIgnored();
-  }    
+  }
 }
 
 PlayerPtr UniverseClient::mainPlayer() const {
@@ -124,8 +124,8 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
 
   size_t playerCount = m_playerStorage->playerCount();
   Logger::info("UniverseClient: Pre-loaded {} saved {}",
-    playerCount,
-    playerCount == 1 ? "player" : "players");
+      playerCount,
+      playerCount == 1 ? "player" : "players");
 
   unsigned timeout = assets->json("/client.config:serverConnectTimeout").toUInt();
 
@@ -184,8 +184,8 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
 
     size_t loadedCount = m_loadedPlayers.size();
     Logger::info("UniverseClient: Setting up {} pre-loaded {}",
-      loadedCount,
-      loadedCount == 1 ? "player" : "players");
+        loadedCount,
+        loadedCount == 1 ? "player" : "players");
 
     for (auto& loadedPlayer : m_loadedPlayers) {
       if (auto& player = loadedPlayer.second.ptr) {
@@ -213,8 +213,8 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     size_t playerCount = m_playerStorage->playerCount();
 
     Logger::info("UniverseClient: Joined {} server as client {}",
-      m_legacyServer ? "stock" : "custom",
-      success->clientId);
+        m_legacyServer ? "stock" : "custom",
+        success->clientId);
     return {};
   } else if (auto failure = as<ConnectFailurePacket>(packet)) {
     Logger::error("UniverseClient: Join failed: {}", failure->reason);
@@ -252,8 +252,8 @@ void UniverseClient::disconnect() {
   m_loadedPlayers = {};
   size_t playerCount = m_playerStorage->playerCount();
   Logger::info("UniverseClient: Unloaded {} {}",
-    playerCount,
-    playerCount == 1 ? "player" : "players");
+      playerCount,
+      playerCount == 1 ? "player" : "players");
 }
 
 Maybe<String> UniverseClient::disconnectReason() const {
@@ -297,8 +297,7 @@ void UniverseClient::update(float dt) {
 
           bool isDeploying = m_mainPlayer->isDeploying();
           String cinematicJsonPath = isDeploying ? "/client.config:deployCinematic" : "/client.config:warpCinematic";
-          String cinematicAssetPath = assets->json(cinematicJsonPath).toString()
-          .replaceTags(StringMap<String>{{"species", m_mainPlayer->species()}});
+          String cinematicAssetPath = assets->json(cinematicJsonPath).toString().replaceTags(StringMap<String>{{"species", m_mainPlayer->species()}});
 
           if (assets->assetExists(cinematicAssetPath)) {
             Json cinematic = jsonMerge(assets->json(cinematicJsonPath + "Base"), assets->json(cinematicAssetPath));
@@ -327,7 +326,8 @@ void UniverseClient::update(float dt) {
   {
     ZoneScopedN("Packet reception");
     m_connection->receive();
-  } {
+  }
+  {
     ZoneScopedN("Packet handling");
     handlePackets(std::move(m_connection->pull()));
   }
@@ -396,8 +396,7 @@ void UniverseClient::update(float dt) {
         String cinematic = assets->json("/client.config:respawnCinematic").toString();
         cinematic = cinematic.replaceTags(StringMap<String>{
             {"species", m_mainPlayer->species()},
-            {"mode", PlayerModeNames.getRight(m_mainPlayer->modeType())}
-          });
+            {"mode", PlayerModeNames.getRight(m_mainPlayer->modeType())}});
         if (assets->assetExists(cinematic) && !(m_mainPlayer->fastRespawn() || m_mainPlayer->externalCinematicsIgnored()))
           // FezzedOne: If a respawn cinematic doesn't exist for the species, don't try to play a nonexistent cinematic.
           // Also respect xSB player settings, of course.
@@ -443,12 +442,12 @@ void UniverseClient::update(float dt) {
   if (auto netStats = m_connection->incomingStats()) {
     LogMap::set("net_total_incoming", strf("{:4.3f} KB/s", netStats->bytesPerSecond / 1000.f));
     LogMap::set("net_worst_incoming", strf("^cyan;{}^reset; ({:4.3f} KB/s)",
-      PacketTypeNames.getRight(netStats->worstPacketType), (float)netStats->worstPacketSize / 1000.f));
+                                          PacketTypeNames.getRight(netStats->worstPacketType), (float)netStats->worstPacketSize / 1000.f));
   }
   if (auto netStats = m_connection->outgoingStats()) {
     LogMap::set("net_total_outgoing", strf("{:4.3f} KB/s", netStats->bytesPerSecond / 1000.f));
     LogMap::set("net_worst_outgoing", strf("^cyan;{}^reset; ({:4.3f} KB/s)",
-      PacketTypeNames.getRight(netStats->worstPacketType), (float)netStats->worstPacketSize / 1000.f));
+                                          PacketTypeNames.getRight(netStats->worstPacketType), (float)netStats->worstPacketSize / 1000.f));
   }
 }
 
@@ -603,7 +602,7 @@ void UniverseClient::sendChat(String const& text, ChatSendMode sendMode) {
   m_connection->pushSingle(make_shared<ChatSendPacket>(text, sendMode));
 }
 
-void UniverseClient::sendChat(String const &text, String const &sendMode, bool suppressBubble) {
+void UniverseClient::sendChat(String const& text, String const& sendMode, bool suppressBubble) {
   // Override for `player.sendChat`.
   Maybe<ChatSendMode> sendModeEnumMaybe = ChatSendModeNames.maybeLeft(sendMode);
   ChatSendMode sendModeEnum = sendModeEnumMaybe.value(ChatSendMode::Local);
@@ -621,24 +620,19 @@ List<ChatReceivedMessage> UniverseClient::pullChatMessages() {
     bool worldInitialised = true;
     for (auto pm : m_worldPendingMessages) {
       Json messageJson = JsonObject{
-        {"context", JsonObject{
-          {"mode", MessageContextModeNames.getRight(pm.context.mode)},
-          {"channel", pm.context.channelName}
-        }},
-        {"connection", pm.fromConnection},
-        {"nick", pm.fromNick},
-        {"portrait", pm.portrait},
-        {"message", pm.text}
-      };
+          {"context", JsonObject{
+                          {"mode", MessageContextModeNames.getRight(pm.context.mode)},
+                          {"channel", pm.context.channelName}}},
+          {"connection", pm.fromConnection}, {"nick", pm.fromNick}, {"portrait", pm.portrait}, {"message", pm.text}};
       // FezzedOne: For StarExtensions compatibility.
       Json seMessageJson = JsonObject{
-        {"mode", MessageContextModeNames.getRight(pm.context.mode)},
-        {"channel", pm.context.channelName},
-        {"connection", pm.fromConnection},
-        {"nickname", pm.fromNick},
-        {"portrait", pm.portrait},
-        {"text", pm.text}
-        // FezzedOne: Note that `"scripted"` should always be assumed `null` or `false` on xStarbound.
+          {"mode", MessageContextModeNames.getRight(pm.context.mode)},
+          {"channel", pm.context.channelName},
+          {"connection", pm.fromConnection},
+          {"nickname", pm.fromNick},
+          {"portrait", pm.portrait},
+          {"text", pm.text}
+          // FezzedOne: Note that `"scripted"` should always be assumed `null` or `false` on xStarbound.
       };
       try {
         m_worldClient->sendEntityMessage(m_mainPlayer->entityId(), "chatMessage", JsonArray{messageJson});
@@ -723,7 +717,7 @@ Maybe<Json> UniverseClient::receiveMessage(String const& message, bool localMess
   for (auto& context : m_scriptContexts) {
     if (isChatMessage) {
       results.append(context.second->handleMessage(message, localMessage, args).value(Json()));
-    } else {
+    } else if (!result) { // FezzedOne: Whoops! Missed this.
       if (auto res = context.second->handleMessage(message, localMessage, args)) {
         result = res;
         break;
@@ -775,7 +769,7 @@ void UniverseClient::reloadAllPlayers(bool resetInterfaces, bool showIndicator) 
       auto config = projectileDb->projectileConfig("xsb:playerloading");
       indicator = projectileDb->createProjectile("stationpartsound", config);
       indicator->setInitialPosition(player->position());
-      indicator->setInitialDirection({ 1.0f, 0.0f });
+      indicator->setInitialDirection({1.0f, 0.0f});
       world->addEntity(indicator);
     }
 
@@ -900,7 +894,7 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
       auto config = projectileDb->projectileConfig("xsb:playerloading");
       indicator = projectileDb->createProjectile("stationpartsound", config);
       indicator->setInitialPosition(m_mainPlayer->position());
-      indicator->setInitialDirection({ 1.0f, 0.0f });
+      indicator->setInitialDirection({1.0f, 0.0f});
       world->addEntity(indicator);
     }
   }
@@ -910,9 +904,9 @@ bool UniverseClient::swapPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
   m_playerStorage->moveToFront(uuid);
 
   Logger::info("[xSB] UniverseClient: {} player '{}' [{}].",
-    swapPlayerInWorld ? "Swapping to loaded secondary" : "Loading primary",
-    swapPlayer->name(),
-    uuid.hex());
+      swapPlayerInWorld ? "Swapping to loaded secondary" : "Loading primary",
+      swapPlayer->name(),
+      uuid.hex());
 
   bool dupeError = false;
   if (!swapPlayerInWorld) {
@@ -989,7 +983,7 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
     auto config = projectileDb->projectileConfig("xsb:playerloading");
     indicator = projectileDb->createProjectile("stationpartsound", config);
     indicator->setInitialPosition(m_mainPlayer->position());
-    indicator->setInitialDirection({ 1.0f, 0.0f });
+    indicator->setInitialDirection({1.0f, 0.0f});
     world->addEntity(indicator);
   }
 
@@ -997,8 +991,8 @@ bool UniverseClient::loadPlayer(Uuid const& uuid, bool resetInterfaces, bool sho
   m_playerStorage->savePlayer(playerToLoad);
 
   Logger::info("[xSB] UniverseClient: Loading secondary player '{}' [{}].",
-    playerToLoad->name(),
-    uuid.hex());
+      playerToLoad->name(),
+      uuid.hex());
 
   bool dupeError = false;
   if (!playerToLoad->isDead()) { // If loading a dead player, don't revive him immediately. Wait until a warp or primary player death.
@@ -1052,7 +1046,7 @@ bool UniverseClient::unloadPlayer(Uuid const& uuid, bool resetInterfaces, bool s
     auto config = projectileDb->projectileConfig("xsb:playerloading");
     indicator = projectileDb->createProjectile("stationpartsound", config);
     indicator->setInitialPosition(m_mainPlayer->position());
-    indicator->setInitialDirection({ 1.0f, 0.0f });
+    indicator->setInitialDirection({1.0f, 0.0f});
     world->addEntity(indicator);
   }
 
@@ -1060,8 +1054,8 @@ bool UniverseClient::unloadPlayer(Uuid const& uuid, bool resetInterfaces, bool s
   m_playerStorage->savePlayer(playerToUnload);
 
   Logger::info("[xSB] UniverseClient: Unloading secondary player '{}' [{}].",
-    playerToUnload->name(),
-    uuid.hex());
+      playerToUnload->name(),
+      uuid.hex());
 
   if (playerToUnload->inWorld())
     world->removeEntity(playerToUnload->entityId(), false);
@@ -1297,7 +1291,8 @@ bool UniverseClient::paused() const {
 
 bool UniverseClient::switchingPlayer() const {
   if (m_playerToSwitchTo) return true;
-  else return false;
+  else
+    return false;
 }
 
 void UniverseClient::setPause(bool pause) {
@@ -1400,4 +1395,4 @@ void UniverseClient::reset() {
   m_connection.reset();
 }
 
-}
+} // namespace Star
