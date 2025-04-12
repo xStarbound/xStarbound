@@ -1,33 +1,33 @@
 #include "StarAssets.hpp"
 #include "StarAssetPath.hpp"
-#include "StarFile.hpp"
-#include "StarTime.hpp"
+#include "StarAudio.hpp"
+#include "StarCasting.hpp"
+#include "StarDataStreamDevices.hpp"
 #include "StarDirectoryAssetSource.hpp"
-#include "StarPackedAssetSource.hpp"
-#include "StarMemoryAssetSource.hpp"
+#include "StarFile.hpp"
+#include "StarFont.hpp"
+#include "StarImageLuaBindings.hpp"
+#include "StarImageProcessing.hpp"
+#include "StarIterator.hpp"
 #include "StarJsonBuilder.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarJsonPatch.hpp"
-#include "StarIterator.hpp"
-#include "StarImageProcessing.hpp"
-#include "StarLogging.hpp"
-#include "StarRandom.hpp"
-#include "StarFont.hpp"
-#include "StarAudio.hpp"
-#include "StarCasting.hpp"
 #include "StarLexicalCast.hpp"
-#include "StarSha256.hpp"
-#include "StarDataStreamDevices.hpp"
+#include "StarLogging.hpp"
 #include "StarLua.hpp"
 #include "StarLuaConverters.hpp"
-#include "StarImageLuaBindings.hpp"
+#include "StarMemoryAssetSource.hpp"
+#include "StarPackedAssetSource.hpp"
+#include "StarRandom.hpp"
+#include "StarSha256.hpp"
+#include "StarTime.hpp"
 #include "StarUtilityLuaBindings.hpp"
 
 #if defined TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
+#include "tracy/Tracy.hpp"
 #else
-  #define ZoneScoped
-  #define ZoneScopedN(name)
+#define ZoneScoped
+#define ZoneScopedN(name)
 #endif
 
 namespace Star {
@@ -96,7 +96,7 @@ static void validatePath(StringView const& path, bool canContainSubPath, bool ca
   }
 
   // FezzedOne: Fixed this just in case it's used for a `root.validatePath` or `assets.validatePath` Lua callback later on.
-  if (subPath && !canContainSubPath) 
+  if (subPath && !canContainSubPath)
     throw AssetException::format("Path '{}' cannot contain sub-path", path);
 
   if (end != NPos && str[end] == '?' && !canContainDirectives)
@@ -125,7 +125,7 @@ Assets::Assets(Settings settings, StringList assetSources) {
   m_luaEngine = luaEngine;
   luaEngine->tuneAutoGarbageCollection(m_settings.luaGcPause, m_settings.luaGcStepMultiplier);
 
-  auto pushGlobalContext = [&luaEngine](String const& name, LuaCallbacks && callbacks) {
+  auto pushGlobalContext = [&luaEngine](String const& name, LuaCallbacks&& callbacks) {
     auto table = luaEngine->createTable();
     for (auto const& p : callbacks.callbacks())
       table.set(p.first, luaEngine->createWrappedFunction(p.second));
@@ -169,11 +169,10 @@ Assets::Assets(Settings settings, StringList assetSources) {
 
     callbacks.registerCallback("frames", [this](String const& path) -> Json {
       if (auto frames = imageFrames(path))
-      return JsonObject{
-        {"aliases", jsonFromMap(frames->aliases)},
-        {"frames", jsonFromMapV(frames->frames, jsonFromRectU)},
-        {"file", frames->framesFile}
-      };
+        return JsonObject{
+            {"aliases", jsonFromMap(frames->aliases)},
+            {"frames", jsonFromMapV(frames->frames, jsonFromRectU)},
+            {"file", frames->framesFile}};
       return Json();
     });
 
@@ -231,7 +230,7 @@ Assets::Assets(Settings settings, StringList assetSources) {
     callbacks.registerCallback("sourcePaths", [this](String const& path) -> Maybe<StringList> {
       try {
         return this->assetSourcePaths(path);
-      } catch (MapException const &e) {
+      } catch (MapException const& e) {
         return {};
       }
       return {};
@@ -373,10 +372,11 @@ Assets::Assets(Settings settings, StringList assetSources) {
                 descriptor.sourceName = path;
                 descriptor.source = memoryAssets;
               } else {
-                m_files[path] = { // FezzedOne: Fixed MSVC compatibility.
-                  path,
-                  memoryAssets,
-                  {},
+                m_files[path] = {
+                    // FezzedOne: Fixed MSVC compatibility.
+                    path,
+                    memoryAssets,
+                    {},
                 };
               }
               m_filesByExtension[AssetPath::extension(path).toLower()].insert(path);
@@ -437,8 +437,8 @@ Assets::Assets(Settings settings, StringList assetSources) {
             if (m_files.contains(frontLoadPath)) {
               const Json sourceName = m_files.get(frontLoadPath).source->metadata().value("name", "<no name>");
               Logger::info("Using replacement '{}' script from '{}'",
-                frontLoadPath,
-                sourceName.isType(Json::Type::String) ? sourceName.toString() : sourceName.repr());
+                  frontLoadPath,
+                  sourceName.isType(Json::Type::String) ? sourceName.toString() : sourceName.repr());
               script = this->read(frontLoadPath);
             } else {
               script = source->read(path);
@@ -532,12 +532,11 @@ StringList Assets::assetSources() const {
 }
 
 // FezzedOne: Added this missing method.
-StringList Assets::assetPatchSources(String const &path) const
-{
+StringList Assets::assetPatchSources(String const& path) const {
   MutexLocker assetsLocker(m_assetsMutex);
   if (auto descriptor = m_files.ptr(path)) {
     StringList patchSources = {};
-    for (auto const &pair : descriptor->patchSources) {
+    for (auto const& pair : descriptor->patchSources) {
       patchSources.append(m_assetSourcePaths.getLeft(pair.second));
     }
     return patchSources;
@@ -551,7 +550,7 @@ JsonObject Assets::assetSourceMetadata(String const& sourceName) const {
   return m_assetSourcePaths.getRight(sourceName)->metadata();
 }
 
-StringList Assets::assetSourcePaths(String const &sourceName) const {
+StringList Assets::assetSourcePaths(String const& sourceName) const {
   MutexLocker assetsLocker(m_assetsMutex);
   return m_assetSourcePaths.getRight(sourceName)->assetPaths();
 }
@@ -660,7 +659,8 @@ void Assets::queueJsons(StringList const& paths, bool forcePersistence) const {
     validatePath(components, true, false);
 
     return AssetId{AssetType::Json, {components.basePath, {}, {}}};
-  }), forcePersistence);
+  }),
+      forcePersistence);
 }
 
 void Assets::queueJsons(CaseInsensitiveStringSet const& paths, bool forcePersistence) const {
@@ -702,7 +702,8 @@ void Assets::queueImages(StringList const& paths, bool forcePersistence) const {
     validatePath(components, true, true);
 
     return AssetId{AssetType::Image, std::move(components)};
-  }), forcePersistence);
+  }),
+      forcePersistence);
 }
 
 void Assets::queueImages(CaseInsensitiveStringSet const& paths, bool forcePersistence) const {
@@ -770,7 +771,8 @@ void Assets::queueAudios(StringList const& paths, bool forcePersistence) const {
     validatePath(components, false, false);
 
     return AssetId{AssetType::Audio, std::move(components)};
-  }), forcePersistence);
+  }),
+      forcePersistence);
 }
 
 void Assets::queueAudios(CaseInsensitiveStringSet const& paths, bool forcePersistence) const {
@@ -1196,8 +1198,8 @@ FramesSpecificationConstPtr Assets::bestFramesSpecification(String const& image)
   }
 
   auto framesSpecification = unlockDuring([&]() {
-      return make_shared<FramesSpecification>(parseFramesSpecification(readJson(framesFile), framesFile));
-    });
+    return make_shared<FramesSpecification>(parseFramesSpecification(readJson(framesFile), framesFile));
+  });
   m_framesSpecifications[image] = framesSpecification;
 
   return framesSpecification;
@@ -1238,10 +1240,16 @@ ImageConstPtr Assets::readImage(String const& path) const {
         auto patchStream = patchSource->read(patchPath);
         if (patchPath.endsWith(".lua") || patchPath.endsWith(".pluto")) {
           luaLocker.lock();
-          LuaContextPtr& context = m_patchContexts[patchPath];
+          // FezzedOne: Added a unique ID to patch script context keys so that each script gets its own Lua context.
+          // Mostly to ensure that all patch scripts get run. Similar to Kae's fix.
+          auto assetSourceId = (size_t)pair.second.get();
+          char bytes[sizeof(size_t)];
+          std::memcpy(bytes, &assetSourceId, sizeof(assetSourceId));
+          LuaContextPtr& context = m_patchContexts[String(bytes) + patchPath];
           bool startedNewContext = false;
           if (!context) {
             context = make_shared<LuaContext>(luaEngine->createContext());
+            startedNewContext = true;
           }
           // FezzedOne: Added `require` to image patch scripts.
           context->setRequireFunction([&](LuaContext& context, LuaString const& module) {
@@ -1292,7 +1300,7 @@ ImageConstPtr Assets::readImage(String const& path) const {
 Json Assets::checkPatchArray(String const& path, AssetSourcePtr const& source, Json const result, JsonArray const patchData) const {
   auto newResult = result;
   for (auto const& patch : patchData) {
-    switch(patch.type()){
+    switch (patch.type()) {
       case Json::Type::Array: // If the patch is an array, go down recursively until objects are found.
         try {
           newResult = checkPatchArray(path, source, newResult, patch.toArray());
@@ -1328,7 +1336,12 @@ Json Assets::readJson(String const& path) const {
       if (patchPath.endsWith(".lua") || patchPath.endsWith(".pluto")) {
         RecursiveMutexLocker luaLocker(m_luaMutex);
         // Kae: i don't like that lock. perhaps have a LuaEngine and patch context cache per worker thread later on?
-        LuaContextPtr& context = m_patchContexts[patchPath];
+        // FezzedOne: Added a unique ID to patch script context keys so that each script gets its own Lua context.
+        // Mostly to ensure that all patch scripts get run. Similar to Kae's fix.
+        auto assetSourceId = (size_t)pair.second.get();
+        char bytes[sizeof(size_t)];
+        std::memcpy(bytes, &assetSourceId, sizeof(assetSourceId));
+        LuaContextPtr& context = m_patchContexts[String(bytes) + patchPath];
         Json newResult = Json();
         bool startedNewContext = false;
         if (!context) {
@@ -1359,10 +1372,10 @@ Json Assets::readJson(String const& path) const {
           newResult = context->invokePath<Json>("patch", result, path);
         } catch (std::exception const& e) {
           Logger::error("Ignored failed Pluto/Lua patch from file {} in source: '{}' at '{}'. Caused by: {}",
-            patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
+              patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
         }
         if (newResult.isType(Json::Type::Array) || newResult.isType(Json::Type::Object))
-            result = std::move(newResult);
+          result = std::move(newResult);
       } else {
         Json newPatchResult = Json();
         try {
@@ -1374,10 +1387,10 @@ Json Assets::readJson(String const& path) const {
               newResult = checkPatchArray(patchPath, patchSource, result, patchData);
             } catch (JsonPatchTestFail const& e) {
               Logger::debug("Ignored patch from file {} in source: '{}' at '{}' due to test failure. Caused by: {}",
-                patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
+                  patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
             } catch (JsonPatchException const& e) {
               Logger::error("Ignored failed patch from file {} in source: '{}' at '{}'. Caused by: {}",
-                patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
+                  patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
             }
             if (newResult.isType(Json::Type::Array) || newResult.isType(Json::Type::Object))
               newPatchResult = std::move(newResult);
@@ -1386,7 +1399,7 @@ Json Assets::readJson(String const& path) const {
           }
         } catch (std::exception const& e) {
           Logger::error("Cannot parse JSON patch from file {} in source: '{}' at '{}'. Patch file ignored. Caused by: {}",
-            patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
+              patchPath, patchSource->metadata().value("name", ""), m_assetSourcePaths.getLeft(patchSource), e.what());
         }
         if (newPatchResult.isType(Json::Type::Array) || newPatchResult.isType(Json::Type::Object))
           result = std::move(newPatchResult);
@@ -1512,7 +1525,7 @@ shared_ptr<Assets::AssetData> Assets::loadJson(AssetPath const& path) const {
 
   if (path.subPath) {
     auto topJson =
-      as<JsonData>(loadAsset(AssetId{AssetType::Json, {path.basePath, {}, {}}}));
+        as<JsonData>(loadAsset(AssetId{AssetType::Json, {path.basePath, {}, {}}}));
     if (!topJson)
       return {};
 
@@ -1670,4 +1683,4 @@ void Assets::freshen(shared_ptr<AssetData> const& asset) const {
   asset->time = Time::monotonicTime();
 }
 
-}
+} // namespace Star
