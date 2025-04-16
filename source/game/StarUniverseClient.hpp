@@ -1,16 +1,16 @@
 #ifndef STAR_UNIVERSE_CLIENT_HPP
 #define STAR_UNIVERSE_CLIENT_HPP
 
-#include "StarMaybe.hpp"
-#include "StarHostAddress.hpp"
-#include "StarGameTimers.hpp"
+#include "StarAiTypes.hpp"
 #include "StarCelestialParameters.hpp"
 #include "StarChatTypes.hpp"
-#include "StarWarping.hpp"
-#include "StarAiTypes.hpp"
+#include "StarGameTimers.hpp"
+#include "StarHostAddress.hpp"
+#include "StarLuaComponents.hpp"
+#include "StarMaybe.hpp"
 #include "StarSky.hpp"
 #include "StarUniverseConnection.hpp"
-#include "StarLuaComponents.hpp"
+#include "StarWarping.hpp"
 
 namespace Star {
 
@@ -82,7 +82,7 @@ public:
   bool flying() const;
 
   void sendChat(String const& text, ChatSendMode sendMode);
-  void sendChat(String const &text, String const &sendMode, bool suppressBubble);
+  void sendChat(String const& text, String const& sendMode, bool suppressBubble, Maybe<JsonObject> metadata = {});
   List<ChatReceivedMessage> pullChatMessages();
 
   uint16_t players();
@@ -98,7 +98,7 @@ public:
   bool swapPlayer(Uuid const& uuid, bool resetInterfaces = false, bool showIndicator = false);
   bool loadPlayer(Uuid const& uuid, bool resetInterfaces = false, bool showIndicator = false);
   bool unloadPlayer(Uuid const& uuid, bool resetInterfaces = false, bool showIndicator = false);
-  
+
   void doSwitchPlayer(Uuid const& uuid);
   bool switchPlayer(Uuid const& uuid);
   bool switchPlayer(size_t index);
@@ -224,6 +224,6 @@ private:
   InterfaceMessageCallback m_interfaceMessageCallback;
 };
 
-}
+} // namespace Star
 
 #endif

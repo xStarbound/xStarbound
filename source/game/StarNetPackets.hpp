@@ -1,20 +1,20 @@
 #ifndef STAR_NET_PACKETS_HPP
 #define STAR_NET_PACKETS_HPP
 
-#include "StarDataStream.hpp"
-#include "StarWorldTiles.hpp"
-#include "StarItemDescriptor.hpp"
 #include "StarCelestialDatabase.hpp"
-#include "StarDamageManager.hpp"
 #include "StarChatTypes.hpp"
-#include "StarUuid.hpp"
-#include "StarTileModification.hpp"
+#include "StarClientContext.hpp"
+#include "StarDamageManager.hpp"
+#include "StarDataStream.hpp"
 #include "StarEntity.hpp"
 #include "StarInteractionTypes.hpp"
+#include "StarItemDescriptor.hpp"
+#include "StarSystemWorld.hpp"
+#include "StarTileModification.hpp"
+#include "StarUuid.hpp"
 #include "StarWarping.hpp"
 #include "StarWiring.hpp"
-#include "StarClientContext.hpp"
-#include "StarSystemWorld.hpp"
+#include "StarWorldTiles.hpp"
 
 namespace Star {
 
@@ -344,13 +344,14 @@ struct FlyShipPacket : PacketBase<PacketType::FlyShip> {
 
 struct ChatSendPacket : PacketBase<PacketType::ChatSend> {
   ChatSendPacket();
-  ChatSendPacket(String text, ChatSendMode sendMode);
+  ChatSendPacket(String text, ChatSendMode sendMode, JsonObject data = JsonObject{});
 
   void read(DataStream& ds) override;
   void write(DataStream& ds) const override;
 
   String text;
   ChatSendMode sendMode;
+  JsonObject data;
 };
 
 struct CelestialRequestPacket : PacketBase<PacketType::CelestialRequest> {
@@ -681,7 +682,7 @@ struct WorldStartAcknowledgePacket : PacketBase<PacketType::WorldStartAcknowledg
   void read(DataStream& ds) override;
   void write(DataStream& ds) const override;
 };
-  
+
 struct PingPacket : PacketBase<PacketType::Ping> {
   PingPacket();
 
@@ -903,6 +904,6 @@ struct SystemObjectSpawnPacket : PacketBase<PacketType::SystemObjectSpawn> {
   Maybe<Vec2F> position;
   JsonObject parameters;
 };
-}
+} // namespace Star
 
 #endif

@@ -56,6 +56,8 @@ struct ChatReceivedMessage {
   String portrait;
 
   String text;
+
+  JsonObject metadata;
 };
 
 struct ChatState {
@@ -71,6 +73,6 @@ struct ChatState {
 DataStream& operator>>(DataStream& ds, ChatReceivedMessage& receivedMessage);
 DataStream& operator<<(DataStream& ds, ChatReceivedMessage const& receivedMessage);
 
-};
+}; // namespace Star
 
 #endif

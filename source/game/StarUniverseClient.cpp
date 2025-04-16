@@ -602,7 +602,7 @@ void UniverseClient::sendChat(String const& text, ChatSendMode sendMode) {
   m_connection->pushSingle(make_shared<ChatSendPacket>(text, sendMode));
 }
 
-void UniverseClient::sendChat(String const& text, String const& sendMode, bool suppressBubble) {
+void UniverseClient::sendChat(String const& text, String const& sendMode, bool suppressBubble, Maybe<JsonObject> metadata) {
   // Override for `player.sendChat`.
   Maybe<ChatSendMode> sendModeEnumMaybe = ChatSendModeNames.maybeLeft(sendMode);
   ChatSendMode sendModeEnum = sendModeEnumMaybe.value(ChatSendMode::Local);
@@ -610,7 +610,7 @@ void UniverseClient::sendChat(String const& text, String const& sendMode, bool s
     if (m_mainPlayer)
       m_mainPlayer->addChatMessageCallback(text); // FezzedOne: Allow chat bubbles to inherit custom player settings.
   }
-  m_connection->pushSingle(make_shared<ChatSendPacket>(text, sendModeEnum));
+  m_connection->pushSingle(make_shared<ChatSendPacket>(text, sendModeEnum, metadata.value(JsonObject{})));
 }
 
 List<ChatReceivedMessage> UniverseClient::pullChatMessages() {
