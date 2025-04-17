@@ -37,7 +37,7 @@ Depending on your OS and what version of Starbound you have, the log files are l
 
 **IF YOU'RE ON WINDOWS, READ THE FOLLOWING!**
 
-> **READ THIS FIRST:** If you have an NVIDIA card and are experiencing crashes, do any of the following before making a bug report!
+> **READ THIS FIRST:** If you have an NVIDIA card and are experiencing crashes, this is _not_ xStarbound's fault. Do any of the following before making a bug report:
 >
 > - [Roll back your NVIDIA driver](https://www.nvidia.com/en-gb/drivers/driver-rollback/) to v566.x or earlier. (Linked instructions are for Windows 11 24H2.)
 > - [Run xStarbound on your integrated graphics](https://www.youtube.com/watch?v=oIsM1nAa6u0). (Linked instructions are for Windows 11 24H2.)
@@ -59,4 +59,3 @@ To install the PDB files:
 3. Restart xStarbound and attempt to reproduce the crash.
 
 **If you're reporting a crash on the dynamically linked Linux build, try to reproduce the crash on the statically linked build — or on a `RelWithDebInfo` or `Debug` build you've built yourself — before submitting a bug report.**
-
