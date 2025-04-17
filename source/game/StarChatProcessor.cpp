@@ -172,19 +172,19 @@ void ChatProcessor::whisper(ConnectionId sourceConnectionId, ConnectionId target
   m_clients.get(targetClientId).pendingMessages.append(message);
 }
 
-void ChatProcessor::adminBroadcast(String const& text) {
+void ChatProcessor::adminBroadcast(String const& text, JsonObject const& metadata) {
   RecursiveMutexLocker locker(m_mutex);
-  broadcast(ServerConnectionId, text);
+  broadcast(ServerConnectionId, text, metadata);
 }
 
-void ChatProcessor::adminMessage(MessageContext::Mode context, String const& channelName, String const& text) {
+void ChatProcessor::adminMessage(MessageContext::Mode context, String const& channelName, String const& text, JsonObject const& metadata) {
   RecursiveMutexLocker locker(m_mutex);
-  ChatProcessor::message(ServerConnectionId, context, channelName, text);
+  ChatProcessor::message(ServerConnectionId, context, channelName, text, metadata);
 }
 
-void ChatProcessor::adminWhisper(ConnectionId targetClientId, String const& text) {
+void ChatProcessor::adminWhisper(ConnectionId targetClientId, String const& text, JsonObject const& metadata) {
   RecursiveMutexLocker locker(m_mutex);
-  whisper(ServerConnectionId, targetClientId, text);
+  whisper(ServerConnectionId, targetClientId, text, metadata);
 }
 
 List<ChatReceivedMessage> ChatProcessor::pullPendingMessages(ConnectionId clientId) {
