@@ -4,7 +4,6 @@ about: Report a bug or crash
 title: "[BUG] <Short description of bug here>"
 labels: bug
 assignees: FezzedOne
-
 ---
 
 ## Description
@@ -21,10 +20,10 @@ assignees: FezzedOne
 
 ## Logs and screenshots
 
-In order to make debugging easier on the devs, you should upload and attach any appropriate log files. The following log files are used by xStarbound, where `$n` is a backup rotation number for logs from previous sessions (the higher the number, the *older*):
+In order to make debugging easier on the devs, you should upload and attach any appropriate log files. The following log files are used by xStarbound, where `$n` is a backup rotation number for logs from previous sessions (the higher the number, the _older_):
 
 - **Your `xclient.log` and `xclient.log.$n`:** Your own client's `xclient.log`. These are required to debug client-side issues and single-player server-side issues.
-- **Steam host's `xclient.log` and `xclient.log.$n`:** Your *host*'s `xclient.log`. These are required to debug server-side issues on hosted games. These are located at the same paths as for your client (above).
+- **Steam host's `xclient.log` and `xclient.log.$n`:** Your _host_'s `xclient.log`. These are required to debug server-side issues on hosted games. These are located at the same paths as for your client (above).
 - **`xserver.log` and `xserver.log.$n`:** The logs for the dedicated xServer server. These are required to debug server-side issues on dedicated servers running xServer.
 
 Depending on your OS and what version of Starbound you have, the log files are located in the following directories:
@@ -33,10 +32,17 @@ Depending on your OS and what version of Starbound you have, the log files are l
 - **Linux/SteamOS (other):** `$starboundDir/storage/`, where `$starboundDir` is the path to your Starbound install.
 - **Windows (Steam):** Defaults to `C:\Program Files\Steam\steamapps\common\Starbound\storage\`. Replace `C:\Program Files (x86)\Steam\steamapps\common\` with the path to your custom installation directory for Starbound, if you use one.
 - **Windows (GOG):** Defaults to `C:\GOG Games\Starbound\storage\`.
-- **Windows (Xbox Live):** Defaults to `C:\Program Files\WindowsApps\Starbound\storage\`, since `xsbinit.config` by default does *not* use the saves in your `Documents\` folder.
+- **Windows (Xbox Live):** Defaults to `C:\Program Files\WindowsApps\Starbound\storage\`, since `xsbinit.config` by default does _not_ use the saves in your `Documents\` folder.
 - **Windows (other):** `%starboundDir%\storage\`, where `%starboundDir%` is the path to your Starbound install.
 
 **IF YOU'RE ON WINDOWS, READ THE FOLLOWING!**
+
+> **READ THIS FIRST:** If you have an NVIDIA card and are experiencing crashes, do any of the following before making a bug report!
+>
+> - [Roll back your NVIDIA driver](https://www.nvidia.com/en-gb/drivers/driver-rollback/) to v566.x or earlier. (Linked instructions are for Windows 11 24H2.)
+> - [Run xStarbound on your integrated graphics](https://www.youtube.com/watch?v=oIsM1nAa6u0). (Linked instructions are for Windows 11 24H2.)
+> - [Use WSL2](https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps) to run the Linux version of xStarbound on Windows. (Instructions for recent Windows 10 and 11 builds.)
+> - Dual-boot Linux and run xStarbound there. See [this video for CachyOS](https://www.youtube.com/watch?v=OjOSE31-bOc) or [this video for Linux Mint](https://www.youtube.com/watch?v=0gSr8YsJtd0). (Instructions for Windows 10 and 11.)
 
 If you're reporting a crash on the MSVC / Visual Studio build on Windows, your log files are virtually **USELESS** if the `.pdb` files are not installed. If the crash happened on an MSVC build without the `.pdb` files installed, install those files and then attempt to reproduce the crash before submitting the issue or uploading logs.
 
@@ -44,10 +50,13 @@ To install the PDB files:
 
 1. Download the `windows-pdbs.zip` file for the version of xStarbound you're using and then extract it.
 2. Once extracted, copy the `.pdb` files into the folder containing the executables of the same names. Depending on the version of Starbound you own, this folder is located at:
-  - **Windows (Steam):** Defaults to `C:\Program Files\Steam\steamapps\common\Starbound\xsb-win64\`. Replace `C:\Program Files (x86)\Steam\steamapps\common\` with the path to your custom installation directory for Starbound, if you use one.
-  - **Windows (GOG):** Defaults to `C:\GOG Games\Starbound\xsb-win64\`.
-  - **Windows (Xbox Live):** Defaults to `C:\Program Files\WindowsApps\Starbound\xsb-win64\`.
-  - **Windows (other):** If you've followed the manual installation instructions or used the installer, the executables will be in `%starboundDir%\xsb-win64\`, where `%starboundDir%` is the path to your Starbound install.
+
+- **Windows (Steam):** Defaults to `C:\Program Files\Steam\steamapps\common\Starbound\xsb-win64\`. Replace `C:\Program Files (x86)\Steam\steamapps\common\` with the path to your custom installation directory for Starbound, if you use one.
+- **Windows (GOG):** Defaults to `C:\GOG Games\Starbound\xsb-win64\`.
+- **Windows (Xbox Live):** Defaults to `C:\Program Files\WindowsApps\Starbound\xsb-win64\`.
+- **Windows (other):** If you've followed the manual installation instructions or used the installer, the executables will be in `%starboundDir%\xsb-win64\`, where `%starboundDir%` is the path to your Starbound install.
+
 3. Restart xStarbound and attempt to reproduce the crash.
 
 **If you're reporting a crash on the dynamically linked Linux build, try to reproduce the crash on the statically linked build — or on a `RelWithDebInfo` or `Debug` build you've built yourself — before submitting a bug report.**
+
