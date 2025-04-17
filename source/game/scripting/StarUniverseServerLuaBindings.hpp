@@ -1,8 +1,8 @@
 #ifndef STAR_UNIVERSE_SERVER_LUA_BINDINGS_HPP
 #define STAR_UNIVERSE_SERVER_LUA_BINDINGS_HPP
 
-#include "StarLua.hpp"
 #include "StarGameTypes.hpp"
+#include "StarLua.hpp"
 #include "StarRpcThreadPromise.hpp"
 
 namespace Star {
@@ -18,8 +18,8 @@ namespace LuaBindings {
     bool isConnectedClient(UniverseServer* universe, ConnectionId arg1);
     Maybe<String> clientNick(UniverseServer* universe, ConnectionId arg1);
     Maybe<ConnectionId> findNick(UniverseServer* universe, String const& arg1);
-    void adminBroadcast(UniverseServer* universe, String const& arg1);
-    void adminWhisper(UniverseServer* universe, ConnectionId arg1, String const& arg2);
+    void adminBroadcast(UniverseServer* universe, String const& arg1, Maybe<JsonObject> const& arg2);
+    void adminWhisper(UniverseServer* universe, ConnectionId arg1, String const& arg2, Maybe<JsonObject> const& arg3);
     bool isAdmin(UniverseServer* universe, ConnectionId arg1);
     bool isPvp(UniverseServer* universe, ConnectionId arg1);
     void setPvp(UniverseServer* universe, ConnectionId arg1, Maybe<bool> arg2);
@@ -29,8 +29,8 @@ namespace LuaBindings {
     RpcThreadPromise<Json> sendWorldMessage(UniverseServer* universe, String const& worldId, String const& message, LuaVariadic<Json> args);
     String clientWorld(UniverseServer* universe, ConnectionId connectionId);
     Maybe<String> clientUuid(UniverseServer* universe, ConnectionId connectionId);
-  }
-}
-}
+  } // namespace UniverseServerCallbacks
+} // namespace LuaBindings
+} // namespace Star
 
 #endif

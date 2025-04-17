@@ -14,8 +14,8 @@ LuaCallbacks LuaBindings::makeUniverseServerCallbacks(UniverseServer* universe) 
   callbacks.registerCallbackWithSignature<bool, ConnectionId>("isConnectedClient", bind(UniverseServerCallbacks::isConnectedClient, universe, _1));
   callbacks.registerCallbackWithSignature<Maybe<String>, ConnectionId>("clientNick", bind(UniverseServerCallbacks::clientNick, universe, _1));
   callbacks.registerCallbackWithSignature<Maybe<ConnectionId>, String>("findNick", bind(UniverseServerCallbacks::findNick, universe, _1));
-  callbacks.registerCallbackWithSignature<void, String>("adminBroadcast", bind(UniverseServerCallbacks::adminBroadcast, universe, _1));
-  callbacks.registerCallbackWithSignature<void, ConnectionId, String>("adminWhisper", bind(UniverseServerCallbacks::adminWhisper, universe, _1, _2));
+  callbacks.registerCallbackWithSignature<void, String, Maybe<JsonObject>>("adminBroadcast", bind(UniverseServerCallbacks::adminBroadcast, universe, _1, _2));
+  callbacks.registerCallbackWithSignature<void, ConnectionId, String, Maybe<JsonObject>>("adminWhisper", bind(UniverseServerCallbacks::adminWhisper, universe, _1, _2, _3));
   callbacks.registerCallbackWithSignature<bool, ConnectionId>("isAdmin", bind(UniverseServerCallbacks::isAdmin, universe, _1));
   callbacks.registerCallbackWithSignature<bool, ConnectionId>("isPvp", bind(UniverseServerCallbacks::isPvp, universe, _1));
   callbacks.registerCallbackWithSignature<void, ConnectionId, bool>("setPvp", bind(UniverseServerCallbacks::setPvp, universe, _1, _2));
@@ -72,20 +72,22 @@ Maybe<ConnectionId> LuaBindings::UniverseServerCallbacks::findNick(UniverseServe
 // Sends a message to all logged in clients
 //
 // @param message the message to broadcast
+// @param metadata optional chat message metadata
 // @return nil
-void LuaBindings::UniverseServerCallbacks::adminBroadcast(UniverseServer* universe, String const& arg1) {
-  universe->adminBroadcast(arg1);
+void LuaBindings::UniverseServerCallbacks::adminBroadcast(UniverseServer* universe, String const& arg1, Maybe<JsonObject> const& arg2) {
+  universe->adminBroadcast(arg1, arg2.value(JsonObject{}));
 }
 
 // Sends a message to a specific client
 //
 // @param clientId the client id to whisper
 // @param message the message to whisper
+// @param metadata optional chat message metadata
 // @return nil
-void LuaBindings::UniverseServerCallbacks::adminWhisper(UniverseServer* universe, ConnectionId arg1, String const& arg2) {
+void LuaBindings::UniverseServerCallbacks::adminWhisper(UniverseServer* universe, ConnectionId arg1, String const& arg2, Maybe<JsonObject> const& arg3) {
   ConnectionId client = arg1;
   String message = arg2;
-  universe->adminWhisper(client, message);
+  universe->adminWhisper(client, message, arg3.value(JsonObject{}));
 }
 
 // Returns whether or not a specific client is flagged as an admin
@@ -172,4 +174,4 @@ Maybe<String> LuaBindings::UniverseServerCallbacks::clientUuid(UniverseServer* u
     return {};
 }
 
-}
+} // namespace Star

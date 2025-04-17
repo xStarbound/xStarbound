@@ -48,9 +48,9 @@ public:
 
   // Shorthand for passing ServerConnectionId as sourceConnectionId to
   // broadcast / message / whisper
-  void adminBroadcast(String const& text);
-  void adminMessage(MessageContext::Mode context, String const& channelName, String const& text);
-  void adminWhisper(ConnectionId targetClientId, String const& text);
+  void adminBroadcast(String const& text, JsonObject const& metadata = {});
+  void adminMessage(MessageContext::Mode context, String const& channelName, String const& text, JsonObject const& metadata = {});
+  void adminWhisper(ConnectionId targetClientId, String const& text, JsonObject const& metadata = {});
 
   List<ChatReceivedMessage> pullPendingMessages(ConnectionId clientId);
 

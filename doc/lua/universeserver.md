@@ -31,13 +31,21 @@ Returns the nickname for the given client ID, or `nil` if the client is not conn
 
 Returns the client ID associated with the given nick, or `nil` if no matching client is found.
 
-#### `void` universe.adminBroadcast(`String` message)
+#### `void` universe.adminBroadcast(`String` message, `Maybe<JsonObject>` metadata)
 
-Broadcasts the given server message to all connected clients.
+> **The optional `metadata` parameter is only supported on xStarbound v3.5.3+.**
 
-#### `void` universe.adminWhisper(`ClientId` clientId, `String` message)
+> _Note:_ Sending, transporting and receiving chat metadata requires xStarbound v3.5.3+ on _both_ the receiving client(s) _and_ on the server, _all_ running in xStarbound networking mode (not legacy mode!). Due to network compatibility issues, sending, transporting and receiving OpenStarbound v0.1.9+ chat metadata are _not_ supported by xStarbound! (An xStarbound server or host _must_ be running in legacy mode to accept connections from OpenStarbound clients without errors.)
 
-Whispers the given server message to the specified client.
+Broadcasts the given server message to all connected clients, optionally with the specified chat message metadata.
+
+#### `void` universe.adminWhisper(`ClientId` clientId, `String` message, `Maybe<JsonObject>` metadata)
+
+> **The optional `metadata` parameter is only supported on xStarbound v3.5.3+.**
+
+> _Note:_ Sending, transporting and receiving chat metadata requires xStarbound v3.5.3+ on _both_ the receiving client(s) _and_ the server, _all_ running in xStarbound networking mode (not legacy mode!). Due to network compatibility issues, sending, transporting and receiving OpenStarbound v0.1.9+ chat metadata are _not_ supported by xStarbound! (An xStarbound server or host _must_ be running in legacy mode to accept connections from OpenStarbound clients without errors.)
+
+Whispers the given server message to the specified client, optionally with the specified chat message metadata.
 
 #### `bool` universe.isAdmin(`ClientId` clientId)
 

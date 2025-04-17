@@ -66,8 +66,8 @@ public:
   Maybe<Uuid> uuidForClient(ConnectionId clientId) const;
   Maybe<ConnectionId> clientForUuid(Uuid const& uuid) const;
 
-  void adminBroadcast(String const& text);
-  void adminWhisper(ConnectionId clientId, String const& text);
+  void adminBroadcast(String const& text, JsonObject const& metadata = JsonObject{});
+  void adminWhisper(ConnectionId clientId, String const& text, JsonObject const& metadata = JsonObject{});
   String adminCommand(String text);
 
   bool isAdmin(ConnectionId clientId) const;

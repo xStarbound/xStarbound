@@ -302,8 +302,9 @@ jobject{
   showPane = true, -- Whether to show the chat pane. Optional; defaults to `true`.
   -- Ignored by a scripted chat pane.
   data = jobject{} -- Arbitrary chat message metadata. Will be an empty object if metadata was unspecified or if
-  -- any one of the server sending client, receiving client does not support handling chat metadata. Legacy
-  -- networking mode on any one of the involved parties disables support for metadata handling.
+  -- any one of the server, sending client or receiving client does not support handling chat metadata. Legacy
+  -- networking mode on any one of the involved parties disables support for metadata handling. Metadata on messages
+  -- added with `chat.addMessage` is not networked and therefore not subject to networking limitations.
 }
 ```
 

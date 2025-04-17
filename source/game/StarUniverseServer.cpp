@@ -216,12 +216,12 @@ Maybe<ConnectionId> UniverseServer::clientForUuid(Uuid const& uuid) const {
   return getClientForUuid(uuid);
 }
 
-void UniverseServer::adminBroadcast(String const& text) {
-  m_chatProcessor->adminBroadcast(text);
+void UniverseServer::adminBroadcast(String const& text, JsonObject const& metadata) {
+  m_chatProcessor->adminBroadcast(text, metadata);
 }
 
-void UniverseServer::adminWhisper(ConnectionId clientId, String const& text) {
-  m_chatProcessor->adminWhisper(clientId, text);
+void UniverseServer::adminWhisper(ConnectionId clientId, String const& text, JsonObject const& metadata) {
+  m_chatProcessor->adminWhisper(clientId, text, metadata);
 }
 
 String UniverseServer::adminCommand(String text) {

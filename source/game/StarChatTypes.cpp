@@ -40,11 +40,11 @@ DataStream& operator<<(DataStream& ds, MessageContext const& messageContext) {
 
 ChatReceivedMessage::ChatReceivedMessage() : fromConnection() {}
 
-ChatReceivedMessage::ChatReceivedMessage(MessageContext context, ConnectionId fromConnection, String const& fromNick, String const& text)
-    : context(context), fromConnection(fromConnection), fromNick(fromNick), text(text) {}
+ChatReceivedMessage::ChatReceivedMessage(MessageContext context, ConnectionId fromConnection, String const& fromNick, String const& text, JsonObject const& metadata)
+    : context(context), fromConnection(fromConnection), fromNick(fromNick), text(text), metadata(metadata) {}
 
-ChatReceivedMessage::ChatReceivedMessage(MessageContext context, ConnectionId fromConnection, String const& fromNick, String const& text, String const& portrait)
-    : context(context), fromConnection(fromConnection), fromNick(fromNick), portrait(portrait), text(text) {}
+ChatReceivedMessage::ChatReceivedMessage(MessageContext context, ConnectionId fromConnection, String const& fromNick, String const& text, String const& portrait, JsonObject const& metadata)
+    : context(context), fromConnection(fromConnection), fromNick(fromNick), portrait(portrait), text(text), metadata(metadata) {}
 
 ChatReceivedMessage::ChatReceivedMessage(Json const& json) : ChatReceivedMessage() {
   auto jContext = json.get("context");

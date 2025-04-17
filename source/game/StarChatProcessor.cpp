@@ -17,7 +17,8 @@ String ChatProcessor::connectClient(ConnectionId clientId, String nick) {
     pair.second.pendingMessages.append({{MessageContext::Broadcast},
         ServerConnectionId,
         ServerNick,
-        strf("Player '{}' connected", nick)});
+        strf("Player '{}' connected", nick),
+        JsonObject{}});
   }
 
   m_clients.add(clientId, ClientInfo(clientId, nick));
@@ -39,7 +40,8 @@ List<ChatReceivedMessage> ChatProcessor::disconnectClient(ConnectionId clientId)
     pair.second.pendingMessages.append({{MessageContext::Broadcast},
         ServerConnectionId,
         ServerNick,
-        strf("Player '{}' disconnected", clientInfo.nick)});
+        strf("Player '{}' disconnected", clientInfo.nick),
+        JsonObject{}});
   }
 
   return clientInfo.pendingMessages;
@@ -126,7 +128,8 @@ void ChatProcessor::broadcast(ConnectionId sourceConnectionId, String const& tex
       {MessageContext::Broadcast},
       sourceConnectionId,
       connectionNick(sourceConnectionId),
-      text};
+      text,
+      metadata};
 
   if (handleCommand(message))
     return;
@@ -142,7 +145,8 @@ void ChatProcessor::message(ConnectionId sourceConnectionId, MessageContext::Mod
       {mode, channelName},
       sourceConnectionId,
       connectionNick(sourceConnectionId),
-      text};
+      text,
+      metadata};
 
   if (handleCommand(message))
     return;
@@ -157,7 +161,7 @@ void ChatProcessor::whisper(ConnectionId sourceConnectionId, ConnectionId target
   RecursiveMutexLocker locker(m_mutex);
 
   ChatReceivedMessage message = {
-      {MessageContext::Whisper}, sourceConnectionId, connectionNick(sourceConnectionId), text};
+      {MessageContext::Whisper}, sourceConnectionId, connectionNick(sourceConnectionId), text, metadata};
 
   if (handleCommand(message))
     return;
@@ -280,7 +284,7 @@ bool ChatProcessor::handleCommand(ChatReceivedMessage& message) {
   }
 
   if (!response.empty()) {
-    m_clients.get(message.fromConnection).pendingMessages.append({MessageContext(MessageContext::CommandResult), ServerConnectionId, connectionNick(ServerConnectionId), response});
+    m_clients.get(message.fromConnection).pendingMessages.append({MessageContext(MessageContext::CommandResult), ServerConnectionId, connectionNick(ServerConnectionId), response, JsonObject{}});
   }
 
   return true;

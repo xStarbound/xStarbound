@@ -43,8 +43,8 @@ DataStream& operator<<(DataStream& ds, MessageContext const& messageContext);
 
 struct ChatReceivedMessage {
   ChatReceivedMessage();
-  ChatReceivedMessage(MessageContext context, ConnectionId fromConnection, String const& fromNick, String const& text);
-  ChatReceivedMessage(MessageContext context, ConnectionId fromConnection, String const& fromNick, String const& text, String const& portrait);
+  ChatReceivedMessage(MessageContext context, ConnectionId fromConnection, String const& fromNick, String const& text, JsonObject const& metadata = {});
+  ChatReceivedMessage(MessageContext context, ConnectionId fromConnection, String const& fromNick, String const& text, String const& portrait, JsonObject const& metadata = {});
   ChatReceivedMessage(Json const& json);
 
   Json toJson() const;

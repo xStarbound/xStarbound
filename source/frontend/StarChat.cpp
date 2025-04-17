@@ -1,33 +1,33 @@
 #include "StarChat.hpp"
-#include "StarGuiReader.hpp"
-#include "StarInterfaceLuaBindings.hpp"
-#include "StarRoot.hpp"
-#include "StarUniverseClient.hpp"
-#include "StarButtonWidget.hpp"
-#include "StarTextBoxWidget.hpp"
-#include "StarLabelWidget.hpp"
-#include "StarImageStretchWidget.hpp"
-#include "StarCanvasWidget.hpp"
 #include "StarAssets.hpp"
+#include "StarButtonWidget.hpp"
+#include "StarCanvasWidget.hpp"
+#include "StarGuiReader.hpp"
+#include "StarImageStretchWidget.hpp"
+#include "StarInterfaceLuaBindings.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarLabelWidget.hpp"
 #include "StarLogging.hpp"
 #include "StarPlayerStorage.hpp"
+#include "StarRoot.hpp"
 #include "StarTeamClient.hpp"
+#include "StarTextBoxWidget.hpp"
+#include "StarUniverseClient.hpp"
 
-#include "StarPlayer.hpp"
-#include "StarConfigLuaBindings.hpp"
-#include "StarPlayerLuaBindings.hpp"
-#include "StarEntityLuaBindings.hpp"
-#include "StarStatusControllerLuaBindings.hpp"
 #include "StarCelestialLuaBindings.hpp"
-#include "StarNetworkedAnimatorLuaBindings.hpp"
-#include "StarWidgetLuaBindings.hpp"
+#include "StarConfigLuaBindings.hpp"
+#include "StarEntityLuaBindings.hpp"
 #include "StarLuaGameConverters.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
+#include "StarPlayer.hpp"
+#include "StarPlayerLuaBindings.hpp"
+#include "StarStatusControllerLuaBindings.hpp"
+#include "StarWidgetLuaBindings.hpp"
 
 namespace Star {
 
-Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatState> chatState, Json const& baseConfig) 
-: BaseScriptPane(baseConfig, mainInterface, false, true), m_client(client) {
+Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatState> chatState, Json const& baseConfig)
+    : BaseScriptPane(baseConfig, mainInterface, false, true), m_client(client) {
   m_scripted = baseConfig.get("scripts", Json()).isType(Json::Type::Array);
   m_script.setLuaRoot(make_shared<LuaRoot>());
   m_script.addCallbacks("world", LuaBindings::makeWorldCallbacks((World*)m_client->worldClient().get()));
@@ -72,20 +72,19 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
     m_reader->registerCallback("bottomButton", [=](Widget*) { scrollBottom(); });
 
     m_reader->registerCallback("filterGroup", [=](Widget* widget) {
-        Json data = as<ButtonWidget>(widget)->data();
-        auto filter = data.getArray("filter", {});
-        int filterId = as<ButtonGroup>(widget->parent())->checkedId();
-        m_modeFilter.clear();
-        for (auto mode : filter)
-          m_modeFilter.insert(MessageContextModeNames.getLeft(mode.toString()));
-        m_sendMode = ChatSendModeNames.getLeft(data.getString("sendMode", "Broadcast"));
-        m_historyOffset = 0;
-        Root::singleton().configuration()->set("savedChatState", JsonObject{
-          {"mode", ChatSendModeNames.getRight(m_sendMode)},
-          {"expanded", m_expanded},
-          {"filter", filterId}
-        });
-      });
+      Json data = as<ButtonWidget>(widget)->data();
+      auto filter = data.getArray("filter", {});
+      int filterId = as<ButtonGroup>(widget->parent())->checkedId();
+      m_modeFilter.clear();
+      for (auto mode : filter)
+        m_modeFilter.insert(MessageContextModeNames.getLeft(mode.toString()));
+      m_sendMode = ChatSendModeNames.getLeft(data.getString("sendMode", "Broadcast"));
+      m_historyOffset = 0;
+      Root::singleton().configuration()->set("savedChatState", JsonObject{
+                                                                   {"mode", ChatSendModeNames.getRight(m_sendMode)},
+                                                                   {"expanded", m_expanded},
+                                                                   {"filter", filterId}});
+    });
   }
 
   construct(baseConfig);
@@ -122,13 +121,11 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
         for (auto& rawMessage : chatMessages) {
           if (auto message = rawMessage.optObject()) {
             String mode = (*message).get("mode").toString(),
-                  portrait = (*message).get("portrait").toString(),
-                  text = (*message).get("text").toString();
-            m_receivedMessages.prepend({
-              MessageContextModeNames.valueLeft(mode, MessageContext::Mode::Local),
-              portrait,
-              text
-            });
+                   portrait = (*message).get("portrait").toString(),
+                   text = (*message).get("text").toString();
+            m_receivedMessages.prepend({MessageContextModeNames.valueLeft(mode, MessageContext::Mode::Local),
+                portrait,
+                text});
           }
         }
         // Logger::info("Read chat messages from '{}'", messagesFile);
@@ -144,8 +141,8 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
     if (chatSettings.isType(Json::Type::Object)) {
       if (auto savedChatMode = chatSettings.opt("mode")) {
         m_sendMode = savedChatMode->isType(Json::Type::String)
-          ? ChatSendModeNames.valueLeft(savedChatMode->toString(), m_sendMode)
-          : m_sendMode;
+                         ? ChatSendModeNames.valueLeft(savedChatMode->toString(), m_sendMode)
+                         : m_sendMode;
       }
       if (auto savedExpanded = chatSettings.opt("expanded")) {
         m_expanded = savedExpanded->isType(Json::Type::Bool) ? savedExpanded->toBool() : m_expanded;
@@ -187,7 +184,7 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
     m_background = fetchChild<ImageStretchWidget>("background");
     m_defaultHeight = m_background->size()[1];
   }
-  
+
   updateSize();
 }
 
@@ -266,9 +263,8 @@ void Chat::clearCurrentChat() {
 ChatSendMode Chat::sendMode() const {
   if (m_scripted)
     return ChatSendModeNames.valueLeft(
-      m_script.invoke<Maybe<String>>("sendMode").value().value(""), 
-      ChatSendMode::Broadcast
-    );
+        m_script.invoke<Maybe<String>>("sendMode").value().value(""),
+        ChatSendMode::Broadcast);
   return m_sendMode;
 }
 
@@ -290,7 +286,7 @@ void Chat::decrementIndex() {
 }
 
 void Chat::addLine(String const& text, bool showPane) {
-  ChatReceivedMessage message = {{MessageContext::CommandResult}, ServerConnectionId, "", text};
+  ChatReceivedMessage message = {{MessageContext::CommandResult}, ServerConnectionId, "", text, JsonObject{}};
   addMessages({message}, showPane);
 }
 
@@ -301,7 +297,8 @@ void Chat::addMessages(List<ChatReceivedMessage> const& messages, bool showPane)
   if (m_scripted) {
     m_script.invoke("addMessages", messages.transformed([](ChatReceivedMessage const& message) {
       return message.toJson();
-    }), showPane);
+    }),
+        showPane);
     return;
   }
 
@@ -318,17 +315,15 @@ void Chat::addMessages(List<ChatReceivedMessage> const& messages, bool showPane)
     if (message.fromNick != "" && message.portrait == "")
       // FezzedOne: Since the chat renderer already wraps text, let's try *not* wrapping text twice.
       lines = StringList{strf(m_chatFormatString.utf8Ptr(), message.fromNick, message.text)};
-      // lines = guiContext.wrapInterfaceText(strf("<{}^reset;> {}", message.fromNick, message.text), wrapWidth);
+    // lines = guiContext.wrapInterfaceText(strf("<{}^reset;> {}", message.fromNick, message.text), wrapWidth);
     else
       lines = StringList{message.text};
-      // lines = guiContext.wrapInterfaceText(message.text, wrapWidth);
+    // lines = guiContext.wrapInterfaceText(message.text, wrapWidth);
 
     for (size_t i = 0; i < lines.size(); ++i) {
-      m_receivedMessages.prepend({
-          message.context.mode,
+      m_receivedMessages.prepend({message.context.mode,
           message.portrait,
-          std::move(lines[i])
-        });
+          std::move(lines[i])});
     }
 
     if (message.fromNick != "")
@@ -374,10 +369,9 @@ void Chat::saveMessages() {
     JsonArray messagesToSave{};
     for (auto message : m_receivedMessages) {
       messagesToSave.append(JsonObject{
-        {"mode", MessageContextModeNames.valueRight(message.mode, "Local")},
-        {"portrait", message.portrait},
-        {"text", message.text}
-      });
+          {"mode", MessageContextModeNames.valueRight(message.mode, "Local")},
+          {"portrait", message.portrait},
+          {"text", message.text}});
     }
     messagesToSave.reverse();
     File::writeFile(Json(messagesToSave).printJson(2), messagesFile);
@@ -444,7 +438,7 @@ void Chat::renderImpl() {
     unsigned wrapWidth = m_chatLog->size()[0] - m_chatLogPadding[0];
 
     if (message.portrait != "") {
-      TextPositioning tp = {Vec2F(chatMin +  m_portraitTextOffset), HorizontalAnchor::LeftAnchor, VerticalAnchor::VMidAnchor, (wrapWidth - m_portraitTextOffset[0])};
+      TextPositioning tp = {Vec2F(chatMin + m_portraitTextOffset), HorizontalAnchor::LeftAnchor, VerticalAnchor::VMidAnchor, (wrapWidth - m_portraitTextOffset[0])};
       Vec2F textSize = guiContext.determineInterfaceTextSize(messageString, tp).size().floor();
       Vec2F portraitSize = Vec2F(guiContext.textureSize(m_portraitBackground));
       messageHeight = max(portraitSize[1] + m_portraitVerticalMargin, textSize[1] + lineHeightMargin);
@@ -527,10 +521,9 @@ bool Chat::sendEvent(InputEvent const& event) {
         m_expanded = !m_expanded;
         updateSize();
         Root::singleton().configuration()->set("savedChatState", JsonObject{
-          {"mode", ChatSendModeNames.getRight(m_sendMode)},
-          {"expanded", m_expanded},
-          {"filter", fetchChild<ButtonGroup>("filterGroup")->checkedId()}
-        });
+                                                                     {"mode", ChatSendModeNames.getRight(m_sendMode)},
+                                                                     {"expanded", m_expanded},
+                                                                     {"filter", fetchChild<ButtonGroup>("filterGroup")->checkedId()}});
         return true;
       }
     }
@@ -541,8 +534,8 @@ bool Chat::sendEvent(InputEvent const& event) {
 
 void Chat::scrollUp() {
   auto shownMessages = m_receivedMessages.filtered([=](LogMessage msg) {
-      return (m_modeFilter.empty() || m_modeFilter.contains(msg.mode));
-    });
+    return (m_modeFilter.empty() || m_modeFilter.contains(msg.mode));
+  });
 
   m_historyOffset = std::max(0, std::min((int)shownMessages.size() - 1, m_historyOffset + 1));
   m_timeChatLastActive = Time::monotonicMilliseconds();
@@ -583,20 +576,19 @@ void Chat::updateBottomButton() {
 Maybe<ChatState> Chat::getState() {
   if (m_scripted) return {};
   return ChatState{
-    m_textBox->getText(),
-    m_timeChatLastActive,
-    m_historyOffset,
-    m_chatPrevIndex,
-    m_sendMode,
-    fetchChild<ButtonGroup>("filterGroup")->checkedId(),
-    m_expanded
-  };
+      m_textBox->getText(),
+      m_timeChatLastActive,
+      m_historyOffset,
+      m_chatPrevIndex,
+      m_sendMode,
+      fetchChild<ButtonGroup>("filterGroup")->checkedId(),
+      m_expanded};
 }
 
-Maybe<Json> Chat::receiveEntityMessage(const String &message, bool localMessage, const JsonArray &args) const {
+Maybe<Json> Chat::receiveEntityMessage(const String& message, bool localMessage, const JsonArray& args) const {
   if (m_scripted)
     return m_script.handleMessage(message, localMessage, args);
   return {};
 }
 
-}
+} // namespace Star

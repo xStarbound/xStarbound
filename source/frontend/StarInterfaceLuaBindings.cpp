@@ -67,6 +67,7 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface, bool r
           messageText = *text;
         else
           messageText = newChatMessageConfig.getString("text", "");
+        JsonObject messageMetadata = newChatMessageConfig.getObject("data", JsonObject{});
 
         bool showChatBool = newChatMessageConfig.optBool("showPane").value(true);
 
@@ -74,14 +75,16 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface, bool r
             messageConnectionId,
             messageNick,
             messageText,
-            messagePortrait);
+            messagePortrait,
+            messageMetadata);
         mainInterface->addChatMessage(messageToAdd, showChatBool);
       } else if (text) {
         ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(MessageContext::Mode::CommandResult, ""),
             (uint16_t)0,
             "",
             *text,
-            "");
+            "",
+            JsonObject{});
         mainInterface->addChatMessage(messageToAdd, true);
       }
     });
