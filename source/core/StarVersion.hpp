@@ -10,9 +10,10 @@ extern char const* const StarSourceIdentifierString;
 extern char const* const StarArchitectureString;
 extern char const* const xSbVersionString;
 extern char const* const xSbAssetVersionString;
+extern char const* const xSbNetworkVersionString;
 
 typedef uint32_t VersionNumber;
 
-}
+} // namespace Star
 
 #endif

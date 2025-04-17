@@ -131,11 +131,13 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
 
   // FezzedOne: Due to networking code changes in OpenStarbound that cause compatibility issues, added a
   // `"forceLegacyConnection"` setting to `xclient.config` and also allowed prepending `@` to the
-  // server address to force a legacy connection.
+  // server address to force a legacy connection. At v3.5.3+, `@` or `"forceLegacyConnection"` is
+  // *required* to connect to stock or OpenStarbound servers due to handshake changes.
   bool shouldForceLegacyConnection = forceLegacyConnection || root.configuration()->get("forceLegacyConnection").optBool().value(false);
 
   {
-    auto protocolRequest = make_shared<ProtocolRequestPacket>(StarProtocolVersion);
+    auto protocolRequest =
+        make_shared<ProtocolRequestPacket>(shouldForceLegacyConnection ? StarProtocolVersion : xSbProtocolVersion);
     protocolRequest->setCompressionMode(shouldForceLegacyConnection ? PacketCompressionMode::Disabled : PacketCompressionMode::Enabled);
     // FezzedOne: If we're not forcing legacy connections, signal that we're a modded client.
     connection.pushSingle(protocolRequest);
@@ -147,7 +149,14 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
   if (!protocolResponsePacket)
     return String("Join failed! Timeout while establishing connection.");
   else if (!protocolResponsePacket->allowed)
-    return String(strf("Join failed! Server does not support connections with protocol version {}", StarProtocolVersion));
+    return String(strf("Join failed! Server does not support {} connections with protocol version {}!{}",
+        shouldForceLegacyConnection ? "legacy" : "xStarbound",
+        shouldForceLegacyConnection ? StarProtocolVersion : xSbProtocolVersion,
+        shouldForceLegacyConnection ? "" : strf("\n\nAdd ^orange;@^reset; before the server address to connect in legacy mode!"
+                                                " If connecting to a Steam/Discord game hosted by a non-xSB client (or an xSB client in legacy mode),"
+                                                " set ^orange;\"forceLegacyConnection\"^reset; to ^orange;true^reset; in ^orange;xclient.config^reset;."
+                                                " If connecting to an xSB server/host, updating to ^red;v{}+^reset; is recommended!",
+                                               xSbNetworkVersionString)));
 
   m_legacyServer = protocolResponsePacket->compressionMode() != PacketCompressionMode::Enabled; // True if server is vanilla
   connection.setLegacy(shouldForceLegacyConnection || m_legacyServer);
@@ -602,7 +611,7 @@ void UniverseClient::sendChat(String const& text, ChatSendMode sendMode) {
   m_connection->pushSingle(make_shared<ChatSendPacket>(text, sendMode));
 }
 
-void UniverseClient::sendChat(String const& text, String const& sendMode, bool suppressBubble) {
+void UniverseClient::sendChat(String const& text, String const& sendMode, bool suppressBubble, Maybe<JsonObject> metadata) {
   // Override for `player.sendChat`.
   Maybe<ChatSendMode> sendModeEnumMaybe = ChatSendModeNames.maybeLeft(sendMode);
   ChatSendMode sendModeEnum = sendModeEnumMaybe.value(ChatSendMode::Local);
@@ -610,7 +619,7 @@ void UniverseClient::sendChat(String const& text, String const& sendMode, bool s
     if (m_mainPlayer)
       m_mainPlayer->addChatMessageCallback(text); // FezzedOne: Allow chat bubbles to inherit custom player settings.
   }
-  m_connection->pushSingle(make_shared<ChatSendPacket>(text, sendModeEnum));
+  m_connection->pushSingle(make_shared<ChatSendPacket>(text, sendModeEnum, metadata.value(JsonObject{})));
 }
 
 List<ChatReceivedMessage> UniverseClient::pullChatMessages() {

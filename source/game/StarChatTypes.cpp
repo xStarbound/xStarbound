@@ -1,12 +1,13 @@
 #include "StarChatTypes.hpp"
+#include "StarCasting.hpp"
+#include "StarDataStreamDevices.hpp"
 
 namespace Star {
 
 EnumMap<ChatSendMode> const ChatSendModeNames{
     {ChatSendMode::Broadcast, "Broadcast"},
     {ChatSendMode::Local, "Local"},
-    {ChatSendMode::Party, "Party"}
-  };
+    {ChatSendMode::Party, "Party"}};
 
 MessageContext::MessageContext() : mode() {}
 
@@ -21,8 +22,7 @@ EnumMap<MessageContext::Mode> const MessageContextModeNames{
     {MessageContext::Mode::Whisper, "Whisper"},
     {MessageContext::Mode::CommandResult, "CommandResult"},
     {MessageContext::Mode::RadioMessage, "RadioMessage"},
-    {MessageContext::Mode::World, "World"}
-  };
+    {MessageContext::Mode::World, "World"}};
 
 DataStream& operator>>(DataStream& ds, MessageContext& messageContext) {
   ds.read(messageContext.mode);
@@ -41,34 +41,29 @@ DataStream& operator<<(DataStream& ds, MessageContext const& messageContext) {
 ChatReceivedMessage::ChatReceivedMessage() : fromConnection() {}
 
 ChatReceivedMessage::ChatReceivedMessage(MessageContext context, ConnectionId fromConnection, String const& fromNick, String const& text)
-  : context(context), fromConnection(fromConnection), fromNick(fromNick), text(text) {}
+    : context(context), fromConnection(fromConnection), fromNick(fromNick), text(text) {}
 
 ChatReceivedMessage::ChatReceivedMessage(MessageContext context, ConnectionId fromConnection, String const& fromNick, String const& text, String const& portrait)
-  : context(context), fromConnection(fromConnection), fromNick(fromNick), portrait(portrait), text(text) {}
+    : context(context), fromConnection(fromConnection), fromNick(fromNick), portrait(portrait), text(text) {}
 
 ChatReceivedMessage::ChatReceivedMessage(Json const& json) : ChatReceivedMessage() {
   auto jContext = json.get("context");
   context = MessageContext(
-    MessageContextModeNames.getLeft(jContext.getString("mode")),
-    jContext.getString("channelName", "")
-  );
+      MessageContextModeNames.getLeft(jContext.getString("mode")),
+      jContext.getString("channelName", ""));
   fromConnection = json.getUInt("fromConnection", 0);
   fromNick = json.getString("fromNick", "");
   portrait = json.getString("portrait", "");
   text = json.getString("text", "");
+  metadata = json.getObject("data", JsonObject{});
 }
 
 Json ChatReceivedMessage::toJson() const {
   return JsonObject{
-    {"context", JsonObject{
-      {"mode", MessageContextModeNames.getRight(context.mode)},
-      {"channelName", context.channelName.empty() ? Json() : Json(context.channelName)}
-    }},
-    {"fromConnection", fromConnection},
-    {"fromNick", fromNick.empty() ? Json() : fromNick},
-    {"portrait", portrait.empty() ? Json() : portrait},
-    {"text", text}
-  };
+      {"context", JsonObject{
+                      {"mode", MessageContextModeNames.getRight(context.mode)},
+                      {"channelName", context.channelName.empty() ? Json() : Json(context.channelName)}}},
+      {"fromConnection", fromConnection}, {"fromNick", fromNick.empty() ? Json() : fromNick}, {"portrait", portrait.empty() ? Json() : portrait}, {"text", text}, {"data", metadata}};
 }
 
 DataStream& operator>>(DataStream& ds, ChatReceivedMessage& receivedMessage) {
@@ -77,7 +72,7 @@ DataStream& operator>>(DataStream& ds, ChatReceivedMessage& receivedMessage) {
   ds.read(receivedMessage.fromNick);
   ds.read(receivedMessage.portrait);
   ds.read(receivedMessage.text);
-
+  ds.read(receivedMessage.metadata);
   return ds;
 }
 
@@ -87,8 +82,26 @@ DataStream& operator<<(DataStream& ds, ChatReceivedMessage const& receivedMessag
   ds.write(receivedMessage.fromNick);
   ds.write(receivedMessage.portrait);
   ds.write(receivedMessage.text);
-
+  ds.write(receivedMessage.metadata);
   return ds;
 }
 
+DataStream& ChatReceivedMessage::readLegacy(DataStream& ds, ChatReceivedMessage& receivedMessage) {
+  ds.read(receivedMessage.context);
+  ds.read(receivedMessage.fromConnection);
+  ds.read(receivedMessage.fromNick);
+  ds.read(receivedMessage.portrait);
+  ds.read(receivedMessage.text);
+  return ds;
 }
+
+DataStream& ChatReceivedMessage::writeLegacy(DataStream& ds, ChatReceivedMessage const& receivedMessage) {
+  ds.write(receivedMessage.context);
+  ds.write(receivedMessage.fromConnection);
+  ds.write(receivedMessage.fromNick);
+  ds.write(receivedMessage.portrait);
+  ds.write(receivedMessage.text);
+  return ds;
+}
+
+} // namespace Star

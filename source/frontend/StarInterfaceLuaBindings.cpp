@@ -1,16 +1,16 @@
 #include "StarInterfaceLuaBindings.hpp"
-#include "StarWidgetLuaBindings.hpp"
+#include "StarChat.hpp"
+#include "StarChatTypes.hpp"
+#include "StarGuiContext.hpp"
 #include "StarJson.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarLuaGameConverters.hpp"
 #include "StarMainInterface.hpp"
-#include "StarGuiContext.hpp"
-#include "StarChatTypes.hpp"
-#include "StarUniverseClient.hpp"
-#include "StarChat.hpp"
-#include "StarShellParser.hpp"
-#include "StarWorldCamera.hpp"
 #include "StarRoot.hpp"
+#include "StarShellParser.hpp"
+#include "StarUniverseClient.hpp"
+#include "StarWidgetLuaBindings.hpp"
+#include "StarWorldCamera.hpp"
 
 namespace Star {
 
@@ -18,11 +18,11 @@ namespace Star {
 LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface, bool removeHoakyCallbacks) {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallback("send", [mainInterface](String const &text, Maybe<String> const &sendMode, Maybe<bool> suppressBubble) {
-      String sendModeStr = sendMode.value("Broadcast");
-      bool suppressBubbleBool = suppressBubble.value(false);
-      mainInterface->universeClient()->sendChat(text, sendModeStr, suppressBubbleBool);
-    });
+  callbacks.registerCallback("send", [mainInterface](String const& text, Maybe<String> const& sendMode, Maybe<bool> suppressBubble, Maybe<JsonObject> metadata) {
+    String sendModeStr = sendMode.value("Broadcast");
+    bool suppressBubbleBool = suppressBubble.value(false);
+    mainInterface->universeClient()->sendChat(text, sendModeStr, suppressBubbleBool, metadata);
+  });
 
   // FezzedOne: For compatibility with the StarExtensions callback of the same name.
   callbacks.registerCallback("parseArguments", [mainInterface](String const& argumentString) -> Json {
@@ -71,17 +71,17 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface, bool r
         bool showChatBool = newChatMessageConfig.optBool("showPane").value(true);
 
         ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(messageMode, messageChannelName),
-                                                              messageConnectionId,
-                                                              messageNick,
-                                                              messageText,
-                                                              messagePortrait);
+            messageConnectionId,
+            messageNick,
+            messageText,
+            messagePortrait);
         mainInterface->addChatMessage(messageToAdd, showChatBool);
       } else if (text) {
         ChatReceivedMessage messageToAdd = ChatReceivedMessage(MessageContext(MessageContext::Mode::CommandResult, ""),
-                                                              (uint16_t)0,
-                                                              "",
-                                                              *text,
-                                                              "");
+            (uint16_t)0,
+            "",
+            *text,
+            "");
         mainInterface->addChatMessage(messageToAdd, true);
       }
     });
@@ -137,9 +137,9 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface, b
 
   // From OpenStarbound.
   callbacks.registerCallbackWithSignature<bool>(
-    "hudVisible", bind(mem_fn(&MainInterface::hudVisible), mainInterface));
+      "hudVisible", bind(mem_fn(&MainInterface::hudVisible), mainInterface));
   callbacks.registerCallbackWithSignature<void, bool>(
-    "setHudVisible", bind(mem_fn(&MainInterface::setHudVisible), mainInterface, _1));
+      "setHudVisible", bind(mem_fn(&MainInterface::setHudVisible), mainInterface, _1));
 
   callbacks.registerCallback("bindCanvas", [mainInterface](String const& canvasName, Maybe<bool> ignoreInterfaceScale) -> Maybe<CanvasWidgetPtr> {
     if (auto canvas = mainInterface->fetchCanvas(canvasName, ignoreInterfaceScale.value(false)))
@@ -278,4 +278,4 @@ LuaCallbacks LuaBindings::makeCameraCallbacks(WorldCamera* camera) {
   return callbacks;
 }
 
-}
+} // namespace Star

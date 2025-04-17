@@ -1,16 +1,16 @@
 #ifndef STAR_UNIVERSE_SERVER_HPP
 #define STAR_UNIVERSE_SERVER_HPP
 
-#include "StarLockFile.hpp"
-#include "StarIdMap.hpp"
-#include "StarWorkerPool.hpp"
-#include "StarGameTypes.hpp"
 #include "StarCelestialCoordinate.hpp"
+#include "StarGameTypes.hpp"
+#include "StarIdMap.hpp"
+#include "StarLockFile.hpp"
 #include "StarServerClientContext.hpp"
-#include "StarWorldServerThread.hpp"
 #include "StarSystemWorldServerThread.hpp"
 #include "StarUniverseConnection.hpp"
 #include "StarUniverseSettings.hpp"
+#include "StarWorkerPool.hpp"
+#include "StarWorldServerThread.hpp"
 
 namespace Star {
 
@@ -89,7 +89,7 @@ public:
   ClockPtr universeClock() const;
   UniverseSettingsPtr universeSettings() const;
 
-	CelestialDatabase& celestialDatabase();
+  CelestialDatabase& celestialDatabase();
 
   // If the client exists and is in a valid connection state, executes the
   // given function on the client world and player object in a thread safe way.
@@ -114,7 +114,15 @@ private:
     Maybe<Uuid> uuid;
   };
 
-  enum class TcpState : uint8_t { No, Yes, Fuck };
+  struct ChatMessage {
+    String message;
+    ChatSendMode sendMode;
+    JsonObject metadata;
+  };
+
+  enum class TcpState : uint8_t { No,
+    Yes,
+    Fuck };
 
   void processUniverseFlags();
   void sendPendingChat();
@@ -246,7 +254,7 @@ private:
   HashMap<ConnectionId, String> m_pendingDisconnections;
   HashMap<ConnectionId, List<WorkerPoolPromise<CelestialResponse>>> m_pendingCelestialRequests;
   List<pair<WorldId, UniverseFlagAction>> m_pendingFlagActions;
-  HashMap<ConnectionId, List<pair<String, ChatSendMode>>> m_pendingChat;
+  HashMap<ConnectionId, List<ChatMessage>> m_pendingChat;
   Maybe<WorkerPoolPromise<CelestialCoordinate>> m_nextRandomizedStarterWorld;
   Map<WorldId, List<WorldServerThread::Message>> m_pendingWorldMessages;
 
@@ -255,6 +263,6 @@ private:
   bool m_rememberReturnWarpsOnDeath;
 };
 
-}
+} // namespace Star
 
 #endif

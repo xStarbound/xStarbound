@@ -14,12 +14,10 @@ String ChatProcessor::connectClient(ConnectionId clientId, String nick) {
   nick = makeNickUnique(nick);
 
   for (auto& pair : m_clients) {
-    pair.second.pendingMessages.append({
-        {MessageContext::Broadcast},
+    pair.second.pendingMessages.append({{MessageContext::Broadcast},
         ServerConnectionId,
         ServerNick,
-        strf("Player '{}' connected", nick)
-      });
+        strf("Player '{}' connected", nick)});
   }
 
   m_clients.add(clientId, ClientInfo(clientId, nick));
@@ -38,12 +36,10 @@ List<ChatReceivedMessage> ChatProcessor::disconnectClient(ConnectionId clientId)
   m_nicks.remove(clientInfo.nick);
 
   for (auto& pair : m_clients) {
-    pair.second.pendingMessages.append({
-        {MessageContext::Broadcast},
+    pair.second.pendingMessages.append({{MessageContext::Broadcast},
         ServerConnectionId,
         ServerNick,
-        strf("Player '{}' disconnected", clientInfo.nick)
-      });
+        strf("Player '{}' disconnected", clientInfo.nick)});
   }
 
   return clientInfo.pendingMessages;
@@ -123,15 +119,14 @@ StringList ChatProcessor::activeChannels() const {
   return channels;
 }
 
-void ChatProcessor::broadcast(ConnectionId sourceConnectionId, String const& text) {
+void ChatProcessor::broadcast(ConnectionId sourceConnectionId, String const& text, JsonObject const& metadata) {
   RecursiveMutexLocker locker(m_mutex);
 
   ChatReceivedMessage message = {
-    {MessageContext::Broadcast},
-    sourceConnectionId,
-    connectionNick(sourceConnectionId),
-    text
-  };
+      {MessageContext::Broadcast},
+      sourceConnectionId,
+      connectionNick(sourceConnectionId),
+      text};
 
   if (handleCommand(message))
     return;
@@ -140,15 +135,14 @@ void ChatProcessor::broadcast(ConnectionId sourceConnectionId, String const& tex
     pair.second.pendingMessages.append(message);
 }
 
-void ChatProcessor::message(ConnectionId sourceConnectionId, MessageContext::Mode mode, String const& channelName, String const& text) {
+void ChatProcessor::message(ConnectionId sourceConnectionId, MessageContext::Mode mode, String const& channelName, String const& text, JsonObject const& metadata) {
   RecursiveMutexLocker locker(m_mutex);
 
   ChatReceivedMessage message = {
-    {mode, channelName},
-    sourceConnectionId,
-    connectionNick(sourceConnectionId),
-    text
-  };
+      {mode, channelName},
+      sourceConnectionId,
+      connectionNick(sourceConnectionId),
+      text};
 
   if (handleCommand(message))
     return;
@@ -159,7 +153,7 @@ void ChatProcessor::message(ConnectionId sourceConnectionId, MessageContext::Mod
   }
 }
 
-void ChatProcessor::whisper(ConnectionId sourceConnectionId, ConnectionId targetClientId, String const& text) {
+void ChatProcessor::whisper(ConnectionId sourceConnectionId, ConnectionId targetClientId, String const& text, JsonObject const& metadata) {
   RecursiveMutexLocker locker(m_mutex);
 
   ChatReceivedMessage message = {
@@ -286,15 +280,10 @@ bool ChatProcessor::handleCommand(ChatReceivedMessage& message) {
   }
 
   if (!response.empty()) {
-    m_clients.get(message.fromConnection).pendingMessages.append({
-        MessageContext(MessageContext::CommandResult),
-        ServerConnectionId,
-        connectionNick(ServerConnectionId),
-        response
-      });
+    m_clients.get(message.fromConnection).pendingMessages.append({MessageContext(MessageContext::CommandResult), ServerConnectionId, connectionNick(ServerConnectionId), response});
   }
 
   return true;
 }
 
-}
+} // namespace Star

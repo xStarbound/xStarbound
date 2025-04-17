@@ -56,6 +56,12 @@ struct ChatReceivedMessage {
   String portrait;
 
   String text;
+
+  JsonObject metadata;
+
+  // FezzedOne: Legacy serialiser/deserialiser for this struct.
+  static DataStream& readLegacy(DataStream& ds, ChatReceivedMessage& receivedMessage);
+  static DataStream& writeLegacy(DataStream& ds, ChatReceivedMessage const& receivedMessage);
 };
 
 struct ChatState {
@@ -71,6 +77,6 @@ struct ChatState {
 DataStream& operator>>(DataStream& ds, ChatReceivedMessage& receivedMessage);
 DataStream& operator<<(DataStream& ds, ChatReceivedMessage const& receivedMessage);
 
-};
+}; // namespace Star
 
 #endif

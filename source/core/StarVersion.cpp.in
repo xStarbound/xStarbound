@@ -6,7 +6,8 @@ char const* const StarVersionString = "1.4.4";
 char const* const StarSourceIdentifierString = "@STAR_SOURCE_IDENTIFIER@";
 char const* const StarArchitectureString = "@STAR_SYSTEM@ @STAR_ARCHITECTURE@";
 // FezzedOne: All version number references now depend on a single version set in the root CMakeLists.txt file.
-char const* const xSbVersionString = "@xstarbound_VERSION@";
+char const* const xSbVersionString = "@XSB_VERSION@";
 char const* const xSbAssetVersionString = "@XSB_ASSET_VERSION@";
+char const* const xSbNetworkVersionString = "@XSB_NETWORK_VERSION@";
 
-}
+} // namespace Star

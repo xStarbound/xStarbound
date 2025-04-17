@@ -42,9 +42,9 @@ public:
   StringList clientChannels(ConnectionId clientId) const;
   StringList activeChannels() const;
 
-  void broadcast(ConnectionId sourceConnectionId, String const& text);
-  void message(ConnectionId sourceConnectionId, MessageContext::Mode context, String const& channelName, String const& text);
-  void whisper(ConnectionId sourceConnectionId, ConnectionId targetClientId, String const& text);
+  void broadcast(ConnectionId sourceConnectionId, String const& text, JsonObject const& metadata = {});
+  void message(ConnectionId sourceConnectionId, MessageContext::Mode context, String const& channelName, String const& text, JsonObject const& metadata = {});
+  void whisper(ConnectionId sourceConnectionId, ConnectionId targetClientId, String const& text, JsonObject const& metadata = {});
 
   // Shorthand for passing ServerConnectionId as sourceConnectionId to
   // broadcast / message / whisper
@@ -81,6 +81,6 @@ private:
   CommandHandler m_commandHandler;
 };
 
-}
+} // namespace Star
 
 #endif
