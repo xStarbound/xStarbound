@@ -299,8 +299,11 @@ jobject{
   portrait = "", -- The chat portrait. Is an empty string if there's no portrait.
   -- Not used for messages that don't have a `"RadioMessage"` mode.
   message = "", -- The chat message, of course.
-  showPane = true -- Whether to show the chat pane. Optional; defaults to `true`.
+  showPane = true, -- Whether to show the chat pane. Optional; defaults to `true`.
   -- Ignored by a scripted chat pane.
+  data = jobject{} -- Arbitrary chat message metadata. Will be an empty object if metadata was unspecified or if
+  -- any one of the server sending client, receiving client does not support handling chat metadata. Legacy
+  -- networking mode on any one of the involved parties disables support for metadata handling.
 }
 ```
 
@@ -314,17 +317,20 @@ To actually _send_ messages, use `interface.doChat` (see above), `chat.command` 
 
 ---
 
-#### `void` chat.send(`String` text, `Maybe<String>` sendMode, `Maybe<bool>` suppressBubble)
+#### `void` chat.send(`String` text, `Maybe<String>` sendMode, `Maybe<bool>` suppressBubble, `Maybe<JsonObject>` metadata)
 
-> _Note:_ On OpenStarbound, the `suppressBubble` parameter is instead `spawnBubble`, which if `true`, always spawns a chat bubble when the chat message is sent; if `false`, it never spawns one; if `nil` or unspecified, a chat bubble is spawned if the chat text doesn't begin with `/`. StarExtensions lacks a third parameter and has OpenStarbound's default chat bubble behaviour.
+> _Note:_ On OpenStarbound, the `suppressBubble` parameter is instead `spawnBubble`, which if `true`, always spawns a chat bubble when the chat message is sent; if `false`, it never spawns one; if `nil` or unspecified, a chat bubble is spawned if the chat text doesn't begin with `/`. StarExtensions lacks the `suppressBubble` and `metadata` parameters, and has OpenStarbound's default chat bubble behaviour.
+
+> _Note:_ Sending, transporting and receiving chat metadata requires xStarbound v3.5.3+ on _both_ the sending and receiving clients _and_ on the server, _all_ running in xStarbound networking mode (not legacy mode!). Due to network compatibility issues, sending, transporting and receiving OpenStarbound v0.1.9+ chat metadata are _not_ supported by xStarbound! (An xStarbound server or host _must_ be running in legacy mode to accept connections from OpenStarbound clients without errors.)
 
 Sends a chat message, _skipping_ client-side command processing. Arguments are as follows:
 
 - `text`: The text to send.
 - `sendMode`: If specified, may be any one of `"Local"`, `"Broadcast"` or `"Party"` (anything else resolves to `"Broadcast"`). Defaults to `"Local"`.
 - `suppressBubble`: If `true`, no chat bubble is spawned when the chat message is sent.
+- `metadata`: If specified, arbitrary metadata to attach to the message.
 
-The message will be sent immediately regardless of whether the player is primary or secondary, but the chat bubble will always spawn above the _primary_ player.
+The message will be sent immediately regardless of whether the player is primary or secondary, but the chat bubble (if any) will always spawn above the _primary_ player.
 
 Identical in functionality to `player.sendChat` (see `player.md`), except that `sendMode` defaults to `"Broadcast"`. This `chat` callback was originally added for compatibility with StarExtensions mods.
 
@@ -938,4 +944,3 @@ There are a large number of valid string names for keys, keymods, mouse buttons,
 - `"Paddle4"` (P4 paddle on an Xbox Elite controller)
 - `"Touchpad"` (touchpad on a PS4 or PS5 controller)
 - `"Invalid"` (your controller is broken or defective if it has one of these)
-

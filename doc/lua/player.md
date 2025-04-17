@@ -21,6 +21,7 @@ As such, a modder on xStarbound may check for the existence of this table in scr
 ---
 
 #### `Json` player.save()
+
 #### `Json` player.getPlayerJson()
 
 Returns a JSON object containing the contents of the entire player file. May be converted to a string with `sb.printJson`.
@@ -29,7 +30,7 @@ Returns a JSON object containing the contents of the entire player file. May be 
 
 #### `void` player.load()
 
-Loads a player from the specified JSON save. If any loading errors occur, the existing loaded player data is left unchanged. Note that this will *immediately* replace any values in player script `storage` tables with the ones in the loaded save. To parse a string containing valid JSON, use `sb.parseJson`.
+Loads a player from the specified JSON save. If any loading errors occur, the existing loaded player data is left unchanged. Note that this will _immediately_ replace any values in player script `storage` tables with the ones in the loaded save. To parse a string containing valid JSON, use `sb.parseJson`.
 
 ---
 
@@ -473,7 +474,7 @@ Sets whether the player is marked as having completed the intro instance.
 
 Immediately warps the player to the specified warp target, optionally using the specified warp animation and deployment.
 
-Only warps the *primary* player immediately. Any attempt to warp a secondary player will be "queued" until that player becomes primary or cleared upon disconnection.
+Only warps the _primary_ player immediately. Any attempt to warp a secondary player will be "queued" until that player becomes primary or cleared upon disconnection.
 
 ---
 
@@ -582,14 +583,17 @@ The following callbacks can be used to get or alter the player's current humanoi
 ---
 
 #### `void` player.setIdentity(`Json` newIdentity)
+
 #### `void` player.setHumanoidIdentity(`Json` newIdentity)
 
-Sets the player's identity. The new identity will be merged with the current one; as a special case, if the `"imagePath"` key (and *only* that key) has been explicitly set to a `nil` value, *and* either the table was created with `jobject()` or its metatable's `"__nils"` table otherwise contains `"imagePath"` (e.g., the metatable is `{["__nils"] = {imagePath = 0}}`), the `"imagePath"` will be set to `null`. Will log a warning and leave the species and/or image path unchanged if the new identity includes a `"species"` and/or `"imagePath"` that doesn't exist in the loaded assets.
+Sets the player's identity. The new identity will be merged with the current one; as a special case, if the `"imagePath"` key (and _only_ that key) has been explicitly set to a `nil` value, _and_ either the table was created with `jobject()` or its metatable's `"__nils"` table otherwise contains `"imagePath"` (e.g., the metatable is `{["__nils"] = {imagePath = 0}}`), the `"imagePath"` will be set to `null`. Will log a warning and leave the species and/or image path unchanged if the new identity includes a `"species"` and/or `"imagePath"` that doesn't exist in the loaded assets.
 
 ---
 
 #### `Json` player.identity()
+
 #### `Json` player.getIdentity()
+
 #### `Json` player.humanoidIdentity()
 
 Gets the player's identity.
@@ -600,7 +604,7 @@ In addition to the identity callbacks above, the following getters and setters m
 
 **Notes:** A few notes:
 
-- Any `nil` or unspecified value is ignored, *unless* it's an image path, in which case the image path is cleared.
+- Any `nil` or unspecified value is ignored, _unless_ it's an image path, in which case the image path is cleared.
 - Invalid species names, image paths and genders — for reference, valid genders are `"male"` and `"female"` — are ignored and will log a warning (for species or image paths) or throw an error (for genders).
 - The "favourite colour" is the one used for the beams and highlights of "beam" items like the matter manipulator. The beams, but not the highlights, are affected by the alpha (fourth) value.
 
@@ -622,21 +626,37 @@ When passing a personality to `player.setPersonality`, any omitted keys are left
 The following humanoid identity getters are available:
 
 #### `String` player.bodyDirectives()
+
 #### `String` player.emoteDirectives()
+
 #### `String` player.hairGroup()
+
 #### `String` player.hairType()
+
 #### `String` player.hairDirectives()
+
 #### `String` player.facialHairGroup()
+
 #### `String` player.facialHairType()
+
 #### `String` player.facialHairDirectives()
+
 #### `String, String, String` player.hair()
+
 #### `String, String, String` player.facialHair()
+
 #### `String, String, String` player.facialMask()
+
 #### `String` player.name()
+
 #### `String` player.species()
+
 #### `String` player.imagePath()
+
 #### `String` player.gender()
+
 #### `Personality` player.personality()
+
 #### `Vec4B` player.favoriteColor()
 
 **Note:** `player.hair`, `player.facialHair` and `player.facialMask` return their items in "group, type, directives" order.
@@ -646,28 +666,44 @@ The following humanoid identity getters are available:
 The following humanoid identity setters are available:
 
 #### `void` player.setBodyDirectives(`String` newBodyDirectives)
+
 #### `void` player.setEmoteDirectives(`String` newEmoteDirectives)
+
 #### `void` player.setHairGroup(`String` newHairGroup)
+
 #### `void` player.setHairType(`String` newHairType)
+
 #### `void` player.setHairDirectives(`String` newHairDirectives)
+
 #### `void` player.setFacialHairGroup(`String` newFacialHairGroup)
+
 #### `void` player.setFacialHairType(`String` newFacialHairType)
+
 #### `void` player.setFacialHairDirectives(`String` newFacialHairDirectives)
+
 #### `void` player.setHair(`Maybe<String>` group, `Maybe<String>` type, `Maybe<String>` directives)
+
 #### `void` player.setFacialHair(`Maybe<String>` group, `Maybe<String>` type, `Maybe<String>` directives)
+
 #### `void` player.setFacialMask(`Maybe<String>` group, `Maybe<String>` type, `Maybe<String>` directives)
+
 #### `void` player.setName(`String` name)
+
 #### `void` player.setSpecies(`String` species)
+
 #### `void` player.setImagePath(`Maybe<String>` imagePath)
+
 #### `void` player.setGender(`String` gender)
+
 #### `void` player.setPersonality(`Personality` personalityConfig)
+
 #### `void` player.setFavoriteColor(`Vec4B` favouriteColour)
 
 ---
 
 ## xStarbound callbacks
 
-The following `player` callbacks are available on xStarbound but *not* on stock Starbound. Many of these are available with StarExtensions or OpenStarbound.
+The following `player` callbacks are available on xStarbound but _not_ on stock Starbound. Many of these are available with StarExtensions or OpenStarbound.
 
 ---
 
@@ -720,6 +756,7 @@ Also see `interface.queueMessage` in `interface.md`.
 ---
 
 #### `void` player.say(`String` newMessage, `Maybe<String>` portrait, `Maybe<EntityId>` sourceEntityId, `Maybe<Json>` bubbleConfig)
+
 #### `void` player.addChatBubble(`String` newMessage, `Maybe<String>` portrait, `Maybe<EntityId>` sourceEntityId, `Maybe<Json>` bubbleConfig)
 
 Spawns a networked chat bubble. Parameters:
@@ -757,15 +794,17 @@ Gets the player's chat bubble config. This affects all chat bubbles the player n
 
 ---
 
-#### `void` player.sendChat(`String` text, `String` sendMode, `Maybe<bool>` suppressBubble)
+#### `void` player.sendChat(`String` text, `String` sendMode, `Maybe<bool>` suppressBubble, `Maybe<JsonObject>` metadata)
 
-Sends a chat message, *skipping* client-side command processing. Arguments are as follows:
+> _Note:_ Sending, transporting and receiving chat metadata requires xStarbound v3.5.3+ on _both_ the sending and receiving clients _and_ on the server, _all_ running in xStarbound networking mode (not legacy mode!). Due to network compatibility issues, sending, transporting and receiving OpenStarbound v0.1.9+ chat metadata are _not_ supported by xStarbound! (An xStarbound server or host _must_ be running in legacy mode to accept connections from OpenStarbound clients without errors.)
+
+Sends a chat message, _skipping_ client-side command processing. Arguments are as follows:
 
 - `text`: The text to send.
 - `sendMode`: If specified, may be any one of `"Local"`, `"Broadcast"` or `"Party"` (anything else resolves to `"Local"`). Defaults to `"Local"`.
 - `suppressBubble`: If `true`, no chat bubble is spawned when the chat message is sent.
 
-The message will be sent immediately regardless of whether the player is primary or secondary, but the chat bubble will always spawn above the *primary* player.
+The message will be sent immediately regardless of whether the player is primary or secondary, but the chat bubble (if any) will always spawn above the _primary_ player.
 
 Identical in functionality to `chat.send` (see `interface.md`).
 
@@ -946,7 +985,7 @@ Gets whether shipworld updates are ignored. This setting is saved in the player 
 
 #### `String` player.getChatText()
 
-Gets any text currently in the chat box. Does *not* return `""` if the chat box isn't focussed but contains any text. Nearly identical to `chat.input` (see `interface.md`).
+Gets any text currently in the chat box. Does _not_ return `""` if the chat box isn't focussed but contains any text. Nearly identical to `chat.input` (see `interface.md`).
 
 **Note:** This callback invokes `currentChat` in chat pane scripts (see `interface.md`), so don't have `currentChat` invoke this callback to prevent a recursion error!
 
@@ -992,9 +1031,9 @@ Sets the player's damage team, overriding any server requests. `teamType` may be
 - `"indiscriminate"`
 - `"assistant"`
 
-... and is case-sensitive, defaulting to `"friendly"` if an invalid type is specified. `teamNumber` may be any positive integer or `0`. Any unspecified parameters are set to the default for players - `"friendly"` and `0`, respectively. If *no* parameters are specified, the player's damage team is returned to whatever the server requests it to be.
+... and is case-sensitive, defaulting to `"friendly"` if an invalid type is specified. `teamNumber` may be any positive integer or `0`. Any unspecified parameters are set to the default for players - `"friendly"` and `0`, respectively. If _no_ parameters are specified, the player's damage team is returned to whatever the server requests it to be.
 
-To *get* the player's current damage team, use `entity.team`.
+To _get_ the player's current damage team, use `entity.team`.
 
 **Note:** Unlike OpenStarbound's equivalent, xClient's changes to the player damage team are persistent. The team config is saved under `"team"` in the player save, while whether the team config has been overridden by xClient is saved under `"damageTeamOverridden"` in the player's `"xSbProperties"`.
 
@@ -1030,13 +1069,13 @@ Overrides the player client's camera position. Must be applied every tick like `
 Returns the player's active action bar group. The group index begins at `1`, not `0`.
 
 ---
-  
+
 #### `void` player.setActionBarGroup(`unsigned` barId)
-  
+
 Sets the player's active action bar group. The group index begins at `1`, not `0`.
 
 ---
-  
+
 #### `Variant<unsigned, EssentialItem>` player.selectedActionBarSlot()
 
 Returns the player's selected action bar slot. The slot index begins at `1`, not `0`. An `EssentialItem` is one of the following strings:
@@ -1047,9 +1086,9 @@ Returns the player's selected action bar slot. The slot index begins at `1`, not
 - `"inspectiontool"`
 
 ---
-  
+
 #### `void` player.setSelectedActionBarSlot(`Variant<unsigned, EssentialItem>` slot)
-  
+
 Sets the player's selected action bar slot. The slot index begins at `1`, not `0`. See above for valid `EssentialItem` values.
 
 ---
@@ -1076,8 +1115,8 @@ An `InventorySlot` may be any of the following Lua values:
 The arguments are specified as follows:
 
 - The `slotIndex` may be either an integer or an array of two integers:
-  - If it's an *integer*, the lone integer is the specified slot index of the player's *currently selected* action bar group.
-  - If it's an *array*, the first value is the specified action bar group; the second is the slot index for that group. Group and slot indices begin at `1`, not `0`.
+  - If it's an _integer_, the lone integer is the specified slot index of the player's _currently selected_ action bar group.
+  - If it's an _array_, the first value is the specified action bar group; the second is the slot index for that group. Group and slot indices begin at `1`, not `0`.
 - The hand may be either `"primary"` or `"alt"`.
 
 ---
@@ -1094,10 +1133,10 @@ The arguments are specified as follows:
 
 The following caveats apply to item slot links:
 
-- Linking a *two-handed* item to a *primary* slot sets *both* the primary and alt hands at the specified group/slot combination. (Technically, the alternate slot isn't actually set to the primary item, but acts as if it were.)
-- Any attempt to link a *two-handed* item to an *alternate* slot is ignored.
-- Linking a *one-handed* item to an *alternate* slot while the *primary* slot has a *two-handed* item in it clears the *primary* slot in addition to filling the *alternate* slot.
-- If the specified item slot has a one-handed item in it *and* matches the slot linked to the *other* hand, the links are swapped.
+- Linking a _two-handed_ item to a _primary_ slot sets _both_ the primary and alt hands at the specified group/slot combination. (Technically, the alternate slot isn't actually set to the primary item, but acts as if it were.)
+- Any attempt to link a _two-handed_ item to an _alternate_ slot is ignored.
+- Linking a _one-handed_ item to an _alternate_ slot while the _primary_ slot has a _two-handed_ item in it clears the _primary_ slot in addition to filling the _alternate_ slot.
+- If the specified item slot has a one-handed item in it _and_ matches the slot linked to the _other_ hand, the links are swapped.
 - A `nil` slot link or a link to an empty inventory slot clears any link at the specified group/slot/hand combination.
 
 ---
@@ -1110,9 +1149,9 @@ Returns the number of slots in the specified inventory bag.
 
 #### `size_t` player.itemAllowedInBag(`String` bagName, `ItemDescriptor` item, `Maybe<bool>` forceCheck)
 
-> *The `forceCheck` parameter is only available on xClient.*
+> _The `forceCheck` parameter is only available on xClient._
 
-Returns whether the specified item is allowed to go in the specified inventory bag. If `forceCheck` is `false` or unspecified *and* `"allowAnyBagItem"` under `"inventory"` in `$assets/player.config` is `true`, this callback will always return `true`. If `forceCheck` is `true`, the callback will act as if `"allowAnyBagItem"` were `false`, even if it is otherwise enabled by an asset mod.
+Returns whether the specified item is allowed to go in the specified inventory bag. If `forceCheck` is `false` or unspecified _and_ `"allowAnyBagItem"` under `"inventory"` in `$assets/player.config` is `true`, this callback will always return `true`. If `forceCheck` is `true`, the callback will act as if `"allowAnyBagItem"` were `false`, even if it is otherwise enabled by an asset mod.
 
 ---
 
@@ -1132,13 +1171,13 @@ Sets the specified inventory slot to the specified item, or clears the slot if t
 
 Sets whether the player can use held items. Identical to `tech.setToolUsageSuppressed` (see `tech.md`).
 
-**Note:** The internal values used by *both* `player.setToolUsageSuppressed` and `tech.setToolUsageSuppressed` must be `false` for the player to use held items.
+**Note:** The internal values used by _both_ `player.setToolUsageSuppressed` and `tech.setToolUsageSuppressed` must be `false` for the player to use held items.
 
 ---
 
 #### `Json` player.teamMembers()
 
-Returns a list of all team members in the player's current team, *including* the current player. If the player is not currently in any team, returns `jarray{}`. The list has the following format:
+Returns a list of all team members in the player's current team, _including_ the current player. If the player is not currently in any team, returns `jarray{}`. The list has the following format:
 
 ```lua
 local teamMembers = jarray{
@@ -1197,7 +1236,7 @@ If `"primary"`/`"beginPrimary"` or `"alt"`/`"beginAlt"` is passed, makes the pla
 
 If `"endPrimary"` or `"endAlt"` is passed, makes the player end primary or alt fire, respectively, exactly as if the left or right mouse button were released, respectively.
 
-If `nil` is passed, or the parameter is unspecified, makes the player end primary *and* alt fire immediately, exactly as if both mouse buttons were released.
+If `nil` is passed, or the parameter is unspecified, makes the player end primary _and_ alt fire immediately, exactly as if both mouse buttons were released.
 
 A primary player's primary/alt firing state will be reset to the state of the mouse buttons on the next tick.
 
@@ -1240,3 +1279,4 @@ Used to make the player perform various special actions, depending on the specif
 The `action` is case-insensitive. If `nil` or any other string is specified, or no parameter is specified, the callback does nothing.
 
 **Note:** If `player.controlAction("dropItem")` is called in the dropped item's script, `init` or `update` will finish running and `uninit` will run, but the item drop will not have any state saved by `item` callbacks after this callback is invoked.
+

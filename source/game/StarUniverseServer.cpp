@@ -1567,16 +1567,19 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   }
 
   bool legacyClient = protocolRequest->compressionMode() != PacketCompressionMode::Enabled;
-  connection.setLegacy(forceLegacyConnection || legacyClient);
+  bool legacyConnection = forceLegacyConnection || legacyClient;
+  connection.setLegacy(legacyConnection);
   if (forceLegacyConnection && !legacyClient)
     Logger::info("UniverseServer: Detected connection from custom client, but forcing legacy protocol");
 
   auto protocolResponse = make_shared<ProtocolResponsePacket>();
   // FezzedOne: Signal that we're a custom server unless legacy connections are forced.
+  // Since xStarbound now changes the networking protocol for xStarbound clients, check the xSB protocol version number if necessary.
+  // This kicks OpenStarbound clients!
   protocolResponse->setCompressionMode(forceLegacyConnection ? PacketCompressionMode::Disabled : PacketCompressionMode::Enabled);
-  if (protocolRequest->requestProtocolVersion != StarProtocolVersion) {
-    Logger::warn("UniverseServer: Client connection aborted, unsupported protocol version {}, supported version {}",
-        protocolRequest->requestProtocolVersion, StarProtocolVersion);
+  if (protocolRequest->requestProtocolVersion != (legacyConnection ? StarProtocolVersion : xSbProtocolVersion)) {
+    Logger::warn("UniverseServer: Client connection aborted, unsupported {} protocol version {}, supported version {}",
+        legacyConnection ? "legacy" : "xStarbound", protocolRequest->requestProtocolVersion, StarProtocolVersion);
     protocolResponse->allowed = false;
     connection.pushSingle(protocolResponse);
     connection.sendAll(clientWaitLimit);

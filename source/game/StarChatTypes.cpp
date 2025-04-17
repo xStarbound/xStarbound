@@ -72,10 +72,7 @@ DataStream& operator>>(DataStream& ds, ChatReceivedMessage& receivedMessage) {
   ds.read(receivedMessage.fromNick);
   ds.read(receivedMessage.portrait);
   ds.read(receivedMessage.text);
-  if (auto dsb = as<DataStreamBuffer>(&ds)) {
-    if (dsb->size() > dsb->pos())
-      ds.read(receivedMessage.metadata);
-  }
+  ds.read(receivedMessage.metadata);
   return ds;
 }
 
@@ -86,7 +83,24 @@ DataStream& operator<<(DataStream& ds, ChatReceivedMessage const& receivedMessag
   ds.write(receivedMessage.portrait);
   ds.write(receivedMessage.text);
   ds.write(receivedMessage.metadata);
+  return ds;
+}
 
+DataStream& ChatReceivedMessage::readLegacy(DataStream& ds, ChatReceivedMessage& receivedMessage) {
+  ds.read(receivedMessage.context);
+  ds.read(receivedMessage.fromConnection);
+  ds.read(receivedMessage.fromNick);
+  ds.read(receivedMessage.portrait);
+  ds.read(receivedMessage.text);
+  return ds;
+}
+
+DataStream& ChatReceivedMessage::writeLegacy(DataStream& ds, ChatReceivedMessage const& receivedMessage) {
+  ds.write(receivedMessage.context);
+  ds.write(receivedMessage.fromConnection);
+  ds.write(receivedMessage.fromNick);
+  ds.write(receivedMessage.portrait);
+  ds.write(receivedMessage.text);
   return ds;
 }
 

@@ -58,6 +58,10 @@ struct ChatReceivedMessage {
   String text;
 
   JsonObject metadata;
+
+  // FezzedOne: Legacy serialiser/deserialiser for this struct.
+  static DataStream& readLegacy(DataStream& ds, ChatReceivedMessage& receivedMessage);
+  static DataStream& writeLegacy(DataStream& ds, ChatReceivedMessage const& receivedMessage);
 };
 
 struct ChatState {

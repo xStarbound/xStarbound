@@ -23,6 +23,7 @@ STAR_STRUCT(Packet);
 STAR_EXCEPTION(StarPacketException, IOException);
 
 extern VersionNumber const StarProtocolVersion;
+extern VersionNumber const xSbProtocolVersion;
 
 // Packet types sent between the client and server over a NetSocket.  Does not
 // correspond to actual packets, simply logical portions of NetSocket data.
@@ -216,6 +217,8 @@ struct ChatReceivePacket : PacketBase<PacketType::ChatReceive> {
 
   void read(DataStream& ds) override;
   void write(DataStream& ds) const override;
+  void readLegacy(DataStream& ds) override;
+  void writeLegacy(DataStream& ds) const override;
 
   ChatReceivedMessage receivedMessage;
 };
@@ -348,6 +351,8 @@ struct ChatSendPacket : PacketBase<PacketType::ChatSend> {
 
   void read(DataStream& ds) override;
   void write(DataStream& ds) const override;
+  void readLegacy(DataStream& ds) override;
+  void writeLegacy(DataStream& ds) const override;
 
   String text;
   ChatSendMode sendMode;

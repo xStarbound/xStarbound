@@ -4,6 +4,7 @@
 namespace Star {
 
 VersionNumber const StarProtocolVersion = 747;
+VersionNumber const xSbProtocolVersion = 748;
 
 EnumMap<PacketType> const PacketTypeNames{
     {PacketType::ProtocolRequest, "ProtocolRequest"},
@@ -243,6 +244,14 @@ void ChatReceivePacket::write(DataStream& ds) const {
   ds.write(receivedMessage);
 }
 
+void ChatReceivePacket::readLegacy(DataStream& ds) {
+  ChatReceivedMessage::readLegacy(ds, receivedMessage);
+}
+
+void ChatReceivePacket::writeLegacy(DataStream& ds) const {
+  ChatReceivedMessage::writeLegacy(ds, receivedMessage);
+}
+
 UniverseTimeUpdatePacket::UniverseTimeUpdatePacket() {
   universeTime = 0;
 }
@@ -418,15 +427,23 @@ ChatSendPacket::ChatSendPacket(String text, ChatSendMode sendMode, JsonObject(da
 void ChatSendPacket::read(DataStream& ds) {
   ds.read(text);
   ds.read(sendMode);
-  auto dsb = as<DataStreamBuffer>(&ds);
-  if (dsb->size() > dsb->pos())
-    ds.read(data);
+  ds.read(data);
+}
+
+void ChatSendPacket::readLegacy(DataStream& ds) {
+  ds.read(text);
+  ds.read(sendMode);
 }
 
 void ChatSendPacket::write(DataStream& ds) const {
   ds.write(text);
   ds.write(sendMode);
   ds.write(data);
+}
+
+void ChatSendPacket::writeLegacy(DataStream& ds) const {
+  ds.write(text);
+  ds.write(sendMode);
 }
 
 CelestialRequestPacket::CelestialRequestPacket() {}
