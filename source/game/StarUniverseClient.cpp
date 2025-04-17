@@ -155,7 +155,7 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
         shouldForceLegacyConnection ? "" : strf("\n\nAdd ^orange;@^reset; before the server address to connect in legacy mode!"
                                                 " If connecting to a Steam/Discord game hosted by a non-xSB client (or an xSB client in legacy mode),"
                                                 " set ^orange;\"forceLegacyConnection\"^reset; to ^orange;true^reset; in ^orange;xclient.config^reset;."
-                                                " If connecting to an xSB server/host, updating to ^red;v{}+^reset; is recommended!",
+                                                "\n^orange;xStarbound netcode version: v{}",
                                                xSbNetworkVersionString)));
 
   m_legacyServer = protocolResponsePacket->compressionMode() != PacketCompressionMode::Enabled; // True if server is vanilla
