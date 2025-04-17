@@ -592,10 +592,10 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player, bool removeChatCal
     player->log()->removeScannedObject(objectName);
   });
 
-  callbacks.registerCallback("sendChat", [player](String const& text, Maybe<String> const& sendMode, Maybe<bool> suppressBubble, Maybe<JsonObject> metadata) {
+  callbacks.registerCallback("sendChat", [player](String const& text, Maybe<String> const& sendMode, Maybe<bool> addBubble, Maybe<JsonObject> metadata) {
       String sendModeStr = sendMode.value("Local");
-      bool suppressBubbleBool = suppressBubble.value(false);
-      player->getUniverseClient()->sendChat(text, sendModeStr, suppressBubbleBool, metadata); });
+      bool addBubbleBool = addBubble.value(true);
+      player->getUniverseClient()->sendChat(text, sendModeStr, !addBubbleBool, metadata); });
 
   callbacks.registerCallback("queueStatusMessage", [player](String const& newMessage) {
     player->queueUIMessage(newMessage);

@@ -18,10 +18,10 @@ namespace Star {
 LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface, bool removeHoakyCallbacks) {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallback("send", [mainInterface](String const& text, Maybe<String> const& sendMode, Maybe<bool> suppressBubble, Maybe<JsonObject> metadata) {
+  callbacks.registerCallback("send", [mainInterface](String const& text, Maybe<String> const& sendMode, Maybe<bool> addBubble, Maybe<JsonObject> metadata) {
     String sendModeStr = sendMode.value("Broadcast");
-    bool suppressBubbleBool = suppressBubble.value(false);
-    mainInterface->universeClient()->sendChat(text, sendModeStr, suppressBubbleBool, metadata);
+    bool addBubbleBool = addBubble.value(true);
+    mainInterface->universeClient()->sendChat(text, sendModeStr, addBubbleBool, metadata);
   });
 
   // FezzedOne: For compatibility with the StarExtensions callback of the same name.

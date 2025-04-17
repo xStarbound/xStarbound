@@ -794,15 +794,17 @@ Gets the player's chat bubble config. This affects all chat bubbles the player n
 
 ---
 
-#### `void` player.sendChat(`String` text, `String` sendMode, `Maybe<bool>` suppressBubble, `Maybe<JsonObject>` metadata)
+#### `void` player.sendChat(`String` text, `String` sendMode, `Maybe<bool>` addBubble, `Maybe<JsonObject>` metadata)
 
 > _Note:_ Sending, transporting and receiving chat metadata requires xStarbound v3.5.3+ on _both_ the sending and receiving clients _and_ on the server, _all_ running in xStarbound networking mode (not legacy mode!). Due to network compatibility issues, sending, transporting and receiving OpenStarbound v0.1.9+ chat metadata are _not_ supported by xStarbound! (An xStarbound server or host _must_ be running in legacy mode to accept connections from OpenStarbound clients without errors.)
+
+> _Note:_ The chat bubble boolean's functionality was inverted in xStarbound v3.5.3 to avoid a minor annoyance when writing cross-client scripts.
 
 Sends a chat message, _skipping_ client-side command processing. Arguments are as follows:
 
 - `text`: The text to send.
 - `sendMode`: If specified, may be any one of `"Local"`, `"Broadcast"` or `"Party"` (anything else resolves to `"Local"`). Defaults to `"Local"`.
-- `suppressBubble`: If `true`, no chat bubble is spawned when the chat message is sent.
+- `addBubble`: If explicitly `false`, no chat bubble is spawned when the chat message is sent.
 
 The message will be sent immediately regardless of whether the player is primary or secondary, but the chat bubble (if any) will always spawn above the _primary_ player.
 
@@ -1279,4 +1281,3 @@ Used to make the player perform various special actions, depending on the specif
 The `action` is case-insensitive. If `nil` or any other string is specified, or no parameter is specified, the callback does nothing.
 
 **Note:** If `player.controlAction("dropItem")` is called in the dropped item's script, `init` or `update` will finish running and `uninit` will run, but the item drop will not have any state saved by `item` callbacks after this callback is invoked.
-
