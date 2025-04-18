@@ -37,12 +37,7 @@ Depending on your OS and what version of Starbound you have, the log files are l
 
 **IF YOU'RE ON WINDOWS, READ THE FOLLOWING!**
 
-> **READ THIS FIRST:** If you have an NVIDIA card and are experiencing crashes, this is _not_ xStarbound's fault. Do any of the following before making a bug report:
->
-> - [Roll back your NVIDIA driver](https://www.nvidia.com/en-gb/drivers/driver-rollback/) to v566.x or earlier. (Linked instructions are for Windows 11 24H2.)
-> - [Run xStarbound on your integrated graphics](https://www.youtube.com/watch?v=oIsM1nAa6u0). (Linked instructions are for Windows 11 24H2.)
-> - [Use WSL2](https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps) to run the Linux version of xStarbound on Windows. (Instructions for recent Windows 10 and 11 builds.)
-> - Dual-boot Linux and run xStarbound there. See [this video for CachyOS](https://www.youtube.com/watch?v=OjOSE31-bOc) or [this video for Linux Mint](https://www.youtube.com/watch?v=0gSr8YsJtd0). (Instructions for Windows 10 and 11.)
+**If you're reporting an «access of address 0x18» crash on xClient and you have an NVIDIA card, disable NVIDIA's «threaded optimisation» feature for xClient in the NVIDIA Control Panel or downgrade your driver to v566.x (or older) first! If the crash still occurs after doing that and restarting xClient, _then_ create an issue.**
 
 If you're reporting a crash on the MSVC / Visual Studio build on Windows, your log files are virtually **USELESS** if the `.pdb` files are not installed. If the crash happened on an MSVC build without the `.pdb` files installed, install those files and then attempt to reproduce the crash before submitting the issue or uploading logs.
 
