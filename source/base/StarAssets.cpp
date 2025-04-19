@@ -238,14 +238,16 @@ Assets::Assets(Settings settings, StringList assetSources) {
 
     // Added WereTech's `assets.origin` from OpenStarbound.
     callbacks.registerCallback("source", [this](String const& path) -> Maybe<String> {
-      if (this->assetDescriptor(path))
-        return this->assetSource(path);
+      MutexLocker assetsLocker(m_assetsMutex);
+      if (auto p = m_files.ptr(path)) // FezzedOne: Avoid an error getting thrown if the asset turns out to be from *this* source.
+        return m_assetSourcePaths.maybeLeft(p->source);
       return {};
     });
 
     callbacks.registerCallback("origin", [this](String const& path) -> Maybe<String> {
-      if (this->assetDescriptor(path))
-        return this->assetSource(path);
+      MutexLocker assetsLocker(m_assetsMutex);
+      if (auto p = m_files.ptr(path)) // FezzedOne: Avoid an error getting thrown if the asset turns out to be from *this* source.
+        return m_assetSourcePaths.maybeLeft(p->source);
       return {};
     });
 
