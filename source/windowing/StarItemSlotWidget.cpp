@@ -1,18 +1,18 @@
 #include "StarItemSlotWidget.hpp"
-#include "StarRoot.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarWidgetParsing.hpp"
+#include "StarArmors.hpp"
+#include "StarAssets.hpp"
+#include "StarDurabilityItem.hpp"
+#include "StarGameTypes.hpp"
 #include "StarImageMetadataDatabase.hpp"
 #include "StarItem.hpp"
-#include "StarArmors.hpp"
-#include "StarDurabilityItem.hpp"
-#include "StarAssets.hpp"
-#include "StarGameTypes.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarRoot.hpp"
+#include "StarWidgetParsing.hpp"
 
 namespace Star {
 
 ItemSlotWidget::ItemSlotWidget(ItemPtr const& item, String const& backingImage)
-  : m_item(item), m_backingImage(backingImage) {
+    : m_item(item), m_backingImage(backingImage) {
   m_drawBackingImageWhenFull = false;
   m_drawBackingImageWhenEmpty = true;
   m_fontSize = 0;
@@ -56,6 +56,7 @@ ItemSlotWidget::ItemSlotWidget(ItemPtr const& item, String const& backingImage)
   m_durabilityBar->hide();
   m_showDurability = false;
   m_showCount = true;
+  m_showSingleCountOnStackables = false;
   m_showRarity = true;
   m_showLinkIndicator = false;
 
@@ -129,6 +130,10 @@ void ItemSlotWidget::showDurability(bool show) {
 
 void ItemSlotWidget::showCount(bool show) {
   m_showCount = show;
+}
+
+void ItemSlotWidget::showSingleCountOnStackables(bool show) {
+  m_showSingleCountOnStackables = show;
 }
 
 void ItemSlotWidget::showRarity(bool showRarity) {
@@ -208,13 +213,14 @@ void ItemSlotWidget::renderImpl() {
             context()->setFontColor(m_cosmeticStackFontColor.toRgba());
             context()->setFontMode(m_countFontMode);
             String plusSign = (m_cosmeticHighlightEnabled && cosmeticStackCount < maxCosmeticStack) ? "+" : "";
-            context()->renderInterfaceText(cosmeticStackCount == 0 ? plusSign : toString(cosmeticStackCount + 1) + plusSign, 
-              m_countPosition.translated(Vec2F(screenPosition())));
+            context()->renderInterfaceText(cosmeticStackCount == 0 ? plusSign : toString(cosmeticStackCount + 1) + plusSign,
+                m_countPosition.translated(Vec2F(screenPosition())));
             context()->setFontMode(FontMode::Normal);
             context()->setDefaultFont();
           }
         }
-      } else if (m_item->maxStack() > 1) { // FezzedOne: Stackable items always show their stack size.
+      } else if (m_item->maxStack() > 1 && (m_showSingleCountOnStackables || m_item->count() > 1)) {
+        // FezzedOne: Stackable items always show their stack size in inventory slots.
         context()->setFont(m_font);
         context()->setFontSize(m_fontSize);
         context()->setFontColor(m_fontColor.toRgba());
@@ -239,4 +245,4 @@ void ItemSlotWidget::renderImpl() {
     m_durabilityBar->hide();
 }
 
-}
+} // namespace Star

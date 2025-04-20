@@ -1,9 +1,9 @@
 #ifndef STAR_ITEMSLOT_WIDGET_HPP
 #define STAR_ITEMSLOT_WIDGET_HPP
 
-#include "StarWidget.hpp"
-#include "StarProgressWidget.hpp"
 #include "StarAnimation.hpp"
+#include "StarProgressWidget.hpp"
+#include "StarWidget.hpp"
 
 namespace Star {
 
@@ -29,6 +29,7 @@ public:
 
   void showDurability(bool show);
   void showCount(bool show);
+  void showSingleCountOnStackables(bool show);
   void showRarity(bool showRarity);
   void showLinkIndicator(bool showLinkIndicator);
 
@@ -48,6 +49,7 @@ private:
   bool m_drawBackingImageWhenEmpty;
   bool m_showDurability;
   bool m_showCount;
+  bool m_showSingleCountOnStackables;
   bool m_showRarity;
   bool m_showLinkIndicator;
 
@@ -78,6 +80,6 @@ private:
   Color m_cosmeticStackFontColor;
 };
 
-}
+} // namespace Star
 
 #endif

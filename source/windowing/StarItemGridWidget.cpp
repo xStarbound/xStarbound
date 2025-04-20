@@ -1,15 +1,15 @@
 #include "StarItemGridWidget.hpp"
-#include "StarRoot.hpp"
-#include "StarJsonExtra.hpp"
 #include "StarAssets.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
 ItemGridWidget::ItemGridWidget(ItemBagConstPtr bag, Vec2I const& dimensions, Vec2I const& spacing, String const& backingImage, unsigned bagOffset)
-  : ItemGridWidget(bag, dimensions, {spacing[0], 0}, {0, spacing[1]}, backingImage, bagOffset) {}
+    : ItemGridWidget(bag, dimensions, {spacing[0], 0}, {0, spacing[1]}, backingImage, bagOffset) {}
 
 ItemGridWidget::ItemGridWidget(ItemBagConstPtr bag, Vec2I const& dimensions, Vec2I const& rowSpacing, Vec2I const& columnSpacing, String const& backingImage, unsigned bagOffset)
-  : m_bagOffset(bagOffset), m_dimensions(dimensions), m_rowSpacing(rowSpacing), m_columnSpacing(columnSpacing), m_backingImage(backingImage) {
+    : m_bagOffset(bagOffset), m_dimensions(dimensions), m_rowSpacing(rowSpacing), m_columnSpacing(columnSpacing), m_backingImage(backingImage) {
   m_selectedIndex = 0;
   m_progress = 1;
 
@@ -23,9 +23,8 @@ ItemGridWidget::ItemGridWidget(ItemBagConstPtr bag, Vec2I const& dimensions, Vec
   auto assets = Root::singleton().assets();
   m_itemDraggableArea = jsonToRectI(assets->json("/interface.config:itemDraggableArea"));
   Vec2I calculatedSize = {
-    m_dimensions[0] * m_rowSpacing[0] + m_dimensions[1] * m_columnSpacing[0],
-    m_dimensions[0] * m_rowSpacing[1] + m_dimensions[1] * m_columnSpacing[1]
-  };
+      m_dimensions[0] * m_rowSpacing[0] + m_dimensions[1] * m_columnSpacing[0],
+      m_dimensions[0] * m_rowSpacing[1] + m_dimensions[1] * m_columnSpacing[1]};
   setSize(calculatedSize.piecewiseMax(m_itemDraggableArea.size()));
 
   disableScissoring();
@@ -129,10 +128,10 @@ bool ItemGridWidget::sendEvent(InputEvent const& event) {
 
 Vec2I ItemGridWidget::locOfItemSlot(unsigned slot) const {
   Vec2I loc = {
-    (int)slot % (int)m_dimensions[0] * m_rowSpacing[0] + // x contribution from row
-    (int)slot / (int)m_dimensions[0] * m_columnSpacing[0], // x contribution from column
-    (m_dimensions[0] - 1) * m_rowSpacing[1] - (int)slot % (int)m_dimensions[0] * m_rowSpacing[1] + // y contribution from row
-    (m_dimensions[1] - 1) * m_columnSpacing[1] - (int)slot / (int)m_dimensions[0] * m_columnSpacing[1] // y contribution from column
+      (int)slot % (int)m_dimensions[0] * m_rowSpacing[0] +                                                   // x contribution from row
+          (int)slot / (int)m_dimensions[0] * m_columnSpacing[0],                                             // x contribution from column
+      (m_dimensions[0] - 1) * m_rowSpacing[1] - (int)slot % (int)m_dimensions[0] * m_rowSpacing[1] +         // y contribution from row
+          (m_dimensions[1] - 1) * m_columnSpacing[1] - (int)slot / (int)m_dimensions[0] * m_columnSpacing[1] // y contribution from column
   };
   return loc;
 }
@@ -161,6 +160,7 @@ void ItemGridWidget::setItemBag(ItemBagConstPtr bag) {
     itemSlot->setProgress(m_progress);
     itemSlot->setPosition(locOfItemSlot(i));
     itemSlot->showDurability(m_showDurability);
+    itemSlot->showSingleCountOnStackables(true);
   }
 
   m_itemNames = slotItemNames();
@@ -283,4 +283,4 @@ void ItemGridWidget::renderImpl() {
   updateAllItemSlots();
 }
 
-}
+} // namespace Star
