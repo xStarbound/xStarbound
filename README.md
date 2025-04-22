@@ -156,6 +156,7 @@ The following mods are _NOT_ compatible with xStarbound:
 
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — would work if it didn't have an explicit StarExtensions check.
 - [Bottinator22's](https://steamcommunity.com/sharedfiles/filedetails/?id=3431152501) [shader](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151263) [mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151049) — modular shader support is OpenStarbound-only.
+- [Bott's Shaders - Disabled by Default](https://steamcommunity.com/sharedfiles/filedetails/?id=3468244512) — the mods it depends on are OpenStarbound-only, obviously.
 - [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [Classic Quickbar](https://steamcommunity.com/sharedfiles/filedetails/?id=2957136802) ([GitHub](https://github.com/bongus-jive/classic-quickbar)) — not compatible with xStarbound's Lua sandbox.
 - [Cumulative Dynamic Lights](https://steamcommunity.com/sharedfiles/filedetails/?id=3444407977) — not compatible because it depends on OpenStarbound's lighting system changes.
