@@ -33,7 +33,7 @@ if "!YesNo!"=="6" (
     set "relOrDbg=Debug"
 ) else (
     echo "[xStarbound::Build] Will build a release build."
-    set "relOrDbg=Release"
+    set "relOrDbg=RelWithDebInfo"
 )
 
 if "%buildInstaller%"=="yes" (
