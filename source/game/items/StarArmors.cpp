@@ -1,14 +1,14 @@
 #include "StarArmors.hpp"
 #include "StarAssets.hpp"
-#include "StarLogging.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarImageProcessing.hpp"
-#include "StarHumanoid.hpp"
-#include "StarRoot.hpp"
-#include "StarItemDatabase.hpp"
-#include "StarStoredFunctions.hpp"
-#include "StarPlayer.hpp"
 #include "StarDirectives.hpp"
+#include "StarHumanoid.hpp"
+#include "StarImageProcessing.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLogging.hpp"
+#include "StarPlayer.hpp"
+#include "StarRoot.hpp"
+#include "StarStoredFunctions.hpp"
 
 namespace Star {
 
@@ -157,7 +157,7 @@ void ArmorItem::refreshStatusEffects() {
 }
 
 HeadArmor::HeadArmor(Json const& config, String const& directory, Json const& data)
-  : ArmorItem(config, directory, data) {
+    : ArmorItem(config, directory, data) {
   m_maleImage = AssetPath::relativeTo(directory, config.getString("maleFrames"));
   m_femaleImage = AssetPath::relativeTo(directory, config.getString("femaleFrames"));
 
@@ -191,7 +191,7 @@ List<Drawable> HeadArmor::preview(PlayerPtr const& viewer) const {
 }
 
 ChestArmor::ChestArmor(Json const& config, String const& directory, Json const& data)
-  : ArmorItem(config, directory, data) {
+    : ArmorItem(config, directory, data) {
   Json maleImages = config.get("maleFrames");
   m_maleBodyImage = AssetPath::relativeTo(directory, maleImages.getString("body"));
   m_maleFrontSleeveImage = AssetPath::relativeTo(directory, maleImages.getString("frontSleeve"));
@@ -236,7 +236,7 @@ List<Drawable> ChestArmor::preview(PlayerPtr const& viewer) const {
 }
 
 LegsArmor::LegsArmor(Json const& config, String const& directory, Json const& data)
-  : ArmorItem(config, directory, data) {
+    : ArmorItem(config, directory, data) {
   m_maleImage = AssetPath::relativeTo(directory, config.getString("maleFrames"));
   m_femaleImage = AssetPath::relativeTo(directory, config.getString("femaleFrames"));
 }
@@ -260,9 +260,18 @@ List<Drawable> LegsArmor::preview(PlayerPtr const& viewer) const {
 }
 
 BackArmor::BackArmor(Json const& config, String const& directory, Json const& data)
-  : ArmorItem(config, directory, data) {
+    : ArmorItem(config, directory, data) {
   m_maleImage = AssetPath::relativeTo(directory, config.getString("maleFrames"));
   m_femaleImage = AssetPath::relativeTo(directory, config.getString("femaleFrames"));
+  m_rotateWithHead = false;
+  if (auto rotateWithHead = config.opt("rotateWithHead")) {
+    if (rotateWithHead->isType(Json::Type::Bool))
+      m_rotateWithHead = rotateWithHead->toBool();
+  }
+  if (auto rotateWithHead = data.opt("rotateWithHead")) {
+    if (rotateWithHead->isType(Json::Type::Bool))
+      m_rotateWithHead = rotateWithHead->toBool();
+  }
 }
 
 ItemPtr BackArmor::clone() const {
@@ -283,4 +292,8 @@ List<Drawable> BackArmor::preview(PlayerPtr const& viewer) const {
   return humanoid.renderDummy(gender, nullptr, nullptr, nullptr, this);
 }
 
+bool BackArmor::rotateWithHead() const {
+  return m_rotateWithHead;
 }
+
+} // namespace Star

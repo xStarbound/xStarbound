@@ -1,11 +1,11 @@
 #ifndef STAR_ARMORS_HPP
 #define STAR_ARMORS_HPP
 
+#include "StarEffectSourceItem.hpp"
 #include "StarGameTypes.hpp"
 #include "StarItem.hpp"
-#include "StarStatusEffectItem.hpp"
-#include "StarEffectSourceItem.hpp"
 #include "StarPreviewableItem.hpp"
+#include "StarStatusEffectItem.hpp"
 #include "StarSwingableItem.hpp"
 namespace Star {
 
@@ -134,12 +134,14 @@ public:
   String const& frameset(Gender gender) const;
 
   virtual List<Drawable> preview(PlayerPtr const& viewer = {}) const;
+  bool rotateWithHead() const;
 
 private:
   String m_maleImage;
   String m_femaleImage;
+  bool m_rotateWithHead;
 };
 
-}
+} // namespace Star
 
 #endif

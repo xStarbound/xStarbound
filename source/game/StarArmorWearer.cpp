@@ -38,10 +38,10 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   bool nudeChanged = m_lastNude != forceNude;
   if (nudeChanged) m_lastNude = forceNude;
 
-  bool headNeedsSync  = nudeChanged || m_headNeedsSync;
+  bool headNeedsSync = nudeChanged || m_headNeedsSync;
   bool chestNeedsSync = nudeChanged || m_chestNeedsSync;
-  bool legsNeedsSync  = nudeChanged || m_legsNeedsSync;
-  bool backNeedsSync  = nudeChanged || m_backNeedsSync;
+  bool legsNeedsSync = nudeChanged || m_legsNeedsSync;
+  bool backNeedsSync = nudeChanged || m_backNeedsSync;
 
   if (headNeedsSync || chestNeedsSync || legsNeedsSync || backNeedsSync)
     netElementsNeedLoad(true);
@@ -57,10 +57,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         if (item) {
           if (auto armourItem = as<HeadArmor>(item)) {
             headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-              armourItem->frameset(humanoid.identity().gender),
-              armourItem->directives(),
-              armourItem->maskDirectives()
-            });
+                armourItem->frameset(humanoid.identity().gender),
+                armourItem->directives(),
+                armourItem->maskDirectives()});
           }
         }
       }
@@ -77,10 +76,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             if (item) {
               if (auto armourItem = as<HeadArmor>(item)) {
                 headUnderlayArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->frameset(humanoid.identity().gender),
-                  armourItem->directives(),
-                  armourItem->maskDirectives()
-                });
+                    armourItem->frameset(humanoid.identity().gender),
+                    armourItem->directives(),
+                    armourItem->maskDirectives()});
               }
             }
           }
@@ -110,10 +108,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         if (item) {
           if (auto armourItem = as<HeadArmor>(item)) {
             headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-              armourItem->frameset(humanoid.identity().gender),
-              armourItem->directives(),
-              armourItem->maskDirectives()
-            });
+                armourItem->frameset(humanoid.identity().gender),
+                armourItem->directives(),
+                armourItem->maskDirectives()});
           }
         }
       }
@@ -145,20 +142,17 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         if (item) {
           if (auto armourItem = as<ChestArmor>(item)) {
             chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-              armourItem->bodyFrameset(humanoid.identity().gender),
-              armourItem->directives(),
-              Directives()
-            });
+                armourItem->bodyFrameset(humanoid.identity().gender),
+                armourItem->directives(),
+                Directives()});
             frontSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
-              armourItem->frontSleeveFrameset(humanoid.identity().gender),
-              armourItem->directives(),
-              Directives()
-            });
+                armourItem->frontSleeveFrameset(humanoid.identity().gender),
+                armourItem->directives(),
+                Directives()});
             backSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
-              armourItem->backSleeveFrameset(humanoid.identity().gender),
-              armourItem->directives(),
-              Directives()
-            });
+                armourItem->backSleeveFrameset(humanoid.identity().gender),
+                armourItem->directives(),
+                Directives()});
           }
         }
       }
@@ -178,20 +172,17 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             if (item) {
               if (auto armourItem = as<ChestArmor>(item)) {
                 chestArmorUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->bodyFrameset(humanoid.identity().gender),
-                  armourItem->directives(),
-                  Directives()
-                });
+                    armourItem->bodyFrameset(humanoid.identity().gender),
+                    armourItem->directives(),
+                    Directives()});
                 frontSleeveUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->frontSleeveFrameset(humanoid.identity().gender),
-                  armourItem->directives(),
-                  Directives()
-                });
+                    armourItem->frontSleeveFrameset(humanoid.identity().gender),
+                    armourItem->directives(),
+                    Directives()});
                 backSleeveUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->backSleeveFrameset(humanoid.identity().gender),
-                  armourItem->directives(),
-                  Directives()
-                });
+                    armourItem->backSleeveFrameset(humanoid.identity().gender),
+                    armourItem->directives(),
+                    Directives()});
               }
             }
           }
@@ -230,20 +221,17 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         if (item) {
           if (auto armourItem = as<ChestArmor>(item)) {
             chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-              armourItem->bodyFrameset(humanoid.identity().gender),
-              armourItem->directives(),
-              Directives()
-            });
+                armourItem->bodyFrameset(humanoid.identity().gender),
+                armourItem->directives(),
+                Directives()});
             frontSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
-              armourItem->frontSleeveFrameset(humanoid.identity().gender),
-              armourItem->directives(),
-              Directives()
-            });
+                armourItem->frontSleeveFrameset(humanoid.identity().gender),
+                armourItem->directives(),
+                Directives()});
             backSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
-              armourItem->backSleeveFrameset(humanoid.identity().gender),
-              armourItem->directives(),
-              Directives()
-            });
+                armourItem->backSleeveFrameset(humanoid.identity().gender),
+                armourItem->directives(),
+                Directives()});
           }
         }
       }
@@ -284,17 +272,16 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         if (item) {
           if (auto armourItem = as<LegsArmor>(item)) {
             legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-              armourItem->frameset(humanoid.identity().gender),
-              armourItem->directives(),
-              Directives()
-            });
+                armourItem->frameset(humanoid.identity().gender),
+                armourItem->directives(),
+                Directives()});
           }
         }
       }
       humanoid.setLegsArmorStack(legsArmorStack);
     }
     if (m_legsItem) {
-      if (legsNeedsSync) { 
+      if (legsNeedsSync) {
         if (m_legsItem->isUnderlaid()) {
           humanoid.setLegsArmorUnderlayFrameset(m_legsItem->frameset(humanoid.identity().gender));
           humanoid.setLegsArmorUnderlayDirectives(m_legsItem->directives());
@@ -303,10 +290,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             if (item) {
               if (auto armourItem = as<LegsArmor>(item)) {
                 legsArmorUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->frameset(humanoid.identity().gender),
-                  armourItem->directives(),
-                  Directives()
-                });
+                    armourItem->frameset(humanoid.identity().gender),
+                    armourItem->directives(),
+                    Directives()});
               }
             }
           }
@@ -333,10 +319,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         if (item) {
           if (auto armourItem = as<LegsArmor>(item)) {
             legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-              armourItem->frameset(humanoid.identity().gender),
-              armourItem->directives(),
-              Directives()
-            });
+                armourItem->frameset(humanoid.identity().gender),
+                armourItem->directives(),
+                Directives()});
           }
         }
       }
@@ -358,34 +343,36 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     if (backNeedsSync) {
       humanoid.setBackArmorFrameset(m_backCosmeticItem->frameset(humanoid.identity().gender));
       humanoid.setBackArmorDirectives(m_backCosmeticItem->directives());
-      List<Humanoid::ArmorEntry> backArmorStack = {};
+      humanoid.setBackArmorHeadRotation(m_backCosmeticItem->rotateWithHead());
+      List<Humanoid::BackEntry> backArmorStack = {};
       for (auto& item : m_backCosmeticItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<BackArmor>(item)) {
-            backArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-              armourItem->frameset(humanoid.identity().gender),
-              armourItem->directives(),
-              Directives()
-            });
+            backArmorStack.emplaceAppend(Humanoid::BackEntry{
+                armourItem->frameset(humanoid.identity().gender),
+                armourItem->directives(),
+                Directives(),
+                armourItem->rotateWithHead()});
           }
         }
       }
       humanoid.setBackArmorStack(backArmorStack);
     }
     if (m_backItem) {
-      if (backNeedsSync) { 
+      if (backNeedsSync) {
         if (m_backItem->isUnderlaid()) {
           humanoid.setBackArmorUnderlayFrameset(m_backItem->frameset(humanoid.identity().gender));
           humanoid.setBackArmorUnderlayDirectives(m_backItem->directives());
-          List<Humanoid::ArmorEntry> backArmorUnderlayStack = {};
-          for (auto& item : m_backCosmeticItem->getStackedCosmetics()) {
+          humanoid.setBackArmorUnderlayHeadRotation(m_backItem->rotateWithHead());
+          List<Humanoid::BackEntry> backArmorUnderlayStack = {};
+          for (auto& item : m_backItem->getStackedCosmetics()) {
             if (item) {
               if (auto armourItem = as<BackArmor>(item)) {
-                backArmorUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->frameset(humanoid.identity().gender),
-                  armourItem->directives(),
-                  Directives()
-                });
+                backArmorUnderlayStack.emplaceAppend(Humanoid::BackEntry{
+                    armourItem->frameset(humanoid.identity().gender),
+                    armourItem->directives(),
+                    Directives(),
+                    armourItem->rotateWithHead()});
               }
             }
           }
@@ -407,27 +394,31 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     if (backNeedsSync) {
       humanoid.setBackArmorFrameset(m_backItem->frameset(humanoid.identity().gender));
       humanoid.setBackArmorDirectives(m_backItem->directives());
-      List<Humanoid::ArmorEntry> backArmorStack = {};
+      humanoid.setBackArmorHeadRotation(m_backItem->rotateWithHead());
+      List<Humanoid::BackEntry> backArmorStack = {};
       for (auto& item : m_backItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<BackArmor>(item)) {
-            backArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-              armourItem->frameset(humanoid.identity().gender),
-              armourItem->directives(),
-              Directives()
-            });
+            backArmorStack.emplaceAppend(Humanoid::BackEntry{
+                armourItem->frameset(humanoid.identity().gender),
+                armourItem->directives(),
+                Directives(),
+                armourItem->rotateWithHead()});
           }
         }
       }
       humanoid.setBackArmorStack(backArmorStack);
       humanoid.setBackArmorUnderlayFrameset("");
+      humanoid.setBackArmorUnderlayHeadRotation(false);
       humanoid.setBackArmorUnderlayStack({});
     }
     bodyHidden = bodyHidden || m_backItem->hideBody();
   } else {
     if (backNeedsSync) {
       humanoid.setBackArmorFrameset("");
+      humanoid.setBackArmorHeadRotation(false);
       humanoid.setBackArmorUnderlayFrameset("");
+      humanoid.setBackArmorUnderlayHeadRotation(false);
       humanoid.setBackArmorStack({});
       humanoid.setBackArmorUnderlayStack({});
     }

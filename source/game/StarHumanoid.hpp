@@ -2,8 +2,8 @@
 #define STAR_HUMANOID_HPP
 
 #include "StarDataStream.hpp"
-#include "StarGameTypes.hpp"
 #include "StarDrawable.hpp"
+#include "StarGameTypes.hpp"
 #include "StarParticle.hpp"
 
 namespace Star {
@@ -94,16 +94,16 @@ DataStream& operator<<(DataStream& ds, HumanoidIdentity const& identity);
 class Humanoid {
 public:
   enum State {
-    Idle, // 1 idle frame
-    Walk, // 8 walking frames
-    Run, // 8 run frames
-    Jump, // 4 jump frames
-    Fall, // 4 fall frames
-    Swim, // 7 swim frames
+    Idle,     // 1 idle frame
+    Walk,     // 8 walking frames
+    Run,      // 8 run frames
+    Jump,     // 4 jump frames
+    Fall,     // 4 fall frames
+    Swim,     // 7 swim frames
     SwimIdle, // 2 swim idle frame
-    Duck, // 1 ducking frame
-    Sit, // 1 sitting frame
-    Lay, // 1 laying frame
+    Duck,     // 1 ducking frame
+    Sit,      // 1 sitting frame
+    Lay,      // 1 laying frame
     STATESIZE
   };
   static EnumMap<State> const StateNames;
@@ -136,6 +136,13 @@ public:
     Directives maskDirectives = Directives();
   };
 
+  struct BackEntry {
+    String frameset = "";
+    Directives directives = Directives();
+    Directives maskDirectives = Directives();
+    bool rotateWithHead = false;
+  };
+
   void setIdentity(HumanoidIdentity const& identity);
   HumanoidIdentity const& identity() const;
 
@@ -165,6 +172,7 @@ public:
   void setBackArmorDirectives(Directives directives);
   // Must have :idle, :duck, :walk[1-8], :run[1-8], :jump[1-4], :fall[1-4]
   void setBackArmorFrameset(String backFrameset);
+  void setBackArmorHeadRotation(bool rotation);
 
   void setHelmetMaskDirectives(Directives helmetMaskDirectives);
 
@@ -180,17 +188,18 @@ public:
 
   void setBackArmorUnderlayDirectives(Directives directives);
   void setBackArmorUnderlayFrameset(String backFrameset);
+  void setBackArmorUnderlayHeadRotation(bool rotation);
 
   void setHelmetMaskUnderlayDirectives(Directives helmetMaskDirectives);
 
-  void setBackArmorStack(List<ArmorEntry> const& newStack);
+  void setBackArmorStack(List<BackEntry> const& newStack);
   void setBackSleeveStack(List<ArmorEntry> const& newStack);
   void setLegsArmorStack(List<ArmorEntry> const& newStack);
   void setChestArmorStack(List<ArmorEntry> const& newStack);
   void setHeadArmorStack(List<ArmorEntry> const& newStack);
   void setFrontSleeveStack(List<ArmorEntry> const& newStack);
 
-  void setBackArmorUnderlayStack(List<ArmorEntry> const& newStack);
+  void setBackArmorUnderlayStack(List<BackEntry> const& newStack);
   void setBackSleeveUnderlayStack(List<ArmorEntry> const& newStack);
   void setLegsArmorUnderlayStack(List<ArmorEntry> const& newStack);
   void setChestArmorUnderlayStack(List<ArmorEntry> const& newStack);
@@ -403,21 +412,21 @@ private:
   Directives m_backArmorUnderlayDirectives;
   Directives m_helmetMaskUnderlayDirectives;
 
-  List<ArmorEntry> m_backArmorStack;
+  List<BackEntry> m_backArmorStack;
   List<ArmorEntry> m_backSleeveStack;
   List<ArmorEntry> m_legsArmorStack;
   List<ArmorEntry> m_chestArmorStack;
   List<ArmorEntry> m_headArmorStack;
   List<ArmorEntry> m_frontSleeveStack;
 
-  List<ArmorEntry> m_backArmorUnderlayStack;
+  List<BackEntry> m_backArmorUnderlayStack;
   List<ArmorEntry> m_backSleeveUnderlayStack;
   List<ArmorEntry> m_legsArmorUnderlayStack;
   List<ArmorEntry> m_chestArmorUnderlayStack;
   List<ArmorEntry> m_headArmorUnderlayStack;
   List<ArmorEntry> m_frontSleeveUnderlayStack;
 
-  Vec2F m_headCenterPosition; // FezzedOne: Position of the centre of the humanoid's head.
+  Vec2F m_headCenterPosition;     // FezzedOne: Position of the centre of the humanoid's head.
   float m_headRotationMultiplier; // FezzedOne: The amount to multiply head rotation by.
   // FezzedOne: The maximum offset by which the head is shifted while it is being rotated.
   // The head rotation (before the multiplier above) is divided by `0.5f * Constants::pi`,
@@ -432,6 +441,8 @@ private:
   bool m_movingBackwards;
   float m_rotation;
   bool m_drawVaporTrail;
+  bool m_backArmorHeadRotation;
+  bool m_backArmorUnderlayHeadRotation;
 
   HandDrawingInfo m_primaryHand;
   HandDrawingInfo m_altHand;
@@ -453,6 +464,6 @@ private:
   uint32_t m_humanoidRotationSettings;
 };
 
-}
+} // namespace Star
 
 #endif

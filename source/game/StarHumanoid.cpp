@@ -1,32 +1,31 @@
 #include "StarHumanoid.hpp"
-#include "StarRoot.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarDataStreamExtra.hpp"
 #include "StarArmors.hpp"
-#include "StarParticleDatabase.hpp"
 #include "StarAssets.hpp"
-#include "StarSpeciesDatabase.hpp"
 #include "StarDanceDatabase.hpp"
+#include "StarDataStreamExtra.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarParticleDatabase.hpp"
+#include "StarRoot.hpp"
+#include "StarSpeciesDatabase.hpp"
 #include <cstddef>
 
 namespace Star {
 
 extern EnumMap<HumanoidEmote> const HumanoidEmoteNames{
-  {HumanoidEmote::Idle, "Idle"},
-  {HumanoidEmote::Blabbering, "Blabbering"},
-  {HumanoidEmote::Shouting, "Shouting"},
-  {HumanoidEmote::Happy, "Happy"},
-  {HumanoidEmote::Sad, "Sad"},
-  {HumanoidEmote::NEUTRAL, "NEUTRAL"},
-  {HumanoidEmote::Laugh, "Laugh"},
-  {HumanoidEmote::Annoyed, "Annoyed"},
-  {HumanoidEmote::Oh, "Oh"},
-  {HumanoidEmote::OOOH, "OOOH"},
-  {HumanoidEmote::Blink, "Blink"},
-  {HumanoidEmote::Wink, "Wink"},
-  {HumanoidEmote::Eat, "Eat"},
-  {HumanoidEmote::Sleep, "Sleep"}
-};
+    {HumanoidEmote::Idle, "Idle"},
+    {HumanoidEmote::Blabbering, "Blabbering"},
+    {HumanoidEmote::Shouting, "Shouting"},
+    {HumanoidEmote::Happy, "Happy"},
+    {HumanoidEmote::Sad, "Sad"},
+    {HumanoidEmote::NEUTRAL, "NEUTRAL"},
+    {HumanoidEmote::Laugh, "Laugh"},
+    {HumanoidEmote::Annoyed, "Annoyed"},
+    {HumanoidEmote::Oh, "Oh"},
+    {HumanoidEmote::OOOH, "OOOH"},
+    {HumanoidEmote::Blink, "Blink"},
+    {HumanoidEmote::Wink, "Wink"},
+    {HumanoidEmote::Eat, "Eat"},
+    {HumanoidEmote::Sleep, "Sleep"}};
 
 Personality parsePersonalityArray(Json const& config) {
   return Personality{config.getString(0), config.getString(1), jsonToVec2F(config.get(2)), jsonToVec2F(config.get(3))};
@@ -52,11 +51,10 @@ Personality parsePersonality(Json const& config) {
 
 Json jsonFromPersonality(Personality const& personality) {
   return JsonObject{
-    { "idle", personality.idle },
-    { "armIdle", personality.armIdle },
-    { "headOffset", jsonFromVec2F(personality.headOffset) },
-    { "armOffset", jsonFromVec2F(personality.armOffset)   }
-  };
+      {"idle", personality.idle},
+      {"armIdle", personality.armIdle},
+      {"headOffset", jsonFromVec2F(personality.headOffset)},
+      {"armOffset", jsonFromVec2F(personality.armOffset)}};
 }
 
 HumanoidIdentity::HumanoidIdentity(Json config) {
@@ -94,26 +92,25 @@ HumanoidIdentity::HumanoidIdentity(Json config) {
 
 Json HumanoidIdentity::toJson() const {
   auto result = JsonObject{
-    {"name", name},
-    {"species", species},
-    {"gender", GenderNames.getRight(gender)},
-    {"hairGroup", hairGroup},
-    {"hairType", hairType},
-    {"hairDirectives", hairDirectives.string()},
-    {"bodyDirectives", bodyDirectives.string()},
-    {"emoteDirectives", emoteDirectives.string()},
-    {"facialHairGroup", facialHairGroup},
-    {"facialHairType", facialHairType},
-    {"facialHairDirectives", facialHairDirectives.string()},
-    {"facialMaskGroup", facialMaskGroup},
-    {"facialMaskType", facialMaskType},
-    {"facialMaskDirectives", facialMaskDirectives.string()},
-    {"personalityIdle", personality.idle},
-    {"personalityArmIdle", personality.armIdle},
-    {"personalityHeadOffset", jsonFromVec2F(personality.headOffset)},
-    {"personalityArmOffset", jsonFromVec2F(personality.armOffset)},
-    {"color", jsonFromColor(Color::rgba(color))}
-  };
+      {"name", name},
+      {"species", species},
+      {"gender", GenderNames.getRight(gender)},
+      {"hairGroup", hairGroup},
+      {"hairType", hairType},
+      {"hairDirectives", hairDirectives.string()},
+      {"bodyDirectives", bodyDirectives.string()},
+      {"emoteDirectives", emoteDirectives.string()},
+      {"facialHairGroup", facialHairGroup},
+      {"facialHairType", facialHairType},
+      {"facialHairDirectives", facialHairDirectives.string()},
+      {"facialMaskGroup", facialMaskGroup},
+      {"facialMaskType", facialMaskType},
+      {"facialMaskDirectives", facialMaskDirectives.string()},
+      {"personalityIdle", personality.idle},
+      {"personalityArmIdle", personality.armIdle},
+      {"personalityHeadOffset", jsonFromVec2F(personality.headOffset)},
+      {"personalityArmOffset", jsonFromVec2F(personality.armOffset)},
+      {"color", jsonFromColor(Color::rgba(color))}};
   if (imagePath)
     result["imagePath"] = *imagePath;
   return result;
@@ -318,7 +315,7 @@ Humanoid::Humanoid(Json const& config) {
 }
 
 Humanoid::Humanoid(HumanoidIdentity const& identity)
-  : Humanoid(Root::singleton().speciesDatabase()->species(identity.species)->humanoidConfig()) {
+    : Humanoid(Root::singleton().speciesDatabase()->species(identity.species)->humanoidConfig()) {
   setIdentity(identity);
 }
 
@@ -383,6 +380,10 @@ void Humanoid::setBackArmorDirectives(Directives directives) {
   m_backArmorDirectives = std::move(directives);
 }
 
+void Humanoid::setBackArmorHeadRotation(bool rotation) {
+  m_backArmorHeadRotation = rotation;
+}
+
 void Humanoid::setBackArmorFrameset(String backFrameset) {
   m_backArmorFrameset = std::move(backFrameset);
 }
@@ -427,6 +428,10 @@ void Humanoid::setBackArmorUnderlayDirectives(Directives directives) {
   m_backArmorUnderlayDirectives = std::move(directives);
 }
 
+void Humanoid::setBackArmorUnderlayHeadRotation(bool rotation) {
+  m_backArmorUnderlayHeadRotation = rotation;
+}
+
 void Humanoid::setBackArmorUnderlayFrameset(String backFrameset) {
   m_backArmorUnderlayFrameset = std::move(backFrameset);
 }
@@ -435,7 +440,7 @@ void Humanoid::setHelmetMaskUnderlayDirectives(Directives helmetMaskDirectives) 
   m_helmetMaskUnderlayDirectives = std::move(helmetMaskDirectives);
 }
 
-void Humanoid::setBackArmorStack(List<ArmorEntry> const& newStack) {
+void Humanoid::setBackArmorStack(List<BackEntry> const& newStack) {
   m_backArmorStack = std::move(newStack);
 }
 
@@ -459,7 +464,7 @@ void Humanoid::setFrontSleeveStack(List<ArmorEntry> const& newStack) {
   m_frontSleeveStack = std::move(newStack);
 }
 
-void Humanoid::setBackArmorUnderlayStack(List<ArmorEntry> const& newStack) {
+void Humanoid::setBackArmorUnderlayStack(List<BackEntry> const& newStack) {
   m_backArmorUnderlayStack = std::move(newStack);
 }
 
@@ -652,6 +657,28 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
     return backArm;
   };
 
+  Vec2F headRotationOffset = Vec2F(0.0f, 0.0f);
+  if (aimAngleToUse) {
+    headRotationOffset = Vec2F::filled(*aimAngleToUse / (0.5f * Constants::pi)).piecewiseMultiply(m_maximumHeadRotationOffset);
+    headRotationOffset[1] = std::abs(headRotationOffset[1]) * (m_maximumHeadRotationOffset[1] < 0.0f ? -1.0f : 1.0f);
+  }
+
+  Vec2F headPosition(0.0f, bobYOffset);
+  if (dance.isValid())
+    headPosition += danceStep->headOffset / TilePixels;
+  else if (m_state == Idle)
+    headPosition += m_identity.personality.headOffset / TilePixels;
+  else if (m_state == Run)
+    headPosition += m_headRunOffset;
+  else if (m_state == Swim || m_state == SwimIdle)
+    headPosition += m_headSwimOffset;
+  else if (m_state == Duck)
+    headPosition += m_headDuckOffset;
+  else if (m_state == Sit)
+    headPosition += m_headSitOffset;
+  else if (m_state == Lay)
+    headPosition += m_headLayOffset;
+
   if (!m_backArmorUnderlayFrameset.empty()) {
     auto frameGroup = frameBase(m_state);
     if (m_movingBackwards && (m_state == State::Run))
@@ -666,11 +693,15 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
 
     auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, Vec2F());
     drawable.imagePart().addDirectives(getBackUnderlayDirectives(), true);
+    if (m_backArmorUnderlayHeadRotation && aimAngleToUse) {
+      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+      drawable.translate(headRotationOffset);
+    }
     addDrawable(std::move(drawable));
   }
 
   if (!m_backArmorUnderlayStack.empty()) {
-    for (ArmorEntry entry : m_backArmorUnderlayStack) {
+    for (BackEntry entry : m_backArmorUnderlayStack) {
       auto frameGroup = frameBase(m_state);
       if (m_movingBackwards && (m_state == State::Run))
         frameGroup = "runbackwards";
@@ -684,6 +715,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
 
       auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, Vec2F());
       drawable.imagePart().addDirectives(entry.directives, true);
+      if (entry.rotateWithHead && aimAngleToUse) {
+        drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+        drawable.translate(headRotationOffset);
+      }
       addDrawable(std::move(drawable));
     }
   }
@@ -702,11 +737,15 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
 
     auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, Vec2F());
     drawable.imagePart().addDirectives(getBackDirectives(), true);
+    if (m_backArmorHeadRotation && aimAngleToUse) {
+      drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+      drawable.translate(headRotationOffset);
+    }
     addDrawable(std::move(drawable));
   }
 
   if (!m_backArmorStack.empty()) {
-    for (ArmorEntry entry : m_backArmorStack) {
+    for (BackEntry entry : m_backArmorStack) {
       auto frameGroup = frameBase(m_state);
       if (m_movingBackwards && (m_state == State::Run))
         frameGroup = "runbackwards";
@@ -720,6 +759,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
 
       auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, Vec2F());
       drawable.imagePart().addDirectives(entry.directives, true);
+      if (entry.rotateWithHead && aimAngleToUse) {
+        drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
+        drawable.translate(headRotationOffset);
+      }
       addDrawable(std::move(drawable));
     }
   }
@@ -848,35 +891,13 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
     }
   }
 
-  Vec2F headPosition(0.0f, bobYOffset);
-  if (dance.isValid())
-    headPosition += danceStep->headOffset / TilePixels;
-  else if (m_state == Idle)
-    headPosition += m_identity.personality.headOffset / TilePixels;
-  else if (m_state == Run)
-    headPosition += m_headRunOffset;
-  else if (m_state == Swim || m_state == SwimIdle)
-    headPosition += m_headSwimOffset;
-  else if (m_state == Duck)
-    headPosition += m_headDuckOffset;
-  else if (m_state == Sit)
-    headPosition += m_headSitOffset;
-  else if (m_state == Lay)
-    headPosition += m_headLayOffset;
-
   auto getRotationMaskFromIdentity = [&](String animationFrame, bool isHeadMask) -> String {
     return String(strf("?addmask=/humanoid/{}/{}mask/{}body.png:{}",
-      m_identity.imagePath ? *m_identity.imagePath : m_identity.species,
-      isHeadMask ? "head" : "",
-      GenderNames.getRight(m_identity.gender),
-      animationFrame));
+        m_identity.imagePath ? *m_identity.imagePath : m_identity.species,
+        isHeadMask ? "head" : "",
+        GenderNames.getRight(m_identity.gender),
+        animationFrame));
   };
-
-  Vec2F headRotationOffset = Vec2F(0.0f, 0.0f);
-  if (aimAngleToUse) {
-    headRotationOffset = Vec2F::filled(*aimAngleToUse / (0.5f * Constants::pi)).piecewiseMultiply(m_maximumHeadRotationOffset);
-    headRotationOffset[1] = std::abs(headRotationOffset[1]) * (m_maximumHeadRotationOffset[1] < 0.0f ? -1.0f : 1.0f);
-  }
 
   if (!m_headFrameset.empty() && !m_bodyHidden) {
     String image = strf("{}:normal", m_headFrameset);
@@ -907,8 +928,7 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
       drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
       drawable.translate(headRotationOffset);
     }
-    drawable.imagePart().addDirectives(getHairDirectives(), true)
-      .addDirectives(getHelmetMaskUnderlayDirectives(), true);
+    drawable.imagePart().addDirectives(getHairDirectives(), true).addDirectives(getHelmetMaskUnderlayDirectives(), true);
     if (!m_headArmorUnderlayStack.empty()) {
       for (ArmorEntry entry : m_headArmorUnderlayStack)
         drawable.imagePart().addDirectives(entry.maskDirectives, true);
@@ -938,8 +958,7 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
     addDrawable(std::move(drawable), m_bodyFullbright);
     if (bodyMaskToHead) {
       auto rotatedDrawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, {});
-      rotatedDrawable.imagePart().addDirectives(getRotationMaskFromIdentity(frame, true))
-        .addDirectives(getBodyDirectives(), true);
+      rotatedDrawable.imagePart().addDirectives(getRotationMaskFromIdentity(frame, true)).addDirectives(getBodyDirectives(), true);
       if (aimAngleToUse) {
         rotatedDrawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
         rotatedDrawable.translate(headRotationOffset);
@@ -1107,8 +1126,7 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
       drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
       drawable.translate(headRotationOffset);
     }
-    drawable.imagePart().addDirectives(getFacialHairDirectives(), true)
-      .addDirectives(getHelmetMaskUnderlayDirectives(), true);
+    drawable.imagePart().addDirectives(getFacialHairDirectives(), true).addDirectives(getHelmetMaskUnderlayDirectives(), true);
     if (!m_headArmorUnderlayStack.empty()) {
       for (ArmorEntry entry : m_headArmorUnderlayStack)
         drawable.imagePart().addDirectives(entry.maskDirectives, true);
@@ -1128,8 +1146,7 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
       drawable.rotate(*aimAngleToUse * m_headRotationMultiplier, headPosition + m_headCenterPosition);
       drawable.translate(headRotationOffset);
     }
-    drawable.imagePart().addDirectives(getFacialMaskDirectives(), true)
-      .addDirectives(getHelmetMaskUnderlayDirectives(), true);
+    drawable.imagePart().addDirectives(getFacialMaskDirectives(), true).addDirectives(getHelmetMaskUnderlayDirectives(), true);
     if (!m_headArmorUnderlayStack.empty()) {
       for (ArmorEntry entry : m_headArmorUnderlayStack)
         drawable.imagePart().addDirectives(entry.maskDirectives, true);
@@ -1378,8 +1395,7 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
   int emoteStateSeq = m_timing.emoteStateSeq(m_emoteAnimationTimer, m_emoteState);
 
   auto addDrawable = [&](Drawable&& drawable) -> Drawable& {
-    if (mode != PortraitMode::Full && mode != PortraitMode::FullNeutral
-      && mode != PortraitMode::FullNude && mode != PortraitMode::FullNeutralNude) {
+    if (mode != PortraitMode::Full && mode != PortraitMode::FullNeutral && mode != PortraitMode::FullNude && mode != PortraitMode::FullNeutralNude) {
       // TODO: make this configurable
       drawable.imagePart().addDirectives(String("addmask=/humanoid/portraitMask.png;0;0"), false);
     }
@@ -1407,7 +1423,7 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
           addDrawable(std::move(drawable));
         }
         if (!m_backArmorUnderlayStack.empty()) {
-          for (ArmorEntry entry : m_backArmorUnderlayStack) {
+          for (BackEntry entry : m_backArmorUnderlayStack) {
             String image = strf("{}:{}", entry.frameset, personality.idle);
             Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, {});
             drawable.imagePart().addDirectives(entry.directives, true);
@@ -1421,7 +1437,7 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
           addDrawable(std::move(drawable));
         }
         if (!m_backArmorStack.empty()) {
-          for (ArmorEntry entry : m_backArmorStack) {
+          for (BackEntry entry : m_backArmorStack) {
             String image = strf("{}:{}", entry.frameset, personality.idle);
             Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, {});
             drawable.imagePart().addDirectives(entry.directives, true);
@@ -1764,16 +1780,14 @@ List<Drawable> Humanoid::renderDummy(Gender gender, Maybe<HeadArmor const*> head
         if (item) {
           if (auto armourItem = as<HeadArmor>(item)) {
             headArmorStack.emplaceAppend(ArmorEntry{
-              armourItem->frameset(gender),
-              armourItem->directives(),
-              armourItem->maskDirectives()
-            });
+                armourItem->frameset(gender),
+                armourItem->directives(),
+                armourItem->maskDirectives()});
           }
         }
       }
       setHeadArmorStack(headArmorStack);
-    }
-    else {
+    } else {
       setHeadArmorFrameset("");
       setHeadArmorDirectives("");
       setHelmetMaskDirectives("");
@@ -1797,28 +1811,24 @@ List<Drawable> Humanoid::renderDummy(Gender gender, Maybe<HeadArmor const*> head
         if (item) {
           if (auto armourItem = as<ChestArmor>(item)) {
             chestArmorStack.emplaceAppend(ArmorEntry{
-              armourItem->bodyFrameset(gender),
-              armourItem->directives(),
-              Directives()
-            });
+                armourItem->bodyFrameset(gender),
+                armourItem->directives(),
+                Directives()});
             frontSleeveStack.emplaceAppend(ArmorEntry{
-              armourItem->frontSleeveFrameset(gender),
-              armourItem->directives(),
-              Directives()
-            });
+                armourItem->frontSleeveFrameset(gender),
+                armourItem->directives(),
+                Directives()});
             backSleeveStack.emplaceAppend(ArmorEntry{
-              armourItem->backSleeveFrameset(gender),
-              armourItem->directives(),
-              Directives()
-            });
+                armourItem->backSleeveFrameset(gender),
+                armourItem->directives(),
+                Directives()});
           }
         }
       }
       setChestArmorStack(chestArmorStack);
       setFrontSleeveStack(frontSleeveStack);
       setBackSleeveStack(backSleeveStack);
-    }
-    else {
+    } else {
       setBackSleeveFrameset("");
       setFrontSleeveFrameset("");
       setChestArmorFrameset("");
@@ -1841,16 +1851,14 @@ List<Drawable> Humanoid::renderDummy(Gender gender, Maybe<HeadArmor const*> head
         if (item) {
           if (auto armourItem = as<LegsArmor>(item)) {
             legsArmorStack.emplaceAppend(ArmorEntry{
-              armourItem->frameset(gender),
-              armourItem->directives(),
-              Directives()
-            });
+                armourItem->frameset(gender),
+                armourItem->directives(),
+                Directives()});
           }
         }
       }
       setLegsArmorStack(legsArmorStack);
-    }
-    else {
+    } else {
       setLegsArmorFrameset("");
       setLegsArmorDirectives("");
       setLegsArmorStack({});
@@ -1864,21 +1872,19 @@ List<Drawable> Humanoid::renderDummy(Gender gender, Maybe<HeadArmor const*> head
     if (auto backPtr = *back) {
       setBackArmorFrameset(backPtr->frameset(gender));
       setBackArmorDirectives(backPtr->directives());
-      List<ArmorEntry> backArmorStack = {};
+      List<BackEntry> backArmorStack = {};
       for (auto& item : backPtr->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<BackArmor>(item)) {
-            backArmorStack.emplaceAppend(ArmorEntry{
-              armourItem->frameset(gender),
-              armourItem->directives(),
-              Directives()
-            });
+            backArmorStack.emplaceAppend(BackEntry{
+                armourItem->frameset(gender),
+                armourItem->directives(),
+                Directives()});
           }
         }
       }
       setBackArmorStack(backArmorStack);
-    }
-    else {
+    } else {
       setBackArmorFrameset("");
       setBackArmorDirectives("");
       setBackArmorStack({});
@@ -2280,4 +2286,4 @@ Json const& Humanoid::defaultMovementParameters() const {
   return m_defaultMovementParameters;
 }
 
-}
+} // namespace Star
