@@ -1,26 +1,26 @@
 #include "StarInventory.hpp"
-#include "StarGuiReader.hpp"
-#include "StarItemTooltip.hpp"
-#include "StarSimpleTooltip.hpp"
-#include "StarRoot.hpp"
-#include "StarUniverseClient.hpp"
-#include "StarItemGridWidget.hpp"
-#include "StarButtonWidget.hpp"
-#include "StarPortraitWidget.hpp"
-#include "StarPaneManager.hpp"
-#include "StarLabelWidget.hpp"
-#include "StarImageWidget.hpp"
-#include "StarPlayerInventory.hpp"
-#include "StarPlayerCompanions.hpp"
-#include "StarWorldClient.hpp"
-#include "StarAssets.hpp"
-#include "StarItem.hpp"
 #include "StarArmors.hpp"
+#include "StarAssets.hpp"
+#include "StarAugmentItem.hpp"
+#include "StarButtonWidget.hpp"
+#include "StarGuiReader.hpp"
+#include "StarImageWidget.hpp"
+#include "StarItem.hpp"
+#include "StarItemGridWidget.hpp"
+#include "StarItemTooltip.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLabelWidget.hpp"
 #include "StarMainInterface.hpp"
 #include "StarMerchantInterface.hpp"
-#include "StarJsonExtra.hpp"
+#include "StarPaneManager.hpp"
+#include "StarPlayerCompanions.hpp"
+#include "StarPlayerInventory.hpp"
+#include "StarPortraitWidget.hpp"
+#include "StarRoot.hpp"
+#include "StarSimpleTooltip.hpp"
 #include "StarStatistics.hpp"
-#include "StarAugmentItem.hpp"
+#include "StarUniverseClient.hpp"
+#include "StarWorldClient.hpp"
 
 namespace Star {
 
@@ -99,7 +99,7 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
 
         // FezzedOne: Right-clicking on an armour item in the inventory with an empty swap slot toggles the item's «underlaid» status.
         // Shift-right-click grabs an item out of an armour item's cosmetic stack if any stack is present.
-        if (as<ArmorItem>(slotItem) && !swapItem) {
+        if (as<ArmorItem>(slotItem) && !swapItem && (slotItem->maxStack() == 1)) {
           if (auto armourItem = as<ArmorItem>(slotItem)) {
             if (context()->shiftHeld())
               inventory->setSwapSlotItem(armourItem->popCosmetic());
@@ -151,35 +151,35 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
   }
 
   invWindowReader.registerCallback("close", [=](Widget*) {
-      dismiss();
-    });
+    dismiss();
+  });
 
   invWindowReader.registerCallback("sort", [=](Widget*) {
-      m_player->inventory()->condenseBagStacks(m_selectedTab);
-      m_player->inventory()->sortBag(m_selectedTab);
-      // Don't show sorted items as new items
-      m_itemGrids[m_selectedTab]->updateItemState();
-      m_itemGrids[m_selectedTab]->clearChangedSlots();
-    });
+    m_player->inventory()->condenseBagStacks(m_selectedTab);
+    m_player->inventory()->sortBag(m_selectedTab);
+    // Don't show sorted items as new items
+    m_itemGrids[m_selectedTab]->updateItemState();
+    m_itemGrids[m_selectedTab]->clearChangedSlots();
+  });
 
   invWindowReader.registerCallback("gridModeSelector", [=](Widget* widget) {
-      auto selected = convert<ButtonWidget>(widget)->data().toString();
-      selectTab(m_tabButtonData.keyOf(selected));
-    });
+    auto selected = convert<ButtonWidget>(widget)->data().toString();
+    selectTab(m_tabButtonData.keyOf(selected));
+  });
 
   auto registerSlotCallbacks = [&](String name, InventorySlot slot) {
     invWindowReader.registerCallback(name, [=](Widget* paneObj) {
-        if (as<ItemSlotWidget>(paneObj))
-          m_player->inventory()->shiftSwap(slot);
-        else
-          throw GuiException("Invalid object type, expected ItemSlotWidget");
-      });
+      if (as<ItemSlotWidget>(paneObj))
+        m_player->inventory()->shiftSwap(slot);
+      else
+        throw GuiException("Invalid object type, expected ItemSlotWidget");
+    });
     invWindowReader.registerCallback(name + ".right", [=](Widget* paneObj) {
-        if (as<ItemSlotWidget>(paneObj))
-          rightClickCallback(slot);
-        else
-          throw GuiException("Invalid object type, expected ItemSlotWidget");
-      });
+      if (as<ItemSlotWidget>(paneObj))
+        rightClickCallback(slot);
+      else
+        throw GuiException("Invalid object type, expected ItemSlotWidget");
+    });
   };
 
   for (auto const p : EquipmentSlotNames)
@@ -326,10 +326,9 @@ void InventoryPane::update(float dt) {
   if (auto trashItem = m_trashSlot->item()) {
     if (m_trashBurn.tick(dt) && trashItem->count() > 0) {
       m_player->statistics()->recordEvent("trashItem", JsonObject{
-          {"itemName", trashItem->name()},
-          {"count", trashItem->count()},
-          {"category", trashItem->category()}
-        });
+                                                           {"itemName", trashItem->name()},
+                                                           {"count", trashItem->count()},
+                                                           {"category", trashItem->category()}});
       trashItem->take(trashItem->count());
     }
   } else {
@@ -342,6 +341,7 @@ void InventoryPane::update(float dt) {
       itemSlot->setItem(inventory->itemsAt(p.first));
       itemSlot->showLinkIndicator(customBarItems.contains(itemSlot->item()));
       itemSlot->setCosmeticHighlightEnabled(false);
+      itemSlot->showSingleCountOnStackables(true);
       if (ItemPtr swapSlot = inventory->swapSlotItem()) {
         if (auto item = itemSlot->item()) {
           if (as<HeadArmor>(item))
@@ -527,4 +527,4 @@ void InventoryPane::selectTab(String const& selected) {
       tabs->select(tabs->id(button));
 }
 
-}
+} // namespace Star
