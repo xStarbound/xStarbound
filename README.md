@@ -179,6 +179,7 @@ The following mods are _NOT_ compatible with xStarbound:
 Due to recent changes in OpenStarbound's network protocol, xStarbound's network protocol is no longer fully network-compatible with OpenStarbound. As of v3.3.3r1, there are compatibility workarounds for this:
 
 - If you're getting a «No server response received» error on xClient when connecting to an OpenStarbound server, try putting an `@` before the address in the **Multiplayer** box; e.g., `@sb.some-server.net` instead of `sb.some-server.net`. This tells xClient to pretend to be a vanilla client for networking purposes, and should let you connect.
+- If you're using an OpenStarbound v0.1.9+ client to connect to an xStarbound server, tick the «FORCE LEGACY» box on the connection screen before connecting.
 - If players with OpenStarbound clients are having trouble connecting to your xServer server or xClient Steam host, try adding `"forceLegacyConnection": true` to your server's `xserver.config` or host client's `xclient.config`. This tells xStarbound to pretend to be a vanilla server or host for networking purposes, and should let those players connect. (Enabling this setting on xClient also tells the client to always pretend to be a vanilla client for networking purposes.)
 
 ## Building
