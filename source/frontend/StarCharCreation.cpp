@@ -1,22 +1,22 @@
 #include "StarCharCreation.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarGuiReader.hpp"
-#include "StarNameGenerator.hpp"
-#include "StarLogging.hpp"
-#include "StarRoot.hpp"
-#include "StarWorldClient.hpp"
-#include "StarSpeciesDatabase.hpp"
-#include "StarButtonWidget.hpp"
-#include "StarPortraitWidget.hpp"
-#include "StarTextBoxWidget.hpp"
-#include "StarLabelWidget.hpp"
-#include "StarImageWidget.hpp"
 #include "StarArmors.hpp"
 #include "StarAssets.hpp"
-#include "StarPlayerFactory.hpp"
+#include "StarButtonWidget.hpp"
+#include "StarGuiReader.hpp"
+#include "StarImageWidget.hpp"
 #include "StarItemDatabase.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLabelWidget.hpp"
+#include "StarLogging.hpp"
+#include "StarNameGenerator.hpp"
+#include "StarPlayerFactory.hpp"
 #include "StarPlayerInventory.hpp"
 #include "StarPlayerLog.hpp"
+#include "StarPortraitWidget.hpp"
+#include "StarRoot.hpp"
+#include "StarSpeciesDatabase.hpp"
+#include "StarTextBoxWidget.hpp"
+#include "StarWorldClient.hpp"
 
 namespace Star {
 
@@ -24,7 +24,7 @@ CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFu
   m_isExistingPlayer = m_skipRandomisation = (bool)existingPlayer;
   m_previewPlayer = existingPlayer;
   m_speciesChanged = m_genderChanged = m_coloursChanged = m_personalityChanged = m_hairChanged =
-  m_facialHairChanged = m_facialMaskChanged = m_modeChanged = m_nameChanged = false;
+      m_facialHairChanged = m_facialMaskChanged = m_modeChanged = m_nameChanged = false;
 
   auto& root = Root::singleton();
 
@@ -32,127 +32,127 @@ CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFu
 
   GuiReader guiReader;
   guiReader.registerCallback("cancel", [=](Widget*) {
-      if (m_isExistingPlayer && m_previewPlayer && m_oldIdentity)
-        m_previewPlayer->setIdentity(*m_oldIdentity);
-      requestCloseFunc({}); 
-    });
+    if (m_isExistingPlayer && m_previewPlayer && m_oldIdentity)
+      m_previewPlayer->setIdentity(*m_oldIdentity);
+    requestCloseFunc({});
+  });
   guiReader.registerCallback("saveChar", [=](Widget*) {
-      if (fetchChild<ButtonWidget>("btnSkipIntro")->isChecked())
-        m_previewPlayer->log()->setIntroComplete(true);
-      m_oldIdentity = {};
-      requestCloseFunc(m_previewPlayer);
-      if (!m_isExistingPlayer) {
-        createPlayer();
-        randomize();
-        randomizeName();
-      }
-    });
+    if (fetchChild<ButtonWidget>("btnSkipIntro")->isChecked())
+      m_previewPlayer->log()->setIntroComplete(true);
+    m_oldIdentity = {};
+    requestCloseFunc(m_previewPlayer);
+    if (!m_isExistingPlayer) {
+      createPlayer();
+      randomize();
+      randomizeName();
+    }
+  });
 
   guiReader.registerCallback("mainSkinColor.up", [=](Widget*) {
-      m_bodyColor++;
-      m_coloursChanged = true;
-      changed();
-    });
+    m_bodyColor++;
+    m_coloursChanged = true;
+    changed();
+  });
   guiReader.registerCallback("mainSkinColor.down", [=](Widget*) {
-      m_bodyColor--;
-      m_coloursChanged = true;
-      changed();
-    });
+    m_bodyColor--;
+    m_coloursChanged = true;
+    changed();
+  });
   guiReader.registerCallback("alty.up", [=](Widget*) {
-      m_alty++;
-      m_coloursChanged = true;
-      m_facialMaskChanged = true;
-      changed();
-    });
+    m_alty++;
+    m_coloursChanged = true;
+    m_facialMaskChanged = true;
+    changed();
+  });
   guiReader.registerCallback("alty.down", [=](Widget*) {
-      m_alty--;
-      m_coloursChanged = true;
-      m_facialMaskChanged = true;
-      changed();
-    });
+    m_alty--;
+    m_coloursChanged = true;
+    m_facialMaskChanged = true;
+    changed();
+  });
   guiReader.registerCallback("hairStyle.up", [=](Widget*) {
-      m_hairChoice++;
-      m_hairChanged = true;
-      changed();
-    });
+    m_hairChoice++;
+    m_hairChanged = true;
+    changed();
+  });
   guiReader.registerCallback("hairStyle.down", [=](Widget*) {
-      m_hairChoice--;
-      m_hairChanged = true;
-      changed();
-    });
+    m_hairChoice--;
+    m_hairChanged = true;
+    changed();
+  });
   guiReader.registerCallback("shirt.up", [=](Widget*) {
-      if (m_isExistingPlayer) return;
-      m_shirtChoice++;
-      fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
-      changed();
-    });
+    if (m_isExistingPlayer) return;
+    m_shirtChoice++;
+    fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
+    changed();
+  });
   guiReader.registerCallback("shirt.down", [=](Widget*) {
-      if (m_isExistingPlayer) return;
-      m_shirtChoice--;
-      fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
-      changed();
-    });
+    if (m_isExistingPlayer) return;
+    m_shirtChoice--;
+    fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
+    changed();
+  });
   guiReader.registerCallback("pants.up", [=](Widget*) {
-      if (m_isExistingPlayer) return;
-      m_pantsChoice++;
-      fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
-      changed();
-    });
+    if (m_isExistingPlayer) return;
+    m_pantsChoice++;
+    fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
+    changed();
+  });
   guiReader.registerCallback("pants.down", [=](Widget*) {
-      if (m_isExistingPlayer) return;
-      m_pantsChoice--;
-      fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
-      changed();
-    });
+    if (m_isExistingPlayer) return;
+    m_pantsChoice--;
+    fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
+    changed();
+  });
   guiReader.registerCallback("heady.up", [=](Widget*) {
-      m_heady++;
-      m_coloursChanged = true;
-      m_facialHairChanged = true;
-      changed();
-    });
+    m_heady++;
+    m_coloursChanged = true;
+    m_facialHairChanged = true;
+    changed();
+  });
   guiReader.registerCallback("heady.down", [=](Widget*) {
-      m_heady--;
-      m_coloursChanged = true;
-      m_facialHairChanged = true;
-      changed();
-    });
+    m_heady--;
+    m_coloursChanged = true;
+    m_facialHairChanged = true;
+    changed();
+  });
   guiReader.registerCallback("shirtColor.up", [=](Widget*) {
-      if (m_isExistingPlayer) return;
-      m_shirtColor++;
-      fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
-      changed();
-    });
+    if (m_isExistingPlayer) return;
+    m_shirtColor++;
+    fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
+    changed();
+  });
   guiReader.registerCallback("shirtColor.down", [=](Widget*) {
-      if (m_isExistingPlayer) return;
-      m_shirtColor--;
-      fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
-      changed();
-    });
+    if (m_isExistingPlayer) return;
+    m_shirtColor--;
+    fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
+    changed();
+  });
   guiReader.registerCallback("pantsColor.up", [=](Widget*) {
-      if (m_isExistingPlayer) return;
-      m_pantsColor++;
-      fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
-      changed();
-    });
+    if (m_isExistingPlayer) return;
+    m_pantsColor++;
+    fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
+    changed();
+  });
   guiReader.registerCallback("pantsColor.down", [=](Widget*) {
-      if (m_isExistingPlayer) return;
-      m_pantsColor--;
-      fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
-      changed();
-    });
+    if (m_isExistingPlayer) return;
+    m_pantsColor--;
+    fetchChild<ButtonWidget>("btnToggleClothing")->setChecked(true);
+    changed();
+  });
   guiReader.registerCallback("personality.up", [=](Widget*) {
-      m_personality++;
-      m_personalityChanged = true;
-      changed();
-    });
+    m_personality++;
+    m_personalityChanged = true;
+    changed();
+  });
   guiReader.registerCallback("personality.down", [=](Widget*) {
-      m_personality--;
-      m_personalityChanged = true;
-      changed();
-    });
+    m_personality--;
+    m_personalityChanged = true;
+    changed();
+  });
   guiReader.registerCallback("toggleClothing", [=](Widget*) {
-      changed();
-    });
+    changed();
+  });
 
   guiReader.registerCallback("randomName", [=](Widget*) { randomizeName(); });
   guiReader.registerCallback("randomize", [=](Widget*) { randomize(); });
@@ -160,46 +160,46 @@ CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFu
   guiReader.registerCallback("name", [=](Widget* object) { nameBoxCallback(object); });
 
   guiReader.registerCallback("species", [=](Widget* button) {
-      size_t speciesChoice = convert<ButtonWidget>(button)->buttonGroupId();
-      if (speciesChoice < m_speciesList.size() && speciesChoice != m_speciesChoice) {
-        m_speciesChoice = speciesChoice;
-        if (!m_skipRandomisation) {
-          m_speciesChanged = true;
-          randomize();
-        }
-        if (!m_isExistingPlayer)
-          randomizeName();
-        changed();
+    size_t speciesChoice = convert<ButtonWidget>(button)->buttonGroupId();
+    if (speciesChoice < m_speciesList.size() && speciesChoice != m_speciesChoice) {
+      m_speciesChoice = speciesChoice;
+      if (!m_skipRandomisation) {
+        m_speciesChanged = true;
+        randomize();
       }
-    });
-  guiReader.registerCallback("gender", [=](Widget* button) {
-      m_genderChoice = convert<ButtonWidget>(button)->buttonGroupId();
-      if (!m_skipRandomisation)
-        m_genderChanged = true;
+      if (!m_isExistingPlayer)
+        randomizeName();
       changed();
-    });
+    }
+  });
+  guiReader.registerCallback("gender", [=](Widget* button) {
+    m_genderChoice = convert<ButtonWidget>(button)->buttonGroupId();
+    if (!m_skipRandomisation)
+      m_genderChanged = true;
+    changed();
+  });
 
   guiReader.registerCallback("mode", [=](Widget* button) {
-      m_modeChoice = convert<ButtonWidget>(button)->buttonGroupId();
-      m_modeChanged = true;
-      changed();
-    });
+    m_modeChoice = convert<ButtonWidget>(button)->buttonGroupId();
+    m_modeChanged = true;
+    changed();
+  });
 
   guiReader.construct(root.assets()->json("/interface/windowconfig/charcreation.config:paneLayout"), this);
-  
+
   if (m_previewPlayer && m_isExistingPlayer) {
     m_oldIdentity = m_previewPlayer->identity();
     const StringList itemsToHide = {
-      "lblSkipIntro", 
-      "btnSkipIntro", 
-      "labelShirt", 
-      "shirt",
-      "labelPants", 
-      "pants",
-      "labelShirtColor", 
-      "shirtColor",
-      "labelPantsColor", 
-      "pantsColor",
+        "lblSkipIntro",
+        "btnSkipIntro",
+        "labelShirt",
+        "shirt",
+        "labelPants",
+        "pants",
+        "labelShirtColor",
+        "shirtColor",
+        "labelPantsColor",
+        "pantsColor",
     };
     for (auto& toHide : itemsToHide)
       fetchChild<Widget>(toHide)->hide();
@@ -207,6 +207,7 @@ CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFu
     fetchChild<TextBoxWidget>("name")->setText(m_previewPlayer->name());
     String speciesName = m_previewPlayer->species();
     if (m_speciesList.contains(speciesName)) {
+      m_speciesChoice = m_speciesList.indexOf(speciesName);
       if (auto bw = fetchChild<ButtonWidget>(strf("species.{}", m_speciesList.indexOf(speciesName))))
         bw->check();
     }
@@ -214,6 +215,7 @@ CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFu
     auto species = speciesDefinition->options();
     auto genderOptions = species.genderOptions.wrap(m_genderChoice);
     int genderIdx = pmod<int64_t>((int64_t)m_previewPlayer->gender(), species.genderOptions.size());
+    m_genderChoice = genderIdx;
     if (auto genderButton = fetchChild<ButtonWidget>(strf("gender.{}", genderIdx)))
       genderButton->check();
 
@@ -398,10 +400,10 @@ void CharCreationPane::changed() {
     setLabel("labelMode", modeGroup->data().getString("editorDescription", "fail"));
   } else {
     if (auto modeButton = fetchChild<ButtonWidget>(strf("mode.{}",
-      (m_isExistingPlayer && !m_modeChanged) ? (size_t)m_previewPlayer->modeType() : m_modeChoice))) {
-        modeButton->check();
-        setLabel("labelMode", modeButton->data().getString("description", "fail"));
-      }
+            (m_isExistingPlayer && !m_modeChanged) ? (size_t)m_previewPlayer->modeType() : m_modeChoice))) {
+      modeButton->check();
+      setLabel("labelMode", modeButton->data().getString("description", "fail"));
+    }
   }
 
   // Update the gender images for the new species
@@ -476,7 +478,7 @@ void CharCreationPane::changed() {
 
   if (!m_isExistingPlayer || m_modeChanged)
     m_previewPlayer->setModeType((PlayerMode)m_modeChoice);
- 
+
   if (!m_isExistingPlayer || m_nameChanged)
     m_previewPlayer->setName(textBox->getText());
 
@@ -504,7 +506,7 @@ void CharCreationPane::changed() {
 
   if (!m_isExistingPlayer || m_hairChanged)
     m_previewPlayer->setHairType(hair);
-  
+
   if (!m_isExistingPlayer || m_facialHairChanged)
     m_previewPlayer->setFacialHairType(facialHair);
 
@@ -524,7 +526,7 @@ void CharCreationPane::changed() {
   }
 
   m_speciesChanged = m_genderChanged = m_coloursChanged = m_personalityChanged = m_hairChanged =
-    m_facialHairChanged = m_facialMaskChanged = m_modeChanged = m_nameChanged = false;
+      m_facialHairChanged = m_facialMaskChanged = m_modeChanged = m_nameChanged = false;
 }
 
 void CharCreationPane::setShirt(String const& shirt, size_t colorIndex) {
@@ -602,4 +604,4 @@ PanePtr CharCreationPane::createTooltip(Vec2I const& screenPosition) {
   return {};
 }
 
-}
+} // namespace Star
