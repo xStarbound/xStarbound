@@ -499,9 +499,12 @@ void CharCreationPane::changed() {
     m_previewPlayer->setGender(GenderNames.getLeft(gender.name));
 
   if (!m_isExistingPlayer || m_genderChanged || m_speciesChanged) {
-    m_previewPlayer->setFacialHairGroup(facialHairGroup);
-    m_previewPlayer->setFacialMaskGroup(facialMaskGroup);
-    m_previewPlayer->setHairGroup(gender.hairGroup);
+    if (!facialHairGroup.empty())
+      m_previewPlayer->setFacialHairGroup(facialHairGroup);
+    if (!facialMaskGroup.empty())
+      m_previewPlayer->setFacialMaskGroup(facialMaskGroup);
+    if (!gender.hairGroup.empty()) // FezzedOne: Absolutely can't be an empty string.
+      m_previewPlayer->setHairGroup(gender.hairGroup);
   }
 
   if (!m_isExistingPlayer || m_hairChanged)
