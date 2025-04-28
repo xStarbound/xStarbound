@@ -553,23 +553,27 @@ Example return value showing all possible event types:
 ```lua
 jarray{
   jobject{
-    type = "KeyDown" -- Event type for a key being pressed (but not held!)
+    type = "KeyDown", -- Event type for a key being pressed (but not held!)
     -- this tick.
+    processed = false, -- Whether the game already processed this input for anything else, such as a bind.
     data = jobject{
-      key = "S", -- The key that is pressed. Is a `Key` value (see below).
-      mods = jarray{"LShift"} -- Any modifier keys held while the key above was pressed. -- Note that modifier key presses and releases get "logged" as their own events.
+      key = "K", -- The key that is pressed. Is a `Key` value (see below).
+      mods = jarray{"LShift"} -- Any modifier keys held while the key above was pressed.
+      -- Note that modifier key presses and releases get "logged" as their own events.
       -- The modifiers are `KeyMod` values (see below).
     }
   },
   jobject{
-    type = "KeyUp" -- Event type for a key being released this tick.
+    type = "KeyUp", -- Event type for a key being released this tick.
+    processed = false,
     data = jobject{
-      key = "S" -- The key that is released. Is a `Key` value (see below).
+      key = "K" -- The key that is released. Is a `Key` value (see below).
     }
   },
   jobject{
-    type = "MouseButtonDown" -- Event type for a mouse button being pressed
+    type = "MouseButtonDown", -- Event type for a mouse button being pressed
     -- (i.e., clicked, but not held!) this tick.
+    processed = false,
     data = jobject{
       mouseButton = "MouseLeft", -- The mouse button that is pressed. Is a
       -- `MouseButton` value (see below).
@@ -579,8 +583,9 @@ jarray{
     }
   },
   jobject{
-    type = "MouseButtonUp" -- Event type for a mouse button being released
+    type = "MouseButtonUp", -- Event type for a mouse button being released
     -- this tick.
+    processed = true,
     data = jobject{
       mouseButton = "MouseLeft", -- The mouse button that is released. Is a
       -- `MouseButton` value (see below).
@@ -590,6 +595,7 @@ jarray{
   jobject{
     type = "MouseWheel" -- Event type for a mouse button being released
     -- this tick.
+    processed = true,
     data = jobject{
       mouseWheel = 1, -- The scroll direction. `1` for up, `-1` for down.
       mousePosition = jarray{926, 530}, -- Ditto.
@@ -598,7 +604,8 @@ jarray{
     }
   },
   jobject{
-    type = "MouseWheel" -- Event type for the mouse being moved this tick.
+    type = "MouseWheel", -- Event type for the mouse being moved this tick.
+    processed = true,
     data = jobject{
       mouseMove = jarray{3, -2}, -- The relative position of the mouse
       -- compared to its position last tick, in screen pixels.
