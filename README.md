@@ -79,6 +79,7 @@ The following mods have special functionality that requires or is supported by x
 - [Alternate UI Sounds [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3360332852) — should be supported by xStarbound; report any issues.
 - [Armor Augment Slot](https://steamcommunity.com/sharedfiles/filedetails/?id=3448934708) — requires xStarbound or Openstarbound.
 - [Back Weapon II](https://steamcommunity.com/sharedfiles/filedetails/?id=3405399202) — fully supported by xStarbound.
+- [Beta Hotbar!](https://steamcommunity.com/sharedfiles/filedetails/?id=3472065640) — requires xStarbound or OpenStarbound. xStarbound makes this mod fully client-side and allows it to be safely added or removed from existing characters.[^beta_hotbar]
 - [Drop pixels on death](https://steamcommunity.com/sharedfiles/filedetails/?id=3350355857) ([GitHub](https://github.com/bongus-jive/drop-money-on-death)) — fully supported by xStarbound.
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
@@ -112,6 +113,8 @@ The following mods have special functionality that requires or is supported by x
 - [xSIP](https://github.com/fezzedone/xSIP) — xSIP's universal mod support requires xStarbound v2.5+ or OpenStarbound.
 - [xWEdit](https://github.com/fezzedone/xWEdit) — this WEdit fork requires xStarbound for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
 - Mods that change the size or number of bags in the inventory or hotbar — as of xSB v2.4, xStarbound gives these mods full compatibility with vanilla multiplayer and existing characters «out of the box».
+
+[^beta_hotbar]: If you switch to a configuration with fewer than ten hotbar / action bar slots, xStarbound will remove links on missing slots. Don't be surprised if slots are empty if you later decide to reinstall _Beta Hotbar!_ or another action bar mod.
 
 ### ✅ Compatible
 
