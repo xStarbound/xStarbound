@@ -289,8 +289,7 @@ The `chatMessageConfig` must be in the following format:
 jobject{
   context = jobject{
     mode = "Local", -- The chat mode, any of `"Local"`, `"Party"`, `"Broadcast"`, `"Whisper"`, `"CommandResult"`,
-    -- `"RadioMessage"` or `"World"`. Defaults to `"Local"` for `interface.addChatMessage` or `"CommandResult"` for
-    -- `chat.addMessage`.
+    -- `"RadioMessage"` or `"World"`. Defaults to `CommandResult"` for `chat.addMessage`.
     channel = "" -- If the mode is "Party" or "Local", the channel name. This is currently only used for party UUIDs.
   },
   connection = 0, -- The connection ID for the player who posted the message.
