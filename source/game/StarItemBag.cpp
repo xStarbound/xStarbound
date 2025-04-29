@@ -1,7 +1,7 @@
 #include "StarItemBag.hpp"
-#include "StarRoot.hpp"
 #include "StarItemDatabase.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -235,6 +235,31 @@ uint64_t ItemBag::itemsCanStack(ItemConstPtr const& items) const {
 }
 
 auto ItemBag::itemsFitWhere(ItemConstPtr const& items, uint64_t max) const -> ItemsFitWhereResult {
+  // Item pickup / quick-stack freeze fix downstreamed from Novaenia.
+  StableHashSet<size_t> checkedSlots; // List of visited and checked best slots.
+
+  auto checkedBestSlotAvailable = [&](ItemConstPtr const& item, bool stacksOnly) -> size_t {
+    // First look for any slots that can stack, before empty slots.
+    for (size_t i = 0; i < m_items.size(); ++i) {
+      // Skip any matching slots that have already been visited and checked by an earlier pass.
+      if (checkedSlots.contains(i)) continue;
+
+      auto const& storedItem = at(i);
+      if (storedItem && stackTransfer(storedItem, item) != 0)
+        return i;
+    }
+
+    if (!stacksOnly) {
+      // Then, look for any empty slots.
+      for (size_t i = 0; i < m_items.size(); ++i) {
+        if (!at(i))
+          return i;
+      }
+    }
+
+    return NPos;
+  };
+
   if (!items || items->empty())
     return ItemsFitWhereResult();
 
@@ -245,11 +270,13 @@ auto ItemBag::itemsFitWhere(ItemConstPtr const& items, uint64_t max) const -> It
     if (count == 0)
       break;
 
-    size_t slot = bestSlotAvailable(items, false);
+    size_t slot = checkedBestSlotAvailable(items, false);
     if (slot == NPos)
       break;
-    else
+    else {
+      checkedSlots.insert(slot);
       slots.append(slot);
+    }
 
     uint64_t available = stackTransfer(at(slot), items);
     if (available != 0)
@@ -376,4 +403,4 @@ size_t ItemBag::bestSlotAvailable(ItemConstPtr const& item, bool stacksOnly) con
   return NPos;
 }
 
-}
+} // namespace Star
