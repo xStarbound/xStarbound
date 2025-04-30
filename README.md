@@ -102,6 +102,7 @@ The following mods have special functionality that requires or is supported by x
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xStarbound as of v2.3.7.
 - [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111), [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) and other mods based on the framework — xStarbound supports «nice» non-pixelated scaling as of v2.4.1.1.
 - [Spawnable Item Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=733665104) — SIP's universal mod support requires xStarbound v2.5+ or OpenStarbound.
+- [Starburst Rework T6 Armor Recipe Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3472326270) — requires xStarbound or OpenStarbound.
 - [StarCustomChat](https://steamcommunity.com/sharedfiles/filedetails/?id=3208917628) ([GitHub](https://github.com/KrashV/StarCustomChat)) and [StarCustomChatRP](https://steamcommunity.com/sharedfiles/filedetails/?id=3445409664) — requires xStarbound v3.5.1+, OpenStarbound v0.1.8+ or StarExtensions.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xStarbound.
 - [Time Control Command](https://steamcommunity.com/sharedfiles/filedetails/?id=3256623666) ([GitHub](https://github.com/bongus-jive/TimeControlCommand)) — fully supported by xStarbound.
