@@ -331,7 +331,11 @@ void Humanoid::setIdentity(HumanoidIdentity const& identity) {
   m_frontArmFrameset = getFrontArmFromIdentity();
   m_vaporTrailFrameset = getVaporTrailFrameset();
 
-  auto config = Root::singleton().speciesDatabase()->species(identity.imagePath ? *identity.imagePath : identity.species)->humanoidConfig();
+  auto speciesDatabase = Root::singleton().speciesDatabase();
+  Json config = JsonObject{};
+  String resolvedSpecies = identity.imagePath ? *identity.imagePath : identity.species;
+  if (speciesDatabase->allSpecies().contains(resolvedSpecies))
+    config = speciesDatabase->species(resolvedSpecies)->humanoidConfig();
 
   bool useBodyMask = config.optBool("useBodyMask").value(false);
   bool useBodyHeadMask = config.optBool("useBodyHeadMask").value(false);
