@@ -63,16 +63,6 @@ pluto_try
         InventoryPane = nil
 
         function init()
-            if not root.getConfiguration("safeScripts") then
-                chat.addMessage(nil, {
-                    message = "^#f22;[xSB]^reset; You must enable ^cyan;\"safeScripts\"^reset; in ^cyan;xclient.config^reset; " .. 
-                    "to use Patman's Save Inventory Position with xClient.",
-                    mode = "CommandResult"
-                })
-                update = nil
-                return
-            end
-
             -- Need to use a persistent reference on xSB so that a pane callback is accessible on `uninit`.
             InventoryPane = interface.bindRegisteredPane(PaneName)
             local old_bindRegisteredPane = interface.bindRegisteredPane
@@ -111,7 +101,6 @@ pluto_try
         local resetIdentifier <const> = "patman::resetInventoryPosition"
 
         function init()
-            if not root.getConfiguration("safeScripts") then return end
             message.setHandler("/resetinventoryposition", |_, isLocal| ->
                 (isLocal and player.uniqueId() == world.primaryPlayerUuid())
                     ? (world.setGlobal(resetIdentifier, true) or "Reset inventory position.")
