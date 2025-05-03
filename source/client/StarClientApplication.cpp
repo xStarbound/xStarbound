@@ -162,7 +162,8 @@ void ClientApplication::shutdown() {
   if (m_universeClient)
     m_universeClient->disconnect();
 
-  m_mainInterface->deregisterPanes(); // FezzedOne: Needed because of `interface.bindRegisteredPane`.
+  if (m_mainInterface)
+    m_mainInterface->deregisterPanes(); // FezzedOne: Needed because of `interface.bindRegisteredPane`.
   m_mainInterface.reset();
 
   if (m_universeServer) {
@@ -517,7 +518,8 @@ void ClientApplication::changeState(MainAppState newState) {
     if (m_universeClient)
       m_universeClient->disconnect();
 
-    m_mainInterface->deregisterPanes(); // FezzedOne: Needed because of `interface.bindRegisteredPane`.
+    if (m_mainInterface)
+      m_mainInterface->deregisterPanes(); // FezzedOne: Needed because of `interface.bindRegisteredPane`.
     m_mainInterface.reset();
     m_cinematicOverlay->stop();
 
