@@ -1,12 +1,12 @@
 #ifndef STAR_MAIN_INTERFACE_HPP
 #define STAR_MAIN_INTERFACE_HPP
 
-#include "StarInventory.hpp"
-#include "StarInteractionTypes.hpp"
-#include "StarItemDescriptor.hpp"
-#include "StarGameTypes.hpp"
 #include "StarChatTypes.hpp"
+#include "StarGameTypes.hpp"
+#include "StarInteractionTypes.hpp"
 #include "StarInterfaceCursor.hpp"
+#include "StarInventory.hpp"
+#include "StarItemDescriptor.hpp"
 #include "StarMainInterfaceTypes.hpp"
 #include "StarWarping.hpp"
 
@@ -75,6 +75,7 @@ public:
   MainInterfacePaneManager* paneManager();
 
   void clean();
+  void deregisterPanes();
   void reset();
 
   bool escapeDialogOpen() const;
@@ -232,7 +233,7 @@ private:
   Vec2I m_cursorScreenPos;
   ItemSlotWidgetPtr m_cursorItem;
   Maybe<String> m_cursorTooltip;
-    // FezzedOne: Add tooltip stuff.
+  // FezzedOne: Add tooltip stuff.
   Maybe<String> m_overrideTooltip;
   bool m_overrideDefaultTooltip;
 
@@ -280,6 +281,6 @@ private:
   Maybe<ChatState> m_persistedChatState;
 };
 
-}
+} // namespace Star
 
 #endif

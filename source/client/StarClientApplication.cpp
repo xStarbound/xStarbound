@@ -1,33 +1,32 @@
 #include "StarClientApplication.hpp"
-#include "StarConfiguration.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarFile.hpp"
-#include "StarEncode.hpp"
-#include "StarLogging.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarRoot.hpp"
-#include "StarVersion.hpp"
-#include "StarPlayer.hpp"
-#include "StarPlayerStorage.hpp"
-#include "StarPlayerLog.hpp"
 #include "StarAssets.hpp"
-#include "StarWorldTemplate.hpp"
-#include "StarWorldClient.hpp"
-#include "StarRootLoader.hpp"
-#include "StarInput.hpp"
-#include "StarVoice.hpp"
+#include "StarConfiguration.hpp"
 #include "StarCurve25519.hpp"
+#include "StarEncode.hpp"
+#include "StarFile.hpp"
+#include "StarInput.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLogging.hpp"
+#include "StarPlayer.hpp"
+#include "StarPlayerLog.hpp"
+#include "StarPlayerStorage.hpp"
+#include "StarRoot.hpp"
+#include "StarRootLoader.hpp"
+#include "StarVersion.hpp"
+#include "StarVoice.hpp"
+#include "StarWorldClient.hpp"
+#include "StarWorldTemplate.hpp"
 
-#include "StarInterfaceLuaBindings.hpp"
 #include "StarInputLuaBindings.hpp"
+#include "StarInterfaceLuaBindings.hpp"
 #include "StarVoiceLuaBindings.hpp"
 
 // Include Tracy here to measure frame times.
 #if defined TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
+#include "tracy/Tracy.hpp"
 #else
-  #define ZoneScoped
-  #define ZoneScopedN(name)
+#define ZoneScoped
+#define ZoneScopedN(name)
 #endif
 
 namespace Star {
@@ -163,6 +162,7 @@ void ClientApplication::shutdown() {
   if (m_universeClient)
     m_universeClient->disconnect();
 
+  m_mainInterface->deregisterPanes(); // FezzedOne: Needed because of `interface.bindRegisteredPane`.
   m_mainInterface.reset();
 
   if (m_universeServer) {
@@ -216,8 +216,9 @@ void ClientApplication::applicationInit(ApplicationControllerPtr appController) 
   if (auto jServerUpdateRate = configuration->get("serverUpdateRate"))
     ServerGlobalTimestep = 1.0f / jServerUpdateRate.toFloat();
 
-  if (auto interfaceScale = configuration->get("interfaceScale")) {}
-  else configuration->set("interfaceScale", 3.0f);
+  if (auto interfaceScale = configuration->get("interfaceScale")) {
+  } else
+    configuration->set("interfaceScale", 3.0f);
 
   appController->setTargetUpdateRate(updateRate);
   appController->setApplicationTitle(assets->json("/client.config:windowTitle").toString());
@@ -264,8 +265,7 @@ void ClientApplication::renderInit(RendererPtr renderer) {
       }
 
       renderer->loadEffectConfig(name, config, shaders);
-    }
-    else
+    } else
       Logger::warn("No rendering config found for renderer with id '{}'", renderer->rendererId());
   };
 
@@ -400,7 +400,7 @@ void ClientApplication::update() {
         m_pendingMultiPlayerConnection = PendingMultiPlayerConnection{join.takeValue(), {}, {}};
         changeState(MainAppState::Title);
       }
-      
+
       if (auto req = p2pNetworkingService->pullJoinRequest())
         m_mainInterface->queueJoinRequest(*req);
 
@@ -506,8 +506,8 @@ void ClientApplication::changeState(MainAppState newState) {
   if (newState == MainAppState::Splash) {
     m_cinematicOverlay->load(m_root->assets()->json("/cinematics/splash.cinematic"));
     m_rootLoader = Thread::invoke("Async root loader", [this]() {
-        m_root->fullyLoad();
-      });
+      m_root->fullyLoad();
+    });
   }
 
   if (oldState > MainAppState::Title && m_state <= MainAppState::Title) {
@@ -517,6 +517,7 @@ void ClientApplication::changeState(MainAppState newState) {
     if (m_universeClient)
       m_universeClient->disconnect();
 
+    m_mainInterface->deregisterPanes(); // FezzedOne: Needed because of `interface.bindRegisteredPane`.
     m_mainInterface.reset();
     m_cinematicOverlay->stop();
 
@@ -619,7 +620,7 @@ void ClientApplication::changeState(MainAppState newState) {
     if (m_pendingMultiPlayerConnection) {
       if (auto address = m_pendingMultiPlayerConnection->server.ptr<HostAddressWithPort>()) {
         m_titleScreen->setMultiPlayerAddress((m_pendingMultiPlayerConnection->forceLegacyConnection ? "@" : "") +
-          toString(address->address()));
+                                             toString(address->address()));
         m_titleScreen->setMultiPlayerPort(toString(address->port()));
         m_titleScreen->setMultiPlayerAccount(configuration->getPath("title.multiPlayerAccount").toString());
         m_titleScreen->goToMultiPlayerSelectCharacter(false);
@@ -695,8 +696,8 @@ void ClientApplication::changeState(MainAppState newState) {
 
       bool allowAssetsMismatch = m_root->configuration()->get("allowAssetsMismatch").toBool();
       if (auto errorMessage = m_universeClient->connect(UniverseConnection(std::move(packetSocket)), allowAssetsMismatch,
-            multiPlayerConnection.account, multiPlayerConnection.password,
-            multiPlayerConnection.forceLegacyConnection)) {
+              multiPlayerConnection.account, multiPlayerConnection.password,
+              multiPlayerConnection.forceLegacyConnection)) {
         setError(*errorMessage);
         return;
       }
@@ -842,11 +843,10 @@ void ClientApplication::updateTitle(float dt) {
           setError(address.left());
         } else {
           m_pendingMultiPlayerConnection = PendingMultiPlayerConnection{
-            address.right(),
-            m_titleScreen->multiPlayerAccount(),
-            m_titleScreen->multiPlayerPassword(),
-            forceLegacyConnection
-          };
+              address.right(),
+              m_titleScreen->multiPlayerAccount(),
+              m_titleScreen->multiPlayerPassword(),
+              forceLegacyConnection};
 
           auto configuration = m_root->configuration();
           configuration->setPath("title.multiPlayerAddress", m_titleScreen->multiPlayerAddress());
@@ -897,7 +897,7 @@ void ClientApplication::updateRunning(float dt) {
           }
         }
       }
-      
+
       if (p2pNetworkingService)
         p2pNetworkingService->setActivityData("In Game", party);
     }
@@ -996,7 +996,7 @@ void ClientApplication::updateRunning(float dt) {
       //voiceData.writeBytes(VoiceBroadcastPrefix.utf8Bytes()); transmitting with SE compat for now
       needsToSendVoice = m_voice->send(voiceData, 5000);
     }
-  
+
     // FezzedOne: Needs to be moved up here to prevent a callback from returning a position of {0, 0} the tick after a world is loaded.
     updateCamera(dt);
     m_universeClient->update(dt);
@@ -1048,8 +1048,8 @@ void ClientApplication::updateRunning(float dt) {
 
     m_cinematicOverlay->update(dt);
     m_mainInterface->update(dt);
-    m_mainMixer->update(dt, m_cinematicOverlay->muteSfx(), m_cinematicOverlay->muteMusic(), 
-      m_cinematicOverlay->muteMusic() || m_cinematicOverlay->muteSfx());
+    m_mainMixer->update(dt, m_cinematicOverlay->muteSfx(), m_cinematicOverlay->muteMusic(),
+        m_cinematicOverlay->muteMusic() || m_cinematicOverlay->muteSfx());
     m_mainMixer->setSpeed(GlobalTimescale);
 
     bool inputActive = m_mainInterface->textInputActive();
@@ -1205,6 +1205,6 @@ void ClientApplication::updateCamera(float dt) {
   m_universeClient->worldClient()->setClientWindow(camera.worldTileRect());
 }
 
-}
+} // namespace Star
 
 STAR_MAIN_APPLICATION(Star::ClientApplication);

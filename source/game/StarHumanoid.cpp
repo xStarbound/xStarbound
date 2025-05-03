@@ -336,6 +336,7 @@ void Humanoid::setIdentity(HumanoidIdentity const& identity) {
   bool useBodyMask = config.optBool("useBodyMask").value(false);
   bool useBodyHeadMask = config.optBool("useBodyHeadMask").value(false);
 
+  m_humanoidRotationSettings = HumanoidRotationSettings::Null;
   m_humanoidRotationSettings |= useBodyMask ? HumanoidRotationSettings::UseBodyMask : HumanoidRotationSettings::Null;
   m_humanoidRotationSettings |= useBodyHeadMask ? HumanoidRotationSettings::UseBodyHeadMask : HumanoidRotationSettings::Null;
 }

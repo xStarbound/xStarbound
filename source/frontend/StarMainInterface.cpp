@@ -96,6 +96,9 @@ void MainInterface::clean() {
   }
   m_client->saveCallback() = {};
   m_paneManager.dismissAllPanes();
+}
+
+void MainInterface::deregisterPanes() {
   m_paneManager.deregisterAllPanes();
 }
 
@@ -123,6 +126,10 @@ void MainInterface::reset() { // *Completely* reset the interface.
 
   m_lastMouseoverTarget = NullEntityId;
   m_stickyTargetingTimer = GameTimer(m_config->monsterHealthBarTime);
+
+  // FezzedOne: Has to be moved here because `interface.bindRegisteredPane` can leave lingering callback references in `uninit` in universe client scripts.
+  // A lingering reference is required for Save Inventory Position to work correctly on xClient.
+  m_paneManager.deregisterAllPanes();
 
   m_inventoryWindow = make_shared<InventoryPane>(this, m_client->mainPlayer(), m_containerInteractor);
   m_paneManager.registerPane(MainInterfacePanes::Inventory, PaneLayer::Window, m_inventoryWindow, [this](PanePtr const&) {

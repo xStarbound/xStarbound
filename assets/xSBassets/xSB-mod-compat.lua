@@ -60,10 +60,11 @@ pluto_try
         local patman_oldInit = init
 
         local oldPrimaryUuid = nil
+        InventoryPane = nil
 
         function init()
             if not root.getConfiguration("safeScripts") then
-                interface.addChatMessage({
+                chat.addMessage(nil, {
                     message = "^#f22;[xSB]^reset; You must enable ^cyan;\"safeScripts\"^reset; in ^cyan;xclient.config^reset; " .. 
                     "to use Patman's Save Inventory Position with xClient.",
                     mode = "CommandResult"
@@ -71,6 +72,18 @@ pluto_try
                 update = nil
                 return
             end
+
+            -- Need to use a persistent reference on xSB so that a pane callback is accessible on `uninit`.
+            InventoryPane = interface.bindRegisteredPane(PaneName)
+            local old_bindRegisteredPane = interface.bindRegisteredPane
+            interface.bindRegisteredPane = function(paneName)
+                if paneName == "Inventory" then
+                    return InventoryPane
+                else
+                    return old_bindRegisteredPane(paneName)
+                end
+            end
+
             -- The message table is not currently available in universe client scripts on xClient.
             message ??= {
                 setHandler = function() end
