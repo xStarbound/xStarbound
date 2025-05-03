@@ -44,7 +44,7 @@ private:
   PaneInfo const& getRegisteredPaneInfo(KeyT const& paneId) const;
 
   // Map of registered panes by name.
-  HashMap<KeyT, PaneInfo> m_registeredPanes;
+  HashMap<KeyT, PaneInfo> m_registeredPanes = {};
 };
 
 template <typename KeyT>
@@ -84,6 +84,8 @@ PanePtr RegisteredPaneManager<KeyT>::deregisterPane(KeyT const& paneId) {
 
 template <typename KeyT>
 void RegisteredPaneManager<KeyT>::deregisterAllPanes() {
+  if (m_registeredPanes.empty())
+    return;
   for (auto const& k : m_registeredPanes.keys())
     deregisterPane(k);
 }
@@ -131,6 +133,6 @@ typename RegisteredPaneManager<KeyT>::PaneInfo const& RegisteredPaneManager<KeyT
     return *p;
   throw GuiException(strf("No registered pane with name '{}' found in  RegisteredPaneManager", outputAny(paneId)));
 }
-}
+} // namespace Star
 
 #endif
