@@ -44,7 +44,7 @@ public:
   // Returns error if connection failed
   Maybe<String> connect(UniverseConnection connection, bool allowAssetsMismatch, String const& account = "", String const& password = "", bool forceLegacyConnection = false);
   bool isConnected() const;
-  void disconnect();
+  void disconnect(bool skipLuaUninit = false);
   Maybe<String> disconnectReason() const;
 
   // WorldClient may be null if the UniverseClient is not connected.
@@ -90,7 +90,7 @@ public:
 
   void setLuaCallbacks(String const& groupName, LuaCallbacks const& callbacks, uint8_t safetyLevel = 0);
   void startLua();
-  void stopLua();
+  void stopLua(bool skipLuaUninit = false);
 
   bool playerIsLoaded(Uuid const& uuid);
   void reloadAllPlayers(bool resetInterfaces = false, bool showIndicator = false);
@@ -166,7 +166,7 @@ private:
   void setPause(bool pause);
 
   void handlePackets(List<PacketPtr> const& packets);
-  void reset();
+  void reset(bool skipLuaUninit = false);
 
   PlayerStoragePtr m_playerStorage;
   StatisticsPtr m_statistics;

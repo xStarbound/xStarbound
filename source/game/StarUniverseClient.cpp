@@ -238,7 +238,7 @@ bool UniverseClient::isConnected() const {
   return m_connection && m_connection->isOpen();
 }
 
-void UniverseClient::disconnect() {
+void UniverseClient::disconnect(bool skipLuaUninit) {
   auto assets = Root::singleton().assets();
   int timeout = assets->json("/client.config:serverDisconnectTimeout").toInt();
 
@@ -256,7 +256,7 @@ void UniverseClient::disconnect() {
       break;
   }
 
-  reset();
+  reset(skipLuaUninit);
   m_mainPlayer = {};
   m_loadedPlayers = {};
   size_t playerCount = m_playerStorage->playerCount();
@@ -698,9 +698,11 @@ void UniverseClient::startLua() {
   }
 }
 
-void UniverseClient::stopLua() {
-  for (auto& p : m_scriptContexts)
-    p.second->uninit();
+void UniverseClient::stopLua(bool skipLuaUninit) {
+  if (!skipLuaUninit) {
+    for (auto& p : m_scriptContexts)
+      p.second->uninit();
+  }
 
   m_scriptContexts.clear();
 
@@ -1376,8 +1378,8 @@ void UniverseClient::handlePackets(List<PacketPtr> const& packets) {
   }
 }
 
-void UniverseClient::reset() {
-  stopLua();
+void UniverseClient::reset(bool skipLuaUninit) {
+  stopLua(skipLuaUninit);
 
   m_universeClock.reset();
   m_worldClient.reset();

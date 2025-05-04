@@ -160,7 +160,7 @@ void ClientApplication::shutdown() {
     m_mainInterface->clean();
 
   if (m_universeClient)
-    m_universeClient->disconnect();
+    m_universeClient->disconnect(/* skipLuaUninit: */ !m_mainInterface);
 
   if (m_mainInterface)
     m_mainInterface->deregisterPanes(); // FezzedOne: Needed because of `interface.bindRegisteredPane`.
@@ -516,7 +516,7 @@ void ClientApplication::changeState(MainAppState newState) {
       m_mainInterface->clean();
 
     if (m_universeClient)
-      m_universeClient->disconnect();
+      m_universeClient->disconnect(/* skipLuaUninit: */ !m_mainInterface);
 
     if (m_mainInterface)
       m_mainInterface->deregisterPanes(); // FezzedOne: Needed because of `interface.bindRegisteredPane`.
