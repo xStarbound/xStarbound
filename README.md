@@ -94,6 +94,7 @@ The following mods have special functionality that requires or is supported by x
 - [OCD Tooltip Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3355387636) — technically supported by xStarbound, but unnecessary.
 - [One-For-All Compact and Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3427751671), [One-For-All Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3435109352) and [One-For-All Compact Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3457819726) — fully supported by xStarbound.
 - [Pan Dimensional Vending](https://steamcommunity.com/sharedfiles/filedetails/?id=3464213838&searchtext=) — fully supported by xStarbound.
+- [Phantasy Starbound Title](https://steamcommunity.com/sharedfiles/filedetails/?id=3475986947) — should be supported by xStarbound; report any visual issues.
 - [Planet Search](https://steamcommunity.com/sharedfiles/filedetails/?id=3269792617) — fully supported by xStarbound.
 - [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — all OpenStarbound-compatible commands are supported by xStarbound as of v3.1.6.
 - [Recipe Browser](https://steamcommunity.com/sharedfiles/filedetails/?id=2018183533) — Recipe Browser's universal mod support requires xStarbound or OpenStarbound.
