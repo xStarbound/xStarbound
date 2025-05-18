@@ -1315,8 +1315,7 @@ LUAMOD_API int luaopen_io (lua_State *L) {
 
 
 static const luaL_Reg constexpr_iolib[] = {
-  // FezzedOne: Disabled this to prevent a potential security issue while `"safeScripts"` is enabled.
-  // {"contents", contents},
+  {"contents", contents},
   {NULL, NULL}
 };
 

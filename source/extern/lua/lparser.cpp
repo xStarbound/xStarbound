@@ -208,14 +208,9 @@ static void check_for_non_portable_code (LexState *ls) {
   if (ls->t.IsNonCompatible() && !ls->t.IsOverridable()) {
     if (ls->getKeywordState(ls->t.token) == KS_ENABLED_BY_PLUTO_UNINFORMED) {
       const auto next = luaX_lookahead(ls);
-      const int prev = ls->tidx == 0 ? -1 : luaX_lookbehind(ls).token;
-      if (next == '=' || next == '.' || next == ':' || next == '['  /* attempting to create or use a global? */
+      if (next == '=' || next == '.' || next == ':' || next == '[' || next == ';'  /* attempting to create or use a global? */
 #ifdef PLUTO_PARANOID_KEYWORD_DETECTION
-#define CONTINUE_TRY_OR_CATCH(token) ((token) == TK_CONTINUE || (token) == TK_TRY || (token) == TK_CATCH)
-      /* FezzedOne: Need to paranoiacally check for commas, in case of comma-separated declarations, table entries, or returns. */
-          || next == '(' || next == '{' || next == ',' || next == TK_STRING
-          || (!CONTINUE_TRY_OR_CATCH(ls->t.token) && next == ';') /* FezzedOne: Fixed `switch;` getting parsed as a `switch` keyword / invalid switch expression. */
-          || (CONTINUE_TRY_OR_CATCH(ls->t.token) && (prev == '=' || prev == ',')) /* FezzedOne: Fixed compatibility issues around `x = continue` and `x = y, continue`. */
+          || next == '(' || next == '{' || next == TK_STRING
 #endif
         ) {
         disablekeyword(ls, ls->t.token);
@@ -1925,10 +1920,13 @@ static void classexpr (LexState *ls, expdesc *t) {
 static void check_assignment (LexState *ls, const expdesc *v) {
   if (v->k == VINDEXUP && ls->isKeywordEnabled(TK_GLOBAL)) {
     luaX_prev(ls);
-    TString *name = str_checkname(ls, N_RESERVED_NON_VALUE | N_OVERRIDABLE);
-    if (ls->explicit_globals.count(name) == 0) {
-      throw_warn(ls, "implicit global creation", "prefix this with 'global' to be explicit", WT_IMPLICIT_GLOBAL);
+    if (isnametkn(ls, N_RESERVED_NON_VALUE | N_OVERRIDABLE)) {
+      TString *name = str_checkname(ls, N_RESERVED_NON_VALUE | N_OVERRIDABLE);
+      if (ls->explicit_globals.count(name) == 0) {
+        throw_warn(ls, "implicit global creation", "prefix this with 'global' to be explicit", WT_IMPLICIT_GLOBAL);
+      }
     }
+    else luaX_next(ls);
   }
 }
 
@@ -3322,22 +3320,11 @@ static std::vector<int> casecond (LexState *ls, const expdesc& ctrl, int tk) {
 static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), void *ud = nullptr) {
   const auto line = ls->getLineNumber();
   const auto switchToken = gett(ls);
-#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
-  const auto switchPos = luaX_getpos(ls);
-#endif
   luaX_next(ls); // Skip switch statement.
 
   ls->switchstates.emplace();
   FuncState *fs = ls->fs;
   BlockCnt sbl;
-
-#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
-  /* FezzedOne: Create a jump instruction ahead of time, just in case we need to skip evaluating
-    a `switch` condition because `switch` turned out not to be a keyword. */
-  int badSwitchJump = luaK_jump(fs);
-  /* FezzedOne: The Lua PC right after the jump instruction. */
-  int goodSwitchPc = luaK_getlabel(fs);
-#endif
 
   lu_byte freereg = fs->freereg;
   if (tk == TK_ARROW)
@@ -3348,23 +3335,7 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
   int prevpinnedreg = -1;
   expdesc ctrl;
   expr(ls, &ctrl);
-
-  bool missingDo = false;
-
-#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
-  /* FezzedOne: If `do` is missing, create bytecode for a switch with no cases, 
-     effectively making it do nothing. */
-  missingDo = gett(ls) != TK_DO;
-  if (missingDo) {
-    disablekeyword(ls, TK_SWITCH);
-  } else {
-    /* FezzedOne: If the `switch` is good, patch the jump into an effective no-op. */
-    luaK_patchlist(fs, badSwitchJump, goodSwitchPc);
-    luaX_next(ls);
-  }
-#else
   checknext(ls, TK_DO);
-#endif
   if (!vkhasregister(ctrl.k)
     || ctrl.t != ctrl.f  /* has jumps? */
   ) {
@@ -3397,9 +3368,6 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
 
   std::vector<SwitchCase>& cases = ls->switchstates.top().cases;
 
-#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
-  if (!missingDo) {
-#endif
   while (gett(ls) != TK_END) {
     auto case_line = ls->getLineNumber();
     if (fs->nactvar != nactvar) {
@@ -3424,9 +3392,6 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
     ls->laststat.token = TK_EOS;  /* We don't want warnings for trailing control flow statements. */
     caselist(ls, ud);
   }
-#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
-  }
-#endif
 
   if (ls->laststat.token != TK_BREAK) {  /* last block did not have 'break'? */
     if (tk == ':') {  /* switch statement? */
@@ -3490,24 +3455,11 @@ static void switchimpl (LexState *ls, int tk, void(*caselist)(LexState*,void*), 
     luaK_freeexp(fs, &ctrl);
   }
 
-#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
-  if (!missingDo) /* FezzedOne: Ignore checking for an `end` if `do` is missing. */
-#endif
   check_match(ls, TK_END, switchToken, line);
   leaveblock(fs);
   if (tk == TK_ARROW)
     fs->freereg = freereg;
   ls->switchstates.pop();
-
-#ifdef PLUTO_PARANOID_KEYWORD_DETECTION
-  if (missingDo) {
-    /* FezzedOne: Turns out this `switch` is bad (a variable name). Patch the jump to skip the switch
-       condition instructions and move back to before the now-disabled `switch` keyword, then reparse. */
-    luaK_patchtohere(fs, badSwitchJump);
-    luaX_setpos(ls, switchPos);
-    luaX_next(ls);
-  }
-#endif
 }
 
 static void switchstat (LexState *ls) {
@@ -3731,7 +3683,7 @@ static void prefixplusplus (LexState *ls, expdesc *v, bool as_statement) {
   FuncState *fs = ls->fs;
   expdesc e = *v, v2;
   if (v->k != VLOCAL) {  /* complex lvalue, use a temporary register. linear perf incr. with complexity of lvalue */
-    const auto regs_to_reserve = fs->freereg-fs->nactvar;
+    const auto regs_to_reserve = fs->freereg-luaY_nvarstack(fs);
     luaK_dischargevars(fs, &e);
     luaK_reserveregs(fs, regs_to_reserve);
     enterlevel(ls);
@@ -4048,7 +4000,7 @@ static void compoundassign (LexState *ls, expdesc *v, BinOpr op) {
   FuncState *fs = ls->fs;
   expdesc e = *v, v2;
   if (v->k != VLOCAL) {  /* complex lvalue, use a temporary register. linear perf incr. with complexity of lvalue */
-    const auto regs_to_reserve = fs->freereg-fs->nactvar;
+    const auto regs_to_reserve = fs->freereg-luaY_nvarstack(fs);
     luaK_dischargevars(fs, &e);
     luaK_reserveregs(fs, regs_to_reserve);
     enterlevel(ls);
@@ -5649,7 +5601,7 @@ static void statement (LexState *ls, TypeHint *prop) {
       if (testnext(ls, TK_FUNCTION))  /* local function? */
         localfunc(ls);
       else if (testnext2(ls, TK_CLASS, TK_PCLASS)) {
-        if (ls->t.token == '=' || ls->t.token == ',') { /* Commit b78765fb from Sainan/Pluto. */
+        if (ls->t.token == '=' || ls->t.token == ',') {
           if (luaX_lookbehind(ls).token == TK_CLASS && ls->getKeywordState(TK_CLASS) == KS_ENABLED_BY_PLUTO_UNINFORMED) {
             luaX_prev(ls);
             disablekeyword(ls, TK_CLASS);
@@ -5805,6 +5757,21 @@ static void builtinoperators (LexState *ls) {
       ls->tokens.emplace_back(Token(','));
       ls->tokens.emplace_back(Token(TK_DOTS));
       ls->tokens.emplace_back(Token(')'));
+
+      //   if not mt then
+      ls->tokens.emplace_back(Token(TK_IF));
+      ls->tokens.emplace_back(Token(TK_NOT));
+      ls->tokens.emplace_back(Token(TK_NAME, luaX_newliteral(ls, "mt")));
+      ls->tokens.emplace_back(Token(TK_THEN));
+
+      //     error("attempt to construct a nil value")
+      ls->tokens.emplace_back(Token(TK_NAME, luaX_newliteral(ls, "error")));
+      ls->tokens.emplace_back(Token('('));
+      ls->tokens.emplace_back(Token(TK_STRING, luaX_newliteral(ls, "attempt to construct a nil value")));
+      ls->tokens.emplace_back(Token(')'));
+
+      //   end
+      ls->tokens.emplace_back(Token(TK_END));
 
       //   if mt.new then
       ls->tokens.emplace_back(Token(TK_IF));

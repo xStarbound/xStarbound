@@ -42,37 +42,37 @@
 
 /* [Pluto] Platform auto-detection */
 #if !defined(LUA_USE_LINUX) && defined(__linux__)
-  #define LUA_USE_LINUX
+#define LUA_USE_LINUX
 #endif
 #if !defined(LUA_USE_MACOSX) && defined(__APPLE__) && defined(__MACH__)
-  #define LUA_USE_MACOSX
+#define LUA_USE_MACOSX
 #endif
 #if !defined(LUA_USE_IOS) && defined(__APPLE__) && !defined(__MACH__)
-  #define LUA_USE_IOS
+#define LUA_USE_IOS
 #endif
 
 /*
 ** By default, Lua on Windows use (some) specific Windows features
 */
 #if !defined(LUA_USE_C89) && defined(_WIN32) && !defined(_WIN32_WCE)
-#define LUA_USE_WINDOWS  /* enable goodies for regular Windows */
+#define LUA_USE_WINDOWS /* enable goodies for regular Windows */
 #endif
 
 
 #if defined(LUA_USE_WINDOWS)
-#define LUA_DL_DLL	/* enable support for DLL */
+#define LUA_DL_DLL /* enable support for DLL */
 #endif
 
 
 #if defined(LUA_USE_LINUX)
 #define LUA_USE_POSIX
-#define LUA_USE_DLOPEN		/* needs an extra library: -ldl */
+#define LUA_USE_DLOPEN /* needs an extra library: -ldl */
 #endif
 
 
 #if defined(LUA_USE_MACOSX)
 #define LUA_USE_POSIX
-#define LUA_USE_DLOPEN		/* MacOS does not need -ldl */
+#define LUA_USE_DLOPEN /* MacOS does not need -ldl */
 #endif
 
 
@@ -85,10 +85,9 @@
 /*
 @@ LUAI_IS32INT is true iff 'int' has (at least) 32 bits.
 */
-#define LUAI_IS32INT	((UINT_MAX >> 30) >= 3)
+#define LUAI_IS32INT ((UINT_MAX >> 30) >= 3)
 
 /* }================================================================== */
-
 
 
 /*
@@ -110,25 +109,25 @@
 */
 
 /* predefined options for LUA_INT_TYPE */
-#define LUA_INT_INT		1
-#define LUA_INT_LONG		2
-#define LUA_INT_LONGLONG	3
+#define LUA_INT_INT 1
+#define LUA_INT_LONG 2
+#define LUA_INT_LONGLONG 3
 
 /* predefined options for LUA_FLOAT_TYPE */
-#define LUA_FLOAT_FLOAT		1
-#define LUA_FLOAT_DOUBLE	2
-#define LUA_FLOAT_LONGDOUBLE	3
+#define LUA_FLOAT_FLOAT 1
+#define LUA_FLOAT_DOUBLE 2
+#define LUA_FLOAT_LONGDOUBLE 3
 
 
 /* Default configuration ('long long' and 'double', for 64-bit Lua) */
-#define LUA_INT_DEFAULT		LUA_INT_LONGLONG
-#define LUA_FLOAT_DEFAULT	LUA_FLOAT_DOUBLE
+#define LUA_INT_DEFAULT LUA_INT_LONGLONG
+#define LUA_FLOAT_DEFAULT LUA_FLOAT_DOUBLE
 
 
 /*
 @@ LUA_32BITS enables Lua with 32-bit integers and 32-bit floats.
 */
-#define LUA_32BITS	0
+#define LUA_32BITS 0
 
 
 /*
@@ -137,41 +136,40 @@
 ** not need to use this case.
 */
 #if defined(LUA_USE_C89) && !defined(LUA_USE_WINDOWS)
-#define LUA_C89_NUMBERS		1
+#define LUA_C89_NUMBERS 1
 #else
-#define LUA_C89_NUMBERS		0
+#define LUA_C89_NUMBERS 0
 #endif
 
 
-#if LUA_32BITS		/* { */
+#if LUA_32BITS /* { */
 /*
 ** 32-bit integers and 'float'
 */
-#if LUAI_IS32INT  /* use 'int' if big enough */
-#define LUA_INT_TYPE	LUA_INT_INT
-#else  /* otherwise use 'long' */
-#define LUA_INT_TYPE	LUA_INT_LONG
+#if LUAI_IS32INT /* use 'int' if big enough */
+#define LUA_INT_TYPE LUA_INT_INT
+#else /* otherwise use 'long' */
+#define LUA_INT_TYPE LUA_INT_LONG
 #endif
-#define LUA_FLOAT_TYPE	LUA_FLOAT_FLOAT
+#define LUA_FLOAT_TYPE LUA_FLOAT_FLOAT
 
-#elif LUA_C89_NUMBERS	/* }{ */
+#elif LUA_C89_NUMBERS /* }{ */
 /*
 ** largest types available for C89 ('long' and 'double')
 */
-#define LUA_INT_TYPE	LUA_INT_LONG
-#define LUA_FLOAT_TYPE	LUA_FLOAT_DOUBLE
+#define LUA_INT_TYPE LUA_INT_LONG
+#define LUA_FLOAT_TYPE LUA_FLOAT_DOUBLE
 
-#else		/* }{ */
+#else /* }{ */
 /* use defaults */
 
-#define LUA_INT_TYPE	LUA_INT_DEFAULT
-#define LUA_FLOAT_TYPE	LUA_FLOAT_DEFAULT
+#define LUA_INT_TYPE LUA_INT_DEFAULT
+#define LUA_FLOAT_TYPE LUA_FLOAT_DEFAULT
 
-#endif				/* } */
+#endif /* } */
 
 
 /* }================================================================== */
-
 
 
 /*
@@ -187,9 +185,9 @@
 ** LUA_EXEC_DIR in a Windows path is replaced by the executable's
 ** directory.
 */
-#define LUA_PATH_SEP            ";"
-#define LUA_PATH_MARK           "?"
-#define LUA_EXEC_DIR            "!"
+#define LUA_PATH_SEP ";"
+#define LUA_PATH_MARK "?"
+#define LUA_EXEC_DIR "!"
 
 
 /*
@@ -202,52 +200,53 @@
 ** non-conventional directories.
 */
 
-#define LUA_VDIR	LUA_VERSION_MAJOR "." LUA_VERSION_MINOR
-#if defined(_WIN32)	/* { */
+#define LUA_VDIR LUA_VERSION_MAJOR "." LUA_VERSION_MINOR
+#if defined(_WIN32) /* { */
 /*
 ** In Windows, any exclamation mark ('!') in the path is replaced by the
 ** path of the directory of the executable file of the current process.
 */
-#define LUA_LDIR	"!\\lua\\"
-#define LUA_CDIR	"!\\"
-#define LUA_SHRDIR	"!\\..\\share\\lua\\" LUA_VDIR "\\"
+#define LUA_LDIR "!\\lua\\"
+#define LUA_CDIR "!\\"
+#define LUA_SHRDIR "!\\..\\share\\lua\\" LUA_VDIR "\\"
 
 #if !defined(LUA_PATH_DEFAULT)
-#define LUA_PATH_DEFAULT  \
-        LUA_LDIR"?.lua;"  LUA_LDIR"?\\init.lua;" \
-        LUA_CDIR"?.lua;"  LUA_CDIR"?\\init.lua;" \
-        LUA_SHRDIR"?.lua;" LUA_SHRDIR"?\\init.lua;" \
-        ".\\?.lua;" ".\\?\\init.lua;" \
-        ".\\?.pluto;" ".\\?\\init.pluto"
+#define LUA_PATH_DEFAULT                                                                                                            \
+  LUA_LDIR "?.lua;" LUA_LDIR "?\\init.lua;" LUA_CDIR "?.lua;" LUA_CDIR "?\\init.lua;" LUA_SHRDIR "?.lua;" LUA_SHRDIR "?\\init.lua;" \
+           ".\\?.lua;"                                                                                                              \
+           ".\\?\\init.lua;"                                                                                                        \
+           ".\\?.pluto;"                                                                                                            \
+           ".\\?\\init.pluto"
 #endif
 
 #if !defined(LUA_CPATH_DEFAULT)
-#define LUA_CPATH_DEFAULT \
-        LUA_CDIR"?.dll;" \
-        LUA_CDIR"..\\lib\\lua\\" LUA_VDIR "\\?.dll;" \
-        LUA_CDIR"loadall.dll;" ".\\?.dll"
+#define LUA_CPATH_DEFAULT                                                                 \
+  LUA_CDIR "?.dll;" LUA_CDIR "..\\lib\\lua\\" LUA_VDIR "\\?.dll;" LUA_CDIR "loadall.dll;" \
+           ".\\?.dll"
 #endif
 
-#else			/* }{ */
+#else /* }{ */
 
-#define LUA_ROOT	"/usr/local/"
-#define LUA_LDIR	LUA_ROOT "share/lua/" LUA_VDIR "/"
-#define LUA_CDIR	LUA_ROOT "lib/lua/" LUA_VDIR "/"
+#define LUA_ROOT "/usr/local/"
+#define LUA_LDIR LUA_ROOT "share/lua/" LUA_VDIR "/"
+#define LUA_CDIR LUA_ROOT "lib/lua/" LUA_VDIR "/"
 
 #if !defined(LUA_PATH_DEFAULT)
-#define LUA_PATH_DEFAULT  \
-        LUA_LDIR"?.lua;"  LUA_LDIR"?/init.lua;" \
-        LUA_CDIR"?.lua;"  LUA_CDIR"?/init.lua;" \
-        "./?.lua;" "./?/init.lua;" \
-        "./?.pluto;" "./?/init.pluto"
+#define LUA_PATH_DEFAULT                                                            \
+  LUA_LDIR "?.lua;" LUA_LDIR "?/init.lua;" LUA_CDIR "?.lua;" LUA_CDIR "?/init.lua;" \
+           "./?.lua;"                                                               \
+           "./?/init.lua;"                                                          \
+           "./?.pluto;"                                                             \
+           "./?/init.pluto"
 #endif
 
 #if !defined(LUA_CPATH_DEFAULT)
-#define LUA_CPATH_DEFAULT \
-        LUA_CDIR"?.so;" LUA_CDIR"loadall.so;" "./?.so"
+#define LUA_CPATH_DEFAULT                 \
+  LUA_CDIR "?.so;" LUA_CDIR "loadall.so;" \
+           "./?.so"
 #endif
 
-#endif			/* } */
+#endif /* } */
 
 
 /*
@@ -258,9 +257,9 @@
 #if !defined(LUA_DIRSEP)
 
 #if defined(_WIN32)
-#define LUA_DIRSEP	"\\"
+#define LUA_DIRSEP "\\"
 #else
-#define LUA_DIRSEP	"/"
+#define LUA_DIRSEP "/"
 #endif
 
 #endif
@@ -271,7 +270,7 @@
 ** Typically, the suffix after the mark is the module version,
 ** as in "mod-v1.2.so".
 */
-#define LUA_IGMARK		"-"
+#define LUA_IGMARK "-"
 
 /* }================================================================== */
 
@@ -292,42 +291,42 @@
 ** LUA_BUILD_AS_DLL to get it).
 */
 #if defined(LUA_BUILD_AS_DLL)
-  #if defined(LUA_CORE) || defined(LUA_LIB)
-    #define PLUTO_DLLSPEC __declspec(dllexport)
-  #else
-    #define PLUTO_DLLSPEC __declspec(dllimport)
-  #endif
+#if defined(LUA_CORE) || defined(LUA_LIB)
+#define PLUTO_DLLSPEC __declspec(dllexport)
 #else
-  #ifdef __EMSCRIPTEN__
-    #include "emscripten.h"
-    #define PLUTO_DLLSPEC EMSCRIPTEN_KEEPALIVE
-  #elif !defined(_WIN32)
-    #define PLUTO_DLLSPEC __attribute__((visibility("default")))
-  #else
-    #define PLUTO_DLLSPEC
-  #endif
+#define PLUTO_DLLSPEC __declspec(dllimport)
+#endif
+#else
+#ifdef __EMSCRIPTEN__
+#include "emscripten.h"
+#define PLUTO_DLLSPEC EMSCRIPTEN_KEEPALIVE
+#elif !defined(_WIN32)
+#define PLUTO_DLLSPEC __attribute__((visibility("default")))
+#else
+#define PLUTO_DLLSPEC
+#endif
 #endif
 
 // Additions by Pluto that are not compatible with `extern "C"` use PLUTO_API instead of LUA_API.
-#define PLUTO_API	PLUTO_DLLSPEC
+#define PLUTO_API PLUTO_DLLSPEC
 
 #ifdef __cplusplus
-  #define LUA_API          extern "C" PLUTO_API
-  #define LUA_API_NORETURN extern "C" [[noreturn]] PLUTO_API
+#define LUA_API extern "C" PLUTO_API
+#define LUA_API_NORETURN extern "C" [[noreturn]] PLUTO_API
 #else
-  #define LUA_API          PLUTO_API
-  #define LUA_API_NORETURN PLUTO_API
+#define LUA_API PLUTO_API
+#define LUA_API_NORETURN PLUTO_API
 #endif
 
 /*
 ** More often than not the libs go together with the core.
 */
-#define LUALIB_API	LUA_API
-#define LUAMOD_API	LUA_API
+#define LUALIB_API LUA_API
+#define LUAMOD_API LUA_API
 
-#define LUALIB_API_NORETURN	LUA_API_NORETURN
+#define LUALIB_API_NORETURN LUA_API_NORETURN
 
-#define PLUTOLIB_API	PLUTO_API
+#define PLUTOLIB_API PLUTO_API
 
 
 /*
@@ -344,15 +343,15 @@
 ** give a warning about it. To avoid these warnings, change to the
 ** default definition.
 */
-#if defined(__GNUC__) && ((__GNUC__*100 + __GNUC_MINOR__) >= 302) && \
-    defined(__ELF__)		/* { */
-#define LUAI_FUNC	__attribute__((visibility("internal"))) extern
-#else				/* }{ */
-#define LUAI_FUNC	extern
-#endif				/* } */
+#if defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 302) && \
+    defined(__ELF__) /* { */
+#define LUAI_FUNC __attribute__((visibility("internal"))) extern
+#else /* }{ */
+#define LUAI_FUNC extern
+#endif /* } */
 
-#define LUAI_DDEC(dec)	LUAI_FUNC dec
-#define LUAI_DDEF	/* empty */
+#define LUAI_DDEC(dec) LUAI_FUNC dec
+#define LUAI_DDEF /* empty */
 
 /* }================================================================== */
 
@@ -368,7 +367,7 @@
 ** You can define it to get all options, or change specific options
 ** to fit your specific needs.
 */
-#if defined(LUA_COMPAT_5_3)	/* { */
+#if defined(LUA_COMPAT_5_3) /* { */
 
 /*
 @@ LUA_COMPAT_MATHLIB controls the presence of several deprecated
@@ -402,17 +401,16 @@
 ** (Once more, these macros were officially removed in 5.3, but they are
 ** still available here.)
 */
-#define lua_strlen(L,i)		lua_rawlen(L, (i))
+#define lua_strlen(L, i) lua_rawlen(L, (i))
 
-#define lua_objlen(L,i)		lua_rawlen(L, (i))
+#define lua_objlen(L, i) lua_rawlen(L, (i))
 
-#define lua_equal(L,idx1,idx2)		lua_compare(L,(idx1),(idx2),LUA_OPEQ)
-#define lua_lessthan(L,idx1,idx2)	lua_compare(L,(idx1),(idx2),LUA_OPLT)
+#define lua_equal(L, idx1, idx2) lua_compare(L, (idx1), (idx2), LUA_OPEQ)
+#define lua_lessthan(L, idx1, idx2) lua_compare(L, (idx1), (idx2), LUA_OPLT)
 
-#endif				/* } */
+#endif /* } */
 
 /* }================================================================== */
-
 
 
 /*
@@ -439,10 +437,10 @@
 
 /* The following definitions are good for most cases here */
 
-#define l_floor(x)		(l_mathop(floor)(x))
+#define l_floor(x) (l_mathop(floor)(x))
 
-#define lua_number2str(s,sz,n)  \
-    l_sprintf((s), sz, LUA_NUMBER_FMT, (LUAI_UACNUMBER)(n))
+#define lua_number2str(s, sz, n) \
+  l_sprintf((s), sz, LUA_NUMBER_FMT, (LUAI_UACNUMBER)(n))
 
 /*
 @@ lua_numbertointeger converts a float number with an integral value
@@ -453,66 +451,65 @@
 ** MAXINTEGER may not have one, and therefore its conversion to float
 ** may have an ill-defined value.)
 */
-#define lua_numbertointeger(n,p) \
-  ((n) >= (LUA_NUMBER)(LUA_MININTEGER) && \
-   (n) < -(LUA_NUMBER)(LUA_MININTEGER) && \
+#define lua_numbertointeger(n, p)            \
+  ((n) >= (LUA_NUMBER)(LUA_MININTEGER) &&    \
+      (n) < -(LUA_NUMBER)(LUA_MININTEGER) && \
       (*(p) = (LUA_INTEGER)(n), 1))
 
 
 /* now the variable definitions */
 
-#if LUA_FLOAT_TYPE == LUA_FLOAT_FLOAT		/* { single float */
+#if LUA_FLOAT_TYPE == LUA_FLOAT_FLOAT /* { single float */
 
-#define LUA_NUMBER	float
+#define LUA_NUMBER float
 
-#define l_floatatt(n)		(FLT_##n)
+#define l_floatatt(n) (FLT_##n)
 
-#define LUAI_UACNUMBER	double
+#define LUAI_UACNUMBER double
 
-#define LUA_NUMBER_FRMLEN	""
-#define LUA_NUMBER_FMT		"%.7g"
+#define LUA_NUMBER_FRMLEN ""
+#define LUA_NUMBER_FMT "%.7g"
 
-#define l_mathop(op)		op##f
+#define l_mathop(op) op##f
 
-#define lua_str2number(s,p)	strtof((s), (p))
+#define lua_str2number(s, p) strtof((s), (p))
 
 
-#elif LUA_FLOAT_TYPE == LUA_FLOAT_LONGDOUBLE	/* }{ long double */
+#elif LUA_FLOAT_TYPE == LUA_FLOAT_LONGDOUBLE /* }{ long double */
 
-#define LUA_NUMBER	long double
+#define LUA_NUMBER long double
 
-#define l_floatatt(n)		(LDBL_##n)
+#define l_floatatt(n) (LDBL_##n)
 
-#define LUAI_UACNUMBER	long double
+#define LUAI_UACNUMBER long double
 
-#define LUA_NUMBER_FRMLEN	"L"
-#define LUA_NUMBER_FMT		"%.19Lg"
+#define LUA_NUMBER_FRMLEN "L"
+#define LUA_NUMBER_FMT "%.19Lg"
 
-#define l_mathop(op)		op##l
+#define l_mathop(op) op##l
 
-#define lua_str2number(s,p)	strtold((s), (p))
+#define lua_str2number(s, p) strtold((s), (p))
 
-#elif LUA_FLOAT_TYPE == LUA_FLOAT_DOUBLE	/* }{ double */
+#elif LUA_FLOAT_TYPE == LUA_FLOAT_DOUBLE /* }{ double */
 
-#define LUA_NUMBER	double
+#define LUA_NUMBER double
 
-#define l_floatatt(n)		(DBL_##n)
+#define l_floatatt(n) (DBL_##n)
 
-#define LUAI_UACNUMBER	double
+#define LUAI_UACNUMBER double
 
-#define LUA_NUMBER_FRMLEN	""
-#define LUA_NUMBER_FMT		"%.14g"
+#define LUA_NUMBER_FRMLEN ""
+#define LUA_NUMBER_FMT "%.14g"
 
-#define l_mathop(op)		op
+#define l_mathop(op) op
 
-#define lua_str2number(s,p)	strtod((s), (p))
+#define lua_str2number(s, p) strtod((s), (p))
 
-#else						/* }{ */
+#else /* }{ */
 
 #error "numeric float type not defined"
 
-#endif					/* } */
-
+#endif /* } */
 
 
 /*
@@ -530,79 +527,79 @@
 
 /* The following definitions are good for most cases here */
 
-#define LUA_INTEGER_FMT		"%" LUA_INTEGER_FRMLEN "d"
+#define LUA_INTEGER_FMT "%" LUA_INTEGER_FRMLEN "d"
 
-#define LUAI_UACINT		LUA_INTEGER
+#define LUAI_UACINT LUA_INTEGER
 
-#define lua_integer2str(s,sz,n)  \
-    l_sprintf((s), sz, LUA_INTEGER_FMT, (LUAI_UACINT)(n))
+#define lua_integer2str(s, sz, n) \
+  l_sprintf((s), sz, LUA_INTEGER_FMT, (LUAI_UACINT)(n))
 
 /*
 ** use LUAI_UACINT here to avoid problems with promotions (which
 ** can turn a comparison between unsigneds into a signed comparison)
 */
-#define LUA_UNSIGNED		unsigned LUAI_UACINT
+#define LUA_UNSIGNED unsigned LUAI_UACINT
 
 
 /* now the variable definitions */
 
-#if LUA_INT_TYPE == LUA_INT_INT		/* { int */
+#if LUA_INT_TYPE == LUA_INT_INT /* { int */
 
-#define LUA_INTEGER		int
-#define LUA_INTEGER_FRMLEN	""
+#define LUA_INTEGER int
+#define LUA_INTEGER_FRMLEN ""
 
-#define LUA_MAXINTEGER		INT_MAX
-#define LUA_MININTEGER		INT_MIN
+#define LUA_MAXINTEGER INT_MAX
+#define LUA_MININTEGER INT_MIN
 
-#define LUA_MAXUNSIGNED		UINT_MAX
+#define LUA_MAXUNSIGNED UINT_MAX
 
-#elif LUA_INT_TYPE == LUA_INT_LONG	/* }{ long */
+#elif LUA_INT_TYPE == LUA_INT_LONG /* }{ long */
 
-#define LUA_INTEGER		long
-#define LUA_INTEGER_FRMLEN	"l"
+#define LUA_INTEGER long
+#define LUA_INTEGER_FRMLEN "l"
 
-#define LUA_MAXINTEGER		LONG_MAX
-#define LUA_MININTEGER		LONG_MIN
+#define LUA_MAXINTEGER LONG_MAX
+#define LUA_MININTEGER LONG_MIN
 
-#define LUA_MAXUNSIGNED		ULONG_MAX
+#define LUA_MAXUNSIGNED ULONG_MAX
 
-#elif LUA_INT_TYPE == LUA_INT_LONGLONG	/* }{ long long */
+#elif LUA_INT_TYPE == LUA_INT_LONGLONG /* }{ long long */
 
 /* use presence of macro LLONG_MAX as proxy for C99 compliance */
-#if defined(LLONG_MAX)		/* { */
+#if defined(LLONG_MAX)                 /* { */
 /* use ISO C99 stuff */
 
-#define LUA_INTEGER		long long
-#define LUA_INTEGER_FRMLEN	"ll"
+#define LUA_INTEGER long long
+#define LUA_INTEGER_FRMLEN "ll"
 
-#define LUA_MAXINTEGER		LLONG_MAX
-#define LUA_MININTEGER		LLONG_MIN
+#define LUA_MAXINTEGER LLONG_MAX
+#define LUA_MININTEGER LLONG_MIN
 
-#define LUA_MAXUNSIGNED		ULLONG_MAX
+#define LUA_MAXUNSIGNED ULLONG_MAX
 
 #elif defined(LUA_USE_WINDOWS) /* }{ */
 /* in Windows, can use specific Windows types */
 
-#define LUA_INTEGER		__int64
-#define LUA_INTEGER_FRMLEN	"I64"
+#define LUA_INTEGER __int64
+#define LUA_INTEGER_FRMLEN "I64"
 
-#define LUA_MAXINTEGER		_I64_MAX
-#define LUA_MININTEGER		_I64_MIN
+#define LUA_MAXINTEGER _I64_MAX
+#define LUA_MININTEGER _I64_MIN
 
-#define LUA_MAXUNSIGNED		_UI64_MAX
+#define LUA_MAXUNSIGNED _UI64_MAX
 
-#else				/* }{ */
+#else /* }{ */
 
 #error "Compiler does not support 'long long'. Use option '-DLUA_32BITS' \
   or '-DLUA_C89_NUMBERS' (see file 'luaconf.h' for details)"
 
-#endif				/* } */
+#endif /* } */
 
-#else				/* }{ */
+#else /* }{ */
 
 #error "numeric integer type not defined"
 
-#endif				/* } */
+#endif /* } */
 
 /* }================================================================== */
 
@@ -618,9 +615,9 @@
 ** (All uses in Lua have only one format item.)
 */
 #if !defined(LUA_USE_C89)
-#define l_sprintf(s,sz,f,i)	snprintf(s,sz,f,i)
+#define l_sprintf(s, sz, f, i) snprintf(s, sz, f, i)
 #else
-#define l_sprintf(s,sz,f,i)	((void)(sz), sprintf(s,f,i))
+#define l_sprintf(s, sz, f, i) ((void)(sz), sprintf(s, f, i))
 #endif
 
 
@@ -631,7 +628,7 @@
 ** implementation.
 */
 #if !defined(LUA_USE_C89)
-#define lua_strx2number(s,p)		lua_str2number(s,p)
+#define lua_strx2number(s, p) lua_str2number(s, p)
 #endif
 
 
@@ -639,7 +636,7 @@
 @@ lua_pointer2str converts a pointer to a readable string in a
 ** non-specified way.
 */
-#define lua_pointer2str(buff,sz,p)	l_sprintf(buff,sz,"%p",p)
+#define lua_pointer2str(buff, sz, p) l_sprintf(buff, sz, "%p", p)
 
 
 /*
@@ -649,8 +646,8 @@
 ** provide its own implementation.
 */
 #if !defined(LUA_USE_C89)
-#define lua_number2strx(L,b,sz,f,n)  \
-    ((void)L, l_sprintf(b,sz,f,(LUAI_UACNUMBER)(n)))
+#define lua_number2strx(L, b, sz, f, n) \
+  ((void)L, l_sprintf(b, sz, f, (LUAI_UACNUMBER)(n)))
 #endif
 
 
@@ -661,10 +658,10 @@
 ** all files that use these macros.)
 */
 #if defined(LUA_USE_C89) || (defined(HUGE_VAL) && !defined(HUGE_VALF))
-#undef l_mathop  /* variants not available */
+#undef l_mathop /* variants not available */
 #undef lua_str2number
-#define l_mathop(op)		(lua_Number)op  /* no variant */
-#define lua_str2number(s,p)	((lua_Number)strtod((s), (p)))
+#define l_mathop(op) (lua_Number) op /* no variant */
+#define lua_str2number(s, p) ((lua_Number)strtod((s), (p)))
 #endif
 
 
@@ -674,14 +671,14 @@
 ** available, otherwise it will use 'ptrdiff_t' (the nearest thing to
 ** 'intptr_t' in C89)
 */
-#define LUA_KCONTEXT	ptrdiff_t
+#define LUA_KCONTEXT ptrdiff_t
 
 #if !defined(LUA_USE_C89) && defined(__STDC_VERSION__) && \
     __STDC_VERSION__ >= 199901L
 #include <stdint.h>
-#if defined(INTPTR_MAX)  /* even in C99 this type is optional */
+#if defined(INTPTR_MAX) /* even in C99 this type is optional */
 #undef LUA_KCONTEXT
-#define LUA_KCONTEXT	intptr_t
+#define LUA_KCONTEXT intptr_t
 #endif
 #endif
 
@@ -692,7 +689,7 @@
 ** macro must include the header 'locale.h'.)
 */
 #if !defined(lua_getlocaledecpoint)
-#define lua_getlocaledecpoint()		(localeconv()->decimal_point[0])
+#define lua_getlocaledecpoint() (localeconv()->decimal_point[0])
 #endif
 
 
@@ -705,11 +702,11 @@
 #if !defined(luai_likely)
 
 #if (defined(__GNUC__) || defined(__CLANG__)) && !defined(LUA_NOBUILTIN)
-#define luai_likely(x)		(__builtin_expect(((x) != 0), 1))
-#define luai_unlikely(x)	(__builtin_expect(((x) != 0), 0))
+#define luai_likely(x) (__builtin_expect(((x) != 0), 1))
+#define luai_unlikely(x) (__builtin_expect(((x) != 0), 0))
 #else
-#define luai_likely(x)		(x)
-#define luai_unlikely(x)	(x)
+#define luai_likely(x) (x)
+#define luai_unlikely(x) (x)
 #endif
 
 #endif
@@ -717,10 +714,9 @@
 
 #if defined(LUA_CORE) || defined(LUA_LIB)
 /* shorter names for Lua's own use */
-#define l_likely(x)	luai_likely(x)
-#define l_unlikely(x)	luai_unlikely(x)
+#define l_likely(x) luai_likely(x)
+#define l_unlikely(x) luai_unlikely(x)
 #endif
-
 
 
 /* }================================================================== */
@@ -748,7 +744,7 @@
 */
 #if defined(LUA_USE_APICHECK)
 #include <assert.h>
-#define luai_apicheck(l,e)	assert(e)
+#define luai_apicheck(l, e) assert(e)
 #endif
 
 /* }================================================================== */
@@ -770,9 +766,9 @@
 ** (It must fit into max(size_t)/32.)
 */
 #if LUAI_IS32INT
-#define LUAI_MAXSTACK		1000000
+#define LUAI_MAXSTACK 1000000
 #else
-#define LUAI_MAXSTACK		15000
+#define LUAI_MAXSTACK 15000
 #endif
 
 
@@ -781,7 +777,7 @@
 ** a Lua state with very fast access.
 ** CHANGE it if you need a different size.
 */
-#define LUA_EXTRASPACE		(sizeof(void *))
+#define LUA_EXTRASPACE (sizeof(void*))
 
 
 /*
@@ -789,21 +785,26 @@
 ** of a function in debug information.
 ** CHANGE it if you want a different size.
 */
-#define LUA_IDSIZE	60
+#define LUA_IDSIZE 60
 
 
 /*
 @@ LUAL_BUFFERSIZE is the initial buffer size used by the lauxlib
 ** buffer system.
 */
-#define LUAL_BUFFERSIZE   ((int)(16 * sizeof(void*) * sizeof(lua_Number)))
+#define LUAL_BUFFERSIZE ((int)(16 * sizeof(void*) * sizeof(lua_Number)))
 
 
 /*
 @@ LUAI_MAXALIGN defines fields that, when used in a union, ensure
 ** maximum alignment for the other items in that union.
 */
-#define LUAI_MAXALIGN  lua_Number n; double u; void *s; lua_Integer i; long l
+#define LUAI_MAXALIGN \
+  lua_Number n;       \
+  double u;           \
+  void* s;            \
+  lua_Integer i;      \
+  long l
 
 /* }================================================================== */
 
@@ -840,7 +841,7 @@
 
 // The list of globals covered by the "global-shadow" warning.
 #ifndef PLUTO_COMMON_GLOBAL_NAMES
-#define PLUTO_COMMON_GLOBAL_NAMES "table","string","arg"
+#define PLUTO_COMMON_GLOBAL_NAMES "table", "string", "arg"
 #endif
 
 // If defined, the "non-portable-code" warning is enabled by default.
@@ -864,15 +865,15 @@
 //#define PLUTO_COMPATIBLE_MODE
 
 #ifdef PLUTO_COMPATIBLE_MODE
-    #define PLUTO_COMPATIBLE_SWITCH
-    #define PLUTO_COMPATIBLE_CONTINUE
-    #define PLUTO_COMPATIBLE_ENUM
-    #define PLUTO_COMPATIBLE_NEW
-    #define PLUTO_COMPATIBLE_CLASS
-    #define PLUTO_COMPATIBLE_PARENT
-    #define PLUTO_COMPATIBLE_EXPORT
-    #define PLUTO_COMPATIBLE_TRY
-    #define PLUTO_COMPATIBLE_CATCH
+#define PLUTO_COMPATIBLE_SWITCH
+#define PLUTO_COMPATIBLE_CONTINUE
+#define PLUTO_COMPATIBLE_ENUM
+#define PLUTO_COMPATIBLE_NEW
+#define PLUTO_COMPATIBLE_CLASS
+#define PLUTO_COMPATIBLE_PARENT
+#define PLUTO_COMPATIBLE_EXPORT
+#define PLUTO_COMPATIBLE_TRY
+#define PLUTO_COMPATIBLE_CATCH
 #endif
 
 // If defined, Pluto's automatic keyword detection will more aggressively disable keywords if they're not used exactly as expected.
@@ -918,7 +919,7 @@
 ** If exceeded, the backward jump is ignored to escape the loop.
 */
 #ifndef PLUTO_ILP_MAX_ITERATIONS
-#define PLUTO_ILP_MAX_ITERATIONS			1'000'000
+#define PLUTO_ILP_MAX_ITERATIONS 1'000'000
 #endif
 
 // If you want (i.e) `luaB_next` to reset iteration counters, define as `luaB_next`.
@@ -929,11 +930,11 @@
 
 // Allows you to customise how an ILP violation is raised to the runtime (or not).
 #ifdef PLUTO_ILP_SILENT_BREAK
-  #define PLUTO_ILP_ERROR ;
+#define PLUTO_ILP_ERROR ;
 #else
-  #ifndef PLUTO_ILP_ERROR
-    #define PLUTO_ILP_ERROR luaG_runerror(L, "infinite loop detected (exceeded max iterations: %d)", PLUTO_ILP_MAX_ITERATIONS);
-  #endif
+#ifndef PLUTO_ILP_ERROR
+#define PLUTO_ILP_ERROR luaG_runerror(L, "infinite loop detected (exceeded max iterations: %d)", PLUTO_ILP_MAX_ITERATIONS);
+#endif
 #endif
 
 #endif // PLUTO_ILP_ENABLE
@@ -953,7 +954,7 @@
 ** This is the maximum amount of nanoseconds the VM is allowed to run.
 */
 #ifndef PLUTO_ETL_NANOS
-#define PLUTO_ETL_NANOS			1'000'000 /* 1ms */
+#define PLUTO_ETL_NANOS 1'000'000 /* 1ms */
 #endif
 
 /*
@@ -1038,7 +1039,7 @@
 //#define PLUTO_LOADCLIB_HOOK ContmodOnLoadCLib
 
 // If defined, Pluto will not load the io library, and exclude os.remove and os.rename.
-// It's highly suggested in most cases to define PLUTO_NO_OS_EXECUTE below too, since os.execute can be used for filesystem access. 
+// It's highly suggested in most cases to define PLUTO_NO_OS_EXECUTE below too, since os.execute can be used for filesystem access.
 // It's suggested you implement PLUTO_LOADCLIB_HOOK, etc, for even more powerful coverage. Package.loadlib can still load other Pluto/Lua libraries and use their lua_CFunction objects.
 //#define PLUTO_NO_FILESYSTEM
 
@@ -1142,7 +1143,7 @@
 #define CYNB ESC "[46m"
 #define WHTB ESC "[47m"
 
-//High intensty background 
+//High intensty background
 #define BLKHB ESC "[0;100m"
 #define REDHB ESC "[0;101m"
 #define GRNHB ESC "[0;102m"

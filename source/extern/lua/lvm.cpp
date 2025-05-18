@@ -354,13 +354,16 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
       lua_assert(isempty(slot));  /* slot must be empty */
       tm = fasttm(L, h->metatable, TM_NEWINDEX);  /* get metamethod */
       if (tm == NULL) {  /* no metamethod? */
-#ifndef PLUTO_DISABLE_LENGTH_CACHE
-        h->length = 0; // Reset length cache.
-#endif
+        sethvalue2s(L, L->top.p, h);  /* anchor 't' */
+        L->top.p++;  /* assume EXTRA_STACK */
 #ifndef PLUTO_DISABLE_TABLE_FREEZING
         if (l_unlikely(h->isfrozen)) luaG_runerror(L, "attempt to modify frozen table.");
 #endif
+#ifndef PLUTO_DISABLE_LENGTH_CACHE
+		h->length = 0; // Reset length cache.
+#endif
         luaH_finishset(L, h, key, slot, val);  /* set new value */
+        L->top.p--;
         invalidateTMcache(h);
         luaC_barrierback(L, obj2gco(h), val);
         return;
@@ -379,11 +382,11 @@ void luaV_finishset (lua_State *L, const TValue *t, TValue *key,
     }
     t = tm;  /* else repeat assignment over 'tm' */
     if (luaV_fastget(L, t, key, slot, luaH_get)) {
-#ifndef PLUTO_DISABLE_LENGTH_CACHE
-      hvalue(t)->length = 0; // Reset length cache.
-#endif
 #ifndef PLUTO_DISABLE_TABLE_FREEZING
       if (l_unlikely(hvalue(t)->isfrozen)) luaG_runerror(L, "attempt to modify frozen table.");
+#endif
+#ifndef PLUTO_DISABLE_LENGTH_CACHE
+	  hvalue(t)->length = 0; // Reset length cache.
 #endif
       luaV_finishfastset(L, t, slot, val);
       return;  /* done */
@@ -1602,12 +1605,12 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
             ? (cast_void(n = ivalue(rb)), luaV_fastgeti(L, s2v(ra), n, slot))
             : luaV_fastget(L, s2v(ra), rb, slot, luaH_get)) {
           Table *t = hvalue(s2v(ra));
-#ifndef PLUTO_DISABLE_LENGTH_CACHE
-          t->length = 0; // Reset length cache.
-#endif
 #ifndef PLUTO_DISABLE_TABLE_FREEZING
           if (l_unlikely(t->isfrozen))
             halfProtect(luaG_runerror(L, "attempt to modify frozen table."));
+#endif
+#ifndef PLUTO_DISABLE_LENGTH_CACHE
+          t->length = 0; // Reset length cache.
 #endif
           luaV_finishfastset(L, s2v(ra), slot, rc);
         }
@@ -1627,12 +1630,12 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         TValue *rc = RKC(i);
         if (luaV_fastgeti(L, s2v(ra), c, slot)) {
           Table *t = hvalue(s2v(ra));
-#ifndef PLUTO_DISABLE_LENGTH_CACHE
-          t->length = 0; // Reset length cache.
-#endif
 #ifndef PLUTO_DISABLE_TABLE_FREEZING
           if (l_unlikely(t->isfrozen))
             halfProtect(luaG_runerror(L, "attempt to modify frozen table."));
+#endif
+#ifndef PLUTO_DISABLE_LENGTH_CACHE
+          t->length = 0; // Reset length cache.
 #endif
           luaV_finishfastset(L, s2v(ra), slot, rc);
         }
