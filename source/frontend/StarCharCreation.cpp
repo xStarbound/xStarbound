@@ -210,6 +210,11 @@ CharCreationPane::CharCreationPane(std::function<void(PlayerPtr)> requestCloseFu
       m_speciesChoice = m_speciesList.indexOf(speciesName);
       if (auto bw = fetchChild<ButtonWidget>(strf("species.{}", m_speciesList.indexOf(speciesName))))
         bw->check();
+    } else if (m_speciesList.contains(speciesName.toLower())) {
+      // FezzedOne: Because some mods that alter the character creator don't care about case sensitivity.
+      m_speciesChoice = m_speciesList.indexOf(speciesName.toLower());
+      if (auto bw = fetchChild<ButtonWidget>(strf("species.{}", m_speciesList.indexOf(speciesName))))
+        bw->check();
     }
     auto speciesDefinition = Root::singleton().speciesDatabase()->species(speciesName);
     auto species = speciesDefinition->options();
