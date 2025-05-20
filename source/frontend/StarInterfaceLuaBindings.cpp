@@ -11,6 +11,8 @@
 #include "StarUniverseClient.hpp"
 #include "StarWidgetLuaBindings.hpp"
 #include "StarWorldCamera.hpp"
+#include "StarWorldClient.hpp"
+#include "StarWorldPainter.hpp"
 
 namespace Star {
 
@@ -277,6 +279,21 @@ LuaCallbacks LuaBindings::makeCameraCallbacks(WorldCamera* camera) {
   callbacks.registerCallbackWithSignature<Vec2F>("tileMinScreen", bind(&WorldCamera::tileMinScreen, camera));
   callbacks.registerCallbackWithSignature<Vec2F, Vec2F>("screenToWorld", bind(&WorldCamera::screenToWorld, camera, _1));
   callbacks.registerCallbackWithSignature<Vec2F, Vec2F>("worldToScreen", bind(&WorldCamera::worldToScreen, camera, _1));
+
+  return callbacks;
+}
+
+LuaCallbacks LuaBindings::makeRenderingCallbacks(WorldPainter* worldPainter) {
+  LuaCallbacks callbacks;
+
+  callbacks.registerCallbackWithSignature<void, Json>("setEnabledLayers",
+      bind(&WorldPainter::setEnabledRenderLayers, worldPainter, _1));
+  callbacks.registerCallbackWithSignature<JsonObject>("enabledLayers",
+      bind(&WorldPainter::enabledRenderLayers, worldPainter));
+  callbacks.registerCallbackWithSignature<void, bool>("overrideFullbright",
+      bind(&WorldPainter::fullbrightOverride, worldPainter, _1));
+  callbacks.registerCallbackWithSignature<bool>("fullbrightOverridden",
+      bind(&WorldPainter::isFullbright, worldPainter));
 
   return callbacks;
 }

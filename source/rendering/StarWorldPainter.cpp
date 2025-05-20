@@ -1,9 +1,10 @@
 #include "StarWorldPainter.hpp"
 #include "StarAnimation.hpp"
-#include "StarRoot.hpp"
-#include "StarConfiguration.hpp"
 #include "StarAssets.hpp"
+#include "StarConfiguration.hpp"
+#include "StarJson.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -13,6 +14,10 @@ WorldPainter::WorldPainter() {
   m_camera.setScreenSize({800, 600});
   m_camera.setCenterWorldPosition(Vec2F());
   m_camera.setPixelRatio(clamp(Root::singleton().configuration()->get("zoomLevel").toFloat(), 0.25f, 100.0f));
+
+  m_enabledLayers = WorldPainter::EnabledLayers();
+  m_fullbrightOverride = false;
+  m_tileRenderDirectives = TilePainter::TilePainterDirectives();
 
   m_highlightConfig = m_assets->json("/highlights.config");
   for (auto p : m_highlightConfig.get("highlightDirectives").iterateObject())
@@ -49,13 +54,99 @@ void WorldPainter::update(float dt) {
   m_environmentPainter->update(dt);
 }
 
+void WorldPainter::setEnabledRenderLayers(Json const& renderLayerChanges) {
+  auto& el = m_enabledLayers;
+  if (renderLayerChanges.isType(Json::Type::Object)) {
+    el.stars = renderLayerChanges.optBool("stars").value(el.stars);
+    el.debrisFields = renderLayerChanges.optBool("debrisFields").value(el.debrisFields);
+    el.backOrbiters = renderLayerChanges.optBool("backOrbiters").value(el.backOrbiters);
+    el.planetHorizon = renderLayerChanges.optBool("planetHorizon").value(el.planetHorizon);
+    el.sky = renderLayerChanges.optBool("sky").value(el.sky);
+    el.frontOrbiters = renderLayerChanges.optBool("frontOrbiters").value(el.frontOrbiters);
+    el.parallax = renderLayerChanges.optBool("parallax").value(el.parallax);
+    el.entities = renderLayerChanges.optBool("entities").value(el.entities);
+    el.backgroundOverlays = renderLayerChanges.optBool("backgroundOverlays").value(el.backgroundOverlays);
+    el.backgroundTiles = renderLayerChanges.optBool("backgroundTiles").value(el.backgroundTiles);
+    el.midgroundTiles = renderLayerChanges.optBool("midgroundTiles").value(el.midgroundTiles);
+    el.particles = renderLayerChanges.optBool("particles").value(el.particles);
+    el.liquids = renderLayerChanges.optBool("liquids").value(el.liquids);
+    el.foregroundTiles = renderLayerChanges.optBool("foregroundTiles").value(el.foregroundTiles);
+    el.overlays = renderLayerChanges.optBool("overlays").value(el.overlays);
+    el.nametags = renderLayerChanges.optBool("nametags").value(el.nametags);
+    el.bars = renderLayerChanges.optBool("bars").value(el.bars);
+  } else if (renderLayerChanges.isNull()) {
+    el = EnabledLayers(); // FezzedOne: Should set everything back to defaults.
+  }
+}
+
+JsonObject WorldPainter::enabledRenderLayers() const {
+  return JsonObject{
+      {"stars", m_enabledLayers.stars},
+      {"debrisFields", m_enabledLayers.debrisFields},
+      {"backOrbiters", m_enabledLayers.backOrbiters},
+      {"planetHorizon", m_enabledLayers.planetHorizon},
+      {"sky", m_enabledLayers.sky},
+      {"frontOrbiters", m_enabledLayers.frontOrbiters},
+      {"parallax", m_enabledLayers.parallax},
+      {"entities", m_enabledLayers.entities},
+      {"backgroundOverlays", m_enabledLayers.backgroundOverlays},
+      {"backgroundTiles", m_enabledLayers.backgroundTiles},
+      {"midgroundTiles", m_enabledLayers.midgroundTiles},
+      {"particles", m_enabledLayers.particles},
+      {"liquids", m_enabledLayers.liquids},
+      {"foregroundTiles", m_enabledLayers.foregroundTiles},
+      {"overlays", m_enabledLayers.overlays},
+      {"nametags", m_enabledLayers.nametags},
+      {"bars", m_enabledLayers.bars},
+  };
+}
+
+void WorldPainter::fullbrightOverride(bool override) {
+  m_fullbrightOverride = override;
+}
+
+bool WorldPainter::isFullbright() const {
+  return m_fullbrightOverride;
+}
+
+void WorldPainter::setTileRenderDirectives(Json const& newDirectives) {
+  if (newDirectives.isType(Json::Type::Object)) {
+    bool shouldFlush = false;
+    String liquids = newDirectives.optString("liquids").value(m_tileRenderDirectives.liquids);
+    shouldFlush |= liquids != m_tileRenderDirectives.liquids;
+    m_tileRenderDirectives.liquids = std::move(liquids);
+    String background = newDirectives.optString("background").value(m_tileRenderDirectives.terrainLayers.background);
+    shouldFlush |= background != m_tileRenderDirectives.terrainLayers.background;
+    m_tileRenderDirectives.terrainLayers.background = std::move(background);
+    String midground = newDirectives.optString("midground").value(m_tileRenderDirectives.terrainLayers.midground);
+    shouldFlush |= midground != m_tileRenderDirectives.terrainLayers.midground;
+    m_tileRenderDirectives.terrainLayers.midground = std::move(midground);
+    String foreground = newDirectives.optString("foreground").value(m_tileRenderDirectives.terrainLayers.foreground);
+    shouldFlush |= foreground != m_tileRenderDirectives.terrainLayers.foreground;
+    m_tileRenderDirectives.terrainLayers.foreground = std::move(foreground);
+    if (m_tilePainter && shouldFlush)
+      m_tilePainter->cleanup();
+  }
+}
+
+JsonObject WorldPainter::tileRenderDirectives() const {
+  return JsonObject{
+      {"liquids", m_tileRenderDirectives.liquids},
+      {"background", m_tileRenderDirectives.terrainLayers.background},
+      {"midground", m_tileRenderDirectives.terrainLayers.midground},
+      {"foreground", m_tileRenderDirectives.terrainLayers.foreground},
+  };
+}
+
 void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWaiter, Maybe<Vec3F> const& lightMultiplier, Array<Vec3F, 6> const& shaderParameters) {
+  auto& el = m_enabledLayers;
+
   m_camera.setScreenSize(m_renderer->screenSize());
   m_camera.setTargetPixelRatio(clamp(Root::singleton().configuration()->get("zoomLevel").toFloat(), 0.25f, 100.0f));
 
   m_assets = Root::singleton().assets();
 
-  m_tilePainter->setup(m_camera, renderData);
+  m_tilePainter->setup(m_camera, renderData, m_tileRenderDirectives);
 
   // Stars, Debris Fields, Sky, and Orbiters
 
@@ -64,12 +155,18 @@ void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWai
   float starAndDebrisRatio = lerp(0.0625f, pixelRatioBasis * 2.0f, m_camera.pixelRatio());
   float orbiterAndPlanetRatio = lerp(0.125f, pixelRatioBasis * 3.0f, m_camera.pixelRatio());
 
-  m_environmentPainter->renderStars(starAndDebrisRatio, Vec2F(m_camera.screenSize()), renderData.skyRenderData);
-  m_environmentPainter->renderDebrisFields(starAndDebrisRatio, Vec2F(m_camera.screenSize()), renderData.skyRenderData);
-  m_environmentPainter->renderBackOrbiters(orbiterAndPlanetRatio, Vec2F(m_camera.screenSize()), renderData.skyRenderData);
-  m_environmentPainter->renderPlanetHorizon(orbiterAndPlanetRatio, Vec2F(m_camera.screenSize()), renderData.skyRenderData);
-  m_environmentPainter->renderSky(Vec2F(m_camera.screenSize()), renderData.skyRenderData);
-  m_environmentPainter->renderFrontOrbiters(orbiterAndPlanetRatio, Vec2F(m_camera.screenSize()), renderData.skyRenderData);
+  if (el.stars)
+    m_environmentPainter->renderStars(starAndDebrisRatio, Vec2F(m_camera.screenSize()), renderData.skyRenderData);
+  if (el.debrisFields)
+    m_environmentPainter->renderDebrisFields(starAndDebrisRatio, Vec2F(m_camera.screenSize()), renderData.skyRenderData);
+  if (el.backOrbiters)
+    m_environmentPainter->renderBackOrbiters(orbiterAndPlanetRatio, Vec2F(m_camera.screenSize()), renderData.skyRenderData);
+  if (el.planetHorizon)
+    m_environmentPainter->renderPlanetHorizon(orbiterAndPlanetRatio, Vec2F(m_camera.screenSize()), renderData.skyRenderData);
+  if (el.sky)
+    m_environmentPainter->renderSky(Vec2F(m_camera.screenSize()), renderData.skyRenderData);
+  if (el.frontOrbiters)
+    m_environmentPainter->renderFrontOrbiters(orbiterAndPlanetRatio, Vec2F(m_camera.screenSize()), renderData.skyRenderData);
 
   m_renderer->flush();
 
@@ -88,9 +185,9 @@ void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWai
     m_renderer->setEffectParameter("param6", shaderParameters[5]);
   }
 
-  if (renderData.isFullbright) {
-    m_renderer->setEffectTexture("lightMap", Image::filled(Vec2U(1, 1), { 255, 255, 255, 255 }, PixelFormat::RGB24));
-    m_renderer->setEffectTexture("tileLightMap", Image::filled(Vec2U(1, 1), { 0, 0, 0, 0 }, PixelFormat::RGBA32));
+  if (renderData.isFullbright || m_fullbrightOverride) {
+    m_renderer->setEffectTexture("lightMap", Image::filled(Vec2U(1, 1), {255, 255, 255, 255}, PixelFormat::RGB24));
+    m_renderer->setEffectTexture("tileLightMap", Image::filled(Vec2U(1, 1), {0, 0, 0, 0}, PixelFormat::RGBA32));
     m_renderer->setEffectParameter("lightMapMultiplier", 1.0f);
   } else {
     adjustLighting(renderData, lightMultiplier);
@@ -103,15 +200,17 @@ void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWai
 
   // Parallax layers
 
-  auto parallaxDelta = m_camera.worldGeometry().diff(m_camera.centerWorldPosition(), m_previousCameraCenter);
-  if (parallaxDelta.magnitude() > 10)
-    m_parallaxWorldPosition = m_camera.centerWorldPosition();
-  else
-    m_parallaxWorldPosition += parallaxDelta;
+  if (el.parallax) {
+    auto parallaxDelta = m_camera.worldGeometry().diff(m_camera.centerWorldPosition(), m_previousCameraCenter);
+    if (parallaxDelta.magnitude() > 10)
+      m_parallaxWorldPosition = m_camera.centerWorldPosition();
+    else
+      m_parallaxWorldPosition += parallaxDelta;
+    m_parallaxWorldPosition[1] = m_camera.centerWorldPosition()[1];
+  }
   m_previousCameraCenter = m_camera.centerWorldPosition();
-  m_parallaxWorldPosition[1] = m_camera.centerWorldPosition()[1];
 
-  if (!renderData.parallaxLayers.empty())
+  if (el.parallax && !renderData.parallaxLayers.empty())
     m_environmentPainter->renderParallaxLayers(m_parallaxWorldPosition, m_camera, renderData.parallaxLayers, renderData.skyRenderData);
 
   // Main world layers
@@ -125,6 +224,8 @@ void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWai
   auto entityDrawableIterator = entityDrawables.begin();
   auto renderEntitiesUntil = [this, &entityDrawables, &entityDrawableIterator](Maybe<EntityRenderLayer> until) {
     while (true) {
+      if (!m_enabledLayers.entities)
+        break;
       if (entityDrawableIterator == entityDrawables.end())
         break;
       if (until && entityDrawableIterator->first >= *until)
@@ -138,26 +239,26 @@ void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWai
   };
 
   renderEntitiesUntil(RenderLayerBackgroundOverlay);
-  drawDrawableSet(renderData.backgroundOverlays);
+  if (el.backgroundOverlays) drawDrawableSet(renderData.backgroundOverlays);
   renderEntitiesUntil(RenderLayerBackgroundTile);
-  m_tilePainter->renderBackground(m_camera);
+  if (el.backgroundTiles) m_tilePainter->renderBackground(m_camera);
   renderEntitiesUntil(RenderLayerPlatform);
-  m_tilePainter->renderMidground(m_camera);
+  if (el.midgroundTiles) m_tilePainter->renderMidground(m_camera);
   renderEntitiesUntil(RenderLayerBackParticle);
-  renderParticles(renderData, Particle::Layer::Back);
+  if (el.particles) renderParticles(renderData, Particle::Layer::Back);
   renderEntitiesUntil(RenderLayerLiquid);
-  m_tilePainter->renderLiquid(m_camera);
+  if (el.liquids) m_tilePainter->renderLiquid(m_camera);
   renderEntitiesUntil(RenderLayerMiddleParticle);
-  renderParticles(renderData, Particle::Layer::Middle);
+  if (el.particles) renderParticles(renderData, Particle::Layer::Middle);
   renderEntitiesUntil(RenderLayerForegroundTile);
-  m_tilePainter->renderForeground(m_camera);
+  if (el.foregroundTiles) m_tilePainter->renderForeground(m_camera);
   renderEntitiesUntil(RenderLayerForegroundOverlay);
-  drawDrawableSet(renderData.foregroundOverlays);
+  if (el.overlays) drawDrawableSet(renderData.foregroundOverlays);
   renderEntitiesUntil(RenderLayerFrontParticle);
-  renderParticles(renderData, Particle::Layer::Front);
+  if (el.particles) renderParticles(renderData, Particle::Layer::Front);
   renderEntitiesUntil(RenderLayerOverlay);
-  drawDrawableSet(renderData.nametags);
-  renderBars(renderData);
+  if (el.nametags) drawDrawableSet(renderData.nametags);
+  if (el.bars) renderBars(renderData);
   renderEntitiesUntil({});
 
   auto dimLevel = round(renderData.dimLevel * 255);
@@ -195,9 +296,9 @@ void WorldPainter::renderParticles(WorldRenderData& renderData, Particle::Layer 
 
     if (particle.type == Particle::Type::Ember) {
       m_renderer->immediatePrimitives().emplace_back(std::in_place_type_t<RenderQuad>(),
-        RectF(position - size / 2, position + size / 2),
-        particle.color.toRgba(),
-        particle.fullbright ? 0.0f : 1.0f);
+          RectF(position - size / 2, position + size / 2),
+          particle.color.toRgba(),
+          particle.fullbright ? 0.0f : 1.0f);
 
     } else if (particle.type == Particle::Type::Streak) {
       // Draw a rotated quad streaking in the direction the particle is coming from.
@@ -208,11 +309,11 @@ void WorldPainter::renderParticles(WorldRenderData& renderData, Particle::Layer 
       Vec4B color = particle.color.toRgba();
       float lightMapMultiplier = particle.fullbright ? 0.0f : 1.0f;
       m_renderer->immediatePrimitives().emplace_back(std::in_place_type_t<RenderQuad>(),
-        position - sideHalf,
-        position + sideHalf,
-        position - dir * length + sideHalf,
-        position - dir * length - sideHalf,
-        color, lightMapMultiplier);
+          position - sideHalf,
+          position + sideHalf,
+          position - dir * length + sideHalf,
+          position - dir * length - sideHalf,
+          color, lightMapMultiplier);
 
     } else if (particle.type == Particle::Type::Textured || particle.type == Particle::Type::Animated) {
       Drawable drawable;
@@ -330,4 +431,4 @@ void WorldPainter::drawDrawableSet(List<Drawable>& drawables) {
   m_renderer->flush();
 }
 
-}
+} // namespace Star

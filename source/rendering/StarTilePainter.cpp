@@ -1,12 +1,12 @@
 #include "StarTilePainter.hpp"
-#include "StarLexicalCast.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarXXHash.hpp"
-#include "StarMaterialDatabase.hpp"
-#include "StarLiquidsDatabase.hpp"
 #include "StarAssets.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLexicalCast.hpp"
+#include "StarLiquidsDatabase.hpp"
+#include "StarMaterialDatabase.hpp"
 #include "StarRoot.hpp"
 #include "StarTileDrawer.hpp"
+#include "StarXXHash.hpp"
 
 namespace Star {
 
@@ -27,11 +27,10 @@ TilePainter::TilePainter(RendererPtr renderer) : TileDrawer() {
 
   for (auto const& liquid : root.liquidsDatabase()->allLiquidSettings()) {
     m_liquids.set(liquid->id, LiquidInfo{
-        m_renderer->createTexture(*assets->image(liquid->config.getString("texture")), TextureAddressing::Wrap),
-        jsonToColor(liquid->config.get("color")).toRgba(),
-        jsonToColor(liquid->config.get("bottomLightMix")).toRgbF(),
-        liquid->config.getFloat("textureMovementFactor")
-      });
+                                  m_renderer->createTexture(*assets->image(liquid->config.getString("texture")), TextureAddressing::Wrap),
+                                  jsonToColor(liquid->config.get("color")).toRgba(),
+                                  jsonToColor(liquid->config.get("bottomLightMix")).toRgbF(),
+                                  liquid->config.getFloat("textureMovementFactor")});
   }
 }
 
@@ -49,44 +48,44 @@ void TilePainter::adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> const
   }
 
   forEachRenderTile(renderData, lightRange, [&](Vec2I const& pos, RenderTile const& tile) {
-      // Only adjust lighting for full tiles
-      float drawLevel = liquidDrawLevel(byteToFloat(tile.liquidLevel));
-      if (drawLevel == 0.0f) {
-        if (applyLightMultiplier) {
-          auto lightIndex = Vec2U(pos - renderData.lightMinPosition);
-          auto lightValue = renderData.lightMap.get(lightIndex).vec3();
-
-          for (size_t i = 0; i <= 2; i++) {
-            int mulVal = adjustedLightMultiplier[i] * ((int)(lightValue[i])) / 255;
-            mulVal = std::min(mulVal, 255);
-            lightValue[i] = (uint8_t)mulVal;
-          }
-
-          renderData.lightMap.set(lightIndex, lightValue);
-        }
-      } else {
+    // Only adjust lighting for full tiles
+    float drawLevel = liquidDrawLevel(byteToFloat(tile.liquidLevel));
+    if (drawLevel == 0.0f) {
+      if (applyLightMultiplier) {
         auto lightIndex = Vec2U(pos - renderData.lightMinPosition);
         auto lightValue = renderData.lightMap.get(lightIndex).vec3();
 
-        auto const& liquid = m_liquids[tile.liquidId];
-        Vec3F tileLight = Vec3F(lightValue);
-        float darknessLevel = (1 - tileLight.sum() / (3.0f * 255.0f)) * drawLevel;
-        lightValue = Vec3B(tileLight.piecewiseMultiply(Vec3F::filled(1 - darknessLevel) + liquid.bottomLightMix * darknessLevel));
-
-        if (applyLightMultiplier) {
-          for (size_t i = 0; i <= 2; i++) {
-            int mulVal = adjustedLightMultiplier[i] * ((int)(lightValue[i])) / 255;
-            mulVal = std::min(mulVal, 255);
-            lightValue[i] = (uint8_t)mulVal;
-          }
+        for (size_t i = 0; i <= 2; i++) {
+          int mulVal = adjustedLightMultiplier[i] * ((int)(lightValue[i])) / 255;
+          mulVal = std::min(mulVal, 255);
+          lightValue[i] = (uint8_t)mulVal;
         }
 
         renderData.lightMap.set(lightIndex, lightValue);
       }
-    });
+    } else {
+      auto lightIndex = Vec2U(pos - renderData.lightMinPosition);
+      auto lightValue = renderData.lightMap.get(lightIndex).vec3();
+
+      auto const& liquid = m_liquids[tile.liquidId];
+      Vec3F tileLight = Vec3F(lightValue);
+      float darknessLevel = (1 - tileLight.sum() / (3.0f * 255.0f)) * drawLevel;
+      lightValue = Vec3B(tileLight.piecewiseMultiply(Vec3F::filled(1 - darknessLevel) + liquid.bottomLightMix * darknessLevel));
+
+      if (applyLightMultiplier) {
+        for (size_t i = 0; i <= 2; i++) {
+          int mulVal = adjustedLightMultiplier[i] * ((int)(lightValue[i])) / 255;
+          mulVal = std::min(mulVal, 255);
+          lightValue[i] = (uint8_t)mulVal;
+        }
+      }
+
+      renderData.lightMap.set(lightIndex, lightValue);
+    }
+  });
 }
 
-void TilePainter::setup(WorldCamera const& camera, WorldRenderData& renderData) {
+void TilePainter::setup(WorldCamera const& camera, WorldRenderData& renderData, TilePainterDirectives const& renderDirectives) {
   auto cameraCenter = camera.centerWorldPosition();
   if (m_lastCameraCenter)
     m_cameraPan = renderData.geometry.diff(cameraCenter, *m_lastCameraCenter);
@@ -103,8 +102,8 @@ void TilePainter::setup(WorldCamera const& camera, WorldRenderData& renderData) 
   for (int x = chunkRange.xMin(); x < chunkRange.xMax(); ++x) {
     for (int y = chunkRange.yMin(); y < chunkRange.yMax(); ++y) {
       size_t index = i++;
-      m_pendingTerrainChunks[index] = getTerrainChunk(renderData, {x, y});
-      m_pendingLiquidChunks [index] =  getLiquidChunk(renderData, {x, y});
+      m_pendingTerrainChunks[index] = getTerrainChunk(renderData, {x, y}, renderDirectives.terrainLayers);
+      m_pendingLiquidChunks[index] = getLiquidChunk(renderData, {x, y}, renderDirectives.liquids);
     }
   }
 }
@@ -202,60 +201,60 @@ void TilePainter::renderTerrainChunks(WorldCamera const& camera, TerrainLayer te
   m_renderer->flush();
 }
 
-shared_ptr<TilePainter::TerrainChunk const> TilePainter::getTerrainChunk(WorldRenderData& renderData, Vec2I chunkIndex) {
+shared_ptr<TilePainter::TerrainChunk const> TilePainter::getTerrainChunk(WorldRenderData& renderData, Vec2I chunkIndex, TerrainLayerDirectives const& renderDirectives) {
   pair<Vec2I, ChunkHash> chunkKey = {chunkIndex, terrainChunkHash(renderData, chunkIndex)};
   return m_terrainChunkCache.get(chunkKey, [&](auto const&) {
-      HashMap<TerrainLayer, HashMap<QuadZLevel, List<RenderPrimitive>>> terrainPrimitives;
+    HashMap<TerrainLayer, HashMap<QuadZLevel, List<RenderPrimitive>>> terrainPrimitives;
 
-      RectI tileRange = RectI::withSize(chunkIndex * RenderChunkSize, Vec2I::filled(RenderChunkSize));
-      for (int x = tileRange.xMin(); x < tileRange.xMax(); ++x) {
-        for (int y = tileRange.yMin(); y < tileRange.yMax(); ++y) {
-          bool occluded = this->produceTerrainPrimitives(terrainPrimitives[TerrainLayer::Foreground], TerrainLayer::Foreground, {x, y}, renderData);
-          occluded = this->produceTerrainPrimitives(terrainPrimitives[TerrainLayer::Midground], TerrainLayer::Midground, {x, y}, renderData) || occluded;
-          if (!occluded)
-            this->produceTerrainPrimitives(terrainPrimitives[TerrainLayer::Background], TerrainLayer::Background, {x, y}, renderData);
-        }
+    RectI tileRange = RectI::withSize(chunkIndex * RenderChunkSize, Vec2I::filled(RenderChunkSize));
+    for (int x = tileRange.xMin(); x < tileRange.xMax(); ++x) {
+      for (int y = tileRange.yMin(); y < tileRange.yMax(); ++y) {
+        bool occluded = this->produceTerrainPrimitives(terrainPrimitives[TerrainLayer::Foreground], TerrainLayer::Foreground, {x, y}, renderData, renderDirectives.foreground);
+        occluded = this->produceTerrainPrimitives(terrainPrimitives[TerrainLayer::Midground], TerrainLayer::Midground, {x, y}, renderData, renderDirectives.midground) || occluded;
+        if (!occluded)
+          this->produceTerrainPrimitives(terrainPrimitives[TerrainLayer::Background], TerrainLayer::Background, {x, y}, renderData, renderDirectives.background);
       }
+    }
 
-      auto chunk = make_shared<TerrainChunk>();
+    auto chunk = make_shared<TerrainChunk>();
 
-      for (auto& layerPair : terrainPrimitives) {
-        for (auto& zLevelPair : layerPair.second) {
-          auto rb = m_renderer->createRenderBuffer();
-          rb->set(zLevelPair.second);
-          (*chunk)[layerPair.first][zLevelPair.first] = std::move(rb);
-        }
+    for (auto& layerPair : terrainPrimitives) {
+      for (auto& zLevelPair : layerPair.second) {
+        auto rb = m_renderer->createRenderBuffer();
+        rb->set(zLevelPair.second);
+        (*chunk)[layerPair.first][zLevelPair.first] = std::move(rb);
       }
+    }
 
-      return chunk;
-    });
+    return chunk;
+  });
 }
 
-shared_ptr<TilePainter::LiquidChunk const> TilePainter::getLiquidChunk(WorldRenderData& renderData, Vec2I chunkIndex) {
+shared_ptr<TilePainter::LiquidChunk const> TilePainter::getLiquidChunk(WorldRenderData& renderData, Vec2I chunkIndex, String const& renderDirectives) {
   pair<Vec2I, ChunkHash> chunkKey = {chunkIndex, liquidChunkHash(renderData, chunkIndex)};
   return m_liquidChunkCache.get(chunkKey, [&](auto const&) {
-      HashMap<LiquidId, List<RenderPrimitive>> liquidPrimitives;
+    HashMap<LiquidId, List<RenderPrimitive>> liquidPrimitives;
 
-      RectI tileRange = RectI::withSize(chunkIndex * RenderChunkSize, Vec2I::filled(RenderChunkSize));
-      for (int x = tileRange.xMin(); x < tileRange.xMax(); ++x) {
-        for (int y = tileRange.yMin(); y < tileRange.yMax(); ++y)
-          this->produceLiquidPrimitives(liquidPrimitives, {x, y}, renderData);
-      }
+    RectI tileRange = RectI::withSize(chunkIndex * RenderChunkSize, Vec2I::filled(RenderChunkSize));
+    for (int x = tileRange.xMin(); x < tileRange.xMax(); ++x) {
+      for (int y = tileRange.yMin(); y < tileRange.yMax(); ++y)
+        this->produceLiquidPrimitives(liquidPrimitives, {x, y}, renderData);
+    }
 
-      auto chunk = make_shared<LiquidChunk>();
+    auto chunk = make_shared<LiquidChunk>();
 
-      for (auto& p : liquidPrimitives) {
-        auto rb = m_renderer->createRenderBuffer();
-        rb->set(p.second);
-        chunk->set(p.first, std::move(rb));
-      }
+    for (auto& p : liquidPrimitives) {
+      auto rb = m_renderer->createRenderBuffer();
+      rb->set(p.second);
+      chunk->set(p.first, std::move(rb));
+    }
 
-      return chunk;
-    });
+    return chunk;
+  });
 }
 
 bool TilePainter::produceTerrainPrimitives(HashMap<QuadZLevel, List<RenderPrimitive>>& primitives,
-    TerrainLayer terrainLayer, Vec2I const& pos, WorldRenderData const& renderData) {
+    TerrainLayer terrainLayer, Vec2I const& pos, WorldRenderData const& renderData, String const& renderDirectives) {
   auto& root = Root::singleton();
   auto assets = Root::singleton().assets();
   auto materialDatabase = root.materialDatabase();
@@ -300,14 +299,14 @@ bool TilePainter::produceTerrainPrimitives(HashMap<QuadZLevel, List<RenderPrimit
 
   auto getPieceTexture = [this, assets](MaterialId material, MaterialRenderPieceConstPtr const& piece, MaterialHue hue, bool mod) {
     return m_textureCache.get(MaterialPieceTextureKey(material, piece->pieceId, hue, mod), [&](auto const&) {
-        String texture;
-        if (hue == 0)
-          texture = piece->texture;
-        else
-          texture = strf("{}?hueshift={}", piece->texture, materialHueToDegrees(hue));
+      String texture;
+      if (hue == 0)
+        texture = piece->texture;
+      else
+        texture = strf("{}?hueshift={}", piece->texture, materialHueToDegrees(hue));
 
-        return m_textureGroup->create(*assets->image(texture));
-      });
+      return m_textureGroup->create(*assets->image(texture));
+    });
   };
 
   auto materialRenderProfile = materialDatabase->materialRenderProfile(material);
@@ -331,13 +330,13 @@ bool TilePainter::produceTerrainPrimitives(HashMap<QuadZLevel, List<RenderPrimit
       RectF textureCoords = variant->wrap(variance);
       RectF worldCoords = RectF::withSize(piecePair.second / TilePixels + Vec2F(pos), textureCoords.size() / TilePixels);
       quadList.emplace_back(std::in_place_type_t<RenderQuad>(), std::move(texture),
-          worldCoords  .min(),
+          worldCoords.min(),
           textureCoords.min(),
-          Vec2F(  worldCoords.xMax(),   worldCoords.yMin()),
+          Vec2F(worldCoords.xMax(), worldCoords.yMin()),
           Vec2F(textureCoords.xMax(), textureCoords.yMin()),
-          worldCoords  .max(),
+          worldCoords.max(),
           textureCoords.max(),
-          Vec2F(  worldCoords.xMin(),   worldCoords.yMax()),
+          Vec2F(worldCoords.xMin(), worldCoords.yMax()),
           Vec2F(textureCoords.xMin(), textureCoords.yMax()),
           color, 1.0f);
     }
@@ -363,7 +362,7 @@ bool TilePainter::produceTerrainPrimitives(HashMap<QuadZLevel, List<RenderPrimit
           Vec2F(worldCoords.xMax(), worldCoords.yMin()), Vec2F(textureCoords.xMax(), textureCoords.yMin()),
           worldCoords.max(), textureCoords.max(),
           Vec2F(worldCoords.xMin(), worldCoords.yMax()), Vec2F(textureCoords.xMin(), textureCoords.yMax()),
-        color, 1.0f);
+          color, 1.0f);
     }
   }
 
@@ -383,13 +382,13 @@ bool TilePainter::produceTerrainPrimitives(HashMap<QuadZLevel, List<RenderPrimit
         Vec2F(worldCoords.xMax(), worldCoords.yMin()), Vec2F(textureCoords.xMax(), textureCoords.yMin()),
         worldCoords.max(), textureCoords.max(),
         Vec2F(worldCoords.xMin(), worldCoords.yMax()), Vec2F(textureCoords.xMin(), textureCoords.yMax()),
-      color, 1.0f);
+        color, 1.0f);
   }
 
   return occlude;
 }
 
-void TilePainter::produceLiquidPrimitives(HashMap<LiquidId, List<RenderPrimitive>>& primitives, Vec2I const& pos, WorldRenderData const& renderData) {
+void TilePainter::produceLiquidPrimitives(HashMap<LiquidId, List<RenderPrimitive>>& primitives, Vec2I const& pos, WorldRenderData const& renderData, String const& renderDirectives) {
   RenderTile const& tile = getRenderTile(renderData, pos);
 
   float drawLevel = liquidDrawLevel(byteToFloat(tile.liquidLevel));
@@ -413,11 +412,11 @@ void TilePainter::produceLiquidPrimitives(HashMap<LiquidId, List<RenderPrimitive
       Vec2F(worldRect.xMax(), worldRect.yMin()), Vec2F(texRect.xMax(), texRect.yMin()),
       worldRect.max(), texRect.max(),
       Vec2F(worldRect.xMin(), worldRect.yMax()), Vec2F(texRect.xMin(), texRect.yMax()),
-    liquid.color, 1.0f);
+      liquid.color, 1.0f);
 }
 
 float TilePainter::liquidDrawLevel(float liquidLevel) const {
   return clamp((liquidLevel - m_liquidDrawLevels[0]) / (m_liquidDrawLevels[1] - m_liquidDrawLevels[0]), 0.0f, 1.0f);
 }
 
-}
+} // namespace Star

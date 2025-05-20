@@ -1,21 +1,21 @@
 #ifndef STAR_WORLD_CLIENT_HPP
 #define STAR_WORLD_CLIENT_HPP
 
-#include "StarWorldClientState.hpp"
-#include "StarNetPackets.hpp"
-#include "StarWorldRenderData.hpp"
 #include "StarAmbient.hpp"
 #include "StarCellularLighting.hpp"
-#include "StarWeather.hpp"
-#include "StarInterpolationTracker.hpp"
-#include "StarWorldStructure.hpp"
 #include "StarChatAction.hpp"
-#include "StarWiring.hpp"
 #include "StarEntityRendering.hpp"
-#include "StarWorld.hpp"
 #include "StarGameTimers.hpp"
+#include "StarInterpolationTracker.hpp"
 #include "StarLuaRoot.hpp"
+#include "StarNetPackets.hpp"
 #include "StarUniverseClient.hpp"
+#include "StarWeather.hpp"
+#include "StarWiring.hpp"
+#include "StarWorld.hpp"
+#include "StarWorldClientState.hpp"
+#include "StarWorldRenderData.hpp"
+#include "StarWorldStructure.hpp"
 
 namespace Star {
 
@@ -189,6 +189,10 @@ public:
   void setGlobal(Maybe<String> const& jsonPath, Json const& newValue);
   Json getGlobal(Maybe<String> const& jsonPath) const;
 
+  void setEntityRenderDirectives(EntityId entityId, Directives const& directives);
+  void clearEntityRenderDirectives();
+  Directives entityRenderDirectives(EntityId entity) const;
+
 private:
   static const float DropDist;
 
@@ -224,7 +228,7 @@ private:
     bool operator<(DamageNumberKey const& other) const;
   };
 
-  typedef function<ClientTile const& (Vec2I)> ClientTileGetter;
+  typedef function<ClientTile const&(Vec2I)> ClientTileGetter;
 
   void lightingTileGather();
   void lightingMain();
@@ -385,9 +389,11 @@ private:
 
   BroadcastCallback m_broadcastCallback;
 
+  HashMap<EntityId, Directives> m_entitySpecificDirectives;
+
   JsonObject m_scriptGlobals;
 };
 
-}
+} // namespace Star
 
 #endif

@@ -1,12 +1,12 @@
 #ifndef STAR_NEW_TILE_PAINTER_HPP
 #define STAR_NEW_TILE_PAINTER_HPP
 
-#include "StarTtlCache.hpp"
-#include "StarWorldRenderData.hpp"
 #include "StarMaterialRenderProfile.hpp"
 #include "StarRenderer.hpp"
-#include "StarWorldCamera.hpp"
 #include "StarTileDrawer.hpp"
+#include "StarTtlCache.hpp"
+#include "StarWorldCamera.hpp"
+#include "StarWorldRenderData.hpp"
 
 namespace Star {
 
@@ -28,6 +28,17 @@ public:
   static unsigned const RenderChunkSize = 16;
   static unsigned const BorderTileSize = RenderChunkSize + MaterialRenderProfileMaxNeighborDistance - 1;
 
+  struct TerrainLayerDirectives {
+    String foreground = "";
+    String midground = "";
+    String background = "";
+  };
+
+  struct TilePainterDirectives {
+    TerrainLayerDirectives terrainLayers = TerrainLayerDirectives{"", "", ""};
+    String liquids = "";
+  };
+
   TilePainter(RendererPtr renderer);
 
   // Adjusts lighting levels for liquids and/or any global lightmap value multiplier.
@@ -36,7 +47,8 @@ public:
   // Sets up chunk data for every chunk that intersects the rendering region
   // and prepares it for rendering.  Do not call cleanup in between calling
   // setup and each render method.
-  void setup(WorldCamera const& camera, WorldRenderData& renderData);
+  void setup(WorldCamera const& camera, WorldRenderData& renderData,
+      TilePainterDirectives const& renderDirectives = TilePainterDirectives{TerrainLayerDirectives{"", "", ""}, ""});
 
   void renderBackground(WorldCamera const& camera);
   void renderMidground(WorldCamera const& camera);
@@ -51,7 +63,9 @@ private:
   typedef uint64_t QuadZLevel;
   typedef uint64_t ChunkHash;
 
-  enum class TerrainLayer { Background, Midground, Foreground };
+  enum class TerrainLayer { Background,
+    Midground,
+    Foreground };
 
   struct LiquidInfo {
     TexturePtr texture;
@@ -80,12 +94,12 @@ private:
 
   void renderTerrainChunks(WorldCamera const& camera, TerrainLayer terrainLayer);
 
-  shared_ptr<TerrainChunk const> getTerrainChunk(WorldRenderData& renderData, Vec2I chunkIndex);
-  shared_ptr<LiquidChunk const> getLiquidChunk(WorldRenderData& renderData, Vec2I chunkIndex);
+  shared_ptr<TerrainChunk const> getTerrainChunk(WorldRenderData& renderData, Vec2I chunkIndex, TerrainLayerDirectives const& renderDirectives = {"", "", ""});
+  shared_ptr<LiquidChunk const> getLiquidChunk(WorldRenderData& renderData, Vec2I chunkIndex, String const& renderDirectives = "");
 
   bool produceTerrainPrimitives(HashMap<QuadZLevel, List<RenderPrimitive>>& primitives,
-      TerrainLayer terrainLayer, Vec2I const& pos, WorldRenderData const& renderData);
-  void produceLiquidPrimitives(HashMap<LiquidId, List<RenderPrimitive>>& primitives, Vec2I const& pos, WorldRenderData const& renderData);
+      TerrainLayer terrainLayer, Vec2I const& pos, WorldRenderData const& renderData, String const& renderDirectives = "");
+  void produceLiquidPrimitives(HashMap<LiquidId, List<RenderPrimitive>>& primitives, Vec2I const& pos, WorldRenderData const& renderData, String const& renderDirectives = "");
 
   float liquidDrawLevel(float liquidLevel) const;
 
@@ -105,6 +119,6 @@ private:
   Vec2F m_cameraPan;
 };
 
-}
+} // namespace Star
 
 #endif

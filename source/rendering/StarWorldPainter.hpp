@@ -1,12 +1,13 @@
 #ifndef STAR_WORLD_PAINTER_HPP
 #define STAR_WORLD_PAINTER_HPP
 
-#include "StarWorldRenderData.hpp"
-#include "StarTilePainter.hpp"
-#include "StarEnvironmentPainter.hpp"
-#include "StarTextPainter.hpp"
+#include "StarDirectives.hpp"
 #include "StarDrawablePainter.hpp"
+#include "StarEnvironmentPainter.hpp"
 #include "StarRenderer.hpp"
+#include "StarTextPainter.hpp"
+#include "StarTilePainter.hpp"
+#include "StarWorldRenderData.hpp"
 
 namespace Star {
 
@@ -15,9 +16,36 @@ STAR_CLASS(WorldPainter);
 // Will update client rendering window internally
 class WorldPainter {
 public:
+  struct EnabledLayers {
+    bool stars = true;
+    bool debrisFields = true;
+    bool backOrbiters = true;
+    bool planetHorizon = true;
+    bool sky = true;
+    bool frontOrbiters = true;
+    bool parallax = true;
+    bool entities = true;
+    bool backgroundOverlays = true;
+    bool backgroundTiles = true;
+    bool midgroundTiles = true;
+    bool particles = true;
+    bool liquids = true;
+    bool foregroundTiles = true;
+    bool overlays = true;
+    bool nametags = true;
+    bool bars = true;
+  };
+
   WorldPainter();
 
   void renderInit(RendererPtr renderer);
+
+  void setEnabledRenderLayers(Json const& renderLayerChanges);
+  JsonObject enabledRenderLayers() const;
+  void fullbrightOverride(bool override);
+  bool isFullbright() const;
+  void setTileRenderDirectives(Json const& newDirectives);
+  JsonObject tileRenderDirectives() const;
 
   void setCameraPosition(WorldGeometry const& worldGeometry, Vec2F const& position);
 
@@ -25,7 +53,7 @@ public:
 
   void update(float dt);
   void render(WorldRenderData& renderData, function<void()> lightWaiter, Maybe<Vec3F> const& lightMultiplier = {},
-    Array<Vec3F, 6> const& shaderParameters = Array<Vec3F, 6>::filled(Vec3F::filled(0.0f)));
+      Array<Vec3F, 6> const& shaderParameters = Array<Vec3F, 6>::filled(Vec3F::filled(0.0f)));
   void adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> const& lightMultiplier = {});
 
 private:
@@ -40,6 +68,12 @@ private:
   WorldCamera m_camera;
 
   RendererPtr m_renderer;
+
+  EnabledLayers m_enabledLayers;
+
+  bool m_fullbrightOverride;
+
+  TilePainter::TilePainterDirectives m_tileRenderDirectives;
 
   TextPainterPtr m_textPainter;
   DrawablePainterPtr m_drawablePainter;
@@ -65,6 +99,6 @@ private:
   float m_preloadTextureChance;
 };
 
-}
+} // namespace Star
 
 #endif

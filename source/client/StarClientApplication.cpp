@@ -735,6 +735,7 @@ void ClientApplication::changeState(MainAppState newState) {
     m_universeClient->setLuaCallbacks("camera", LuaBindings::makeCameraCallbacks(&m_worldPainter->camera()));
     m_universeClient->setLuaCallbacks("clipboard", LuaBindings::makeClipboardCallbacks(m_mainInterface.get()));
     m_universeClient->setLuaCallbacks("chat", LuaBindings::makeChatCallbacks(m_mainInterface.get()));
+    m_universeClient->setLuaCallbacks("renderer", LuaBindings::makeRenderingCallbacks(m_worldPainter.get()));
     m_universeClient->startLua();
 
     m_mainMixer->setWorldPainter(m_worldPainter);

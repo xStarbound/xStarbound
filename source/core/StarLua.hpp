@@ -1,22 +1,15 @@
 #ifndef STAR_LUA_HPP
 #define STAR_LUA_HPP
 
-#include <typeindex>
-#include <type_traits>
 #include <lua.hpp>
+#include <type_traits>
+#include <typeindex>
 
-#include "StarLexicalCast.hpp"
-#include "StarString.hpp"
-#include "StarJson.hpp"
-#include "StarRefPtr.hpp"
 #include "StarDirectives.hpp"
-
-#if defined TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
-#else
-  #define ZoneScoped
-  #define ZoneScopedN(name)
-#endif
+#include "StarJson.hpp"
+#include "StarLexicalCast.hpp"
+#include "StarRefPtr.hpp"
+#include "StarString.hpp"
 
 namespace Star {
 
@@ -129,7 +122,7 @@ namespace LuaDetail {
   // take values without copying.
   typedef Variant<LuaValue, LuaVariadic<LuaValue>> LuaFunctionReturn;
   typedef function<LuaFunctionReturn(LuaEngine&, size_t argc, LuaValue* argv)> LuaWrappedFunction;
-}
+} // namespace LuaDetail
 
 // Prints the lua value similar to lua's print function, except it makes an
 // attempt at printing tables.
@@ -316,12 +309,12 @@ public:
 
   using LuaTable::LuaTable;
 
-  using LuaTable::get;
-  using LuaTable::set;
   using LuaTable::contains;
-  using LuaTable::remove;
   using LuaTable::engine;
+  using LuaTable::get;
   using LuaTable::handleIndex;
+  using LuaTable::remove;
+  using LuaTable::set;
 
   // Splits the path by '.' character, so can get / set values in tables inside
   // other tables.  If any table in the path is not a table but is accessed as
@@ -425,6 +418,7 @@ class LuaNullEnforcer {
 public:
   LuaNullEnforcer(LuaEngine& engine);
   ~LuaNullEnforcer();
+
 private:
   LuaEngine* m_engine;
 };
@@ -911,6 +905,10 @@ struct LuaConverter<Directives> {
     else
       return engine.createString("");
   }
+
+  static Directives to(LuaEngine& engine, LuaValue v) {
+    return Directives(engine.luaTo<String>(std::move(v)));
+  }
 };
 
 template <>
@@ -1020,15 +1018,15 @@ struct LuaMapConverter {
     T result;
     bool failed = false;
     table->iterate([&result, &failed, &engine](LuaValue key, LuaValue value) {
-        auto contKey = engine.luaMaybeTo<typename T::key_type>(std::move(key));
-        auto contValue = engine.luaMaybeTo<typename T::mapped_type>(std::move(value));
-        if (!contKey || !contValue) {
-          failed = true;
-          return false;
-        }
-        result[contKey.take()] = contValue.take();
-        return true;
-      });
+      auto contKey = engine.luaMaybeTo<typename T::key_type>(std::move(key));
+      auto contValue = engine.luaMaybeTo<typename T::mapped_type>(std::move(value));
+      if (!contKey || !contValue) {
+        failed = true;
+        return false;
+      }
+      result[contKey.take()] = contValue.take();
+      return true;
+    });
 
     if (failed)
       return {};
@@ -1051,18 +1049,18 @@ struct LuaContainerConverter {
     T result;
     bool failed = false;
     table->iterate([&result, &failed, &engine](LuaValue key, LuaValue value) {
-        if (!key.is<LuaInt>()) {
-          failed = true;
-          return false;
-        }
-        auto contVal = engine.luaMaybeTo<typename T::value_type>(std::move(value));
-        if (!contVal) {
-          failed = true;
-          return false;
-        }
-        result.insert(result.end(), contVal.take());
-        return true;
-      });
+      if (!key.is<LuaInt>()) {
+        failed = true;
+        return false;
+      }
+      auto contVal = engine.luaMaybeTo<typename T::value_type>(std::move(value));
+      if (!contVal) {
+        failed = true;
+        return false;
+      }
+      result.insert(result.end(), contVal.take());
+      return true;
+    });
 
     if (failed)
       return {};
@@ -1115,7 +1113,7 @@ struct LuaConverter<JsonArray> {
 
 namespace LuaDetail {
   inline LuaHandle::LuaHandle(LuaEnginePtr engine, int handleIndex)
-    : engine(std::move(engine)), handleIndex(handleIndex) {}
+      : engine(std::move(engine)), handleIndex(handleIndex) {}
 
   inline LuaHandle::~LuaHandle() {
     if (engine)
@@ -1547,7 +1545,7 @@ namespace LuaDetail {
   // number looks fractional (does not parse as int, float is not an exact
   // integer)
   Maybe<LuaInt> asInteger(LuaValue const& v);
-}
+} // namespace LuaDetail
 
 template <typename Container>
 LuaVariadic<typename std::decay<Container>::type::value_type> luaUnpack(Container&& c) {
@@ -1564,35 +1562,35 @@ LuaVariadic<typename std::decay<Container>::type::value_type> luaUnpack(Containe
 
 template <typename... Types>
 LuaTupleReturn<Types...>::LuaTupleReturn(Types const&... args)
-  : Base(args...) {}
+    : Base(args...) {}
 
 template <typename... Types>
 template <typename... UTypes>
 LuaTupleReturn<Types...>::LuaTupleReturn(UTypes&&... args)
-  : Base(std::move(args)...) {}
+    : Base(std::move(args)...) {}
 
 template <typename... Types>
 template <typename... UTypes>
 LuaTupleReturn<Types...>::LuaTupleReturn(UTypes const&... args)
-  : Base(args...) {}
+    : Base(args...) {}
 
 template <typename... Types>
 LuaTupleReturn<Types...>::LuaTupleReturn(LuaTupleReturn const& rhs)
-  : Base(rhs) {}
+    : Base(rhs) {}
 
 template <typename... Types>
 LuaTupleReturn<Types...>::LuaTupleReturn(LuaTupleReturn&& rhs)
-  : Base(std::move(rhs)) {}
+    : Base(std::move(rhs)) {}
 
 template <typename... Types>
 template <typename... UTypes>
 LuaTupleReturn<Types...>::LuaTupleReturn(LuaTupleReturn<UTypes...> const& rhs)
-  : Base(rhs) {}
+    : Base(rhs) {}
 
 template <typename... Types>
 template <typename... UTypes>
 LuaTupleReturn<Types...>::LuaTupleReturn(LuaTupleReturn<UTypes...>&& rhs)
-  : Base(std::move(rhs)) {}
+    : Base(std::move(rhs)) {}
 
 template <typename... Types>
 LuaTupleReturn<Types...>& LuaTupleReturn<Types...>::operator=(LuaTupleReturn const& rhs) {
@@ -1616,7 +1614,7 @@ LuaTupleReturn<Types...>& LuaTupleReturn<Types...>::operator=(LuaTupleReturn<UTy
 template <typename... Types>
 template <typename... UTypes>
 LuaTupleReturn<Types...>& LuaTupleReturn<Types...>::operator=(LuaTupleReturn<UTypes...>&& rhs) {
-  Base::operator=((tuple<UTypes...> && )std::move(rhs));
+  Base::operator=((tuple<UTypes...>&&)std::move(rhs));
   return *this;
 }
 
@@ -1834,7 +1832,7 @@ template <typename T>
 template <typename Return, typename... Args, typename Function>
 void LuaMethods<T>::registerMethodWithSignature(String name, Function&& func) {
   if (!m_methods.insert(name, LuaDetail::wrapMethodWithSignature<Return, Args...>(std::forward<Function>(std::move(func))))
-           .second)
+          .second)
     throw LuaException::format("Lua method '{}' was registered twice", name);
 }
 
@@ -1860,10 +1858,6 @@ Ret LuaContext::eval(String const& lua) {
 
 template <typename Ret, typename... Args>
 Ret LuaContext::invokePath(String const& key, Args const&... args) const {
-  ZoneScoped;
-#ifdef TRACY_ENABLE
-  ZoneTextF("Function '%s'", key.utf8().c_str());
-#endif
   auto p = getPath(key);
   if (auto f = p.ptr<LuaFunction>())
     return f->invoke<Ret>(args...);
@@ -2261,8 +2255,9 @@ size_t LuaEngine::pushArguments(lua_State* state, Args const&... args) {
   return doPushArguments(state, args...);
 }
 
-}
+} // namespace Star
 
-template <> struct fmt::formatter<Star::LuaValue> : ostream_formatter {};
+template <>
+struct fmt::formatter<Star::LuaValue> : ostream_formatter {};
 
 #endif

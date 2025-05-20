@@ -1,51 +1,52 @@
 #include "StarWorldLuaBindings.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarWorld.hpp"
+#include "StarBiome.hpp"
 #include "StarBlocksAlongLine.hpp"
-#include "StarSky.hpp"
-#include "StarPlayer.hpp"
-#include "StarPlayerInventory.hpp"
-#include "StarMonster.hpp"
-#include "StarNpc.hpp"
-#include "StarStagehand.hpp"
-#include "StarLoungeableObject.hpp"
-#include "StarProjectileDatabase.hpp"
-#include "StarProjectile.hpp"
-#include "StarRoot.hpp"
 #include "StarConfiguration.hpp"
-#include "StarWorldServer.hpp"
-#include "StarWorldClient.hpp"
-#include "StarWorldTemplate.hpp"
-#include "StarWorldParameters.hpp"
-#include "StarItemDrop.hpp"
-#include "StarMaterialDatabase.hpp"
-#include "StarLogging.hpp"
-#include "StarObjectDatabase.hpp"
-#include "StarItemDatabase.hpp"
-#include "StarItem.hpp"
-#include "StarTreasure.hpp"
 #include "StarContainerObject.hpp"
 #include "StarFarmableObject.hpp"
 #include "StarImageMetadataDatabase.hpp"
+#include "StarItem.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarItemDrop.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLogging.hpp"
+#include "StarLoungeableObject.hpp"
 #include "StarLuaGameConverters.hpp"
-#include "StarVehicleDatabase.hpp"
-#include "StarUtilityLuaBindings.hpp"
-#include "StarUniverseSettings.hpp"
-#include "StarBiome.hpp"
+#include "StarMaterialDatabase.hpp"
+#include "StarMonster.hpp"
+#include "StarNpc.hpp"
 #include "StarObject.hpp"
+#include "StarObjectDatabase.hpp"
 #include "StarPlant.hpp"
 #include "StarPlantDrop.hpp"
+#include "StarPlayer.hpp"
+#include "StarPlayerInventory.hpp"
+#include "StarProjectile.hpp"
+#include "StarProjectileDatabase.hpp"
+#include "StarRoot.hpp"
+#include "StarSky.hpp"
+#include "StarStagehand.hpp"
+#include "StarTreasure.hpp"
+#include "StarUniverseSettings.hpp"
+#include "StarUtilityLuaBindings.hpp"
+#include "StarVehicleDatabase.hpp"
+#include "StarWorld.hpp"
+#include "StarWorldClient.hpp"
+#include "StarWorldParameters.hpp"
+#include "StarWorldServer.hpp"
+#include "StarWorldTemplate.hpp"
 
 namespace Star {
 namespace LuaBindings {
 
-  enum class EntityBoundMode { MetaBoundBox, CollisionArea, Position };
+  enum class EntityBoundMode { MetaBoundBox,
+    CollisionArea,
+    Position };
 
   EnumMap<EntityBoundMode> const EntityBoundModeNames = {
-    {EntityBoundMode::MetaBoundBox, "MetaBoundBox"},
-    {EntityBoundMode::CollisionArea, "CollisionArea"},
-    {EntityBoundMode::Position, "Position"}
-  };
+      {EntityBoundMode::MetaBoundBox, "MetaBoundBox"},
+      {EntityBoundMode::CollisionArea, "CollisionArea"},
+      {EntityBoundMode::Position, "Position"}};
 
   template <typename EntityT>
   using Selector = function<bool(shared_ptr<EntityT> const&)>;
@@ -53,7 +54,7 @@ namespace LuaBindings {
   template <typename EntityT>
   LuaTable entityQueryImpl(World* world, LuaEngine& engine, LuaTable const& options, Selector<EntityT> selector) {
     auto config = Root::singleton().configuration();
-    
+
     Maybe<EntityId> withoutEntityId = options.get<Maybe<EntityId>>("withoutEntityId");
     Maybe<Set<EntityType>> includedTypes;
     if (auto types = options.get<Maybe<LuaTable>>("includedTypes")) {
@@ -79,9 +80,11 @@ namespace LuaBindings {
 
     // bool safeScriptsEnabled = config->get("safeScripts").toBool();
 
-    Maybe<String> callScript = options.get<Maybe<String>>("callScript"); 
-    List<LuaValue> callScriptArgs = {}; LuaValue callScriptResult = LuaNil;
-    LuaVariadic<Json> callScriptArgsJson = {}; Json callScriptResultJson = Json();
+    Maybe<String> callScript = options.get<Maybe<String>>("callScript");
+    List<LuaValue> callScriptArgs = {};
+    LuaValue callScriptResult = LuaNil;
+    LuaVariadic<Json> callScriptArgsJson = {};
+    Json callScriptResultJson = Json();
     if (callScript) {
       // if (safeScriptsEnabled) {
       callScriptArgsJson = options.get<Maybe<List<Json>>>("callScriptArgs").value();
@@ -258,33 +261,33 @@ namespace LuaBindings {
     addWorldEntityCallbacks(callbacks, world);
 
     callbacks.registerCallback("getGlobal", [world](Maybe<String> const& key) -> Json {
-        if (auto worldClient = as<WorldClient>(world))
-          return worldClient->getGlobal(key);
-        else if (auto worldServer = as<WorldServer>(world))
-          return worldServer->getGlobal(key);
-        return Json();
+      if (auto worldClient = as<WorldClient>(world))
+        return worldClient->getGlobal(key);
+      else if (auto worldServer = as<WorldServer>(world))
+        return worldServer->getGlobal(key);
+      return Json();
     });
 
     callbacks.registerCallback("getGlobals", [world]() -> Json {
-        if (auto worldClient = as<WorldClient>(world))
-          return worldClient->getGlobal(Maybe<String>{});
-        else if (auto worldServer = as<WorldServer>(world))
-          return worldServer->getGlobal(Maybe<String>{});
-        return Json();
+      if (auto worldClient = as<WorldClient>(world))
+        return worldClient->getGlobal(Maybe<String>{});
+      else if (auto worldServer = as<WorldServer>(world))
+        return worldServer->getGlobal(Maybe<String>{});
+      return Json();
     });
 
     callbacks.registerCallback("setGlobal", [world](Maybe<String> const& key, Json const& value) {
-        if (auto worldClient = as<WorldClient>(world))
-          worldClient->setGlobal(key, value);
-        else if (auto worldServer = as<WorldServer>(world))
-          worldServer->setGlobal(key, value);
+      if (auto worldClient = as<WorldClient>(world))
+        worldClient->setGlobal(key, value);
+      else if (auto worldServer = as<WorldServer>(world))
+        worldServer->setGlobal(key, value);
     });
 
     callbacks.registerCallback("setGlobals", [world](Json const& value) {
-        if (auto worldClient = as<WorldClient>(world))
-          worldClient->setGlobal(Maybe<String>{}, value);
-        else if (auto worldServer = as<WorldServer>(world))
-          worldServer->setGlobal(Maybe<String>{}, value);
+      if (auto worldClient = as<WorldClient>(world))
+        worldClient->setGlobal(Maybe<String>{}, value);
+      else if (auto worldServer = as<WorldServer>(world))
+        worldServer->setGlobal(Maybe<String>{}, value);
     });
 
     callbacks.registerCallbackWithSignature<float, Vec2F, Maybe<Vec2F>>("magnitude", bind(&WorldCallbacks::magnitude, world, _1, _2));
@@ -335,132 +338,132 @@ namespace LuaBindings {
     });
 
     callbacks.registerCallback("type", [world](LuaEngine& engine) -> LuaString {
-        if (auto serverWorld = as<WorldServer>(world)) {
-          if (auto worldParameters = serverWorld->worldTemplate()->worldParameters())
-            return engine.createString(worldParameters->typeName);
-        } else if (auto clientWorld = as<WorldClient>(world)) {
-          if (auto worldParameters = clientWorld->currentTemplate()->worldParameters())
-            return engine.createString(worldParameters->typeName);
-        }
-        return engine.createString("unknown");
-      });
+      if (auto serverWorld = as<WorldServer>(world)) {
+        if (auto worldParameters = serverWorld->worldTemplate()->worldParameters())
+          return engine.createString(worldParameters->typeName);
+      } else if (auto clientWorld = as<WorldClient>(world)) {
+        if (auto worldParameters = clientWorld->currentTemplate()->worldParameters())
+          return engine.createString(worldParameters->typeName);
+      }
+      return engine.createString("unknown");
+    });
 
     callbacks.registerCallback("size", [world]() -> Vec2I {
-        if (auto serverWorld = as<WorldServer>(world))
-          return (Vec2I)serverWorld->worldTemplate()->size();
-        else if (auto clientWorld = as<WorldClient>(world))
-          return (Vec2I)clientWorld->currentTemplate()->size();
-        return Vec2I();
-      });
+      if (auto serverWorld = as<WorldServer>(world))
+        return (Vec2I)serverWorld->worldTemplate()->size();
+      else if (auto clientWorld = as<WorldClient>(world))
+        return (Vec2I)clientWorld->currentTemplate()->size();
+      return Vec2I();
+    });
 
     callbacks.registerCallback("inSurfaceLayer", [world](Vec2I const& position) -> bool {
-        if (auto serverWorld = as<WorldServer>(world))
-          return serverWorld->worldTemplate()->inSurfaceLayer(position);
-        else if (auto clientWorld = as<WorldClient>(world))
-          return clientWorld->currentTemplate()->inSurfaceLayer(position);
-        return false;
-      });
+      if (auto serverWorld = as<WorldServer>(world))
+        return serverWorld->worldTemplate()->inSurfaceLayer(position);
+      else if (auto clientWorld = as<WorldClient>(world))
+        return clientWorld->currentTemplate()->inSurfaceLayer(position);
+      return false;
+    });
 
     callbacks.registerCallback("surfaceLevel", [world]() -> float {
-        if (auto serverWorld = as<WorldServer>(world))
-          return serverWorld->worldTemplate()->surfaceLevel();
-        else if (auto clientWorld = as<WorldClient>(world))
-          return clientWorld->currentTemplate()->surfaceLevel();
-        else
-          return world->geometry().size()[1] / 2.0f;
-      });
+      if (auto serverWorld = as<WorldServer>(world))
+        return serverWorld->worldTemplate()->surfaceLevel();
+      else if (auto clientWorld = as<WorldClient>(world))
+        return clientWorld->currentTemplate()->surfaceLevel();
+      else
+        return world->geometry().size()[1] / 2.0f;
+    });
 
     callbacks.registerCallback("terrestrial", [world]() -> bool {
-        if (auto serverWorld = as<WorldServer>(world)) {
-          if (auto worldParameters = serverWorld->worldTemplate()->worldParameters())
-            return worldParameters->type() == WorldParametersType::TerrestrialWorldParameters;
-        } else if (auto clientWorld = as<WorldClient>(world)) {
-          if (auto worldParameters = clientWorld->currentTemplate()->worldParameters())
-            return worldParameters->type() == WorldParametersType::TerrestrialWorldParameters;
-        }
-        return false;
-      });
+      if (auto serverWorld = as<WorldServer>(world)) {
+        if (auto worldParameters = serverWorld->worldTemplate()->worldParameters())
+          return worldParameters->type() == WorldParametersType::TerrestrialWorldParameters;
+      } else if (auto clientWorld = as<WorldClient>(world)) {
+        if (auto worldParameters = clientWorld->currentTemplate()->worldParameters())
+          return worldParameters->type() == WorldParametersType::TerrestrialWorldParameters;
+      }
+      return false;
+    });
 
     callbacks.registerCallback("itemDropItem", [world](EntityId const& entityId) -> Json {
-        if (auto itemDrop = world->get<ItemDrop>(entityId))
-          return itemDrop->item()->descriptor().toJson();
-        return {};
-      });
+      if (auto itemDrop = world->get<ItemDrop>(entityId))
+        return itemDrop->item()->descriptor().toJson();
+      return {};
+    });
 
     callbacks.registerCallback("biomeBlocksAt", [world](Vec2I position) -> Maybe<List<MaterialId>> {
-        WorldTemplateConstPtr worldTemplate;
-        if (auto worldClient = as<WorldClient>(world))
-          worldTemplate = worldClient->currentTemplate();
-        else if (auto worldServer = as<WorldServer>(world))
-          worldTemplate = worldServer->worldTemplate();
+      WorldTemplateConstPtr worldTemplate;
+      if (auto worldClient = as<WorldClient>(world))
+        worldTemplate = worldClient->currentTemplate();
+      else if (auto worldServer = as<WorldServer>(world))
+        worldTemplate = worldServer->worldTemplate();
 
-        if (worldTemplate) {
-          WorldTemplate::BlockInfo block = worldTemplate->blockInfo(position[0], position[1]);
-          if (auto biome = worldTemplate->biome(block.blockBiomeIndex)) {
-            List<MaterialId> blocks = {biome->mainBlock};
-            blocks.appendAll(biome->subBlocks);
-            return blocks;
-          }
+      if (worldTemplate) {
+        WorldTemplate::BlockInfo block = worldTemplate->blockInfo(position[0], position[1]);
+        if (auto biome = worldTemplate->biome(block.blockBiomeIndex)) {
+          List<MaterialId> blocks = {biome->mainBlock};
+          blocks.appendAll(biome->subBlocks);
+          return blocks;
         }
+      }
 
-        return {};
-      });
-      
+      return {};
+    });
+
     callbacks.registerCallback("biomeAt", [world](Vec2I position, Maybe<bool> getBlockBiome) -> Maybe<String> {
-        WorldTemplateConstPtr worldTemplate;
-        if (auto worldClient = as<WorldClient>(world))
-          worldTemplate = worldClient->currentTemplate();
-        else if (auto worldServer = as<WorldServer>(world))
-          worldTemplate = worldServer->worldTemplate();
+      WorldTemplateConstPtr worldTemplate;
+      if (auto worldClient = as<WorldClient>(world))
+        worldTemplate = worldClient->currentTemplate();
+      else if (auto worldServer = as<WorldServer>(world))
+        worldTemplate = worldServer->worldTemplate();
 
-        if (worldTemplate) {
-          if (getBlockBiome && *getBlockBiome) {
-            if (auto biome = worldTemplate->blockBiome(position[0], position[1]))
-              return biome->baseName;
-          } else {
-            if (auto biome = worldTemplate->environmentBiome(position[0], position[1]))
-              return biome->baseName;
-          }
+      if (worldTemplate) {
+        if (getBlockBiome && *getBlockBiome) {
+          if (auto biome = worldTemplate->blockBiome(position[0], position[1]))
+            return biome->baseName;
+        } else {
+          if (auto biome = worldTemplate->environmentBiome(position[0], position[1]))
+            return biome->baseName;
         }
+      }
 
-        return {};
-      });
+      return {};
+    });
 
     callbacks.registerCallback("biomeParametersAt", [world](Vec2I position, Maybe<bool> getBlockBiome) -> Json {
-        WorldTemplateConstPtr worldTemplate;
-        if (auto worldClient = as<WorldClient>(world))
-          worldTemplate = worldClient->currentTemplate();
-        else if (auto worldServer = as<WorldServer>(world))
-          worldTemplate = worldServer->worldTemplate();
+      WorldTemplateConstPtr worldTemplate;
+      if (auto worldClient = as<WorldClient>(world))
+        worldTemplate = worldClient->currentTemplate();
+      else if (auto worldServer = as<WorldServer>(world))
+        worldTemplate = worldServer->worldTemplate();
 
-        if (worldTemplate) {
-          if (getBlockBiome && *getBlockBiome) {
-            if (auto biome = worldTemplate->blockBiome(position[0], position[1]))
-              return biome->toJson();
-          } else {
-            if (auto biome = worldTemplate->environmentBiome(position[0], position[1]))
-              return biome->toJson();
-          }
+      if (worldTemplate) {
+        if (getBlockBiome && *getBlockBiome) {
+          if (auto biome = worldTemplate->blockBiome(position[0], position[1]))
+            return biome->toJson();
+        } else {
+          if (auto biome = worldTemplate->environmentBiome(position[0], position[1]))
+            return biome->toJson();
         }
-        
-        return Json();
-      });
+      }
+
+      return Json();
+    });
 
     callbacks.registerCallback("dungeonId", [world](Vec2I position) -> DungeonId {
-        if (auto serverWorld = as<WorldServer>(world)) {
-          return serverWorld->dungeonId(position);
-        } else {
-          return as<WorldClient>(world)->dungeonId(position);
-        }
-      });
-    
+      if (auto serverWorld = as<WorldServer>(world)) {
+        return serverWorld->dungeonId(position);
+      } else {
+        return as<WorldClient>(world)->dungeonId(position);
+      }
+    });
+
     if (auto clientWorld = as<WorldClient>(world)) {
       callbacks.registerCallbackWithSignature<RectI>("clientWindow", bind(ClientWorldCallbacks::clientWindow, clientWorld));
       callbacks.registerCallbackWithSignature<void, Maybe<Vec3F>>("setLightMultiplier", bind(ClientWorldCallbacks::setLightMultiplier, clientWorld, _1));
       callbacks.registerCallbackWithSignature<void, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>>("setShaderParameters",
-        bind(ClientWorldCallbacks::setShaderParameters, clientWorld, _1, _2, _3, _4, _5, _6));
+          bind(ClientWorldCallbacks::setShaderParameters, clientWorld, _1, _2, _3, _4, _5, _6));
       callbacks.registerCallbackWithSignature<LuaTupleReturn<Vec3F, Vec3F, Vec3F, Vec3F, Vec3F, Vec3F>>("getShaderParameters",
-        bind(ClientWorldCallbacks::getShaderParameters, clientWorld));
+          bind(ClientWorldCallbacks::getShaderParameters, clientWorld));
       callbacks.registerCallbackWithSignature<void>("resetShaderParameters", bind(ClientWorldCallbacks::resetShaderParameters, clientWorld));
       callbacks.registerCallback("players", [clientWorld]() {
         List<EntityId> playerIds;
@@ -553,6 +556,15 @@ namespace LuaBindings {
       });
     }
 
+    if (auto worldClient = as<WorldClient>(world)) {
+      callbacks.registerCallbackWithSignature<void, EntityId, Directives>("setEntityDirectives",
+          bind(&WorldClient::setEntityRenderDirectives, worldClient, _1, _2));
+      callbacks.registerCallbackWithSignature<void>("clearEntityDirectives",
+          bind(&WorldClient::clearEntityRenderDirectives, worldClient));
+      callbacks.registerCallbackWithSignature<Directives, EntityId>("entityDirectives",
+          bind(&WorldClient::entityRenderDirectives, worldClient, _1));
+    }
+
     if (auto serverWorld = as<WorldServer>(world)) {
       callbacks.registerCallback("metadata", [serverWorld]() -> Json { return serverWorld->getMetadata(); });
       callbacks.registerCallback("setMetadata", [serverWorld](Json const& newMetadata) { serverWorld->setMetadata(newMetadata); });
@@ -573,11 +585,11 @@ namespace LuaBindings {
       callbacks.registerCallbackWithSignature<Maybe<LuaValue>, LuaEngine&, String, String, LuaVariadic<LuaValue>>("callScriptContext", bind(ServerWorldCallbacks::callScriptContext, world, _1, _2, _3, _4));
 
       callbacks.registerCallbackWithSignature<double>("skyTime", [serverWorld]() {
-          return serverWorld->sky()->epochTime();
-        });
+        return serverWorld->sky()->epochTime();
+      });
       callbacks.registerCallbackWithSignature<void, double>("setSkyTime", [serverWorld](double skyTime) {
-          return serverWorld->sky()->setEpochTime(skyTime);
-        });
+        return serverWorld->sky()->setEpochTime(skyTime);
+      });
 
       callbacks.registerCallback("setExpiryTime", [serverWorld](float expiryTime) { serverWorld->setExpiryTime(expiryTime); });
 
@@ -587,52 +599,52 @@ namespace LuaBindings {
       callbacks.registerCallback("universeFlags", [serverWorld]() { return serverWorld->universeSettings()->flags(); });
       callbacks.registerCallback("universeFlagSet", [serverWorld](String const& flagName) { return serverWorld->universeSettings()->flags().contains(flagName); });
       callbacks.registerCallback("placeDungeon", [serverWorld](String dungeonName, Vec2I position, Maybe<DungeonId> dungeonId) -> bool {
-          return serverWorld->placeDungeon(dungeonName, position, dungeonId);
-        });
+        return serverWorld->placeDungeon(dungeonName, position, dungeonId);
+      });
       callbacks.registerCallback("tryPlaceDungeon", [serverWorld](String dungeonName, Vec2I position, Maybe<DungeonId> dungeonId) -> bool {
-          return serverWorld->placeDungeon(dungeonName, position, dungeonId, false);
-        });
+        return serverWorld->placeDungeon(dungeonName, position, dungeonId, false);
+      });
 
       callbacks.registerCallback("addBiomeRegion", [serverWorld](Vec2I position, String biomeName, String subBlockSelector, int width) {
-          serverWorld->addBiomeRegion(position, biomeName, subBlockSelector, width);
-        });
+        serverWorld->addBiomeRegion(position, biomeName, subBlockSelector, width);
+      });
       callbacks.registerCallback("expandBiomeRegion", [serverWorld](Vec2I position, int width) {
-          serverWorld->expandBiomeRegion(position, width);
-        });
+        serverWorld->expandBiomeRegion(position, width);
+      });
 
       callbacks.registerCallback("pregenerateAddBiome", [serverWorld](Vec2I position, int width) {
-          return serverWorld->pregenerateAddBiome(position, width);
-        });
+        return serverWorld->pregenerateAddBiome(position, width);
+      });
       callbacks.registerCallback("pregenerateExpandBiome", [serverWorld](Vec2I position, int width) {
-          return serverWorld->pregenerateExpandBiome(position, width);
-        });
+        return serverWorld->pregenerateExpandBiome(position, width);
+      });
 
       callbacks.registerCallback("setLayerEnvironmentBiome", [serverWorld](Vec2I position) {
-          serverWorld->setLayerEnvironmentBiome(position);
-        });
+        serverWorld->setLayerEnvironmentBiome(position);
+      });
 
       callbacks.registerCallback("setPlanetType", [serverWorld](String planetType, String primaryBiomeName) {
-          serverWorld->setPlanetType(planetType, primaryBiomeName);
-        });
+        serverWorld->setPlanetType(planetType, primaryBiomeName);
+      });
 
       callbacks.registerCallback("setDungeonGravity", [serverWorld](DungeonId dungeonId, Maybe<float> gravity) {
-          serverWorld->setDungeonGravity(dungeonId, gravity);
-        });
+        serverWorld->setDungeonGravity(dungeonId, gravity);
+      });
 
       callbacks.registerCallback("setDungeonBreathable", [serverWorld](DungeonId dungeonId, Maybe<bool> breathable) {
-          serverWorld->setDungeonBreathable(dungeonId, breathable);
-        });
+        serverWorld->setDungeonBreathable(dungeonId, breathable);
+      });
 
       callbacks.registerCallback("setDungeonId", [serverWorld](RectI tileRegion, DungeonId dungeonId) {
-          serverWorld->setDungeonId(tileRegion, dungeonId);
-        });
+        serverWorld->setDungeonId(tileRegion, dungeonId);
+      });
 
       callbacks.registerCallback("enqueuePlacement", [serverWorld](List<Json> distributionConfigs, Maybe<DungeonId> id) {
-          auto distributions = distributionConfigs.transformed([](Json const& config) {
-            return BiomeItemDistribution(config, Random::randu64());
-          });
-          return serverWorld->enqueuePlacement(std::move(distributions), id);
+        auto distributions = distributionConfigs.transformed([](Json const& config) {
+          return BiomeItemDistribution(config, Random::randu64());
         });
+        return serverWorld->enqueuePlacement(std::move(distributions), id);
+      });
     }
 
     return callbacks;
@@ -718,31 +730,31 @@ namespace LuaBindings {
     callbacks.registerCallbackWithSignature<Maybe<String>, EntityId>("stagehandType", bind(WorldEntityCallbacks::stagehandType, world, _1));
     callbacks.registerCallbackWithSignature<bool, EntityId, Maybe<int>>("isNpc", bind(WorldEntityCallbacks::isNpc, world, _1, _2));
     callbacks.registerCallback("isEntityInteractive", [world](EntityId entityId) -> Maybe<bool> {
-        if (auto entity = world->get<InteractiveEntity>(entityId))
-          return entity->isInteractive();
-        return {};
-      });
+      if (auto entity = world->get<InteractiveEntity>(entityId))
+        return entity->isInteractive();
+      return {};
+    });
     callbacks.registerCallback("entityMouthPosition", [world](EntityId entityId) -> Maybe<Vec2F> {
-        if (auto entity = world->get<ChattyEntity>(entityId))
-          return entity->mouthPosition();
-        return {};
-      });
+      if (auto entity = world->get<ChattyEntity>(entityId))
+        return entity->mouthPosition();
+      return {};
+    });
     callbacks.registerCallback("entityTypeName", [world](EntityId entityId) -> Maybe<String> {
-        auto entity = world->entity(entityId);
-        if (auto monster = as<Monster>(entity))
-          return monster->typeName();
-        if (auto npc = as<Npc>(entity))
-          return npc->npcType();
-        if (auto vehicle = as<Vehicle>(entity))
-          return vehicle->name();
-        if (auto object = as<Object>(entity))
-          return object->name();
-        if (auto itemDrop = as<ItemDrop>(entity)) {
-          if (itemDrop->item())
-            return itemDrop->item()->name();
-        }
-        return {};
-      });
+      auto entity = world->entity(entityId);
+      if (auto monster = as<Monster>(entity))
+        return monster->typeName();
+      if (auto npc = as<Npc>(entity))
+        return npc->npcType();
+      if (auto vehicle = as<Vehicle>(entity))
+        return vehicle->name();
+      if (auto object = as<Object>(entity))
+        return object->name();
+      if (auto itemDrop = as<ItemDrop>(entity)) {
+        if (itemDrop->item())
+          return itemDrop->item()->name();
+      }
+      return {};
+    });
     callbacks.registerCallbackWithSignature<Maybe<Vec2F>, EntityId>("entityAimPosition", bind(WorldEntityCallbacks::entityAimPosition, world, _1));
   }
 
@@ -759,17 +771,17 @@ namespace LuaBindings {
     callbacks.registerCallbackWithSignature<void, Vec2F, String, MaterialColorVariant>("setMaterialColor", bind(WorldEnvironmentCallbacks::setMaterialColor, world, _1, _2, _3));
 
     callbacks.registerCallback("oceanLevel", [world](Vec2I position) -> int {
-        if (auto serverWorld = as<WorldServer>(world)) {
-          return serverWorld->worldTemplate()->blockInfo(position[0], position[1]).oceanLiquidLevel;
-        } else {
-          auto clientWorld = as<WorldClient>(world);
-          return clientWorld->currentTemplate()->blockInfo(position[0], position[1]).oceanLiquidLevel;
-        }
-      });
+      if (auto serverWorld = as<WorldServer>(world)) {
+        return serverWorld->worldTemplate()->blockInfo(position[0], position[1]).oceanLiquidLevel;
+      } else {
+        auto clientWorld = as<WorldClient>(world);
+        return clientWorld->currentTemplate()->blockInfo(position[0], position[1]).oceanLiquidLevel;
+      }
+    });
 
     callbacks.registerCallback("environmentStatusEffects", [world](Vec2F const& position) {
-        return world->environmentStatusEffects(position);
-      });
+      return world->environmentStatusEffects(position);
+    });
 
     callbacks.registerCallbackWithSignature<bool, List<Vec2I>, String, Vec2F, String, float, Maybe<unsigned>, Maybe<EntityId>>("damageTiles", bind(WorldEnvironmentCallbacks::damageTiles, world, _1, _2, _3, _4, _5, _6, _7));
     callbacks.registerCallbackWithSignature<bool, Vec2F, float, String, Vec2F, String, float, Maybe<unsigned>, Maybe<EntityId>>("damageTileArea", bind(WorldEnvironmentCallbacks::damageTileArea, world, _1, _2, _3, _4, _5, _6, _7, _8));
@@ -915,11 +927,11 @@ namespace LuaBindings {
   List<pair<Vec2I, LiquidLevel>> WorldCallbacks::liquidAlongLine(World* world, Vec2F const& start, Vec2F const& end) {
     List<pair<Vec2I, LiquidLevel>> levels;
     forBlocksAlongLine<float>(start, world->geometry().diff(end, start), [&](int x, int y) {
-        auto liquidLevel = world->liquidLevel(RectF::withSize(Vec2F(x, y), Vec2F(1, 1)));
-        if (liquidLevel.liquid != EmptyLiquidId)
-          levels.append(pair<Vec2I, LiquidLevel>(Vec2I(x, y), liquidLevel));
-        return true;
-      });
+      auto liquidLevel = world->liquidLevel(RectF::withSize(Vec2F(x, y), Vec2F(1, 1)));
+      if (liquidLevel.liquid != EmptyLiquidId)
+        levels.append(pair<Vec2I, LiquidLevel>(Vec2I(x, y), liquidLevel));
+      return true;
+    });
     return levels;
   }
 
@@ -1279,17 +1291,17 @@ namespace LuaBindings {
     return world->clientWindow();
   }
 
-  void ClientWorldCallbacks::setLightMultiplier(WorldClient *world, Maybe<Vec3F> const& newMultiplier) {
+  void ClientWorldCallbacks::setLightMultiplier(WorldClient* world, Maybe<Vec3F> const& newMultiplier) {
     world->setLightMultiplier(newMultiplier);
   }
 
   void ClientWorldCallbacks::setShaderParameters(WorldClient* world,
-                                                 Maybe<Vec3F> const& param1,
-                                                 Maybe<Vec3F> const& param2,
-                                                 Maybe<Vec3F> const& param3,
-                                                 Maybe<Vec3F> const& param4,
-                                                 Maybe<Vec3F> const& param5,
-                                                 Maybe<Vec3F> const& param6) {
+      Maybe<Vec3F> const& param1,
+      Maybe<Vec3F> const& param2,
+      Maybe<Vec3F> const& param3,
+      Maybe<Vec3F> const& param4,
+      Maybe<Vec3F> const& param5,
+      Maybe<Vec3F> const& param6) {
     Array<Vec3F, 6> newParameterArray = world->getShaderParameters();
     if (param1) newParameterArray[0] = *param1;
     if (param2) newParameterArray[1] = *param2;
@@ -1740,17 +1752,12 @@ namespace LuaBindings {
     return {};
   }
 
-  Maybe<int> WorldEntityCallbacks::objectDirection(World *world, EntityId entityId)
-  {
-    if (auto objectEntity = as<Object>(world->entity(entityId)))
-    {
+  Maybe<int> WorldEntityCallbacks::objectDirection(World* world, EntityId entityId) {
+    if (auto objectEntity = as<Object>(world->entity(entityId))) {
       Direction objDir = objectEntity->direction();
-      if (objDir == Direction::Right)
-      {
+      if (objDir == Direction::Right) {
         return 1;
-      }
-      else
-      {
+      } else {
         return -1;
       }
     }
@@ -1900,9 +1907,8 @@ namespace LuaBindings {
       auto toSearch = itemDb->fromJson(items);
       auto res = itemBag->itemsFitWhere(toSearch);
       return JsonObject{
-        {"leftover", res.leftover},
-        {"slots", jsonFromList<size_t>(res.slots)}
-      };
+          {"leftover", res.leftover},
+          {"slots", jsonFromList<size_t>(res.slots)}};
     }
 
     return Json();
@@ -2066,7 +2072,7 @@ namespace LuaBindings {
     return false;
   }
 
-  Maybe<Vec2F> WorldEntityCallbacks::entityAimPosition(World *world, EntityId entityId) {
+  Maybe<Vec2F> WorldEntityCallbacks::entityAimPosition(World* world, EntityId entityId) {
     if (auto player = world->get<Player>(entityId)) {
       return player->aimPosition();
     } else if (auto npc = world->get<Npc>(entityId)) {
@@ -2296,6 +2302,6 @@ namespace LuaBindings {
 
     return world->modifyTile(tilePosition, placeMod, allowOverlap);
   }
-}
+} // namespace LuaBindings
 
-}
+} // namespace Star
