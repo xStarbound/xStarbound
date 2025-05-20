@@ -125,7 +125,7 @@ Any mod not listed in the «partially compatible» or «not compatible» categor
 - [Arcana](https://steamcommunity.com/workshop/filedetails/?id=2359135864) — use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) to satisfy this mod's «Stardust Core Lite» dependency (see that mod below for why).
 - [Avali (Triage) Race Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=729558042).
 - [Elithian Races Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=850109963).
-- [Frackin' Universe](https://steamcommunity.com/sharedfiles/filedetails/?id=729480149) ([GitHub](https://github.com/sayterdarkwynd/FrackinUniverse)).
+- [Frackin' Universe](https://steamcommunity.com/sharedfiles/filedetails/?id=729480149) ([GitHub](https://github.com/sayterdarkwynd/FrackinUniverse)). **Requires the Frackin' Patch on the [downloads page](https://github.com/xStarbound/xStarbound/releases/latest) to fix a compatibility issue between xStarbound's sandbox and FU's power objects.**
 - [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — the keybind is not supported by xStarbound solely due to an explicit StarExtensions check.
 - [Maple32](https://steamcommunity.com/sharedfiles/filedetails/?id=2568667104&searchtext=maple32).
 - [NPC Mechs](https://steamcommunity.com/sharedfiles/filedetails/?id=1788644520) — compatible, but requires the compatibility patch in this repo.

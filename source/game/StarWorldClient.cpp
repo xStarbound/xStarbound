@@ -2636,7 +2636,8 @@ Json WorldClient::getGlobal(Maybe<String> const& jsonPath) const {
 }
 
 void WorldClient::setEntityRenderDirectives(EntityId entityId, Directives const& directives) {
-  m_entitySpecificDirectives[entityId] = std::move(directives);
+  if (m_entityMap && m_entityMap->entity(entityId))
+    m_entitySpecificDirectives[entityId] = std::move(directives);
 }
 
 

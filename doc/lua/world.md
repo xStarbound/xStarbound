@@ -1547,6 +1547,30 @@ Returns the current values of the scriptable shader parameters. Consider using `
 
 ---
 
+#### `void` world.setEntityDirectives(`EntityId` entityId, `Directives` directives)
+
+> **Available only on xStarbound v3.6+.**
+
+Adds or sets client-side rendering directives to all image drawables associated with the specified rendered entity; to remove rendering directives from an entity, pass an empty string as the directives. Any directives specified with this callback will be removed (and therefore have to be re-added) when the specified entity is derendered or despawned, or when the rendering client leaves the world. If a nonexistent (or non-rendered) entity is specified, the callback will not do anything.
+
+---
+
+#### `Directives` world.entityDirectives(`EntityId` entityId)
+
+> **Available only on xStarbound v3.6+.**
+
+Returns any client-side entity-specific rendering directives associated with the specified entity. If a nonexistent (or non-rendered) entity is specified, the callback will always return an empty string.
+
+---
+
+#### `void` world.clearEntityDirectives()
+
+> **Available only on xStarbound v3.6+.**
+
+Clears and resets all client-side entity-specific rendering directives.
+
+---
+
 #### `List<EntityId>` world.players()
 
 > **Available only on xStarbound and OpenStarbound.**
@@ -1656,4 +1680,3 @@ Will return `nil` if the player doesn't exist, the player save failed validation
 > **Available only on xStarbound v3.1+.**
 
 Returns whether the player with the specified UUID is currently loaded and active. Note that this callback will return `false` instead of throwing an error if the specified UUID is invalid.
-
