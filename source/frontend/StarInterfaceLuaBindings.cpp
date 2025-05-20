@@ -294,6 +294,10 @@ LuaCallbacks LuaBindings::makeRenderingCallbacks(WorldPainter* worldPainter) {
       bind(&WorldPainter::fullbrightOverride, worldPainter, _1));
   callbacks.registerCallbackWithSignature<bool>("fullbrightOverridden",
       bind(&WorldPainter::isFullbright, worldPainter));
+  callbacks.registerCallbackWithSignature<void, Json>("setTileDirectives",
+      bind(&WorldPainter::setTileRenderDirectives, worldPainter, _1));
+  callbacks.registerCallbackWithSignature<JsonObject>("tileDirectives",
+      bind(&WorldPainter::tileRenderDirectives, worldPainter));
 
   return callbacks;
 }
