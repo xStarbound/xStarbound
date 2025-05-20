@@ -37,6 +37,7 @@ TilePainter::TilePainter(RendererPtr renderer) : TileDrawer() {
 void TilePainter::flushCaches(String const& liquidDirectives) {
   m_terrainChunkCache.clear();
   m_liquidChunkCache.clear();
+  m_textureCache.clear();
 
   auto& root = Root::singleton();
   auto assets = root.assets();
