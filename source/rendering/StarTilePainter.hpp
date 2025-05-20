@@ -41,6 +41,9 @@ public:
 
   TilePainter(RendererPtr renderer);
 
+  // FezzedOne: That `liquidDirectives` parameter is there because liquid textures are «pre-baked».
+  void flushCaches(String const& liquidDirectives = "");
+
   // Adjusts lighting levels for liquids and/or any global lightmap value multiplier.
   void adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> const& lightMultiplier = {}) const;
 

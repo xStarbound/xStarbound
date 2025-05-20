@@ -34,6 +34,22 @@ TilePainter::TilePainter(RendererPtr renderer) : TileDrawer() {
   }
 }
 
+void TilePainter::flushCaches(String const& liquidDirectives) {
+  m_terrainChunkCache.clear();
+  m_liquidChunkCache.clear();
+
+  auto& root = Root::singleton();
+  auto assets = root.assets();
+
+  for (auto const& liquid : root.liquidsDatabase()->allLiquidSettings()) {
+    m_liquids.set(liquid->id, LiquidInfo{
+                                  m_renderer->createTexture(*assets->image(String(strf("{}?{}", liquid->config.getString("texture"), liquidDirectives))), TextureAddressing::Wrap),
+                                  jsonToColor(liquid->config.get("color")).toRgba(),
+                                  jsonToColor(liquid->config.get("bottomLightMix")).toRgbF(),
+                                  liquid->config.getFloat("textureMovementFactor")});
+  }
+}
+
 void TilePainter::adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> const& lightMultiplier) const {
   RectI lightRange = RectI::withSize(renderData.lightMinPosition, Vec2I(renderData.lightMap.size()));
 
@@ -297,13 +313,13 @@ bool TilePainter::produceTerrainPrimitives(HashMap<QuadZLevel, List<RenderPrimit
   if (terrainLayer == (isBlock ? TerrainLayer::Midground : TerrainLayer::Foreground))
     return false;
 
-  auto getPieceTexture = [this, assets](MaterialId material, MaterialRenderPieceConstPtr const& piece, MaterialHue hue, bool mod) {
+  auto getPieceTexture = [this, assets, &renderDirectives](MaterialId material, MaterialRenderPieceConstPtr const& piece, MaterialHue hue, bool mod) {
     return m_textureCache.get(MaterialPieceTextureKey(material, piece->pieceId, hue, mod), [&](auto const&) {
       String texture;
       if (hue == 0)
-        texture = piece->texture;
+        texture = strf("{}?{}", piece->texture, renderDirectives);
       else
-        texture = strf("{}?hueshift={}", piece->texture, materialHueToDegrees(hue));
+        texture = strf("{}?hueshift={}?{}", piece->texture, materialHueToDegrees(hue), renderDirectives);
 
       return m_textureGroup->create(*assets->image(texture));
     });

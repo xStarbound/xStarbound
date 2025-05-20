@@ -125,7 +125,10 @@ void WorldPainter::setTileRenderDirectives(Json const& newDirectives) {
     shouldFlush |= foreground != m_tileRenderDirectives.terrainLayers.foreground;
     m_tileRenderDirectives.terrainLayers.foreground = std::move(foreground);
     if (m_tilePainter && shouldFlush)
-      m_tilePainter->cleanup();
+      m_tilePainter->flushCaches(m_tileRenderDirectives.liquids);
+  } else if (newDirectives.isNull()) {
+    m_tileRenderDirectives = TilePainter::TilePainterDirectives();
+    if (m_tilePainter) m_tilePainter->flushCaches(m_tileRenderDirectives.liquids);
   }
 }
 
