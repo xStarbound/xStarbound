@@ -106,6 +106,12 @@ WorldClient::WorldClient(PlayerPtr mainPlayer, UniverseClient* universeClient) {
   m_globalLightingMultiplier = {};
   m_shaderParameters = Array<Vec3F, 6>::filled(Vec3F::filled(0.0f));
 
+  m_allEntityDirectives = Directives();
+  for (uint32_t i = 0; i < 10; i++) {
+    m_entityTypeRenderStatuses[i] = true;
+  }
+  m_entitySpecificDirectives = {};
+
   clearWorld();
 }
 
@@ -617,6 +623,8 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
     const char* const entityTypeStr = EntityTypeNames.getRight(entity->entityType()).utf8().c_str();
     ZoneTextF("%s entity %i", entityTypeStr, entityId);
 #endif
+    if (!m_entityTypeRenderStatuses[(uint32_t)entity->entityType()])
+      return;   
 
     if (m_startupHiddenEntities.contains(entity->entityId()))
       return;
@@ -631,6 +639,11 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
         for (auto& d : p.second) {
           if (d.isImage())
             d.imagePart().addDirectives(*directives, true);
+        }
+      } else {
+        for (auto& d : p.second) {
+          if (d.isImage())
+            d.imagePart().addDirectives(m_allEntityDirectives, true);
         }
       }
       if (directives) {
@@ -2009,6 +2022,7 @@ void WorldClient::clearWorld() {
         removeEntity(entityId, false);
     }
   }
+  m_entitySpecificDirectives = {};
 
   waitForLighting();
 
@@ -2635,20 +2649,68 @@ Json WorldClient::getGlobal(Maybe<String> const& jsonPath) const {
     return m_scriptGlobals;
 }
 
-void WorldClient::setEntityRenderDirectives(EntityId entityId, Directives const& directives) {
-  if (m_entityMap && m_entityMap->entity(entityId))
-    m_entitySpecificDirectives[entityId] = std::move(directives);
+void WorldClient::setEntityRenderDirectives(EntityId entityId, Maybe<Directives> const& directives) {
+  if (m_entityMap && m_entityMap->entity(entityId)) {
+    if (directives && !directives->empty())
+      m_entitySpecificDirectives[entityId] = std::move(*directives);
+    else
+      m_entitySpecificDirectives.remove(entityId);
+  }
 }
-
 
 void WorldClient::clearEntityRenderDirectives() {
   m_entitySpecificDirectives.clear();
+}
+
+void WorldClient::setDefaultEntityRenderDirectives(Maybe<Directives> const& directives) {
+  if (directives)
+    m_allEntityDirectives = std::move(*directives);
+  else
+    m_allEntityDirectives = std::move(Directives());
 }
 
 Directives WorldClient::entityRenderDirectives(EntityId entityId) const {
   if (m_entitySpecificDirectives.contains(entityId))
     return m_entitySpecificDirectives.get(entityId);
   return Directives();
+}
+
+Directives WorldClient::defaultEntityRenderDirectives() const {
+  return m_allEntityDirectives;
+}
+
+JsonObject WorldClient::entityTypeRenderStatus() const {
+  return JsonObject{
+      {"plant", m_entityTypeRenderStatuses[0]},
+      {"object", m_entityTypeRenderStatuses[1]},
+      {"vehicle", m_entityTypeRenderStatuses[2]},
+      {"itemdrop", m_entityTypeRenderStatuses[3]},
+      {"plantdrop", m_entityTypeRenderStatuses[4]},
+      {"projectile", m_entityTypeRenderStatuses[5]},
+      {"stagehand", m_entityTypeRenderStatuses[6]},
+      {"monster", m_entityTypeRenderStatuses[7]},
+      {"npc", m_entityTypeRenderStatuses[8]},
+      {"player", m_entityTypeRenderStatuses[9]},
+  };
+}
+
+void WorldClient::setEntityTypeRenderStatus(Json const& newStatus) {
+  if (newStatus.isType(Json::Type::Object)) {
+    m_entityTypeRenderStatuses[0] = newStatus.optBool("plant").value(m_entityTypeRenderStatuses[0]);
+    m_entityTypeRenderStatuses[1] = newStatus.optBool("object").value(m_entityTypeRenderStatuses[1]);
+    m_entityTypeRenderStatuses[2] = newStatus.optBool("vehicle").value(m_entityTypeRenderStatuses[2]);
+    m_entityTypeRenderStatuses[3] = newStatus.optBool("itemdrop").value(m_entityTypeRenderStatuses[3]);
+    m_entityTypeRenderStatuses[4] = newStatus.optBool("plantdrop").value(m_entityTypeRenderStatuses[4]);
+    m_entityTypeRenderStatuses[5] = newStatus.optBool("projectile").value(m_entityTypeRenderStatuses[5]);
+    m_entityTypeRenderStatuses[6] = newStatus.optBool("stagehand").value(m_entityTypeRenderStatuses[6]);
+    m_entityTypeRenderStatuses[7] = newStatus.optBool("monster").value(m_entityTypeRenderStatuses[7]);
+    m_entityTypeRenderStatuses[8] = newStatus.optBool("npc").value(m_entityTypeRenderStatuses[8]);
+    m_entityTypeRenderStatuses[9] = newStatus.optBool("player").value(m_entityTypeRenderStatuses[9]);
+  } else {
+    for (uint32_t i = 0; i < 10; i++) {
+      m_entityTypeRenderStatuses[i] = true;
+    }
+  }
 }
 
 } // namespace Star

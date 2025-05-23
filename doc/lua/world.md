@@ -1547,11 +1547,19 @@ Returns the current values of the scriptable shader parameters. Consider using `
 
 ---
 
-#### `void` world.setEntityDirectives(`EntityId` entityId, `Directives` directives)
+#### `void` world.setEntityDirectives(`EntityId` entityId, `Maybe<Directives>` directives)
 
-> **Available only on xStarbound v3.6+.**
+> **Available only on xStarbound v3.6+. `directives` parameter changed in v3.6.1.**
 
-Adds or sets client-side rendering directives to all image drawables associated with the specified rendered entity; to remove rendering directives from an entity, pass an empty string as the directives. Any directives specified with this callback will be removed (and therefore have to be re-added) when the specified entity is derendered or despawned, or when the rendering client leaves the world. If a nonexistent (or non-rendered) entity is specified, the callback will not do anything.
+Adds or sets client-side rendering directives to all image drawables associated with the specified rendered entity; to remove rendering directives from an entity, pass an empty string, `nil` or `null` as the directives. Any directives specified with this callback will be removed (and therefore have to be re-added) when the specified entity is derendered or despawned, or when the rendering client leaves the world. If a nonexistent (or non-rendered) entity is specified, the callback will not do anything.
+
+---
+
+#### `void` world.setDefaultEntityDirectives(`Maybe<Directives>` directives)
+
+> **Available only on xStarbound v3.6.1+.**
+
+Adds or sets client-side rendering directives to all image drawables associated with rendered entities which don't have entity-specific rendering directives specified (via `world.setEntityDirectives` above); to remove any default directives, pass an empty string, `nil` or `null` as the directives.
 
 ---
 
@@ -1559,7 +1567,44 @@ Adds or sets client-side rendering directives to all image drawables associated 
 
 > **Available only on xStarbound v3.6+.**
 
-Returns any client-side entity-specific rendering directives associated with the specified entity. If a nonexistent (or non-rendered) entity is specified, the callback will always return an empty string.
+Returns any client-side entity-specific rendering directives associated with the specified entity. If a nonexistent (or non-rendered) entity is specified, the callback will always return an empty string. These directives are reset upon returning to the main menu or exiting the client.
+
+---
+
+#### `Directives` world.defaultEntityDirectives()
+
+> **Available only on xStarbound v3.6+.**
+
+Returns any client-side default rendering directives, or an empty string is none are specified.
+
+---
+
+#### `JsonObject` world.entityRenderStatus()
+
+Returns which entity types are currently being rendered by the client. By default, all entity types are rendered. The return value is in the following format:
+
+```lua
+jobject{
+  plant = true, -- Plants, including vines. Crop plants, certain bushes, and various other plant-like things are objects though!
+  object = true, -- Objects.
+  vehicle = true, -- Vehicles.
+  itemdrop = true, -- Item drops.
+  plantdrop = true, -- Plant drops. Mostly falling trees and vines.
+  projectile = true, -- Projectiles.
+  stagehand = true, -- Stagehands. Only here for completeness, since stagehands don't have anything to render.
+  monster = true, -- Monsters.
+  npc = true, -- NPCs.
+  player = true -- Players.
+}
+```
+
+Note that some projectile-like entities are actually particles. Use `renderer.setEnabledLayers` to toggle the rendering of particles (see `$doc/lua/renderer.md`).
+
+---
+
+#### `void` world.setEntityRenderStatus(`Json` newStatus)
+
+Sets which entity types should be rendered by the client. If a JSON object is passed, the object is expected to be in a format similar to that of `world.entityRenderStatus`, but any missing keys or `null` values are left as is. For instance, `jobject{ player = false }` disables rendering players while leaving the rendering status of all other entity types as it currently is. If no argument is specified, or `nil` or `null` is passed, the default — where all entity types are rendered — is restored.
 
 ---
 

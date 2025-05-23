@@ -557,12 +557,20 @@ namespace LuaBindings {
     }
 
     if (auto worldClient = as<WorldClient>(world)) {
-      callbacks.registerCallbackWithSignature<void, EntityId, Directives>("setEntityDirectives",
+      callbacks.registerCallbackWithSignature<void, EntityId, Maybe<Directives>>("setEntityDirectives",
           bind(&WorldClient::setEntityRenderDirectives, worldClient, _1, _2));
       callbacks.registerCallbackWithSignature<void>("clearEntityDirectives",
           bind(&WorldClient::clearEntityRenderDirectives, worldClient));
+      callbacks.registerCallbackWithSignature<void, Maybe<Directives>>("setDefaultEntityDirectives",
+          bind(&WorldClient::setDefaultEntityRenderDirectives, worldClient, _1));
       callbacks.registerCallbackWithSignature<Directives, EntityId>("entityDirectives",
           bind(&WorldClient::entityRenderDirectives, worldClient, _1));
+      callbacks.registerCallbackWithSignature<Directives>("defaultEntityDirectives",
+          bind(&WorldClient::defaultEntityRenderDirectives, worldClient));
+      callbacks.registerCallbackWithSignature<JsonObject>("entityRenderStatus",
+          bind(&WorldClient::entityTypeRenderStatus, worldClient));
+      callbacks.registerCallbackWithSignature<void, Json>("setEntityRenderStatus",
+          bind(&WorldClient::setEntityTypeRenderStatus, worldClient, _1));
     }
 
     if (auto serverWorld = as<WorldServer>(world)) {

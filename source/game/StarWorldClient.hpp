@@ -189,9 +189,13 @@ public:
   void setGlobal(Maybe<String> const& jsonPath, Json const& newValue);
   Json getGlobal(Maybe<String> const& jsonPath) const;
 
-  void setEntityRenderDirectives(EntityId entityId, Directives const& directives);
+  void setEntityRenderDirectives(EntityId entityId, Maybe<Directives> const& directives);
   void clearEntityRenderDirectives();
   Directives entityRenderDirectives(EntityId entity) const;
+  JsonObject entityTypeRenderStatus() const;
+  void setEntityTypeRenderStatus(Json const& newStatuses);
+  Directives defaultEntityRenderDirectives() const;
+  void setDefaultEntityRenderDirectives(Maybe<Directives> const& directives);
 
 private:
   static const float DropDist;
@@ -389,6 +393,8 @@ private:
 
   BroadcastCallback m_broadcastCallback;
 
+  bool m_entityTypeRenderStatuses[10];
+  Directives m_allEntityDirectives;
   HashMap<EntityId, Directives> m_entitySpecificDirectives;
 
   JsonObject m_scriptGlobals;
