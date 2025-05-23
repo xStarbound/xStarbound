@@ -57,13 +57,13 @@ public:
   void adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> const& lightMultiplier = {});
 
 private:
-  void renderParticles(WorldRenderData& renderData, Particle::Layer layer);
-  void renderBars(WorldRenderData& renderData);
+  void renderParticles(WorldRenderData& renderData, Particle::Layer layer, Directives const& renderDirectives = Directives());
+  void renderBars(WorldRenderData& renderData, Directives const& renderDirectives = Directives());
 
   void drawEntityLayer(List<Drawable> drawables, EntityHighlightEffect highlightEffect = EntityHighlightEffect());
 
-  void drawDrawable(Drawable drawable);
-  void drawDrawableSet(List<Drawable>& drawable);
+  void drawDrawable(Drawable drawable, Directives const& renderDirectives = Directives());
+  void drawDrawableSet(List<Drawable>& drawable, Directives const& renderDirectives = Directives());
 
   WorldCamera m_camera;
 
@@ -74,6 +74,13 @@ private:
   bool m_fullbrightOverride;
 
   TilePainter::TilePainterDirectives m_tileRenderDirectives;
+  struct OverlayRenderDirectives {
+    Directives backgroundOverlays;
+    Directives foregroundOverlays;
+    Directives nametags;
+    Directives particles;
+    Directives bars;
+  } m_overlayRenderDirectives;
 
   TextPainterPtr m_textPainter;
   DrawablePainterPtr m_drawablePainter;

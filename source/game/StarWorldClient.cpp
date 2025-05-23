@@ -106,7 +106,7 @@ WorldClient::WorldClient(PlayerPtr mainPlayer, UniverseClient* universeClient) {
   m_globalLightingMultiplier = {};
   m_shaderParameters = Array<Vec3F, 6>::filled(Vec3F::filled(0.0f));
 
-  m_allEntityDirectives = Directives();
+  m_allEntityDirectives = {{}, {}, {}};
   for (uint32_t i = 0; i < 10; i++) {
     m_entityTypeRenderStatuses[i] = true;
   }
@@ -224,9 +224,16 @@ void WorldClient::removeEntity(EntityId entityId, bool andDie) {
     ClientRenderCallback renderCallback;
     entity->destroy(&renderCallback);
 
-    if (auto directives = m_entitySpecificDirectives.ptr(entityId)) {
-      for (auto& p : renderCallback.particles)
-        p.directives.append(*directives);
+    auto entitySpecificDirectives = m_entitySpecificDirectives.ptr(entity->entityId());
+    Directives* primaryDirectives = nullptr;
+    if (entitySpecificDirectives && entitySpecificDirectives->primaryDirectives)
+      primaryDirectives = &(*(entitySpecificDirectives->primaryDirectives));
+    else if (m_allEntityDirectives.primaryDirectives)
+      primaryDirectives = &(*(m_allEntityDirectives.primaryDirectives));
+    if (primaryDirectives) {
+      for (auto& p : renderCallback.particles) {
+        p.directives.append(*primaryDirectives);
+      }
     }
     const List<Directives>* directives = nullptr; // Optimisations much, Kae?
     if (auto& worldTemplate = m_worldTemplate) {
@@ -634,16 +641,17 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
     entity->render(&renderCallback);
 
     EntityDrawables ed;
+    auto entitySpecificDirectives = m_entitySpecificDirectives.ptr(entity->entityId());
     for (auto& p : renderCallback.drawables) {
-      if (auto directives = m_entitySpecificDirectives.ptr(entity->entityId())) {
+      Directives* primaryDirectives = nullptr;
+      if (entitySpecificDirectives && entitySpecificDirectives->primaryDirectives)
+        primaryDirectives = &(*(entitySpecificDirectives->primaryDirectives));
+      else if (m_allEntityDirectives.primaryDirectives)
+        primaryDirectives = &(*(m_allEntityDirectives.primaryDirectives));
+      if (primaryDirectives) {
         for (auto& d : p.second) {
           if (d.isImage())
-            d.imagePart().addDirectives(*directives, true);
-        }
-      } else {
-        for (auto& d : p.second) {
-          if (d.isImage())
-            d.imagePart().addDirectives(m_allEntityDirectives, true);
+            d.imagePart().addDirectives(*primaryDirectives, true);
         }
       }
       if (directives) {
@@ -656,7 +664,17 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
       ed.layers[p.first] = std::move(p.second);
     }
 
-    if (m_interactiveHighlightMode || (!inspecting && entity->entityId() == playerAimInteractive)) {
+    if (m_interactiveHighlightMode || ed.highlightEffect.overrideUnderlayDirectives || ed.highlightEffect.overrideOverlayDirectives ||
+        (!inspecting && entity->entityId() == playerAimInteractive)) {
+      if (entitySpecificDirectives && entitySpecificDirectives->underlayDirectives)
+        ed.highlightEffect.overrideUnderlayDirectives = *(entitySpecificDirectives->underlayDirectives);
+      else if (m_allEntityDirectives.underlayDirectives)
+        ed.highlightEffect.overrideUnderlayDirectives = *(m_allEntityDirectives.underlayDirectives);
+      if (entitySpecificDirectives && entitySpecificDirectives->overlayDirectives)
+        ed.highlightEffect.overrideOverlayDirectives = *(entitySpecificDirectives->overlayDirectives);
+      else if (m_allEntityDirectives.overlayDirectives)
+        ed.highlightEffect.overrideOverlayDirectives = *(m_allEntityDirectives.overlayDirectives);
+
       if (auto interactive = as<InteractiveEntity>(entity)) {
         if (interactive->isInteractive() || m_mainPlayer->canReachAll() || m_mainPlayer->isAdmin()) {
           ed.highlightEffect.type = EntityHighlightEffectType::Interactive;
@@ -2649,34 +2667,34 @@ Json WorldClient::getGlobal(Maybe<String> const& jsonPath) const {
     return m_scriptGlobals;
 }
 
-void WorldClient::setEntityRenderDirectives(EntityId entityId, Maybe<Directives> const& directives) {
+void WorldClient::clearEntityRenderDirectives() {
+  m_entitySpecificDirectives.clear();
+}
+
+void WorldClient::setEntityRenderDirectives(EntityId entityId, Maybe<Directives> const& directives, Maybe<Directives> const& underlayDirectives, Maybe<Directives> const& overlayDirectives) {
   if (m_entityMap && m_entityMap->entity(entityId)) {
-    if (directives && !directives->empty())
-      m_entitySpecificDirectives[entityId] = std::move(*directives);
+    if (directives || underlayDirectives || overlayDirectives)
+      m_entitySpecificDirectives[entityId] = {std::move(directives), std::move(underlayDirectives), std::move(overlayDirectives)};
     else
       m_entitySpecificDirectives.remove(entityId);
   }
 }
 
-void WorldClient::clearEntityRenderDirectives() {
-  m_entitySpecificDirectives.clear();
+void WorldClient::setDefaultEntityRenderDirectives(Maybe<Directives> const& directives, Maybe<Directives> const& underlayDirectives, Maybe<Directives> const& overlayDirectives) {
+  m_allEntityDirectives = {std::move(directives), std::move(underlayDirectives), std::move(overlayDirectives)};
 }
 
-void WorldClient::setDefaultEntityRenderDirectives(Maybe<Directives> const& directives) {
-  if (directives)
-    m_allEntityDirectives = std::move(*directives);
-  else
-    m_allEntityDirectives = std::move(Directives());
+std::tuple<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>> WorldClient::entityRenderDirectives(EntityId entityId) const {
+  if (m_entitySpecificDirectives.contains(entityId)) {
+    auto& entry = m_entitySpecificDirectives.get(entityId);
+    return {entry.primaryDirectives, entry.underlayDirectives, entry.overlayDirectives};
+  }
+  return {{}, {}, {}};
 }
 
-Directives WorldClient::entityRenderDirectives(EntityId entityId) const {
-  if (m_entitySpecificDirectives.contains(entityId))
-    return m_entitySpecificDirectives.get(entityId);
-  return Directives();
-}
-
-Directives WorldClient::defaultEntityRenderDirectives() const {
-  return m_allEntityDirectives;
+std::tuple<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>> WorldClient::defaultEntityRenderDirectives() const {
+  auto& entry = m_allEntityDirectives;
+  return {entry.primaryDirectives, entry.underlayDirectives, entry.overlayDirectives};
 }
 
 JsonObject WorldClient::entityTypeRenderStatus() const {

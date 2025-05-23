@@ -18,6 +18,7 @@ WorldPainter::WorldPainter() {
   m_enabledLayers = WorldPainter::EnabledLayers();
   m_fullbrightOverride = false;
   m_tileRenderDirectives = TilePainter::TilePainterDirectives();
+  m_overlayRenderDirectives = {Directives(), Directives(), Directives()};
 
   m_highlightConfig = m_assets->json("/highlights.config");
   for (auto p : m_highlightConfig.get("highlightDirectives").iterateObject())
@@ -32,6 +33,11 @@ WorldPainter::WorldPainter() {
 
 void WorldPainter::renderInit(RendererPtr renderer) {
   m_assets = Root::singleton().assets();
+
+  m_enabledLayers = WorldPainter::EnabledLayers();
+  m_fullbrightOverride = false;
+  m_tileRenderDirectives = TilePainter::TilePainterDirectives();
+  m_overlayRenderDirectives = {Directives(), Directives(), Directives()};
 
   m_renderer = std::move(renderer);
   auto textureGroup = m_renderer->createTextureGroup(TextureGroupSize::Large);
@@ -279,7 +285,7 @@ void WorldPainter::adjustLighting(WorldRenderData& renderData, Maybe<Vec3F> cons
   m_tilePainter->adjustLighting(renderData, lightMultiplier);
 }
 
-void WorldPainter::renderParticles(WorldRenderData& renderData, Particle::Layer layer) {
+void WorldPainter::renderParticles(WorldRenderData& renderData, Particle::Layer layer, Directives const& renderDirectives) {
   const int textParticleFontSize = m_assets->json("/rendering.config:textParticleFontSize").toInt();
   const RectF particleRenderWindow = RectF::withSize(Vec2F(), Vec2F(m_camera.screenSize())).padded(m_assets->json("/rendering.config:particleRenderWindowPadding").toInt());
 
@@ -327,8 +333,10 @@ void WorldPainter::renderParticles(WorldRenderData& renderData, Particle::Layer 
 
       if (particle.flip && particle.flippable)
         drawable.scale(Vec2F(-1, 1));
-      if (drawable.isImage())
+      if (drawable.isImage()) {
         drawable.imagePart().addDirectivesGroup(particle.directives, true);
+        drawable.imagePart().addDirectives(renderDirectives, true);
+      }
       drawable.fullbright = particle.fullbright;
       drawable.color = particle.color;
       drawable.rotate(particle.rotation);
@@ -352,14 +360,17 @@ void WorldPainter::renderParticles(WorldRenderData& renderData, Particle::Layer 
   m_renderer->flush();
 }
 
-void WorldPainter::renderBars(WorldRenderData& renderData) {
+void WorldPainter::renderBars(WorldRenderData& renderData, Directives const& renderDirectives) {
   auto offset = m_entityBarOffset;
   for (auto const& bar : renderData.overheadBars) {
     auto position = bar.entityPosition + offset;
     offset += m_entityBarSpacing;
     if (bar.icon) {
       auto iconDrawPosition = position - (m_entityBarSize / 2).round() + m_entityBarIconOffset;
-      drawDrawable(Drawable::makeImage(*bar.icon, 1.0f / TilePixels, true, iconDrawPosition));
+      auto drawable = Drawable::makeImage(*bar.icon, 1.0f / TilePixels, true, iconDrawPosition);
+      if (!renderDirectives.empty())
+        drawable.imagePart().addDirectives(renderDirectives, true);
+      drawDrawable(std::move(drawable));
     }
 
     if (!bar.detailOnly) {
@@ -378,7 +389,29 @@ void WorldPainter::renderBars(WorldRenderData& renderData) {
 
 void WorldPainter::drawEntityLayer(List<Drawable> drawables, EntityHighlightEffect highlightEffect) {
   highlightEffect.level *= m_highlightConfig.getFloat("maxHighlightLevel", 1.0);
-  if (m_highlightDirectives.contains(highlightEffect.type) && highlightEffect.level > 0) {
+  if (highlightEffect.overrideOverlayDirectives || highlightEffect.overrideUnderlayDirectives) {
+    auto underlayDirectives = highlightEffect.overrideUnderlayDirectives ? *(highlightEffect.overrideUnderlayDirectives) : Directives();
+    if (!underlayDirectives.empty()) {
+      for (auto& d : drawables) {
+        if (d.isImage()) {
+          auto underlayDrawable = Drawable(d);
+          underlayDrawable.imagePart().addDirectives(underlayDirectives, true);
+          drawDrawable(std::move(underlayDrawable));
+        }
+      }
+    }
+
+    // second pass, draw main drawables and overlays
+    auto overlayDirectives = highlightEffect.overrideOverlayDirectives ? *(highlightEffect.overrideOverlayDirectives) : Directives();
+    for (auto& d : drawables) {
+      drawDrawable(d);
+      if (!overlayDirectives.empty() && d.isImage()) {
+        auto overlayDrawable = Drawable(d);
+        overlayDrawable.imagePart().addDirectives(overlayDirectives, true);
+        drawDrawable(std::move(overlayDrawable));
+      }
+    }
+  } else if (m_highlightDirectives.contains(highlightEffect.type) && highlightEffect.level > 0) {
     // first pass, draw underlay
     auto underlayDirectives = m_highlightDirectives[highlightEffect.type].first;
     if (!underlayDirectives.empty()) {
@@ -411,12 +444,14 @@ void WorldPainter::drawEntityLayer(List<Drawable> drawables, EntityHighlightEffe
   }
 }
 
-void WorldPainter::drawDrawable(Drawable drawable) {
+void WorldPainter::drawDrawable(Drawable drawable, Directives const& renderDirectives) {
   drawable.position = m_camera.worldToScreen(drawable.position);
   drawable.scale(m_camera.pixelRatio() * TilePixels, drawable.position);
 
   if (drawable.isLine())
     drawable.linePart().width *= m_camera.pixelRatio();
+  else if (drawable.isImage() && !renderDirectives.empty())
+    drawable.imagePart().addDirectives(renderDirectives, true);
 
   // draw the drawable if it's on screen
   // if it's not on screen, there's a random chance to pre-load
@@ -427,9 +462,9 @@ void WorldPainter::drawDrawable(Drawable drawable) {
     m_assets->tryImage(drawable.imagePart().image);
 }
 
-void WorldPainter::drawDrawableSet(List<Drawable>& drawables) {
+void WorldPainter::drawDrawableSet(List<Drawable>& drawables, Directives const& renderDirectives) {
   for (Drawable& drawable : drawables)
-    drawDrawable(std::move(drawable));
+    drawDrawable(std::move(drawable), renderDirectives);
 
   m_renderer->flush();
 }

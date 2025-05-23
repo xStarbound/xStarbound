@@ -1547,35 +1547,35 @@ Returns the current values of the scriptable shader parameters. Consider using `
 
 ---
 
-#### `void` world.setEntityDirectives(`EntityId` entityId, `Maybe<Directives>` directives)
+#### `void` world.setEntityDirectives(`EntityId` entityId, `Maybe<Directives>` directives, `Maybe<Directives>` underlayDirectives, `Maybe<Directives>` overlayDirectives)
 
-> **Available only on xStarbound v3.6+. `directives` parameter changed in v3.6.1.**
+> **Available only on xStarbound v3.6+. Parameters changed in v3.6.1.**
 
-Adds or sets client-side rendering directives to all image drawables associated with the specified rendered entity; to remove rendering directives from an entity, pass an empty string, `nil` or `null` as the directives. Any directives specified with this callback will be removed (and therefore have to be re-added) when the specified entity is derendered or despawned, or when the rendering client leaves the world. If a nonexistent (or non-rendered) entity is specified, the callback will not do anything.
+Adds or sets client-side rendering directives to all image drawables associated with the specified rendered entity; to remove rendering directives from an entity, pass `nil` or `null` as all three directive arguments. Any directives specified with this callback will be removed (and therefore have to be re-added) when the specified entity is derendered or despawned, or when the rendering client leaves the world. If a nonexistent (or non-rendered) entity is specified, the callback will not do anything. Note that any specified overlay or underlay directives will «overwrite» the directives used to render entity inspection/interaction highlight effects.
 
 ---
 
-#### `void` world.setDefaultEntityDirectives(`Maybe<Directives>` directives)
+#### `void` world.setDefaultEntityDirectives(`Maybe<Directives>` directives, `Maybe<Directives>` overlayDirectives, `Maybe<Directives>` underlayDirectives)
 
 > **Available only on xStarbound v3.6.1+.**
 
-Adds or sets client-side rendering directives to all image drawables associated with rendered entities which don't have entity-specific rendering directives specified (via `world.setEntityDirectives` above); to remove any default directives, pass an empty string, `nil` or `null` as the directives.
+Adds or sets client-side rendering directives to all image drawables associated with rendered entities which don't have entity-specific rendering directives specified (via `world.setEntityDirectives` above); to remove any default directives, pass `nil` or `null` as all three directive arguments. Note that any specified overlay or underlay directives will «overwrite» the directives used to render entity inspection/interaction highlight effects.
 
 ---
 
-#### `Directives` world.entityDirectives(`EntityId` entityId)
+#### `Maybe<Directives>, Maybe<Directives>, Maybe<Directives>` world.entityDirectives(`EntityId` entityId)
 
 > **Available only on xStarbound v3.6+.**
 
-Returns any client-side entity-specific rendering directives associated with the specified entity. If a nonexistent (or non-rendered) entity is specified, the callback will always return an empty string. These directives are reset upon returning to the main menu or exiting the client.
+Returns any client-side entity-specific rendering directives associated with the specified entity. If a nonexistent (or non-rendered) entity is specified, the callback will always return an empty string. These directives are reset upon returning to the main menu or exiting the client. Returns any directives in «primary, underlay, overlay» order.
 
 ---
 
-#### `Directives` world.defaultEntityDirectives()
+#### `Maybe<Directives>, Maybe<Directives>, Maybe<Directives>` world.defaultEntityDirectives()
 
 > **Available only on xStarbound v3.6+.**
 
-Returns any client-side default rendering directives, or an empty string is none are specified.
+Returns any client-side default rendering directives for each «slot», or `nil` if none are specified for that slot. Slots are in «primary, underlay, overlay» order.
 
 ---
 

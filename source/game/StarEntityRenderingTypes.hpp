@@ -1,10 +1,10 @@
 #ifndef STAR_ENTITY_RENDERING_TYPES_HPP
 #define STAR_ENTITY_RENDERING_TYPES_HPP
 
-#include "StarJson.hpp"
 #include "StarColor.hpp"
 #include "StarDrawable.hpp"
 #include "StarGameTypes.hpp"
+#include "StarJson.hpp"
 
 namespace Star {
 
@@ -82,8 +82,10 @@ extern EnumMap<EntityHighlightEffectType> const EntityHighlightEffectTypeNames;
 struct EntityHighlightEffect {
   EntityHighlightEffectType type = EntityHighlightEffectType::None;
   float level = 0.0f;
+  Maybe<Directives> overrideUnderlayDirectives = {};
+  Maybe<Directives> overrideOverlayDirectives = {};
 };
 
-}
+} // namespace Star
 
 #endif

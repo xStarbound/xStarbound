@@ -557,20 +557,24 @@ namespace LuaBindings {
     }
 
     if (auto worldClient = as<WorldClient>(world)) {
-      callbacks.registerCallbackWithSignature<void, EntityId, Maybe<Directives>>("setEntityDirectives",
-          bind(&WorldClient::setEntityRenderDirectives, worldClient, _1, _2));
+      callbacks.registerCallbackWithSignature<void, EntityId, Maybe<Directives>, Maybe<Directives>, Maybe<Directives>>("setEntityDirectives",
+          bind(&WorldClient::setEntityRenderDirectives, worldClient, _1, _2, _3, _4));
       callbacks.registerCallbackWithSignature<void>("clearEntityDirectives",
           bind(&WorldClient::clearEntityRenderDirectives, worldClient));
-      callbacks.registerCallbackWithSignature<void, Maybe<Directives>>("setDefaultEntityDirectives",
-          bind(&WorldClient::setDefaultEntityRenderDirectives, worldClient, _1));
-      callbacks.registerCallbackWithSignature<Directives, EntityId>("entityDirectives",
-          bind(&WorldClient::entityRenderDirectives, worldClient, _1));
-      callbacks.registerCallbackWithSignature<Directives>("defaultEntityDirectives",
-          bind(&WorldClient::defaultEntityRenderDirectives, worldClient));
+      callbacks.registerCallbackWithSignature<void, Maybe<Directives>, Maybe<Directives>, Maybe<Directives>>("setDefaultEntityDirectives",
+          bind(&WorldClient::setDefaultEntityRenderDirectives, worldClient, _1, _2, _3));
       callbacks.registerCallbackWithSignature<JsonObject>("entityRenderStatus",
           bind(&WorldClient::entityTypeRenderStatus, worldClient));
       callbacks.registerCallbackWithSignature<void, Json>("setEntityRenderStatus",
           bind(&WorldClient::setEntityTypeRenderStatus, worldClient, _1));
+      callbacks.registerCallback("entityDirectives", [worldClient](EntityId entityId) -> LuaTupleReturn<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>> {
+        auto result = worldClient->entityRenderDirectives(entityId);
+        return LuaTupleReturn{std::get<0>(result), std::get<1>(result), std::get<2>(result)};
+      });
+      callbacks.registerCallback("defaultEntityDirectives", [worldClient]() -> LuaTupleReturn<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>> {
+        auto result = worldClient->defaultEntityRenderDirectives();
+        return LuaTupleReturn{std::get<0>(result), std::get<1>(result), std::get<2>(result)};
+      });
     }
 
     if (auto serverWorld = as<WorldServer>(world)) {

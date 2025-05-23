@@ -50,7 +50,7 @@ jobject{
 
 #### `void` renderer.setEnabledLayers(`Json` layerConfig)
 
-Sets the rendering status of specified rendering layers. If a JSON object is passed, the object is expected to be in a format similar to that of `renderer.enabledLayers`, any missing keys or `null` values are left as is. For instance, `jobject{ parallax = false }` disables the parallax layer while leaving all other layers at their current status. If no argument is specified, or `nil` or `null` is passed, the default — where all layers are enabled — is restored.
+Sets the rendering status of specified rendering layers. If a JSON object is passed, the object is expected to be in a format similar to that of `renderer.enabledLayers`, but any missing keys or `null` values are left as is. For instance, `jobject{ parallax = false }` disables the parallax layer while leaving all other layers at their current status. If no argument is specified, or `nil` or `null` is passed, the default — where all layers are enabled — is restored.
 
 ---
 

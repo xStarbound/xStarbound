@@ -189,13 +189,13 @@ public:
   void setGlobal(Maybe<String> const& jsonPath, Json const& newValue);
   Json getGlobal(Maybe<String> const& jsonPath) const;
 
-  void setEntityRenderDirectives(EntityId entityId, Maybe<Directives> const& directives);
+  void setEntityRenderDirectives(EntityId entityId, Maybe<Directives> const& primaryDirectives, Maybe<Directives> const& underlayDirectives, Maybe<Directives> const& overlayDirectives);
   void clearEntityRenderDirectives();
-  Directives entityRenderDirectives(EntityId entity) const;
+  std::tuple<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>> entityRenderDirectives(EntityId entity) const;
   JsonObject entityTypeRenderStatus() const;
   void setEntityTypeRenderStatus(Json const& newStatuses);
-  Directives defaultEntityRenderDirectives() const;
-  void setDefaultEntityRenderDirectives(Maybe<Directives> const& directives);
+  std::tuple<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>> defaultEntityRenderDirectives() const;
+  void setDefaultEntityRenderDirectives(Maybe<Directives> const& primaryDirectives, Maybe<Directives> const& underlayDirectives, Maybe<Directives> const& overlayDirectives);
 
 private:
   static const float DropDist;
@@ -230,6 +230,12 @@ private:
     EntityId targetEntityId;
 
     bool operator<(DamageNumberKey const& other) const;
+  };
+
+  struct EntityDirectives {
+    Maybe<Directives> primaryDirectives;
+    Maybe<Directives> underlayDirectives;
+    Maybe<Directives> overlayDirectives;
   };
 
   typedef function<ClientTile const&(Vec2I)> ClientTileGetter;
@@ -394,8 +400,8 @@ private:
   BroadcastCallback m_broadcastCallback;
 
   bool m_entityTypeRenderStatuses[10];
-  Directives m_allEntityDirectives;
-  HashMap<EntityId, Directives> m_entitySpecificDirectives;
+  EntityDirectives m_allEntityDirectives;
+  HashMap<EntityId, EntityDirectives> m_entitySpecificDirectives;
 
   JsonObject m_scriptGlobals;
 };
