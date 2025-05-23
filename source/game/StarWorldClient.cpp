@@ -664,8 +664,14 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
       ed.layers[p.first] = std::move(p.second);
     }
 
-    if (m_interactiveHighlightMode || ed.highlightEffect.overrideUnderlayDirectives || ed.highlightEffect.overrideOverlayDirectives ||
-        (!inspecting && entity->entityId() == playerAimInteractive)) {
+    bool overrideHighlight = false;
+    if (entitySpecificDirectives) {
+      overrideHighlight |= (bool)entitySpecificDirectives->underlayDirectives;
+      overrideHighlight |= (bool)entitySpecificDirectives->overlayDirectives;
+    }
+    overrideHighlight |= (bool) m_allEntityDirectives.underlayDirectives;
+    overrideHighlight |= (bool) m_allEntityDirectives.overlayDirectives;
+    if (m_interactiveHighlightMode || (!inspecting && entity->entityId() == playerAimInteractive)) {
       if (entitySpecificDirectives && entitySpecificDirectives->underlayDirectives)
         ed.highlightEffect.overrideUnderlayDirectives = *(entitySpecificDirectives->underlayDirectives);
       else if (m_allEntityDirectives.underlayDirectives)
