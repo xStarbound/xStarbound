@@ -569,11 +569,11 @@ namespace LuaBindings {
           bind(&WorldClient::setEntityTypeRenderStatus, worldClient, _1));
       callbacks.registerCallback("entityDirectives", [worldClient](EntityId entityId) -> LuaTupleReturn<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>> {
         auto result = worldClient->entityRenderDirectives(entityId);
-        return LuaTupleReturn{std::get<0>(result), std::get<1>(result), std::get<2>(result)};
+        return LuaTupleReturn<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>>{std::get<0>(result), std::get<1>(result), std::get<2>(result)};
       });
       callbacks.registerCallback("defaultEntityDirectives", [worldClient]() -> LuaTupleReturn<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>> {
         auto result = worldClient->defaultEntityRenderDirectives();
-        return LuaTupleReturn{std::get<0>(result), std::get<1>(result), std::get<2>(result)};
+        return LuaTupleReturn<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>>{std::get<0>(result), std::get<1>(result), std::get<2>(result)};
       });
     }
 
