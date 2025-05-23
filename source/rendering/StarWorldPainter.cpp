@@ -121,6 +121,8 @@ void WorldPainter::setTileRenderDirectives(Json const& newDirectives) {
     String liquids = newDirectives.optString("liquids").value(m_tileRenderDirectives.liquids);
     shouldFlush |= liquids != m_tileRenderDirectives.liquids;
     m_tileRenderDirectives.liquids = std::move(liquids);
+    String backgroundOverlays = newDirectives.optString("backgroundOverlays").value(m_overlayRenderDirectives.backgroundOverlays.string());
+    m_overlayRenderDirectives.backgroundOverlays = std::move(Directives(backgroundOverlays));
     String background = newDirectives.optString("background").value(m_tileRenderDirectives.terrainLayers.background);
     shouldFlush |= background != m_tileRenderDirectives.terrainLayers.background;
     m_tileRenderDirectives.terrainLayers.background = std::move(background);
@@ -130,6 +132,12 @@ void WorldPainter::setTileRenderDirectives(Json const& newDirectives) {
     String foreground = newDirectives.optString("foreground").value(m_tileRenderDirectives.terrainLayers.foreground);
     shouldFlush |= foreground != m_tileRenderDirectives.terrainLayers.foreground;
     m_tileRenderDirectives.terrainLayers.foreground = std::move(foreground);
+    String foregroundOverlays = newDirectives.optString("foregroundOverlays").value(m_overlayRenderDirectives.foregroundOverlays.string());
+    m_overlayRenderDirectives.foregroundOverlays = std::move(Directives(foregroundOverlays));
+    String bars = newDirectives.optString("bars").value(m_overlayRenderDirectives.bars.string());
+    m_overlayRenderDirectives.bars = std::move(Directives(bars));
+    String particles = newDirectives.optString("particles").value(m_overlayRenderDirectives.particles.string());
+    m_overlayRenderDirectives.particles = std::move(Directives(particles));
     if (m_tilePainter && shouldFlush)
       m_tilePainter->flushCaches(m_tileRenderDirectives.liquids);
   } else if (newDirectives.isNull()) {
@@ -141,9 +149,13 @@ void WorldPainter::setTileRenderDirectives(Json const& newDirectives) {
 JsonObject WorldPainter::tileRenderDirectives() const {
   return JsonObject{
       {"liquids", m_tileRenderDirectives.liquids},
+      {"backgroundOverlays", m_overlayRenderDirectives.backgroundOverlays.string()},
       {"background", m_tileRenderDirectives.terrainLayers.background},
       {"midground", m_tileRenderDirectives.terrainLayers.midground},
       {"foreground", m_tileRenderDirectives.terrainLayers.foreground},
+      {"foregroundOverlays", m_overlayRenderDirectives.foregroundOverlays.string()},
+      {"bars", m_overlayRenderDirectives.bars.string()},
+      {"particles", m_overlayRenderDirectives.particles.string()},
   };
 }
 
@@ -248,26 +260,26 @@ void WorldPainter::render(WorldRenderData& renderData, function<void()> lightWai
   };
 
   renderEntitiesUntil(RenderLayerBackgroundOverlay);
-  if (el.backgroundOverlays) drawDrawableSet(renderData.backgroundOverlays);
+  if (el.backgroundOverlays) drawDrawableSet(renderData.backgroundOverlays, m_overlayRenderDirectives.backgroundOverlays);
   renderEntitiesUntil(RenderLayerBackgroundTile);
   if (el.backgroundTiles) m_tilePainter->renderBackground(m_camera);
   renderEntitiesUntil(RenderLayerPlatform);
   if (el.midgroundTiles) m_tilePainter->renderMidground(m_camera);
   renderEntitiesUntil(RenderLayerBackParticle);
-  if (el.particles) renderParticles(renderData, Particle::Layer::Back);
+  if (el.particles) renderParticles(renderData, Particle::Layer::Back, m_overlayRenderDirectives.particles);
   renderEntitiesUntil(RenderLayerLiquid);
   if (el.liquids) m_tilePainter->renderLiquid(m_camera);
   renderEntitiesUntil(RenderLayerMiddleParticle);
-  if (el.particles) renderParticles(renderData, Particle::Layer::Middle);
+  if (el.particles) renderParticles(renderData, Particle::Layer::Middle, m_overlayRenderDirectives.particles);
   renderEntitiesUntil(RenderLayerForegroundTile);
   if (el.foregroundTiles) m_tilePainter->renderForeground(m_camera);
   renderEntitiesUntil(RenderLayerForegroundOverlay);
-  if (el.overlays) drawDrawableSet(renderData.foregroundOverlays);
+  if (el.overlays) drawDrawableSet(renderData.foregroundOverlays, m_overlayRenderDirectives.foregroundOverlays);
   renderEntitiesUntil(RenderLayerFrontParticle);
-  if (el.particles) renderParticles(renderData, Particle::Layer::Front);
+  if (el.particles) renderParticles(renderData, Particle::Layer::Front, m_overlayRenderDirectives.particles);
   renderEntitiesUntil(RenderLayerOverlay);
-  if (el.nametags) drawDrawableSet(renderData.nametags);
-  if (el.bars) renderBars(renderData);
+  if (el.nametags) drawDrawableSet(renderData.nametags, m_overlayRenderDirectives.nametags);
+  if (el.bars) renderBars(renderData, m_overlayRenderDirectives.bars);
   renderEntitiesUntil({});
 
   auto dimLevel = round(renderData.dimLevel * 255);

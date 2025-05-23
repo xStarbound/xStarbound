@@ -73,9 +73,13 @@ Returns the current tile layer rendering directives. The return value is as foll
 ```lua
 jobject{
   liquids = "", -- Directives used when rendering liquids. Note that liquids are also tinted by their liquid colour after these directives.
+  backgroundOverlays = "", -- Directives used when rendering background overlays, such as shipworld underlay sprites.
   background = "", -- Directives used when rendering background tiles.
   midground = "", -- Directives used when rendering midground tiles (e.g., platforms).
   foreground = "", -- Directives used when rendering foreground tiles.
+  foregroundOverlays = "", -- Directives used when rendering foreground overlays.
+  bars = "", -- Directives used when rendering bars above entities. Note that these directives only affect bar icons.
+  particles = "", -- Directives used when rendering particles. Note that these directives only affect animated and textured particles.
 }
 ```
 
