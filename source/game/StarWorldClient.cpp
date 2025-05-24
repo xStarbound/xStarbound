@@ -671,7 +671,7 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
     }
     overrideHighlight |= (bool) m_allEntityDirectives.underlayDirectives;
     overrideHighlight |= (bool) m_allEntityDirectives.overlayDirectives;
-    if (m_interactiveHighlightMode || (!inspecting && entity->entityId() == playerAimInteractive)) {
+    if (m_interactiveHighlightMode || overrideHighlight || (!inspecting && entity->entityId() == playerAimInteractive)) {
       if (entitySpecificDirectives && entitySpecificDirectives->underlayDirectives)
         ed.highlightEffect.overrideUnderlayDirectives = *(entitySpecificDirectives->underlayDirectives);
       else if (m_allEntityDirectives.underlayDirectives)
