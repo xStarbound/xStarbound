@@ -1,14 +1,14 @@
 #include "StarLua.hpp"
 #include "StarArray.hpp"
-#include "StarTime.hpp"
 #include "StarLogging.hpp"
+#include "StarTime.hpp"
 
 #ifdef TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
-  #include "tracy/TracyLua.hpp"
+#include "tracy/Tracy.hpp"
+#include "tracy/TracyLua.hpp"
 #else
-  #define ZoneScoped
-  #define ZoneScopedN(name)
+#define ZoneScoped
+#define ZoneScopedN(name)
 #endif
 
 namespace Star {
@@ -138,7 +138,7 @@ LuaTable LuaContext::createTable() {
 }
 
 LuaNullEnforcer::LuaNullEnforcer(LuaEngine& engine)
-  : m_engine(&engine) { ++m_engine->m_nullTerminated; };
+    : m_engine(&engine) { ++m_engine->m_nullTerminated; };
 
 LuaNullEnforcer::~LuaNullEnforcer() { --m_engine->m_nullTerminated; };
 
@@ -258,26 +258,26 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   // Create the common message handler function for pcall to print a better
   // message with a traceback
   lua_pushcfunction(self->m_state, [](lua_State* state) {
-      // Don't modify the error if it is one of the special limit errrors
-      if (lua_islightuserdata(state, 1)) {
-        void* error = lua_touserdata(state, -1);
-        if (error == &s_luaInstructionLimitExceptionKey || error == &s_luaRecursionLimitExceptionKey)
-          return 1;
-      }
+    // Don't modify the error if it is one of the special limit errrors
+    if (lua_islightuserdata(state, 1)) {
+      void* error = lua_touserdata(state, -1);
+      if (error == &s_luaInstructionLimitExceptionKey || error == &s_luaRecursionLimitExceptionKey)
+        return 1;
+    }
 
-      luaL_traceback(state, state, lua_tostring(state, 1), 0);
-      lua_remove(state, 1);
-      return 1;
-    });
+    luaL_traceback(state, state, lua_tostring(state, 1), 0);
+    lua_remove(state, 1);
+    return 1;
+  });
   self->m_pcallTracebackMessageHandlerRegistryId = luaL_ref(self->m_state, LUA_REGISTRYINDEX);
 
   // Create the common metatable for wrapped functions
   lua_newtable(self->m_state);
   lua_pushcfunction(self->m_state, [](lua_State* state) {
-      auto func = (LuaDetail::LuaWrappedFunction*)lua_touserdata(state, 1);
-      func->~function();
-      return 0;
-    });
+    auto func = (LuaDetail::LuaWrappedFunction*)lua_touserdata(state, 1);
+    func->~function();
+    return 0;
+  });
   LuaDetail::rawSetField(self->m_state, -2, "__gc");
   lua_pushboolean(self->m_state, 0);
   LuaDetail::rawSetField(self->m_state, -2, "__metatable");
@@ -286,10 +286,10 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   // Create the common metatable for require functions
   lua_newtable(self->m_state);
   lua_pushcfunction(self->m_state, [](lua_State* state) {
-      auto func = (LuaContext::RequireFunction*)lua_touserdata(state, 1);
-      func->~function();
-      return 0;
-    });
+    auto func = (LuaContext::RequireFunction*)lua_touserdata(state, 1);
+    func->~function();
+    return 0;
+  });
   LuaDetail::rawSetField(self->m_state, -2, "__gc");
   lua_pushboolean(self->m_state, 0);
   LuaDetail::rawSetField(self->m_state, -2, "__metatable");
@@ -300,32 +300,31 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   luaL_requiref(self->m_state, "_ENV", luaopen_base, true);
   if (safe) {
     StringSet baseWhitelist = {
-      "assert",
-      "error",
-      "getmetatable",
-      "ipairs",
-      "next",
-      "pairs",
-      "pcall",
-      "print",
-      "rawequal",
-      "rawget",
-      "rawlen",
-      "rawset",
-      "select",
-      "setmetatable",
-      "tonumber",
-      "tostring",
-      "type",
-      "unpack",
-      "_VERSION",
-      "xpcall",
-      "range",
-      "dumpvar",
-      "exportvar",
-      "wcall",
-      "warn"
-    };
+        "assert",
+        "error",
+        "getmetatable",
+        "ipairs",
+        "next",
+        "pairs",
+        "pcall",
+        "print",
+        "rawequal",
+        "rawget",
+        "rawlen",
+        "rawset",
+        "select",
+        "setmetatable",
+        "tonumber",
+        "tostring",
+        "type",
+        "unpack",
+        "_VERSION",
+        "xpcall",
+        "range",
+        "dumpvar",
+        "exportvar",
+        "wcall",
+        "warn"};
 
     lua_pushnil(self->m_state);
     while (lua_next(self->m_state, -2) != 0) {
@@ -343,8 +342,8 @@ LuaEnginePtr LuaEngine::create(bool safe) {
 
   luaL_requiref(self->m_state, "os", luaopen_os, true);
   if (safe) {
-    StringSet osWhitelist = {"clock", "difftime", "time", 
-      "nanos", "micros", "millis", "seconds", "unixseconds", "platform"};
+    StringSet osWhitelist = {"clock", "difftime", "time", "date",
+        "nanos", "micros", "millis", "seconds", "unixseconds", "platform"};
 
     lua_pushnil(self->m_state);
     while (lua_next(self->m_state, -2) != 0) {
@@ -359,11 +358,11 @@ LuaEnginePtr LuaEngine::create(bool safe) {
     }
   }
   lua_pop(self->m_state, 1);
-  
+
   // loads a lua base library, leaves it at the top of the stack
   auto loadBaseLibrary = [](lua_State* state, char const* modname, lua_CFunction openf) {
     luaL_requiref(state, modname, openf, true);
-    
+
     /* FezzedOne: Not needed anymore. Actually causes a weird edge case with the DigitalStorage mod. {
       // set __metatable metamethod to false
       // otherwise scripts can access and mutate the metatable, allowing passing values
@@ -499,7 +498,7 @@ ByteArray LuaEngine::compile(char const* contents, size_t size, char const* name
 #ifdef TRACY_ENABLE
   ZoneTextF("Script '%s'", name);
 #endif
-  
+
   lua_checkstack(m_state, 1);
 
   handleError(m_state, luaL_loadbuffer(m_state, contents, size, name));
@@ -1512,32 +1511,31 @@ Maybe<Json> LuaDetail::tableToJsonContainer(LuaTable const& table) {
 
   bool failedConversion = false;
   table.iterate([&](LuaValue key, LuaValue value) {
-      auto jsonValue = table.engine().luaMaybeTo<Json>(value);
-      if (!jsonValue) {
+    auto jsonValue = table.engine().luaMaybeTo<Json>(value);
+    if (!jsonValue) {
+      failedConversion = true;
+      return false;
+    }
+
+    if (auto i = asInteger(key)) {
+      intEntries[*i] = jsonValue.take();
+    } else {
+      auto stringKey = table.engine().luaMaybeTo<String>(std::move(key));
+      if (!stringKey) {
         failedConversion = true;
         return false;
       }
 
-      if (auto i = asInteger(key)) {
-        intEntries[*i] = jsonValue.take();
-      } else {
-        auto stringKey = table.engine().luaMaybeTo<String>(std::move(key));
-        if (!stringKey) {
-          failedConversion = true;
-          return false;
-        }
+      stringEntries[stringKey.take()] = jsonValue.take();
+    }
 
-        stringEntries[stringKey.take()] = jsonValue.take();
-      }
-
-      return true;
-    });
+    return true;
+  });
 
   if (failedConversion)
     return {};
 
-  bool interpretAsList = stringEntries.empty()
-      && (typeHint == 1 || (typeHint != 2 && !intEntries.empty() && prev(intEntries.end())->first == intEntries.size()));
+  bool interpretAsList = stringEntries.empty() && (typeHint == 1 || (typeHint != 2 && !intEntries.empty() && prev(intEntries.end())->first == intEntries.size()));
   if (interpretAsList) {
     JsonArray list;
     for (auto& p : intEntries)
@@ -1651,4 +1649,4 @@ Maybe<LuaInt> LuaDetail::asInteger(LuaValue const& v) {
   return {};
 }
 
-}
+} // namespace Star
