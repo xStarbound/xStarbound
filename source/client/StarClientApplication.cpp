@@ -396,7 +396,12 @@ void ClientApplication::update() {
 
   float dt = GlobalTimestep * GlobalTimescale;
   if (m_state >= MainAppState::Title) {
-    if (auto p2pNetworkingService = appController()->p2pNetworkingService()) {
+#ifdef __MINGW32__ /* FezzedOne: Until the MinGW Steam library is updated. */
+    P2PNetworkingServicePtr p2pNetworkingService = nullptr;
+#else
+    P2PNetworkingServicePtr p2pNetworkingService = appController()->p2pNetworkingService();
+#endif
+    if (p2pNetworkingService) {
       if (auto join = p2pNetworkingService->pullPendingJoin()) {
         m_pendingMultiPlayerConnection = PendingMultiPlayerConnection{join.takeValue(), {}, {}};
         changeState(MainAppState::Title);
@@ -531,7 +536,12 @@ void ClientApplication::changeState(MainAppState newState) {
 
     m_voice->clearSpeakers();
 
-    if (auto p2pNetworkingService = appController()->p2pNetworkingService()) {
+#ifdef __MINGW32__ /* FezzedOne: Until the MinGW Steam library is updated. */
+    P2PNetworkingServicePtr p2pNetworkingService = nullptr;
+#else
+    P2PNetworkingServicePtr p2pNetworkingService = appController()->p2pNetworkingService();
+#endif
+    if (p2pNetworkingService) {
       p2pNetworkingService->setJoinUnavailable();
       p2pNetworkingService->setAcceptingP2PConnections(false);
     }
@@ -682,7 +692,12 @@ void ClientApplication::changeState(MainAppState newState) {
       } else {
         auto p2pPeerId = multiPlayerConnection.server.ptr<P2PNetworkingPeerId>();
 
-        if (auto p2pNetworkingService = appController()->p2pNetworkingService()) {
+#ifdef __MINGW32__ /* FezzedOne: Until the MinGW Steam library is updated. */
+        P2PNetworkingServicePtr p2pNetworkingService = nullptr;
+#else
+        P2PNetworkingServicePtr p2pNetworkingService = appController()->p2pNetworkingService();
+#endif
+        if (p2pNetworkingService) {
           auto result = p2pNetworkingService->connectToPeer(*p2pPeerId);
           if (result.isLeft()) {
             setError(strf("Cannot join peer: {}", result.left()));
@@ -824,7 +839,11 @@ void ClientApplication::updateTitle(float dt) {
 
   appController()->setAcceptingTextInput(m_titleScreen->textInputActive());
 
-  auto p2pNetworkingService = appController()->p2pNetworkingService();
+#ifdef __MINGW32__ /* FezzedOne: Until the MinGW Steam library is updated. */
+  P2PNetworkingServicePtr p2pNetworkingService = nullptr;
+#else
+  P2PNetworkingServicePtr p2pNetworkingService = appController()->p2pNetworkingService();
+#endif
   if (p2pNetworkingService)
     p2pNetworkingService->setActivityData("In Main Menu", {});
 
@@ -875,7 +894,11 @@ void ClientApplication::updateRunning(float dt) {
   try {
     {
       ZoneScopedN("Steam/Discord networking update");
-      auto p2pNetworkingService = appController()->p2pNetworkingService();
+#ifdef __MINGW32__ /* FezzedOne: Until the MinGW Steam library is updated. */
+      P2PNetworkingServicePtr p2pNetworkingService = nullptr;
+#else
+      P2PNetworkingServicePtr p2pNetworkingService = appController()->p2pNetworkingService();
+#endif
       bool clientIPJoinable = m_root->configuration()->get("clientIPJoinable").toBool();
       bool clientP2PJoinable = m_root->configuration()->get("clientP2PJoinable").toBool();
       Maybe<pair<uint16_t, uint16_t>> party = make_pair(m_universeClient->players(), m_universeClient->maxPlayers());
@@ -1067,7 +1090,12 @@ void ClientApplication::updateRunning(float dt) {
 
     if (m_universeServer) {
       ZoneScopedN("Steam/Discord connection handling");
-      if (auto p2pNetworkingService = appController()->p2pNetworkingService()) {
+#ifdef __MINGW32__ /* FezzedOne: Until the MinGW Steam library is updated. */
+      P2PNetworkingServicePtr p2pNetworkingService = nullptr;
+#else
+      P2PNetworkingServicePtr p2pNetworkingService = appController()->p2pNetworkingService();
+#endif
+      if (p2pNetworkingService) {
         for (auto& p2pClient : p2pNetworkingService->acceptP2PConnections())
           m_universeServer->addClient(UniverseConnection(P2PPacketSocket::open(std::move(p2pClient))));
       }
