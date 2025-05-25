@@ -241,58 +241,9 @@ EnumMap<Humanoid::State> const Humanoid::StateNames{
 };
 
 Humanoid::Humanoid(Json const& config) {
-  m_timing = HumanoidTiming(config.getObject("humanoidTiming"));
-
-  m_globalOffset = jsonToVec2F(config.get("globalOffset")) / TilePixels;
-  m_headRunOffset = jsonToVec2F(config.get("headRunOffset")) / TilePixels;
-  m_headSwimOffset = jsonToVec2F(config.get("headSwimOffset")) / TilePixels;
-  m_runFallOffset = config.get("runFallOffset").toDouble() / TilePixels;
-  m_duckOffset = config.get("duckOffset").toDouble() / TilePixels;
-  m_headDuckOffset = jsonToVec2F(config.get("headDuckOffset")) / TilePixels;
-  m_sitOffset = config.get("sitOffset").toDouble() / TilePixels;
-  m_layOffset = config.get("layOffset").toDouble() / TilePixels;
-  m_headSitOffset = jsonToVec2F(config.get("headSitOffset")) / TilePixels;
-  m_headLayOffset = jsonToVec2F(config.get("headLayOffset")) / TilePixels;
-  m_recoilOffset = jsonToVec2F(config.get("recoilOffset")) / TilePixels;
-  m_mouthOffset = jsonToVec2F(config.get("mouthOffset")) / TilePixels;
-  m_feetOffset = jsonToVec2F(config.get("feetOffset")) / TilePixels;
-
-  m_bodyFullbright = config.getBool("bodyFullbright", false);
-
-  m_headArmorOffset = jsonToVec2F(config.get("headArmorOffset")) / TilePixels;
-  m_chestArmorOffset = jsonToVec2F(config.get("chestArmorOffset")) / TilePixels;
-  m_legsArmorOffset = jsonToVec2F(config.get("legsArmorOffset")) / TilePixels;
-  m_backArmorOffset = jsonToVec2F(config.get("backArmorOffset")) / TilePixels;
-  m_headRotationMultiplier = config.getFloat("headRotationMultiplier", 0.375f);
-  Json maximumHeadRotationOffset = config.get("maximumHeadRotationOffset", JsonArray{-2.0f, -1.0f});
-  m_maximumHeadRotationOffset = jsonToVec2F(maximumHeadRotationOffset) / TilePixels;
-  Json headCenterPosition = config.get("headRotationCenter", JsonArray{0.0f, 2.0f});
-  m_headCenterPosition = jsonToVec2F(headCenterPosition) / TilePixels;
-
-  m_bodyHidden = config.getBool("bodyHidden", false);
-
-  m_armWalkSeq = jsonToIntList(config.get("armWalkSeq"));
-  m_armRunSeq = jsonToIntList(config.get("armRunSeq"));
-
-  for (auto const& v : config.get("walkBob").toArray())
-    m_walkBob.append(v.toDouble() / TilePixels);
-  for (auto const& v : config.get("runBob").toArray())
-    m_runBob.append(v.toDouble() / TilePixels);
-  for (auto const& v : config.get("swimBob").toArray())
-    m_swimBob.append(v.toDouble() / TilePixels);
-
-  m_jumpBob = config.get("jumpBob").toDouble() / TilePixels;
-  m_frontArmRotationCenter = jsonToVec2F(config.get("frontArmRotationCenter")) / TilePixels;
-  m_backArmRotationCenter = jsonToVec2F(config.get("backArmRotationCenter")) / TilePixels;
-  m_frontHandPosition = jsonToVec2F(config.get("frontHandPosition")) / TilePixels;
-  m_backArmOffset = jsonToVec2F(config.get("backArmOffset")) / TilePixels;
-  m_vaporTrailFrames = config.get("vaporTrailFrames").toInt();
-  m_vaporTrailCycle = config.get("vaporTrailCycle").toFloat();
-
-  m_defaultDeathParticles = config.getString("deathParticles");
-  m_particleEmitters = config.get("particleEmitters");
-
-  m_defaultMovementParameters = config.get("movementParameters");
+  m_baseHumanoidConfig = config;
+  m_previousOverrides = Json();
+  updateHumanoidConfigOverrides(JsonObject{});
 
   m_twoHanded = false;
   m_primaryHand.holdingItem = false;
@@ -2145,6 +2096,65 @@ Directives Humanoid::getBackDirectives() const {
 
 Directives Humanoid::getBackUnderlayDirectives() const {
   return m_backArmorUnderlayDirectives;
+}
+
+void Humanoid::updateHumanoidConfigOverrides(Json overrides) {
+  if (overrides == m_previousOverrides) return;
+  if (!overrides.isType(Json::Type::Object)) overrides = JsonObject{};
+  Json config = jsonMerge(m_baseHumanoidConfig, overrides);
+  m_previousOverrides = overrides;
+
+  m_timing = HumanoidTiming(config.getObject("humanoidTiming"));
+  m_globalOffset = jsonToVec2F(config.get("globalOffset")) / TilePixels;
+  m_headRunOffset = jsonToVec2F(config.get("headRunOffset")) / TilePixels;
+  m_headSwimOffset = jsonToVec2F(config.get("headSwimOffset")) / TilePixels;
+  m_runFallOffset = config.get("runFallOffset").toDouble() / TilePixels;
+  m_duckOffset = config.get("duckOffset").toDouble() / TilePixels;
+  m_headDuckOffset = jsonToVec2F(config.get("headDuckOffset")) / TilePixels;
+  m_sitOffset = config.get("sitOffset").toDouble() / TilePixels;
+  m_layOffset = config.get("layOffset").toDouble() / TilePixels;
+  m_headSitOffset = jsonToVec2F(config.get("headSitOffset")) / TilePixels;
+  m_headLayOffset = jsonToVec2F(config.get("headLayOffset")) / TilePixels;
+  m_recoilOffset = jsonToVec2F(config.get("recoilOffset")) / TilePixels;
+  m_mouthOffset = jsonToVec2F(config.get("mouthOffset")) / TilePixels;
+  m_feetOffset = jsonToVec2F(config.get("feetOffset")) / TilePixels;
+
+  m_bodyFullbright = config.getBool("bodyFullbright", false);
+
+  m_headArmorOffset = jsonToVec2F(config.get("headArmorOffset")) / TilePixels;
+  m_chestArmorOffset = jsonToVec2F(config.get("chestArmorOffset")) / TilePixels;
+  m_legsArmorOffset = jsonToVec2F(config.get("legsArmorOffset")) / TilePixels;
+  m_backArmorOffset = jsonToVec2F(config.get("backArmorOffset")) / TilePixels;
+  m_headRotationMultiplier = config.getFloat("headRotationMultiplier", 0.375f);
+  Json maximumHeadRotationOffset = config.get("maximumHeadRotationOffset", JsonArray{-2.0f, -1.0f});
+  m_maximumHeadRotationOffset = jsonToVec2F(maximumHeadRotationOffset) / TilePixels;
+  Json headCenterPosition = config.get("headRotationCenter", JsonArray{0.0f, 2.0f});
+  m_headCenterPosition = jsonToVec2F(headCenterPosition) / TilePixels;
+
+  m_bodyHidden = config.getBool("bodyHidden", false);
+
+  m_armWalkSeq = jsonToIntList(config.get("armWalkSeq"));
+  m_armRunSeq = jsonToIntList(config.get("armRunSeq"));
+
+  for (auto const& v : config.get("walkBob").toArray())
+    m_walkBob.append(v.toDouble() / TilePixels);
+  for (auto const& v : config.get("runBob").toArray())
+    m_runBob.append(v.toDouble() / TilePixels);
+  for (auto const& v : config.get("swimBob").toArray())
+    m_swimBob.append(v.toDouble() / TilePixels);
+
+  m_jumpBob = config.get("jumpBob").toDouble() / TilePixels;
+  m_frontArmRotationCenter = jsonToVec2F(config.get("frontArmRotationCenter")) / TilePixels;
+  m_backArmRotationCenter = jsonToVec2F(config.get("backArmRotationCenter")) / TilePixels;
+  m_frontHandPosition = jsonToVec2F(config.get("frontHandPosition")) / TilePixels;
+  m_backArmOffset = jsonToVec2F(config.get("backArmOffset")) / TilePixels;
+  m_vaporTrailFrames = config.get("vaporTrailFrames").toInt();
+  m_vaporTrailCycle = config.get("vaporTrailCycle").toFloat();
+
+  m_defaultDeathParticles = config.getString("deathParticles");
+  m_particleEmitters = config.get("particleEmitters");
+
+  m_defaultMovementParameters = config.get("movementParameters");
 }
 
 int Humanoid::getEmoteStateSequence() const {

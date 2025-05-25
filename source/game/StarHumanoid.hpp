@@ -146,6 +146,8 @@ public:
   void setIdentity(HumanoidIdentity const& identity);
   HumanoidIdentity const& identity() const;
 
+  void updateHumanoidConfigOverrides(Json overrides = Json());
+
   // All of the image identifiers here are meant to be image *base* names, with
   // a collection of frames specific to each piece.  If an image is set to
   // empty string, it is disabled.
@@ -462,6 +464,9 @@ private:
   Json m_defaultMovementParameters;
 
   uint32_t m_humanoidRotationSettings;
+
+  Json m_baseHumanoidConfig;
+  Json m_previousOverrides;
 };
 
 } // namespace Star
