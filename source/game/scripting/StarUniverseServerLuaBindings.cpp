@@ -25,6 +25,9 @@ LuaCallbacks LuaBindings::makeUniverseServerCallbacks(UniverseServer* universe) 
   callbacks.registerCallbackWithSignature<RpcThreadPromise<Json>, String, String, LuaVariadic<Json>>("sendWorldMessage", bind(UniverseServerCallbacks::sendWorldMessage, universe, _1, _2, _3));
   callbacks.registerCallbackWithSignature<String, ConnectionId>("clientWorld", bind(UniverseServerCallbacks::clientWorld, universe, _1));
   callbacks.registerCallbackWithSignature<Maybe<String>, ConnectionId>("clientUuid", bind(UniverseServerCallbacks::clientUuid, universe, _1));
+  // Novaenia: Callbacks for kicking and banning clients.
+  callbacks.registerCallbackWithSignature<void, ConnectionId, Maybe<String>>("disconnectClient", bind(UniverseServerCallbacks::disconnectClient, universe, _1, _2));
+  callbacks.registerCallbackWithSignature<void, ConnectionId, Maybe<String>, Maybe<bool>, Maybe<bool>, Maybe<int>>("banClient", bind(UniverseServerCallbacks::banClient, universe, _1, _2, _3, _4, _5));
 
   return callbacks;
 }
@@ -172,6 +175,23 @@ Maybe<String> LuaBindings::UniverseServerCallbacks::clientUuid(UniverseServer* u
     return universe->uuidForClient(connectionId)->hex();
   else
     return {};
+}
+
+// Novaenia: Disconnects (i.e., kicks) the given client from the server.
+// @param clientId The client's connection ID.
+// @param reason If specified, the disconnection reason that will be shown to the client.
+void LuaBindings::UniverseServerCallbacks::disconnectClient(UniverseServer* universe, ConnectionId clientId, Maybe<String> const& reason) {
+  return universe->disconnectClient(clientId, reason.value());
+}
+
+// Novaenia: Bans the given client from the server.
+// @param clientId The client's connection ID.
+// @param reason If specified, the ban reason that will be shown to the client.
+// @param Whether to ban this user by IP address.
+// @param Whether to ban this user by UUID.
+// @param A ban timeout in seconds, if specified. Specifying this makes the ban temporary.
+void LuaBindings::UniverseServerCallbacks::banClient(UniverseServer* universe, ConnectionId clientId, Maybe<String> const& reason, Maybe<bool> banIp, Maybe<bool> banUuid, Maybe<int> timeout) {
+  return universe->banUser(clientId, reason.value(), make_pair(banIp.value(false), banUuid.value(false)), timeout);
 }
 
 } // namespace Star

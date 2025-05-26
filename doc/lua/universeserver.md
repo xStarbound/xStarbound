@@ -84,3 +84,15 @@ Returns the world the given client is located on. If the client isn't connected,
 #### `Maybe<Uuid>` universe.clientUuid(`ClientId` clientId)
 
 Returns the UUID of the client (as a string). The returned UUID is the true canonical UUID of the client, not a vanity UUID. Note that if the client has used `/swap` or `/swapuuid`, the returned UUID will be that of the client's shipworld. If the client isn't connected, returns `nil`.
+
+#### `void` universe.disconnectClient(`ClientId` clientId, `Maybe<String>` reason)
+
+> **Available only on xStarbound v3.6.2+ and OpenStarbound v0.1.10+.**
+
+Disconnects (i.e., kicks) the specified client from the server. If a reason is specified, this reason is shown to the client upon disconnection.
+
+### `void` universe.banClient(`ClientId` clientId, `Maybe<String>` reason, `Maybe<bool>` banByIp, `Maybe<bool>` banByUuid, `Maybe<int>` banTimeout)
+
+> **Available only on xStarbound v3.6.2+ and OpenStarbound v0.1.10+.**
+
+Bans the specified client from the server. If a reason is specified, this reason is shown to the client upon banning. If `banByIp` is `true`, the client's IP address will be added under `"bannedIPs"` in the server config (`$storage/xserver.config` on xServer, `$storage/starbound_server.config` on other servers); if `banByUuid` is `true`, the client will be added under `"bannedUuids"` in the server config. If neither `banByIp` or `banByUuid` is true, the «ban» is equivalent to a kick. If `banTimeout` is specified, the ban will expire after a specified number of seconds from the invocation of this callback.

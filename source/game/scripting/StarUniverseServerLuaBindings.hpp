@@ -29,6 +29,8 @@ namespace LuaBindings {
     RpcThreadPromise<Json> sendWorldMessage(UniverseServer* universe, String const& worldId, String const& message, LuaVariadic<Json> args);
     String clientWorld(UniverseServer* universe, ConnectionId connectionId);
     Maybe<String> clientUuid(UniverseServer* universe, ConnectionId connectionId);
+    void disconnectClient(UniverseServer* universe, ConnectionId clientId, Maybe<String> const& reason);
+    void banClient(UniverseServer* universe, ConnectionId clientId, Maybe<String> const& reason, Maybe<bool> banIp, Maybe<bool> banUuid, Maybe<int> timeout);
   } // namespace UniverseServerCallbacks
 } // namespace LuaBindings
 } // namespace Star

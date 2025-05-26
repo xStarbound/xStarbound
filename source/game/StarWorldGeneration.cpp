@@ -1,30 +1,30 @@
 #include "StarWorldGeneration.hpp"
-#include "StarWorldServer.hpp"
-#include "StarMaterialItem.hpp"
+#include "StarBiome.hpp"
+#include "StarBiomePlacement.hpp"
+#include "StarContainerObject.hpp"
+#include "StarEntityMap.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarItemDrop.hpp"
+#include "StarLiquidsDatabase.hpp"
+#include "StarLogging.hpp"
 #include "StarMaterialDatabase.hpp"
-#include "StarNpcDatabase.hpp"
+#include "StarMaterialItem.hpp"
+#include "StarMonster.hpp"
 #include "StarMonsterDatabase.hpp"
 #include "StarNpc.hpp"
-#include "StarBiome.hpp"
-#include "StarSky.hpp"
-#include "StarWorldTemplate.hpp"
-#include "StarBiomePlacement.hpp"
-#include "StarWireEntity.hpp"
-#include "StarItemDrop.hpp"
-#include "StarLogging.hpp"
-#include "StarRoot.hpp"
-#include "StarItemDatabase.hpp"
-#include "StarProjectileDatabase.hpp"
-#include "StarProjectile.hpp"
-#include "StarObjectDatabase.hpp"
+#include "StarNpcDatabase.hpp"
 #include "StarObject.hpp"
-#include "StarContainerObject.hpp"
-#include "StarMonster.hpp"
-#include "StarEntityMap.hpp"
+#include "StarObjectDatabase.hpp"
 #include "StarPlant.hpp"
-#include "StarLiquidsDatabase.hpp"
+#include "StarProjectile.hpp"
+#include "StarProjectileDatabase.hpp"
+#include "StarRoot.hpp"
+#include "StarSky.hpp"
 #include "StarStagehand.hpp"
 #include "StarVehicleDatabase.hpp"
+#include "StarWireEntity.hpp"
+#include "StarWorldServer.hpp"
+#include "StarWorldTemplate.hpp"
 
 namespace Star {
 
@@ -141,13 +141,14 @@ void LiquidWorld::liquidCollision(Vec2I const& liquidPos, LiquidId liquidId, Vec
 }
 
 FallingBlocksWorld::FallingBlocksWorld(WorldServer* w)
-  : m_worldServer(w), m_materialDatabase(Root::singleton().materialDatabase()) {}
+    : m_worldServer(w), m_materialDatabase(Root::singleton().materialDatabase()) {}
 
 FallingBlockType FallingBlocksWorld::blockType(Vec2I const& pos) {
-  auto const& tile =  m_worldServer->getServerTile(pos, true);
+  auto const& tile = m_worldServer->getServerTile(pos, true);
   if (tile.rootSource) {
     return FallingBlockType::Immovable;
-  } if (tile.foreground == EmptyMaterialId) {
+  }
+  if (tile.foreground == EmptyMaterialId) {
     if (m_worldServer->tileIsOccupied(pos, TileLayer::Foreground))
       return FallingBlockType::Immovable;
     else
@@ -186,7 +187,7 @@ void FallingBlocksWorld::moveBlock(Vec2I const& from, Vec2I const& to) {
 }
 
 DungeonGeneratorWorld::DungeonGeneratorWorld(WorldServer* worldServer, bool markForActivation)
-  : m_worldServer(worldServer), m_markForActivation(markForActivation) {}
+    : m_worldServer(worldServer), m_markForActivation(markForActivation) {}
 
 WorldGeometry DungeonGeneratorWorld::getWorldGeometry() const {
   return m_worldServer->geometry();
@@ -530,33 +531,33 @@ void DungeonGeneratorWorld::clearTileEntities(RectI const& bounds, Set<Vec2I> co
   auto entities = m_worldServer->entityQuery(RectF(bounds).padded(1), entityTypeFilter<TileEntity>());
   auto geometry = m_worldServer->geometry();
   entities.filter([positions, geometry, clearAnchoredObjects](EntityPtr entity) {
-      auto tileEntity = as<TileEntity>(entity);
-      for (auto pos : tileEntity->spaces()) {
+    auto tileEntity = as<TileEntity>(entity);
+    for (auto pos : tileEntity->spaces()) {
+      if (positions.contains(geometry.xwrap(pos + tileEntity->tilePosition())))
+        return true;
+    }
+    if (clearAnchoredObjects) {
+      for (auto pos : tileEntity->roots()) {
         if (positions.contains(geometry.xwrap(pos + tileEntity->tilePosition())))
           return true;
       }
-      if (clearAnchoredObjects) {
-        for (auto pos : tileEntity->roots()) {
-          if (positions.contains(geometry.xwrap(pos + tileEntity->tilePosition())))
+      if (auto object = as<Object>(entity)) {
+        for (auto pos : object->anchorPositions()) {
+          if (positions.contains(geometry.xwrap(pos)))
             return true;
         }
-        if (auto object = as<Object>(entity)) {
-          for (auto pos : object->anchorPositions()) {
-            if (positions.contains(geometry.xwrap(pos)))
-              return true;
-          }
-        }
       }
+    }
 
-      return false;
-    });
+    return false;
+  });
 
   for (auto entity : entities)
     m_worldServer->removeEntity(entity->entityId(), false);
 }
 
 SpawnerWorld::SpawnerWorld(WorldServer* server)
-  : m_worldServer(server) {}
+    : m_worldServer(server) {}
 
 WorldGeometry SpawnerWorld::geometry() const {
   return m_worldServer->geometry();
@@ -701,11 +702,11 @@ bool WorldGenerator::entityPersistent(WorldStorage*, EntityPtr const& entity) co
 
 RpcPromise<Vec2I> WorldGenerator::enqueuePlacement(List<BiomeItemDistribution> distributions, Maybe<DungeonId> id) {
   auto promise = RpcPromise<Vec2I>::createPair();
-  m_queuedPlacements.append(QueuedPlacement {
-    std::move(distributions),
-    id,
-    promise.second,
-    false,
+  m_queuedPlacements.append(QueuedPlacement{
+      std::move(distributions),
+      id,
+      promise.second,
+      false,
   });
   return promise.first;
 }
@@ -861,10 +862,10 @@ void WorldGenerator::generateMicroDungeons(WorldStorage* worldStorage, ServerTil
       }
     }
   }
-  
+
   m_queuedPlacements = m_queuedPlacements.filtered([&](QueuedPlacement& p) {
-      return !p.fulfilled;
-    });
+    return !p.fulfilled;
+  });
 }
 
 void WorldGenerator::generateCaveLiquid(WorldStorage* worldStorage, ServerTileSectorArray::Sector const& sector) {
@@ -921,9 +922,7 @@ void WorldGenerator::generateCaveLiquid(WorldStorage* worldStorage, ServerTileSe
         badNodes.add(position);
       return;
     }
-    if ((tile.dungeonId != NoDungeonId && (!fillMicrodungeons || tile.dungeonId != BiomeMicroDungeonId))
-        || (!encloseLiquids && tile.background == EmptyMaterialId)
-        || (tile.liquid.liquid != fillLiquid && tile.liquid.liquid != EmptyLiquidId)) {
+    if ((tile.dungeonId != NoDungeonId && (!fillMicrodungeons || tile.dungeonId != BiomeMicroDungeonId)) || (!encloseLiquids && tile.background == EmptyMaterialId) || (tile.liquid.liquid != fillLiquid && tile.liquid.liquid != EmptyLiquidId)) {
       badNodes.add(position);
       return;
     }
@@ -979,17 +978,19 @@ void WorldGenerator::generateCaveLiquid(WorldStorage* worldStorage, ServerTileSe
     solids(position + Vec2I(0, -1));
   }
 
-  MaterialId biomeBlock = m_worldServer->worldTemplate()->biome(tileArray->tile(samplePoint).blockBiomeIndex)->mainBlock;
-  Map<Vec2I, float> drops = determineLiquidLevel(candidateNodes, solidSurroundings);
-  for (auto iter = drops.begin(); iter != drops.end(); ++iter) {
-    auto tile = tileArray->modifyTile(wrapCoords(iter->first));
-    starAssert(tile);
-    if (!tile)
-      continue;
-    if (iter->second)
-      tile->liquid = LiquidStore::filled(fillLiquid, 1.0f, iter->second);
-    if (encloseLiquids && tile->background == EmptyMaterialId)
-      tile->background = biomeBlock;
+  if (auto biome = m_worldServer->worldTemplate()->biome(tileArray->tile(samplePoint).blockBiomeIndex)) {
+    MaterialId biomeBlock = biome->mainBlock;
+    Map<Vec2I, float> drops = determineLiquidLevel(candidateNodes, solidSurroundings);
+    for (auto iter = drops.begin(); iter != drops.end(); ++iter) {
+      auto tile = tileArray->modifyTile(wrapCoords(iter->first));
+      starAssert(tile);
+      if (!tile)
+        continue;
+      if (iter->second)
+        tile->liquid = LiquidStore::filled(fillLiquid, 1.0f, iter->second);
+      if (encloseLiquids && tile->background == EmptyMaterialId)
+        tile->background = biomeBlock;
+    }
   }
 }
 
@@ -1112,8 +1113,7 @@ void WorldGenerator::placeBiomeGrass(WorldStorage* worldStorage, ServerTile* til
 
     // don't place mods in dungeons unless explicitly specified, also don't
     // touch non-grass mods
-    if (tile->mod(modLayer) == BiomeModId || tile->mod(modLayer) == UndergroundBiomeModId
-        || (tile->dungeonId == NoDungeonId && tile->mod(modLayer) == NoModId)) {
+    if (tile->mod(modLayer) == BiomeModId || tile->mod(modLayer) == UndergroundBiomeModId || (tile->dungeonId == NoDungeonId && tile->mod(modLayer) == NoModId)) {
       // check whether we're floor or ceiling
       auto tileAbove = worldStorage->tileArray()->tile(position + Vec2I(0, 1));
       auto tileBelow = worldStorage->tileArray()->tile(position + Vec2I(0, -1));
@@ -1188,14 +1188,17 @@ void WorldGenerator::reapplyBiome(WorldStorage* worldStorage, ServerTileSectorAr
       if (blockInfo.blockBiomeIndex != tile->blockBiomeIndex) {
         auto newBiome = planet->biome(blockInfo.blockBiomeIndex);
         auto oldBiome = planet->biome(tile->blockBiomeIndex);
+        starAssert(newBiome && oldBiome);
+        if (!newBiome || !oldBiome)
+          break;
 
         biomeTileEntities.filter([&, position](TileEntityPtr tileEntity) {
-            if (tileEntity->tilePosition() == position) {
-              m_worldServer->removeEntity(tileEntity->entityId(), false);
-              return false;
-            }
-            return true;
-          });
+          if (tileEntity->tilePosition() == position) {
+            m_worldServer->removeEntity(tileEntity->entityId(), false);
+            return false;
+          }
+          return true;
+        });
 
         // update biome index
         tile->blockBiomeIndex = blockInfo.blockBiomeIndex;
@@ -1296,92 +1299,91 @@ void WorldGenerator::reapplyBiome(WorldStorage* worldStorage, ServerTileSectorAr
   }
 
   auto simplePlacePlant = [&](PlantPtr const& plant, Vec2I const& position) {
-      if (!plant)
+    if (!plant)
+      return false;
+
+    auto spaces = plant->spaces();
+    auto roots = plant->roots();
+    auto const& primaryRoot = plant->primaryRoot();
+
+    auto blockBiome = planet->worldLayout()->getBiome(worldStorage->tileArray()->tile(position).blockBiomeIndex);
+
+    auto positionValid = [&](Vec2I const& pos) {
+      auto primaryTile = worldStorage->tileArray()->tile(pos);
+      auto primaryRootTile = worldStorage->tileArray()->tile(pos + primaryRoot);
+      if (isConnectableMaterial(primaryTile.foreground) || !isConnectableMaterial(primaryRootTile.foreground))
         return false;
 
-      auto spaces = plant->spaces();
-      auto roots = plant->roots();
-      auto const& primaryRoot = plant->primaryRoot();
-
-      auto blockBiome = planet->worldLayout()->getBiome(worldStorage->tileArray()->tile(position).blockBiomeIndex);
-
-      auto positionValid = [&](Vec2I const& pos) {
-          auto primaryTile = worldStorage->tileArray()->tile(pos);
-          auto primaryRootTile = worldStorage->tileArray()->tile(pos + primaryRoot);
-          if (isConnectableMaterial(primaryTile.foreground) || !isConnectableMaterial(primaryRootTile.foreground))
-            return false;
-
-          for (auto root : roots) {
-            auto rootTile = worldStorage->tileArray()->tile(root + pos);
-            if (!isConnectableMaterial(rootTile.foreground) || rootTile.blockBiomeIndex != primaryTile.blockBiomeIndex ||
-                (rootTile.foreground != blockBiome->mainBlock && !blockBiome->subBlocks.contains(rootTile.foreground)))
-              return false;
-          }
-
-          for (auto space : spaces) {
-            Vec2I pspace = space + pos;
-
-            if (!m_worldServer->atTile<TileEntity>(pspace).empty())
-              return false;
-
-            auto tile = worldStorage->tileArray()->tile(pspace);
-            if (tile.foreground != EmptyMaterialId)
-              return false;
-          }
-
-          return true;
-        };
-
-      List<Vec2I> tryPositions = {
-          position,
-          position + Vec2I{-1, 0},
-          position + Vec2I{1, 0},
-          position + Vec2I{-2, 0},
-          position + Vec2I{2, 0},
-          position + Vec2I{-1, 1},
-          position + Vec2I{-1, -1},
-          position + Vec2I{1, 1},
-          position + Vec2I{1, -1}
-        };
-
-      for (auto pos : tryPositions) {
-        if (positionValid(pos)) {
-          plant->setTilePosition(pos);
-          m_worldServer->addEntity(plant);
-          return true;
-        }
+      for (auto root : roots) {
+        auto rootTile = worldStorage->tileArray()->tile(root + pos);
+        if (!isConnectableMaterial(rootTile.foreground) || rootTile.blockBiomeIndex != primaryTile.blockBiomeIndex ||
+            (rootTile.foreground != blockBiome->mainBlock && !blockBiome->subBlocks.contains(rootTile.foreground)))
+          return false;
       }
 
-      return false;
+      for (auto space : spaces) {
+        Vec2I pspace = space + pos;
+
+        if (!m_worldServer->atTile<TileEntity>(pspace).empty())
+          return false;
+
+        auto tile = worldStorage->tileArray()->tile(pspace);
+        if (tile.foreground != EmptyMaterialId)
+          return false;
+      }
+
+      return true;
     };
+
+    List<Vec2I> tryPositions = {
+        position,
+        position + Vec2I{-1, 0},
+        position + Vec2I{1, 0},
+        position + Vec2I{-2, 0},
+        position + Vec2I{2, 0},
+        position + Vec2I{-1, 1},
+        position + Vec2I{-1, -1},
+        position + Vec2I{1, 1},
+        position + Vec2I{1, -1}};
+
+    for (auto pos : tryPositions) {
+      if (positionValid(pos)) {
+        plant->setTilePosition(pos);
+        m_worldServer->addEntity(plant);
+        return true;
+      }
+    }
+
+    return false;
+  };
 
   auto placeBiomeItem = [&](BiomeItemPlacement biomeItemPlacement, Vec2I position) {
-      auto seed = m_worldServer->worldTemplate()->seedFor(position[0], position[1]);
-      if (biomeItemPlacement.item.is<GrassVariant>()) {
-        auto& grass = biomeItemPlacement.item.get<GrassVariant>();
-        simplePlacePlant(Root::singleton().plantDatabase()->createPlant(grass, seed), position);
-      } else if (biomeItemPlacement.item.is<BushVariant>()) {
-        auto& bush = biomeItemPlacement.item.get<BushVariant>();
-        simplePlacePlant(Root::singleton().plantDatabase()->createPlant(bush, seed), position);
-      } else if (biomeItemPlacement.item.is<TreePair>()) {
-        auto& treePair = biomeItemPlacement.item.get<TreePair>();
-        TreeVariant treeVariant;
-        if (seed % 2 == 0)
-          treeVariant = treePair.first;
-        else
-          treeVariant = treePair.second;
+    auto seed = m_worldServer->worldTemplate()->seedFor(position[0], position[1]);
+    if (biomeItemPlacement.item.is<GrassVariant>()) {
+      auto& grass = biomeItemPlacement.item.get<GrassVariant>();
+      simplePlacePlant(Root::singleton().plantDatabase()->createPlant(grass, seed), position);
+    } else if (biomeItemPlacement.item.is<BushVariant>()) {
+      auto& bush = biomeItemPlacement.item.get<BushVariant>();
+      simplePlacePlant(Root::singleton().plantDatabase()->createPlant(bush, seed), position);
+    } else if (biomeItemPlacement.item.is<TreePair>()) {
+      auto& treePair = biomeItemPlacement.item.get<TreePair>();
+      TreeVariant treeVariant;
+      if (seed % 2 == 0)
+        treeVariant = treePair.first;
+      else
+        treeVariant = treePair.second;
 
-        simplePlacePlant(Root::singleton().plantDatabase()->createPlant(treeVariant, seed), position);
-      } else if (biomeItemPlacement.item.is<ObjectPool>()) {
-        auto& objectPool = biomeItemPlacement.item.get<ObjectPool>();
-        auto direction = seed % 2 ? Direction::Left : Direction::Right;
-        auto objectPair = objectPool.select(seed);
-        if (auto object = Root::singleton().objectDatabase()->createForPlacement(m_worldServer, objectPair.first, position, direction, objectPair.second)) {
-          if (object->biomePlaced())
-            m_worldServer->addEntity(object);
-        }
+      simplePlacePlant(Root::singleton().plantDatabase()->createPlant(treeVariant, seed), position);
+    } else if (biomeItemPlacement.item.is<ObjectPool>()) {
+      auto& objectPool = biomeItemPlacement.item.get<ObjectPool>();
+      auto direction = seed % 2 ? Direction::Left : Direction::Right;
+      auto objectPair = objectPool.select(seed);
+      if (auto object = Root::singleton().objectDatabase()->createForPlacement(m_worldServer, objectPair.first, position, direction, objectPair.second)) {
+        if (object->biomePlaced())
+          m_worldServer->addEntity(object);
       }
-    };
+    }
+  };
 
   for (auto position : biomeItemTiles) {
     ServerTile* tile = m_worldServer->modifyServerTile(position);
@@ -1478,8 +1480,7 @@ void WorldGenerator::levelCluster(Set<Vec2I>& cluster, Set<Vec2I> const& filled,
   int minY = std::numeric_limits<int>::max();
   for (auto iter = cluster.begin(); iter != cluster.end(); iter++) {
     auto droplet = (*iter);
-    if (filled.contains(droplet + Vec2I(1, 0)) && filled.contains(droplet + Vec2I(-1, 0))
-        && filled.contains(droplet + Vec2I(0, -1))) {
+    if (filled.contains(droplet + Vec2I(1, 0)) && filled.contains(droplet + Vec2I(-1, 0)) && filled.contains(droplet + Vec2I(0, -1))) {
       if (droplet.y() > maxY)
         maxY = droplet.y();
       if (!filled.contains(droplet + Vec2I(0, 1))) {
@@ -1581,4 +1582,4 @@ bool WorldGenerator::placePlant(WorldStorage* worldStorage, PlantPtr const& plan
   return true;
 }
 
-}
+} // namespace Star

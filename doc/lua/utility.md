@@ -55,7 +55,9 @@ Returns a human-readable string representation of the specified JSON value. If `
 ---
 
 #### `Json` sb.parseJson(`String` jsonToParse)
+
 #### `Json` sb.parseJsonFragment(`String` jsonToParse)
+
 #### `Json` sb.jsonFromString(`String` jsonToParse)
 
 Attempts to parse the given text as JSON, returning a "JSONised" Lua value (with an appropriate metatable) that faithfully represents the parsed JSON text to any callbacks that accept JSON. If anything that isn't valid JSON is passed to any of these callbacks, an error will be thrown.
@@ -82,11 +84,35 @@ Replaces all tags (e.g., `<tag>`) in the specified string with the specified tag
 
 ---
 
+#### `String` sb.stripEscapeCodes(`String` string)
+
+> **Available only on xStarbound v3.6.2+ and OpenStarbound v0.1.10+.**
+
+Strips all text escape codes from the specified string.
+
+---
+
 #### `Json` sb.jsonMerge(`Json` a, `Json` b)
 
-Returns the result of merging the contents of `b` on top of `a`. Any `null` values in `b` are (recursively) ignored in favour of non-`null` values in `a`.
+Returns the result of merging the contents of `b` on top of `a`. Any `null` (or `nil`) object keys in `b` are (recursively) ignored in favour of non-`null` values in `a`.
 
 Although ordinary Lua tables may be passed as `a` and `b`, tables should be created or converted with `jarray` (for arrays) or `jobject` (for objects) before being passed to this callback for best results.
+
+---
+
+#### `Json` sb.jsonMergeNull(`Json` a, `Json` b)
+
+> **Available only on xStarbound v3.6.2+.**
+
+As `sb.jsonMerge` above, but explicit `null` object keys in `b` _do_ override values in `a`. It's recommended to use xStarbound's `null` value (provided in all Lua contexts) to specify an explicit `null` key.
+
+---
+
+#### `Json` sb.jsonEqual(`Json` a, `Json` b)
+
+> **Available only on xStarbound v3.6.2+ and OpenStarbound.**
+
+Returns whether the two specified JSON values are equal (i.e., have the exact same JSON representation, barring whitespace).
 
 ---
 
@@ -184,16 +210,16 @@ Returns a random `bool` value.
 
 Creates and returns a `PerlinNoise` userdata object which can be used as a Perlin noise source. The configuration for the `PerlinSource` should be a JSON object (consider using `jobject`) and can include the following keys:
 
-- `uint64_t` __seed__ - Seed value used to initialize the source.
-- `String` __type__ - Type of noise to use. Valid types are `"perlin"`, `"billow"` or `"ridgedMulti"`.
-- `int64_t` __octaves__ - Number of octaves of noise to use. Defaults to `1`.
-- `double` __frequency__ - Defaults to `1.0`.
-- `double` __amplitude__ - Defaults to `1.0`.
-- `double` __bias__ - Defaults to `0.0`.
-- `double` __alpha__ - Defaults to `2.0`.
-- `double` __beta__ - Defaults to `2.0`.
-- `double` __offset__ - Defaults to `1.0`.
-- `double` __gain__ - Defaults to `2.0`.
+- `uint64_t` **seed** - Seed value used to initialize the source.
+- `String` **type** - Type of noise to use. Valid types are `"perlin"`, `"billow"` or `"ridgedMulti"`.
+- `int64_t` **octaves** - Number of octaves of noise to use. Defaults to `1`.
+- `double` **frequency** - Defaults to `1.0`.
+- `double` **amplitude** - Defaults to `1.0`.
+- `double` **bias** - Defaults to `0.0`.
+- `double` **alpha** - Defaults to `2.0`.
+- `double` **beta** - Defaults to `2.0`.
+- `double` **offset** - Defaults to `1.0`.
+- `double` **gain** - Defaults to `2.0`.
 
 The `PerlinSource` has only one method:
 

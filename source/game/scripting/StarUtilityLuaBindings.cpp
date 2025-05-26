@@ -1,12 +1,13 @@
 #include "StarUtilityLuaBindings.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarLuaGameConverters.hpp"
-#include "StarUuid.hpp"
-#include "StarRandom.hpp"
-#include "StarPerlin.hpp"
-#include "StarXXHash.hpp"
-#include "StarLogging.hpp"
 #include "StarInterpolation.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLogging.hpp"
+#include "StarLuaGameConverters.hpp"
+#include "StarPerlin.hpp"
+#include "StarRandom.hpp"
+#include "StarText.hpp"
+#include "StarUuid.hpp"
+#include "StarXXHash.hpp"
 
 namespace Star {
 
@@ -18,28 +19,22 @@ struct LuaUserDataMethods<RandomSource> {
   static LuaMethods<RandomSource> make() {
     LuaMethods<RandomSource> methods;
 
-    methods.registerMethod("init", [](RandomSource& randomSource, Maybe<uint64_t> seed)
-      { seed ? randomSource.init(*seed) : randomSource.init(); });
-    methods.registerMethod("addEntropy", [](RandomSource& randomSource, Maybe<uint64_t> seed)
-      { seed ? randomSource.addEntropy(*seed) : randomSource.addEntropy(); });
+    methods.registerMethod("init", [](RandomSource& randomSource, Maybe<uint64_t> seed) { seed ? randomSource.init(*seed) : randomSource.init(); });
+    methods.registerMethod("addEntropy", [](RandomSource& randomSource, Maybe<uint64_t> seed) { seed ? randomSource.addEntropy(*seed) : randomSource.addEntropy(); });
 
     methods.registerMethodWithSignature<uint32_t, RandomSource&>("randu32", mem_fn(&RandomSource::randu32));
     methods.registerMethodWithSignature<uint64_t, RandomSource&>("randu64", mem_fn(&RandomSource::randu64));
     methods.registerMethodWithSignature<int32_t, RandomSource&>("randi32", mem_fn(&RandomSource::randi32));
     methods.registerMethodWithSignature<int64_t, RandomSource&>("randi64", mem_fn(&RandomSource::randi64));
 
-    methods.registerMethod("randf", [](RandomSource& randomSource, Maybe<float> arg1, Maybe<float> arg2)
-      { return (arg1 && arg2) ? randomSource.randf(*arg1, *arg2) : randomSource.randf(); });
-    methods.registerMethod("randd", [](RandomSource& randomSource, Maybe<double> arg1, Maybe<double> arg2)
-      { return (arg1 && arg2) ? randomSource.randd(*arg1, *arg2) : randomSource.randd(); });
+    methods.registerMethod("randf", [](RandomSource& randomSource, Maybe<float> arg1, Maybe<float> arg2) { return (arg1 && arg2) ? randomSource.randf(*arg1, *arg2) : randomSource.randf(); });
+    methods.registerMethod("randd", [](RandomSource& randomSource, Maybe<double> arg1, Maybe<double> arg2) { return (arg1 && arg2) ? randomSource.randd(*arg1, *arg2) : randomSource.randd(); });
 
     methods.registerMethodWithSignature<bool, RandomSource&>("randb", mem_fn(&RandomSource::randb));
 
-    methods.registerMethod("randInt", [](RandomSource& randomSource, int64_t arg1, Maybe<int64_t> arg2)
-      { return arg2 ? randomSource.randInt(arg1, *arg2) : randomSource.randInt(arg1); });
+    methods.registerMethod("randInt", [](RandomSource& randomSource, int64_t arg1, Maybe<int64_t> arg2) { return arg2 ? randomSource.randInt(arg1, *arg2) : randomSource.randInt(arg1); });
 
-    methods.registerMethod("randUInt", [](RandomSource& randomSource, uint64_t arg1, Maybe<uint64_t> arg2)
-      { return arg2 ? randomSource.randUInt(arg1, *arg2) : randomSource.randUInt(arg1); });
+    methods.registerMethod("randUInt", [](RandomSource& randomSource, uint64_t arg1, Maybe<uint64_t> arg2) { return arg2 ? randomSource.randUInt(arg1, *arg2) : randomSource.randUInt(arg1); });
 
     return methods;
   }
@@ -125,12 +120,16 @@ LuaCallbacks LuaBindings::makeUtilityCallbacks() {
   callbacks.registerCallback("print", UtilityCallbacks::print);
   callbacks.registerCallback("interpolateSinEase", UtilityCallbacks::interpolateSinEase);
   callbacks.registerCallback("replaceTags", UtilityCallbacks::replaceTags);
+  // Novaenia: From OpenStarbound.
+  callbacks.registerCallback("stripEscapeCodes", [](String const& text) { return Text::stripEscapeCodes(text); });
   callbacks.registerCallback("jsonParse", [](String const& json) { return Json::parse(json); });
   callbacks.registerCallback("jsonMerge", [](Json const& a, Json const& b) { return jsonMerge(a, b); });
+  callbacks.registerCallback("jsonMergeNull", [](Json const& a, Json const& b) { return jsonMergeNull(a, b); });
+  callbacks.registerCallback("jsonEqual", [](Json const& a, Json const& b) { return a == b; });
   callbacks.registerCallback("jsonQuery", [](Json const& json, String const& path, Json const& def) { return json.query(path, def); });
-  callbacks.registerCallback("parseJson", [](String const &jsonStr) -> Json { return Json::parseJson(jsonStr); });
+  callbacks.registerCallback("parseJson", [](String const& jsonStr) -> Json { return Json::parseJson(jsonStr); });
   // FezzedOne: For StarExtensions compatibility.
-  callbacks.registerCallback("jsonFromString", [](String const &jsonStr) -> Json { return Json::parseJson(jsonStr); });
+  callbacks.registerCallback("jsonFromString", [](String const& jsonStr) -> Json { return Json::parseJson(jsonStr); });
   callbacks.registerCallback("makeRandomSource", [](Maybe<uint64_t> seed) { return seed ? RandomSource(*seed) : RandomSource(); });
   callbacks.registerCallback("makePerlinSource", [](Json const& config) { return PerlinF(config); });
 
@@ -224,4 +223,4 @@ String LuaBindings::UtilityCallbacks::replaceTags(String const& str, StringMap<S
   return str.replaceTags(tags);
 }
 
-}
+} // namespace Star
