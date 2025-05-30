@@ -1,75 +1,75 @@
 #include "StarPlayer.hpp"
-#include "StarEncode.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarRoot.hpp"
-#include "StarSongbook.hpp"
-#include "StarEmoteProcessor.hpp"
-#include "StarSpeciesDatabase.hpp"
-#include "StarDamageManager.hpp"
-#include "StarTools.hpp"
-#include "StarItemDrop.hpp"
-#include "StarMaterialDatabase.hpp"
+#include "StarAiDatabase.hpp"
 #include "StarArmors.hpp"
-#include "StarPlayerFactory.hpp"
 #include "StarAssets.hpp"
-#include "StarPlayerInventory.hpp"
-#include "StarTechController.hpp"
+#include "StarCelestialLuaBindings.hpp"
 #include "StarClientContext.hpp"
-#include "StarItemDatabase.hpp"
-#include "StarItemBag.hpp"
+#include "StarConfiguration.hpp"
+#include "StarDamageManager.hpp"
+#include "StarEmoteProcessor.hpp"
+#include "StarEncode.hpp"
+#include "StarEntityLuaBindings.hpp"
 #include "StarEntitySplash.hpp"
+#include "StarImageProcessing.hpp"
+#include "StarInspectionTool.hpp"
 #include "StarInteractiveEntity.hpp"
-#include "StarWorld.hpp"
-#include "StarWorldGeometry.hpp"
-#include "StarStatusController.hpp"
-#include "StarStatusControllerLuaBindings.hpp"
+#include "StarItemBag.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarItemDrop.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarMaterialDatabase.hpp"
 #include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarPlayerBlueprints.hpp"
-#include "StarPlayerUniverseMap.hpp"
 #include "StarPlayerCodexes.hpp"
-#include "StarPlayerTech.hpp"
 #include "StarPlayerCompanions.hpp"
 #include "StarPlayerDeployment.hpp"
+#include "StarPlayerFactory.hpp"
+#include "StarPlayerInventory.hpp"
 #include "StarPlayerLog.hpp"
 #include "StarPlayerLuaBindings.hpp"
-#include "StarEntityLuaBindings.hpp"
+#include "StarPlayerTech.hpp"
+#include "StarPlayerUniverseMap.hpp"
 #include "StarQuestManager.hpp"
-#include "StarAiDatabase.hpp"
+#include "StarRoot.hpp"
+#include "StarSongbook.hpp"
+#include "StarSpeciesDatabase.hpp"
 #include "StarStatistics.hpp"
-#include "StarInspectionTool.hpp"
-#include "StarUtilityLuaBindings.hpp"
-#include "StarCelestialLuaBindings.hpp"
-#include "StarConfiguration.hpp"
-#include "StarUniverseClient.hpp"
+#include "StarStatusController.hpp"
+#include "StarStatusControllerLuaBindings.hpp"
 #include "StarTeamClient.hpp"
-#include "StarImageProcessing.hpp"
+#include "StarTechController.hpp"
+#include "StarTools.hpp"
+#include "StarUniverseClient.hpp"
+#include "StarUtilityLuaBindings.hpp"
+#include "StarWorld.hpp"
+#include "StarWorldGeometry.hpp"
 
 #if defined TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
+#include "tracy/Tracy.hpp"
 #else
-  #define ZoneScoped
+#define ZoneScoped
 #endif
 
 namespace Star {
 
 EnumMap<Player::State> const Player::StateNames{
-  {Player::State::Idle, "idle"},
-  {Player::State::Walk, "walk"},
-  {Player::State::Run, "run"},
-  {Player::State::Jump, "jump"},
-  {Player::State::Fall, "fall"},
-  {Player::State::Swim, "swim"},
-  {Player::State::SwimIdle, "swimIdle"},
-  {Player::State::TeleportIn, "teleportIn"},
-  {Player::State::TeleportOut, "teleportOut"},
-  {Player::State::Crouch, "crouch"},
-  {Player::State::Lounge, "lounge"}
-};
+    {Player::State::Idle, "idle"},
+    {Player::State::Walk, "walk"},
+    {Player::State::Run, "run"},
+    {Player::State::Jump, "jump"},
+    {Player::State::Fall, "fall"},
+    {Player::State::Swim, "swim"},
+    {Player::State::SwimIdle, "swimIdle"},
+    {Player::State::TeleportIn, "teleportIn"},
+    {Player::State::TeleportOut, "teleportOut"},
+    {Player::State::Crouch, "crouch"},
+    {Player::State::Lounge, "lounge"}};
 
 Player::Player(PlayerConfigPtr config, Uuid uuid) {
   auto assets = Root::singleton().assets();
   // FezzedOne: Pre-cache the player config to prevent various lag spikes.
-  volatile Json _ = assets->json("/player.config", true); (void)_;
+  volatile Json _ = assets->json("/player.config", true);
+  (void)_;
 
   m_config = config;
   m_client = nullptr;
@@ -456,7 +456,7 @@ List<Drawable> Player::drawables() const {
   List<Drawable> drawables;
 
   Maybe<float> playerAimAngle = {}; // FezzedOne: Angle used to rotate the head.
-  if (inWorld()) { // FezzedOne: Only clients need to run this head rotation code.
+  if (inWorld()) {                  // FezzedOne: Only clients need to run this head rotation code.
     if (world()->isClient() && Root::singleton().configuration()->get("playerHeadRotation").optBool().value(true))
       playerAimAngle = getAngleSide(world()->geometry().diff(aimPosition(), position()).angle()).first;
   }
@@ -472,10 +472,10 @@ List<Drawable> Player::drawables() const {
 
       auto extractScaleDirectives = [&](Directives const& directives) -> pair<Vec2F, Directives> {
         Vec2F finalScale = Vec2F::filled(1.0f);
-        
+
         if (!directives)
           return make_pair(finalScale, Directives());
-        
+
         for (auto& entry : directives.shared->entries) {
           ScaleImageOperation* op = const_cast<ScaleImageOperation*>(entry.loadOperation(*directives.shared).ptr<ScaleImageOperation>());
           if (op) {
@@ -600,8 +600,7 @@ bool Player::underwater() const {
   if (!inWorld())
     return false;
   else
-    return world()->liquidLevel(Vec2I(position() + m_config->underwaterSensor)).level
-        >= m_config->underwaterMinWaterLevel;
+    return world()->liquidLevel(Vec2I(position() + m_config->underwaterSensor)).level >= m_config->underwaterMinWaterLevel;
 }
 
 List<LightSource> Player::lightSources() const {
@@ -687,13 +686,13 @@ void Player::destroy(RenderCallback* renderCallback) {
           dropEverything();
       } else {
         List<ItemType> dropList = modeConfig().deathDropItemTypes.right().transformed([](String typeName) {
-            return ItemTypeNames.getLeft(typeName);
-          });
+          return ItemTypeNames.getLeft(typeName);
+        });
         Set<ItemType> dropSet = Set<ItemType>::from(dropList);
         auto itemDb = Root::singleton().itemDatabase();
         dropSelectedItems([dropSet, itemDb](ItemPtr item) {
-            return dropSet.contains(itemDb->itemType(item->name()));
-          });
+          return dropSet.contains(itemDb->itemType(item->name()));
+        });
       }
     }
   }
@@ -712,9 +711,7 @@ bool Player::lounge(EntityId loungeableEntityId, size_t anchorIndex) {
     return false;
 
   auto loungeableEntity = world()->get<LoungeableEntity>(loungeableEntityId);
-  if (!loungeableEntity || anchorIndex >= loungeableEntity->anchorCount()
-      || !loungeableEntity->entitiesLoungingIn(anchorIndex).empty()
-      || !loungeableEntity->loungeAnchor(anchorIndex))
+  if (!loungeableEntity || anchorIndex >= loungeableEntity->anchorCount() || !loungeableEntity->entitiesLoungingIn(anchorIndex).empty() || !loungeableEntity->loungeAnchor(anchorIndex))
     return false;
 
   m_state = State::Lounge;
@@ -1213,8 +1210,8 @@ void Player::update(float dt, uint64_t) {
     if (m_ageItemsTimer.wrapTick(dt)) {
       auto itemDatabase = Root::singleton().itemDatabase();
       m_inventory->forEveryItem([&](InventorySlot const&, ItemPtr& item) {
-          itemDatabase->ageItem(item, m_ageItemsTimer.time);
-        });
+        itemDatabase->ageItem(item, m_ageItemsTimer.time);
+      });
     }
 
     for (auto tool : {m_tools->primaryHandItem(), m_tools->altHandItem()}) {
@@ -1256,8 +1253,7 @@ void Player::update(float dt, uint64_t) {
   auto loungeAnchor = as<LoungeAnchor>(m_movementController->entityAnchor());
   if (loungeAnchor && loungeAnchor->dance)
     m_humanoid->setDance(*loungeAnchor->dance);
-  else if ((!suppressedItems && (m_tools->primaryHandItem() || m_tools->altHandItem()))
-    || m_humanoid->danceCyclicOrEnded() || m_movementController->running())
+  else if ((!suppressedItems && (m_tools->primaryHandItem() || m_tools->altHandItem())) || m_humanoid->danceCyclicOrEnded() || m_movementController->running())
     m_humanoid->setDance({});
 
   bool isClient = world()->isClient();
@@ -1481,10 +1477,9 @@ void Player::triggerPickupEvents(ItemPtr const& item) {
     itemCategory = itemCategory.isType(Json::Type::String) ? itemCategory : String("");
 
     statistics()->recordEvent("item", JsonObject{
-        {"itemName", item->name()},
-        {"count", item->count()},
-        {"category", itemCategory}
-      });
+                                          {"itemName", item->name()},
+                                          {"count", item->count()},
+                                          {"category", itemCategory}});
   }
 }
 
@@ -1539,6 +1534,7 @@ void Player::refreshArmor() {
   m_armor->setLegsCosmeticItem(m_inventory->legsCosmetic());
   m_armor->setBackItem(m_inventory->backArmor());
   m_armor->setBackCosmeticItem(m_inventory->backCosmetic());
+  m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters)));
 }
 
 void Player::refreshEquipment() {
@@ -1678,7 +1674,7 @@ void Player::interactWithEntity(InteractiveEntityPtr entity) {
   }
 
   m_pendingInteractActions.append(world()->interact(InteractRequest{
-        entityId(), position(), entity->entityId(), aimPosition()}));
+      entityId(), position(), entity->entityId(), aimPosition()}));
 }
 
 void Player::aim(Vec2F const& position) {
@@ -1784,10 +1780,10 @@ void Player::setInteractRadius(float interactRadius) {
 List<InteractAction> Player::pullInteractActions() {
   List<InteractAction> results;
   eraseWhere(m_pendingInteractActions, [&results](auto& promise) {
-      if (auto res = promise.result())
-        results.append(res.take());
-      return promise.finished();
-    });
+    if (auto res = promise.result())
+      results.append(res.take());
+    return promise.finished();
+  });
   return results;
 }
 
@@ -1958,8 +1954,7 @@ void Player::processControls() {
   if (useMoveVector) {
     m_pendingMoves.insert(m_moveVector.x() < 0.0f ? MoveControlType::Left : MoveControlType::Right);
     m_movementController->setMoveSpeedMultiplier(clamp(abs(m_moveVector.x()), 0.0f, 1.0f));
-  }
-  else
+  } else
     m_movementController->setMoveSpeedMultiplier(1.0f);
 
   if (auto fireableMain = as<FireableItem>(m_tools->primaryHandItem())) {
@@ -2083,14 +2078,13 @@ void Player::processStateChanges(float dt) {
     }
 
     if (m_moveVector.x() != 0.0f && (m_state == State::Run))
-        m_state = abs(m_moveVector.x()) > 0.5f ? State::Run : State::Walk;
+      m_state = abs(m_moveVector.x()) > 0.5f ? State::Run : State::Walk;
 
     if (m_state == State::Jump && (oldState == State::Idle || oldState == State::Run || oldState == State::Walk || oldState == State::Crouch))
       m_effectsAnimator->burstParticleEmitter("jump");
 
     if (!m_movementController->isNullColliding()) {
-      if (oldState == State::Fall && oldState != m_state && m_state != State::Swim && m_state != State::SwimIdle
-          && m_state != State::Jump) {
+      if (oldState == State::Fall && oldState != m_state && m_state != State::Swim && m_state != State::SwimIdle && m_state != State::Jump) {
         m_effectsAnimator->burstParticleEmitter("landing");
         m_landedNetState.trigger();
         m_landingNoisePending = true;
@@ -2100,99 +2094,54 @@ void Player::processStateChanges(float dt) {
 
   m_humanoid->animate(dt);
 
-  if (m_overrideState)
-  {
+  if (m_overrideState) {
     // FezzedOne: If a player humanoid state override is present, use it. Player state overrides take precedence over tech parent states.
     m_humanoid->setState(*m_overrideState);
-  }
-  else if (auto techState = m_techController->parentState())
-  {
-    if (techState == TechController::ParentState::Stand)
-    {
+  } else if (auto techState = m_techController->parentState()) {
+    if (techState == TechController::ParentState::Stand) {
       m_humanoid->setState(Humanoid::Idle);
-    }
-    else if (techState == TechController::ParentState::Fly)
-    {
+    } else if (techState == TechController::ParentState::Fly) {
       m_humanoid->setState(Humanoid::Jump);
-    }
-    else if (techState == TechController::ParentState::Fall)
-    {
+    } else if (techState == TechController::ParentState::Fall) {
       m_humanoid->setState(Humanoid::Fall);
-    }
-    else if (techState == TechController::ParentState::Sit)
-    {
+    } else if (techState == TechController::ParentState::Sit) {
       m_humanoid->setState(Humanoid::Sit);
-    }
-    else if (techState == TechController::ParentState::Lay)
-    {
+    } else if (techState == TechController::ParentState::Lay) {
       m_humanoid->setState(Humanoid::Lay);
-    }
-    else if (techState == TechController::ParentState::Duck)
-    {
+    } else if (techState == TechController::ParentState::Duck) {
       m_humanoid->setState(Humanoid::Duck);
-    }
-    else if (techState == TechController::ParentState::Walk)
-    {
+    } else if (techState == TechController::ParentState::Walk) {
       m_humanoid->setState(Humanoid::Walk);
-    }
-    else if (techState == TechController::ParentState::Run)
-    {
+    } else if (techState == TechController::ParentState::Run) {
       m_humanoid->setState(Humanoid::Run);
-    }
-    else if (techState == TechController::ParentState::Swim)
-    {
+    } else if (techState == TechController::ParentState::Swim) {
       m_humanoid->setState(Humanoid::Swim);
-    }
-    else if (techState == TechController::ParentState::SwimIdle)
-    {
+    } else if (techState == TechController::ParentState::SwimIdle) {
       m_humanoid->setState(Humanoid::SwimIdle);
     }
-  }
-  else
-  {
+  } else {
     auto loungeAnchor = as<LoungeAnchor>(m_movementController->entityAnchor());
-    if (m_state == State::Idle)
-    {
+    if (m_state == State::Idle) {
       m_humanoid->setState(Humanoid::Idle);
-    }
-    else if (m_state == State::Walk)
-    {
+    } else if (m_state == State::Walk) {
       m_humanoid->setState(Humanoid::Walk);
-    }
-    else if (m_state == State::Run)
-    {
+    } else if (m_state == State::Run) {
       m_humanoid->setState(Humanoid::Run);
-    }
-    else if (m_state == State::Jump)
-    {
+    } else if (m_state == State::Jump) {
       m_humanoid->setState(Humanoid::Jump);
-    }
-    else if (m_state == State::Fall)
-    {
+    } else if (m_state == State::Fall) {
       m_humanoid->setState(Humanoid::Fall);
-    }
-    else if (m_state == State::Swim)
-    {
+    } else if (m_state == State::Swim) {
       m_humanoid->setState(Humanoid::Swim);
-    }
-    else if (m_state == State::SwimIdle)
-    {
+    } else if (m_state == State::SwimIdle) {
       m_humanoid->setState(Humanoid::SwimIdle);
-    }
-    else if (m_state == State::Crouch)
-    {
+    } else if (m_state == State::Crouch) {
       m_humanoid->setState(Humanoid::Duck);
-    }
-    else if (m_state == State::Lounge && loungeAnchor && loungeAnchor->orientation == LoungeOrientation::Sit)
-    {
+    } else if (m_state == State::Lounge && loungeAnchor && loungeAnchor->orientation == LoungeOrientation::Sit) {
       m_humanoid->setState(Humanoid::Sit);
-    }
-    else if (m_state == State::Lounge && loungeAnchor && loungeAnchor->orientation == LoungeOrientation::Lay)
-    {
+    } else if (m_state == State::Lounge && loungeAnchor && loungeAnchor->orientation == LoungeOrientation::Lay) {
       m_humanoid->setState(Humanoid::Lay);
-    }
-    else if (m_state == State::Lounge && loungeAnchor && loungeAnchor->orientation == LoungeOrientation::Stand)
-    {
+    } else if (m_state == State::Lounge && loungeAnchor && loungeAnchor->orientation == LoungeOrientation::Stand) {
       m_humanoid->setState(Humanoid::Idle);
     }
   }
@@ -2434,41 +2383,65 @@ Vec2F Player::nametagOrigin() const {
   return mouthPosition(false);
 }
 
-void Player::updateIdentity()
-{ m_identityUpdated = true; m_humanoid->setIdentity(m_identity); }
+void Player::updateIdentity() {
+  m_identityUpdated = true;
+  m_humanoid->setIdentity(m_identity);
+}
 
-void Player::setBodyDirectives(String const& directives)
-{ m_identity.bodyDirectives = directives; updateIdentity(); }
+void Player::setBodyDirectives(String const& directives) {
+  m_identity.bodyDirectives = directives;
+  updateIdentity();
+}
 
-void Player::setEmoteDirectives(String const& directives)
-{ m_identity.emoteDirectives = directives; updateIdentity(); }
+void Player::setEmoteDirectives(String const& directives) {
+  m_identity.emoteDirectives = directives;
+  updateIdentity();
+}
 
-void Player::setHairGroup(String const& group)
-{ m_identity.hairGroup = group; updateIdentity(); }
+void Player::setHairGroup(String const& group) {
+  m_identity.hairGroup = group;
+  updateIdentity();
+}
 
-void Player::setHairType(String const& type)
-{ m_identity.hairType = type; updateIdentity(); }
+void Player::setHairType(String const& type) {
+  m_identity.hairType = type;
+  updateIdentity();
+}
 
-void Player::setHairDirectives(String const& directives)
-{ m_identity.hairDirectives = directives; updateIdentity(); }
+void Player::setHairDirectives(String const& directives) {
+  m_identity.hairDirectives = directives;
+  updateIdentity();
+}
 
-void Player::setFacialHairGroup(String const& group)
-{ m_identity.facialHairGroup = group; updateIdentity(); }
+void Player::setFacialHairGroup(String const& group) {
+  m_identity.facialHairGroup = group;
+  updateIdentity();
+}
 
-void Player::setFacialHairType(String const& type)
-{ m_identity.facialHairType = type; updateIdentity(); }
+void Player::setFacialHairType(String const& type) {
+  m_identity.facialHairType = type;
+  updateIdentity();
+}
 
-void Player::setFacialHairDirectives(String const& directives)
-{ m_identity.facialHairDirectives = directives; updateIdentity(); }
+void Player::setFacialHairDirectives(String const& directives) {
+  m_identity.facialHairDirectives = directives;
+  updateIdentity();
+}
 
-void Player::setFacialMaskGroup(String const& group)
-{ m_identity.facialMaskGroup = group; updateIdentity(); }
+void Player::setFacialMaskGroup(String const& group) {
+  m_identity.facialMaskGroup = group;
+  updateIdentity();
+}
 
-void Player::setFacialMaskType(String const& type)
-{ m_identity.facialMaskType = type; updateIdentity(); }
+void Player::setFacialMaskType(String const& type) {
+  m_identity.facialMaskType = type;
+  updateIdentity();
+}
 
-void Player::setFacialMaskDirectives(String const& directives)
-{ m_identity.facialMaskDirectives = directives; updateIdentity(); }
+void Player::setFacialMaskDirectives(String const& directives) {
+  m_identity.facialMaskDirectives = directives;
+  updateIdentity();
+}
 
 void Player::setHair(String const& group, String const& type, String const& directives) {
   m_identity.hairGroup = group;
@@ -2491,14 +2464,14 @@ void Player::setFacialMask(String const& group, String const& type, String const
   updateIdentity();
 }
 
-bool Player::checkSpecies(String const &species, Maybe<String> const& maybeCallbackName) { // FezzedOne: Check whether a species exists in the loaded assets.
-  Star::Root &root = Root::singleton();
+bool Player::checkSpecies(String const& species, Maybe<String> const& maybeCallbackName) { // FezzedOne: Check whether a species exists in the loaded assets.
+  Star::Root& root = Root::singleton();
   String callbackName = "setSpecies";
   if (maybeCallbackName)
     callbackName = maybeCallbackName.get();
   bool speciesFound = false;
 
-  for (auto const &nameDefPair : root.speciesDatabase()->allSpecies()) {
+  for (auto const& nameDefPair : root.speciesDatabase()->allSpecies()) {
     String speciesName = nameDefPair.second->options().species;
 
     if (species == speciesName) {
@@ -2578,7 +2551,7 @@ void Player::setIdentity(HumanoidIdentity identity) {
   updateIdentity();
 }
 
-void Player::setIdentity(Json const &newIdentity) {
+void Player::setIdentity(Json const& newIdentity) {
   Maybe<String> oldImagePath = m_identity.imagePath;
   String oldSpecies = oldImagePath ? *oldImagePath : m_identity.species;
   Json oldIdentity = m_identity.toJson();
@@ -2588,20 +2561,17 @@ void Player::setIdentity(Json const &newIdentity) {
     if (newIdentity.contains("imagePath")) {
       // FezzedOne: Check if the "imagePath" is an explicit `null` (i.e., it's in the internal Lua "nils"
       // table and thus `Json::contains` returns `true`). If so, set the new imagePath to `null`.
-      if (newIdentity.get("imagePath").type() == Json::Type::Null)
-      {
+      if (newIdentity.get("imagePath").type() == Json::Type::Null) {
         mergedIdentity = mergedIdentity.set("imagePath", Json());
       }
     }
     String speciesName = mergedIdentity.getString("species");
     String imagePath = mergedIdentity.optString("imagePath").value(speciesName);
-    if (!checkSpecies(speciesName, String("setIdentity")))
-    { // FezzedOne: If the new species doesn't exist, retain the old species.
+    if (!checkSpecies(speciesName, String("setIdentity"))) { // FezzedOne: If the new species doesn't exist, retain the old species.
       mergedIdentity = mergedIdentity.set("species", oldIdentity.getString("species"));
       speciesName = oldSpecies;
     }
-    if (!checkSpecies(imagePath, String("setIdentity")))
-    { // FezzedOne: If the new image path is invalid, retain the old image path.
+    if (!checkSpecies(imagePath, String("setIdentity"))) { // FezzedOne: If the new image path is invalid, retain the old image path.
       mergedIdentity = mergedIdentity.set("imagePath", oldIdentity.getString("imagePath"));
       imagePath = oldImagePath ? *oldImagePath : speciesName;
     }
@@ -2643,7 +2613,7 @@ void Player::addChatMessage(String const& message) {
 }
 
 // FezzedOne: Four-argument overload for use with a Lua callback. This actually deals with *chat bubbles*, by the way.
-void Player::addChatMessage(String const &message, Maybe<String> const &portrait, Maybe<EntityId> const &sourceEntityId, Maybe<Json> const &bubbleConfig) {
+void Player::addChatMessage(String const& message, Maybe<String> const& portrait, Maybe<EntityId> const& sourceEntityId, Maybe<Json> const& bubbleConfig) {
   starAssert(!isSlave());
   m_chatMessage = message;
   m_chatMessageUpdated = true;
@@ -2651,11 +2621,13 @@ void Player::addChatMessage(String const &message, Maybe<String> const &portrait
   if (portrait) {
     if (bubbleConfig) {
       String chatPrefix = "";
-      try { chatPrefix = bubbleConfig.get().getString("chatPrefix", ""); }
-      catch (JsonException) { chatPrefix = ""; }
+      try {
+        chatPrefix = bubbleConfig.get().getString("chatPrefix", "");
+      } catch (JsonException) { chatPrefix = ""; }
       String chatSuffix = "";
-      try { chatSuffix = bubbleConfig.get().getString("chatSuffix", ""); }
-      catch (JsonException) { chatSuffix = ""; }
+      try {
+        chatSuffix = bubbleConfig.get().getString("chatSuffix", "");
+      } catch (JsonException) { chatSuffix = ""; }
       String modifiedMessage = chatPrefix + message + chatSuffix;
       m_pendingChatActions.append(PortraitChatAction{sourceEntityId.value(entityId()), portrait.get(), modifiedMessage, mouthPosition(), *bubbleConfig});
     } else {
@@ -2664,11 +2636,13 @@ void Player::addChatMessage(String const &message, Maybe<String> const &portrait
   } else {
     if (bubbleConfig) {
       String chatPrefix = "";
-      try { chatPrefix = bubbleConfig.get().getString("chatPrefix", ""); }
-      catch (JsonException) { chatPrefix = ""; }
+      try {
+        chatPrefix = bubbleConfig.get().getString("chatPrefix", "");
+      } catch (JsonException) { chatPrefix = ""; }
       String chatSuffix = "";
-      try { chatSuffix = bubbleConfig.get().getString("chatSuffix", ""); }
-      catch (JsonException) { chatSuffix = ""; }
+      try {
+        chatSuffix = bubbleConfig.get().getString("chatSuffix", "");
+      } catch (JsonException) { chatSuffix = ""; }
       String modifiedMessage = chatPrefix + message + chatSuffix;
       m_pendingChatActions.append(SayChatAction{sourceEntityId.value(entityId()), modifiedMessage, mouthPosition(), *bubbleConfig});
     } else {
@@ -2677,7 +2651,7 @@ void Player::addChatMessage(String const &message, Maybe<String> const &portrait
   }
 }
 
-void Player::addChatMessageCallback(String const &message) {
+void Player::addChatMessageCallback(String const& message) {
   starAssert(!isSlave());
   m_chatMessage = message;
   m_chatMessageUpdated = true;
@@ -2697,11 +2671,13 @@ void Player::addChatMessageCallback(String const &message) {
   }
 
   String chatPrefix = "";
-  try { chatPrefix = m_chatBubbleConfig.getString("chatPrefix", ""); }
-  catch (JsonException) { chatPrefix = ""; }
+  try {
+    chatPrefix = m_chatBubbleConfig.getString("chatPrefix", "");
+  } catch (JsonException) { chatPrefix = ""; }
   String chatSuffix = "";
-  try { chatSuffix = m_chatBubbleConfig.getString("chatSuffix", ""); }
-  catch (JsonException) { chatSuffix = ""; }
+  try {
+    chatSuffix = m_chatBubbleConfig.getString("chatSuffix", "");
+  } catch (JsonException) { chatSuffix = ""; }
   String modifiedMessage = chatPrefix + message + chatSuffix;
 
   if (!skipChatBubble) {
@@ -2714,7 +2690,7 @@ void Player::addChatMessageCallback(String const &message) {
 }
 
 // FezzedOne: Sets the chat config.
-void Player::setChatBubbleConfig(Maybe<Json> const &bubbleConfig) {
+void Player::setChatBubbleConfig(Maybe<Json> const& bubbleConfig) {
   if (bubbleConfig) {
     JsonObject newBubbleConfig;
     bool isValid = true;
@@ -2785,15 +2761,13 @@ void Player::addEffectEmitters(StringSet const& emitters) {
 
 void Player::requestEmote(String const& emote) {
   auto state = HumanoidEmoteNames.getLeft(emote);
-  if (state != HumanoidEmote::Idle
-      && (m_emoteState == state || m_emoteState == HumanoidEmote::Idle || m_emoteState == HumanoidEmote::Blink))
+  if (state != HumanoidEmote::Idle && (m_emoteState == state || m_emoteState == HumanoidEmote::Idle || m_emoteState == HumanoidEmote::Blink))
     addEmote(state);
 }
 
 void Player::requestEmote(String const& emote, Maybe<float> cooldownTime) {
   auto state = HumanoidEmoteNames.getLeft(emote);
-  if (state != HumanoidEmote::Idle
-      && (m_emoteState == state || m_emoteState == HumanoidEmote::Idle || m_emoteState == HumanoidEmote::Blink))
+  if (state != HumanoidEmote::Idle && (m_emoteState == state || m_emoteState == HumanoidEmote::Idle || m_emoteState == HumanoidEmote::Blink))
     addEmote(state, cooldownTime);
 }
 
@@ -2838,46 +2812,45 @@ Json Player::diskStore() {
       genericScriptStorage[p.first] = std::move(scriptStorage);
   }
 
-/* FezzedOne: Save the player's `"xSbProperties"` to the file. */
+  /* FezzedOne: Save the player's `"xSbProperties"` to the file. */
   Json xSbProperties = JsonObject{
-    {"ignoreExternalWarps", m_ignoreExternalWarps},
-    {"ignoreExternalRadioMessages", m_ignoreExternalRadioMessages},
-    {"ignoreExternalCinematics", m_ignoreExternalCinematics},
-    {"ignoreAllPhysicsEntities", m_ignoreAllPhysicsEntities},
-    {"ignoreTechOverrides", m_ignoreAllTechOverrides},
-    {"ignoreNudity", m_ignoreForcedNudity},
-    {"damageTeamOverridden", m_damageTeamOverridden},
-    {"overreach", m_canReachAll},
-    {"inWorldRespawn", m_alwaysRespawnInWorld},
-    {"fastWarp", m_fastRespawn},
-    {"ignoreShipUpdates", m_ignoreShipUpdates},
-    {"ignoreItemPickups", m_ignoreItemPickups},
-    {"chatConfig", m_chatBubbleConfig}
-  };
+      {"ignoreExternalWarps", m_ignoreExternalWarps},
+      {"ignoreExternalRadioMessages", m_ignoreExternalRadioMessages},
+      {"ignoreExternalCinematics", m_ignoreExternalCinematics},
+      {"ignoreAllPhysicsEntities", m_ignoreAllPhysicsEntities},
+      {"ignoreTechOverrides", m_ignoreAllTechOverrides},
+      {"ignoreNudity", m_ignoreForcedNudity},
+      {"damageTeamOverridden", m_damageTeamOverridden},
+      {"overreach", m_canReachAll},
+      {"inWorldRespawn", m_alwaysRespawnInWorld},
+      {"fastWarp", m_fastRespawn},
+      {"ignoreShipUpdates", m_ignoreShipUpdates},
+      {"ignoreItemPickups", m_ignoreItemPickups},
+      {"chatConfig", m_chatBubbleConfig}};
 
   return JsonObject{
-    {"uuid", *uniqueId()},
-    {"xSbProperties", xSbProperties},
-    {"description", m_description},
-    {"modeType", PlayerModeNames.getRight(m_modeType)},
-    {"shipUpgrades", m_shipUpgrades.toJson()},
-    {"blueprints", m_blueprints->toJson()},
-    {"universeMap", m_universeMap->toJson()},
-    {"codexes", m_codexes->toJson()},
-    {"techs", m_techs->toJson()},
-    {"identity", m_identity.toJson()},
-    {"team", getTeam().toJson()},
-    {"inventory", m_inventory->store()},
-    {"movementController", m_movementController->storeState()},
-    {"techController", m_techController->diskStore()},
-    {"statusController", m_statusController->diskStore()},
-    {"log", m_log->toJson()},
-    {"aiState", m_aiState.toJson()},
-    {"quests", m_questManager->diskStore()},
-    {"companions", m_companions->diskStore()},
-    {"deployment", m_deployment->diskStore()},
-    {"genericProperties", m_genericProperties},
-    {"genericScriptStorage", genericScriptStorage},
+      {"uuid", *uniqueId()},
+      {"xSbProperties", xSbProperties},
+      {"description", m_description},
+      {"modeType", PlayerModeNames.getRight(m_modeType)},
+      {"shipUpgrades", m_shipUpgrades.toJson()},
+      {"blueprints", m_blueprints->toJson()},
+      {"universeMap", m_universeMap->toJson()},
+      {"codexes", m_codexes->toJson()},
+      {"techs", m_techs->toJson()},
+      {"identity", m_identity.toJson()},
+      {"team", getTeam().toJson()},
+      {"inventory", m_inventory->store()},
+      {"movementController", m_movementController->storeState()},
+      {"techController", m_techController->diskStore()},
+      {"statusController", m_statusController->diskStore()},
+      {"log", m_log->toJson()},
+      {"aiState", m_aiState.toJson()},
+      {"quests", m_questManager->diskStore()},
+      {"companions", m_companions->diskStore()},
+      {"deployment", m_deployment->diskStore()},
+      {"genericProperties", m_genericProperties},
+      {"genericScriptStorage", genericScriptStorage},
   };
 }
 
@@ -2921,8 +2894,8 @@ void Player::finalizeCreation() {
   m_effectEmitter->reset();
 
   m_description = strf("This {} seems to have nothing to say for {}self.",
-    m_identity.gender == Gender::Male ? "guy" : "gal",
-    m_identity.gender == Gender::Male ? "him" : "her");
+      m_identity.gender == Gender::Male ? "guy" : "gal",
+      m_identity.gender == Gender::Male ? "him" : "her");
 }
 
 bool Player::invisible() const {
@@ -2944,8 +2917,7 @@ void Player::animatePortrait(float dt) {
 bool Player::isOutside() {
   if (!inWorld())
     return false;
-  return !world()->isUnderground(position())
-      && !world()->tileIsOccupied(Vec2I::floor(mouthPosition()), TileLayer::Background);
+  return !world()->isUnderground(position()) && !world()->tileIsOccupied(Vec2I::floor(mouthPosition()), TileLayer::Background);
 }
 
 void Player::dropSelectedItems(function<bool(ItemPtr)> filter) {
@@ -2953,9 +2925,9 @@ void Player::dropSelectedItems(function<bool(ItemPtr)> filter) {
     return;
 
   m_inventory->forEveryItem([&](InventorySlot const&, ItemPtr& item) {
-      if (item && (!filter || filter(item)))
-        world()->addEntity(ItemDrop::throwDrop(take(item), position(), velocity(), Vec2F::withAngle(Random::randf(-Constants::pi, Constants::pi)), true));
-    });
+    if (item && (!filter || filter(item)))
+      world()->addEntity(ItemDrop::throwDrop(take(item), position(), velocity(), Vec2F::withAngle(Random::randf(-Constants::pi, Constants::pi)), true));
+  });
 }
 
 void Player::dropEverything() {
@@ -3076,152 +3048,127 @@ void Player::setPendingWarp(String const& action, Maybe<String> const& animation
 }
 
 // FezzedOne: Function to toggle ignoring external warp requests.
-void Player::setExternalWarpsIgnored(bool ignored)
-{
+void Player::setExternalWarpsIgnored(bool ignored) {
   m_ignoreExternalWarps = ignored;
 }
 
 // FezzedOne: Function to toggle ignoring external radio messages.
-void Player::setExternalRadioMessagesIgnored(bool ignored)
-{
+void Player::setExternalRadioMessagesIgnored(bool ignored) {
   m_ignoreExternalRadioMessages = ignored;
 }
 
 // FezzedOne: Function to toggle ignoring external cinematics.
-void Player::setExternalCinematicsIgnored(bool ignored)
-{
+void Player::setExternalCinematicsIgnored(bool ignored) {
   m_ignoreExternalCinematics = ignored;
 }
 
 // FezzedOne: Function to toggle ignoring all physics entities.
-void Player::setPhysicsEntitiesIgnored(bool ignored)
-{
+void Player::setPhysicsEntitiesIgnored(bool ignored) {
   m_ignoreAllPhysicsEntities = ignored;
   m_movementController->tickIgnorePhysicsEntities(m_ignoreAllPhysicsEntities);
 }
 
 // FezzedOne: Function to toggle ignoring `"nude"` stats.
-void Player::setForcedNudityIgnored(bool ignored)
-{
+void Player::setForcedNudityIgnored(bool ignored) {
   m_ignoreForcedNudity = ignored;
 }
 
 // FezzedOne: Function to toggle ignoring tech overrides.
-void Player::setTechOverridesIgnored(bool ignored)
-{
+void Player::setTechOverridesIgnored(bool ignored) {
   m_ignoreAllTechOverrides = ignored;
 }
 
 // FezzedOne: Function to toggle universal entity interaction.
-void Player::setCanReachAll(bool newSetting)
-{
+void Player::setCanReachAll(bool newSetting) {
   m_canReachAll = newSetting;
 }
 
 // FezzedOne: Function to toggle fast respawning and warping.
-void Player::setFastRespawn(bool newSetting)
-{
+void Player::setFastRespawn(bool newSetting) {
   m_fastRespawn = newSetting;
 }
 
 // FezzedOne: Function to toggle fast respawning and warping.
-void Player::setAlwaysRespawnInWorld(bool newSetting)
-{
+void Player::setAlwaysRespawnInWorld(bool newSetting) {
   m_alwaysRespawnInWorld = newSetting;
 }
 
 // FezzedOne: Function to toggle ship protection.
-void Player::setIgnoreShipUpdates(bool ignore)
-{
+void Player::setIgnoreShipUpdates(bool ignore) {
   m_ignoreShipUpdates = ignore;
 }
 
 // FezzedOne: Function to toggle ship protection.
-void Player::setIgnoreItemPickups(bool ignore)
-{
+void Player::setIgnoreItemPickups(bool ignore) {
   m_ignoreItemPickups = ignore;
 }
 
 // FezzedOne: Function to get whether external warp requests are ignored.
-bool Player::externalWarpsIgnored() const
-{
+bool Player::externalWarpsIgnored() const {
   return m_ignoreExternalWarps;
 }
 
 // FezzedOne: Function to get whether external radio messages are ignored.
-bool Player::externalRadioMessagesIgnored() const
-{
+bool Player::externalRadioMessagesIgnored() const {
   return m_ignoreExternalRadioMessages;
 }
 
 // FezzedOne: Function to get whether external cinematics are ignored.
-bool Player::externalCinematicsIgnored() const
-{
+bool Player::externalCinematicsIgnored() const {
   return m_ignoreExternalCinematics;
 }
 
 // FezzedOne: Function to get whether all physics entities are ignored.
-bool Player::physicsEntitiesIgnored() const
-{
+bool Player::physicsEntitiesIgnored() const {
   return m_ignoreAllPhysicsEntities;
 }
 
 // FezzedOne: Function to get whether all physics entities are ignored.
-bool Player::forcedNudityIgnored() const
-{
+bool Player::forcedNudityIgnored() const {
   return m_ignoreForcedNudity;
 }
 
 // FezzedOne: Function to get whether the player is set to respawn quickly and with no animation.
-bool Player::fastRespawn() const
-{
+bool Player::fastRespawn() const {
   return m_fastRespawn;
 }
 
 // FezzedOne: Function to get whether the player is set to always respawn in the world he or she died in.
-bool Player::alwaysRespawnInWorld() const
-{
+bool Player::alwaysRespawnInWorld() const {
   return m_alwaysRespawnInWorld;
 }
 
 // FezzedOne: Function to get whether the player's shipworld is ignoring updates.
-bool Player::shipUpdatesIgnored() const
-{
+bool Player::shipUpdatesIgnored() const {
   return m_ignoreShipUpdates;
 }
 
 // FezzedOne: Function to get whether the player is ignoring item pickups (like Terraria's Encumbering Stone).
-bool Player::ignoreItemPickups() const
-{
+bool Player::ignoreItemPickups() const {
   return m_ignoreItemPickups;
 }
 
 // FezzedOne: Function to get whether the player is ignoring world tech overrides.
-bool Player::ignoreAllTechOverrides() const
-{
+bool Player::ignoreAllTechOverrides() const {
   return m_ignoreAllTechOverrides;
 }
 
 // FezzedOne: Function to get whether the player is ignoring world tech overrides.
-bool Player::canReachAll() const
-{
+bool Player::canReachAll() const {
   return m_canReachAll;
 }
 
 // FezzedOne: Interface to check whether the player's damage team was overridden.
-bool Player::damageTeamOverridden() const
-{
+bool Player::damageTeamOverridden() const {
   return m_damageTeamOverridden;
 }
 
-void Player::setDamageTeam(EntityDamageTeam newTeam)
-{
+void Player::setDamageTeam(EntityDamageTeam newTeam) {
   m_damageTeamOverridden = true;
   setTeam(newTeam);
 }
 
-void Player::setDamageTeam()
-{
+void Player::setDamageTeam() {
   m_damageTeamOverridden = false;
 }
 
@@ -3236,8 +3183,7 @@ void Player::setToolUsageSuppressed(Maybe<bool> suppressed) {
 }
 
 // FezzedOne: Sets the player's humanoid override state. Resets every tick.
-void Player::setOverrideState(Maybe<Humanoid::State> overrideState)
-{
+void Player::setOverrideState(Maybe<Humanoid::State> overrideState) {
   m_overrideState = overrideState;
 }
 
@@ -3333,8 +3279,7 @@ Maybe<StringView> Player::getSecretPropertyView(String const& name) const {
         if (pos + len == buffer.size())
           return StringView(buffer.ptr() + pos, len);
       }
-    }
-    catch (StarException const& e) {}
+    } catch (StarException const& e) {}
   }
 
   return {};
@@ -3343,10 +3288,9 @@ Maybe<StringView> Player::getSecretPropertyView(String const& name) const {
 Json Player::getSecretProperty(String const& name, Json defaultValue) const {
   if (auto tag = m_effectsAnimator->globalTagPtr(secretProprefix + name)) {
     DataStreamExternalBuffer buffer(tag->utf8Ptr(), tag->utf8Size());
-    try
-      { return buffer.read<Json>(); }
-    catch (StarException const& e)
-      { Logger::error("Exception reading secret player property '{}': {}", name, e.what()); }
+    try {
+      return buffer.read<Json>();
+    } catch (StarException const& e) { Logger::error("Exception reading secret player property '{}': {}", name, e.what()); }
   }
 
   return std::move(defaultValue);
@@ -3358,10 +3302,9 @@ void Player::setSecretProperty(String const& name, Json const& value) {
     ds.write(value);
     auto& data = ds.data();
     m_effectsAnimator->setGlobalTag(secretProprefix + name, String(data.ptr(), data.size()));
-  }
-  else
+  } else
     m_effectsAnimator->removeGlobalTag(secretProprefix + name);
 }
 
 
-}
+} // namespace Star

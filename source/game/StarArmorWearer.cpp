@@ -11,6 +11,7 @@
 #include "StarObject.hpp"
 #include "StarObjectDatabase.hpp"
 #include "StarObjectItem.hpp"
+#include "StarPlayerInventory.hpp"
 #include "StarRoot.hpp"
 #include "StarTools.hpp"
 #include "StarWorld.hpp"
@@ -43,7 +44,8 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   bool legsNeedsSync = nudeChanged || m_legsNeedsSync;
   bool backNeedsSync = nudeChanged || m_backNeedsSync;
 
-  if (headNeedsSync || chestNeedsSync || legsNeedsSync || backNeedsSync)
+  bool anyNeedsSync = headNeedsSync || chestNeedsSync || legsNeedsSync || backNeedsSync;
+  if (anyNeedsSync)
     netElementsNeedLoad(true);
 
   bool bodyHidden = false;
@@ -56,7 +58,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   };
 
   if (m_headCosmeticItem && !forceNude) {
-    if (headNeedsSync) {
+    if (anyNeedsSync) {
       humanoid.setHeadArmorFrameset(m_headCosmeticItem->frameset(humanoid.identity().gender));
       humanoid.setHeadArmorDirectives(m_headCosmeticItem->directives());
       humanoid.setHelmetMaskDirectives(m_headCosmeticItem->maskDirectives());
@@ -76,7 +78,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       humanoid.setHeadArmorStack(headArmorStack);
     }
     if (m_headItem) {
-      if (headNeedsSync) {
+      if (anyNeedsSync) {
         if (m_headItem->isUnderlaid()) {
           humanoid.setHeadArmorUnderlayFrameset(m_headItem->frameset(humanoid.identity().gender));
           humanoid.setHeadArmorUnderlayDirectives(m_headItem->directives());
@@ -103,7 +105,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       }
       bodyHidden = bodyHidden || (m_headItem->isUnderlaid() && m_headItem->hideBody());
     } else {
-      if (headNeedsSync) {
+      if (anyNeedsSync) {
         humanoid.setHeadArmorUnderlayFrameset("");
         humanoid.setHelmetMaskUnderlayDirectives("");
         humanoid.setHeadArmorUnderlayStack({});
@@ -111,7 +113,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
     bodyHidden = bodyHidden || m_headCosmeticItem->hideBody();
   } else if (m_headItem && !forceNude) {
-    if (headNeedsSync) {
+    if (anyNeedsSync) {
       humanoid.setHeadArmorFrameset(m_headItem->frameset(humanoid.identity().gender));
       humanoid.setHeadArmorDirectives(m_headItem->directives());
       humanoid.setHelmetMaskDirectives(m_headItem->maskDirectives());
@@ -135,7 +137,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
     bodyHidden = bodyHidden || m_headItem->hideBody();
   } else {
-    if (headNeedsSync) {
+    if (anyNeedsSync) {
       humanoid.setHeadArmorFrameset("");
       humanoid.setHelmetMaskDirectives("");
       humanoid.setHeadArmorUnderlayFrameset("");
@@ -146,7 +148,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   }
 
   if (m_chestCosmeticItem && !forceNude) {
-    if (chestNeedsSync) {
+    if (anyNeedsSync) {
       humanoid.setBackSleeveFrameset(m_chestCosmeticItem->backSleeveFrameset(humanoid.identity().gender));
       humanoid.setFrontSleeveFrameset(m_chestCosmeticItem->frontSleeveFrameset(humanoid.identity().gender));
       humanoid.setChestArmorFrameset(m_chestCosmeticItem->bodyFrameset(humanoid.identity().gender));
@@ -177,7 +179,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       humanoid.setBackSleeveStack(backSleeveStack);
     }
     if (m_chestItem) {
-      if (chestNeedsSync) {
+      if (anyNeedsSync) {
         if (m_chestItem->isUnderlaid()) {
           humanoid.setBackSleeveUnderlayFrameset(m_chestItem->backSleeveFrameset(humanoid.identity().gender));
           humanoid.setFrontSleeveUnderlayFrameset(m_chestItem->frontSleeveFrameset(humanoid.identity().gender));
@@ -218,7 +220,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       }
       bodyHidden = bodyHidden || (m_chestItem->isUnderlaid() && m_chestItem->hideBody());
     } else {
-      if (chestNeedsSync) {
+      if (anyNeedsSync) {
         humanoid.setBackSleeveUnderlayFrameset("");
         humanoid.setFrontSleeveUnderlayFrameset("");
         humanoid.setChestArmorUnderlayFrameset("");
@@ -229,7 +231,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
     bodyHidden = bodyHidden || m_chestCosmeticItem->hideBody();
   } else if (m_chestItem && !forceNude) {
-    if (chestNeedsSync) {
+    if (anyNeedsSync) {
       humanoid.setBackSleeveFrameset(m_chestItem->backSleeveFrameset(humanoid.identity().gender));
       humanoid.setFrontSleeveFrameset(m_chestItem->frontSleeveFrameset(humanoid.identity().gender));
       humanoid.setChestArmorFrameset(m_chestItem->bodyFrameset(humanoid.identity().gender));
@@ -267,7 +269,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
     bodyHidden = bodyHidden || m_chestItem->hideBody();
   } else {
-    if (chestNeedsSync) {
+    if (anyNeedsSync) {
       humanoid.setBackSleeveFrameset("");
       humanoid.setFrontSleeveFrameset("");
       humanoid.setChestArmorFrameset("");
@@ -284,7 +286,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   }
 
   if (m_legsCosmeticItem && !forceNude) {
-    if (legsNeedsSync) {
+    if (anyNeedsSync) {
       humanoid.setLegsArmorFrameset(m_legsCosmeticItem->frameset(humanoid.identity().gender));
       humanoid.setLegsArmorDirectives(m_legsCosmeticItem->directives());
       mergeHumanoidConfig(as<ArmorItem>(m_legsCosmeticItem));
@@ -303,7 +305,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       humanoid.setLegsArmorStack(legsArmorStack);
     }
     if (m_legsItem) {
-      if (legsNeedsSync) {
+      if (anyNeedsSync) {
         if (m_legsItem->isUnderlaid()) {
           humanoid.setLegsArmorUnderlayFrameset(m_legsItem->frameset(humanoid.identity().gender));
           humanoid.setLegsArmorUnderlayDirectives(m_legsItem->directives());
@@ -328,14 +330,14 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       }
       bodyHidden = bodyHidden || (m_legsItem->isUnderlaid() && m_legsItem->hideBody());
     } else {
-      if (legsNeedsSync) {
+      if (anyNeedsSync) {
         humanoid.setLegsArmorUnderlayFrameset("");
         humanoid.setLegsArmorUnderlayStack({});
       }
     }
     bodyHidden = bodyHidden || m_legsCosmeticItem->hideBody();
   } else if (m_legsItem && !forceNude) {
-    if (legsNeedsSync) {
+    if (anyNeedsSync) {
       humanoid.setLegsArmorFrameset(m_legsItem->frameset(humanoid.identity().gender));
       humanoid.setLegsArmorDirectives(m_legsItem->directives());
       mergeHumanoidConfig(as<ArmorItem>(m_legsItem));
@@ -357,7 +359,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
     bodyHidden = bodyHidden || m_legsItem->hideBody();
   } else {
-    if (legsNeedsSync) {
+    if (anyNeedsSync) {
       humanoid.setLegsArmorFrameset("");
       humanoid.setLegsArmorUnderlayFrameset("");
       humanoid.setLegsArmorStack({});
@@ -366,7 +368,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   }
 
   if (m_backCosmeticItem && !forceNude) {
-    if (backNeedsSync) {
+    if (anyNeedsSync) {
       humanoid.setBackArmorFrameset(m_backCosmeticItem->frameset(humanoid.identity().gender));
       humanoid.setBackArmorDirectives(m_backCosmeticItem->directives());
       humanoid.setBackArmorHeadRotation(m_backCosmeticItem->rotateWithHead());
@@ -387,7 +389,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       humanoid.setBackArmorStack(backArmorStack);
     }
     if (m_backItem) {
-      if (backNeedsSync) {
+      if (anyNeedsSync) {
         if (m_backItem->isUnderlaid()) {
           humanoid.setBackArmorUnderlayFrameset(m_backItem->frameset(humanoid.identity().gender));
           humanoid.setBackArmorUnderlayDirectives(m_backItem->directives());
@@ -414,14 +416,14 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       }
       bodyHidden = bodyHidden || (m_backItem->isUnderlaid() && m_backItem->hideBody());
     } else {
-      if (backNeedsSync) {
+      if (anyNeedsSync) {
         humanoid.setBackArmorUnderlayFrameset("");
         humanoid.setBackArmorUnderlayStack({});
       }
     }
     bodyHidden = bodyHidden || m_backCosmeticItem->hideBody();
   } else if (m_backItem && !forceNude) {
-    if (backNeedsSync) {
+    if (anyNeedsSync) {
       humanoid.setBackArmorFrameset(m_backItem->frameset(humanoid.identity().gender));
       humanoid.setBackArmorDirectives(m_backItem->directives());
       humanoid.setBackArmorHeadRotation(m_backItem->rotateWithHead());
@@ -446,7 +448,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
     bodyHidden = bodyHidden || m_backItem->hideBody();
   } else {
-    if (backNeedsSync) {
+    if (anyNeedsSync) {
       humanoid.setBackArmorFrameset("");
       humanoid.setBackArmorHeadRotation(false);
       humanoid.setBackArmorUnderlayFrameset("");
@@ -456,7 +458,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
   }
 
-  if (headNeedsSync || chestNeedsSync || legsNeedsSync || backNeedsSync)
+  if (anyNeedsSync)
     humanoid.updateHumanoidConfigOverrides(humanoidOverrides);
 
   m_headNeedsSync = m_chestNeedsSync = m_legsNeedsSync = m_backNeedsSync = false;
