@@ -1,28 +1,27 @@
 #include "StarString.hpp"
-#include "StarStringView.hpp"
 #include "StarBytes.hpp"
 #include "StarFormat.hpp"
+#include "StarStringView.hpp"
 
 #include <cctype>
-#ifdef STAR_COMPILER_GNU
-  #ifdef STAR_SYSTEM_FAMILY_UNIX
-    #include <regex.h>
-  #else
-    #include <regex>
-  #endif
+#if defined STAR_COMPILER_GNU || STAR_COMPILER_CLANG
+#ifdef STAR_SYSTEM_FAMILY_UNIX
+#include <regex.h>
 #else
-  #include <regex>
+#include <regex>
+#endif
+#else
+#include <regex>
 #endif
 
 namespace Star {
 
 bool String::isSpace(Char c) {
-  return
-    c == 0x20 || // space
-    c == 0x09 || // horizontal tab
-    c == 0x0a || // newline
-    c == 0x0d || // carriage return
-    c == 0xfeff; // BOM or ZWNBSP
+  return c == 0x20 || // space
+         c == 0x09 || // horizontal tab
+         c == 0x0a || // newline
+         c == 0x0d || // carriage return
+         c == 0xfeff; // BOM or ZWNBSP
 }
 
 bool String::isAsciiNumber(Char c) {
@@ -721,9 +720,9 @@ bool String::contains(String const& s, CaseSensitivity cs) const {
 }
 
 bool String::regexMatch(String const& regex, bool full, bool caseSensitive) const {
-#ifdef STAR_COMPILER_GNU
-  #ifdef STAR_SYSTEM_FAMILY_UNIX
-  String adjustedRegex = full ? ("^" + regex + "$") : regex; // FezzedOne: Looks slightly hacky, but doubled `^` and `$` modifiers are ignored in POSIX regexes.
+#if defined STAR_COMPILER_GNU || STAR_COMPILER_CLANG
+#ifdef STAR_SYSTEM_FAMILY_UNIX
+  String adjustedRegex = full ? ("^" + regex + "$") : regex;   // FezzedOne: Looks slightly hacky, but doubled `^` and `$` modifiers are ignored in POSIX regexes.
   adjustedRegex = adjustedRegex.replace("\\d", "[[:digit:]]"); // FezzedOne: Another hack because the vanilla assets require support for `\d`.
 
   regex_t cmpRegex;
@@ -731,7 +730,8 @@ bool String::regexMatch(String const& regex, bool full, bool caseSensitive) cons
 
   // Parse the regex.
   if (caseSensitive) value = regcomp(&cmpRegex, adjustedRegex.utf8().c_str(), REG_EXTENDED);
-  else value = regcomp(&cmpRegex, adjustedRegex.utf8().c_str(), REG_EXTENDED | REG_ICASE);
+  else
+    value = regcomp(&cmpRegex, adjustedRegex.utf8().c_str(), REG_EXTENDED | REG_ICASE);
   if (value) {
     // We've run into an error.
     size_t errorLen = regerror(value, &cmpRegex, NULL, 0);
@@ -742,10 +742,10 @@ bool String::regexMatch(String const& regex, bool full, bool caseSensitive) cons
     delete[] error;
     if (full)
       throw StringException(strf("error handling regex '{}' (adjusted to '{}') in String::regexMatch: {}",
-        regex, adjustedRegex, String(errorStr)));
+          regex, adjustedRegex, String(errorStr)));
     else
       throw StringException(strf("error handling regex '{}' in String::regexMatch: {}",
-        regex, String(errorStr)));
+          regex, String(errorStr)));
   }
 
   // Execute the regex.
@@ -754,14 +754,15 @@ bool String::regexMatch(String const& regex, bool full, bool caseSensitive) cons
   // Finish up.
   regfree(&cmpRegex);
   if (value == 0) return true;
-  else if (value == REG_NOMATCH) return false;
+  else if (value == REG_NOMATCH)
+    return false;
   else {
     if (full)
       throw StringException(strf("unknown error handling regex '{}' (adjusted to '{}') in String::regexMatch", adjustedRegex, regex));
     else
       throw StringException(strf("unknown error handling regex '{}' in String::regexMatch", regex));
   }
-  #else
+#else
   if (full) {
     if (caseSensitive)
       return std::regex_match(utf8(), std::regex(regex.utf8()));
@@ -773,7 +774,7 @@ bool String::regexMatch(String const& regex, bool full, bool caseSensitive) cons
     else
       return std::regex_search(utf8(), std::regex(regex.utf8(), std::regex::icase));
   }
-  #endif
+#endif
 #else
   if (full) {
     if (caseSensitive)
@@ -1198,7 +1199,7 @@ size_t hash<StringList>::operator()(StringList const& sl) const {
   return h;
 }
 
-}
+} // namespace Star
 
 fmt::appender fmt::formatter<Star::String>::format(Star::String const& s, format_context& ctx) const {
   return formatter<std::string>::format(s.utf8(), ctx);
