@@ -283,6 +283,7 @@ add_library(soup STATIC
   LangDesc.cpp
   LexemeParser.cpp
   log.cpp
+  memAllocator.cpp
   MimeMessage.cpp
   Mixed.cpp
   netConfig.cpp
