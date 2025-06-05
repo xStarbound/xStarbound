@@ -1,6 +1,7 @@
 add_library(soup STATIC
   adler32.hpp
   aes.hpp
+  aes_intrin.hpp
   alloc.hpp
   Asn1Element.hpp
   Asn1Identifier.hpp
@@ -34,6 +35,8 @@ add_library(soup STATIC
   ConstString.hpp
   CpuInfo.hpp
   crc32.hpp
+  crc32_intrin.hpp
+  crc32c.hpp
   CryptoHashAlgo.hpp
   Curve25519.hpp
   DefaultRngInterface.hpp
@@ -94,6 +97,8 @@ add_library(soup STATIC
   macros.hpp
   math.hpp
   memory.hpp
+  memAllocator.cpp
+  memCAllocator.cpp
   MemoryRefReader.hpp
   MimeMessage.hpp
   MimeType.hpp
@@ -101,6 +106,7 @@ add_library(soup STATIC
   NamedCurves.hpp
   netConfig.hpp
   netConnectTask.hpp
+  netReuseTag.hpp
   netStatus.hpp
   ObfusString.hpp
   Oid.hpp
@@ -152,6 +158,7 @@ add_library(soup STATIC
   RegexTransitionsVector.hpp
   RegexWordBoundaryConstraint.hpp
   RegexWordCharConstraint.hpp
+  ResolveIpAddrTask.hpp
   ReuseTag.hpp
   rflFunc.hpp
   rflMember.hpp
@@ -170,7 +177,9 @@ add_library(soup STATIC
   ServerService.hpp
   ServerServiceUdp.hpp
   sha1.hpp
+  sha1_intrin.hpp
   sha256.hpp
+  sha256_intrin.hpp
   sha384.hpp
   sha512.hpp
   SharedLibrary.hpp
@@ -243,6 +252,7 @@ add_library(soup STATIC
   cat.cpp
   CpuInfo.cpp
   crc32.cpp
+  crc32c.cpp
   Curve25519.cpp
   DefaultRngInterface.cpp
   deflate.cpp
@@ -291,6 +301,7 @@ add_library(soup STATIC
   Reader.cpp
   Regex.cpp
   RegexGroup.cpp
+  ResolveIpAddrTask.cpp
   rflParser.cpp
   Rgb.cpp
   ripemd160.cpp
@@ -304,6 +315,7 @@ add_library(soup STATIC
   sha512.cpp
   SharedLibrary.cpp
   Socket.cpp
+  SocketAddr.cpp
   SocketTlsEncrypter.cpp
   SocketTlsHandshaker.cpp
   spaceship.cpp

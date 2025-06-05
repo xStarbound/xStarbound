@@ -37,6 +37,7 @@ add_library(pluto
   lbase64.cpp
   lbaselib.cpp
   lbigint.cpp
+  lbufferlib.cpp
   lcanvas.cpp
   lcatlib.cpp
   lcode.cpp

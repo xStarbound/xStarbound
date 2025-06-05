@@ -401,7 +401,8 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   loadBaseLibrary(self->m_state, "vector3", luaopen_vector3);
   loadBaseLibrary(self->m_state, "base32", luaopen_base32);
   loadBaseLibrary(self->m_state, "base64", luaopen_base64);
-  lua_pop(self->m_state, 18);
+  loadBaseLibrary(self->m_state, "buffer", luaopen_buffer);
+  lua_pop(self->m_state, 19);
 
   if (!safe) { // FezzedOne: Dangerous stuff, this.
     loadBaseLibrary(self->m_state, "io", luaopen_io);
