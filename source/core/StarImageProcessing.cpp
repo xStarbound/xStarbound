@@ -1,11 +1,11 @@
 #include "StarImageProcessing.hpp"
-#include "StarMatrix3.hpp"
+#include "StarColor.hpp"
+#include "StarEncode.hpp"
+#include "StarImage.hpp"
 #include "StarInterpolation.hpp"
 #include "StarLexicalCast.hpp"
-#include "StarColor.hpp"
-#include "StarImage.hpp"
+#include "StarMatrix3.hpp"
 #include "StarStringView.hpp"
-#include "StarEncode.hpp"
 //#include "StarTime.hpp"
 #include "StarLogging.hpp"
 
@@ -41,20 +41,20 @@ Image scaleNearest(Image const& srcImage, Vec2F scale) {
 }
 
 #if defined STAR_COMPILER_MSVC
-  // FezzedOne: Needed to use `/fp:strict` for this function on MSVC and disable `-ffast-math` on recent versions of Clang.
-  #pragma float_control(precise, on)  // enable precise semantics
-  #pragma fenv_access(on)             // enable environment sensitivity
-  #pragma float_control(except, on)   // enable exception semantics
+// FezzedOne: Needed to use `/fp:strict` for this function on MSVC and disable `-ffast-math` on recent versions of Clang.
+#pragma float_control(precise, on) // enable precise semantics
+#pragma fenv_access(on)            // enable environment sensitivity
+#pragma float_control(except, on)  // enable exception semantics
 #elif defined STAR_COMPILER_CLANG
-  // #pragma clang optimize off
+// #pragma clang optimize off
 #elif false // defined STAR_COMPILER_GNU
-  // FezzedOne: Emulate MSVC's floating-point behaviour on GCC.
-  #pragma GCC optimize("O2")
+// FezzedOne: Emulate MSVC's floating-point behaviour on GCC.
+#pragma GCC optimize("O2")
 #endif
 Image scaleBilinear(Image const& srcImage, Vec2F scale) {
-  #if defined STAR_COMPILER_CLANG
-    #pragma clang fp reassociate(off) contract(on) reciprocal(off) exceptions(strict)
-  #endif
+#if defined STAR_COMPILER_CLANG
+#pragma clang fp reassociate(off) contract(on) reciprocal(off) exceptions(strict)
+#endif
   if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
     if ((scale[0] < 0.0f || scale[1] < 0.0f)) {
@@ -111,23 +111,20 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
           //   lerp(fpart[0],
           //     Vec4F(srcImage.clamp(ipart[0], ipart[1])),
           //     Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1]))
-          //   ), 
-          //   lerp(fpart[0], 
+          //   ),
+          //   lerp(fpart[0],
           //     Vec4F(srcImage.clamp(ipart[0], ipart[1] + 1)),
           //     Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 1))
           //   )
           // );
 
           Vec4F result = inlineLerp(fpart[1],
-            inlineLerp(fpart[0],
-              Vec4F(srcImage.clamp(ipart[0], ipart[1])),
-              Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1]))
-            ), 
-            inlineLerp(fpart[0],
-              Vec4F(srcImage.clamp(ipart[0], ipart[1] + 1)),
-              Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 1))
-            )
-          );
+              inlineLerp(fpart[0],
+                  Vec4F(srcImage.clamp(ipart[0], ipart[1])),
+                  Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1]))),
+              inlineLerp(fpart[0],
+                  Vec4F(srcImage.clamp(ipart[0], ipart[1] + 1)),
+                  Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 1))));
 
           // Vec4F left    = inlineLerp(fpart[1], topLeft,   bottomLeft);
           // Vec4F right   = inlineLerp(fpart[1], topRight,  bottomRight);
@@ -137,7 +134,7 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
           // Vec4F bottom  = inlineLerp(fpart[0], bottomLeft,  bottomRight);
           // Vec4F result  = inlineLerp(fpart[1], top,         bottom);
 
-          processedResult = Vec4B(Vec4F::floor(result));
+          processedResult = Vec4B(result);
         }
 
         destImage.set({x, y}, processedResult);
@@ -150,15 +147,15 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
   }
 }
 #if defined STAR_COMPILER_MSVC
-  // FezzedOne: Reset everything back to the default MSVC options for the build.
-  #pragma float_control(except, off)  // disable exception semantics
-  #pragma fenv_access(off)            // disable environment sensitivity
-  #pragma float_control(precise, off) // disable precise semantics
+// FezzedOne: Reset everything back to the default MSVC options for the build.
+#pragma float_control(except, off)  // disable exception semantics
+#pragma fenv_access(off)            // disable environment sensitivity
+#pragma float_control(precise, off) // disable precise semantics
 #elif defined STAR_COMPILER_CLANG
-  // #pragma clang optimize on
+// #pragma clang optimize on
 #elif false // defined STAR_COMPILER_GNU
-  // FezzedOne: Reset to whatever MinGW GCC options were specified in CMakeLists.txt.
-  #pragma GCC reset_options
+// FezzedOne: Reset to whatever MinGW GCC options were specified in CMakeLists.txt.
+#pragma GCC reset_options
 #endif
 
 Image scaleBicubic(Image const& srcImage, Vec2F scale) {
@@ -213,11 +210,10 @@ Image scaleBicubic(Image const& srcImage, Vec2F scale) {
         auto result = cubic4(fpart[1], a, b, c, d);
 
         destImage.set({x, y}, Vec4B(
-            clamp(result[0], 0.0f, 255.0f),
-            clamp(result[1], 0.0f, 255.0f),
-            clamp(result[2], 0.0f, 255.0f),
-            clamp(result[3], 0.0f, 255.0f)
-          ));
+                                  clamp(result[0], 0.0f, 255.0f),
+                                  clamp(result[1], 0.0f, 255.0f),
+                                  clamp(result[2], 0.0f, 255.0f),
+                                  clamp(result[3], 0.0f, 255.0f)));
       }
     }
 
@@ -287,79 +283,75 @@ ImageOperation imageOperationFromString(StringView string) {
       ColorReplaceImageOperation operation; // The operation to be returned.
 
       std::string_view bits = view.substr(firstBitEnd + 1); // The part of the string containing all the hex colour directives.
-      operation.colorReplaceMap.reserve(bits.size() / 8); // Reserving enough space for the result.
+      operation.colorReplaceMap.reserve(bits.size() / 8);   // Reserving enough space for the result.
 
       char const* hexPtr = nullptr; // Pointer to the current hex color string.
-      unsigned int hexLen = 0; // Length of the current hex color string.
+      unsigned int hexLen = 0;      // Length of the current hex color string.
 
-      char const* ptr = bits.data(); // Pointer to the current byte of the bits string.
+      char const* ptr = bits.data();       // Pointer to the current byte of the bits string.
       char const* end = ptr + bits.size(); // Pointer to the end of the bits string.
 
       char a[5]{}, b[4]{}; // `a` and `b` are the hex color strings being parsed. Hack: `a` has an extra byte for storing whether this colour was subject to any substitution hacks below.
-      bool which = true; // `which` is whether we are currently parsing `a` (`true`) or `b` (`false`).
+      bool which = true;   // `which` is whether we are currently parsing `a` (`true`) or `b` (`false`).
 
-      while (true) { // Loop through each byte of the bits string.
+      while (true) {    // Loop through each byte of the bits string.
         char ch = *ptr; // Get the current byte as a char.
 
         if (ch == '=' || ch == ';' || ptr == end) { // If we reached the end of a hex color directive or the end of the bits string,
-          if (hexLen != 0) { // If we have a complete hex color directive,
-            char* c = which ? a : b; // Get the correct array to store the color in.
+          if (hexLen != 0) {                        // If we have a complete hex color directive,
+            char* c = which ? a : b;                // Get the correct array to store the color in.
 
-            if (hexLen == 3) { // If the hex color string is 3 characters long, it's an `RGB` hex string, so expand it to 6 by doubling each character, then to 8 by adding an alpha of `ff` (fully opaque).
+            if (hexLen == 3) {               // If the hex color string is 3 characters long, it's an `RGB` hex string, so expand it to 6 by doubling each character, then to 8 by adding an alpha of `ff` (fully opaque).
               nibbleDecode(hexPtr, 3, c, 4); // Decodes into {0x0H, 0x0H, 0x0H, 0x00}, where H is each hex character in order.
-              c[0] |= (c[0] << 4); // Red. Shift the least significant bits left by 4 bits, copying them into the empty most significant 4 bits.
-              c[1] |= (c[1] << 4); // Blue. Ditto.
-              c[2] |= (c[2] << 4); // Green. Ditto.
-              c[3] = 255; // Add an alpha of `ff` (fully opaque).
-              if (which) c[4] = 0; // Substitution hack marker.
-            }
-            else if (hexLen == 4) { // If the hex color string is 4 characters long, it's an `RGBA` hex string, so expand it to 8 by doubling each character.
+              c[0] |= (c[0] << 4);           // Red. Shift the least significant bits left by 4 bits, copying them into the empty most significant 4 bits.
+              c[1] |= (c[1] << 4);           // Blue. Ditto.
+              c[2] |= (c[2] << 4);           // Green. Ditto.
+              c[3] = 255;                    // Add an alpha of `ff` (fully opaque).
+              if (which) c[4] = 0;           // Substitution hack marker.
+            } else if (hexLen == 4) {        // If the hex color string is 4 characters long, it's an `RGBA` hex string, so expand it to 8 by doubling each character.
               nibbleDecode(hexPtr, 4, c, 4); // Decodes into {0x0H, 0x0H, 0x0H, 0x0H}, where H is each hex character in order.
-              c[0] |= (c[0] << 4); // Red. Shift the least significant bits left by 4 bits, copying them into the empty most significant 4 bits.
-              c[1] |= (c[1] << 4); // Blue. Ditto.
-              c[2] |= (c[2] << 4); // Green. Ditto.
-              c[3] |= (c[3] << 4); // Alpha. Ditto.
-              if (which) c[4] = 0; // Substitution hack marker.
-            }
-            else if (hexLen == 6) { // If the hex color string is 6 characters long, it's an `RRGGBB` hex string, so expand it to 8 by adding an alpha of `ff` (fully opaque).
-              hexDecode(hexPtr, 6, c, 4); // Decodes into the first three bytes of the array as hex bytes equivalent to their string representation.
-              c[3] = 255; // Add an alpha of `ff` (fully opaque).
-            #if defined STAR_COMPILER_GNU
-              // FezzedOne: Warning: Disgusting hack for GCC builds! This makes sure generated sleeves are rendered properly. To bypass this hack, tack an `ff` alpha value onto the end of `bcbc5d` when using
-              // it as an `a` colour. The hack replaces an `a` of `bcbc5d` (not `bcbc5dff`) with `bcbc5e`, which is visually nearly indistinguishable anyway.
-              // The hack is needed because `scaleBilinear` (way up above) now works very slightly differently from the vanilla version, just enough to impact this one edge case.
-              #define COLOUR_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d) // Check if this colour is the one needing substitution.
-              #define COLOUR_NEEDS_SUB_RGBA(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d && bytes[3] == (castType)0xff) // Same, but for RGBA.
-              #define SUBBED_COLOUR Vec5B(0xbc, 0xbc, 0x5e, 0xff, 0xff) // The substituted colour, for lookups.
-              #define OLD_COLOUR_BYTE_B (char)0x5d // The byte to replace with...
-              #define NEW_COLOUR_BYTE_B (char)0x5e // this byte.
+              c[0] |= (c[0] << 4);           // Red. Shift the least significant bits left by 4 bits, copying them into the empty most significant 4 bits.
+              c[1] |= (c[1] << 4);           // Blue. Ditto.
+              c[2] |= (c[2] << 4);           // Green. Ditto.
+              c[3] |= (c[3] << 4);           // Alpha. Ditto.
+              if (which) c[4] = 0;           // Substitution hack marker.
+            } else if (hexLen == 6) {        // If the hex color string is 6 characters long, it's an `RRGGBB` hex string, so expand it to 8 by adding an alpha of `ff` (fully opaque).
+              hexDecode(hexPtr, 6, c, 4);    // Decodes into the first three bytes of the array as hex bytes equivalent to their string representation.
+              c[3] = 255;                    // Add an alpha of `ff` (fully opaque).
+#if defined STAR_COMPILER_GNU
+// FezzedOne: Warning: Disgusting hack for GCC builds! This makes sure generated sleeves are rendered properly. To bypass this hack, tack an `ff` alpha value onto the end of `bcbc5d` when using
+// it as an `a` colour. The hack replaces an `a` of `bcbc5d` (not `bcbc5dff`) with `bcbc5e`, which is visually nearly indistinguishable anyway.
+// The hack is needed because `scaleBilinear` (way up above) now works very slightly differently from the vanilla version, just enough to impact this one edge case.
+#define COLOUR_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d)                                    // Check if this colour is the one needing substitution.
+#define COLOUR_NEEDS_SUB_RGBA(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d && bytes[3] == (castType)0xff) // Same, but for RGBA.
+#define SUBBED_COLOUR Vec5B(0xbc, 0xbc, 0x5e, 0xff, 0xff)                                                                                                             // The substituted colour, for lookups.
+#define OLD_COLOUR_BYTE_B (char)0x5d                                                                                                                                  // The byte to replace with...
+#define NEW_COLOUR_BYTE_B (char)0x5e                                                                                                                                  // this byte.
 
-              #define COLOUR_2_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xad && bytes[1] == (castType)0x9b && bytes[2] == (castType)0x5a) // Check if this colour is the one needing substitution.
-              #define COLOUR_2_NEEDS_SUB_RGBA(bytes, castType) (bytes[0] == (castType)0xad && bytes[1] == (castType)0x9b && bytes[2] == (castType)0x5a && bytes[3] == (castType)0xff) // Same, but for RGBA.
-              #define SUBBED_COLOUR_2 Vec5B(0xae, 0x9c, 0x5a, 0xff, 0xff) // The substituted colour, for lookups.
-              #define OLD_COLOUR_BYTE_R (char)0xad // The first byte to replace with...
-              #define NEW_COLOUR_BYTE_R (char)0xae // this byte.
-              #define OLD_COLOUR_BYTE_G (char)0x9b // The second byte to replace with...
-              #define NEW_COLOUR_BYTE_G (char)0x9c // this byte.
+#define COLOUR_2_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xad && bytes[1] == (castType)0x9b && bytes[2] == (castType)0x5a)                                    // Check if this colour is the one needing substitution.
+#define COLOUR_2_NEEDS_SUB_RGBA(bytes, castType) (bytes[0] == (castType)0xad && bytes[1] == (castType)0x9b && bytes[2] == (castType)0x5a && bytes[3] == (castType)0xff) // Same, but for RGBA.
+#define SUBBED_COLOUR_2 Vec5B(0xae, 0x9c, 0x5a, 0xff, 0xff)                                                                                                             // The substituted colour, for lookups.
+#define OLD_COLOUR_BYTE_R (char)0xad                                                                                                                                    // The first byte to replace with...
+#define NEW_COLOUR_BYTE_R (char)0xae                                                                                                                                    // this byte.
+#define OLD_COLOUR_BYTE_G (char)0x9b                                                                                                                                    // The second byte to replace with...
+#define NEW_COLOUR_BYTE_G (char)0x9c                                                                                                                                    // this byte.
 
-              bool colourNeedsSub = COLOUR_NEEDS_SUB(c, char); // Micro-optimisation.
-              bool colour2NeedsSub = COLOUR_2_NEEDS_SUB(c, char); // Micro-optimisation.
+              bool colourNeedsSub = COLOUR_NEEDS_SUB(c, char);                       // Micro-optimisation.
+              bool colour2NeedsSub = COLOUR_2_NEEDS_SUB(c, char);                    // Micro-optimisation.
               if (which) c[4] = (colourNeedsSub || colour2NeedsSub) ? (char)255 : 0; // Mark the presence of the following hack for later.
 
               c[0] = (which && colour2NeedsSub) ? NEW_COLOUR_BYTE_R : c[0]; // Substitute `ad` with `ae` if we're in an `a` of `ad9b5a`.
               c[1] = (which && colour2NeedsSub) ? NEW_COLOUR_BYTE_G : c[1]; // Substitute `9b` with `9c` if we're in an `a` of `ad9b5a`.
-              c[2] = (which && colourNeedsSub) ? NEW_COLOUR_BYTE_B : c[2]; // Substitute `5d` with `5e` if we're in an `a` of `bcbc5d`.
-            #else
+              c[2] = (which && colourNeedsSub) ? NEW_COLOUR_BYTE_B : c[2];  // Substitute `5d` with `5e` if we're in an `a` of `bcbc5d`.
+#else
               if (which) c[4] = 0; // Substitution hack marker. Unused on MSVC builds.
-            #endif
-            }
-            else if (hexLen == 8) { // If the hex color string is 8 characters long, it's a full `RRGGBBAA` hex string.
-              hexDecode(hexPtr, 8, c, 4); // Decodes into all four bytes of the array as hex bytes equivalent to their string representation.
-              if (which) c[4] = 0; // Substitution hack marker.
-            }
-            else if (!which || (ptr != end && ++ptr != end)) // If we're in `b` of `a=b` and the hex string is of the wrong length, throw an exception.
+#endif
+            } else if (hexLen == 8) {                          // If the hex color string is 8 characters long, it's a full `RRGGBBAA` hex string.
+              hexDecode(hexPtr, 8, c, 4);                      // Decodes into all four bytes of the array as hex bytes equivalent to their string representation.
+              if (which) c[4] = 0;                             // Substitution hack marker.
+            } else if (!which || (ptr != end && ++ptr != end)) // If we're in `b` of `a=b` and the hex string is of the wrong length, throw an exception.
               throw ImageOperationException(strf("Improper size for hex string '{}' in imageOperationFromString", StringView(hexPtr, hexLen)), false);
-            else // We're in `a` of `a=b`. In vanilla, only `a=b` pairs are evaluated, so only throw an exception if `b` is also there.
+            else                           // We're in `a` of `a=b`. In vanilla, only `a=b` pairs are evaluated, so only throw an exception if `b` is also there.
               return std::move(operation); // Return the incomplete operation, whose parsing stopped just before the invalid `a`, so no valid replacements after that part will be executed.
 
             which = !which; // If we parsed a hex colour code, switch `which` to the other colour. I.e., from `a` to `b` and vice versa.
@@ -368,9 +360,8 @@ ImageOperation imageOperationFromString(StringView string) {
 
             hexLen = 0; // Reset hexLen so we can parse the next hex colour string.
           }
-        }
-        else if (!hexLen++) // If the current byte is not a separator, increment hexLen.
-          hexPtr = ptr; // Set hexPtr to the current byte.
+        } else if (!hexLen++) // If the current byte is not a separator, increment hexLen.
+          hexPtr = ptr;       // Set hexPtr to the current byte.
 
         if (ptr++ == end)
           break; // If we reached the end of the bits string, break out of the loop.
@@ -578,7 +569,7 @@ String imageOperationToString(ImageOperation const& operation) {
       // FezzedOne: Transparently convert compiled colour replacements back to the original directives,
       // as if the replacement never happened.
       Vec4B adjustedColour{a[0], a[1], a[2], a[3]};
-    #if defined STAR_COMPILER_GNU
+#if defined STAR_COMPILER_GNU
       char colourSubstitutionMode = a[4];
       if (colourSubstitutionMode == (char)255 && adjustedColour[0] == NEW_COLOUR_BYTE_R) {
         adjustedColour[0] = OLD_COLOUR_BYTE_R;
@@ -589,15 +580,15 @@ String imageOperationToString(ImageOperation const& operation) {
       if (colourSubstitutionMode == (char)255 && adjustedColour[2] == NEW_COLOUR_BYTE_B) {
         adjustedColour[2] = OLD_COLOUR_BYTE_B;
       }
-    #endif
+#endif
 
       String aStr = Color::rgba(adjustedColour).toHex();
-    
-    #if defined STAR_COMPILER_GNU
+
+#if defined STAR_COMPILER_GNU
       if (colourSubstitutionMode == (char)0 && (COLOUR_NEEDS_SUB_RGBA(adjustedColour, unsigned char) || COLOUR_2_NEEDS_SUB_RGBA(adjustedColour, unsigned char))) {
         aStr += "ff";
       }
-    #endif
+#endif
 
       str += strf(";{}={}", aStr, Color::rgba(b).toHex());
     }
@@ -664,7 +655,7 @@ List<ImageOperation> parseImageOperations(StringView params) {
   params.forEachSplitView("?", [&](StringView op, size_t, size_t) {
     if (!op.empty())
       operations.append(imageOperationFromString(op));
-    });
+  });
 
   return operations;
 }
@@ -746,25 +737,29 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
       if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 0))) {
         // MinGW builds: An explicit `bcbc5e`/`bcbc5eff`/`bcbc5dff` or `ae9c5a`/`ae9c5aff`/`ad9b5aff` replacement takes precedence above anything else.
         // Linux/GCC and MSVC builds: No extra substitutions required.
-        pixel = *m; return; 
+        pixel = *m;
+        return;
       }
-    #if defined STAR_COMPILER_GNU
+#if defined STAR_COMPILER_GNU
       else if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 255))) {
         // Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
         // MinGW builds: Also execute any tagged `ad9b5a` → `ae9c5aff` replacement if no preceding explicit replacement for `ae9c5a`/`ae9c5aff` is found.
-        pixel = *m; return; 
+        pixel = *m;
+        return;
       } else if (COLOUR_NEEDS_SUB_RGBA(pixel, unsigned char)) {
         if (auto m = op->colorReplaceMap.maybe(SUBBED_COLOUR)) {
           // MinGW builds:Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
-          pixel = *m; return;
+          pixel = *m;
+          return;
         }
       } else if (COLOUR_2_NEEDS_SUB_RGBA(pixel, unsigned char)) {
         if (auto m = op->colorReplaceMap.maybe(SUBBED_COLOUR_2)) {
           // MinGW builds: Additionally execute any tagged `ad9b5a` → `ad9b5aff` replacement if no preceding explicit replacement for `ad9b5a`/`ad9b5aff` is found.
-          pixel = *m; return;
+          pixel = *m;
+          return;
         }
       }
-    #endif
+#endif
     });
 
   } else if (auto op = operation.ptr<AlphaMaskImageOperation>()) {
@@ -826,8 +821,8 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
   } else if (auto op = operation.ptr<MultiplyImageOperation>()) {
     image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
       pixel = pixel.combine(op->color, [](uint8_t a, uint8_t b) -> uint8_t {
-          return (uint8_t)(((int)a * (int)b) / 255);
-        });
+        return (uint8_t)(((int)a * (int)b) / 255);
+      });
     });
 
   } else if (auto op = operation.ptr<BorderImageOperation>()) {
@@ -863,8 +858,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
             if (op->outlineOnly) {
               float pixelA = byteToFloat(pixel[3]);
               color.setAlphaF((1.0f - pixelA) * fminf(pixelA, 0.5f) * 2.0f);
-            }
-            else {
+            } else {
               Color pixelF = Color::rgba(pixel);
               float pixelA = pixelF.alphaF(), colorA = color.alphaF();
               colorA += pixelA * (1.0f - colorA);
@@ -895,8 +889,10 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
   } else if (auto op = operation.ptr<CropImageOperation>()) {
     auto min = op->subset.min();
     auto size = op->subset.size();
-     min[0] =  min[0] < 0 ? 0 :  min[0];  min[1] = min[1]  < 0 ? 0 :  min[1];
-    size[0] = size[0] < 0 ? 0 : size[0]; size[1] = size[1] < 0 ? 0 : size[1];
+    min[0] = min[0] < 0 ? 0 : min[0];
+    min[1] = min[1] < 0 ? 0 : min[1];
+    size[0] = size[0] < 0 ? 0 : size[0];
+    size[1] = size[1] < 0 ? 0 : size[1];
     image = image.subImage(Vec2U(min), Vec2U(size));
 
   } else if (auto op = operation.ptr<FlipImageOperation>()) {
@@ -975,4 +971,4 @@ Image processImageOperations(List<ImageOperation> const& operations, Image image
   return image;
 }
 
-}
+} // namespace Star
