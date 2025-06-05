@@ -97,8 +97,8 @@ add_library(soup STATIC
   macros.hpp
   math.hpp
   memory.hpp
-  memAllocator.cpp
-  memCAllocator.cpp
+  memAllocator.hpp
+  memCAllocator.hpp
   MemoryRefReader.hpp
   MimeMessage.hpp
   MimeType.hpp
