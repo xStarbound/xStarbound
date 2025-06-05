@@ -17,7 +17,8 @@ static int push_http_response (lua_State *L, soup::HttpRequestTask& task) {
     pluto_pushstring(L, task.result->body);
     lua_pushinteger(L, task.result->status_code);
     lua_newtable(L);
-    for (auto& e : task.result->header_fields) {
+    const auto header_fields = task.result->getHeaderFields();
+    for (auto& e : header_fields) {
       pluto_pushstring(L, e.first);
       pluto_pushstring(L, e.second);
       lua_settable(L, -3);
@@ -50,15 +51,7 @@ static int await_task (lua_State *L, soup::SharedPtr<Task>&& spTask) {
   if (lua_isyieldable(L)) {
     auto pTask = spTask.get();
 
-    new (lua_newuserdata(L, sizeof(soup::SharedPtr<Task>))) soup::SharedPtr<Task>(std::move(spTask));
-    lua_newtable(L);
-    lua_pushliteral(L, "__gc");
-    lua_pushcfunction(L, [](lua_State *L) {
-      std::destroy_at<>(reinterpret_cast<soup::SharedPtr<Task>*>(lua_touserdata(L, 1)));
-      return 0;
-    });
-    lua_settable(L, -3);
-    lua_setmetatable(L, -2);
+    pluto_newclassinst(L, soup::SharedPtr<Task>, std::move(spTask));
 
     return lua_yieldk(L, 0, reinterpret_cast<lua_KContext>(pTask), &await_task_cont<Task, callback>);
   }
@@ -135,7 +128,7 @@ static int http_request (lua_State *L) {
         const char *value = luaL_checklstring(L, -1, &valuelen);
         if (strpbrk(value, "\n\r") != nullptr) {  /* header value contains forbidden characters? */
           /* free memory */
-          decltype(hr.header_fields){}.swap(hr.header_fields);
+          hr.headers.clear(); hr.headers.shrink_to_fit();
           hr.body.clear(); hr.body.shrink_to_fit();
           hr.method.clear(); hr.method.shrink_to_fit();
           hr.path.clear(); hr.path.shrink_to_fit();
@@ -156,15 +149,7 @@ static int http_request (lua_State *L) {
   }
 
 #if SOUP_WASM
-  auto pTask = new (lua_newuserdata(L, sizeof(soup::HttpRequestTask))) soup::HttpRequestTask(std::move(hr));
-  lua_newtable(L);
-  lua_pushliteral(L, "__gc");
-  lua_pushcfunction(L, [](lua_State *L) {
-    std::destroy_at<>(reinterpret_cast<soup::HttpRequestTask*>(lua_touserdata(L, 1)));
-    return 0;
-  });
-  lua_settable(L, -3);
-  lua_setmetatable(L, -2);
+  auto pTask = pluto_newclassinst(L, soup::HttpRequestTask, std::move(hr));
   return lua_yieldk(L, 0, reinterpret_cast<lua_KContext>(pTask), &await_task_cont<soup::HttpRequestTask, push_http_response>);
 #else
   if (G(L)->scheduler == nullptr) {

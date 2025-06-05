@@ -29,7 +29,7 @@
 #include "ltable.h"
 #include "lzio.h"
 
-// Note that this may sometimes break parsing.
+// Note that this may sometimes break parsing so should be used alongside PLUTO_DONT_LOAD_ANY_STANDARD_LIBRARY_CODE_WRITTEN_IN_PLUTO.
 #define TOKENDUMP false
 
 #if TOKENDUMP
@@ -56,7 +56,7 @@ static const char *const luaX_tokens [] = {
     "pluto_use",
     "pluto_switch", "pluto_continue", "pluto_enum", "pluto_new", "pluto_class", "pluto_parent", "pluto_export", "pluto_try", "pluto_catch",
           "switch",       "continue",       "enum",       "new",       "class",       "parent",       "export",       "try",       "catch",
-    "let", "const", "global",
+    "global",
 #ifdef PLUTO_PARSER_SUGGESTIONS
     "pluto_suggest_0", "pluto_suggest_1",
 #endif
@@ -129,7 +129,7 @@ const char *luaX_token2str_noq (LexState *ls, const Token& t) {
   }
   else switch (t.token) {
     case TK_NAME: case TK_STRING:
-      if (!ls->hasDoneLexerPass())
+      if (!ls->hasDoneLexerPass() || !t.seminfo.ts)
         return luaX_tokens[t.token - FIRST_RESERVED];
       ret = luaO_pushfstring(ls->L, "%s", getstr(t.seminfo.ts));
       ls->L->top.p--;
@@ -266,6 +266,117 @@ void luaX_setinput (lua_State *L, LexState *ls, ZIO *z, TString *source,
     if (t.token == TK_EOS) break;
   }
 
+  /* preprocessor */
+  for (auto i = ls->tokens.begin(); i != ls->tokens.end(); ) {
+    if (i->token == '$' && (i + 1)->token == TK_NAME && strcmp(getstr((i + 1)->seminfo.ts), "alias") == 0) {
+      const auto directive_begin = i;
+      i += 2;  /* skip '$alias' */
+      if (l_unlikely(i->token != TK_NAME)) {
+        ls->tidx = std::distance(ls->tokens.begin(), i);
+        luaX_syntaxerror(ls, "expected name after $alias");
+      }
+      Macro& macro = ls->macros.emplace(i->seminfo.ts, Macro{}).first->second;
+      ++i;  /* skip name */
+      if (i->token == '(') {
+        macro.functionlike = true;
+        do {
+          ++i;  /* skip '(' or ',' */
+          if (l_unlikely(i->token != TK_NAME)) {
+            ls->tidx = std::distance(ls->tokens.begin(), i);
+            luaX_syntaxerror(ls, "expected parameter name for function-like alias");
+          }
+          macro.params.emplace_back(i->seminfo.ts);
+          ++i;  /* skip name */
+        } while (i->token == ',');
+        if (l_unlikely(i->token != ')')) {
+          ls->tidx = std::distance(ls->tokens.begin(), i);
+          luaX_syntaxerror(ls, "expected ')' after parameter list for function-like alias");
+        }
+        ++i;  /* skip ')' */
+      }
+      if (l_unlikely(i->token != '=')) {
+        ls->tidx = std::distance(ls->tokens.begin(), i);
+        luaX_syntaxerror(ls, "expected '=' after $alias <name>");
+      }
+      ++i;  /* skip '=' */
+      while (i->line == (i - 1)->line || (i - 1)->token == '\\') {
+        if (i->token == TK_EOS)
+          break;
+        if (i->token == '\\' && (i + 1)->line != i->line) {
+          ++i;
+          continue;
+        }
+        macro.sub.emplace_back(*i);
+        ++i;
+      }
+      i = ls->tokens.erase(directive_begin, i);  /* erase directive */
+      continue;
+    }
+    ++i;
+  }
+  if (!ls->macros.empty()) {  /* need second preprocessor pass to expand macros? */
+    for (auto i = ls->tokens.begin(); i != ls->tokens.end(); ) {
+      if (i->token == TK_NAME) {
+        if (auto e = ls->macros.find(i->seminfo.ts); e != ls->macros.end()) {
+          i = ls->tokens.erase(i);
+          for (auto& t : e->second.sub) {
+            t.line = i->line;
+          }
+          if (e->second.functionlike) {
+            ls->macro_args.clear();
+            if (l_unlikely(i->token != '(')) {
+              ls->tidx = std::distance(ls->tokens.begin(), i);
+              luaX_syntaxerror(ls, "expected '(' to invoke function-like alias");
+            }
+            for (auto& param : e->second.params) {
+              i = ls->tokens.erase(i);  /* remove '(' or ',' */
+              auto& argtks = ls->macro_args.emplace(param, std::vector<Token>{}).first->second;
+              int parens = 0;
+              int curlys = 0;
+              while (i != ls->tokens.end() && (parens != 0 || curlys != 0 || (i->token != ',' && i->token != ')'))) {
+                if (i->token == '(')
+                  parens++;
+                else if (i->token == ')')
+                  parens--;
+                else if (i->token == '{')
+                  curlys++;
+                else if (i->token == '}')
+                  curlys--;
+                argtks.emplace_back(*i);
+                i = ls->tokens.erase(i);  /* remove argument */
+              }
+            }
+            if (l_unlikely(i->token != ')')) {
+              ls->tidx = std::distance(ls->tokens.begin(), i);
+              luaX_syntaxerror(ls, "expected ')' after argument list for function-like alias");
+            }
+            i = ls->tokens.erase(i);  /* remove ')' */
+            for (auto& t : e->second.sub) {
+              if (t.token == TK_NAME) {
+                if (auto arg = ls->macro_args.find(t.seminfo.ts); arg != ls->macro_args.end()) {
+                  for (auto& argtk : arg->second) {
+                    i = ls->tokens.insert(i, argtk);
+                    ++i;
+                  }
+                  continue;
+                }
+              }
+              i = ls->tokens.insert(i, t);
+              ++i;
+            }
+          }
+          else {
+            i = ls->tokens.insert(i, e->second.sub.begin(), e->second.sub.end());
+          }
+          continue;
+        }
+      }
+      ++i;
+    }
+    { decltype(ls->macros) bin; std::swap(ls->macros, bin); }  /* free memory for macros map */
+    { decltype(ls->macro_args) bin; std::swap(ls->macro_args, bin); }
+  }
+
 #if TOKENDUMP
   luaX_setpos(ls, 0);
   int line = 0;
@@ -274,7 +385,7 @@ void luaX_setinput (lua_State *L, LexState *ls, ZIO *z, TString *source,
       line = ls->t.line;
       std::cout << "\nLine " << line << ":";
     }
-    std::cout << " " << luaX_token2str_noq(ls, ls->t.token);
+    std::cout << " " << luaX_token2str_noq(ls, ls->t);
     luaX_next(ls);
   }
   std::cout << "\n";
@@ -339,12 +450,10 @@ static int read_numeral (LexState *ls, SemInfo *seminfo) {
   for (;;) {
     if (check_next2(ls, expo))  /* exponent mark? */
       check_next2(ls, "-+");  /* optional exponent sign */
-    else if (lisxdigit(ls->current) || ls->current == '.' || ls->current == '_') { /* '%x|%.' */
-      if (ls->current != '_')
-        save_and_next(ls);
-      else
-        next(ls);
-    }
+    else if (lisxdigit(ls->current) || ls->current == '.' || ls->current == 'o') /* '%x|%.' */
+      save_and_next(ls);
+    else if (ls->current == '_')
+      next(ls);
     else break;
   }
   if (lislalpha(ls->current))  /* is numeral touching a letter? */
@@ -603,7 +712,7 @@ static int llex (LexState *ls, SemInfo *seminfo, int *column) {
               luaZ_resetbuffer(ls->buff);  /* 'read_long_string' may dirty the buffer */
               std::string_view si_view(getstr(si.ts), tsslen(si.ts));
               if (si_view.find("@pluto_warnings") != std::string_view::npos)
-                ls->lexPushWarningOverride().processComment(getstr(si.ts));
+                ls->lexPushWarningOverride().processComment(si_view);
               ls->appendLineBuff(']');
               ls->appendLineBuff(sep - 2, '=');
               ls->appendLineBuff(']');
@@ -633,7 +742,7 @@ static int llex (LexState *ls, SemInfo *seminfo, int *column) {
           }
           std::string_view buff(luaZ_buffer(ls->buff), luaZ_bufflen(ls->buff));
           if (buff.find("@pluto_warnings") != std::string_view::npos)
-            ls->lexPushWarningOverride().processComment(luaZ_buffer(ls->buff));
+            ls->lexPushWarningOverride().processComment(buff);
           luaZ_resetbuffer(ls->buff);
           if (ls->getLineBuff().find("@fallthrough") != std::string::npos)
             return TK_FALLTHROUGH;

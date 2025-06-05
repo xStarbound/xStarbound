@@ -9,7 +9,6 @@
 
 #include "lprefix.h"
 
-#include <thread>
 #include <chrono>
 #include <errno.h>
 #include <locale.h>
@@ -26,6 +25,7 @@
 #endif
 
 #include "vendor/Soup/soup/base.hpp"
+#include "vendor/Soup/soup/os.hpp"
 
 
 /*
@@ -247,8 +247,7 @@ static int getboolfield (lua_State *L, const char *key) {
 
 static int getfield (lua_State *L, const char *key, int d, int delta) {
   int isnum;
-  lua_pushstring(L, key);
-  int t = lua_rawget(L, -2);  /* get field and its type */
+  int t = lua_getfield(L, -1, key);  /* get field and its type */
   lua_Integer res = lua_tointegerx(L, -1, &isnum);
   if (!isnum) {  /* field is not an integer? */
     if (l_unlikely(t != LUA_TNIL))  /* some other value? */
@@ -402,15 +401,15 @@ static int os_nanos(lua_State* L) {
 
 
 static int os_sleep (lua_State *L) {
-  std::chrono::milliseconds timespan(luaL_checkinteger(L, 1));
+  const auto ms = (unsigned int)luaL_checkinteger(L, 1);
 #ifdef PLUTO_ETL_ENABLE
   std::time_t t = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
-  t += std::chrono::duration_cast<std::chrono::nanoseconds>(timespan).count();
+  t += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(ms)).count();
   if (L->l_G->deadline < t) {
     luaL_error(L, "os.sleep would exceed execution time limit");
   }
 #endif
-  std::this_thread::sleep_for(timespan);
+  soup::os::sleep(ms);
   return 0;
 }
 
@@ -493,6 +492,27 @@ LUAMOD_API int luaopen_os (lua_State *L) {
 #else
   lua_pushliteral(L, "unknown");
 #endif
+  lua_settable(L, -3);
+
+  /* define os.arch constant */
+  lua_pushliteral(L, "arch");
+#if SOUP_X86
+#define ARCH_STR "x86"
+#elif SOUP_ARM
+#define ARCH_STR "arm"
+#elif SOUP_WASM
+#define ARCH_STR "wasm"
+#else
+#define ARCH_STR "unknown"
+#endif
+#if SOUP_BITS == 64
+#define BITS_STR "64"
+#elif SOUP_BITS == 32
+#define BITS_STR "32"
+#else
+#define BITS_STR "00"
+#endif
+  lua_pushstring(L, ARCH_STR ", " BITS_STR "-bit");
   lua_settable(L, -3);
 
   return 1;

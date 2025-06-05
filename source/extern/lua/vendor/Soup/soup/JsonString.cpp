@@ -6,25 +6,27 @@
 
 NAMESPACE_SOUP
 {
-	JsonString::JsonString() noexcept
-		: JsonNode(JSON_STRING)
+	size_t JsonString::getEncodedSize(const char* data, size_t size) noexcept
 	{
+		std::string_view sw(data, size);
+		for (size_t i = 0; i = sw.find('"', i), i != std::string::npos; ++i)
+		{
+			size_t escapes = 0;
+			for (size_t j = i; j-- != 0 && data[j] == '\\'; )
+			{
+				++escapes;
+			}
+			if ((escapes & 1) == 0)
+			{
+				return i;
+			}
+		}
+		return 0;
 	}
 
-	JsonString::JsonString(const std::string& value) noexcept
-		: JsonNode(JSON_STRING), value(value)
+	void JsonString::decodeValue(std::string& value, const char*& c, size_t& s)
 	{
-	}
-
-	JsonString::JsonString(std::string&& value) noexcept
-		: JsonNode(JSON_STRING), value(std::move(value))
-	{
-	}
-
-	JsonString::JsonString(const char*& c) SOUP_EXCAL
-		: JsonString()
-	{
-		for (bool escaped = false; *c != 0; ++c)
+		for (bool escaped = false; s != 0; ++c, --s)
 		{
 			if (escaped)
 			{
@@ -48,32 +50,32 @@ NAMESPACE_SOUP
 					break;
 
 				case 'u':
-					++c;
-					if (c[0] && c[1] && c[2] && c[3])
+					++c; --s;
+					if (s >= 4)
 					{
 						if (char32_t w1; string::hexToIntOpt<char32_t>(std::string(c, 4)).consume(w1))
 						{
-							c += 4;
+							c += 4; s -= 4;
 							if ((w1 >> 10) == 0x36) // Surrogate pair?
 							{
-								if (c[0] == '\\' && c[1] == 'u' && c[2] && c[3] && c[4] && c[5])
+								if (s >= 6 && c[0] == '\\' && c[1] == 'u' && c[2] && c[3] && c[4] && c[5])
 								{
-									c += 2;
+									c += 2; s -= 2;
 									if (char32_t w2; string::hexToIntOpt<char32_t>(std::string(c, 4)).consume(w2))
 									{
-										c += 4;
+										c += 4; s -= 2;
 										value.append(unicode::utf32_to_utf8(unicode::utf16_to_utf32(w1, w2)));
 									}
 									else
 									{
-										c -= 2;
-										c -= 4;
+										c -= 2; s += 2;
+										c -= 4; s += 4;
 										value.push_back('u');
 									}
 								}
 								else
 								{
-									c -= 4;
+									c -= 4; s += 4;
 									value.push_back('u');
 								}
 							}
@@ -91,14 +93,14 @@ NAMESPACE_SOUP
 					{
 						value.push_back('u');
 					}
-					--c;
+					--c; ++s;
 					break;
 				}
 				continue;
 			}
 			if (*c == '"')
 			{
-				++c;
+				++c; --s;
 				break;
 			}
 			if (*c == '\\')
@@ -117,14 +119,20 @@ NAMESPACE_SOUP
 			;
 	}
 
-	void JsonString::encodeAndAppendTo(std::string& str) const SOUP_EXCAL
+	void JsonString::encodeAndAppendTo(std::string& str) const
+	{
+		encodeValue(str, this->value.data(), this->value.size());
+	}
+
+	void JsonString::encodeValue(std::string& str, const char* data, size_t size) SOUP_EXCAL
 	{
 #if !SOUP_LINUX // std::string::reserve is seemingly misimplemented (relative instead of absolute)
-		str.reserve(str.size() + value.size() + 2);
+		str.reserve(str.size() + size + 2);
 #endif
 		str.push_back('"');
-		for (const auto& c : value)
+		for (size_t i = 0; i != size; ++i)
 		{
+			const char c = data[i];
 			switch (c)
 			{
 			default:
@@ -176,19 +184,46 @@ NAMESPACE_SOUP
 		str.push_back('"');
 	}
 
-	bool JsonString::binaryEncode(Writer& w) const
+	bool JsonString::msgpackEncode(Writer& w) const
 	{
-		uint8_t b = JSON_STRING;
-		if (value.size() < 0b11111)
+		if (value.size() <= 0b11111)
 		{
-			b |= ((uint8_t)value.size() << 3);
+			uint8_t b = 0b1010'0000 | (uint8_t)value.size();
 			return w.u8(b)
-				&& w.str(value.size(), value)
+				&& w.str(value.size(), value.data())
 				;
 		}
-		b |= (0b11111 << 3);
-		return w.u8(b)
-			&& w.str_lp_u64_dyn(*this)
-			;
+
+		if (value.size() <= 0xff)
+		{
+			uint8_t b = 0xd9;
+			auto len = (uint8_t)value.size();
+			return w.u8(b)
+				&& w.u8(len)
+				&& w.str(value.size(), value.data())
+				;
+		}
+
+		if (value.size() <= 0xffff)
+		{
+			uint8_t b = 0xda;
+			auto len = (uint16_t)value.size();
+			return w.u8(b)
+				&& w.u16_be(len)
+				&& w.str(value.size(), value.data())
+				;
+		}
+
+		if (value.size() <= 0xffff'ffff)
+		{
+			uint8_t b = 0xdb;
+			auto len = (uint32_t)value.size();
+			return w.u8(b)
+				&& w.u32_be(len)
+				&& w.str(value.size(), value.data())
+				;
+		}
+
+		SOUP_ASSERT_UNREACHABLE;
 	}
 }

@@ -13,40 +13,6 @@ NAMESPACE_SOUP
 {
 	using Container = JsonObject::Container;
 
-	JsonObject::JsonObject() noexcept
-		: JsonNode(JSON_OBJECT)
-	{
-	}
-
-	JsonObject::JsonObject(const char*& c, int max_depth) noexcept
-		: JsonObject()
-	{
-		while (true)
-		{
-			json::handleLeadingSpace(c);
-			if (*c == '}' || *c == 0)
-			{
-				break;
-			}
-			auto key = json::decode(c, max_depth);
-			while (string::isSpace(*c) || *c == ':')
-			{
-				++c;
-			}
-			auto val = json::decode(c, max_depth);
-			if (!key || !val)
-			{
-				break;
-			}
-			children.emplace_back(std::move(key), std::move(val));
-			while (*c == ',' || string::isSpace(*c))
-			{
-				++c;
-			}
-		}
-		++c;
-	}
-
 	void JsonObject::encodeAndAppendTo(std::string& str) const SOUP_EXCAL
 	{
 		str.push_back('{');
@@ -90,32 +56,36 @@ NAMESPACE_SOUP
 		}
 	}
 
-	bool JsonObject::binaryEncode(Writer& w) const
+	bool JsonObject::msgpackEncode(Writer& w) const
 	{
+		if (children.size() <= 0b1111)
 		{
-			uint8_t b = JSON_OBJECT;
-			if (!w.u8(b))
-			{
-				return false;
-			}
+			uint8_t b = 0b1000'0000 | (uint8_t)children.size();
+			SOUP_RETHROW_FALSE(w.u8(b));
+		}
+		else if (children.size() <= 0xffff)
+		{
+			uint8_t b = 0xde;
+			SOUP_RETHROW_FALSE(w.u8(b));
+			auto len = (uint16_t)children.size();
+			SOUP_RETHROW_FALSE(w.u16_be(len));
+		}
+		else if (children.size() <= 0xffff'ffff)
+		{
+			uint8_t b = 0xdf;
+			SOUP_RETHROW_FALSE(w.u8(b));
+			auto len = (uint32_t)children.size();
+			SOUP_RETHROW_FALSE(w.u32_be(len));
+		}
+		else
+		{
+			SOUP_ASSERT_UNREACHABLE;
 		}
 
 		for (const auto& child : children)
 		{
-			if (!child.first->binaryEncode(w)
-				|| !child.second->binaryEncode(w)
-				)
-			{
-				return false;
-			}
-		}
-
-		{
-			uint8_t b = 0b111;
-			if (!w.u8(b))
-			{
-				return false;
-			}
+			SOUP_RETHROW_FALSE(child.first->msgpackEncode(w));
+			SOUP_RETHROW_FALSE(child.second->msgpackEncode(w));
 		}
 
 		return true;

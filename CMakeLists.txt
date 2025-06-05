@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-set(XSB_VERSION 3.6.2.2)
+set(XSB_VERSION 3.7)
 set(XSB_ASSET_VERSION 3.5.4.3)
 set(XSB_NETWORK_VERSION 3.5.3)
 
@@ -366,16 +366,16 @@ if(STAR_COMPILER_GNU)
     set(CMAKE_C_FLAGS_DEBUG "-g -Og")
     set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
 
-    # FezzedOne: Need to define `FLOAT_APPROX` for Opus whenever `-Ofast` is used.
+    # FezzedOne: Need to define `FLOAT_APPROX` for Opus whenever `-O3 -ffast-math` is used.
 
-    set(CMAKE_C_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast")
-    set(CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast")
+    set(CMAKE_C_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -O3 -ffast-math")
+    set(CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -O3 -ffast-math")
 
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -ffast-math")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -ffast-math")
 
-    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast")
-    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast")
+    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffast-math")
+    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffast-math")
 
     if(STAR_MEMORY_SANITIZER)
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
@@ -436,16 +436,16 @@ elseif(STAR_COMPILER_CLANG)
     set(CMAKE_C_FLAGS_DEBUG "-g")
     set(CMAKE_CXX_FLAGS_DEBUG "-g")
 
-    # FezzedOne: Need to define `FLOAT_APPROX` for Opus whenever `-Ofast` is used.
+    # FezzedOne: Need to define `FLOAT_APPROX` for Opus whenever `-O3 -ffast-math` is used.
 
-    set(CMAKE_C_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast") # -DFLOAT_APPROX -Ofast
-    set(CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -Ofast") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_C_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
+    set(CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
 
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast") # -DFLOAT_APPROX -Ofast
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -Ofast") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
 
-    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast") # -DFLOAT_APPROX -Ofast
-    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -Ofast") # -DFLOAT_APPROX -Ofast
+    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
+    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
 
     if(STAR_MEMORY_SANITIZER)
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")

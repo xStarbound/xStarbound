@@ -44,10 +44,7 @@ return class
             if self.errorfunc then
                 local f = t
                 t = coroutine.create(function()
-                    local r = table.pack(xpcall(f, self.errorfunc))
-                    if r[1] and r.n ~= 1 then
-                        warn("Coroutine yielded values to scheduler. Discarding them.")
-                    end
+                    xpcall(f, self.errorfunc)
                 end)
             else
                 t = coroutine.create(t)
@@ -85,9 +82,8 @@ return class
     end
 
     function run()
-        local all_dead
-        repeat
-            all_dead = true
+        while true do
+            local all_dead = true
             for i, coro in self.coros do
                 if coroutine.status(coro) == "suspended" then
                     self:internalresume(coro)
@@ -96,8 +92,11 @@ return class
                     self.coros[i] = nil
                 end
             end
+            if all_dead then
+                break
+            end
             self.yieldfunc()
-        until all_dead
+        end
     end
 end)EOC";
     luaL_loadbuffer(L, code, strlen(code), "pluto:scheduler");

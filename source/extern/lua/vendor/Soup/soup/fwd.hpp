@@ -42,6 +42,7 @@ NAMESPACE_SOUP
 	struct JsonInt;
 	struct JsonObject;
 	struct JsonString;
+	struct JsonTreeWriter;
 
 	// data.reflection
 	class drData;
@@ -171,7 +172,6 @@ NAMESPACE_SOUP
 	struct WebSocketMessage;
 
 	// os
-	enum ControlInput : uint8_t;
 	struct HandleRaii;
 	class Module;
 	enum MouseButton : uint8_t;
