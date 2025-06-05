@@ -159,7 +159,6 @@ add_library(soup STATIC
   RegexWordBoundaryConstraint.hpp
   RegexWordCharConstraint.hpp
   ResolveIpAddrTask.hpp
-  ReuseTag.hpp
   rflFunc.hpp
   rflMember.hpp
   rflParser.hpp
