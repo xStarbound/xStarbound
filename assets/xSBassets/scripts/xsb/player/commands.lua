@@ -553,6 +553,10 @@ local function renderHumanoid(gender)
 end
 
 local function renderRawDirectives(frameMode, firstArg, secondArg)
+    if not firstArg then
+      return "Must specify either an image path with directives or an" 
+          .. "item name / JSON descriptor followed by an image path with directives."
+    end
     local directives = secondArg or firstArg
     local itemDescriptorOrName = secondArg and firstArg or nil
     local itemDescriptor
