@@ -42,9 +42,9 @@ Image scaleNearest(Image const& srcImage, Vec2F scale) {
 
 #if defined STAR_COMPILER_MSVC
 // FezzedOne: Needed to use `/fp:strict` for this function on MSVC and disable `-ffast-math` on recent versions of Clang.
-#pragma float_control(precise, on) // enable precise semantics
-#pragma fenv_access(on)            // enable environment sensitivity
-#pragma float_control(except, on)  // enable exception semantics
+// #pragma float_control(precise, on) // enable precise semantics
+// #pragma fenv_access(on)            // enable environment sensitivity
+// #pragma float_control(except, on)  // enable exception semantics
 #elif defined STAR_COMPILER_CLANG
 // #pragma clang optimize off
 #elif false // defined STAR_COMPILER_GNU
@@ -53,7 +53,7 @@ Image scaleNearest(Image const& srcImage, Vec2F scale) {
 #endif
 Image scaleBilinear(Image const& srcImage, Vec2F scale) {
 #if defined STAR_COMPILER_CLANG
-#pragma clang fp reassociate(off) contract(on) reciprocal(off) exceptions(strict)
+// #pragma clang fp reassociate(off) contract(on) reciprocal(off) exceptions(strict)
 #endif
   if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
@@ -148,9 +148,9 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
 }
 #if defined STAR_COMPILER_MSVC
 // FezzedOne: Reset everything back to the default MSVC options for the build.
-#pragma float_control(except, off)  // disable exception semantics
-#pragma fenv_access(off)            // disable environment sensitivity
-#pragma float_control(precise, off) // disable precise semantics
+// #pragma float_control(except, off)  // disable exception semantics
+// #pragma fenv_access(off)            // disable environment sensitivity
+// #pragma float_control(precise, off) // disable precise semantics
 #elif defined STAR_COMPILER_CLANG
 // #pragma clang optimize on
 #elif false // defined STAR_COMPILER_GNU
@@ -301,24 +301,24 @@ ImageOperation imageOperationFromString(StringView string) {
           if (hexLen != 0) {                        // If we have a complete hex color directive,
             char* c = which ? a : b;                // Get the correct array to store the color in.
 
-            if (hexLen == 3) {               // If the hex color string is 3 characters long, it's an `RGB` hex string, so expand it to 6 by doubling each character, then to 8 by adding an alpha of `ff` (fully opaque).
-              nibbleDecode(hexPtr, 3, c, 4); // Decodes into {0x0H, 0x0H, 0x0H, 0x00}, where H is each hex character in order.
-              c[0] |= (c[0] << 4);           // Red. Shift the least significant bits left by 4 bits, copying them into the empty most significant 4 bits.
-              c[1] |= (c[1] << 4);           // Blue. Ditto.
-              c[2] |= (c[2] << 4);           // Green. Ditto.
-              c[3] = 255;                    // Add an alpha of `ff` (fully opaque).
-              if (which) c[4] = 0;           // Substitution hack marker.
-            } else if (hexLen == 4) {        // If the hex color string is 4 characters long, it's an `RGBA` hex string, so expand it to 8 by doubling each character.
-              nibbleDecode(hexPtr, 4, c, 4); // Decodes into {0x0H, 0x0H, 0x0H, 0x0H}, where H is each hex character in order.
-              c[0] |= (c[0] << 4);           // Red. Shift the least significant bits left by 4 bits, copying them into the empty most significant 4 bits.
-              c[1] |= (c[1] << 4);           // Blue. Ditto.
-              c[2] |= (c[2] << 4);           // Green. Ditto.
-              c[3] |= (c[3] << 4);           // Alpha. Ditto.
-              if (which) c[4] = 0;           // Substitution hack marker.
-            } else if (hexLen == 6) {        // If the hex color string is 6 characters long, it's an `RRGGBB` hex string, so expand it to 8 by adding an alpha of `ff` (fully opaque).
-              hexDecode(hexPtr, 6, c, 4);    // Decodes into the first three bytes of the array as hex bytes equivalent to their string representation.
-              c[3] = 255;                    // Add an alpha of `ff` (fully opaque).
-#if defined STAR_COMPILER_GNU
+            if (hexLen == 3) {                                                                                                                                        // If the hex color string is 3 characters long, it's an `RGB` hex string, so expand it to 6 by doubling each character, then to 8 by adding an alpha of `ff` (fully opaque).
+              nibbleDecode(hexPtr, 3, c, 4);                                                                                                                          // Decodes into {0x0H, 0x0H, 0x0H, 0x00}, where H is each hex character in order.
+              c[0] |= (c[0] << 4);                                                                                                                                    // Red. Shift the least significant bits left by 4 bits, copying them into the empty most significant 4 bits.
+              c[1] |= (c[1] << 4);                                                                                                                                    // Blue. Ditto.
+              c[2] |= (c[2] << 4);                                                                                                                                    // Green. Ditto.
+              c[3] = 255;                                                                                                                                             // Add an alpha of `ff` (fully opaque).
+              if (which) c[4] = 0;                                                                                                                                    // Substitution hack marker.
+            } else if (hexLen == 4) {                                                                                                                                 // If the hex color string is 4 characters long, it's an `RGBA` hex string, so expand it to 8 by doubling each character.
+              nibbleDecode(hexPtr, 4, c, 4);                                                                                                                          // Decodes into {0x0H, 0x0H, 0x0H, 0x0H}, where H is each hex character in order.
+              c[0] |= (c[0] << 4);                                                                                                                                    // Red. Shift the least significant bits left by 4 bits, copying them into the empty most significant 4 bits.
+              c[1] |= (c[1] << 4);                                                                                                                                    // Blue. Ditto.
+              c[2] |= (c[2] << 4);                                                                                                                                    // Green. Ditto.
+              c[3] |= (c[3] << 4);                                                                                                                                    // Alpha. Ditto.
+              if (which) c[4] = 0;                                                                                                                                    // Substitution hack marker.
+            } else if (hexLen == 6) {                                                                                                                                 // If the hex color string is 6 characters long, it's an `RRGGBB` hex string, so expand it to 8 by adding an alpha of `ff` (fully opaque).
+              hexDecode(hexPtr, 6, c, 4);                                                                                                                             // Decodes into the first three bytes of the array as hex bytes equivalent to their string representation.
+              c[3] = 255;                                                                                                                                             // Add an alpha of `ff` (fully opaque).
+#if false                                                                                                                                                             // defined STAR_COMPILER_GNU
 // FezzedOne: Warning: Disgusting hack for GCC builds! This makes sure generated sleeves are rendered properly. To bypass this hack, tack an `ff` alpha value onto the end of `bcbc5d` when using
 // it as an `a` colour. The hack replaces an `a` of `bcbc5d` (not `bcbc5dff`) with `bcbc5e`, which is visually nearly indistinguishable anyway.
 // The hack is needed because `scaleBilinear` (way up above) now works very slightly differently from the vanilla version, just enough to impact this one edge case.
@@ -569,7 +569,7 @@ String imageOperationToString(ImageOperation const& operation) {
       // FezzedOne: Transparently convert compiled colour replacements back to the original directives,
       // as if the replacement never happened.
       Vec4B adjustedColour{a[0], a[1], a[2], a[3]};
-#if defined STAR_COMPILER_GNU
+#if false // defined STAR_COMPILER_GNU
       char colourSubstitutionMode = a[4];
       if (colourSubstitutionMode == (char)255 && adjustedColour[0] == NEW_COLOUR_BYTE_R) {
         adjustedColour[0] = OLD_COLOUR_BYTE_R;
@@ -584,7 +584,7 @@ String imageOperationToString(ImageOperation const& operation) {
 
       String aStr = Color::rgba(adjustedColour).toHex();
 
-#if defined STAR_COMPILER_GNU
+#if false // defined STAR_COMPILER_GNU
       if (colourSubstitutionMode == (char)0 && (COLOUR_NEEDS_SUB_RGBA(adjustedColour, unsigned char) || COLOUR_2_NEEDS_SUB_RGBA(adjustedColour, unsigned char))) {
         aStr += "ff";
       }
@@ -740,7 +740,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
         pixel = *m;
         return;
       }
-#if defined STAR_COMPILER_GNU
+#if false // defined STAR_COMPILER_GNU
       else if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 255))) {
         // Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
         // MinGW builds: Also execute any tagged `ad9b5a` → `ae9c5aff` replacement if no preceding explicit replacement for `ae9c5a`/`ae9c5aff` is found.
