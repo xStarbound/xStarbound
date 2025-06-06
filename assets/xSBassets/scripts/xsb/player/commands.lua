@@ -554,12 +554,13 @@ end
 
 local function renderRawDirectives(frameMode, firstArg, secondArg)
     if not firstArg then
-      return "Must specify either an image path with directives or an" 
-          .. "item name / JSON descriptor followed by an image path with directives."
+      return "Must specify directives or an image path with directives, optionally preceded by" 
+          .. "an item name or item JSON descriptor."
     end
     local directives = secondArg or firstArg
     local itemDescriptorOrName = secondArg and firstArg or nil
-    local itemDescriptor
+    local itemDescriptor = nil
+    local returnedConfig = nil
     if itemDescriptorOrName then
         local status, json = pcall(sb.parseJson, itemDescriptorOrName)
         if status and type(json) == "table" then
@@ -567,18 +568,22 @@ local function renderRawDirectives(frameMode, firstArg, secondArg)
         else
             itemDescriptor = { name = itemDescriptorOrName, count = 1 }
         end
-    end
-    local status, itemConfig = pcall(root.itemConfig, itemDescriptor)
-    if not status then
-      sb.logWarn("[xSB] /render: Failed to get item configuration for item '%s': %s", itemDescriptor, itemConfig)
-      return "^red;Failed to get item configuration. If you attempted to pass a JSON item descriptor, ensure the JSON descriptor is valid.^reset;"
+        local status, itemConfig = pcall(root.itemConfig, itemDescriptor)
+        if not status then
+            sb.logWarn("[xSB] /render: Failed to get item configuration for item '%s': %s", itemDescriptor, itemConfig)
+            return "^red;Failed to get item configuration. If you attempted to pass a JSON item descriptor, ensure the JSON descriptor is valid. See log for more info.^reset;"
+        elseif not itemConfig then
+            sb.logWarn("[xSB] /render: Failed to get item configuration for item '%s': Item does not exist. If the quoted string looks like JSON, ensure the JSON is valid.", itemDescriptor)
+            return "^red;Failed to get item configuration. If you attempted to pass a JSON item descriptor, ensure the JSON descriptor is valid. See log for more info.^reset;"
+        end
+        returnedConfig = itemConfig
     end
     if directives:sub(1, 1) == "?" then
         directives = "/assetmissing.png" .. directives
     elseif directives:sub(1, 1) == ":" then
         return "A base asset must be specified in order to use a frame specifier."
     end
-    root.saveAssetPathToImage(absolutePath(itemConfig, directives), "output", frameMode == "frames")
+    root.saveAssetPathToImage((returnedConfig ? absolutePath(returnedConfig, directives) : directives), "output", frameMode == "frames")
     return "Rendered sprite to ^cyan;'$storage/sprites/output.png'^reset;."
 end
 
