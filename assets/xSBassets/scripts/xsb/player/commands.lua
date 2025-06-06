@@ -568,7 +568,11 @@ local function renderRawDirectives(frameMode, firstArg, secondArg)
             itemDescriptor = { name = itemDescriptorOrName, count = 1 }
         end
     end
-    local itemConfig = root.itemConfig(itemDescriptor)
+    local status, itemConfig = pcall(root.itemConfig, itemDescriptor)
+    if not status then
+      sb.logWarn("[xSB] /render: Failed to get item configuration for item '%s': %s", itemDescriptor, itemConfig)
+      return "^red;Failed to get item configuration. If you attempted to pass a JSON item descriptor, ensure the JSON descriptor is valid.^reset;"
+    end
     if directives:sub(1, 1) == "?" then
         directives = "/assetmissing.png" .. directives
     elseif directives:sub(1, 1) == ":" then
