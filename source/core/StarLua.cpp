@@ -324,7 +324,13 @@ LuaEnginePtr LuaEngine::create(bool safe) {
         "dumpvar",
         "exportvar",
         "wcall",
-        "warn"};
+        "warn",
+        "compareversions",
+        "smod",
+        "umod",
+        "sdiv",
+        "udiv",
+        "callonce"};
 
     lua_pushnil(self->m_state);
     while (lua_next(self->m_state, -2) != 0) {
