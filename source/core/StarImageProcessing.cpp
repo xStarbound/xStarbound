@@ -854,7 +854,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
         if (dist < std::numeric_limits<int>::max()) {
           float percent = (dist - 1) / (2.0f * pixels - 1);
           if (pixel[3] != 0) {
-            // Downstreamed oSB fix that removes Kae's compatibility-breaking changes to borders around opaque pixels. Why, Kae?
+            // Downstreamed oSB fix that removes Kae's compatibility-breaking changes to borders drawn over fully transparent pixels. Why, Kae?
             Color color = Color::rgba(op->startColor).mix(Color::rgba(op->endColor), percent);
             if (op->outlineOnly) {
               float pixelA = byteToFloat(pixel[3]);
