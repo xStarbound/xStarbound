@@ -299,10 +299,14 @@ private:
     List<Drawable> itemDrawables;
     List<Drawable> nonRotatedDrawables;
     bool holdingItem = false;
+    bool skipFrontSplice = false;
+    bool skipBackSplice = false;
     float angle = 0.0f;
     float itemAngle = 0.0f;
     String backFrame;
     String frontFrame;
+    Directives backDirectives = Directives();
+    Directives frontDirectives = Directives();
     float frameAngleAdjust = 0.0f;
     bool recoil = false;
     bool outsideOfHand = false;

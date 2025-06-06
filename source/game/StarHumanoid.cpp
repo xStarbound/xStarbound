@@ -521,9 +521,23 @@ void Humanoid::setPrimaryHandParameters(bool holdingItem, float angle, float ite
   m_primaryHand.outsideOfHand = outsideOfHand;
 }
 
-void Humanoid::setPrimaryHandFrameOverrides(String backFrameOverride, String frontFrameOverride) {
+void Humanoid::setPrimaryHandFrameOverrides(String backFrameOverride, String frontFrameOverride) { // some users stick directives in these?? better make sure they don't break with custom clothing
+  // Novaenia: Split override directives from frame specifier and moved them behind clothing directives.
+  // FezzedOne: Unless the directives begin with a `??`.
+  size_t backEnd = backFrameOverride.utf8().find('?');
+  size_t frontEnd = frontFrameOverride.utf8().find('?');
+  std::string backSubString = backEnd == NPos ? "" : backFrameOverride.utf8().substr(backEnd);
+  std::string frontSubString = frontEnd == NPos ? "" : frontFrameOverride.utf8().substr(frontEnd);
+  m_primaryHand.skipBackSplice = (backSubString.size() >= 2) && (backSubString[0] == '?') && (backSubString[1] == '?');
+  m_primaryHand.skipFrontSplice = (frontSubString.size() >= 2) && (frontSubString[0] == '?') && (frontSubString[1] == '?');
+  Directives backDirectives = Directives(backSubString);
+  Directives frontDirectives = Directives(frontSubString);
+  if (backEnd != NPos) backFrameOverride = backFrameOverride.utf8().substr(0, backEnd);
+  if (frontEnd != NPos) frontFrameOverride = frontFrameOverride.utf8().substr(0, frontEnd);
   m_primaryHand.backFrame = !backFrameOverride.empty() ? std::move(backFrameOverride) : "rotation";
   m_primaryHand.frontFrame = !frontFrameOverride.empty() ? std::move(frontFrameOverride) : "rotation";
+  m_primaryHand.backDirectives = !backDirectives.empty() ? std::move(backDirectives) : Directives();
+  m_primaryHand.frontDirectives = !frontDirectives.empty() ? std::move(frontDirectives) : Directives();
 }
 
 void Humanoid::setPrimaryHandDrawables(List<Drawable> drawables) {
@@ -544,8 +558,22 @@ void Humanoid::setAltHandParameters(bool holdingItem, float angle, float itemAng
 }
 
 void Humanoid::setAltHandFrameOverrides(String backFrameOverride, String frontFrameOverride) {
+  // Novaenia: Split override directives from frame specifier and moved them behind clothing directives.
+  // FezzedOne: Unless the directives begin with a `??`.
+  size_t backEnd = backFrameOverride.utf8().find('?');
+  size_t frontEnd = frontFrameOverride.utf8().find('?');
+  std::string backSubString = backEnd == NPos ? "" : backFrameOverride.utf8().substr(backEnd);
+  std::string frontSubString = frontEnd == NPos ? "" : frontFrameOverride.utf8().substr(frontEnd);
+  m_altHand.skipBackSplice = (backSubString.size() >= 2) && (backSubString[0] == '?') && (backSubString[1] == '?');
+  m_altHand.skipFrontSplice = (frontSubString.size() >= 2) && (frontSubString[0] == '?') && (frontSubString[1] == '?');
+  Directives backDirectives = Directives(backSubString);
+  Directives frontDirectives = Directives(frontSubString);
+  if (backEnd != NPos) backFrameOverride = backFrameOverride.utf8().substr(0, backEnd);
+  if (frontEnd != NPos) frontFrameOverride = frontFrameOverride.utf8().substr(0, frontEnd);
   m_altHand.backFrame = !backFrameOverride.empty() ? std::move(backFrameOverride) : "rotation";
   m_altHand.frontFrame = !frontFrameOverride.empty() ? std::move(frontFrameOverride) : "rotation";
+  m_altHand.backDirectives = !backDirectives.empty() ? std::move(backDirectives) : Directives();
+  m_altHand.frontDirectives = !frontDirectives.empty() ? std::move(frontDirectives) : Directives();
 }
 
 void Humanoid::setAltHandDrawables(List<Drawable> drawables) {
@@ -608,7 +636,9 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
   auto backArmDrawable = [&](String const& frameSet, Directives const& directives) -> Drawable {
     String image = strf("{}:{}", frameSet, backHand.backFrame);
     Drawable backArm = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, backArmFrameOffset);
+    if (backHand.skipBackSplice) backArm.imagePart().addDirectives(backHand.backDirectives, true);
     backArm.imagePart().addDirectives(directives, true);
+    if (!backHand.skipBackSplice) backArm.imagePart().addDirectives(backHand.backDirectives, true);
     backArm.rotate(backHand.angle, backArmFrameOffset + m_backArmRotationCenter + m_backArmOffset);
     return backArm;
   };
@@ -1194,7 +1224,9 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
   auto frontArmDrawable = [&](String const& frameSet, Directives const& directives) -> Drawable {
     String image = strf("{}:{}", frameSet, frontHand.frontFrame);
     Drawable frontArm = Drawable::makeImage(image, 1.0f / TilePixels, true, frontArmFrameOffset);
+    if (frontHand.skipFrontSplice) frontArm.imagePart().addDirectives(frontHand.frontDirectives, true);
     frontArm.imagePart().addDirectives(directives, true);
+    if (!frontHand.skipFrontSplice) frontArm.imagePart().addDirectives(frontHand.frontDirectives, true);
     frontArm.rotate(frontHand.angle, frontArmFrameOffset + m_frontArmRotationCenter);
     return frontArm;
   };
