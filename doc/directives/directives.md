@@ -65,23 +65,8 @@ xStarbound supports the image operations listed below. Names and arguments are i
 - **`setpixel=x;y;newColour` [xStarbound only]:** Sets the pixel at the given `x` (`uint`) and `y` (`uint`) coordinates to the given `newColour` (`colour`).
 - **`blendpixel=x;y;newColour` [xStarbound only]:** `x` (`uint`), `y` (`uint`), `newColour` (`colour`). Same as above, but uses alpha blending to blend the pixel into the base image if the alpha isn't `ff`.
 - **`copyinto=image;x;y`:** Copies the pixels of the specified `image` (`image`) into the base image, _replacing_ in-bounds pixels of the base image with those of the copied image. The specified image to copy is offset from the base's origin by the specified `x` (`uint`) and `y` (`uint`) values.
-- **`drawinto=image;x;y`:** `image` (`image`), `x` (`uint`), `y` (`uint`). Same as above, but alpha-blends the copied image's pixels into the base image. Preferable if you don't want the copied image's transparent pixels to "cut out" portions of the base.
+- **`drawinto=image;x;y`:** `image` (`image`), `x` (`uint`), `y` (`uint`). Same as above, but alpha-blends the copied image's pixels into the base image. Preferable if you don't want the copied image's transparent pixels to «cut out» portions of the base.
 
-### Technical notes
+### Technical note for macOS users
 
-> **Note to modders:** These detailed technical notes are aimed mostly at macOS users, C/C++ developers and nerds. The average Starbound modder can and should skip reading these unless gripped by curiosity.
-
-**MinGW builds:** The behaviour of the `?replace` directive parser and executor on the Linux/GCC and MinGW/Windows build actually deviates slightly from its description above in order to work around a minor optimisation "fluke" that would otherwise affect generated sleeve items. On this build, the behaviour of the following "source" colours is changed, in order of precedence:
-
-- `bcbc5e`, `bcbc5eff`, `bcbc5dff`: These replace the specified colours with replacement colours, working exactly as in stock Starbound, StarExtensions and other non-xClient clients. Use `bcbc5dff` instead of `bcbc5d` if you don't want the "implicit" double replacement below to happen; this should virtually never be necessary since a replacement of `bcbc5e` in the same operation will always override "implicit" replacement.
-- `ae9c5a`, `ae9c5aff`, `ad9b5aff`: These replace the specified colours with replacement colours, working exactly as in stock Starbound, StarExtensions and other non-xClient clients. Use `ae9c5aff` instead of `ae9c5a` if you don't want the "implicit" double replacement below to happen; this should virtually never be necessary since a replacement of `ae9c5a` in the same operation will always override "implicit" replacement.
-- `bcbc5d`: This "implicitly" replaces _both_ `bcbc5d` and `bcbc5e` in the image with the specified replacement colour. These "implicit" replacements happen only if precedent "source" colours in the same operation (the order in the string doesn't matter, as long as it's in the same operation) didn't already replace them.
-- `ad9b5a`: This "implicitly" replaces _both_ `ad9b5a` and `ae9c5a` in the image with the specified replacement colour. These "implicit" replacements happen only if precedent "source" colours in the same operation (the order in the string doesn't matter, as long as it's in the same operation) didn't already replace them.
-
-This colour replacement happens completely under the hood and has been designed to have as little noticeable effect on directive modding as possible. When the engine returns compiled directives as a string, it always returns the original values losslessly and seamlessly.
-
-As for the rationale, this internal substitution is done on the MinGW build in order to work around floating-point optimisations in `?scale`/`?scalebilinear` calculations that cause the `walk.1` and `run.1` frame in generated sleeve items (the most common type, with a Dokie "header") to be rendered as a big yellow box. Using pragmas to disable the problematic optimisations on MinGW didn't work.
-
-**Clang and MSVC builds:** The "fluke" above does not affect the Linux/Clang or MSVC/Windows build. As such, these builds do not have or need the `?replace` adjustments detailed above.
-
-**macOS builds:** Generated sleeves on the x86 macOS build (at least on the latest x86-64 Apple Clang on macOS 14 Sonoma) are affected by a different and _worse_ optimisation "fluke" (that affects four _back_ sleeve frames) which I couldn't fix by disabling optimisations and didn't feel like patching around, so they're most likely still in that build if you decide to compile it yourself. I suggest you save yourself the trouble by cross-compiling and running the Windows build in Whisky or WINE.
+Generated sleeves on the x86 macOS build (at least on the latest x86-64 Apple Clang on macOS 14 Sonoma) are likely affected by an optimisation «fluke» (that affects four back sleeve frames) which I couldn't fix by disabling optimisations and didn't feel like patching around, so they're most likely still in that build if you decide to compile it yourself. I suggest you save yourself the trouble by cross-compiling and running the Windows build in Whisky or WINE.
