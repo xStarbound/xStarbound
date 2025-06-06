@@ -319,6 +319,7 @@ LuaEnginePtr LuaEngine::create(bool safe) {
         "type",
         "unpack",
         "_VERSION",
+        "_PVERSION",
         "xpcall",
         "range",
         "dumpvar",
