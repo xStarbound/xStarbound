@@ -230,7 +230,8 @@ private:
   atomic<bool> m_stop;
   atomic<TcpState> m_tcpState;
 
-  mutable ReadersWriterMutex m_clientsLock;
+  // Fezzedone: Needs to be recursive because world scripts have access to universe server callbacks.
+  mutable RecursiveMutex m_clientsLock;
   unsigned m_maxPlayers;
   IdMap<ConnectionId, ServerClientContextPtr> m_clients;
 

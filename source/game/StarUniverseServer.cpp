@@ -104,7 +104,7 @@ UniverseServer::~UniverseServer() {
   m_workerPool.stop();
 
   RecursiveMutexLocker locker(m_mainLock);
-  WriteLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   m_connectionServer->removeAllConnections();
   m_deadConnections.clear();
@@ -140,7 +140,7 @@ void UniverseServer::stop() {
 }
 
 void UniverseServer::setPause(bool pause) {
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   // Pausing is disabled for multiplayer
   if (m_clients.size() > 1)
     pause = false;
@@ -170,12 +170,12 @@ bool UniverseServer::isWorldActive(WorldId const& worldId) const {
 }
 
 List<ConnectionId> UniverseServer::clientIds() const {
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   return m_clients.keys();
 }
 
 size_t UniverseServer::numberOfClients() const {
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   return m_clients.size();
 }
 
@@ -184,12 +184,12 @@ uint32_t UniverseServer::maxClients() const {
 }
 
 bool UniverseServer::isConnectedClient(ConnectionId clientId) const {
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   return m_clients.contains(clientId);
 }
 
 String UniverseServer::clientDescriptor(ConnectionId clientId) const {
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   if (auto clientContext = m_clients.value(clientId))
     return clientContext->descriptiveName();
   else
@@ -205,14 +205,14 @@ Maybe<ConnectionId> UniverseServer::findNick(String const& nick) const {
 }
 
 Maybe<Uuid> UniverseServer::uuidForClient(ConnectionId clientId) const {
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   if (auto clientContext = m_clients.value(clientId))
     return clientContext->playerUuid();
   return {};
 }
 
 Maybe<ConnectionId> UniverseServer::clientForUuid(Uuid const& uuid) const {
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   return getClientForUuid(uuid);
 }
 
@@ -230,34 +230,34 @@ String UniverseServer::adminCommand(String text) {
 }
 
 bool UniverseServer::isAdmin(ConnectionId clientId) const {
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   if (auto clientContext = m_clients.value(clientId))
     return clientContext->isAdmin();
   return false;
 }
 
 bool UniverseServer::canBecomeAdmin(ConnectionId clientId) const {
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   if (auto clientContext = m_clients.value(clientId))
     return clientContext->canBecomeAdmin();
   return false;
 }
 
 void UniverseServer::setAdmin(ConnectionId clientId, bool admin) {
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   if (auto clientContext = m_clients.value(clientId))
     clientContext->setAdmin(admin);
 }
 
 bool UniverseServer::isLocal(ConnectionId clientId) const {
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   if (auto clientContext = m_clients.value(clientId))
     return !clientContext->remoteAddress();
   return false;
 }
 
 bool UniverseServer::isPvp(ConnectionId clientId) const {
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   if (auto clientContext = m_clients.value(clientId))
     return clientContext->team().type == TeamType::PVP;
   return false;
@@ -265,7 +265,7 @@ bool UniverseServer::isPvp(ConnectionId clientId) const {
 
 void UniverseServer::setPvp(ConnectionId clientId, bool pvp) {
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   if (auto clientContext = m_clients.value(clientId)) {
     if (pvp) {
       TeamNumber pvpTeam = m_teamManager->getPvpTeam(clientContext->playerUuid());
@@ -291,7 +291,7 @@ void UniverseServer::clientWarpPlayer(ConnectionId clientId, WarpAction action, 
 
 void UniverseServer::clientFlyShip(ConnectionId clientId, Vec3I const& system, SystemLocation const& location) {
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   if (m_pendingFlights.contains(clientId) || m_queuedFlights.contains(clientId))
     return;
@@ -320,18 +320,16 @@ void UniverseServer::clientFlyShip(ConnectionId clientId, Vec3I const& system, S
 }
 
 WorldId UniverseServer::clientWorld(ConnectionId clientId) const {
-  Logger::info("[xSB::Debug] UniverseServer::clientWorld: Locking mutexes.");
   RecursiveMutexLocker locker(m_mainLock);
-  Logger::info("[xSB::Debug] Locked main universe server mutex [recursive].");
-  ReadLocker clientsLocker(m_clientsLock);
-  Logger::info("[xSB::Debug] UniverseServer::clientWorld: Locked client mutex [non-recursive].");
+  // FezzedOne: Fixing non-recursive client mutex lockers!
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   if (auto clientContext = m_clients.value(clientId))
     return clientContext->playerWorldId();
   return WorldId();
 }
 
 CelestialCoordinate UniverseServer::clientShipCoordinate(ConnectionId clientId) const {
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   if (auto clientContext = m_clients.value(clientId))
     return clientContext->shipCoordinate();
   return CelestialCoordinate();
@@ -351,7 +349,7 @@ CelestialDatabase& UniverseServer::celestialDatabase() {
 
 bool UniverseServer::executeForClient(ConnectionId clientId, function<void(WorldServer*, PlayerPtr)> action) {
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   bool success = false;
   if (auto clientContext = m_clients.value(clientId)) {
     if (auto currentWorld = clientContext->playerWorld()) {
@@ -464,7 +462,7 @@ bool UniverseServer::updatePlanetType(CelestialCoordinate const& coordinate, Str
 
         m_celestialDatabase->updateParameters(coordinate, *celestialParameters);
 
-        ReadLocker clientsLocker(m_clientsLock);
+        RecursiveMutexLocker clientsLocker(m_clientsLock);
 
         for (auto clientId : m_clients.keys())
           m_connectionServer->sendPackets(clientId, {make_shared<PlanetTypeUpdatePacket>(coordinate)});
@@ -566,7 +564,7 @@ void UniverseServer::run() {
     }
 
     RecursiveMutexLocker locker(m_mainLock);
-    WriteLocker clientsLocker(m_clientsLock);
+    RecursiveMutexLocker clientsLocker(m_clientsLock);
     for (auto clientId : m_clients.keys())
       doDisconnection(clientId, "Server is shutting down");
 
@@ -582,7 +580,7 @@ void UniverseServer::run() {
 void UniverseServer::processUniverseFlags() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   if (auto actions = m_universeSettings->pullPendingFlagActions()) {
     for (auto action : *actions) {
@@ -621,7 +619,7 @@ void UniverseServer::processUniverseFlags() {
 void UniverseServer::sendPendingChat() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   for (auto const& p : m_clients) {
     for (auto const& message : m_chatProcessor->pullPendingMessages(p.first))
       m_connectionServer->sendPackets(p.first, {make_shared<ChatReceivePacket>(message)});
@@ -631,7 +629,7 @@ void UniverseServer::sendPendingChat() {
 void UniverseServer::updateTeams() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   StringMap<List<Uuid>> connectedPlayers;
   auto teams = m_teamManager->getPvpTeams();
@@ -659,7 +657,7 @@ void UniverseServer::updateTeams() {
 void UniverseServer::updateShips() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   for (auto const& p : m_clients) {
     auto newShipUpgrades = p.second->shipUpgrades();
@@ -703,7 +701,7 @@ void UniverseServer::updateShips() {
 void UniverseServer::sendClockUpdates() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   int64_t currentTime = Time::monotonicMilliseconds();
   if (currentTime > m_lastClockUpdateSent + Root::singleton().assets()->json("/universe_server.config:clockUpdatePacketInterval").toInt()) {
@@ -722,7 +720,7 @@ void UniverseServer::sendClientContextUpdate(ServerClientContextPtr clientContex
 void UniverseServer::sendClientContextUpdates() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   for (auto const& p : m_clients)
     sendClientContextUpdate(p.second);
@@ -757,7 +755,7 @@ void UniverseServer::reapConnections() {
     return function.isFinished();
   });
 
-  WriteLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   for (auto p : take(m_pendingDisconnections))
     doDisconnection(p.first, p.second);
 
@@ -804,7 +802,7 @@ void UniverseServer::processPlanetTypeChanges() {
 void UniverseServer::warpPlayers() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   for (auto const& clientId : m_pendingPlayerWarps.keys()) {
     auto& warp = m_pendingPlayerWarps.get(clientId);
@@ -879,7 +877,7 @@ void UniverseServer::warpPlayers() {
 void UniverseServer::flyShips() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   double queuedFlightWaitTime = Root::singleton().assets()->json("/universe_server.config:queuedFlightWaitTime").toDouble();
   for (auto clientId : m_queuedFlights.keys()) {
@@ -969,7 +967,7 @@ void UniverseServer::flyShips() {
 void UniverseServer::arriveShips() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   eraseWhere(m_pendingArrivals, [this](pair<ConnectionId const, CelestialCoordinate>& p) {
     auto& clientId = p.first;
@@ -1027,7 +1025,7 @@ void UniverseServer::arriveShips() {
 void UniverseServer::respondToCelestialRequests() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   for (auto& p : m_pendingCelestialRequests) {
     List<CelestialResponse> responses;
@@ -1049,7 +1047,7 @@ void UniverseServer::respondToCelestialRequests() {
 void UniverseServer::processChat() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   for (auto const& p : take(m_pendingChat)) {
     if (auto clientContext = m_clients.get(p.first)) {
@@ -1092,7 +1090,7 @@ void UniverseServer::clearBrokenWorlds() {
 void UniverseServer::handleWorldMessages() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   auto it = m_pendingWorldMessages.begin();
   while (it != m_pendingWorldMessages.end()) {
@@ -1115,7 +1113,7 @@ void UniverseServer::handleWorldMessages() {
 void UniverseServer::shutdownInactiveWorlds() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   // Shutdown idle and errored worlds.
   for (auto const& worldId : m_worlds.keys()) {
@@ -1191,7 +1189,7 @@ void UniverseServer::shutdownInactiveWorlds() {
 void UniverseServer::doTriggeredStorage() {
   ZoneScoped;
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   if (Time::monotonicMilliseconds() >= m_storageTriggerDeadline) {
     Logger::debug("UniverseServer: periodic sync to disk");
@@ -1422,7 +1420,7 @@ Maybe<String> UniverseServer::isBannedUser(Maybe<HostAddress> hostAddress, Uuid 
 
 void UniverseServer::doTempBan(ConnectionId clientId, String const& reason, pair<bool, bool> banType, int timeout) {
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   if (auto clientContext = m_clients.value(clientId)) {
     if (!clientContext->remoteAddress())
@@ -1444,7 +1442,7 @@ void UniverseServer::doTempBan(ConnectionId clientId, String const& reason, pair
 
 void UniverseServer::doPermBan(ConnectionId clientId, String const& reason, pair<bool, bool> banType) {
   RecursiveMutexLocker locker(m_mainLock);
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   if (auto clientContext = m_clients.value(clientId)) {
     if (!clientContext->remoteAddress())
@@ -1509,7 +1507,7 @@ void UniverseServer::systemWorldUpdated(SystemWorldServerThread* systemWorldServ
 
 void UniverseServer::packetsReceived(UniverseConnectionServer*, ConnectionId clientId, List<PacketPtr> packets) {
   ZoneScoped;
-  ReadLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   if (auto clientContext = m_clients.value(clientId)) {
     clientsLocker.unlock();
 
@@ -1686,7 +1684,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
       accountString, clientConnect->playerName, remoteAddressString);
 
   mainLocker.lock();
-  WriteLocker clientsLocker(m_clientsLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
   if (auto clashId = getClientForUuid(clientConnect->playerUuid)) {
     if (administrator) {
       doDisconnection(*clashId, String("Duplicate player UUID; prioritised newly joined admin player"));
@@ -1779,8 +1777,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   clientFlyShip(clientId, clientContext->shipCoordinate().location(), clientContext->shipLocation());
   Logger::info("UniverseServer: Client {} connected", clientContext->descriptiveName());
 
-  // Kae's fix for a potential deadlock on connections.
-  ReadLocker clientsReadLocker(m_clientsLock);
+  RecursiveMutexLocker clientsReadLocker(m_clientsLock);
   auto players = static_cast<uint16_t>(m_clients.size());
   auto clients = m_clients.keys();
   clientsReadLocker.unlock();
