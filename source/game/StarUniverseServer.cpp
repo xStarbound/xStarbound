@@ -322,8 +322,9 @@ void UniverseServer::clientFlyShip(ConnectionId clientId, Vec3I const& system, S
 WorldId UniverseServer::clientWorld(ConnectionId clientId) const {
   Logger::info("[xSB::Debug] UniverseServer::clientWorld: Locking mutexes.");
   RecursiveMutexLocker locker(m_mainLock);
+  Logger::info("[xSB::Debug] Locked main universe server mutex [recursive].");
   ReadLocker clientsLocker(m_clientsLock);
-  Logger::info("[xSB::Debug] UniverseServer::clientWorld: Mutexes locked.");
+  Logger::info("[xSB::Debug] UniverseServer::clientWorld: Locked client mutex [non-recursive].");
   if (auto clientContext = m_clients.value(clientId))
     return clientContext->playerWorldId();
   return WorldId();
