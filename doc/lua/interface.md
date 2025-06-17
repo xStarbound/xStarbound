@@ -340,7 +340,7 @@ Identical in functionality to `player.sendChat` (see `player.md`), except that `
 
 #### `List<String>` chat.parseArguments(`String` text, `String` sendMode, `bool` suppressBubble)
 
-> \*Returns `List<Json>` on OpenStarbound and StarExtensions, since on those mods, this callback invokes different (and non-standard!) parsing of strings containing JSON object or array notation.
+> _Returns `Json...` on OpenStarbound and StarExtensions, since on those mods, this callback invokes different (and non-standard!) parsing of strings containing JSON object or array notation; the number of returned values is the number of arguments that have been parsed out. This tuple return value can cause issues if one or more parsed arguments is `nil` (i.e., a JSON `null`)._
 
 Parses a line of raw text into a list of substrings, handling whitespace and escape codes as if the arguments were passed to any halfway decent CLI shell (i.e., not Windows' CMD). More specifically, the following rules are used:
 

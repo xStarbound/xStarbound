@@ -737,6 +737,8 @@ Generates a portrait of the specified entity in the specified portrait mode and 
 - `"fullnude"`: The entity's full body, without any armour or clothing. Note that any «clothing» in the form of modified humanoid directives is still rendered.
 - `"fullneutralnude"`: The entity's full body, posed «neutrally» _and_ without clothing (as above).
 
+> **Note:** As of xStarbound v3.7.1+ and OpenStarbound v0.1.10+, a portrait of an NPC or player wearing items with `"flipDirectives"` will show those items with their `"flipDirectives"` applied if the NPC or player is facing left when the callback is invoked.
+
 ---
 
 #### `Maybe<String>` world.entityHandItem(`EntityId` entityId, `String` handName)

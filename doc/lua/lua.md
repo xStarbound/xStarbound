@@ -63,12 +63,12 @@ Due to the particular requirements and caveats of Starbound callbacks, all callb
 
 There are several type annotations with special meanings:
 
-- `...` after a type name (included bracketed types) indicates variadic arguments; one or more arguments of the given type are allowed.
+- `...` after a type name (included bracketed types) indicates variadic arguments or return values; one or more arguments of the given type are allowed, or one of more values of the given return type are returned.
 - A lack of parentheses indicates a specification for a variable rather than a function, callback, message or method.
 - A function or callback argument surrounded by square brackets (`[   ]`) has the same meaning as `Maybe<...>`.
 - An entire invoked function name surrounded by square brackets means that the expected function can be an unset `nil` value without raising an error.
 - Variadic arguments surrounded by square brackets can accept zero or more arguments.
-- A comma-separated list of return types means the obvious — the callback or function returns multiple values.
+- A comma-separated list of return types means the obvious — the callback or function returns a fixed number of multiple values (unless one or more specified return values are variadic).
 
 > **Hardcoded message handlers:** A function or callback name surrounded by double quotes (`"   "`) and followed by a list of entity or context types in square brackets (`[   ]`) means the specified engine invocation or callback is actually an entity or world message whose invocation or reception code is hardcoded.
 >
@@ -383,4 +383,3 @@ The following is a list of common Lua functions called by the engine when runnin
   If `keyDown` is `true`, the key is pressed down; otherwise, it is released. `key` is the integer ID of the key, while `keyName` is the name of the key. See `interface.md` for valid `Key` values; the integer ID is the ordinal position of the string value in that list, minus 1.
 
 Other Lua functions invoked by the engine are fairly self-explanatory; see the base game assets for examples, and if that isn't enough, see xStarbound's source code for the gory details.
-
