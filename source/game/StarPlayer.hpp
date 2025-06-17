@@ -549,6 +549,7 @@ public:
   // From OpenStarbound: Get and set networked cosmetic items in the oSB cosmetic slots.
   void setNetArmorSecret(uint8_t cosmeticSlot, ArmorItemPtr const& armour);
   Array<ArmorItemPtr, 12> const& getNetArmorSecrets();
+  bool pulledCosmeticUpdate();
 
 private:
   enum class State {
@@ -751,6 +752,7 @@ private:
   // FezzedOne: Variable to make sure the inventory overflow check doesn't run more than once in `update`.
   bool m_overflowCheckDone;
   bool m_startedNetworkingCosmetics;
+  bool m_pulledCosmeticUpdate;
   Array<uint64_t, 12> m_armorSecretNetVersions;
   Array<ArmorItemPtr, 12> m_openSbCosmetics;
 };

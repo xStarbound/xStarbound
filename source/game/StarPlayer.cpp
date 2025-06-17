@@ -230,6 +230,7 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
   m_overflowCheckDone = false;
 
   m_startedNetworkingCosmetics = false;
+  m_pulledCosmeticUpdate = false;
   m_armorSecretNetVersions = Array<uint64_t, 12>::filled(0);
 
   m_netGroup.setNeedsLoadCallback(bind(&Player::getNetStates, this, _1));
@@ -3339,6 +3340,7 @@ Array<ArmorItemPtr, 12> const& Player::getNetArmorSecrets() {
       if (auto jVersion = getSecretProperty(strf("armorWearer.{}.version", slotName), 0); jVersion.isType(Json::Type::Int))
         newVersion = jVersion.toUInt();
       if (newVersion > curVersion) {
+        m_pulledCosmeticUpdate = true;
         curVersion = newVersion;
         ArmorItemPtr item = nullptr;
         if (auto jData = getSecretProperty(strf("armorWearer.{}.data", slotName)))
@@ -3349,6 +3351,12 @@ Array<ArmorItemPtr, 12> const& Player::getNetArmorSecrets() {
   }
 
   return m_openSbCosmetics;
+}
+
+bool Player::pulledCosmeticUpdate() {
+  bool pulledUpdate = m_pulledCosmeticUpdate;
+  m_pulledCosmeticUpdate = false;
+  return pulledUpdate;
 }
 
 } // namespace Star

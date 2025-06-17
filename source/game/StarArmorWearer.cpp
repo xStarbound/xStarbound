@@ -79,44 +79,50 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
 
   anyNeedsSync |= directionChanged;
 
-  if (m_player && anyNeedsSync) { // FezzedOne: Reads OpenStarbound cosmetic layers into xSB overlays.
-    auto& openSbCosmeticStack = m_player->getNetArmorSecrets();
-    for (uint8_t i = 0; i != 12; i++) {
-      auto& item = openSbCosmeticStack[i];
-      if (!item) continue;
-      if (auto armourItem = as<HeadArmor>(item)) {
-        headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-            armourItem->frameset(humanoid.identity().gender),
-            getDirectives(as<ArmorItem>(armourItem)),
-            armourItem->maskDirectives()});
-        mergeHumanoidConfig(as<ArmorItem>(item));
-      } else if (auto armourItem = as<ChestArmor>(item)) {
-        chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-            armourItem->bodyFrameset(humanoid.identity().gender),
-            getDirectives(as<ArmorItem>(armourItem)),
-            Directives()});
-        frontSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
-            armourItem->frontSleeveFrameset(humanoid.identity().gender),
-            getDirectives(as<ArmorItem>(armourItem)),
-            Directives()});
-        backSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
-            armourItem->backSleeveFrameset(humanoid.identity().gender),
-            getDirectives(as<ArmorItem>(armourItem)),
-            Directives()});
-        mergeHumanoidConfig(as<ArmorItem>(item));
-      } else if (auto armourItem = as<LegsArmor>(item)) {
-        legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-            armourItem->frameset(humanoid.identity().gender),
-            getDirectives(as<ArmorItem>(armourItem)),
-            Directives()});
-        mergeHumanoidConfig(as<ArmorItem>(item));
-      } else if (auto armourItem = as<BackArmor>(item)) {
-        backArmorStack.emplaceAppend(Humanoid::BackEntry{
-            armourItem->frameset(humanoid.identity().gender),
-            getDirectives(as<ArmorItem>(armourItem)),
-            Directives(),
-            armourItem->rotateWithHead()});
-        mergeHumanoidConfig(as<ArmorItem>(item));
+  if (m_player) {
+    if (m_player->isSlave() && anyNeedsSync) { // FezzedOne: Reads OpenStarbound cosmetic layers into xSB overlays.
+      auto& openSbCosmeticStack = m_player->getNetArmorSecrets();
+      for (uint8_t i = 0; i != 12; i++) {
+        auto& item = openSbCosmeticStack[i];
+        if (!item) continue;
+        if (auto armourItem = as<HeadArmor>(item)) {
+          headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
+              armourItem->frameset(humanoid.identity().gender),
+              getDirectives(as<ArmorItem>(armourItem)),
+              armourItem->maskDirectives()});
+          mergeHumanoidConfig(as<ArmorItem>(item));
+        } else if (auto armourItem = as<ChestArmor>(item)) {
+          chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
+              armourItem->bodyFrameset(humanoid.identity().gender),
+              getDirectives(as<ArmorItem>(armourItem)),
+              Directives()});
+          frontSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
+              armourItem->frontSleeveFrameset(humanoid.identity().gender),
+              getDirectives(as<ArmorItem>(armourItem)),
+              Directives()});
+          backSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
+              armourItem->backSleeveFrameset(humanoid.identity().gender),
+              getDirectives(as<ArmorItem>(armourItem)),
+              Directives()});
+          mergeHumanoidConfig(as<ArmorItem>(item));
+        } else if (auto armourItem = as<LegsArmor>(item)) {
+          legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
+              armourItem->frameset(humanoid.identity().gender),
+              getDirectives(as<ArmorItem>(armourItem)),
+              Directives()});
+          mergeHumanoidConfig(as<ArmorItem>(item));
+        } else if (auto armourItem = as<BackArmor>(item)) {
+          backArmorStack.emplaceAppend(Humanoid::BackEntry{
+              armourItem->frameset(humanoid.identity().gender),
+              getDirectives(as<ArmorItem>(armourItem)),
+              Directives(),
+              armourItem->rotateWithHead()});
+          mergeHumanoidConfig(as<ArmorItem>(item));
+        }
+      }
+    } else if ((!m_player->isSlave()) && m_player->pulledCosmeticUpdate()) { // FezzedOne: Clears the emulated OpenStarbound cosmetic slots whenever an update is needed.
+      for (uint8_t i = 0; i != 12; i++) {
+        m_player->setNetArmorSecret(i, nullptr);
       }
     }
   }
