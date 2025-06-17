@@ -327,11 +327,18 @@ local function absolutePath(itemConfig, path)
     end
 end
 
-local function resolveDirectives(itemConfig)
-    if itemConfig.parameters.directives then
-        return itemConfig.parameters.directives
+local function resolveDirectives(itemConfig, flipped)
+    if itemConfig.parameters.flipDirectives and (flipped == "flipped" or flipped == "left") then
+        local flipDirectives = tostring(itemConfig.parameters.flipDirectives) 
+        if flipDirectives:sub(1, 1) == "+" then
+            return (itemConfig.parameters.directives and tostring(itemConfig.parameters.directives) or "") .. flipDirectives:sub(2, -1)
+        else
+            return flipDirectives
+        end
+    elseif itemConfig.parameters.directives then
+        return tostring(itemConfig.parameters.directives)
     else
-        local colourIndex = itemConfig.parameters.colorIndex or 0
+        local colourIndex = math.tointeger(itemConfig.parameters.colorIndex) or 0
         local colourOptionsForIndex = {}
         if type(itemConfig.config.colorOptions) == "table" then
             if type(itemConfig.config.colorOptions[colourIndex]) == "table" then
@@ -342,7 +349,7 @@ local function resolveDirectives(itemConfig)
         local optionCount = 0
         for left, right in pairs(colourOptionsForIndex) do
             optionCount = optionCount + 1
-            directives = directives .. left .. "=" .. right .. ";"
+            directives = directives .. tostring(left) .. "=" .. tostring(right) .. ";"
         end
         return optionCount == 0 and "" or directives
     end
@@ -422,7 +429,7 @@ end
 
 local function resolveMaskLayering(base, mask) return base .. "?addmask=" .. mask end
 
-local function resolveClothingAsset(itemDescriptor, gender, maskType)
+local function resolveClothingAsset(itemDescriptor, gender, maskType, flipped)
     if itemDescriptor then
         local itemType = root.itemType(itemDescriptor.name)
         if
@@ -432,7 +439,7 @@ local function resolveClothingAsset(itemDescriptor, gender, maskType)
             or itemType == "backarmor"
         then
             local itemConfig = root.itemConfig(itemDescriptor)
-            local directives = resolveDirectives(itemConfig)
+            local directives = resolveDirectives(itemConfig, flipped)
             if itemType == "chestarmor" then
                 local frameConfig = itemConfig.config[gender .. "Frames"] or {}
                 local chest = absolutePath(itemConfig, frameConfig.body or "/assetmissing.png") .. directives
@@ -473,7 +480,7 @@ local function resolveClothingAsset(itemDescriptor, gender, maskType)
     end
 end
 
-local function renderArmourItem(itemType, gender, maskType)
+local function renderArmourItem(itemType, gender, maskType, flipped)
     local itemDescriptor
     if itemType == "hat" then
         itemDescriptor = player.equippedItem("headCosmetic") or player.equippedItem("head")
@@ -485,7 +492,7 @@ local function renderArmourItem(itemType, gender, maskType)
         itemDescriptor = player.equippedItem("backCosmetic") or player.equippedItem("back")
     end
     if itemDescriptor then
-        local directivesToRender = resolveClothingAsset(itemDescriptor, gender or player.gender(), maskType)
+        local directivesToRender = resolveClothingAsset(itemDescriptor, gender or player.gender(), maskType, flipped)
         local returnStrings = {}
         for imageName, directiveString in pairs(directivesToRender) do
             root.saveAssetPathToImage(directiveString, imageName, true)
@@ -594,9 +601,10 @@ local function checkRenderArguments(args)
                 args[1] == "hat"
                 and args[2] ~= nil
                 and (args[3] == "hair" or args[3] == "facialhair" or args[3] == "facialmask")
+                and (args[4] == "left" or args[4] == "right" or args[4] == "flipped" or args[4] == nil)
             then
                 return true
-            elseif not args[3] then
+            elseif args[3] == "left" or args[3] == "right" or args[3] == "flipped" or args[3] == nil then
                 return true
             else
                 return false
@@ -613,10 +621,10 @@ end
 local noArgHelp = "^#f33;</render>^reset;\nThe following subcommands are available:\n\n"
 local wrongArgHelp = "Invalid subcommand or arguments specified. Valid subcommands and arguments are:\n\n"
 local renderHelp =
-    [===[^cyan;/render hat <male/female/default> <hair/facialhair/facialmask>^reset;: Renders the worn head item to PNG files. The sprites are exported to ^orange;'$sprites/${shortdescription} (hat).png'^reset; and ^orange;'$sprites/${name} (mask).png'^reset;.
-^cyan;/render chest <male/female/default>^reset;: Renders the worn chest/sleeves item to PNG files. The sprites are exported to ^orange;'$sprites/${shortdescription} (chest).png'^reset;, ^orange;'$sprites/${shortdescription} (back sleeve).png'^reset; and ^orange;'$sprites/${shortdescription} (front sleeve).png'^reset;.
-^cyan;/render legs <male/female/default>^reset;: Renders the worn legs or chest/legs item to a PNG file. The sprite is exported to ^orange;'$sprites/${shortdescription} (legs).png'^reset;.
-^cyan;/render back <male/female/default>^reset;: Renders the worn back item to a PNG file. The sprite is exported to ^orange;'$sprites/${shortdescription} (back).png'^reset;.
+    [===[^cyan;/render hat <male/female/default> <hair/facialhair/facialmask> <left/right/flipped>^reset;: Renders the worn head item to PNG files. The sprites are exported to ^orange;'$sprites/${shortdescription} (hat).png'^reset; and ^orange;'$sprites/${name} (mask).png'^reset;.
+^cyan;/render chest <male/female/default> <left/right/flipped>^reset;: Renders the worn chest/sleeves item to PNG files. The sprites are exported to ^orange;'$sprites/${shortdescription} (chest).png'^reset;, ^orange;'$sprites/${shortdescription} (back sleeve).png'^reset; and ^orange;'$sprites/${shortdescription} (front sleeve).png'^reset;.
+^cyan;/render legs <male/female/default> <left/right/flipped>^reset;: Renders the worn legs or chest/legs item to a PNG file. The sprite is exported to ^orange;'$sprites/${shortdescription} (legs).png'^reset;.
+^cyan;/render back <male/female/default> <left/right/flipped>^reset;: Renders the worn back item to a PNG file. The sprite is exported to ^orange;'$sprites/${shortdescription} (back).png'^reset;.
 
 ^cyan;/render body <male/female/default>^reset;: Renders the character's humanoid sprites to PNG files. The sprites are exported to ^orange;'$sprites/${character name} (head).png'^reset;, ^orange;'$sprites/${character name} (emotes).png'^reset;, ^orange;'$sprites/${character name} (hair).png'^reset;, ^orange;'$sprites/${character name} (facial hair).png'^reset;, ^orange;'$sprites/${character name} (facial mask).png'^reset;, ^orange;'$sprites/${character name} (back arm).png'^reset;, ^orange;'$sprites/${character name} (front arm).png'^reset; and ^orange;'$sprites/${character name} (body).png'^reset;.
 
@@ -630,6 +638,7 @@ local renderHelp =
 ^orange;<male/female/default>^reset;: By default, the base asset for the character's gender is used for rendering by all subcommands, but a gender may optionally be specified after a subcommand to override this. ^cyan;default^reset; uses the player's gender; this is only necessary if you're specifying the parameter below.
 ^orange;<hair/facialhair/facialmask>^reset;: If specified, uses the hair, facial hair or facial mask as the base for rendering a hat's mask.
 ^orange;<frames/noframes>^reset;: If ^cyan;frames^reset; is optionally specified, the passed directives are rendered by frame; this is necessary for, e.g., most generated clothing drawables except hats. ^cyan;noframes^reset; is the default and normally doesn't need to be explicitly specified, but is there if you end up needing to use a subcommand name as a reference item ID.
+^orange;<left/right/flipped>^reset;: If ^cyan;left^reset; or ^cyan;flipped^reset; is optionally specified, the item's ^cyan;"flipDirectives"^reset; are used for rendering the cosmetic item as it would be displayed in game if present and the character is facing left; otherwise, the normal (right-facing) ^cyan;"directives"^reset; are used. If ^cyan;right^reset; is specified or this parameter is left unspecified, the normal (right-facing) ^cyan;"directives"^reset; are used.
 
 ^orange;<scroll up to read>^reset;]===]
 
@@ -641,7 +650,7 @@ local function renderDirectives(rawArgs)
         return wrongArgHelp .. renderHelp
     elseif args[1] == "hat" or args[1] == "chest" or args[1] == "legs" or args[1] == "back" then
         if args[2] == "default" then args[2] = nil end
-        return renderArmourItem(args[1], args[2], args[3])
+        return renderArmourItem(args[1], args[2], args[3], args[4] or args[3])
     elseif args[1] == "body" then
         if args[2] == "default" then args[2] = nil end
         return renderHumanoid(args[2])

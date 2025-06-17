@@ -795,6 +795,14 @@ Returns a list of tile positions that the specified object occupies, or `nil` if
 
 ---
 
+#### `Maybe<int>` world.objectDirection(`EntityId` entityId)
+
+> **This callback is available only on xStarbound.**
+
+Returns the facing direction of the specified object — `-1` if facing left, `1` if facing right — or `nil` if the entity is not an object.
+
+---
+
 #### `Maybe<int>` world.farmableStage(`EntityId` entityId)
 
 Returns the current growth stage of the specified farmable object, or `nil` if the entity is not a farmable object.
