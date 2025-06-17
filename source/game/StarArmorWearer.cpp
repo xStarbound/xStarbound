@@ -80,7 +80,8 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   anyNeedsSync |= directionChanged;
 
   if (m_player) {
-    if (m_player->isSlave() && anyNeedsSync) { // FezzedOne: Reads OpenStarbound cosmetic layers into xSB overlays.
+    if (m_player->isSlave() && m_player->pulledCosmeticUpdate()) { // FezzedOne: Reads OpenStarbound cosmetic layers into xSB overlays.
+      anyNeedsSync = true;
       auto& openSbCosmeticStack = m_player->getNetArmorSecrets();
       for (uint8_t i = 0; i != 12; i++) {
         auto& item = openSbCosmeticStack[i];
@@ -119,10 +120,6 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
               armourItem->rotateWithHead()});
           mergeHumanoidConfig(as<ArmorItem>(item));
         }
-      }
-    } else if ((!m_player->isSlave()) && m_player->pulledCosmeticUpdate()) { // FezzedOne: Clears the emulated OpenStarbound cosmetic slots whenever an update is needed.
-      for (uint8_t i = 0; i != 12; i++) {
-        m_player->setNetArmorSecret(i, nullptr);
       }
     }
   }
@@ -538,8 +535,14 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
   }
 
-  if (anyNeedsSync)
+  if (anyNeedsSync) { // FezzedOne: Clear any emulated OpenStarbound cosmetic slots after the last xStarbound overlay, if any cosmetic slots are left unfilled.
     humanoid.updateHumanoidConfigOverrides(humanoidOverrides);
+    if (m_player && m_player->isMaster() && openSbLayerCount < 12) {
+      for (uint8_t i = openSbLayerCount; i != 12; i++) {
+        m_player->setNetArmorSecret(i, nullptr);
+      }
+    }
+  }
 
   m_headNeedsSync = m_chestNeedsSync = m_legsNeedsSync = m_backNeedsSync = false;
 

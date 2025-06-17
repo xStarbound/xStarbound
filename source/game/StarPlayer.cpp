@@ -3321,7 +3321,7 @@ void Player::setNetArmorSecret(uint8_t cosmeticSlot, ArmorItemPtr const& armor) 
   if (!m_startedNetworkingCosmetics) {
     setSecretProperty("armorWearer.isXStarbound", true);
   }
-  setSecretProperty(strf("armorWearer.{}.data", slotName), itemSafeDescriptor(armor).diskStore());
+  setSecretProperty(strf("armorWearer.{}.data", slotName), armor ? itemSafeDescriptor(armor).diskStore() : Json());
   if (!m_startedNetworkingCosmetics) {
     setSecretProperty("armorWearer.replicating", true);
     m_startedNetworkingCosmetics = true;
