@@ -213,7 +213,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       humanoid.setHelmetMaskDirectives("");
       humanoid.setHeadArmorUnderlayFrameset("");
       humanoid.setHelmetMaskUnderlayDirectives("");
-      humanoid.setHeadArmorStack({});
+      humanoid.setHeadArmorStack(headArmorStack);
       humanoid.setHeadArmorUnderlayStack({});
     }
   }
@@ -349,9 +349,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       humanoid.setBackSleeveUnderlayFrameset("");
       humanoid.setFrontSleeveUnderlayFrameset("");
       humanoid.setChestArmorUnderlayFrameset("");
-      humanoid.setChestArmorStack({});
-      humanoid.setFrontSleeveStack({});
-      humanoid.setBackSleeveStack({});
+      humanoid.setChestArmorStack(chestArmorStack);
+      humanoid.setFrontSleeveStack(frontSleeveStack);
+      humanoid.setBackSleeveStack(backSleeveStack);
       humanoid.setChestArmorUnderlayStack({});
       humanoid.setFrontSleeveUnderlayStack({});
       humanoid.setBackSleeveUnderlayStack({});
@@ -437,7 +437,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     if (anyNeedsSync) {
       humanoid.setLegsArmorFrameset("");
       humanoid.setLegsArmorUnderlayFrameset("");
-      humanoid.setLegsArmorStack({});
+      humanoid.setLegsArmorStack(legsArmorStack);
       humanoid.setLegsArmorUnderlayStack({});
     }
   }
@@ -530,7 +530,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       humanoid.setBackArmorHeadRotation(false);
       humanoid.setBackArmorUnderlayFrameset("");
       humanoid.setBackArmorUnderlayHeadRotation(false);
-      humanoid.setBackArmorStack({});
+      humanoid.setBackArmorStack(backArmorStack);
       humanoid.setBackArmorUnderlayStack({});
     }
   }
