@@ -4,7 +4,6 @@
 #include "StarActorMovementController.hpp"
 #include "StarAiTypes.hpp"
 #include "StarArmorWearer.hpp"
-#include "StarArmors.hpp"
 #include "StarChattyEntity.hpp"
 #include "StarDamageBarEntity.hpp"
 #include "StarEmoteEntity.hpp"
@@ -47,6 +46,7 @@ STAR_CLASS(QuestManager);
 STAR_CLASS(InteractiveEntity);
 STAR_CLASS(PlayerUniverseMap);
 STAR_CLASS(UniverseClient);
+STAR_CLASS(ArmorItem);
 
 STAR_CLASS(Player);
 
