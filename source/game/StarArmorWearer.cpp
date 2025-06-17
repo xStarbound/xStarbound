@@ -11,6 +11,7 @@
 #include "StarObject.hpp"
 #include "StarObjectDatabase.hpp"
 #include "StarObjectItem.hpp"
+#include "StarPlayer.hpp"
 #include "StarPlayerInventory.hpp"
 #include "StarRoot.hpp"
 #include "StarTools.hpp"
@@ -18,7 +19,7 @@
 
 namespace Star {
 
-ArmorWearer::ArmorWearer() : m_lastNude(true) {
+ArmorWearer::ArmorWearer() : m_lastNude(true), m_lastFacingDirection(255) {
   addNetElement(&m_headItemDataNetState);
   addNetElement(&m_chestItemDataNetState);
   addNetElement(&m_legsItemDataNetState);
@@ -35,16 +36,24 @@ ArmorWearer::ArmorWearer(bool isPlayer) : ArmorWearer() {
   m_isPlayer = isPlayer;
 }
 
+ArmorWearer::ArmorWearer(Player* player) : ArmorWearer(true) {
+  m_player = player;
+}
+
 void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude) {
   bool nudeChanged = m_lastNude != forceNude;
-  if (nudeChanged) m_lastNude = forceNude;
+  m_lastNude = forceNude;
 
-  bool headNeedsSync = nudeChanged || m_headNeedsSync;
-  bool chestNeedsSync = nudeChanged || m_chestNeedsSync;
-  bool legsNeedsSync = nudeChanged || m_legsNeedsSync;
-  bool backNeedsSync = nudeChanged || m_backNeedsSync;
+  uint8_t currentDirection = (uint8_t)humanoid.facingDirection();
+  bool directionChanged = m_lastFacingDirection != currentDirection;
+  m_lastFacingDirection = currentDirection;
 
-  bool anyNeedsSync = headNeedsSync || chestNeedsSync || legsNeedsSync || backNeedsSync;
+  bool headNeedsSync = m_headNeedsSync;
+  bool chestNeedsSync = m_chestNeedsSync;
+  bool legsNeedsSync = m_legsNeedsSync;
+  bool backNeedsSync = m_backNeedsSync;
+
+  bool anyNeedsSync = headNeedsSync || chestNeedsSync || legsNeedsSync || backNeedsSync || nudeChanged;
   if (anyNeedsSync)
     netElementsNeedLoad(true);
 
@@ -57,19 +66,77 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       humanoidOverrides = jsonMerge(humanoidOverrides, configToMerge);
   };
 
+  auto getDirectives = [&](ArmorItemPtr armourItem) -> Directives {
+    return currentDirection == (uint8_t)Direction::Left ? armourItem->flippedDirectives() : armourItem->directives();
+  };
+
+  List<Humanoid::ArmorEntry> headArmorStack = {};
+  List<Humanoid::ArmorEntry> chestArmorStack = {};
+  List<Humanoid::ArmorEntry> frontSleeveStack = {};
+  List<Humanoid::ArmorEntry> backSleeveStack = {};
+  List<Humanoid::ArmorEntry> legsArmorStack = {};
+  List<Humanoid::BackEntry> backArmorStack = {};
+
+  anyNeedsSync |= directionChanged;
+
+  if (m_player && anyNeedsSync) { // FezzedOne: Reads OpenStarbound cosmetic layers into xSB overlays.
+    auto& openSbCosmeticStack = m_player->getNetArmorSecrets();
+    for (uint8_t i = 0; i != 12; i++) {
+      auto& item = openSbCosmeticStack[i];
+      if (!item) continue;
+      if (auto armourItem = as<HeadArmor>(item)) {
+        headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
+            armourItem->frameset(humanoid.identity().gender),
+            getDirectives(as<ArmorItem>(armourItem)),
+            armourItem->maskDirectives()});
+        mergeHumanoidConfig(as<ArmorItem>(item));
+      } else if (auto armourItem = as<ChestArmor>(item)) {
+        chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
+            armourItem->bodyFrameset(humanoid.identity().gender),
+            getDirectives(as<ArmorItem>(armourItem)),
+            Directives()});
+        frontSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
+            armourItem->frontSleeveFrameset(humanoid.identity().gender),
+            getDirectives(as<ArmorItem>(armourItem)),
+            Directives()});
+        backSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
+            armourItem->backSleeveFrameset(humanoid.identity().gender),
+            getDirectives(as<ArmorItem>(armourItem)),
+            Directives()});
+        mergeHumanoidConfig(as<ArmorItem>(item));
+      } else if (auto armourItem = as<LegsArmor>(item)) {
+        legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
+            armourItem->frameset(humanoid.identity().gender),
+            getDirectives(as<ArmorItem>(armourItem)),
+            Directives()});
+        mergeHumanoidConfig(as<ArmorItem>(item));
+      } else if (auto armourItem = as<BackArmor>(item)) {
+        backArmorStack.emplaceAppend(Humanoid::BackEntry{
+            armourItem->frameset(humanoid.identity().gender),
+            getDirectives(as<ArmorItem>(armourItem)),
+            Directives(),
+            armourItem->rotateWithHead()});
+        mergeHumanoidConfig(as<ArmorItem>(item));
+      }
+    }
+  }
+
+  uint8_t openSbLayerCount = 0;
+
   if (m_headCosmeticItem && !forceNude) {
     if (anyNeedsSync) {
       humanoid.setHeadArmorFrameset(m_headCosmeticItem->frameset(humanoid.identity().gender));
-      humanoid.setHeadArmorDirectives(m_headCosmeticItem->directives());
+      humanoid.setHeadArmorDirectives(getDirectives(as<ArmorItem>(m_headCosmeticItem)));
       humanoid.setHelmetMaskDirectives(m_headCosmeticItem->maskDirectives());
       mergeHumanoidConfig(as<ArmorItem>(m_headCosmeticItem));
-      List<Humanoid::ArmorEntry> headArmorStack = {};
       for (auto& item : m_headCosmeticItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<HeadArmor>(item)) {
+            if (m_player and openSbLayerCount < 12)
+              m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->frameset(humanoid.identity().gender),
-                armourItem->directives(),
+                getDirectives(as<ArmorItem>(armourItem)),
                 armourItem->maskDirectives()});
             mergeHumanoidConfig(as<ArmorItem>(item));
           }
@@ -81,7 +148,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       if (anyNeedsSync) {
         if (m_headItem->isUnderlaid()) {
           humanoid.setHeadArmorUnderlayFrameset(m_headItem->frameset(humanoid.identity().gender));
-          humanoid.setHeadArmorUnderlayDirectives(m_headItem->directives());
+          humanoid.setHeadArmorUnderlayDirectives(getDirectives(as<ArmorItem>(m_headItem)));
           humanoid.setHelmetMaskUnderlayDirectives(m_headItem->maskDirectives());
           mergeHumanoidConfig(as<ArmorItem>(m_headItem));
           List<Humanoid::ArmorEntry> headUnderlayArmorStack = {};
@@ -90,7 +157,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
               if (auto armourItem = as<HeadArmor>(item)) {
                 headUnderlayArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                     armourItem->frameset(humanoid.identity().gender),
-                    armourItem->directives(),
+                    getDirectives(as<ArmorItem>(armourItem)),
                     armourItem->maskDirectives()});
                 mergeHumanoidConfig(as<ArmorItem>(item));
               }
@@ -115,16 +182,17 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   } else if (m_headItem && !forceNude) {
     if (anyNeedsSync) {
       humanoid.setHeadArmorFrameset(m_headItem->frameset(humanoid.identity().gender));
-      humanoid.setHeadArmorDirectives(m_headItem->directives());
+      humanoid.setHeadArmorDirectives(getDirectives(as<ArmorItem>(m_headItem)));
       humanoid.setHelmetMaskDirectives(m_headItem->maskDirectives());
       mergeHumanoidConfig(as<ArmorItem>(m_headItem));
-      List<Humanoid::ArmorEntry> headArmorStack = {};
       for (auto& item : m_headItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<HeadArmor>(item)) {
+            if (m_player and openSbLayerCount < 12)
+              m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->frameset(humanoid.identity().gender),
-                armourItem->directives(),
+                getDirectives(as<ArmorItem>(armourItem)),
                 armourItem->maskDirectives()});
             mergeHumanoidConfig(as<ArmorItem>(item));
           }
@@ -152,23 +220,24 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       humanoid.setBackSleeveFrameset(m_chestCosmeticItem->backSleeveFrameset(humanoid.identity().gender));
       humanoid.setFrontSleeveFrameset(m_chestCosmeticItem->frontSleeveFrameset(humanoid.identity().gender));
       humanoid.setChestArmorFrameset(m_chestCosmeticItem->bodyFrameset(humanoid.identity().gender));
-      humanoid.setChestArmorDirectives(m_chestCosmeticItem->directives());
+      humanoid.setChestArmorDirectives(getDirectives(as<ArmorItem>(m_chestCosmeticItem)));
       mergeHumanoidConfig(as<ArmorItem>(m_chestCosmeticItem));
-      List<Humanoid::ArmorEntry> chestArmorStack = {}, frontSleeveStack = {}, backSleeveStack = {};
       for (auto& item : m_chestCosmeticItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<ChestArmor>(item)) {
+            if (m_player and openSbLayerCount < 12)
+              m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->bodyFrameset(humanoid.identity().gender),
-                armourItem->directives(),
+                getDirectives(as<ArmorItem>(armourItem)),
                 Directives()});
             frontSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->frontSleeveFrameset(humanoid.identity().gender),
-                armourItem->directives(),
+                getDirectives(as<ArmorItem>(armourItem)),
                 Directives()});
             backSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->backSleeveFrameset(humanoid.identity().gender),
-                armourItem->directives(),
+                getDirectives(as<ArmorItem>(armourItem)),
                 Directives()});
             mergeHumanoidConfig(as<ArmorItem>(item));
           }
@@ -184,7 +253,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           humanoid.setBackSleeveUnderlayFrameset(m_chestItem->backSleeveFrameset(humanoid.identity().gender));
           humanoid.setFrontSleeveUnderlayFrameset(m_chestItem->frontSleeveFrameset(humanoid.identity().gender));
           humanoid.setChestArmorUnderlayFrameset(m_chestItem->bodyFrameset(humanoid.identity().gender));
-          humanoid.setChestArmorUnderlayDirectives(m_chestItem->directives());
+          humanoid.setChestArmorUnderlayDirectives(getDirectives(as<ArmorItem>(m_chestItem)));
           mergeHumanoidConfig(as<ArmorItem>(m_chestItem));
           List<Humanoid::ArmorEntry> chestArmorUnderlayStack = {}, frontSleeveUnderlayStack = {}, backSleeveUnderlayStack = {};
           for (auto& item : m_chestItem->getStackedCosmetics()) {
@@ -192,15 +261,15 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
               if (auto armourItem = as<ChestArmor>(item)) {
                 chestArmorUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
                     armourItem->bodyFrameset(humanoid.identity().gender),
-                    armourItem->directives(),
+                    getDirectives(as<ArmorItem>(armourItem)),
                     Directives()});
                 frontSleeveUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
                     armourItem->frontSleeveFrameset(humanoid.identity().gender),
-                    armourItem->directives(),
+                    getDirectives(as<ArmorItem>(armourItem)),
                     Directives()});
                 backSleeveUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
                     armourItem->backSleeveFrameset(humanoid.identity().gender),
-                    armourItem->directives(),
+                    getDirectives(as<ArmorItem>(armourItem)),
                     Directives()});
                 mergeHumanoidConfig(as<ArmorItem>(item));
               }
@@ -235,23 +304,24 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       humanoid.setBackSleeveFrameset(m_chestItem->backSleeveFrameset(humanoid.identity().gender));
       humanoid.setFrontSleeveFrameset(m_chestItem->frontSleeveFrameset(humanoid.identity().gender));
       humanoid.setChestArmorFrameset(m_chestItem->bodyFrameset(humanoid.identity().gender));
-      humanoid.setChestArmorDirectives(m_chestItem->directives());
+      humanoid.setChestArmorDirectives(getDirectives(as<ArmorItem>(m_chestItem)));
       mergeHumanoidConfig(as<ArmorItem>(m_chestItem));
-      List<Humanoid::ArmorEntry> chestArmorStack = {}, frontSleeveStack = {}, backSleeveStack = {};
       for (auto& item : m_chestItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<ChestArmor>(item)) {
+            if (m_player and openSbLayerCount < 12)
+              m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->bodyFrameset(humanoid.identity().gender),
-                armourItem->directives(),
+                getDirectives(as<ArmorItem>(armourItem)),
                 Directives()});
             frontSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->frontSleeveFrameset(humanoid.identity().gender),
-                armourItem->directives(),
+                getDirectives(as<ArmorItem>(armourItem)),
                 Directives()});
             backSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->backSleeveFrameset(humanoid.identity().gender),
-                armourItem->directives(),
+                getDirectives(as<ArmorItem>(armourItem)),
                 Directives()});
             mergeHumanoidConfig(as<ArmorItem>(item));
           }
@@ -288,15 +358,16 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   if (m_legsCosmeticItem && !forceNude) {
     if (anyNeedsSync) {
       humanoid.setLegsArmorFrameset(m_legsCosmeticItem->frameset(humanoid.identity().gender));
-      humanoid.setLegsArmorDirectives(m_legsCosmeticItem->directives());
+      humanoid.setLegsArmorDirectives(getDirectives(as<ArmorItem>(m_legsCosmeticItem)));
       mergeHumanoidConfig(as<ArmorItem>(m_legsCosmeticItem));
-      List<Humanoid::ArmorEntry> legsArmorStack = {};
       for (auto& item : m_legsCosmeticItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<LegsArmor>(item)) {
+            if (m_player and openSbLayerCount < 12)
+              m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->frameset(humanoid.identity().gender),
-                armourItem->directives(),
+                getDirectives(as<ArmorItem>(armourItem)),
                 Directives()});
             mergeHumanoidConfig(as<ArmorItem>(item));
           }
@@ -308,7 +379,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       if (anyNeedsSync) {
         if (m_legsItem->isUnderlaid()) {
           humanoid.setLegsArmorUnderlayFrameset(m_legsItem->frameset(humanoid.identity().gender));
-          humanoid.setLegsArmorUnderlayDirectives(m_legsItem->directives());
+          humanoid.setLegsArmorUnderlayDirectives(getDirectives(as<ArmorItem>(m_legsItem)));
           mergeHumanoidConfig(as<ArmorItem>(m_legsItem));
           List<Humanoid::ArmorEntry> legsArmorUnderlayStack = {};
           for (auto& item : m_legsItem->getStackedCosmetics()) {
@@ -316,7 +387,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
               if (auto armourItem = as<LegsArmor>(item)) {
                 legsArmorUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
                     armourItem->frameset(humanoid.identity().gender),
-                    armourItem->directives(),
+                    getDirectives(as<ArmorItem>(armourItem)),
                     Directives()});
                 mergeHumanoidConfig(as<ArmorItem>(item));
               }
@@ -339,15 +410,16 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   } else if (m_legsItem && !forceNude) {
     if (anyNeedsSync) {
       humanoid.setLegsArmorFrameset(m_legsItem->frameset(humanoid.identity().gender));
-      humanoid.setLegsArmorDirectives(m_legsItem->directives());
+      humanoid.setLegsArmorDirectives(getDirectives(as<ArmorItem>(m_legsItem)));
       mergeHumanoidConfig(as<ArmorItem>(m_legsItem));
-      List<Humanoid::ArmorEntry> legsArmorStack = {};
       for (auto& item : m_legsItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<LegsArmor>(item)) {
+            if (m_player and openSbLayerCount < 12)
+              m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->frameset(humanoid.identity().gender),
-                armourItem->directives(),
+                getDirectives(as<ArmorItem>(armourItem)),
                 Directives()});
             mergeHumanoidConfig(as<ArmorItem>(item));
           }
@@ -370,16 +442,17 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   if (m_backCosmeticItem && !forceNude) {
     if (anyNeedsSync) {
       humanoid.setBackArmorFrameset(m_backCosmeticItem->frameset(humanoid.identity().gender));
-      humanoid.setBackArmorDirectives(m_backCosmeticItem->directives());
+      humanoid.setBackArmorDirectives(getDirectives(as<ArmorItem>(m_backCosmeticItem)));
       humanoid.setBackArmorHeadRotation(m_backCosmeticItem->rotateWithHead());
       mergeHumanoidConfig(as<ArmorItem>(m_backCosmeticItem));
-      List<Humanoid::BackEntry> backArmorStack = {};
       for (auto& item : m_backCosmeticItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<BackArmor>(item)) {
+            if (m_player and openSbLayerCount < 12)
+              m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             backArmorStack.emplaceAppend(Humanoid::BackEntry{
                 armourItem->frameset(humanoid.identity().gender),
-                armourItem->directives(),
+                getDirectives(as<ArmorItem>(armourItem)),
                 Directives(),
                 armourItem->rotateWithHead()});
             mergeHumanoidConfig(as<ArmorItem>(item));
@@ -392,7 +465,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       if (anyNeedsSync) {
         if (m_backItem->isUnderlaid()) {
           humanoid.setBackArmorUnderlayFrameset(m_backItem->frameset(humanoid.identity().gender));
-          humanoid.setBackArmorUnderlayDirectives(m_backItem->directives());
+          humanoid.setBackArmorUnderlayDirectives(getDirectives(as<ArmorItem>(m_backItem)));
           humanoid.setBackArmorUnderlayHeadRotation(m_backItem->rotateWithHead());
           mergeHumanoidConfig(as<ArmorItem>(m_backItem));
           List<Humanoid::BackEntry> backArmorUnderlayStack = {};
@@ -401,7 +474,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
               if (auto armourItem = as<BackArmor>(item)) {
                 backArmorUnderlayStack.emplaceAppend(Humanoid::BackEntry{
                     armourItem->frameset(humanoid.identity().gender),
-                    armourItem->directives(),
+                    getDirectives(as<ArmorItem>(armourItem)),
                     Directives(),
                     armourItem->rotateWithHead()});
                 mergeHumanoidConfig(as<ArmorItem>(item));
@@ -425,16 +498,17 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   } else if (m_backItem && !forceNude) {
     if (anyNeedsSync) {
       humanoid.setBackArmorFrameset(m_backItem->frameset(humanoid.identity().gender));
-      humanoid.setBackArmorDirectives(m_backItem->directives());
+      humanoid.setBackArmorDirectives(getDirectives(as<ArmorItem>(m_backItem)));
       humanoid.setBackArmorHeadRotation(m_backItem->rotateWithHead());
       mergeHumanoidConfig(as<ArmorItem>(m_backItem));
-      List<Humanoid::BackEntry> backArmorStack = {};
       for (auto& item : m_backItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<BackArmor>(item)) {
+            if (m_player and openSbLayerCount < 12)
+              m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             backArmorStack.emplaceAppend(Humanoid::BackEntry{
                 armourItem->frameset(humanoid.identity().gender),
-                armourItem->directives(),
+                getDirectives(as<ArmorItem>(armourItem)),
                 Directives(),
                 armourItem->rotateWithHead()});
             mergeHumanoidConfig(as<ArmorItem>(item));

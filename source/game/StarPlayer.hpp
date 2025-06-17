@@ -1,30 +1,31 @@
 #ifndef STAR_PLAYER_HPP
 #define STAR_PLAYER_HPP
 
-#include "StarUuid.hpp"
-#include "StarNetElementSystem.hpp"
-#include "StarItemDescriptor.hpp"
-#include "StarHumanoid.hpp"
-#include "StarToolUserEntity.hpp"
-#include "StarLoungingEntities.hpp"
+#include "StarActorMovementController.hpp"
+#include "StarAiTypes.hpp"
+#include "StarArmorWearer.hpp"
+#include "StarArmors.hpp"
 #include "StarChattyEntity.hpp"
-#include "StarEmoteEntity.hpp"
 #include "StarDamageBarEntity.hpp"
-#include "StarNametagEntity.hpp"
-#include "StarPortraitEntity.hpp"
+#include "StarEmoteEntity.hpp"
+#include "StarEntityRendering.hpp"
+#include "StarHumanoid.hpp"
 #include "StarInspectableEntity.hpp"
 #include "StarInventoryTypes.hpp"
-#include "StarActorMovementController.hpp"
-#include "StarNetworkedAnimator.hpp"
-#include "StarAiTypes.hpp"
 #include "StarItemBag.hpp"
-#include "StarArmorWearer.hpp"
-#include "StarEntityRendering.hpp"
-#include "StarToolUser.hpp"
-#include "StarPlayerTypes.hpp"
-#include "StarRadioMessageDatabase.hpp"
-#include "StarLuaComponents.hpp"
+#include "StarItemDescriptor.hpp"
+#include "StarLoungingEntities.hpp"
 #include "StarLuaActorMovementComponent.hpp"
+#include "StarLuaComponents.hpp"
+#include "StarNametagEntity.hpp"
+#include "StarNetElementSystem.hpp"
+#include "StarNetworkedAnimator.hpp"
+#include "StarPlayerTypes.hpp"
+#include "StarPortraitEntity.hpp"
+#include "StarRadioMessageDatabase.hpp"
+#include "StarToolUser.hpp"
+#include "StarToolUserEntity.hpp"
+#include "StarUuid.hpp"
 
 namespace Star {
 
@@ -49,16 +50,15 @@ STAR_CLASS(UniverseClient);
 
 STAR_CLASS(Player);
 
-class Player :
-  public virtual ToolUserEntity,
-  public virtual LoungingEntity,
-  public virtual ChattyEntity,
-  public virtual InspectableEntity,
-  public virtual DamageBarEntity,
-  public virtual PortraitEntity,
-  public virtual NametagEntity,
-  public virtual PhysicsEntity,
-  public virtual EmoteEntity {
+class Player : public virtual ToolUserEntity,
+               public virtual LoungingEntity,
+               public virtual ChattyEntity,
+               public virtual InspectableEntity,
+               public virtual DamageBarEntity,
+               public virtual PortraitEntity,
+               public virtual NametagEntity,
+               public virtual PhysicsEntity,
+               public virtual EmoteEntity {
 
 public:
   Player(PlayerConfigPtr config, Uuid uuid = Uuid());
@@ -330,13 +330,13 @@ public:
   void setFacialMaskType(String const& type);
   void setFacialMaskDirectives(String const& directives);
 
-  void setHair      (String const& group, String const& type, String const& directives);
+  void setHair(String const& group, String const& type, String const& directives);
   void setFacialHair(String const& group, String const& type, String const& directives);
   void setFacialMask(String const& group, String const& type, String const& directives);
 
   String species() const override;
-  bool checkSpecies(String const &species, Maybe<String> const &maybeCallbackName = {});
-  void setSpecies(String const &species);
+  bool checkSpecies(String const& species, Maybe<String> const& maybeCallbackName = {});
+  void setSpecies(String const& species);
   Gender gender() const;
   void setGender(Gender const& gender);
   void setPersonality(Personality const& personality);
@@ -348,7 +348,7 @@ public:
 
   void setIdentity(HumanoidIdentity identity);
   // FezzedOne: Need to overload this function to accept `Json` to avoid an unnecessary conversion, of course.
-  void setIdentity(Json const &newIdentity); 
+  void setIdentity(Json const& newIdentity);
 
   void setAdmin(bool isAdmin);
   bool isAdmin() const override;
@@ -401,10 +401,10 @@ public:
 
   void addChatMessage(String const& message);
   // FezzedOne: Overloaded with a four-argument version for use behind a Lua callback.
-  void addChatMessage(String const &message, Maybe<String> const &portrait, Maybe<EntityId> const &sourceEntityId, Maybe<Json> const &bubbleConfig);
+  void addChatMessage(String const& message, Maybe<String> const& portrait, Maybe<EntityId> const& sourceEntityId, Maybe<Json> const& bubbleConfig);
   // FezzedOne: Need this for some functions elsewhere to correctly use the player's chat bubble settings.
-  void addChatMessageCallback(String const &message);
-  void setChatBubbleConfig(Maybe<Json> const &bubbleConfig);
+  void addChatMessageCallback(String const& message);
+  void setChatBubbleConfig(Maybe<Json> const& bubbleConfig);
   Json getChatBubbleConfig();
   void addEmote(HumanoidEmote const& emote, Maybe<float> emoteCooldown = {});
   pair<HumanoidEmote, float> currentEmote() const;
@@ -534,15 +534,21 @@ public:
   //   Additionally, this is compatible with vanilla networking.
   // I call this a 'secret property'.
   // FezzedOne: [TODO] Add Lua callbacks to get and set secret properties.
-  
+
   // If the secret property exists as a serialized Json string, returns a view to it without deserializing.
   Maybe<StringView> getSecretPropertyView(String const& name) const;
   // Gets a secret Json property. It will be de-serialized.
   Json getSecretProperty(String const& name, Json defaultValue = Json()) const;
+  // From OpenStarbound: Gets a pointer to a secret property.
+  String const* getSecretPropertyPtr(String const& name) const;
   // Sets a secret Json property. It will be serialized.
   void setSecretProperty(String const& name, Json const& value);
 
   void overrideCameraPosition(Maybe<Vec2F> newPosition);
+
+  // From OpenStarbound: Get and set networked cosmetic items in the oSB cosmetic slots.
+  void setNetArmorSecret(uint8_t cosmeticSlot, ArmorItemPtr const& armour);
+  Array<ArmorItemPtr, 12> const& getNetArmorSecrets();
 
 private:
   enum class State {
@@ -559,7 +565,7 @@ private:
     Lounge
   };
   static EnumMap<State> const StateNames;
-  
+
   typedef LuaMessageHandlingComponent<LuaStorableComponent<LuaActorMovementComponent<LuaUpdatableComponent<LuaWorldComponent<LuaBaseComponent>>>>> GenericScriptComponent;
   typedef shared_ptr<GenericScriptComponent> GenericScriptComponentPtr;
 
@@ -605,7 +611,7 @@ private:
   StringMap<GenericScriptComponentPtr> m_genericScriptContexts;
   JsonObject m_genericProperties;
 
-  bool m_toBeRemoved;                 // FezzedOne: Whether this player is going to be removed this tick.
+  bool m_toBeRemoved; // FezzedOne: Whether this player is going to be removed this tick.
   // Set to `true` by `Player::uninit` and `false` by `Player::init`.
 
   bool m_ignoreExternalWarps;         // FezzedOne: Whether to ignore external warp requests.
@@ -685,7 +691,7 @@ private:
   bool m_identityUpdated;
 
   bool m_isAdmin;
-  float m_interactRadius; // hand interact radius
+  float m_interactRadius;       // hand interact radius
   Vec2F m_walkIntoInteractBias; // offset on position to find an interactable
   // when not pointing at
   // an interactable with the mouse
@@ -744,8 +750,11 @@ private:
 
   // FezzedOne: Variable to make sure the inventory overflow check doesn't run more than once in `update`.
   bool m_overflowCheckDone;
+  bool m_startedNetworkingCosmetics;
+  Array<uint64_t, 12> m_armorSecretNetVersions;
+  Array<ArmorItemPtr, 12> m_openSbCosmetics;
 };
 
-}
+} // namespace Star
 
 #endif

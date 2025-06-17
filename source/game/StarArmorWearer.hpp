@@ -1,13 +1,13 @@
 #ifndef STAR_ARMOR_WEARER_HPP
 #define STAR_ARMOR_WEARER_HPP
 
-#include "StarHumanoid.hpp"
-#include "StarNetElementSystem.hpp"
-#include "StarEffectEmitter.hpp"
-#include "StarItemDescriptor.hpp"
-#include "StarStatusTypes.hpp"
-#include "StarLightSource.hpp"
 #include "StarDamage.hpp"
+#include "StarEffectEmitter.hpp"
+#include "StarHumanoid.hpp"
+#include "StarItemDescriptor.hpp"
+#include "StarLightSource.hpp"
+#include "StarNetElementSystem.hpp"
+#include "StarStatusTypes.hpp"
 
 namespace Star {
 
@@ -19,6 +19,7 @@ STAR_CLASS(BackArmor);
 STAR_CLASS(ToolUserEntity);
 STAR_CLASS(Item);
 STAR_CLASS(World);
+STAR_CLASS(Player);
 
 STAR_CLASS(ArmorWearer);
 
@@ -26,6 +27,7 @@ class ArmorWearer : public NetElementSyncGroup {
 public:
   ArmorWearer();
   ArmorWearer(bool isPlayer);
+  ArmorWearer(Player* player);
 
   void setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude);
   void effects(EffectEmitter& effectEmitter);
@@ -93,8 +95,11 @@ private:
   bool m_backNeedsSync;
 
   bool m_isPlayer;
+  Player* m_player = nullptr;
+
+  uint8_t m_lastFacingDirection;
 };
 
-}
+} // namespace Star
 
 #endif

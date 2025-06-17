@@ -97,7 +97,7 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
 
   m_questManager = make_shared<QuestManager>(this);
   m_tools = make_shared<ToolUser>();
-  m_armor = make_shared<ArmorWearer>(true);
+  m_armor = make_shared<ArmorWearer>(this);
   m_companions = make_shared<PlayerCompanions>(config->companionsConfig);
 
   for (auto& p : config->genericScriptContexts) {
@@ -228,6 +228,9 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
 
   // FezzedOne: Variable to make sure the inventory overflow check doesn't run more than once in `update`.
   m_overflowCheckDone = false;
+
+  m_startedNetworkingCosmetics = false;
+  m_armorSecretNetVersions = Array<uint64_t, 12>::filled(0);
 
   m_netGroup.setNeedsLoadCallback(bind(&Player::getNetStates, this, _1));
   m_netGroup.setNeedsStoreCallback(bind(&Player::setNetStates, this));
@@ -2206,6 +2209,8 @@ void Player::getNetStates(bool initial) {
   }
 
   m_emoteState = HumanoidEmoteNames.getLeft(m_emoteNetState.get());
+
+  (void)getNetArmorSecrets();
 }
 
 void Player::setNetStates() {
@@ -3296,6 +3301,10 @@ Json Player::getSecretProperty(String const& name, Json defaultValue) const {
   return std::move(defaultValue);
 }
 
+String const* Player::getSecretPropertyPtr(String const& name) const {
+  return m_effectsAnimator->globalTagPtr(secretProprefix + name);
+}
+
 void Player::setSecretProperty(String const& name, Json const& value) {
   if (value) {
     DataStreamBuffer ds;
@@ -3306,5 +3315,40 @@ void Player::setSecretProperty(String const& name, Json const& value) {
     m_effectsAnimator->removeGlobalTag(secretProprefix + name);
 }
 
+void Player::setNetArmorSecret(uint8_t cosmeticSlot, ArmorItemPtr const& armor) { // FezzedOne: Called in the ArmorWearer whenever armour is updated.
+  String const& slotName = strf("cosmetic{}", cosmeticSlot + 1);
+  if (!m_startedNetworkingCosmetics) {
+    setSecretProperty("armorWearer.isXStarbound", true);
+  }
+  setSecretProperty(strf("armorWearer.{}.data", slotName), itemSafeDescriptor(armor).diskStore());
+  if (!m_startedNetworkingCosmetics) {
+    setSecretProperty("armorWearer.replicating", true);
+    m_startedNetworkingCosmetics = true;
+  }
+  setSecretProperty(strf("armorWearer.{}.version", slotName), ++m_armorSecretNetVersions[cosmeticSlot]);
+}
+
+Array<ArmorItemPtr, 12> const& Player::getNetArmorSecrets() {
+  if (isSlave() && getSecretPropertyPtr("armorWearer.replicating") && !getSecretPropertyPtr("armorWearer.isXStarbound")) {
+    auto itemDatabase = Root::singleton().itemDatabase();
+
+    for (uint8_t i = 0; i != 12; ++i) {
+      String const& slotName = strf("cosmetic{}", i + 1);
+      uint64_t& curVersion = m_armorSecretNetVersions[i];
+      uint64_t newVersion = 0;
+      if (auto jVersion = getSecretProperty(strf("armorWearer.{}.version", slotName), 0); jVersion.isType(Json::Type::Int))
+        newVersion = jVersion.toUInt();
+      if (newVersion > curVersion) {
+        curVersion = newVersion;
+        ArmorItemPtr item = nullptr;
+        if (auto jData = getSecretProperty(strf("armorWearer.{}.data", slotName)))
+          itemDatabase->diskLoad(jData, item);
+        m_openSbCosmetics[i] = item;
+      }
+    }
+  }
+
+  return m_openSbCosmetics;
+}
 
 } // namespace Star

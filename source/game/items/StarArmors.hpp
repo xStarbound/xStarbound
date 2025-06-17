@@ -33,6 +33,7 @@ public:
   List<String> const& colorOptions();
 
   Directives const& directives() const;
+  Directives const& flippedDirectives() const;
 
   bool hideBody() const;
   bool isUnderlaid() const;
@@ -55,6 +56,7 @@ private:
   List<PersistentStatusEffect> m_statusEffects;
   StringSet m_effectSources;
   Directives m_directives;
+  Maybe<Directives> m_flipDirectives;
   bool m_hideBody;
   bool m_underlaid;
   Maybe<String> m_techModule;
