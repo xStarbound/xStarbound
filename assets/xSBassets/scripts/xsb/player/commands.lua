@@ -600,8 +600,9 @@ local function checkRenderArguments(args)
             if
                 args[1] == "hat"
                 and args[2] ~= nil
-                and (args[3] == "hair" or args[3] == "facialhair" or args[3] == "facialmask")
-                and (args[4] == "left" or args[4] == "right" or args[4] == "flipped" or args[4] == nil)
+                and (args[3] == "hair" or args[3] == "facialhair" or args[3] == "facialmask"
+                    or ((args[3] == "left" or args[3] == "right" or args[3] == "flipped") and args[4] == nil)
+                ) and (args[4] == "left" or args[4] == "right" or args[4] == "flipped" or args[4] == nil)
             then
                 return true
             elseif args[3] == "left" or args[3] == "right" or args[3] == "flipped" or args[3] == nil then
@@ -621,7 +622,7 @@ end
 local noArgHelp = "^#f33;</render>^reset;\nThe following subcommands are available:\n\n"
 local wrongArgHelp = "Invalid subcommand or arguments specified. Valid subcommands and arguments are:\n\n"
 local renderHelp =
-    [===[^cyan;/render hat <male/female/default> <hair/facialhair/facialmask> <left/right/flipped>^reset;: Renders the worn head item to PNG files. The sprites are exported to ^orange;'$sprites/${shortdescription} (hat).png'^reset; and ^orange;'$sprites/${name} (mask).png'^reset;.
+    [===[^cyan;/render hat <male/female/default> <hair/facialhair/facialmask/left/right/flipped> <left/right/flipped>^reset;: Renders the worn head item to PNG files. The sprites are exported to ^orange;'$sprites/${shortdescription} (hat).png'^reset; and ^orange;'$sprites/${name} (mask).png'^reset;.
 ^cyan;/render chest <male/female/default> <left/right/flipped>^reset;: Renders the worn chest/sleeves item to PNG files. The sprites are exported to ^orange;'$sprites/${shortdescription} (chest).png'^reset;, ^orange;'$sprites/${shortdescription} (back sleeve).png'^reset; and ^orange;'$sprites/${shortdescription} (front sleeve).png'^reset;.
 ^cyan;/render legs <male/female/default> <left/right/flipped>^reset;: Renders the worn legs or chest/legs item to a PNG file. The sprite is exported to ^orange;'$sprites/${shortdescription} (legs).png'^reset;.
 ^cyan;/render back <male/female/default> <left/right/flipped>^reset;: Renders the worn back item to a PNG file. The sprite is exported to ^orange;'$sprites/${shortdescription} (back).png'^reset;.
@@ -636,7 +637,7 @@ local renderHelp =
 
 ^orange;$sprites^reset;: The ^cyan;sprites/^reset; folder inside your configured player/universe storage folder; this folder will be created by xStarbound upon invoking any ^cyan;/render^reset; subcommand if it doesn't already exist.
 ^orange;<male/female/default>^reset;: By default, the base asset for the character's gender is used for rendering by all subcommands, but a gender may optionally be specified after a subcommand to override this. ^cyan;default^reset; uses the player's gender; this is only necessary if you're specifying the parameter below.
-^orange;<hair/facialhair/facialmask>^reset;: If specified, uses the hair, facial hair or facial mask as the base for rendering a hat's mask.
+^orange;<hair/facialhair/facialmask/left/right/flipped>^reset;: If specified, uses the hair, facial hair or facial mask as the base for rendering a hat's mask. See below for ^cyan;left^reset;, ^cyan;right^reset; and ^cyan;flipped^reset;.
 ^orange;<frames/noframes>^reset;: If ^cyan;frames^reset; is optionally specified, the passed directives are rendered by frame; this is necessary for, e.g., most generated clothing drawables except hats. ^cyan;noframes^reset; is the default and normally doesn't need to be explicitly specified, but is there if you end up needing to use a subcommand name as a reference item ID.
 ^orange;<left/right/flipped>^reset;: If ^cyan;left^reset; or ^cyan;flipped^reset; is optionally specified, the item's ^cyan;"flipDirectives"^reset; are used for rendering the cosmetic item as it would be displayed in game if present and the character is facing left; otherwise, the normal (right-facing) ^cyan;"directives"^reset; are used. If ^cyan;right^reset; is specified or this parameter is left unspecified, the normal (right-facing) ^cyan;"directives"^reset; are used.
 
