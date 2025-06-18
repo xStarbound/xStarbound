@@ -24,7 +24,7 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 
   Underlaid items can have overlays. This client feature is compatible with vanilla multiplayer, but other players must have xClient or OpenStarbound v0.1.11+ to see your underlays and overlays; OpenStarbound users can only see up to 12 xStarbound overlays on items in armour slots not «covered» by cosmetic slot items (regardless of underlay status), or in cosmetic slots. xStarbound users can see all OpenStarbound cosmetic overlays. As a caveat, this OpenStarbound cosmetic compatibility does not work in either direction for OpenStarbound clients connected to OpenStarbound v0.1.11+ servers.
 
-- Support for OpenStarbound cosmetic features (left-facing «flipped» clothing directives for custom items, armour hiding in items, overlay-only items) by @novaenia. Tweaked for xStarbound by @fezzedone, including support for `"flipDirectives"` in `/render`.
+- Support for OpenStarbound v0.1.10/v0.1.11 cosmetic features (left-facing «flipped» clothing directives for custom items, humanoid config overrides, custom armour hiding, overlay-only items) by @novaenia. Tweaked for xStarbound by @fezzedone, including support for `"flipDirectives"` in `/render` and overridden movement parameters in humanoid config overrides.
 - Control multiple characters on a single client! Is fully multiplayer-compatible. By @fezzedone. Replaces OpenStarbound's character swapping feature.
   - `/add` and `/adduuid`: Loads and adds a player character from your saves.
   - `/swap` and `/swapuuid`: Swaps to a different character. If the character isn't loaded, replaces your current character.
