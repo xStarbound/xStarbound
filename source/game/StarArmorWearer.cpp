@@ -79,8 +79,8 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   List<Humanoid::ArmorEntry> legsArmorStack = {};
   List<Humanoid::BackEntry> backArmorStack = {};
 
-  bool pulledOpenSbCosmeticUpdate = m_player->pulledCosmeticUpdate();
-  auto& openSbCosmeticStack = m_player->getNetArmorSecrets();
+  bool pulledOpenSbCosmeticUpdate = m_player ? m_player->pulledCosmeticUpdate() : false;
+  auto& openSbCosmeticStack = m_player ? m_player->getNetArmorSecrets() : Array<ArmorItemPtr, 12>::filled(nullptr);
 
   if (anyNeedsSync) { // FezzedOne: Handle armour hiding from stock cosmetic slots.
     if (auto& item = m_headCosmeticItem) {
