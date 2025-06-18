@@ -90,7 +90,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       for (auto& item : m_headCosmeticItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<HeadArmor>(item)) {
-            if (m_player and openSbLayerCount < 12)
+            if (m_player && openSbLayerCount < 12 && m_player->isMaster())
               m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->frameset(humanoid.identity().gender),
@@ -146,7 +146,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       for (auto& item : m_headItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<HeadArmor>(item)) {
-            if (m_player and openSbLayerCount < 12)
+            if (m_player && openSbLayerCount < 12 && m_player->isMaster())
               m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->frameset(humanoid.identity().gender),
@@ -183,7 +183,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       for (auto& item : m_chestCosmeticItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<ChestArmor>(item)) {
-            if (m_player and openSbLayerCount < 12)
+            if (m_player && openSbLayerCount < 12 && m_player->isMaster())
               m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->bodyFrameset(humanoid.identity().gender),
@@ -267,7 +267,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       for (auto& item : m_chestItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<ChestArmor>(item)) {
-            if (m_player and openSbLayerCount < 12)
+            if (m_player && openSbLayerCount < 12 && m_player->isMaster())
               m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->bodyFrameset(humanoid.identity().gender),
@@ -321,7 +321,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       for (auto& item : m_legsCosmeticItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<LegsArmor>(item)) {
-            if (m_player and openSbLayerCount < 12)
+            if (m_player && openSbLayerCount < 12 && m_player->isMaster())
               m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->frameset(humanoid.identity().gender),
@@ -373,7 +373,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       for (auto& item : m_legsItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<LegsArmor>(item)) {
-            if (m_player and openSbLayerCount < 12)
+            if (m_player && openSbLayerCount < 12 && m_player->isMaster())
               m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                 armourItem->frameset(humanoid.identity().gender),
@@ -406,7 +406,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       for (auto& item : m_backCosmeticItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<BackArmor>(item)) {
-            if (m_player and openSbLayerCount < 12)
+            if (m_player && openSbLayerCount < 12 && m_player->isMaster())
               m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             backArmorStack.emplaceAppend(Humanoid::BackEntry{
                 armourItem->frameset(humanoid.identity().gender),
@@ -462,7 +462,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       for (auto& item : m_backItem->getStackedCosmetics()) {
         if (item) {
           if (auto armourItem = as<BackArmor>(item)) {
-            if (m_player and openSbLayerCount < 12)
+            if (m_player && openSbLayerCount < 12 && m_player->isMaster())
               m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
             backArmorStack.emplaceAppend(Humanoid::BackEntry{
                 armourItem->frameset(humanoid.identity().gender),
