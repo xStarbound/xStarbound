@@ -113,7 +113,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
   }
 
-  if (m_player->isSlave() && (pulledOpenSbCosmeticUpdate || anyNeedsSync)) { // FezzedOne: Handle armour hiding from oSB cosmetic slots.
+  if (m_player && m_player->isSlave() && (pulledOpenSbCosmeticUpdate || anyNeedsSync)) { // FezzedOne: Handle armour hiding from oSB cosmetic slots.
     anyNeedsSync = true;
     for (uint8_t i = 0; i != 12; i++) {
       auto& item = openSbCosmeticStack[i];
