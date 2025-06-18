@@ -41,8 +41,26 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
   m_hideBody = config.getBool("hideBody", false);
   m_underlaid = instanceValue("underlaid").optBool().value(false);
 
-  if (auto storedCosmetics = instanceValue("stackedItems").optArray()) {
-    m_stackedCosmetics = (*storedCosmetics).transformed([](Json itemJson) -> ItemPtr {
+  if (auto jArmorTypesToHide = instanceValue("armorTypesToHide"); jArmorTypesToHide.isType(Json::Type::Array)) {
+    auto armorTypesToHide = jArmorTypesToHide.toArray();
+    for (auto& armourType : armorTypesToHide) {
+      if (!armourType.isType(Json::Type::String))
+        continue;
+      auto typeStr = armourType.toString().toLower();
+      if (typeStr == "head") m_armorTypesToHide.head = true;
+      if (typeStr == "chest") m_armorTypesToHide.chest = true;
+      if (typeStr == "legs") m_armorTypesToHide.legs = true;
+      if (typeStr == "back") m_armorTypesToHide.back = true;
+    }
+  }
+
+  m_hideInStockSlots = false;
+  if (auto jHideInStockSlots = instanceValue("hideInVanillaSlots"); jHideInStockSlots == true)
+    m_hideInStockSlots = true;
+
+  if (auto jStoredCosmetics = instanceValue("stackedItems"); jStoredCosmetics.isType(Json::Type::Array)) {
+    auto storedCosmetics = jStoredCosmetics.toArray();
+    m_stackedCosmetics = storedCosmetics.transformed([](Json itemJson) -> ItemPtr {
       ItemPtr result;
       try {
         result = Root::singleton().itemDatabase()->diskLoad(itemJson);
@@ -62,6 +80,14 @@ void ArmorItem::setUnderlaid(bool underlaid) {
 
 bool ArmorItem::isUnderlaid() const {
   return m_underlaid;
+}
+
+bool ArmorItem::hideInStockSlots() const {
+  return m_hideInStockSlots;
+}
+
+ArmorItem::HiddenArmorTypes ArmorItem::armorTypesToHide() const {
+  return m_armorTypesToHide;
 }
 
 void ArmorItem::setStackedCosmetics(List<ItemPtr> const& newStack) {

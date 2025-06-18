@@ -18,6 +18,16 @@ STAR_CLASS(BackArmor);
 class ArmorItem : public Item, public EffectSourceItem, public SwingableItem {
 public:
   ArmorItem(Json const& config, String const& directory, Json const& data);
+
+  // FezzedOne: For oSB's `"armorTypesToHide"`. On xSB, these cause items in the cosmetic slots to hide armour items even if underlay status is active.
+  // oSB's behaviour where this also applies to overlays is emulated when an oSB client is detected.
+  struct HiddenArmorTypes {
+    bool head = false;
+    bool chest = false;
+    bool legs = false;
+    bool back = false;
+  };
+
   virtual ~ArmorItem() {}
 
   virtual List<PersistentStatusEffect> statusEffects() const override;
@@ -37,6 +47,9 @@ public:
 
   bool hideBody() const;
   bool isUnderlaid() const;
+
+  bool hideInStockSlots() const;
+  HiddenArmorTypes armorTypesToHide() const;
 
   void setUnderlaid(bool underlaid);
 
@@ -59,6 +72,10 @@ private:
   Maybe<Directives> m_flipDirectives;
   bool m_hideBody;
   bool m_underlaid;
+  // FezzedOne: For oSB's `"hideInVanillaSlots"`. On xSB, this makes the item visible only when used as an overlay.
+  bool m_hideInStockSlots;
+  // FezzedOne: For oSB's `"armorTypesToHide"`.
+  HiddenArmorTypes m_armorTypesToHide;
   Maybe<String> m_techModule;
   List<ItemPtr> m_stackedCosmetics;
 };
