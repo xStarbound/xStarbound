@@ -100,7 +100,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           }
         }
       }
-      humanoid.setHeadArmorStack(headArmorStack);
+      // humanoid.setHeadArmorStack(headArmorStack);
     }
     if (m_headItem) {
       if (anyNeedsSync) {
@@ -156,7 +156,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           }
         }
       }
-      humanoid.setHeadArmorStack(headArmorStack);
+      // humanoid.setHeadArmorStack(headArmorStack);
       humanoid.setHeadArmorUnderlayFrameset("");
       humanoid.setHelmetMaskUnderlayDirectives("");
       humanoid.setHeadArmorUnderlayStack({});
@@ -168,7 +168,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       humanoid.setHelmetMaskDirectives("");
       humanoid.setHeadArmorUnderlayFrameset("");
       humanoid.setHelmetMaskUnderlayDirectives("");
-      humanoid.setHeadArmorStack(headArmorStack);
+      // humanoid.setHeadArmorStack(headArmorStack);
       humanoid.setHeadArmorUnderlayStack({});
     }
   }
@@ -201,9 +201,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           }
         }
       }
-      humanoid.setChestArmorStack(chestArmorStack);
-      humanoid.setFrontSleeveStack(frontSleeveStack);
-      humanoid.setBackSleeveStack(backSleeveStack);
+      // humanoid.setChestArmorStack(chestArmorStack);
+      // humanoid.setFrontSleeveStack(frontSleeveStack);
+      // humanoid.setBackSleeveStack(backSleeveStack);
     }
     if (m_chestItem) {
       if (anyNeedsSync) {
@@ -285,9 +285,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           }
         }
       }
-      humanoid.setChestArmorStack(chestArmorStack);
-      humanoid.setFrontSleeveStack(frontSleeveStack);
-      humanoid.setBackSleeveStack(backSleeveStack);
+      // humanoid.setChestArmorStack(chestArmorStack);
+      // humanoid.setFrontSleeveStack(frontSleeveStack);
+      // humanoid.setBackSleeveStack(backSleeveStack);
       humanoid.setBackSleeveUnderlayFrameset("");
       humanoid.setFrontSleeveUnderlayFrameset("");
       humanoid.setChestArmorUnderlayFrameset("");
@@ -304,9 +304,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       humanoid.setBackSleeveUnderlayFrameset("");
       humanoid.setFrontSleeveUnderlayFrameset("");
       humanoid.setChestArmorUnderlayFrameset("");
-      humanoid.setChestArmorStack(chestArmorStack);
-      humanoid.setFrontSleeveStack(frontSleeveStack);
-      humanoid.setBackSleeveStack(backSleeveStack);
+      // humanoid.setChestArmorStack(chestArmorStack);
+      // humanoid.setFrontSleeveStack(frontSleeveStack);
+      // humanoid.setBackSleeveStack(backSleeveStack);
       humanoid.setChestArmorUnderlayStack({});
       humanoid.setFrontSleeveUnderlayStack({});
       humanoid.setBackSleeveUnderlayStack({});
@@ -331,7 +331,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           }
         }
       }
-      humanoid.setLegsArmorStack(legsArmorStack);
+      // humanoid.setLegsArmorStack(legsArmorStack);
     }
     if (m_legsItem) {
       if (anyNeedsSync) {
@@ -383,7 +383,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           }
         }
       }
-      humanoid.setLegsArmorStack(legsArmorStack);
+      // humanoid.setLegsArmorStack(legsArmorStack);
       humanoid.setLegsArmorUnderlayFrameset("");
       humanoid.setLegsArmorUnderlayStack({});
     }
@@ -392,7 +392,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     if (anyNeedsSync) {
       humanoid.setLegsArmorFrameset("");
       humanoid.setLegsArmorUnderlayFrameset("");
-      humanoid.setLegsArmorStack(legsArmorStack);
+      // humanoid.setLegsArmorStack(legsArmorStack);
       humanoid.setLegsArmorUnderlayStack({});
     }
   }
@@ -417,7 +417,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           }
         }
       }
-      humanoid.setBackArmorStack(backArmorStack);
+      // humanoid.setBackArmorStack(backArmorStack);
     }
     if (m_backItem) {
       if (anyNeedsSync) {
@@ -473,7 +473,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           }
         }
       }
-      humanoid.setBackArmorStack(backArmorStack);
+      // humanoid.setBackArmorStack(backArmorStack);
       humanoid.setBackArmorUnderlayFrameset("");
       humanoid.setBackArmorUnderlayHeadRotation(false);
       humanoid.setBackArmorUnderlayStack({});
@@ -485,18 +485,18 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       humanoid.setBackArmorHeadRotation(false);
       humanoid.setBackArmorUnderlayFrameset("");
       humanoid.setBackArmorUnderlayHeadRotation(false);
-      humanoid.setBackArmorStack(backArmorStack);
+      // humanoid.setBackArmorStack(backArmorStack);
       humanoid.setBackArmorUnderlayStack({});
     }
   }
 
   if (m_player) {
     if (m_player->isSlave() && m_player->pulledCosmeticUpdate()) { // FezzedOne: Reads OpenStarbound cosmetic layers into xSB overlays.
-      anyNeedsSync = true;
       auto& openSbCosmeticStack = m_player->getNetArmorSecrets();
       for (uint8_t i = 0; i != 12; i++) {
         auto& item = openSbCosmeticStack[i];
         if (!item) continue;
+        anyNeedsSync = true;
         if (auto armourItem = as<HeadArmor>(item)) {
           headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
               armourItem->frameset(humanoid.identity().gender),
@@ -535,8 +535,15 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
   }
 
-  if (anyNeedsSync) { // FezzedOne: Clear any emulated OpenStarbound cosmetic slots after the last xStarbound overlay, if any cosmetic slots are left unfilled.
+  if (anyNeedsSync) {
+    humanoid.setHeadArmorStack(headArmorStack);
+    humanoid.setChestArmorStack(chestArmorStack);
+    humanoid.setFrontSleeveStack(frontSleeveStack);
+    humanoid.setBackSleeveStack(backSleeveStack);
+    humanoid.setLegsArmorStack(legsArmorStack);
+    humanoid.setBackArmorStack(backArmorStack);
     humanoid.updateHumanoidConfigOverrides(humanoidOverrides);
+    // FezzedOne: Clear any emulated OpenStarbound cosmetic slots after the last xStarbound overlay, if any cosmetic slots are left unfilled.
     if (m_player && m_player->isMaster() && openSbLayerCount < 12) {
       for (uint8_t i = openSbLayerCount; i != 12; i++) {
         m_player->setNetArmorSecret(i, nullptr);
