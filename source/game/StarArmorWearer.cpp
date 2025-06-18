@@ -492,11 +492,11 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
 
   if (m_player) {
     if (m_player->isSlave() && m_player->pulledCosmeticUpdate()) { // FezzedOne: Reads OpenStarbound cosmetic layers into xSB overlays.
+      anyNeedsSync = true;
       auto& openSbCosmeticStack = m_player->getNetArmorSecrets();
       for (uint8_t i = 0; i != 12; i++) {
         auto& item = openSbCosmeticStack[i];
         if (!item) continue;
-        anyNeedsSync = true;
         if (auto armourItem = as<HeadArmor>(item)) {
           headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
               armourItem->frameset(humanoid.identity().gender),
