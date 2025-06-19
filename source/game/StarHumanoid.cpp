@@ -2184,7 +2184,8 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides) {
   m_vaporTrailCycle = config.get("vaporTrailCycle").toFloat();
 
   m_defaultDeathParticles = config.getString("deathParticles");
-  m_particleEmitters = config.get("particleEmitters");
+  Json jParticleEmitters = config.get("particleEmitters");
+  m_particleEmitters = jParticleEmitters.isType(Json::Type::Object) ? jParticleEmitters : JsonObject{};
 
   m_defaultMovementParameters = config.get("movementParameters");
 }
@@ -2217,7 +2218,7 @@ int Humanoid::getBodyStateSequence() const {
   else
     bodyStateSeq = stateSeq;
 
-  return bodyStateSeq;
+  return std::max(bodyStateSeq, 0);
 }
 
 Maybe<DancePtr> Humanoid::getDance() const {
@@ -2231,16 +2232,17 @@ Maybe<DancePtr> Humanoid::getDance() const {
 float Humanoid::getBobYOffset() const {
   int bodyStateSeq = getBodyStateSequence();
   float bobYOffset = 0.0f;
+  // FezzedOne: Removed potential for an out-of-range exception to get thrown. Instead, no bob offset gets applied.
   if (m_state == Run) {
-    bobYOffset = m_runFallOffset + m_runBob.at(bodyStateSeq - 1);
+    bobYOffset = m_runFallOffset + ((m_runBob.size() > (size_t)(bodyStateSeq - 1)) ? m_runBob[bodyStateSeq - 1] : 0.0f);
   } else if (m_state == Fall) {
     bobYOffset = m_runFallOffset;
   } else if (m_state == Jump) {
     bobYOffset = m_jumpBob;
   } else if (m_state == Walk) {
-    bobYOffset = m_walkBob.at(bodyStateSeq - 1);
+    bobYOffset = ((m_walkBob.size() > (size_t)(bodyStateSeq - 1)) ? m_walkBob[bodyStateSeq - 1] : 0.0f);
   } else if (m_state == Swim) {
-    bobYOffset = m_swimBob.at(bodyStateSeq - 1);
+    bobYOffset = ((m_swimBob.size() > (size_t)(bodyStateSeq - 1)) ? m_swimBob[bodyStateSeq - 1] : 0.0f);
   } else if (m_state == Duck) {
     bobYOffset = m_duckOffset;
   } else if (m_state == Sit) {
@@ -2320,7 +2322,10 @@ String Humanoid::defaultDeathParticles() const {
 List<Particle> Humanoid::particles(String const& name) const {
   auto particleDatabase = Root::singleton().particleDatabase();
   List<Particle> res;
-  Json particles = m_particleEmitters.get(name).get("particles", {});
+  // FezzedOne: Null or missing humanoid particle entries are now ignored instead of throwing an exception.
+  auto particleEmitter = m_particleEmitters.opt(name);
+  if (!particleEmitter || particleEmitter->isNull()) return res;
+  Json particles = particleEmitter->get("particles", {});
   for (auto& particle : particles.toArray()) {
     auto particleSpec = particle.get("particle", {});
     res.push_back(particleDatabase->particle(particleSpec));

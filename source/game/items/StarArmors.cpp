@@ -24,7 +24,12 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
   String directives = instanceValue("directives", "").toString();
   m_directives = Directives(directives);
 
-  // Novaenia: Support for flipped (left-facing) armour directives.
+  m_colorOptions = colorDirectivesFromConfig(config.getArray("colorOptions", JsonArray{""}));
+  if (!m_directives)
+    m_directives = "?" + m_colorOptions.wrap(instanceValue("colorIndex", 0).toUInt());
+  refreshIconDrawables();
+
+  // Novaenia: Support for flipped (left-facing) armour directives. Appended directives can now apply to `"colorIndex"`-based directives.
   if (auto jFlipDirectives = instanceValue("flipDirectives"); jFlipDirectives.isType(Json::Type::String)) {
     auto flipDirectives = jFlipDirectives.toString();
     if (flipDirectives.beginsWith('+'))
@@ -33,10 +38,6 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
       m_flipDirectives = Directives(std::move(flipDirectives));
   }
 
-  m_colorOptions = colorDirectivesFromConfig(config.getArray("colorOptions", JsonArray{""}));
-  if (!m_directives)
-    m_directives = "?" + m_colorOptions.wrap(instanceValue("colorIndex", 0).toUInt());
-  refreshIconDrawables();
 
   m_hideBody = config.getBool("hideBody", false);
   m_underlaid = instanceValue("underlaid").optBool().value(false);

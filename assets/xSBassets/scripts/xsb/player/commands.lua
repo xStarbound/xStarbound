@@ -331,7 +331,25 @@ local function resolveDirectives(itemConfig, flipped)
     if itemConfig.parameters.flipDirectives and (flipped == "flipped" or flipped == "left") then
         local flipDirectives = tostring(itemConfig.parameters.flipDirectives) 
         if flipDirectives:sub(1, 1) == "+" then
-            return (itemConfig.parameters.directives and tostring(itemConfig.parameters.directives) or "") .. flipDirectives:sub(2, -1)
+            if itemConfig.parameters.directives then
+                return (itemConfig.parameters.directives and tostring(itemConfig.parameters.directives) or "") .. flipDirectives:sub(2, -1)
+            else
+                local colourIndex = math.tointeger(itemConfig.parameters.colorIndex) or 0
+                local colourOptionsForIndex = {}
+                if type(itemConfig.config.colorOptions) == "table" then
+                    if type(itemConfig.config.colorOptions[colourIndex]) == "table" then
+                        colourOptionsForIndex = itemConfig.config.colorOptions[colourIndex]
+                    end
+                end
+                local directives = "?replace;"
+                local optionCount = 0
+                for left, right in pairs(colourOptionsForIndex) do
+                    optionCount = optionCount + 1
+                    directives = directives .. tostring(left) .. "=" .. tostring(right) .. ";"
+                end
+                local baseDirectives = optionCount == 0 and "" or directives
+                return baseDirectives .. flipDirectives
+            end
         else
             return flipDirectives
         end

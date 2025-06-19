@@ -605,7 +605,6 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     humanoid.setBackSleeveStack(backSleeveStack);
     humanoid.setLegsArmorStack(legsArmorStack);
     humanoid.setBackArmorStack(backArmorStack);
-    humanoid.updateHumanoidConfigOverrides(humanoidOverrides);
     // FezzedOne: Clear any emulated OpenStarbound cosmetic slots after the last xStarbound overlay, if any cosmetic slots are left unfilled.
     if (m_player && m_player->isMaster() && openSbLayerCount < 12) {
       for (uint8_t i = openSbLayerCount; i != 12; i++) {
@@ -615,6 +614,17 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   }
 
   m_headNeedsSync = m_chestNeedsSync = m_legsNeedsSync = m_backNeedsSync = false;
+
+  if (anyNeedsSync) {
+    try {
+      humanoid.updateHumanoidConfigOverrides(humanoidOverrides);
+    } catch (std::exception const& e) {
+      Logger::warn("ArmorWearer: Exception caught while handling humanoid overrides; attempted to restore base humanoid config for player's species. "
+                   "Check the \"humanoidConfig\" on your cosmetic items.\n  Exception: {}",
+          outputException(e, false));
+      humanoid.updateHumanoidConfigOverrides(JsonObject{});
+    }
+  }
 
   humanoid.setBodyHidden(bodyHidden);
 }
