@@ -348,7 +348,7 @@ local function resolveDirectives(itemConfig, flipped)
                     directives = directives .. tostring(left) .. "=" .. tostring(right) .. ";"
                 end
                 local baseDirectives = optionCount == 0 and "" or directives
-                return baseDirectives .. flipDirectives
+                return baseDirectives .. flipDirectives:sub(2, -1)
             end
         else
             return flipDirectives
