@@ -1080,10 +1080,11 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
           image = strf("{}:{}.{}", m_legsArmorStack[i].frameset, frameBase(m_state), bodyStateSeq);
         auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, {});
         drawable.imagePart().addDirectives(m_legsArmorStack[i].directives, true);
-        if (m_legsArmorStack[i].ordering >= 12)
+        auto& ordering = m_legsArmorStack[i].ordering;
+        if (ordering >= 12)
           addDrawable(std::move(drawable));
         else
-          openSbCosmetics[i] = drawable;
+          openSbCosmetics[ordering] = drawable;
       }
 
       if (i < chestStackSize) {
@@ -1105,10 +1106,11 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
           position[1] += bobYOffset;
         auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, position);
         drawable.imagePart().addDirectives(m_chestArmorStack[i].directives, true);
-        if (m_chestArmorStack[i].ordering >= 12)
+        auto& ordering = m_chestArmorStack[i].ordering;
+        if (ordering >= 12)
           addDrawable(std::move(drawable));
         else
-          openSbCosmetics[i] = drawable;
+          openSbCosmetics[ordering] = drawable;
       }
     }
 

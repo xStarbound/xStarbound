@@ -226,74 +226,86 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       }
     }
 
-    List<ChestArmorPtr> chestItems;
-    List<LegsArmorPtr> legsItems;
+    {
+      List<ChestArmorPtr> chestItems;
+      List<LegsArmorPtr> legsItems;
 
-    if (m_chestCosmeticItem && !forceNude && !m_chestCosmeticItem->hideInStockSlots()) {
-      if (anyNeedsSync) {
-        humanoid.setBackSleeveFrameset(m_chestCosmeticItem->backSleeveFrameset(humanoid.identity().gender));
-        humanoid.setFrontSleeveFrameset(m_chestCosmeticItem->frontSleeveFrameset(humanoid.identity().gender));
-        humanoid.setChestArmorFrameset(m_chestCosmeticItem->bodyFrameset(humanoid.identity().gender));
-        humanoid.setChestArmorDirectives(getDirectives(as<ArmorItem>(m_chestCosmeticItem)));
-        mergeHumanoidConfig(as<ArmorItem>(m_chestCosmeticItem));
-        for (auto& item : m_chestCosmeticItem->getStackedCosmetics()) {
-          if (item) {
-            if (auto armourItem = as<ChestArmor>(item)) {
-              chestItems.emplace_back(armourItem);
-              chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->bodyFrameset(humanoid.identity().gender),
-                  getDirectives(as<ArmorItem>(armourItem)),
-                  Directives()});
-              frontSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->frontSleeveFrameset(humanoid.identity().gender),
-                  getDirectives(as<ArmorItem>(armourItem)),
-                  Directives()});
-              backSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->backSleeveFrameset(humanoid.identity().gender),
-                  getDirectives(as<ArmorItem>(armourItem)),
-                  Directives()});
-              mergeHumanoidConfig(as<ArmorItem>(item));
-              bodyHidden |= armourItem->hideBody();
-            }
-          }
-        }
-        // humanoid.setChestArmorStack(chestArmorStack);
-        // humanoid.setFrontSleeveStack(frontSleeveStack);
-        // humanoid.setBackSleeveStack(backSleeveStack);
-      }
-      if (m_chestItem && !hiddenArmourSlots.chest && !m_chestItem->hideInStockSlots()) {
+      if (m_chestCosmeticItem && !forceNude && !m_chestCosmeticItem->hideInStockSlots()) {
         if (anyNeedsSync) {
-          if (m_chestItem->isUnderlaid()) {
-            humanoid.setBackSleeveUnderlayFrameset(m_chestItem->backSleeveFrameset(humanoid.identity().gender));
-            humanoid.setFrontSleeveUnderlayFrameset(m_chestItem->frontSleeveFrameset(humanoid.identity().gender));
-            humanoid.setChestArmorUnderlayFrameset(m_chestItem->bodyFrameset(humanoid.identity().gender));
-            humanoid.setChestArmorUnderlayDirectives(getDirectives(as<ArmorItem>(m_chestItem)));
-            mergeHumanoidConfig(as<ArmorItem>(m_chestItem));
-            List<Humanoid::ArmorEntry> chestArmorUnderlayStack = {}, frontSleeveUnderlayStack = {}, backSleeveUnderlayStack = {};
-            for (auto& item : m_chestItem->getStackedCosmetics()) {
-              if (item) {
-                if (auto armourItem = as<ChestArmor>(item)) {
-                  chestArmorUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
-                      armourItem->bodyFrameset(humanoid.identity().gender),
-                      getDirectives(as<ArmorItem>(armourItem)),
-                      Directives()});
-                  frontSleeveUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
-                      armourItem->frontSleeveFrameset(humanoid.identity().gender),
-                      getDirectives(as<ArmorItem>(armourItem)),
-                      Directives()});
-                  backSleeveUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
-                      armourItem->backSleeveFrameset(humanoid.identity().gender),
-                      getDirectives(as<ArmorItem>(armourItem)),
-                      Directives()});
-                  mergeHumanoidConfig(as<ArmorItem>(item));
-                  bodyHidden |= armourItem->hideBody();
-                }
+          humanoid.setBackSleeveFrameset(m_chestCosmeticItem->backSleeveFrameset(humanoid.identity().gender));
+          humanoid.setFrontSleeveFrameset(m_chestCosmeticItem->frontSleeveFrameset(humanoid.identity().gender));
+          humanoid.setChestArmorFrameset(m_chestCosmeticItem->bodyFrameset(humanoid.identity().gender));
+          humanoid.setChestArmorDirectives(getDirectives(as<ArmorItem>(m_chestCosmeticItem)));
+          mergeHumanoidConfig(as<ArmorItem>(m_chestCosmeticItem));
+          for (auto& item : m_chestCosmeticItem->getStackedCosmetics()) {
+            if (item) {
+              if (auto armourItem = as<ChestArmor>(item)) {
+                chestItems.emplace_back(armourItem);
+                chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
+                    armourItem->bodyFrameset(humanoid.identity().gender),
+                    getDirectives(as<ArmorItem>(armourItem)),
+                    Directives()});
+                frontSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
+                    armourItem->frontSleeveFrameset(humanoid.identity().gender),
+                    getDirectives(as<ArmorItem>(armourItem)),
+                    Directives()});
+                backSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
+                    armourItem->backSleeveFrameset(humanoid.identity().gender),
+                    getDirectives(as<ArmorItem>(armourItem)),
+                    Directives()});
+                mergeHumanoidConfig(as<ArmorItem>(item));
+                bodyHidden |= armourItem->hideBody();
               }
             }
-            humanoid.setChestArmorUnderlayStack(chestArmorUnderlayStack);
-            humanoid.setFrontSleeveUnderlayStack(frontSleeveUnderlayStack);
-            humanoid.setBackSleeveUnderlayStack(backSleeveUnderlayStack);
-          } else {
+          }
+          // humanoid.setChestArmorStack(chestArmorStack);
+          // humanoid.setFrontSleeveStack(frontSleeveStack);
+          // humanoid.setBackSleeveStack(backSleeveStack);
+        }
+        if (m_chestItem && !hiddenArmourSlots.chest && !m_chestItem->hideInStockSlots()) {
+          if (anyNeedsSync) {
+            if (m_chestItem->isUnderlaid()) {
+              humanoid.setBackSleeveUnderlayFrameset(m_chestItem->backSleeveFrameset(humanoid.identity().gender));
+              humanoid.setFrontSleeveUnderlayFrameset(m_chestItem->frontSleeveFrameset(humanoid.identity().gender));
+              humanoid.setChestArmorUnderlayFrameset(m_chestItem->bodyFrameset(humanoid.identity().gender));
+              humanoid.setChestArmorUnderlayDirectives(getDirectives(as<ArmorItem>(m_chestItem)));
+              mergeHumanoidConfig(as<ArmorItem>(m_chestItem));
+              List<Humanoid::ArmorEntry> chestArmorUnderlayStack = {}, frontSleeveUnderlayStack = {}, backSleeveUnderlayStack = {};
+              for (auto& item : m_chestItem->getStackedCosmetics()) {
+                if (item) {
+                  if (auto armourItem = as<ChestArmor>(item)) {
+                    chestArmorUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
+                        armourItem->bodyFrameset(humanoid.identity().gender),
+                        getDirectives(as<ArmorItem>(armourItem)),
+                        Directives()});
+                    frontSleeveUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
+                        armourItem->frontSleeveFrameset(humanoid.identity().gender),
+                        getDirectives(as<ArmorItem>(armourItem)),
+                        Directives()});
+                    backSleeveUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
+                        armourItem->backSleeveFrameset(humanoid.identity().gender),
+                        getDirectives(as<ArmorItem>(armourItem)),
+                        Directives()});
+                    mergeHumanoidConfig(as<ArmorItem>(item));
+                    bodyHidden |= armourItem->hideBody();
+                  }
+                }
+              }
+              humanoid.setChestArmorUnderlayStack(chestArmorUnderlayStack);
+              humanoid.setFrontSleeveUnderlayStack(frontSleeveUnderlayStack);
+              humanoid.setBackSleeveUnderlayStack(backSleeveUnderlayStack);
+            } else {
+              humanoid.setBackSleeveUnderlayFrameset("");
+              humanoid.setFrontSleeveUnderlayFrameset("");
+              humanoid.setChestArmorUnderlayFrameset("");
+              humanoid.setChestArmorUnderlayStack({});
+              humanoid.setFrontSleeveUnderlayStack({});
+              humanoid.setBackSleeveUnderlayStack({});
+            }
+          }
+          bodyHidden = bodyHidden || (m_chestItem->isUnderlaid() && m_chestItem->hideBody());
+        } else {
+          if (anyNeedsSync) {
             humanoid.setBackSleeveUnderlayFrameset("");
             humanoid.setFrontSleeveUnderlayFrameset("");
             humanoid.setChestArmorUnderlayFrameset("");
@@ -302,9 +314,38 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             humanoid.setBackSleeveUnderlayStack({});
           }
         }
-        bodyHidden = bodyHidden || (m_chestItem->isUnderlaid() && m_chestItem->hideBody());
-      } else {
+        bodyHidden = bodyHidden || m_chestCosmeticItem->hideBody();
+      } else if (m_chestItem && !forceNude && !hiddenArmourSlots.chest && !m_chestItem->hideInStockSlots()) {
         if (anyNeedsSync) {
+          humanoid.setBackSleeveFrameset(m_chestItem->backSleeveFrameset(humanoid.identity().gender));
+          humanoid.setFrontSleeveFrameset(m_chestItem->frontSleeveFrameset(humanoid.identity().gender));
+          humanoid.setChestArmorFrameset(m_chestItem->bodyFrameset(humanoid.identity().gender));
+          humanoid.setChestArmorDirectives(getDirectives(as<ArmorItem>(m_chestItem)));
+          mergeHumanoidConfig(as<ArmorItem>(m_chestItem));
+          for (auto& item : m_chestItem->getStackedCosmetics()) {
+            if (item) {
+              if (auto armourItem = as<ChestArmor>(item)) {
+                chestItems.emplace_back(armourItem);
+                chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
+                    armourItem->bodyFrameset(humanoid.identity().gender),
+                    getDirectives(as<ArmorItem>(armourItem)),
+                    Directives()});
+                frontSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
+                    armourItem->frontSleeveFrameset(humanoid.identity().gender),
+                    getDirectives(as<ArmorItem>(armourItem)),
+                    Directives()});
+                backSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
+                    armourItem->backSleeveFrameset(humanoid.identity().gender),
+                    getDirectives(as<ArmorItem>(armourItem)),
+                    Directives()});
+                mergeHumanoidConfig(as<ArmorItem>(item));
+                bodyHidden |= armourItem->hideBody();
+              }
+            }
+          }
+          // humanoid.setChestArmorStack(chestArmorStack);
+          // humanoid.setFrontSleeveStack(frontSleeveStack);
+          // humanoid.setBackSleeveStack(backSleeveStack);
           humanoid.setBackSleeveUnderlayFrameset("");
           humanoid.setFrontSleeveUnderlayFrameset("");
           humanoid.setChestArmorUnderlayFrameset("");
@@ -312,165 +353,126 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           humanoid.setFrontSleeveUnderlayStack({});
           humanoid.setBackSleeveUnderlayStack({});
         }
-      }
-      bodyHidden = bodyHidden || m_chestCosmeticItem->hideBody();
-    } else if (m_chestItem && !forceNude && !hiddenArmourSlots.chest && !m_chestItem->hideInStockSlots()) {
-      if (anyNeedsSync) {
-        humanoid.setBackSleeveFrameset(m_chestItem->backSleeveFrameset(humanoid.identity().gender));
-        humanoid.setFrontSleeveFrameset(m_chestItem->frontSleeveFrameset(humanoid.identity().gender));
-        humanoid.setChestArmorFrameset(m_chestItem->bodyFrameset(humanoid.identity().gender));
-        humanoid.setChestArmorDirectives(getDirectives(as<ArmorItem>(m_chestItem)));
-        mergeHumanoidConfig(as<ArmorItem>(m_chestItem));
-        for (auto& item : m_chestItem->getStackedCosmetics()) {
-          if (item) {
-            if (auto armourItem = as<ChestArmor>(item)) {
-              chestItems.emplace_back(armourItem);
-              chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->bodyFrameset(humanoid.identity().gender),
-                  getDirectives(as<ArmorItem>(armourItem)),
-                  Directives()});
-              frontSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->frontSleeveFrameset(humanoid.identity().gender),
-                  getDirectives(as<ArmorItem>(armourItem)),
-                  Directives()});
-              backSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->backSleeveFrameset(humanoid.identity().gender),
-                  getDirectives(as<ArmorItem>(armourItem)),
-                  Directives()});
-              mergeHumanoidConfig(as<ArmorItem>(item));
-              bodyHidden |= armourItem->hideBody();
-            }
-          }
-        }
-        // humanoid.setChestArmorStack(chestArmorStack);
-        // humanoid.setFrontSleeveStack(frontSleeveStack);
-        // humanoid.setBackSleeveStack(backSleeveStack);
-        humanoid.setBackSleeveUnderlayFrameset("");
-        humanoid.setFrontSleeveUnderlayFrameset("");
-        humanoid.setChestArmorUnderlayFrameset("");
-        humanoid.setChestArmorUnderlayStack({});
-        humanoid.setFrontSleeveUnderlayStack({});
-        humanoid.setBackSleeveUnderlayStack({});
-      }
-      bodyHidden = bodyHidden || m_chestItem->hideBody();
-    } else {
-      if (anyNeedsSync) {
-        humanoid.setBackSleeveFrameset("");
-        humanoid.setFrontSleeveFrameset("");
-        humanoid.setChestArmorFrameset("");
-        humanoid.setBackSleeveUnderlayFrameset("");
-        humanoid.setFrontSleeveUnderlayFrameset("");
-        humanoid.setChestArmorUnderlayFrameset("");
-        // humanoid.setChestArmorStack(chestArmorStack);
-        // humanoid.setFrontSleeveStack(frontSleeveStack);
-        // humanoid.setBackSleeveStack(backSleeveStack);
-        humanoid.setChestArmorUnderlayStack({});
-        humanoid.setFrontSleeveUnderlayStack({});
-        humanoid.setBackSleeveUnderlayStack({});
-      }
-    }
-
-    if (m_legsCosmeticItem && !forceNude && !m_legsCosmeticItem->hideInStockSlots()) {
-      if (anyNeedsSync) {
-        humanoid.setLegsArmorFrameset(m_legsCosmeticItem->frameset(humanoid.identity().gender));
-        humanoid.setLegsArmorDirectives(getDirectives(as<ArmorItem>(m_legsCosmeticItem)));
-        mergeHumanoidConfig(as<ArmorItem>(m_legsCosmeticItem));
-        for (auto& item : m_legsCosmeticItem->getStackedCosmetics()) {
-          if (item) {
-            if (auto armourItem = as<LegsArmor>(item)) {
-              legsItems.emplace_back(armourItem);
-              legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->frameset(humanoid.identity().gender),
-                  getDirectives(as<ArmorItem>(armourItem)),
-                  Directives()});
-              mergeHumanoidConfig(as<ArmorItem>(item));
-              bodyHidden |= armourItem->hideBody();
-            }
-          }
-        }
-        // humanoid.setLegsArmorStack(legsArmorStack);
-      }
-      if (m_legsItem && !hiddenArmourSlots.legs && !m_legsItem->hideInStockSlots()) {
+        bodyHidden = bodyHidden || m_chestItem->hideBody();
+      } else {
         if (anyNeedsSync) {
-          if (m_legsItem->isUnderlaid()) {
-            humanoid.setLegsArmorUnderlayFrameset(m_legsItem->frameset(humanoid.identity().gender));
-            humanoid.setLegsArmorUnderlayDirectives(getDirectives(as<ArmorItem>(m_legsItem)));
-            mergeHumanoidConfig(as<ArmorItem>(m_legsItem));
-            List<Humanoid::ArmorEntry> legsArmorUnderlayStack = {};
-            for (auto& item : m_legsItem->getStackedCosmetics()) {
-              if (item) {
-                if (auto armourItem = as<LegsArmor>(item)) {
-                  legsArmorUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
-                      armourItem->frameset(humanoid.identity().gender),
-                      getDirectives(as<ArmorItem>(armourItem)),
-                      Directives()});
-                  mergeHumanoidConfig(as<ArmorItem>(item));
-                  bodyHidden |= armourItem->hideBody();
-                }
+          humanoid.setBackSleeveFrameset("");
+          humanoid.setFrontSleeveFrameset("");
+          humanoid.setChestArmorFrameset("");
+          humanoid.setBackSleeveUnderlayFrameset("");
+          humanoid.setFrontSleeveUnderlayFrameset("");
+          humanoid.setChestArmorUnderlayFrameset("");
+          // humanoid.setChestArmorStack(chestArmorStack);
+          // humanoid.setFrontSleeveStack(frontSleeveStack);
+          // humanoid.setBackSleeveStack(backSleeveStack);
+          humanoid.setChestArmorUnderlayStack({});
+          humanoid.setFrontSleeveUnderlayStack({});
+          humanoid.setBackSleeveUnderlayStack({});
+        }
+      }
+
+      if (m_legsCosmeticItem && !forceNude && !m_legsCosmeticItem->hideInStockSlots()) {
+        if (anyNeedsSync) {
+          humanoid.setLegsArmorFrameset(m_legsCosmeticItem->frameset(humanoid.identity().gender));
+          humanoid.setLegsArmorDirectives(getDirectives(as<ArmorItem>(m_legsCosmeticItem)));
+          mergeHumanoidConfig(as<ArmorItem>(m_legsCosmeticItem));
+          for (auto& item : m_legsCosmeticItem->getStackedCosmetics()) {
+            if (item) {
+              if (auto armourItem = as<LegsArmor>(item)) {
+                legsItems.emplace_back(armourItem);
+                legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
+                    armourItem->frameset(humanoid.identity().gender),
+                    getDirectives(as<ArmorItem>(armourItem)),
+                    Directives()});
+                mergeHumanoidConfig(as<ArmorItem>(item));
+                bodyHidden |= armourItem->hideBody();
               }
             }
-            humanoid.setLegsArmorUnderlayStack(legsArmorUnderlayStack);
-          } else {
+          }
+          // humanoid.setLegsArmorStack(legsArmorStack);
+        }
+        if (m_legsItem && !hiddenArmourSlots.legs && !m_legsItem->hideInStockSlots()) {
+          if (anyNeedsSync) {
+            if (m_legsItem->isUnderlaid()) {
+              humanoid.setLegsArmorUnderlayFrameset(m_legsItem->frameset(humanoid.identity().gender));
+              humanoid.setLegsArmorUnderlayDirectives(getDirectives(as<ArmorItem>(m_legsItem)));
+              mergeHumanoidConfig(as<ArmorItem>(m_legsItem));
+              List<Humanoid::ArmorEntry> legsArmorUnderlayStack = {};
+              for (auto& item : m_legsItem->getStackedCosmetics()) {
+                if (item) {
+                  if (auto armourItem = as<LegsArmor>(item)) {
+                    legsArmorUnderlayStack.emplaceAppend(Humanoid::ArmorEntry{
+                        armourItem->frameset(humanoid.identity().gender),
+                        getDirectives(as<ArmorItem>(armourItem)),
+                        Directives()});
+                    mergeHumanoidConfig(as<ArmorItem>(item));
+                    bodyHidden |= armourItem->hideBody();
+                  }
+                }
+              }
+              humanoid.setLegsArmorUnderlayStack(legsArmorUnderlayStack);
+            } else {
+              humanoid.setLegsArmorUnderlayFrameset("");
+              humanoid.setLegsArmorUnderlayStack({});
+            }
+          }
+          bodyHidden = bodyHidden || (m_legsItem->isUnderlaid() && m_legsItem->hideBody());
+        } else {
+          if (anyNeedsSync) {
             humanoid.setLegsArmorUnderlayFrameset("");
             humanoid.setLegsArmorUnderlayStack({});
           }
         }
-        bodyHidden = bodyHidden || (m_legsItem->isUnderlaid() && m_legsItem->hideBody());
-      } else {
+        bodyHidden = bodyHidden || m_legsCosmeticItem->hideBody();
+      } else if (m_legsItem && !forceNude && !hiddenArmourSlots.legs && !m_legsItem->hideInStockSlots()) {
         if (anyNeedsSync) {
+          humanoid.setLegsArmorFrameset(m_legsItem->frameset(humanoid.identity().gender));
+          humanoid.setLegsArmorDirectives(getDirectives(as<ArmorItem>(m_legsItem)));
+          mergeHumanoidConfig(as<ArmorItem>(m_legsItem));
+          for (auto& item : m_legsItem->getStackedCosmetics()) {
+            if (item) {
+              if (auto armourItem = as<LegsArmor>(item)) {
+                legsItems.emplace_back(armourItem);
+                legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
+                    armourItem->frameset(humanoid.identity().gender),
+                    getDirectives(as<ArmorItem>(armourItem)),
+                    Directives()});
+                mergeHumanoidConfig(as<ArmorItem>(item));
+                bodyHidden |= armourItem->hideBody();
+              }
+            }
+          }
+          // humanoid.setLegsArmorStack(legsArmorStack);
           humanoid.setLegsArmorUnderlayFrameset("");
           humanoid.setLegsArmorUnderlayStack({});
         }
-      }
-      bodyHidden = bodyHidden || m_legsCosmeticItem->hideBody();
-    } else if (m_legsItem && !forceNude && !hiddenArmourSlots.legs && !m_legsItem->hideInStockSlots()) {
-      if (anyNeedsSync) {
-        humanoid.setLegsArmorFrameset(m_legsItem->frameset(humanoid.identity().gender));
-        humanoid.setLegsArmorDirectives(getDirectives(as<ArmorItem>(m_legsItem)));
-        mergeHumanoidConfig(as<ArmorItem>(m_legsItem));
-        for (auto& item : m_legsItem->getStackedCosmetics()) {
-          if (item) {
-            if (auto armourItem = as<LegsArmor>(item)) {
-              legsItems.emplace_back(armourItem);
-              legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
-                  armourItem->frameset(humanoid.identity().gender),
-                  getDirectives(as<ArmorItem>(armourItem)),
-                  Directives()});
-              mergeHumanoidConfig(as<ArmorItem>(item));
-              bodyHidden |= armourItem->hideBody();
-            }
-          }
+        bodyHidden = bodyHidden || m_legsItem->hideBody();
+      } else {
+        if (anyNeedsSync) {
+          humanoid.setLegsArmorFrameset("");
+          humanoid.setLegsArmorUnderlayFrameset("");
+          // humanoid.setLegsArmorStack(legsArmorStack);
+          humanoid.setLegsArmorUnderlayStack({});
         }
-        // humanoid.setLegsArmorStack(legsArmorStack);
-        humanoid.setLegsArmorUnderlayFrameset("");
-        humanoid.setLegsArmorUnderlayStack({});
       }
-      bodyHidden = bodyHidden || m_legsItem->hideBody();
-    } else {
-      if (anyNeedsSync) {
-        humanoid.setLegsArmorFrameset("");
-        humanoid.setLegsArmorUnderlayFrameset("");
-        // humanoid.setLegsArmorStack(legsArmorStack);
-        humanoid.setLegsArmorUnderlayStack({});
-      }
-    }
 
-    // FezzedOne: Staggers legs and chest armour items the same way they are visually staggered on xSB
-    // when networking to oSB clients.
-    size_t chestItemCount = chestItems.size(), legsItemCount = legsItems.size();
-    size_t largerCount = std::max<size_t>(legsItemCount, chestItemCount);
+      // FezzedOne: Staggers legs and chest armour items the same way they are visually staggered on xSB
+      // when networking to oSB clients.
+      size_t chestItemCount = chestItems.size(), legsItemCount = legsItems.size();
+      size_t largerCount = std::max<size_t>(legsItemCount, chestItemCount);
 
-    for (size_t i = 0; i < largerCount; i++) {
-      if (i < legsItems.size()) {
-        if (m_player && openSbLayerCount < 12 && m_player->isMaster())
-          m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(legsItems[i]));
+      for (size_t i = 0; i < largerCount; i++) {
+        if (i < legsItems.size()) {
+          if (m_player && openSbLayerCount < 12 && m_player->isMaster())
+            m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(legsItems[i]));
+        }
+        if (openSbLayerCount >= 12) break;
+        if (i < chestItems.size()) {
+          if (m_player && openSbLayerCount < 12 && m_player->isMaster())
+            m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(chestItems[i]));
+        }
+        if (openSbLayerCount >= 12) break;
       }
-      if (openSbLayerCount >= 12) break;
-      if (i < chestItems.size()) {
-        if (m_player && openSbLayerCount < 12 && m_player->isMaster())
-          m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(chestItems[i]));
-      }
-      if (openSbLayerCount >= 12) break;
     }
 
     if (m_backCosmeticItem && !forceNude && !m_backCosmeticItem->hideInStockSlots()) {
