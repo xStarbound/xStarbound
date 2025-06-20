@@ -57,7 +57,7 @@ WorldClient::WorldClient(PlayerPtr mainPlayer, UniverseClient* universeClient) {
   m_collisionDebug = false;
   m_inWorld = false;
 
-  m_luaRoot = make_shared<LuaRoot>();
+  // m_luaRoot = make_shared<LuaRoot>(); // FezzedOne: No longer necessary.
   m_scriptGlobals = JsonObject{};
 
   m_mainPlayer = mainPlayer;
@@ -124,7 +124,7 @@ WorldClient::~WorldClient() {
 
   m_lightingThread.finish();
   clearWorld();
-  m_luaRoot->shutdown();
+  // m_luaRoot->shutdown();
 }
 
 UniverseClient* WorldClient::universeClient() const {
@@ -1266,7 +1266,7 @@ List<PacketPtr> WorldClient::getOutgoingPackets() {
 }
 
 void WorldClient::setLuaCallbacks(String const& groupName, LuaCallbacks const& callbacks) {
-  m_luaRoot->addCallbacks(groupName, callbacks);
+  // m_luaRoot->addCallbacks(groupName, callbacks);
   LuaBaseComponent::addBaseCallbacks(groupName, callbacks);
 }
 
@@ -1515,7 +1515,7 @@ void WorldClient::update(float dt) {
 
   LogMap::set("client_entities", m_entityMap->size());
   LogMap::set("client_sectors", toString(loadedSectors.size()));
-  LogMap::set("client_lua_mem", m_luaRoot->luaMemoryUsage());
+  // LogMap::set("client_lua_mem", m_luaRoot->luaMemoryUsage());
 }
 
 ConnectionId WorldClient::connection() const {
@@ -1977,8 +1977,8 @@ void WorldClient::initWorld(WorldStartPacket const& startPacket) {
     return m_tileArray->tile(pos);
   };
   m_damageManager = make_shared<DamageManager>(this, startPacket.clientId);
-  m_luaRoot->restart();
-  m_luaRoot->tuneAutoGarbageCollection(m_clientConfig.getFloat("luaGcPause"), m_clientConfig.getFloat("luaGcStepMultiplier"));
+  // m_luaRoot->restart();
+  // m_luaRoot->tuneAutoGarbageCollection(m_clientConfig.getFloat("luaGcPause"), m_clientConfig.getFloat("luaGcStepMultiplier"));
   m_playerStart = startPacket.playerRespawn;
   m_respawnInWorld = startPacket.respawnInWorld;
   m_worldProperties = startPacket.worldProperties.optObject().value();
