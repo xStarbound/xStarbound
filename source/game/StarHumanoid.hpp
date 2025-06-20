@@ -18,6 +18,8 @@ STAR_CLASS(Humanoid);
 
 STAR_STRUCT(Dance);
 
+constexpr uint8_t BaseCosmeticOrdering = 255;
+
 enum class HumanoidEmote {
   Idle,
   Blabbering,
@@ -134,6 +136,7 @@ public:
     String frameset = "";
     Directives directives = Directives();
     Directives maskDirectives = Directives();
+    uint8_t ordering = BaseCosmeticOrdering; // FezzedOne: For oSB cosmetic ordering.
   };
 
   struct BackEntry {

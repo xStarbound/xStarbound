@@ -226,6 +226,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       }
     }
 
+    List<ChestArmorPtr> chestItems;
+    List<LegsArmorPtr> legsItems;
+
     if (m_chestCosmeticItem && !forceNude && !m_chestCosmeticItem->hideInStockSlots()) {
       if (anyNeedsSync) {
         humanoid.setBackSleeveFrameset(m_chestCosmeticItem->backSleeveFrameset(humanoid.identity().gender));
@@ -236,8 +239,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         for (auto& item : m_chestCosmeticItem->getStackedCosmetics()) {
           if (item) {
             if (auto armourItem = as<ChestArmor>(item)) {
-              if (m_player && openSbLayerCount < 12 && m_player->isMaster())
-                m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
+              chestItems.emplace_back(armourItem);
               chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                   armourItem->bodyFrameset(humanoid.identity().gender),
                   getDirectives(as<ArmorItem>(armourItem)),
@@ -322,8 +324,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         for (auto& item : m_chestItem->getStackedCosmetics()) {
           if (item) {
             if (auto armourItem = as<ChestArmor>(item)) {
-              if (m_player && openSbLayerCount < 12 && m_player->isMaster())
-                m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
+              chestItems.emplace_back(armourItem);
               chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                   armourItem->bodyFrameset(humanoid.identity().gender),
                   getDirectives(as<ArmorItem>(armourItem)),
@@ -377,8 +378,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         for (auto& item : m_legsCosmeticItem->getStackedCosmetics()) {
           if (item) {
             if (auto armourItem = as<LegsArmor>(item)) {
-              if (m_player && openSbLayerCount < 12 && m_player->isMaster())
-                m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
+              legsItems.emplace_back(armourItem);
               legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                   armourItem->frameset(humanoid.identity().gender),
                   getDirectives(as<ArmorItem>(armourItem)),
@@ -431,8 +431,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         for (auto& item : m_legsItem->getStackedCosmetics()) {
           if (item) {
             if (auto armourItem = as<LegsArmor>(item)) {
-              if (m_player && openSbLayerCount < 12 && m_player->isMaster())
-                m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(item));
+              legsItems.emplace_back(armourItem);
               legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                   armourItem->frameset(humanoid.identity().gender),
                   getDirectives(as<ArmorItem>(armourItem)),
@@ -454,6 +453,24 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         // humanoid.setLegsArmorStack(legsArmorStack);
         humanoid.setLegsArmorUnderlayStack({});
       }
+    }
+
+    // FezzedOne: Staggers legs and chest armour items the same way they are visually staggered on xSB
+    // when networking to oSB clients.
+    size_t chestItemCount = chestItems.size(), legsItemCount = legsItems.size();
+    size_t largerCount = std::max<size_t>(legsItemCount, chestItemCount);
+
+    for (size_t i = 0; i < largerCount; i++) {
+      if (i < legsItems.size()) {
+        if (m_player && openSbLayerCount < 12 && m_player->isMaster())
+          m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(legsItems[i]));
+      }
+      if (openSbLayerCount >= 12) break;
+      if (i < chestItems.size()) {
+        if (m_player && openSbLayerCount < 12 && m_player->isMaster())
+          m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(chestItems[i]));
+      }
+      if (openSbLayerCount >= 12) break;
     }
 
     if (m_backCosmeticItem && !forceNude && !m_backCosmeticItem->hideInStockSlots()) {
@@ -568,22 +585,26 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
             armourItem->bodyFrameset(humanoid.identity().gender),
             getDirectives(as<ArmorItem>(armourItem)),
-            Directives()});
+            Directives(),
+            i});
         frontSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
             armourItem->frontSleeveFrameset(humanoid.identity().gender),
             getDirectives(as<ArmorItem>(armourItem)),
-            Directives()});
+            Directives(),
+            i});
         backSleeveStack.emplaceAppend(Humanoid::ArmorEntry{
             armourItem->backSleeveFrameset(humanoid.identity().gender),
             getDirectives(as<ArmorItem>(armourItem)),
-            Directives()});
+            Directives(),
+            i});
         mergeHumanoidConfig(as<ArmorItem>(item));
         bodyHidden |= armourItem->hideBody();
       } else if (auto armourItem = as<LegsArmor>(item)) {
         legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
             armourItem->frameset(humanoid.identity().gender),
             getDirectives(as<ArmorItem>(armourItem)),
-            Directives()});
+            Directives(),
+            i});
         mergeHumanoidConfig(as<ArmorItem>(item));
         bodyHidden |= armourItem->hideBody();
       } else if (auto armourItem = as<BackArmor>(item)) {

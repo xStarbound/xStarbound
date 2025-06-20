@@ -1067,6 +1067,8 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
   if (!m_chestArmorStack.empty() || !m_legsArmorStack.empty()) {
     size_t legsStackSize = m_legsArmorStack.size(), chestStackSize = m_chestArmorStack.size();
     size_t largerStackSize = std::max<size_t>(legsStackSize, chestStackSize);
+    HashMap<uint8_t, Drawable> openSbCosmetics;
+
     for (size_t i = 0; i < largerStackSize; i++) {
       if (i < legsStackSize) {
         String image;
@@ -1078,7 +1080,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
           image = strf("{}:{}.{}", m_legsArmorStack[i].frameset, frameBase(m_state), bodyStateSeq);
         auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, {});
         drawable.imagePart().addDirectives(m_legsArmorStack[i].directives, true);
-        addDrawable(std::move(drawable));
+        if (m_legsArmorStack[i].ordering >= 12)
+          addDrawable(std::move(drawable));
+        else
+          openSbCosmetics[i] = drawable;
       }
 
       if (i < chestStackSize) {
@@ -1100,8 +1105,17 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
           position[1] += bobYOffset;
         auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, position);
         drawable.imagePart().addDirectives(m_chestArmorStack[i].directives, true);
-        addDrawable(std::move(drawable));
+        if (m_chestArmorStack[i].ordering >= 12)
+          addDrawable(std::move(drawable));
+        else
+          openSbCosmetics[i] = drawable;
       }
+    }
+
+    // FezzedOne: Ensures oSB chest and leg cosmetics are rendered in the proper layer order.
+    for (size_t i = 0; i != 12; i++) {
+      if (auto drawable = openSbCosmetics.ptr(i))
+        addDrawable(std::move(*drawable));
     }
   }
 
