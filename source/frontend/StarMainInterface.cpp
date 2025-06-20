@@ -568,6 +568,8 @@ void MainInterface::handleInteractAction(InteractAction interactAction) {
           if (auto uniqueEntityId = entity->uniqueId()) {
             auto worldTemplate = m_client->worldClient()->currentTemplate();
 
+            if (!worldTemplate) return; // FezzedOne: Got rid of potential segfault here.
+
             String icon, planetName;
             if (m_client->playerWorld().is<ClientShipWorldId>()) {
               icon = "ship";

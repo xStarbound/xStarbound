@@ -787,6 +787,7 @@ namespace LuaBindings {
         return serverWorld->worldTemplate()->blockInfo(position[0], position[1]).oceanLiquidLevel;
       } else {
         auto clientWorld = as<WorldClient>(world);
+        if (!clientWorld->inWorld()) return 0; // Fixed potential crash here.
         return clientWorld->currentTemplate()->blockInfo(position[0], position[1]).oceanLiquidLevel;
       }
     });

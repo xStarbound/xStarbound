@@ -1,26 +1,26 @@
 #include "StarScriptPane.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
-#include "StarGuiReader.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarConfigLuaBindings.hpp"
-#include "StarEntityLuaBindings.hpp"
-#include "StarPlayerLuaBindings.hpp"
-#include "StarNetworkedAnimatorLuaBindings.hpp"
-#include "StarStatusControllerLuaBindings.hpp"
+#include "StarCanvasWidget.hpp"
 #include "StarCelestialLuaBindings.hpp"
+#include "StarConfigLuaBindings.hpp"
+#include "StarConfiguration.hpp"
+#include "StarEntityLuaBindings.hpp"
+#include "StarGuiReader.hpp"
+#include "StarImageWidget.hpp"
+#include "StarInterfaceLuaBindings.hpp"
+#include "StarItemGridWidget.hpp"
+#include "StarItemTooltip.hpp"
+#include "StarJsonExtra.hpp"
 #include "StarLuaGameConverters.hpp"
-#include "StarWorldClient.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarPlayer.hpp"
+#include "StarPlayerLuaBindings.hpp"
+#include "StarRoot.hpp"
+#include "StarSimpleTooltip.hpp"
+#include "StarStatusControllerLuaBindings.hpp"
 #include "StarUniverseClient.hpp"
 #include "StarWidgetLuaBindings.hpp"
-#include "StarInterfaceLuaBindings.hpp"
-#include "StarCanvasWidget.hpp"
-#include "StarItemTooltip.hpp"
-#include "StarItemGridWidget.hpp"
-#include "StarSimpleTooltip.hpp"
-#include "StarImageWidget.hpp"
-#include "StarConfiguration.hpp"
+#include "StarWorldClient.hpp"
 
 namespace Star {
 
@@ -57,15 +57,12 @@ void ScriptPane::displayed() {
   auto world = m_client->worldClient();
   if (world && world->inWorld()) {
     auto config = Root::singleton().configuration();
-    if (config->get("safeScripts").toBool()) {
-      m_script.setLuaRoot(make_shared<LuaRoot>());
+    m_script.setLuaRoot(make_shared<LuaRoot>());
 
-      auto assets = Root::singleton().assets();
-      Json clientConfig = assets->json("/client.config");
+    auto assets = Root::singleton().assets();
+    Json clientConfig = assets->json("/client.config");
 
-      m_script.luaRoot()->tuneAutoGarbageCollection(clientConfig.getFloat("luaGcPause"), clientConfig.getFloat("luaGcStepMultiplier"));
-    } else
-      m_script.setLuaRoot(world->luaRoot());
+    m_script.luaRoot()->tuneAutoGarbageCollection(clientConfig.getFloat("luaGcPause"), clientConfig.getFloat("luaGcStepMultiplier"));
     m_script.addCallbacks("world", LuaBindings::makeWorldCallbacks(world.get()));
   }
   BaseScriptPane::displayed();
@@ -121,7 +118,7 @@ EntityId ScriptPane::sourceEntityId() const {
   return m_sourceEntityId;
 }
 
-Maybe<Json> ScriptPane::receivePaneMessages(const String &message, bool localMessage, const JsonArray &args) {
+Maybe<Json> ScriptPane::receivePaneMessages(const String& message, bool localMessage, const JsonArray& args) {
   Maybe<Json> result = {};
   bool isChatMessage = message == "chatMessage" || message == "newChatMessage";
   JsonArray results = JsonArray{};
@@ -130,7 +127,7 @@ Maybe<Json> ScriptPane::receivePaneMessages(const String &message, bool localMes
     for (auto const& pane : ScriptPane::s_globalClientPaneRegistry) {
       if (isChatMessage) {
         if (auto arrayResult = pane->m_script.handleMessage(message, localMessage, args))
-            results.append(*arrayResult);
+          results.append(*arrayResult);
       } else {
         result = pane->m_script.handleMessage(message, localMessage, args);
         if (result) break;
@@ -140,4 +137,4 @@ Maybe<Json> ScriptPane::receivePaneMessages(const String &message, bool localMes
   return isChatMessage ? Json(results) : result;
 }
 
-}
+} // namespace Star

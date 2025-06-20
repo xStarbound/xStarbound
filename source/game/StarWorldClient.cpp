@@ -284,6 +284,9 @@ EntityPtr WorldClient::closestEntity(Vec2F const& center, float radius, EntityFi
 }
 
 void WorldClient::forAllEntities(EntityCallback callback) const {
+  // FezzedOne: Why didn't this have a check to ensure the world entity map is loaded first?
+  if (!inWorld())
+    return;
   m_entityMap->forAllEntities(callback);
 }
 
