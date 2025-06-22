@@ -163,9 +163,9 @@ The following mods are only partially compatible with xStarbound:
 
 The following mods are _NOT_ compatible with xStarbound:
 
-- [All Items are Stackable!] — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
+- [All Items are Stackable!] — not compatible with xStarbound after a recent mod update. Ask about a compatibility patch.
 - [AR's Shader Pack v1.0](https://steamcommunity.com/sharedfiles/filedetails/?id=3487232242) — modular shader support is OpenStarbound-only.
-- [Beta Hotbar!](https://steamcommunity.com/sharedfiles/filedetails/?id=3472065640) — not compatible with xStarbound's Lua sandbox. A compatibility patch is no longer planned.
+- [Beta Hotbar!](https://steamcommunity.com/sharedfiles/filedetails/?id=3472065640) — not compatible with xStarbound's Lua sandbox. Ask about a compatibility patch.
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — would work if it didn't have an explicit StarExtensions check.
 - [Bottinator22's](https://steamcommunity.com/sharedfiles/filedetails/?id=3431152501) [shader](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151263) [mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151049) — modular shader support is OpenStarbound-only.
 - [Bott's Shaders - Disabled by Default](https://steamcommunity.com/sharedfiles/filedetails/?id=3468244512) — the mods it depends on are OpenStarbound-only, obviously.
@@ -178,13 +178,13 @@ The following mods are _NOT_ compatible with xStarbound:
 - [Light Limiter](https://steamcommunity.com/sharedfiles/filedetails/?id=3470727854) — neither compatible with nor necessary on xStarbound.
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
-- [Ship Pet Swapper](https://steamcommunity.com/sharedfiles/filedetails/?id=3474107812) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
+- [Ship Pet Swapper](https://steamcommunity.com/sharedfiles/filedetails/?id=3474107812) — not compatible with xStarbound after a recent mod update. Ask about a compatibility patch.
 - [Stardust Core](https://steamcommunity.com/sharedfiles/filedetails/?id=764887546) and [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — these mods' scripts are not compatible with xStarbound's Lua sandbox. Use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) instead.
 - [Stardust Suite](https://github.com/zetaPRIME/sb.StardustSuite) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — Ditto.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load on xClient and may cause crashes! However, xServer fully supports the server-side part of SE's «overground» tile placement feature.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
 - [Universal Instant Crafting for All Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3251274439) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
-- [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
+- [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276) — not compatible with xStarbound after a recent mod update. Ask about a compatibility patch.
 - [ZB SAIL: Standalone](https://steamcommunity.com/sharedfiles/filedetails/?id=3336389472) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xStarbound has differently named callbacks) and is redundant anyway because xStarbound already fully supports this feature.
 - Mods that patch in StarExtensions «body dynamics» support for other mods. These won't do anything.
