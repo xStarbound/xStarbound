@@ -381,20 +381,23 @@ void InventoryPane::update(float dt) {
   for (auto p : m_itemGrids) {
     p.second->updateItemState();
     for (size_t i = 0; i < p.second->itemSlots(); ++i) {
-      auto itemWidget = p.second->itemWidgetAt(i);
-      itemWidget->showLinkIndicator(customBarItems.contains(itemWidget->item()));
-      itemWidget->setCosmeticHighlightEnabled(false);
-      if (ItemPtr swapSlot = inventory->swapSlotItem()) {
-        if (auto item = itemWidget->item()) {
-          if (as<HeadArmor>(item))
-            itemWidget->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
-          else if (as<ChestArmor>(item))
-            itemWidget->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
-          else if (as<LegsArmor>(item))
-            itemWidget->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
-          else if (as<BackArmor>(item))
-            itemWidget->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
+      if (auto itemWidget = p.second->itemWidgetAt(i)) {
+        itemWidget->showLinkIndicator(customBarItems.contains(itemWidget->item()));
+        itemWidget->setCosmeticHighlightEnabled(false);
+        if (ItemPtr swapSlot = inventory->swapSlotItem()) {
+          if (auto item = itemWidget->item()) {
+            if (as<HeadArmor>(item))
+              itemWidget->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
+            else if (as<ChestArmor>(item))
+              itemWidget->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
+            else if (as<LegsArmor>(item))
+              itemWidget->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
+            else if (as<BackArmor>(item))
+              itemWidget->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
+          }
         }
+      } else { // Kae: Downstreamed from OpenStarbound.
+        Logger::warn("InventoryPane: Could not find item widget {} in item grid {}; skipping widget.", i, p.first);
       }
     }
   }

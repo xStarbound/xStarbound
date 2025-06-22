@@ -1,26 +1,26 @@
 #include "StarObject.hpp"
-#include "StarDataStreamExtra.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarWorld.hpp"
-#include "StarLexicalCast.hpp"
-#include "StarRoot.hpp"
-#include "StarLogging.hpp"
-#include "StarDamageManager.hpp"
-#include "StarTreasure.hpp"
-#include "StarItemDrop.hpp"
-#include "StarItemDescriptor.hpp"
-#include "StarObjectDatabase.hpp"
-#include "StarMixer.hpp"
-#include "StarEntityRendering.hpp"
 #include "StarAssets.hpp"
 #include "StarConfigLuaBindings.hpp"
+#include "StarDamageManager.hpp"
+#include "StarDataStreamExtra.hpp"
 #include "StarEntityLuaBindings.hpp"
-#include "StarRootLuaBindings.hpp"
-#include "StarNetworkedAnimatorLuaBindings.hpp"
+#include "StarEntityRendering.hpp"
+#include "StarItemDescriptor.hpp"
+#include "StarItemDrop.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLexicalCast.hpp"
+#include "StarLogging.hpp"
 #include "StarLuaGameConverters.hpp"
-#include "StarParticleDatabase.hpp"
 #include "StarMaterialDatabase.hpp"
+#include "StarMixer.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
+#include "StarObjectDatabase.hpp"
+#include "StarParticleDatabase.hpp"
+#include "StarRoot.hpp"
+#include "StarRootLuaBindings.hpp"
 #include "StarScriptedAnimatorLuaBindings.hpp"
+#include "StarTreasure.hpp"
+#include "StarWorld.hpp"
 
 namespace Star {
 
@@ -28,6 +28,15 @@ Object::Object(ObjectConfigConstPtr config, Json const& parameters) {
   m_config = config;
   if (!parameters.isNull())
     m_parameters.reset(parameters.toObject());
+
+  auto jOrientations = m_parameters.ptr("orientations");
+  if (jOrientations && jOrientations->isType(Json::Type::Array)) {
+    JsonArray base = m_config->config.get("orientations").toArray();
+    auto orientations = jOrientations->toArray();
+    for (size_t i = 0; i != orientations.size(); ++i)
+      base.set(i, jsonMergeNull(base.get(i), orientations.get(i)));
+    m_orientations = ObjectDatabase::parseOrientations(m_config->path, base);
+  }
 
   m_animationTimer = 0.0f;
   m_currentFrame = 0;
@@ -167,8 +176,7 @@ void Object::init(World* world, EntityId entityId, EntityMode mode) {
 
     m_colorSuffix = std::move(colorSuffix);
     m_colorDirectives = std::move(colorDirectives);
-  }
-  else
+  } else
     m_colorDirectives = m_colorSuffix = "";
 
   m_directives = "";
@@ -206,9 +214,9 @@ void Object::init(World* world, EntityId entityId, EntityMode mode) {
     m_scriptedAnimator.setScripts(m_config->animationScripts);
 
     m_scriptedAnimator.addCallbacks("animationConfig", LuaBindings::makeScriptedAnimatorCallbacks(m_networkedAnimator.get(),
-      [this](String const& name, Json const& defaultValue) -> Json {
-        return m_scriptedAnimationParameters.value(name, defaultValue);
-      }));
+                                                           [this](String const& name, Json const& defaultValue) -> Json {
+                                                             return m_scriptedAnimationParameters.value(name, defaultValue);
+                                                           }));
     m_scriptedAnimator.addCallbacks("objectAnimator", makeAnimatorObjectCallbacks());
     m_scriptedAnimator.addCallbacks("config", LuaBindings::makeConfigCallbacks(bind(&Object::configValue, this, _1, _2)));
     m_scriptedAnimator.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
@@ -567,9 +575,7 @@ Maybe<String> Object::inspectionLogName() const {
 }
 
 Maybe<String> Object::inspectionDescription(String const& species) const {
-  return configValue("inspectionDescription").optString()
-    .orMaybe(configValue(strf("{}Description", species)).optString())
-    .value(description());
+  return configValue("inspectionDescription").optString().orMaybe(configValue(strf("{}Description", species)).optString()).value(description());
 }
 
 String Object::category() const {
@@ -578,7 +584,7 @@ String Object::category() const {
 
 ObjectOrientationPtr Object::currentOrientation() const {
   if (m_orientationIndex != NPos)
-    return m_config->orientations.at(m_orientationIndex);
+    return orientations().at(m_orientationIndex);
   else
     return {};
 }
@@ -600,8 +606,9 @@ List<Drawable> Object::cursorHintDrawables() const {
       // matches our current direction, or if that fails just the first
       // orientation.
       List<Drawable> result;
-      for (size_t i = 0; i < m_config->orientations.size(); ++i) {
-        if (m_config->orientations[i]->directionAffinity && *m_config->orientations[i]->directionAffinity == m_direction.get()) {
+      auto& orients = orientations();
+      for (size_t i = 0; i < orients.size(); ++i) {
+        if (orients[i]->directionAffinity && orients[i]->directionAffinity == m_direction.get()) {
           result = orientationDrawables(i);
           break;
         }
@@ -721,8 +728,7 @@ Json Object::writeStoredData() const {
 
     inputNodes.append(JsonObject{
         {"connections", std::move(connections)},
-        {"state", in.state.get()}
-      });
+        {"state", in.state.get()}});
   }
 
   JsonArray outputNodes;
@@ -734,20 +740,18 @@ Json Object::writeStoredData() const {
 
     outputNodes.append(JsonObject{
         {"connections", std::move(connections)},
-        {"state", in.state.get()}
-      });
+        {"state", in.state.get()}});
   }
 
   return JsonObject{
-    {"uniqueId", jsonFromMaybe(uniqueId())},
-    {"tilePosition", jsonFromVec2I(tilePosition())},
-    {"orientationIndex", jsonFromSize(m_orientationIndex)},
-    {"direction", DirectionNames.getRight(m_direction.get())},
-    {"scriptStorage", m_scriptComponent.getScriptStorage()},
-    {"interactive", m_interactive.get()},
-    {"inputWireNodes", std::move(inputNodes)},
-    {"outputWireNodes", std::move(outputNodes)}
-  };
+      {"uniqueId", jsonFromMaybe(uniqueId())},
+      {"tilePosition", jsonFromVec2I(tilePosition())},
+      {"orientationIndex", jsonFromSize(m_orientationIndex)},
+      {"direction", DirectionNames.getRight(m_direction.get())},
+      {"scriptStorage", m_scriptComponent.getScriptStorage()},
+      {"interactive", m_interactive.get()},
+      {"inputWireNodes", std::move(inputNodes)},
+      {"outputWireNodes", std::move(outputNodes)}};
 }
 
 void Object::breakObject(bool smash) {
@@ -787,18 +791,18 @@ bool Object::nodeState(WireNode wireNode) const {
 void Object::addNodeConnection(WireNode wireNode, WireConnection nodeConnection) {
   if (wireNode.direction == WireDirection::Input) {
     m_inputNodes.at(wireNode.nodeIndex).connections.update([&](auto& list) {
-        if (list.contains(nodeConnection))
-          return false;
-        list.append(nodeConnection);
-        return true;
-      });
+      if (list.contains(nodeConnection))
+        return false;
+      list.append(nodeConnection);
+      return true;
+    });
   } else {
     m_outputNodes.at(wireNode.nodeIndex).connections.update([&](auto& list) {
-        if (list.contains(nodeConnection))
-          return false;
-        list.append(nodeConnection);
-        return true;
-      });
+      if (list.contains(nodeConnection))
+        return false;
+      list.append(nodeConnection);
+      return true;
+    });
   }
   m_scriptComponent.invoke("onNodeConnectionChange");
 }
@@ -808,12 +812,12 @@ void Object::removeNodeConnection(WireNode wireNode, WireConnection nodeConnecti
   if (wireNode.nodeIndex < nodeCount(wireNode.direction)) {
     if (wireNode.direction == WireDirection::Input) {
       m_inputNodes.at(wireNode.nodeIndex).connections.update([&](auto& list) {
-          return list.remove(nodeConnection);
-        });
+        return list.remove(nodeConnection);
+      });
     } else {
       m_outputNodes.at(wireNode.nodeIndex).connections.update([&](auto& list) {
-          return list.remove(nodeConnection);
-        });
+        return list.remove(nodeConnection);
+      });
     }
   }
   m_scriptComponent.invoke("onNodeConnectionChange");
@@ -829,9 +833,8 @@ void Object::evaluate(WireCoordinator* coordinator) {
     if (in.state.get() != nextState) {
       in.state.set(nextState);
       m_scriptComponent.invoke("onInputNodeChange", JsonObject{
-          {"node", i},
-          {"level", nextState}
-        });
+                                                        {"node", i},
+                                                        {"level", nextState}});
     }
   }
 }
@@ -888,188 +891,192 @@ bool Object::biomePlaced() const {
   return m_config->biomePlaced;
 }
 
+bool Object::unbreakable() const {
+  return m_unbreakable;
+}
+
 LuaCallbacks Object::makeObjectCallbacks() {
   LuaCallbacks callbacks;
 
   callbacks.registerCallback("name", [this]() {
-      return name();
-    });
+    return name();
+  });
 
   callbacks.registerCallback("direction", [this]() {
-      return numericalDirection(direction());
-    });
+    return numericalDirection(direction());
+  });
 
   callbacks.registerCallback("position", [this]() {
-      return position();
-    });
+    return position();
+  });
 
   callbacks.registerCallback("setInteractive", [this](bool interactive) {
-      m_interactive.set(interactive);
-    });
+    m_interactive.set(interactive);
+  });
 
   callbacks.registerCallbackWithSignature<Maybe<String>>("uniqueId", bind(&Object::uniqueId, this));
   callbacks.registerCallbackWithSignature<void, Maybe<String>>("setUniqueId", bind(&Object::setUniqueId, this, _1));
 
   callbacks.registerCallback("boundBox", [this]() {
-      return metaBoundBox().translated(position());
-    });
+    return metaBoundBox().translated(position());
+  });
 
   callbacks.registerCallback("spaces", [this]() {
-      return spaces();
-    });
+    return spaces();
+  });
 
   callbacks.registerCallback("setProcessingDirectives", [this](String const& directives) {
-      m_networkedAnimator->setProcessingDirectives(Directives(directives));
-    });
+    m_networkedAnimator->setProcessingDirectives(Directives(directives));
+  });
 
   callbacks.registerCallback("setSoundEffectEnabled", [this](bool soundEffectEnabled) {
-      m_soundEffectEnabled.set(soundEffectEnabled);
-    });
+    m_soundEffectEnabled.set(soundEffectEnabled);
+  });
 
   callbacks.registerCallback("smash", [this](Maybe<bool> smash) {
-      breakObject(smash.value(false));
-    });
+    breakObject(smash.value(false));
+  });
 
   callbacks.registerCallback("level", [this]() {
-      return configValue("level", this->world()->threatLevel());
-    });
+    return configValue("level", this->world()->threatLevel());
+  });
 
   callbacks.registerCallback("toAbsolutePosition", [this](Vec2F const& p) {
-      return p + position();
-    });
+    return p + position();
+  });
 
   callbacks.registerCallback("say", [this](String line, Maybe<StringMap<String>> const& tags, Json const& config) {
-      if (tags)
-        line = line.replaceTags(*tags, false);
+    if (tags)
+      line = line.replaceTags(*tags, false);
 
-      if (!line.empty()) {
-        addChatMessage(line, config);
-        return true;
-      }
+    if (!line.empty()) {
+      addChatMessage(line, config);
+      return true;
+    }
 
-      return false;
-    });
+    return false;
+  });
 
   callbacks.registerCallback("sayPortrait", [this](String line, String portrait, Maybe<StringMap<String>> const& tags, Json const& config) {
-      if (tags)
-        line = line.replaceTags(*tags, false);
+    if (tags)
+      line = line.replaceTags(*tags, false);
 
-      if (!line.empty()) {
-        addChatMessage(line, config, portrait);
-        return true;
-      }
+    if (!line.empty()) {
+      addChatMessage(line, config, portrait);
+      return true;
+    }
 
-      return false;
-    });
+    return false;
+  });
 
   callbacks.registerCallback("isTouching", [this](EntityId entityId) {
-      if (auto entity = this->world()->entity(entityId))
-        return !entity->collisionArea().overlap(volume().boundBox()).isEmpty();
-      return false;
-    });
+    if (auto entity = this->world()->entity(entityId))
+      return !entity->collisionArea().overlap(volume().boundBox()).isEmpty();
+    return false;
+  });
 
   callbacks.registerCallback("setLightColor", [this](Color const& color) {
-      m_lightSourceColor.set(color);
-    });
+    m_lightSourceColor.set(color);
+  });
 
   callbacks.registerCallback("getLightColor", [this]() {
-      return m_lightSourceColor.get();
-    });
+    return m_lightSourceColor.get();
+  });
 
   callbacks.registerCallback("inputNodeCount", [this]() {
-      return m_inputNodes.size();
-    });
+    return m_inputNodes.size();
+  });
 
   callbacks.registerCallback("outputNodeCount", [this]() {
-      return m_outputNodes.size();
-    });
+    return m_outputNodes.size();
+  });
 
   callbacks.registerCallback("getInputNodePosition", [this](size_t i) {
-      return m_inputNodes.at(i).position;
-    });
+    return m_inputNodes.at(i).position;
+  });
 
   callbacks.registerCallback("getOutputNodePosition", [this](size_t i) {
-      return m_outputNodes.at(i).position;
-    });
+    return m_outputNodes.at(i).position;
+  });
 
   callbacks.registerCallback("getInputNodeLevel", [this](size_t i) {
-      return m_inputNodes.at(i).state.get();
-    });
+    return m_inputNodes.at(i).state.get();
+  });
 
   callbacks.registerCallback("getOutputNodeLevel", [this](size_t i) {
-      return m_outputNodes.at(i).state.get();
-    });
+    return m_outputNodes.at(i).state.get();
+  });
 
   callbacks.registerCallback("isInputNodeConnected", [this](size_t i) {
-      return !m_inputNodes.at(i).connections.get().empty();
-    });
+    return !m_inputNodes.at(i).connections.get().empty();
+  });
 
   callbacks.registerCallback("isOutputNodeConnected", [this](size_t i) {
-      return !m_outputNodes.at(i).connections.get().empty();
-    });
+    return !m_outputNodes.at(i).connections.get().empty();
+  });
 
   callbacks.registerCallback("getInputNodeIds", [this](LuaEngine& engine, size_t i) {
-      auto result = engine.createTable();
-      for (auto const& conn : m_inputNodes.at(i).connections.get()) {
-        for (auto const& entity : worldPtr()->atTile<WireEntity>(conn.entityLocation))
-          result.set(entity->entityId(), conn.nodeIndex);
-      }
-      return result;
-    });
+    auto result = engine.createTable();
+    for (auto const& conn : m_inputNodes.at(i).connections.get()) {
+      for (auto const& entity : worldPtr()->atTile<WireEntity>(conn.entityLocation))
+        result.set(entity->entityId(), conn.nodeIndex);
+    }
+    return result;
+  });
 
   callbacks.registerCallback("getOutputNodeIds", [this](LuaEngine& engine, size_t i) {
-      auto result = engine.createTable();
-      for (auto const& conn : m_outputNodes.at(i).connections.get()) {
-        for (auto const& entity : worldPtr()->atTile<WireEntity>(conn.entityLocation))
-          result.set(entity->entityId(), conn.nodeIndex);
-      }
-      return result;
-    });
+    auto result = engine.createTable();
+    for (auto const& conn : m_outputNodes.at(i).connections.get()) {
+      for (auto const& entity : worldPtr()->atTile<WireEntity>(conn.entityLocation))
+        result.set(entity->entityId(), conn.nodeIndex);
+    }
+    return result;
+  });
 
   callbacks.registerCallback("setOutputNodeLevel", [this](size_t i, bool l) {
-      m_outputNodes.at(i).state.set(l);
-    });
+    m_outputNodes.at(i).state.set(l);
+  });
 
   callbacks.registerCallback("setAllOutputNodes", [this](bool l) {
-      for (auto& out : m_outputNodes)
-        out.state.set(l);
-    });
+    for (auto& out : m_outputNodes)
+      out.state.set(l);
+  });
 
   callbacks.registerCallback("setOfferedQuests", [this](Maybe<JsonArray> const& offeredQuests) {
-      m_offeredQuests.set(offeredQuests.value().transformed(&QuestArcDescriptor::fromJson));
-    });
+    m_offeredQuests.set(offeredQuests.value().transformed(&QuestArcDescriptor::fromJson));
+  });
 
   callbacks.registerCallback("setTurnInQuests", [this](Maybe<StringList> const& turnInQuests) {
-      m_turnInQuests.set(StringSet::from(turnInQuests.value()));
-    });
+    m_turnInQuests.set(StringSet::from(turnInQuests.value()));
+  });
 
   callbacks.registerCallback("setConfigParameter", [this](String key, Json value) {
-      m_parameters.set(std::move(key), std::move(value));
-    });
+    m_parameters.set(std::move(key), std::move(value));
+  });
 
   callbacks.registerCallback("setAnimationParameter", [this](String key, Json value) {
-      m_scriptedAnimationParameters.set(std::move(key), std::move(value));
-    });
+    m_scriptedAnimationParameters.set(std::move(key), std::move(value));
+  });
 
   callbacks.registerCallback("setMaterialSpaces", [this](Maybe<JsonArray> const& newSpaces) {
-      List<MaterialSpace> materialSpaces;
-      auto materialDatabase = Root::singleton().materialDatabase();
-      for (auto space : newSpaces.value())
-        materialSpaces.append({jsonToVec2I(space.get(0)), materialDatabase->materialId(space.get(1).toString())});
-      m_materialSpaces.set(materialSpaces);
-    });
+    List<MaterialSpace> materialSpaces;
+    auto materialDatabase = Root::singleton().materialDatabase();
+    for (auto space : newSpaces.value())
+      materialSpaces.append({jsonToVec2I(space.get(0)), materialDatabase->materialId(space.get(1).toString())});
+    m_materialSpaces.set(materialSpaces);
+  });
 
   callbacks.registerCallback("setDamageSources", [this](Maybe<JsonArray> damageSources) {
-      m_damageSources.set(damageSources.value().transformed(construct<DamageSource>()));
-    });
+    m_damageSources.set(damageSources.value().transformed(construct<DamageSource>()));
+  });
 
   callbacks.registerCallback("health", [this]() {
-      return m_health.get();
-    });
+    return m_health.get();
+  });
 
   callbacks.registerCallback("setHealth", [this](float health) {
-      m_health.set(health);
-    });
+    m_health.set(health);
+  });
 
   return callbacks;
 }
@@ -1078,16 +1085,16 @@ LuaCallbacks Object::makeAnimatorObjectCallbacks() {
   LuaCallbacks callbacks;
 
   callbacks.registerCallback("getParameter", [this](String const& name, Json const& def) {
-      return configValue(name, def);
-    });
+    return configValue(name, def);
+  });
 
   callbacks.registerCallback("direction", [this]() {
-      return numericalDirection(direction());
-    });
+    return numericalDirection(direction());
+  });
 
   callbacks.registerCallback("position", [this]() {
-      return position();
-    });
+    return position();
+  });
 
   return callbacks;
 }
@@ -1143,16 +1150,14 @@ List<DamageNotification> Object::applyDamage(DamageRequest const& damage) {
   float dmg = std::min(m_health.get(), damage.damage);
   m_health.set(m_health.get() - dmg);
 
-  return {{
-    damage.sourceEntityId,
-    entityId(),
-    position(),
-    damage.damage,
-    dmg,
-    m_health.get() <= 0 ? HitType::Kill : HitType::Hit,
-    damage.damageSourceKind,
-    m_config->damageMaterialKind
-  }};
+  return {{damage.sourceEntityId,
+      entityId(),
+      position(),
+      damage.damage,
+      dmg,
+      m_health.get() <= 0 ? HitType::Kill : HitType::Hit,
+      damage.damageSourceKind,
+      m_config->damageMaterialKind}};
 }
 
 RectF Object::interactiveBoundBox() const {
@@ -1259,7 +1264,7 @@ List<Drawable> Object::orientationDrawables(size_t orientationIndex) const {
   if (orientationIndex == NPos)
     return {};
 
-  auto orientation = m_config->orientations.at(orientationIndex);
+  auto& orientation = orientations().at(orientationIndex);
 
   if (!m_orientationDrawablesCache || orientationIndex != m_orientationDrawablesCache->first) {
     m_orientationDrawablesCache = make_pair(orientationIndex, List<Drawable>());
@@ -1289,14 +1294,13 @@ List<Drawable> Object::orientationDrawables(size_t orientationIndex) const {
           imagePart.addDirectives(m_colorDirectives);
         if (suffix != NPos)
           imagePart.addDirectives(m_colorSuffix + String(image.substr(suffix)).replaceTags(m_imageKeys, true, "default"));
-      }
-      else {
+      } else {
         imagePart.image = imagePath.replaceTags(m_imageKeys, true, "default");
         imagePart.image.directives = layer.imagePart().image.directives;
       }
 
       imagePart.addDirectives(m_directives);
-      
+
       if (orientation->flipImages)
         drawable.scale(Vec2F(-1, 1), drawable.boundBox(false).center() - drawable.position);
 
@@ -1371,6 +1375,10 @@ void Object::renderSounds(RenderCallback* renderCallback) {
   }
 }
 
+List<ObjectOrientationPtr> const& Object::orientations() const {
+  return m_orientations ? *m_orientations : m_config->orientations;
+}
+
 Vec2F Object::damageShake() const {
   if (m_tileDamageStatus->damaged() && !m_tileDamageStatus->damageProtected())
     return Vec2F(Random::randf(-1, 1), Random::randf(-1, 1)) * m_tileDamageStatus->damageEffectPercentage() * m_config->damageShakeMagnitude;
@@ -1387,4 +1395,4 @@ void Object::checkLiquidBroken() {
   }
 }
 
-}
+} // namespace Star

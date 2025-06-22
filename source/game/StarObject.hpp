@@ -1,22 +1,22 @@
 #ifndef STAR_OBJECT_HPP
 #define STAR_OBJECT_HPP
 
-#include "StarPeriodic.hpp"
-#include "StarPeriodicFunction.hpp"
-#include "StarNetElementSystem.hpp"
-#include "StarLuaComponents.hpp"
-#include "StarLuaAnimationComponent.hpp"
-#include "StarTileEntity.hpp"
-#include "StarStatusEffectEntity.hpp"
-#include "StarSet.hpp"
-#include "StarColor.hpp"
-#include "StarScriptedEntity.hpp"
 #include "StarChattyEntity.hpp"
-#include "StarWireEntity.hpp"
-#include "StarInspectableEntity.hpp"
-#include "StarNetworkedAnimator.hpp"
+#include "StarColor.hpp"
 #include "StarDamageTypes.hpp"
 #include "StarEntityRendering.hpp"
+#include "StarInspectableEntity.hpp"
+#include "StarLuaAnimationComponent.hpp"
+#include "StarLuaComponents.hpp"
+#include "StarNetElementSystem.hpp"
+#include "StarNetworkedAnimator.hpp"
+#include "StarPeriodic.hpp"
+#include "StarPeriodicFunction.hpp"
+#include "StarScriptedEntity.hpp"
+#include "StarSet.hpp"
+#include "StarStatusEffectEntity.hpp"
+#include "StarTileEntity.hpp"
+#include "StarWireEntity.hpp"
 
 namespace Star {
 
@@ -27,14 +27,13 @@ STAR_STRUCT(ObjectOrientation);
 STAR_CLASS(Object);
 
 class Object
-  : public virtual TileEntity,
-    public virtual StatusEffectEntity,
-    public virtual ScriptedEntity,
-    public virtual ChattyEntity,
-    public virtual InspectableEntity,
-    public virtual WireEntity {
+    : public virtual TileEntity,
+      public virtual StatusEffectEntity,
+      public virtual ScriptedEntity,
+      public virtual ChattyEntity,
+      public virtual InspectableEntity,
+      public virtual WireEntity {
 public:
-
   Object(ObjectConfigConstPtr config, Json const& parameters = JsonObject());
 
   Json diskStore() const;
@@ -150,6 +149,8 @@ public:
 
   bool biomePlaced() const;
 
+  bool unbreakable() const;
+
   using Entity::setUniqueId;
 
 protected:
@@ -207,12 +208,15 @@ private:
   void renderParticles(RenderCallback* renderCallback);
   void renderSounds(RenderCallback* renderCallback);
 
+  List<ObjectOrientationPtr> const& orientations() const;
+
   Vec2F damageShake() const;
 
   void checkLiquidBroken();
   GameTimer m_liquidCheckTimer;
 
   ObjectConfigConstPtr m_config;
+  Maybe<List<ObjectOrientationPtr>> m_orientations;
   NetElementHashMap<String, Json> m_parameters;
 
   NetElementData<Maybe<String>> m_uniqueIdNetState;
@@ -272,6 +276,6 @@ private:
   NetElementData<List<DamageSource>> m_damageSources;
 };
 
-}
+} // namespace Star
 
 #endif
