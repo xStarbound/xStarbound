@@ -603,14 +603,16 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     for (uint8_t i = 0; i != 12; i++) {
       auto& item = openSbCosmeticStack[i];
       if (!item) continue;
-      if (auto armourItem = as<HeadArmor>(item); shouldShowArmour(armourItem)) {
+      if (auto armourItem = as<HeadArmor>(item)) {
+        if (!shouldShowArmour(armourItem)) continue;
         headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
             armourItem->frameset(humanoid.identity().gender),
             getDirectives(armourItem),
             armourItem->maskDirectives()});
         mergeHumanoidConfig(item);
         bodyHidden |= armourItem->hideBody();
-      } else if (auto armourItem = as<ChestArmor>(item); shouldShowArmour(armourItem)) {
+      } else if (auto armourItem = as<ChestArmor>(item)) {
+        if (!shouldShowArmour(armourItem)) continue;
         chestArmorStack.emplaceAppend(Humanoid::ArmorEntry{
             armourItem->bodyFrameset(humanoid.identity().gender),
             getDirectives(armourItem),
@@ -628,7 +630,8 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             i});
         mergeHumanoidConfig(item);
         bodyHidden |= armourItem->hideBody();
-      } else if (auto armourItem = as<LegsArmor>(item); shouldShowArmour(armourItem)) {
+      } else if (auto armourItem = as<LegsArmor>(item)) {
+        if (!shouldShowArmour(armourItem)) continue;
         legsArmorStack.emplaceAppend(Humanoid::ArmorEntry{
             armourItem->frameset(humanoid.identity().gender),
             getDirectives(armourItem),
@@ -636,7 +639,8 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             i});
         mergeHumanoidConfig(item);
         bodyHidden |= armourItem->hideBody();
-      } else if (auto armourItem = as<BackArmor>(item); shouldShowArmour(armourItem)) {
+      } else if (auto armourItem = as<BackArmor>(item)) {
+        if (!shouldShowArmour(armourItem)) continue;
         backArmorStack.emplaceAppend(Humanoid::BackEntry{
             armourItem->frameset(humanoid.identity().gender),
             getDirectives(armourItem),
