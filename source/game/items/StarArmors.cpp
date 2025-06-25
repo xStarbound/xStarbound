@@ -29,6 +29,10 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
     m_directives = "?" + m_colorOptions.wrap(instanceValue("colorIndex", 0).toUInt());
   refreshIconDrawables();
 
+  m_bypassNudity = false;
+  if (auto jBypassNudity = instanceValue("bypassNude"); jBypassNudity.isType(Json::Type::Bool))
+    m_bypassNudity = jBypassNudity.toBool();
+
   // Novaenia: Support for flipped (left-facing) armour directives. Appended directives can now apply to `"colorIndex"`-based directives.
   if (auto jFlipDirectives = instanceValue("flipDirectives"); jFlipDirectives.isType(Json::Type::String)) {
     auto flipDirectives = jFlipDirectives.toString();
@@ -40,6 +44,8 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
 
 
   m_hideBody = config.getBool("hideBody", false);
+  if (auto jHideBody = instanceValue("hideBody"); jHideBody.isType(Json::Type::Bool))
+    m_hideBody = jHideBody.toBool();
   m_underlaid = instanceValue("underlaid").optBool().value(false);
 
   if (auto jArmorTypesToHide = instanceValue("armorTypesToHide"); jArmorTypesToHide.isType(Json::Type::Array)) {
@@ -85,6 +91,10 @@ bool ArmorItem::isUnderlaid() const {
 
 bool ArmorItem::hideInStockSlots() const {
   return m_hideInStockSlots;
+}
+
+bool ArmorItem::bypassNudity() const {
+  return m_bypassNudity;
 }
 
 ArmorItem::HiddenArmorTypes ArmorItem::armorTypesToHide() const {

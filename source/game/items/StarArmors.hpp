@@ -49,6 +49,7 @@ public:
   bool isUnderlaid() const;
 
   bool hideInStockSlots() const;
+  bool bypassNudity() const;
   HiddenArmorTypes armorTypesToHide() const;
 
   void setUnderlaid(bool underlaid);
@@ -74,6 +75,7 @@ private:
   bool m_underlaid;
   // FezzedOne: For oSB's `"hideInVanillaSlots"`. On xSB, this makes the item visible only when used as an overlay.
   bool m_hideInStockSlots;
+  bool m_bypassNudity;
   // FezzedOne: For oSB's `"armorTypesToHide"`.
   HiddenArmorTypes m_armorTypesToHide;
   Maybe<String> m_techModule;
