@@ -178,6 +178,7 @@ The following mods are _NOT_ compatible with xStarbound:
 - [Is this Printable?](https://steamcommunity.com/sharedfiles/filedetails/?id=3507216031) — not compatible with xStarbound. Ask about a compatibility patch.
 - [Light Limiter](https://steamcommunity.com/sharedfiles/filedetails/?id=3470727854) — neither compatible with nor necessary on xStarbound.
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
+- [OpenStarbound Revert](https://steamcommunity.com/sharedfiles/filedetails/?id=3509533339) — not compatible with xStarbound for obvious reasons. No compatibility patch is planned. Why do you need this on xStarbound anyway?
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
 - [Ship Pet Swapper](https://steamcommunity.com/sharedfiles/filedetails/?id=3474107812) — not compatible with xStarbound after a recent mod update. Ask about a compatibility patch.
 - [Stardust Core](https://steamcommunity.com/sharedfiles/filedetails/?id=764887546) and [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — these mods' scripts are not compatible with xStarbound's Lua sandbox. Use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) instead.
