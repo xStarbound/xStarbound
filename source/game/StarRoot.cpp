@@ -1,63 +1,63 @@
 #include "StarRoot.hpp"
-#include "StarIterator.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarFile.hpp"
-#include "StarEncode.hpp"
-#include "StarConfiguration.hpp"
+#include "StarAiDatabase.hpp"
 #include "StarAssets.hpp"
-#include "StarItemDatabase.hpp"
-#include "StarMaterialDatabase.hpp"
-#include "StarTerrainDatabase.hpp"
+#include "StarBehaviorDatabase.hpp"
 #include "StarBiomeDatabase.hpp"
-#include "StarLiquidsDatabase.hpp"
-#include "StarStatusEffectDatabase.hpp"
+#include "StarCodexDatabase.hpp"
+#include "StarCollectionDatabase.hpp"
+#include "StarConfiguration.hpp"
 #include "StarDamageDatabase.hpp"
-#include "StarParticleDatabase.hpp"
-#include "StarProjectile.hpp"
+#include "StarDanceDatabase.hpp"
+#include "StarDirectoryAssetSource.hpp"
+#include "StarDungeonGenerator.hpp"
+#include "StarEffectSourceDatabase.hpp"
+#include "StarEmoteProcessor.hpp"
+#include "StarEncode.hpp"
+#include "StarEntityFactory.hpp"
+#include "StarFile.hpp"
+#include "StarImageMetadataDatabase.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarItemDrop.hpp"
+#include "StarIterator.hpp"
+#include "StarJsonBuilder.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLiquidsDatabase.hpp"
+#include "StarLogging.hpp"
+#include "StarMaterialDatabase.hpp"
 #include "StarMonster.hpp"
+#include "StarNameGenerator.hpp"
 #include "StarNpc.hpp"
 #include "StarObject.hpp"
+#include "StarObjectDatabase.hpp"
+#include "StarPackedAssetSource.hpp"
+#include "StarParticleDatabase.hpp"
 #include "StarPlant.hpp"
 #include "StarPlantDrop.hpp"
-#include "StarStagehandDatabase.hpp"
-#include "StarVehicleDatabase.hpp"
 #include "StarPlayer.hpp"
-#include "StarItemDrop.hpp"
-#include "StarEffectSourceDatabase.hpp"
-#include "StarStoredFunctions.hpp"
-#include "StarTreasure.hpp"
-#include "StarDungeonGenerator.hpp"
-#include "StarTilesetDatabase.hpp"
-#include "StarStatisticsDatabase.hpp"
-#include "StarEmoteProcessor.hpp"
-#include "StarSpeciesDatabase.hpp"
-#include "StarImageMetadataDatabase.hpp"
-#include "StarLogging.hpp"
-#include "StarProjectileDatabase.hpp"
 #include "StarPlayerFactory.hpp"
-#include "StarObjectDatabase.hpp"
-#include "StarEntityFactory.hpp"
-#include "StarDirectoryAssetSource.hpp"
-#include "StarPackedAssetSource.hpp"
-#include "StarJsonBuilder.hpp"
+#include "StarProjectile.hpp"
+#include "StarProjectileDatabase.hpp"
 #include "StarQuestTemplateDatabase.hpp"
-#include "StarAiDatabase.hpp"
-#include "StarTechDatabase.hpp"
-#include "StarWorkerPool.hpp"
-#include "StarCodexDatabase.hpp"
-#include "StarBehaviorDatabase.hpp"
-#include "StarTenantDatabase.hpp"
-#include "StarNameGenerator.hpp"
-#include "StarDanceDatabase.hpp"
-#include "StarSpawnTypeDatabase.hpp"
 #include "StarRadioMessageDatabase.hpp"
-#include "StarCollectionDatabase.hpp"
+#include "StarSpawnTypeDatabase.hpp"
+#include "StarSpeciesDatabase.hpp"
+#include "StarStagehandDatabase.hpp"
+#include "StarStatisticsDatabase.hpp"
+#include "StarStatusEffectDatabase.hpp"
+#include "StarStoredFunctions.hpp"
+#include "StarTechDatabase.hpp"
+#include "StarTenantDatabase.hpp"
+#include "StarTerrainDatabase.hpp"
+#include "StarTilesetDatabase.hpp"
+#include "StarTreasure.hpp"
+#include "StarVehicleDatabase.hpp"
+#include "StarWorkerPool.hpp"
 
 #if defined TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
+#include "tracy/Tracy.hpp"
 #else
-  #define ZoneScoped
-  #define ZoneScopedN(name)
+#define ZoneScoped
+#define ZoneScopedN(name)
 #endif
 
 namespace Star {
@@ -66,7 +66,7 @@ namespace {
   unsigned const RootMaintenanceSleep = 5000;
   unsigned const ImageMaintenancePeriods = 30;
   unsigned const RootLoadThreads = 4;
-}
+} // namespace
 
 atomic<Root*> Root::s_singleton;
 
@@ -108,75 +108,75 @@ Root::Root(Settings settings) {
 
   m_stopImageMaintenanceThread = false;
   m_imageMaintenanceThread = Thread::invoke("Root::imageMaintenanceMain", [this]() {
-      MutexLocker locker(m_imageMaintenanceStopMutex);
-      unsigned maintenancePeriods = 0;
-      while (!m_stopImageMaintenanceThread) {
-        maintenancePeriods++;
-        if (maintenancePeriods == ImageMaintenancePeriods) {
-          maintenancePeriods = 0;
-          MutexLocker locker(m_imageMetadataDatabaseMutex);
-          if (ImageMetadataDatabasePtr imgDb = m_imageMetadataDatabase) {
-            locker.unlock();
-            imgDb->cleanup();
-          }
+    MutexLocker locker(m_imageMaintenanceStopMutex);
+    unsigned maintenancePeriods = 0;
+    while (!m_stopImageMaintenanceThread) {
+      maintenancePeriods++;
+      if (maintenancePeriods == ImageMaintenancePeriods) {
+        maintenancePeriods = 0;
+        MutexLocker locker(m_imageMetadataDatabaseMutex);
+        if (ImageMetadataDatabasePtr imgDb = m_imageMetadataDatabase) {
+          locker.unlock();
+          imgDb->cleanup();
         }
-
-        m_imageMaintenanceStopCondition.wait(m_imageMaintenanceStopMutex, RootMaintenanceSleep);
       }
-    });
+
+      m_imageMaintenanceStopCondition.wait(m_imageMaintenanceStopMutex, RootMaintenanceSleep);
+    }
+  });
 
   m_stopMaintenanceThread = false;
   m_maintenanceThread = Thread::invoke("Root::maintenanceMain", [this]() {
-      MutexLocker locker(m_maintenanceStopMutex);
-      while (!m_stopMaintenanceThread) {
-        m_reloadListeners.clearExpiredListeners();
+    MutexLocker locker(m_maintenanceStopMutex);
+    while (!m_stopMaintenanceThread) {
+      m_reloadListeners.clearExpiredListeners();
 
-        {
-          MutexLocker locker(m_objectDatabaseMutex);
-          if (ObjectDatabasePtr objectDb = m_objectDatabase) {
-            locker.unlock();
-            objectDb->cleanup();
-          }
+      {
+        MutexLocker locker(m_objectDatabaseMutex);
+        if (ObjectDatabasePtr objectDb = m_objectDatabase) {
+          locker.unlock();
+          objectDb->cleanup();
         }
-        {
-          MutexLocker locker(m_itemDatabaseMutex);
-          if (ItemDatabasePtr itemDb = m_itemDatabase) {
-            locker.unlock();
-            itemDb->cleanup();
-          }
-        }
-        {
-          MutexLocker locker(m_monsterDatabaseMutex);
-          if (MonsterDatabasePtr monsterDb = m_monsterDatabase) {
-            locker.unlock();
-            monsterDb->cleanup();
-          }
-        }
-        {
-          MutexLocker locker(m_assetsMutex);
-          if (AssetsPtr assets = m_assets) {
-            locker.unlock();
-            assets->cleanup();
-          }
-        }
-        {
-          MutexLocker locker(m_tenantDatabaseMutex);
-          if (TenantDatabasePtr tenantDb = m_tenantDatabase) {
-            locker.unlock();
-            tenantDb->cleanup();
-          }
-        }
-
-        Random::addEntropy();
-
-        {
-          MutexLocker locker(m_configurationMutex);
-          writeConfig();
-        }
-
-        m_maintenanceStopCondition.wait(m_maintenanceStopMutex, RootMaintenanceSleep);
       }
-    });
+      {
+        MutexLocker locker(m_itemDatabaseMutex);
+        if (ItemDatabasePtr itemDb = m_itemDatabase) {
+          locker.unlock();
+          itemDb->cleanup();
+        }
+      }
+      {
+        MutexLocker locker(m_monsterDatabaseMutex);
+        if (MonsterDatabasePtr monsterDb = m_monsterDatabase) {
+          locker.unlock();
+          monsterDb->cleanup();
+        }
+      }
+      {
+        MutexLocker locker(m_assetsMutex);
+        if (AssetsPtr assets = m_assets) {
+          locker.unlock();
+          assets->cleanup();
+        }
+      }
+      {
+        MutexLocker locker(m_tenantDatabaseMutex);
+        if (TenantDatabasePtr tenantDb = m_tenantDatabase) {
+          locker.unlock();
+          tenantDb->cleanup();
+        }
+      }
+
+      Random::addEntropy();
+
+      {
+        MutexLocker locker(m_configurationMutex);
+        writeConfig();
+      }
+
+      m_maintenanceStopCondition.wait(m_maintenanceStopMutex, RootMaintenanceSleep);
+    }
+  });
 
   Logger::info("Root: Done preparing Root.");
 }
@@ -423,45 +423,45 @@ String Root::toStoragePath(String const& path) const {
 
 AssetsConstPtr Root::assets() {
   return loadMemberFunction<Assets>(m_assets, m_assetsMutex, "Assets", [this]() {
-      StringList assetDirectories = m_settings.assetDirectories;
-      assetDirectories.appendAll(m_modDirectories);
+    StringList assetDirectories = m_settings.assetDirectories;
+    assetDirectories.appendAll(m_modDirectories);
 
-      auto assets = make_shared<Assets>(m_settings.assetsSettings, scanForAssetSources(assetDirectories));
-      Logger::info("Assets digest is {}", hexEncode(assets->digest()));
-      return assets;
-    });
+    auto assets = make_shared<Assets>(m_settings.assetsSettings, scanForAssetSources(assetDirectories));
+    Logger::info("Assets digest is {}", hexEncode(assets->digest()));
+    return assets;
+  });
 }
 
 ConfigurationPtr Root::configuration() {
   return loadMemberFunction<Configuration>(m_configuration, m_configurationMutex, "Configuration", [this]() {
-      Json currentConfig;
+    Json currentConfig;
 
-      if (m_runtimeConfigFile) {
-        if (!File::isFile(*m_runtimeConfigFile)) {
-          Logger::info("Root: no runtime config file, creating new default runtime config");
-          currentConfig = m_settings.defaultConfiguration;
-        } else {
-          try {
-            Json config = Json::parseJson(File::readFileString(*m_runtimeConfigFile));
-            if (!config.isType(Json::Type::Object))
-              throw ConfigurationException("User config is not of JSON type Object");
-
-            if (config.get("configurationVersion", {}) != m_settings.defaultConfiguration.get("configurationVersion", {}))
-              throw ConfigurationException("User config version does not match default config version");
-
-            currentConfig = config;
-          } catch (std::exception const& e) {
-            Logger::warn("Root: Failed to load user configuration file {}, resetting user config: {}", *m_runtimeConfigFile, outputException(e, false));
-            currentConfig = m_settings.defaultConfiguration;
-            File::rename(*m_runtimeConfigFile, *m_runtimeConfigFile + ".old");
-          }
-        }
-      } else {
+    if (m_runtimeConfigFile) {
+      if (!File::isFile(*m_runtimeConfigFile)) {
+        Logger::info("Root: no runtime config file, creating new default runtime config");
         currentConfig = m_settings.defaultConfiguration;
-      }
+      } else {
+        try {
+          Json config = Json::parseJson(File::readFileString(*m_runtimeConfigFile));
+          if (!config.isType(Json::Type::Object))
+            throw ConfigurationException("User config is not of JSON type Object");
 
-      return make_shared<Configuration>(m_settings.defaultConfiguration, currentConfig);
-    });
+          if (config.get("configurationVersion", {}) != m_settings.defaultConfiguration.get("configurationVersion", {}))
+            throw ConfigurationException("User config version does not match default config version");
+
+          currentConfig = config;
+        } catch (std::exception const& e) {
+          Logger::warn("Root: Failed to load user configuration file {}, resetting user config: {}", *m_runtimeConfigFile, outputException(e, false));
+          currentConfig = m_settings.defaultConfiguration;
+          File::rename(*m_runtimeConfigFile, *m_runtimeConfigFile + ".old");
+        }
+      }
+    } else {
+      currentConfig = m_settings.defaultConfiguration;
+    }
+
+    return make_shared<Configuration>(m_settings.defaultConfiguration, currentConfig);
+  });
 }
 
 ObjectDatabaseConstPtr Root::objectDatabase() {
@@ -670,7 +670,7 @@ StringList Root::scanForAssetSources(StringList const& directories) {
         } else {
           assetSource->priority = 0.0f;
           Logger::warn("Root: Asset source '{}' (file name '{}') has non-numerical priority value; assuming priority of 0",
-            assetSource->name, fileName);
+              assetSource->name, fileName);
         }
       } else {
         assetSource->priority = 0.0f;
@@ -683,7 +683,7 @@ StringList Root::scanForAssetSources(StringList const& directories) {
           }
         } else {
           Logger::warn("Root: Asset source '{}' (file name '{}') has non-array \"requires\" value; skipping requires",
-            assetSource->name, fileName);
+              assetSource->name, fileName);
         }
         assetSource->requires_ = requiresList;
       }
@@ -695,7 +695,7 @@ StringList Root::scanForAssetSources(StringList const& directories) {
           }
         } else {
           Logger::warn("Root: Asset source '{}' (file name '{}') has non-array \"includes\" value; skipping includes",
-            assetSource->name, fileName);
+              assetSource->name, fileName);
         }
         assetSource->includes = includesList;
       }
@@ -728,8 +728,8 @@ StringList Root::scanForAssetSources(StringList const& directories) {
   // priority ones
 
   assetSources.sort([](auto const& a, auto const& b) {
-      return a->priority < b->priority;
-    });
+    return a->priority < b->priority;
+  });
 
   // Finally, sort asset sources so that sources that have dependencies come
   // after their dependencies.
@@ -756,7 +756,7 @@ StringList Root::scanForAssetSources(StringList const& directories) {
       if (auto requirement = namedSources.ptr(requirementName))
         dependencySortVisit(*requirement);
       else
-        throw StarException(strf("Asset source '{}' is missing dependency '{}'", *source->name, requirementName));
+        throw StarException(strf("Asset source '{}' is missing dependency '{}'", source->name ? *source->name : "<unnamed>", requirementName));
     }
 
     workingSet.remove(source);
@@ -783,19 +783,19 @@ StringList Root::scanForAssetSources(StringList const& directories) {
             Logger::info("Root: Detected xStarbound assets, version '{}', at '{}'.", *source->version, source->path);
           } else {
             throw StarException(strf("Root: Detected mismatched version '{}' of xStarbound assets at '{}', expected version '{}'! "
-              "Make sure xStarbound is correctly installed and up to date.",
-              *source->version, source->path, xSbAssetVersionString));
+                                     "Make sure xStarbound is correctly installed and up to date.",
+                *source->version, source->path, xSbAssetVersionString));
           }
         } else {
-          throw StarException(strf("Root: Detected non-versioned xStarbound assets at '{}', expected version '{}'! " 
-            "Make sure xStarbound is correctly installed and up to date.",
-            source->path, xSbAssetVersionString));
+          throw StarException(strf("Root: Detected non-versioned xStarbound assets at '{}', expected version '{}'! "
+                                   "Make sure xStarbound is correctly installed and up to date.",
+              source->path, xSbAssetVersionString));
         }
       } else {
         Logger::info("Root: Detected asset source named '{}'{} at '{}'.",
-          *source->name,
-          (source->version ? strf(", version '{}',", *source->version) : ", unversioned,"),
-          source->path);
+            *source->name,
+            (source->version ? strf(", version '{}',", *source->version) : ", unversioned,"),
+            source->path);
       }
     } else {
       Logger::info("Root: Detected unnamed asset source at '{}'.", source->path);
@@ -828,8 +828,8 @@ void Root::writeConfig() {
 template <typename T, typename... Params>
 shared_ptr<T> Root::loadMember(shared_ptr<T>& ptr, Mutex& mutex, char const* name, Params&&... params) {
   return loadMemberFunction<T>(ptr, mutex, name, [&]() {
-      return make_shared<T>(std::forward<Params>(params)...);
-    });
+    return make_shared<T>(std::forward<Params>(params)...);
+  });
 }
 
 template <typename T>
@@ -847,4 +847,4 @@ shared_ptr<T> Root::loadMemberFunction(shared_ptr<T>& ptr, Mutex& mutex, char co
   return ptr;
 }
 
-}
+} // namespace Star
