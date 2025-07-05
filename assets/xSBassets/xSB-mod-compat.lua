@@ -51,14 +51,22 @@ pluto_try
             shared.pat_infinv_dismiss = dismissFunc
             return ret
         end
+
+        local patman_oldUninit = uninit
+        function uninit()
+            -- FezzedOne: Ensure the Infiniter Inventory isn't opened automatically as soon as the player gets in
+            -- game with a character.
+            jremove(storage, "restore")
+        end
     ]==]
     assets.add(infiniterInventoryPlayerScriptPath, infiniterInventoryPlayerScript .. infiniterInventoryPlayerScriptPatch)
 
     local infiniterInventoryPaneScriptPath = "/pat/infinv/InfiniteInventory.lua"
     local infiniterInventoryPaneScript = assets.bytes(infiniterInventoryPaneScriptPath)
     local infiniterInventoryPaneScriptPatch = [==[
-        -- FezzedOne: Includes a full compatibility bridge for all possible inventory pane/widget binds (except imperfect `addWidget` compatibility)
-        -- for forward compatibility with updates to Infiniter Inventory that might modify the stock inventory pane.
+        -- FezzedOne: Includes a full compatibility bridge for all possible inventory pane/widget binds (except 
+        -- imperfect `addWidget` compatibility) for forward compatibility with updates to Infiniter Inventory that
+        -- might modify the stock inventory pane.
 
         local patman_oldInit = init
 
