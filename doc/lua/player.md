@@ -641,6 +641,12 @@ The following humanoid identity getters are available:
 
 #### `String` player.facialHairDirectives()
 
+#### `String` player.facialMaskGroup()
+
+#### `String` player.facialMaskType()
+
+#### `String` player.facialMaskDirectives()
+
 #### `String, String, String` player.hair()
 
 #### `String, String, String` player.facialHair()
@@ -680,6 +686,12 @@ The following humanoid identity setters are available:
 #### `void` player.setFacialHairType(`String` newFacialHairType)
 
 #### `void` player.setFacialHairDirectives(`String` newFacialHairDirectives)
+
+#### `void` player.setFacialMaskGroup(`String` newFacialMaskGroup)
+
+#### `void` player.setFacialMaskType(`String` newFacialMaskType)
+
+#### `void` player.setFacialMaskDirectives(`String` newFacialMaskDirectives)
 
 #### `void` player.setHair(`Maybe<String>` group, `Maybe<String>` type, `Maybe<String>` directives)
 

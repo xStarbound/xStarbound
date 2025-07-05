@@ -93,6 +93,14 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player, bool removeChatCal
   callbacks.registerCallback("facialHairDirectives", [player]() { return player->identity().facialHairDirectives; });
   callbacks.registerCallback("setFacialHairDirectives", [player](String const& str) { player->setFacialHairDirectives(str); });
 
+  // Novaenia: Added missing facial hair and mask setters.
+  callbacks.registerCallback("facialMaskGroup", [player]() { return player->identity().facialMaskGroup; });
+  callbacks.registerCallback("setFacialMaskGroup", [player](String const& str) { player->setFacialMaskGroup(str); });
+  callbacks.registerCallback("facialMaskType", [player]() { return player->identity().facialMaskType; });
+  callbacks.registerCallback("setFacialMaskType", [player](String const& str) { player->setFacialMaskType(str); });
+  callbacks.registerCallback("facialMaskDirectives", [player]() { return player->identity().facialMaskDirectives; });
+  callbacks.registerCallback("setFacialMaskDirectives", [player](String const& str) { player->setFacialMaskDirectives(str); });
+
   callbacks.registerCallback("hair", [player]() {
     HumanoidIdentity const& identity = player->identity();
     return luaTupleReturn(identity.hairGroup, identity.hairType, identity.hairDirectives);
