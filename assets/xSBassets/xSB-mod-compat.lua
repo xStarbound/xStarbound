@@ -42,12 +42,19 @@ pluto_try
         local dismissFunc = function()
             world.sendEntityMessage(player.id(), "Patman::InfiniterInventory::dismiss")
         end
+        local infInvIsOpen = function()
+            return world.sendEntityMessage(player.id(), "Patman::InfiniterInventory::isOpen"):result()
+        end
         shared.pat_infinv_dismiss = dismissFunc
 
         local patman_oldOpen = open
         function open(...)
+            -- FezzedOne: Emulate the way the smuggled Lua value is used as a check for the pane being open on xStarbound.
+            if not infInvIsOpen() then
+                shared.pat_infinv_dismiss = nil
+            end
             local ret = patman_oldOpen(...)
-            -- The dismiss entry got cleared. Reset it.
+            -- FezzedOne: The dismissal function gets cleared whenever the pane is dismissed. Reset it.
             shared.pat_infinv_dismiss = dismissFunc
             return ret
         end
@@ -106,6 +113,10 @@ pluto_try
         end
 
         function init()
+            -- FezzedOne: Required for the mod keybind to work properly on xStarbound.
+            message.setHandler("Patman::InfiniterInventory::isOpen", function (_, isLocal)
+                return true
+            end)
             message.setHandler("Patman::InfiniterInventory::dismiss", function (_, isLocal)
                 pane.dismiss()
             end)
