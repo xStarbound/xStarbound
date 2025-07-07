@@ -39,6 +39,12 @@
 namespace Star {
 namespace LuaBindings {
 
+  static WorldClient* inWorld(World* world) {
+    if (auto clientWorld = as<WorldClient>(world))
+      return clientWorld->inWorld() ? clientWorld : nullptr;
+    return nullptr;
+  }
+
   enum class EntityBoundMode { MetaBoundBox,
     CollisionArea,
     Position };
@@ -341,7 +347,7 @@ namespace LuaBindings {
       if (auto serverWorld = as<WorldServer>(world)) {
         if (auto worldParameters = serverWorld->worldTemplate()->worldParameters())
           return engine.createString(worldParameters->typeName);
-      } else if (auto clientWorld = as<WorldClient>(world)) {
+      } else if (auto clientWorld = LuaBindings::inWorld(world)) {
         if (auto worldParameters = clientWorld->currentTemplate()->worldParameters())
           return engine.createString(worldParameters->typeName);
       }
@@ -351,7 +357,7 @@ namespace LuaBindings {
     callbacks.registerCallback("size", [world]() -> Vec2I {
       if (auto serverWorld = as<WorldServer>(world))
         return (Vec2I)serverWorld->worldTemplate()->size();
-      else if (auto clientWorld = as<WorldClient>(world))
+      else if (auto clientWorld = LuaBindings::inWorld(world))
         return (Vec2I)clientWorld->currentTemplate()->size();
       return Vec2I();
     });
@@ -359,7 +365,7 @@ namespace LuaBindings {
     callbacks.registerCallback("inSurfaceLayer", [world](Vec2I const& position) -> bool {
       if (auto serverWorld = as<WorldServer>(world))
         return serverWorld->worldTemplate()->inSurfaceLayer(position);
-      else if (auto clientWorld = as<WorldClient>(world))
+      else if (auto clientWorld = LuaBindings::inWorld(world))
         return clientWorld->currentTemplate()->inSurfaceLayer(position);
       return false;
     });
@@ -367,7 +373,7 @@ namespace LuaBindings {
     callbacks.registerCallback("surfaceLevel", [world]() -> float {
       if (auto serverWorld = as<WorldServer>(world))
         return serverWorld->worldTemplate()->surfaceLevel();
-      else if (auto clientWorld = as<WorldClient>(world))
+      else if (auto clientWorld = LuaBindings::inWorld(world))
         return clientWorld->currentTemplate()->surfaceLevel();
       else
         return world->geometry().size()[1] / 2.0f;
@@ -377,7 +383,7 @@ namespace LuaBindings {
       if (auto serverWorld = as<WorldServer>(world)) {
         if (auto worldParameters = serverWorld->worldTemplate()->worldParameters())
           return worldParameters->type() == WorldParametersType::TerrestrialWorldParameters;
-      } else if (auto clientWorld = as<WorldClient>(world)) {
+      } else if (auto clientWorld = LuaBindings::inWorld(world)) {
         if (auto worldParameters = clientWorld->currentTemplate()->worldParameters())
           return worldParameters->type() == WorldParametersType::TerrestrialWorldParameters;
       }
