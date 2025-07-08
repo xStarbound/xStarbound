@@ -934,8 +934,10 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
   auto entityFactory = root.entityFactory();
 
   for (auto const& packet : packets) {
-    if (!inWorld() && !is<WorldStartPacket>(packet))
+    if (!inWorld() && !is<WorldStartPacket>(packet)) {
       Logger::error("WorldClient received packet type {} while not in world", PacketTypeNames.getRight(packet->type()));
+      continue; // FezzedOne: Skip this packet because handling it requires a fully initialised world.
+    }
 
     if (auto worldStartPacket = as<WorldStartPacket>(packet)) {
       initWorld(*worldStartPacket);

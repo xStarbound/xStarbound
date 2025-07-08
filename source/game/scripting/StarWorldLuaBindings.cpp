@@ -40,8 +40,9 @@ namespace Star {
 namespace LuaBindings {
 
   static WorldClient* inWorld(World* world) {
+    // FezzedOne: All callbacks needing this check really need a check to see if there's a current world template.
     if (auto clientWorld = as<WorldClient>(world))
-      return clientWorld->inWorld() ? clientWorld : nullptr;
+      return clientWorld->currentTemplate() ? clientWorld : nullptr;
     return nullptr;
   }
 
