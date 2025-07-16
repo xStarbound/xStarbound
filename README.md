@@ -234,7 +234,7 @@ Wayland should work OOTB if you're using the `xclient.sh`. If you're running the
 
 To build a statically linked version of xStarbound (assuming `bash` or `zsh`):
 
-> **Important:** It is _highly_ recommended you use an older LTS distribution such as Debian 11 or 12, or Ubuntu 20.x or 22.x, in order to guarantee portability. You can use a Docker, Toolbox or Podman container for this. If the chosen distro does not have CMake 3.25+ available in its repositories, download the latest `tar.gz` archive from [CMake's website](https://cmake.org/download/), extract it somewhere, and add its `bin/` directory to your `$PATH` _instead_ of installing it via the package manager.
+> **Important:** It is _highly_ recommended you use an older LTS distribution such as Debian 11 or 12, or Ubuntu 20.x or 22.x, in order to guarantee portability. You can use a Docker, Toolbox or Podman container for this. If the chosen distro does not have CMake 4.0+ available in its repositories, download the latest `tar.gz` archive from [CMake's website](https://cmake.org/download/), extract it somewhere, and add its `bin/` directory to your `$PATH` _instead_ of installing it via the package manager.
 
 1. If you're on SteamOS, run `sudo steamos-readonly disable`.
 2. Make sure you have GCC installed; it should come preinstalled on most distros. If not, install your distribution's «base development» package.
@@ -250,11 +250,10 @@ To build a statically linked version of xStarbound (assuming `bash` or `zsh`):
 7. `git clone --recursive https://github.com/xStarbound/xStarbound.git` (`--recursive` is needed to clone the Opus sources in `$src/extern/opus`, which may be necessary on some configurations)
 8. `cd xStarbound/; export VCPKG_ROOT="${HOME}/.local/opt/vcpkg"; export PATH="${VCPKG_ROOT}:${PATH}"`
 9. `CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake --build cmake-build-linux-x86_64/ --preset "linux-vcpkg-x86_64-release" -G Ninja` (Clang is recommended on up-to-date distros; GCC — `gcc` and `g++` — on less up-to-date ones)
-10. `cmake --build build/`
-11. `cmake --install build/ --prefix ${sbInstall}/` (replace `${sbInstall}` with the path to your Starbound install)
-12. `cp scripts/linux/{xclient-static,xserver,mod_uploader}.sh ${sbInstall}/linux/`
-13. `mv ${sbInstall}/linux/xclient-static.sh ${sbInstall}/linux/xclient.sh`
-14. Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient.sh`.
+10. `cmake --install cmake-build-linux-x86_64/ --prefix ${sbInstall}/` (replace `${sbInstall}` with the path to your Starbound install)
+11. `cp scripts/linux/{xclient-static,xserver,mod_uploader}.sh ${sbInstall}/linux/`
+12. `mv ${sbInstall}/linux/xclient-static.sh ${sbInstall}/linux/xclient.sh`
+13. Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient.sh`.
 
 ### Nix / NixOS
 
