@@ -189,6 +189,12 @@ pluto_try
     assets.add("/client.config.xSB-postproc", clientConfig)
     assets.patch("/client.config", "/client.config.xSB-postproc")
 
+    -- FezzedOne: Fix for a Z-level bug in Infiniter Inventory's pane config that puts the editor controls behind the inventory slots, rendering the editor unusable.
+    local paneConfigPath = "/pat/infinv/infinv.config"
+    local paneConfig = assets.json(paneConfigPath)
+    paneConfig.gui.editorLayout.zlevel = 1
+    assets.add(paneConfigPath, paneConfig)
+
     logInfo(modName)
 pluto_catch e then
     logError(modName, e)
