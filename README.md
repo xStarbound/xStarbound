@@ -165,7 +165,7 @@ The following mods are only partially compatible with xStarbound:
 
 The following mods are _NOT_ compatible with xStarbound:
 
-- [All Items are Stackable!] — not compatible with xStarbound after a recent mod update. Ask about a compatibility patch.
+- [All Items are Stackable!](https://steamcommunity.com/sharedfiles/filedetails/?id=3370469697) — not compatible with xStarbound after a recent mod update. Ask about a compatibility patch.
 - [AR's Shader Pack v1.0](https://steamcommunity.com/sharedfiles/filedetails/?id=3487232242) — modular shader support is OpenStarbound-only.
 - [Beta Hotbar!](https://steamcommunity.com/sharedfiles/filedetails/?id=3472065640) — not compatible with xStarbound's Lua sandbox. Ask about a compatibility patch.
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — would work if it didn't have an explicit StarExtensions check.
@@ -176,8 +176,8 @@ The following mods are _NOT_ compatible with xStarbound:
 - [Cumulative Dynamic Lights](https://steamcommunity.com/sharedfiles/filedetails/?id=3444407977) — not compatible because it depends on OpenStarbound's lighting system changes. Won't do much on xStarbound.
 - [DigitalCrafting Support Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3519204938) — This mod depends on [DigitalCrafting](https://steamcommunity.com/workshop/filedetails/?id=2919830263), which itself depends on Digital Storage (see below), and is therefore incompatible with xStarbound for that reason.
 - [Digital Storage](https://steamcommunity.com/sharedfiles/filedetails/?id=946227505) — the server-side scripts are not compatible with xStarbound's Lua sandbox.
-- [Futara's Dragon Engine](https://steamcommunity.com/sharedfiles/filedetails/?id=2297133082) — causes severe server- _and_ client-side entity lag on xStarbound. Use Lukiwarble's [Starbound Optimizer](https://steamcommunity.com/sharedfiles/filedetails/?id=2777369762) instead.
-- [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) — due to poor coding in this mod, it causes a whole bunch of errors on xStarbound. Also depends on Futara's Dragon Engine and thus inherits its severe lag issue.
+- [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) — has various incompatibilities with xStarbound, including its usage of unintended humanoid rendering behaviour.
+- [Harder Core Mode](https://steamcommunity.com/sharedfiles/filedetails/?id=3527438945) — not compatible with xStarbound's Lua sandbox. Ask about a potential compatibility patch.
 - [Is this Printable?](https://steamcommunity.com/sharedfiles/filedetails/?id=3507216031) — not compatible with xStarbound. Ask about a compatibility patch.
 - [Light Limiter](https://steamcommunity.com/sharedfiles/filedetails/?id=3470727854) — neither compatible with nor necessary on xStarbound.
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
