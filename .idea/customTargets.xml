@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CLionExternalBuildManager">
+    <target id="16725675-2d35-4388-9066-5118b0940c1c" name="Main build" defaultType="TOOL">
+      <configuration id="4f1a8fa6-027a-45cb-b5eb-cdd9d27f7c0a" name="Main build" toolchainName="Dummy">
+        <build type="TOOL">
+          <tool actionId="Tool_External Tools_Build xStarbound" />
+        </build>
+        <clean type="TOOL">
+          <tool actionId="Tool_External Tools_Clean xStarbound build directory" />
+        </clean>
+      </configuration>
+    </target>
+  </component>
+</project>

@@ -101,6 +101,11 @@ ArmorItem::HiddenArmorTypes ArmorItem::armorTypesToHide() const {
   return m_armorTypesToHide;
 }
 
+void ArmorItem::setHideInStockSlots(bool hide) {
+  setInstanceValue("hideInStockSlots", hide);
+  m_hideInStockSlots = hide;
+}
+
 void ArmorItem::setStackedCosmetics(List<ItemPtr> const& newStack) {
   m_stackedCosmetics = std::move(newStack);
   setInstanceValue("stackedItems", m_stackedCosmetics.transformed([](ItemPtr item) -> Json {

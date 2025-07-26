@@ -51,6 +51,7 @@ public:
   bool hideInStockSlots() const;
   bool bypassNudity() const;
   HiddenArmorTypes armorTypesToHide() const;
+  void setHideInStockSlots(bool hide);
 
   void setUnderlaid(bool underlaid);
 

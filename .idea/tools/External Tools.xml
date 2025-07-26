@@ -1,0 +1,16 @@
+<toolSet name="External Tools">
+  <tool name="Build xStarbound" description="Builds xStarbound and installs files to Starbound directories." showInMainMenu="false" showInEditor="false" showInProject="false" showInSearchPopup="false" disabled="false" useConsole="true" showConsoleOnStdOut="false" showConsoleOnStdErr="true" synchronizeAfterRun="true">
+    <exec>
+      <option name="COMMAND" value="$USER_HOME$/.local/bin/build-xsb" />
+      <option name="PARAMETERS" value="-h -p -d /home/renofezzedone/.sb-vanilla /home/renofezzedone/.sb-vanilla-2 /home/renofezzedone/.sb-2 /home/renofezzedone/.sb-fu" />
+      <option name="WORKING_DIRECTORY" value="$USER_HOME$/.xsb" />
+    </exec>
+  </tool>
+  <tool name="Clean xStarbound build directory" description="Cleans xStarbound build directories" showInMainMenu="false" showInEditor="false" showInProject="false" showInSearchPopup="false" disabled="false" useConsole="true" showConsoleOnStdOut="false" showConsoleOnStdErr="false" synchronizeAfterRun="true">
+    <exec>
+      <option name="COMMAND" value="rm" />
+      <option name="PARAMETERS" value="-rf /home/renofezzedone/.xsb/xStarbound/build-debug-tracy" />
+      <option name="WORKING_DIRECTORY" value="$USER_HOME$/.xsb/xStarbound" />
+    </exec>
+  </tool>
+</toolSet>
