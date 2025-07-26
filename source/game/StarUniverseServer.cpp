@@ -1694,7 +1694,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
     }
   }
 
-  if (m_clients.size() + 1 > m_maxPlayers) {
+  if (m_clients.size() + 1 > m_maxPlayers && !administrator) {
     connectionFail("Max player connections");
     return;
   }
@@ -1770,8 +1770,14 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
       clientWarpPlayer(clientId, WarpAlias::OwnShip);
     }
   } else {
-    Logger::info("UniverseServer: Spawning player at ship");
-    clientWarpPlayer(clientId, WarpAlias::OwnShip);
+    Maybe<String> defaultReviveWarp = assets->json("/universe_server.config").optString("defaultReviveWarp");
+    if (defaultReviveWarp) {
+      Logger::info("UniverseServer: Spawning player at default warp");
+      clientWarpPlayer(clientId, parseWarpAction(*defaultReviveWarp));
+    } else {
+      Logger::info("UniverseServer: Spawning player at ship");
+      clientWarpPlayer(clientId, WarpAlias::OwnShip);
+    }
   }
 
   clientFlyShip(clientId, clientContext->shipCoordinate().location(), clientContext->shipLocation());

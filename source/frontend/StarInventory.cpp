@@ -5,6 +5,7 @@
 #include "StarButtonWidget.hpp"
 #include "StarGuiReader.hpp"
 #include "StarImageWidget.hpp"
+#include "StarInteractionTypes.hpp"
 #include "StarItem.hpp"
 #include "StarItemGridWidget.hpp"
 #include "StarItemTooltip.hpp"
@@ -12,6 +13,7 @@
 #include "StarLabelWidget.hpp"
 #include "StarMainInterface.hpp"
 #include "StarMerchantInterface.hpp"
+#include "StarObjectItem.hpp"
 #include "StarPaneManager.hpp"
 #include "StarPlayerCompanions.hpp"
 #include "StarPlayerInventory.hpp"
@@ -148,6 +150,27 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
     rightClickCallback(slot);
   };
 
+  auto middleClickCallback = [this](String const& bagType, Widget* widget) {
+    if (!m_player->inWorld())
+      return;
+
+    auto itemGrid = convert<ItemGridWidget>(widget);
+    InventorySlot inventorySlot = BagSlot(bagType, itemGrid->selectedIndex());
+    auto inventory = m_player->inventory();
+    if (auto sourceItem = as<ObjectItem>(itemGrid->selectedItem())) {
+      if (auto actionTypeName = sourceItem->instanceValue("interactAction")) {
+        auto actionType = InteractActionTypeNames.getLeft(actionTypeName.toString());
+        if (actionType >= InteractActionType::OpenCraftingInterface && actionType <= InteractActionType::ScriptPane) {
+          auto actionData = sourceItem->instanceValue("interactData", Json());
+          if (actionData.isType(Json::Type::Object))
+            actionData = actionData.set("openWithInventory", false);
+          InteractAction action(actionType, NullEntityId, actionData);
+          m_player->interact(action);
+        }
+      }
+    }
+  };
+
   Json itemBagConfig = config.get("bagConfig");
   auto bagOrder = itemBagConfig.toObject().keys().sorted([&itemBagConfig](String const& a, String const& b) {
     return itemBagConfig.get(a).getInt("order", 0) < itemBagConfig.get(b).getInt("order", 0);
@@ -156,6 +179,7 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
     auto itemGrid = itemBagConfig.get(name).getString("itemGrid");
     invWindowReader.registerCallback(itemGrid, bind(leftClickCallback, name, _1));
     invWindowReader.registerCallback(strf("{}.right", itemGrid), bind(bagGridCallback, name, _1));
+    invWindowReader.registerCallback(strf("{}.middle", itemGrid), bind(middleClickCallback, name, _1));
   }
 
   invWindowReader.registerCallback("close", [=](Widget*) {
