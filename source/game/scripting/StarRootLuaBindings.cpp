@@ -31,6 +31,7 @@
 #include "StarAssetPath.hpp"
 #include "StarFile.hpp"
 #include "StarDirectives.hpp"
+#include "StarStatusEffectDatabase.hpp"
 
 namespace Star {
 
@@ -289,6 +290,15 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
 
   callbacks.registerCallback("itemDescriptorsMatch", [](Json const& descriptor1, Json const& descriptor2, Maybe<bool> exactMatch) -> bool {
       return ItemDescriptor(descriptor1).matches(ItemDescriptor(descriptor2), exactMatch.value(false));
+    });
+
+  // Downstreamed from WasabiRaptor/OpenStarbound.
+  callbacks.registerCallback("effectConfig", [root](String const& effect) -> Json {
+      auto const& effects = root->statusEffectDatabase();
+      if (effects->isUniqueEffect(effect))
+        return effects->uniqueEffectConfig(effect).toJson();
+      else
+        return Json();
     });
 
   callbacks.registerCallback("getConfiguration", [root](String const& key) -> Json {

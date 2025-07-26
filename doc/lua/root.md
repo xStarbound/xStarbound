@@ -8,29 +8,30 @@ Below is a detailed explanation of how paths work on xStarbound (and stock Starb
 
 ### File paths
 
-*File paths* are paths within the OS's filesystem. These use your OS's conventions for filesystem paths. Note that relative file paths are relative to the directory containing the running xStarbound (or stock) executable. Some notes for Linux and Windows:
+_File paths_ are paths within the OS's filesystem. These use your OS's conventions for filesystem paths. Note that relative file paths are relative to the directory containing the running xStarbound (or stock) executable. Some notes for Linux and Windows:
 
-  - On Linux, file and directory names are case-sensitive by default, only forward slashes (`/`) are parsed as path separators, the special names `.` and `..` are disallowed (but may still be used with their usual special meaning in paths), and on most Linux filesystems, any character other than a null byte (`\0`) or forward slash is allowed in file and directory names.
-  - On Windows, file and directory names are case-insensitive by default, both backward (`\`) and forward (`/`) slashes are parsed as path separators, drive letters may need to be specified, several characters are not allowed in file and directory names, and multiple other caveats apply. See [this link](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) for details.
+- On Linux, file and directory names are case-sensitive by default, only forward slashes (`/`) are parsed as path separators, the special names `.` and `..` are disallowed (but may still be used with their usual special meaning in paths), and on most Linux filesystems, any character other than a null byte (`\0`) or forward slash is allowed in file and directory names.
+- On Windows, file and directory names are case-insensitive by default, both backward (`\`) and forward (`/`) slashes are parsed as path separators, drive letters may need to be specified, several characters are not allowed in file and directory names, and multiple other caveats apply. See [this link](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) for details.
 
 ### Asset paths
 
-*Asset paths* are paths within Starbound's internal asset filesystem. These have the following characteristics:
+_Asset paths_ are paths within Starbound's internal asset filesystem. These have the following characteristics:
 
-  - The path separator is a forward slash (`/`), and file and directory names are case-insensitive, even on Linux.
-  - `.` and `..` have no special meaning in asset paths. (Because of this, they are *technically* allowed as regular asset file and folder names; see the note below.)
-  - Any character other than a null byte (`\0`), question mark (`?`), colon (`:`) or forward slash is allowed in an asset file or directory name, although it is strongly recommended to stick to alphanumeric characters to avoid OS compatibility issues.
-  - The colon (`:`) is a special character that marks the beginning of a subpath or frame specifier. For JSON assets, this is a JSON subpath (see below), while for image assets, this is a frame specifier (see below). For other assets, whatever follows `:` is ignored. Some callbacks noted below (and in `assets.md`) disallow subpaths (and therefore `:`) in paths entirely.
-  - The question mark (`?`) is a special character that marks the beginning of image preprocessing directives and also splits individual directive operations. See `$docs/directives.md` for more details on image preprocessing. Preprocessing directives must follow any subpath specifier if present. For non-image assets, whatever follows `?` is ignored. Some callbacks noted below (and in `assets.md`) disallow directives (and therefore `?`) in paths entirely.
-  - In most cases, accessing a nonexistent asset will throw an error. However, accessing a nonexistent sound or image asset will instead log a warning and load `/assetmissing.png` or `/assetmissing.wav`, respectively, without any frame specifier but *with* any directives.
-  - Asset paths in animation configs additionally treat angle brackets (`<` and `>`) as special characters that wrap animation tag specifiers. See below for details. Note that despite this, the characters `<` and `>` are still permitted (but not recommended!) in asset file and directory names.
-  - JSON asset configs, but *not* Lua callbacks, may specify a relative path by omitting the first slash; the path is relative to the location of the JSON config in which the relative path is specified.
+- The path separator is a forward slash (`/`), and file and directory names are case-insensitive, even on Linux.
+- `.` and `..` have no special meaning in asset paths. (Because of this, they are _technically_ allowed as regular asset file and folder names; see the note below.)
+- Any character other than a null byte (`\0`), question mark (`?`), colon (`:`) or forward slash is allowed in an asset file or directory name, although it is strongly recommended to stick to alphanumeric characters to avoid OS compatibility issues.
+- The colon (`:`) is a special character that marks the beginning of a subpath or frame specifier. For JSON assets, this is a JSON subpath (see below), while for image assets, this is a frame specifier (see below). For other assets, whatever follows `:` is ignored. Some callbacks noted below (and in `assets.md`) disallow subpaths (and therefore `:`) in paths entirely.
+- The question mark (`?`) is a special character that marks the beginning of image preprocessing directives and also splits individual directive operations. See `$docs/directives.md` for more details on image preprocessing. Preprocessing directives must follow any subpath specifier if present. For non-image assets, whatever follows `?` is ignored. Some callbacks noted below (and in `assets.md`) disallow directives (and therefore `?`) in paths entirely.
+- In most cases, accessing a nonexistent asset will throw an error. However, accessing a nonexistent sound or image asset will instead log a warning and load `/assetmissing.png` or `/assetmissing.wav`, respectively, without any frame specifier but _with_ any directives.
+- Asset paths in animation configs additionally treat angle brackets (`<` and `>`) as special characters that wrap animation tag specifiers. See below for details. Note that despite this, the characters `<` and `>` are still permitted (but not recommended!) in asset file and directory names.
+- JSON asset configs, but _not_ Lua callbacks, may specify a relative path by omitting the first slash; the path is relative to the location of the JSON config in which the relative path is specified.
 
 > **Technical note:** Some technical caveats to what's explained above:
 >
-> - Actually, `?` and `:` characters are *technically* allowed in "raw" asset paths passed to `assets` callbacks. However, since directories and files with these characters in their names can't be accessed outside of asset preprocessor scripts anyway, there's little reason to bother with this.
+> - Actually, `?` and `:` characters are _technically_ allowed in "raw" asset paths passed to `assets` callbacks. However, since directories and files with these characters in their names can't be accessed outside of asset preprocessor scripts anyway, there's little reason to bother with this.
 > - `assets.add` is the only way to create an asset directory or file named `.` or `..`, since most (or all?) OSes do not allow files or directories with those names to be created.
 > - The placeholder image and audio assets for when an asset can't be found can be changed under `"assetsSettings"` in `$executableDirectory/xsbinit.config` (or `$executableDirectory/sbinit.config` on stock Starbound), as follows:
+>
 > ```json
 > /* xsbinit.config / sbinit.config */
 > {
@@ -44,11 +45,11 @@ Below is a detailed explanation of how paths work on xStarbound (and stock Starb
 
 ### JSON paths
 
-A JSON path may optionally be specified after a colon in a JSON asset path (where it is called a *subpath*), and some callbacks accept a JSON path (marked with a `JsonPath` type) directly. The path string syntax is as follows:
+A JSON path may optionally be specified after a colon in a JSON asset path (where it is called a _subpath_), and some callbacks accept a JSON path (marked with a `JsonPath` type) directly. The path string syntax is as follows:
 
-- *`k`:* A JSON object "root" key, where `k` is substituted for the literal key string, without quotes; e.g., `parameters`.
-- *`.k`:* A JSON object "subdirectory" key; e.g., `.animationConfig`. Used to access the value associated with a given key inside an object associated with the given "root" or "subdirectory" key. `k` is substituted as for "root" keys above. A path string may *not* begin with a subdirectory key.
-- *`[x]`:* A JSON array index specifier, where `x` is either an unsigned integer or `-` (refers to the last index in the array). Used to access the value at the specified array index. Indices begin at `0`, not `1`. Path strings *may* begin with an array index, assuming the "root" is an array (as in many JSON patch files).
+- _`k`:_ A JSON object "root" key, where `k` is substituted for the literal key string, without quotes; e.g., `parameters`.
+- _`.k`:_ A JSON object "subdirectory" key; e.g., `.animationConfig`. Used to access the value associated with a given key inside an object associated with the given "root" or "subdirectory" key. `k` is substituted as for "root" keys above. A path string may _not_ begin with a subdirectory key.
+- _`[x]`:_ A JSON array index specifier, where `x` is either an unsigned integer or `-` (refers to the last index in the array). Used to access the value at the specified array index. Indices begin at `0`, not `1`. Path strings _may_ begin with an array index, assuming the "root" is an array (as in many JSON patch files).
 
 Keys and index specifiers may be freely concatenated as in Lua code; e.g., `"actionOnReap[2].action"` accesses the value of the key `"action"` of an object at the third index of the array `"actionOnReap"` at the "root" of the config.
 
@@ -69,7 +70,7 @@ If a frame specifier is specified, the game will search for a `.frames` JSON fil
 - Any asset directory containing the image file's directory, going up directories recursively.
 - The asset root.
 
-If a `.frames` JSON file is found and references the given frame specifier, the image will be cropped to the specified `RectU` coordinates before the game uses it. This cropping is done *before* directives are processed.
+If a `.frames` JSON file is found and references the given frame specifier, the image will be cropped to the specified `RectU` coordinates before the game uses it. This cropping is done _before_ directives are processed.
 
 If the frame specifier is not referenced in the `.frames` file, or no suitable `.frames` file exists, a warning will be logged and the asset `$assets/assetmissing.png`, with no frame cropping, will be used instead; any directives will be applied to that image.
 
@@ -77,15 +78,15 @@ If the frame specifier is not referenced in the `.frames` file, or no suitable `
 
 ### Animation tags
 
-Asset paths in animation configs treat angle brackets (`<` and `>`) as special characters that wrap tag specifiers; these wrapped specifiers are called *animation tags*. An animation tag may include any character that isn't a null byte (`\0`) or a right angle bracket (`>`), but should be limited to alphanumeric characters.
+Asset paths in animation configs treat angle brackets (`<` and `>`) as special characters that wrap tag specifiers; these wrapped specifiers are called _animation tags_. An animation tag may include any character that isn't a null byte (`\0`) or a right angle bracket (`>`), but should be limited to alphanumeric characters.
 
 The engine replaces animation tags before doing any other path processing under the following circumstances:
 
-  - *`<effectDirectives>`:* In player effects animation configs, replaced with the value of `"effectiveDirectives"` specified in the appropriate `.species` config file for the player's species.
-  - *`<color>`:* In all object animation configs, replaced with the value of the object's saved `"color"` parameter.
-  - *`<state>` and `<key>`:* In container object animation configs, replaced with the container's current state (`crafting` or `idle`) and the current animation frame number (e.g., `1`, `2`, etc.), respectively.
-  - *`<stage>` and `<alt>`:* In farmable object animation configs, replaced with the farmable's current primary and alternate stage names.
-  - *Any other tag:* `animator.setPartTag` and `animator.setGlobalTag` (and the equivalents in `playerAnimator`) replace any tag matching the given specifier with the given replacement string, either only for a specific animation part or for the entire animation config.
+- _`<effectDirectives>`:_ In player effects animation configs, replaced with the value of `"effectiveDirectives"` specified in the appropriate `.species` config file for the player's species.
+- _`<color>`:_ In all object animation configs, replaced with the value of the object's saved `"color"` parameter.
+- _`<state>` and `<key>`:_ In container object animation configs, replaced with the container's current state (`crafting` or `idle`) and the current animation frame number (e.g., `1`, `2`, etc.), respectively.
+- _`<stage>` and `<alt>`:_ In farmable object animation configs, replaced with the farmable's current primary and alternate stage names.
+- _Any other tag:_ `animator.setPartTag` and `animator.setGlobalTag` (and the equivalents in `playerAnimator`) replace any tag matching the given specifier with the given replacement string, either only for a specific animation part or for the entire animation config.
 
 Tags that aren't replaced are left untouched, potentially allowing angled brackets to remain in the path after tag processing.
 
@@ -95,10 +96,10 @@ The following path type names are used throughout this documentation to refer to
 
 - **`AssetPath<TaggedImage>`:** A standard asset path where a frame specifier and/or directives are permitted and `< >` tags may be replaced. Only used in JSON animation configs. (`?` and `:` allowed.)
 - **`AssetPath<Image, Directives>`:** A standard asset path where an image frame specifier and/or directives are permitted, as detailed above. (`?` and `:` allowed.)
-- **`AssetPath<Image>`:** A standard asset path where an image frame specifier is permitted, but *not* directives. (`:`, but *not* `?`, allowed.)
-- **`AssetPath<Json>`:** An asset path that allows a JSON subpath but *not* directives. (`:`, but *not* `?`, allowed.)
-- **`AssetPath<>`:** An asset path that disallows *both* frame specifiers / subpaths and directives. (Neither `?` nor `:` allowed.)
-- **`RawAssetPath`:** A raw asset path where no special meaning is assigned to `?` or `:`. See the *Technical note* above.
+- **`AssetPath<Image>`:** A standard asset path where an image frame specifier is permitted, but _not_ directives. (`:`, but _not_ `?`, allowed.)
+- **`AssetPath<Json>`:** An asset path that allows a JSON subpath but _not_ directives. (`:`, but _not_ `?`, allowed.)
+- **`AssetPath<>`:** An asset path that disallows _both_ frame specifiers / subpaths and directives. (Neither `?` nor `:` allowed.)
+- **`RawAssetPath`:** A raw asset path where no special meaning is assigned to `?` or `:`. See the _Technical note_ above.
 - **`FilePath`:** An OS file path as detailed above.
 
 ---
@@ -140,6 +141,7 @@ Analogous to `assets.byExtension`; see `$docs/lua/assets.md` for more details.
 ---
 
 #### `Maybe<FilePath>` root.assetSource(`RawAssetPath` assetPath)
+
 #### `Maybe<FilePath>` root.assetOrigin(`RawAssetPath` assetPath)
 
 > **`root.assetSource` is only available on xStarbound. `root.assetOrigin` is available on xStarbound, OpenStarbound and StarExtensions.**
@@ -170,9 +172,9 @@ jarray{
 }
 ```
 
-Patches *directly* executed by preprocessor scripts (not via an invocation of `asset.patch` on a patch file) will not be listed.
+Patches _directly_ executed by preprocessor scripts (not via an invocation of `asset.patch` on a patch file) will not be listed.
 
-*Compatibility note:* Prior to xStarbound v3.4.2, `root.assetPatches` was an alias to `root.assetPatchSources` (see below).
+_Compatibility note:_ Prior to xStarbound v3.4.2, `root.assetPatches` was an alias to `root.assetPatchSources` (see below).
 
 ---
 
@@ -182,7 +184,7 @@ Patches *directly* executed by preprocessor scripts (not via an invocation of `a
 
 Returns a list of file paths to any asset sources that contain JSON or Lua patches to the base asset at the specified asset path, or `nil` if no base asset exists at that path; passing a path containing a subpath or directives will result in a `nil` return.
 
-Asset sources that only have patches which are *directly* executed by preprocessor scripts (not via an invocation of `asset.patch` on a patch file) will not be listed.
+Asset sources that only have patches which are _directly_ executed by preprocessor scripts (not via an invocation of `asset.patch` on a patch file) will not be listed.
 
 ---
 
@@ -243,7 +245,7 @@ Returns the frames specification this image asset would use, or `nil` if there i
 jobject{
     -- Path to the JSON frame configuration asset used to construct the return value.
     file = "/items/armors/pants.frames",
-    
+
     -- A table of frame aliases where each alias maps to the name of the actual frame it references.
     aliases = jobject{
         ["lay.1"] = "idle.1",
@@ -252,7 +254,7 @@ jobject{
         ["swim.6"] = "swimIdle.1",
         ["swim.7"] = "swimIdle.1"
     },
-    
+
     -- A list of frames where each frame name maps to a set of RectI coordinates that define the region of
     -- the image to be cropped out for that frame (as with the `?crop` directive`).
     frames = jobject{
@@ -322,13 +324,13 @@ See `bytes.md` for information on `ByteArray` object methods.
 
 > **Only available on xStarbound.**
 
-Takes the image asset at the given asset path, crops it to any frame specified, processes any directives and then saves the output to `$storageDir/sprites/$exportFileName.png`, where `$storageDir` is your player/universe storage directory and `$exportFileName` is the `exportFileName` parameter, minus anything before the last directory separator (`/` on Linux; `\` *and* `/` on Windows), if you've left any slashes in there. If `$storageDir/sprites/` does not exist, it will be created for you.
+Takes the image asset at the given asset path, crops it to any frame specified, processes any directives and then saves the output to `$storageDir/sprites/$exportFileName.png`, where `$storageDir` is your player/universe storage directory and `$exportFileName` is the `exportFileName` parameter, minus anything before the last directory separator (`/` on Linux; `\` _and_ `/` on Windows), if you've left any slashes in there. If `$storageDir/sprites/` does not exist, it will be created for you.
 
 If no base image asset exists at the specified base path or the frame specifier is invalid, the image will be replaced with `$assets/assetmissing.png` and an uncatchable warning will be logged. If any specified directives are invalid, an invisible image will be saved and an uncatchable warning will, again, be logged.
 
 If `byFrame` is `true`, directives are processed on a frame-by-frame basis for those base image assets that have an associated frames file — this is necessary for generated clothing.
 
-This callback is useful for recovering sprites from directive strings. 
+This callback is useful for recovering sprites from directive strings.
 
 **Note:** You should not use `byFrame` with generated directive strings that happen to have one or more non-trivial scaling directives (which aren't just `?scalenearest=1.0`) at the end — pixels may be cropped off — so either remove those scaling directives or "export" them on a frame-by-frame basis by specifying the frame between the base path and directives, then copy out the output files.
 
@@ -338,7 +340,7 @@ This callback is useful for recovering sprites from directive strings.
 
 > **Only available on xStarbound.**
 
-Exports the given `Image` object as a PNG image to `$storage/sprites/$exportFileName.png`, where `$storage` is your player/universe storage directory and `$exportFileName` is the file name you specified, minus anything before the last directory separator (`/` on Linux; `\` *and* `/` on Windows), if you've left any slashes in there. If `$storageDir/sprites/` does not exist, it will be created for you.
+Exports the given `Image` object as a PNG image to `$storage/sprites/$exportFileName.png`, where `$storage` is your player/universe storage directory and `$exportFileName` is the file name you specified, minus anything before the last directory separator (`/` on Linux; `\` _and_ `/` on Windows), if you've left any slashes in there. If `$storageDir/sprites/` does not exist, it will be created for you.
 
 ---
 
@@ -472,13 +474,13 @@ jarray{
 }
 ```
 
-If `groups` is specified, this callback returns only recipes that are members of *all* of the specified groups. This can be used for custom scripted crafting interfaces or similar.
+If `groups` is specified, this callback returns only recipes that are members of _all_ of the specified groups. This can be used for custom scripted crafting interfaces or similar.
 
 ---
 
 #### `Json` root.itemConfig(`ItemDescriptor` descriptor, [`float` level], [`unsigned` seed])
 
-> *The `file` value is only available on xStarbound v3.4.2+.*
+> _The `file` value is only available on xStarbound v3.4.2+._
 
 Generates an item from the specified descriptor, level and seed and returns a JSON object containing the `directory`, `file`, `config`, `parameters` for that item. `file` is the item config file name; to get a full item path, prepend the value of `directory` to the value of `file` or use `root.itemFile` below.
 
@@ -699,6 +701,20 @@ Loads a configured behaviour, initialises it and returns the behaviour state as 
 
 ---
 
+#### `JsonObject` root.effectConfig(`String` statusEffectName)
+
+> **Only available on xStarbound v3.7.4+ and OpenStarbound v0.1.15+.**
+
+Returns the configuration for the given unique status effect. If the status effect doesn't exist, this callback returns `nil`. The returned object has the following template:
+
+```json
+{
+  "name": "effectName"
+}
+```
+
+---
+
 #### `Json` root.getConfiguration(`String` key)
 
 > **Only available on xStarbound, OpenStarbound and StarExtensions.**
@@ -817,7 +833,7 @@ Gets the value stored in the node whose key and `NodeParameterType` is specified
 
 Sets the specified key/`NodeParameterType` combination to the specified value. If the specified value is `nil`, clears the specified key/`NodeParameterType` combination. Note that keys of different node types may share the same name; each key/type combination is unique.
 
-**Caveat:** If the specified `NodeParameterType` is a `"number"`, the given number value is assigned to an `{x, y}` array in a new or existing `"vec2"` node with the specified key *in addition to* being assigned to a `"number"` node with the same key. For instance, a value of `2.5` becomes `{2.5, 2.5}` in a `"vec2"` node *and* `2.5` in a `"number"` node with the same key.
+**Caveat:** If the specified `NodeParameterType` is a `"number"`, the given number value is assigned to an `{x, y}` array in a new or existing `"vec2"` node with the specified key _in addition to_ being assigned to a `"number"` node with the same key. For instance, a value of `2.5` becomes `{2.5, 2.5}` in a `"vec2"` node _and_ `2.5` in a `"number"` node with the same key.
 
 ---
 
@@ -826,23 +842,38 @@ In addition, `NodeParameterType`-specific getters and setters are available:
 ### Getters
 
 #### `Json` `[Blackboard]`:getEntity(`String` key)
+
 #### `Json` `[Blackboard]`:getPosition(`String` key)
+
 #### `Json` `[Blackboard]`:getVec2(`String` key)
+
 #### `Json` `[Blackboard]`:getNumber(`String` key)
+
 #### `Json` `[Blackboard]`:getBool(`String` key)
+
 #### `Json` `[Blackboard]`:getList(`String` key)
+
 #### `Json` `[Blackboard]`:getTable(`String` key)
+
 #### `Json` `[Blackboard]`:getString(`String` key)
 
 ### Setters
 
 #### `void` `[Blackboard]`:setEntity(`String` key, `Json` value)
+
 #### `void` `[Blackboard]`:setPosition(`String` key, `Json` value)
+
 #### `void` `[Blackboard]`:setVec2(`String` key, `Json` value)
+
 #### `void` `[Blackboard]`:setNumber(`String` key, `Json` value)
+
 #### `void` `[Blackboard]`:setBool(`String` key, `Json` value)
+
 #### `void` `[Blackboard]`:setList(`String` key, `Json` value)
+
 #### `void` `[Blackboard]`:setTable(`String` key, `Json` value)
+
 #### `void` `[Blackboard]`:setString(`String` key, `Json` value)
 
 **Note:** `:setNumber` has the same caveat as `:set` done with a `NodeParameterType` of `"number"`.
+

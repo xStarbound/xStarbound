@@ -5,6 +5,22 @@
 
 namespace Star {
 
+JsonObject UniqueStatusEffectConfig::toJson() {
+  // WasabiRaptor: Added JSON conversion for unique status effects. Downstreamed from OpenStarbound.
+  return {
+    {"name", name},
+    {"blockingStat", blockingStat.isValid() ? blockingStat.value() : Json()},
+    {"effectConfig", effectConfig},
+    {"defaultDuration", defaultDuration},
+    {"scripts", jsonFromStringList(scripts)},
+    {"scriptDelta", scriptDelta},
+    {"animationConfig", animationConfig.isValid() ? animationConfig.value() : Json()},
+    {"label", label},
+    {"description", description},
+    {"icon", icon.isValid() ? icon.value() : Json()}
+  };
+}
+
 StatusEffectDatabase::StatusEffectDatabase() {
   auto assets = Root::singleton().assets();
   auto files = assets->scanExtension("statuseffect");
