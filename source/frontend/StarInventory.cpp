@@ -151,23 +151,33 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
   };
 
   auto middleClickCallback = [this](String const& bagType, Widget* widget) {
-    if (!m_player->inWorld())
-      return;
-
     auto itemGrid = convert<ItemGridWidget>(widget);
     InventorySlot inventorySlot = BagSlot(bagType, itemGrid->selectedIndex());
     auto inventory = m_player->inventory();
     if (auto sourceItem = as<ObjectItem>(itemGrid->selectedItem())) {
+      if (!m_player->inWorld())
+        return;
       if (auto actionTypeName = sourceItem->instanceValue("interactAction")) {
-        auto actionType = InteractActionTypeNames.getLeft(actionTypeName.toString());
-        if (actionType >= InteractActionType::OpenCraftingInterface && actionType <= InteractActionType::ScriptPane) {
+        if (!actionTypeName.isType(Json::Type::String)) {
+          Logger::warn("[xSB] InventoryPane: Interact action of an invalid type! Item descriptor: {}", sourceItem->descriptor().toJson());
+          return;
+        }
+        auto actionTypeStr = actionTypeName.toString();
+        auto actionType = InteractActionTypeNames.maybeLeft(actionTypeStr);
+        if (!actionType) {
+          Logger::warn("[xSB] InventoryPane: Invalid interact action {} on object item in inventory! Item descriptor: {}", actionTypeStr, sourceItem->descriptor().toJson());
+          return;
+        }
+        if (*actionType >= InteractActionType::OpenCraftingInterface && *actionType <= InteractActionType::ScriptPane) {
           auto actionData = sourceItem->instanceValue("interactData", Json());
           if (actionData.isType(Json::Type::Object))
             actionData = actionData.set("openWithInventory", false);
-          InteractAction action(actionType, NullEntityId, actionData);
+          InteractAction action(*actionType, NullEntityId, actionData);
           m_player->interact(action);
         }
       }
+    } else if (auto armourItem = as<ArmorItem>(itemGrid->selectedItem())) {
+      armourItem->setHideInStockSlots(!armourItem->hideInStockSlots());
     }
   };
 

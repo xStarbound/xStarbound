@@ -121,7 +121,7 @@ TeleportDialog::TeleportDialog(UniverseClientPtr client,
 }
 
 void TeleportDialog::tick(float dt) {
-  if (!m_client->worldClient()->playerCanReachEntity(m_sourceEntityId))
+  if (m_sourceEntityId != NullEntityId && m_sourceEntityId != m_client->mainPlayer()->entityId() && !m_client->worldClient()->playerCanReachEntity(m_sourceEntityId))
     dismiss();
 }
 

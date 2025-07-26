@@ -928,15 +928,21 @@ void ArmorWearer::netElementsNeedLoad(bool) {
 
 void ArmorWearer::netElementsNeedStore() {
   auto itemDatabase = Root::singleton().itemDatabase();
-  m_headItemDataNetState.set(itemSafeDescriptor(m_headItem));
-  m_chestItemDataNetState.set(itemSafeDescriptor(m_chestItem));
-  m_legsItemDataNetState.set(itemSafeDescriptor(m_legsItem));
-  m_backItemDataNetState.set(itemSafeDescriptor(m_backItem));
+  auto checkItem = [](auto armourItem) {
+    if (armourItem && !armourItem->hideInStockSlots())
+      return armourItem;
+    return (decltype(armourItem))nullptr;
+  };
 
-  m_headCosmeticItemDataNetState.set(itemSafeDescriptor(m_headCosmeticItem));
-  m_chestCosmeticItemDataNetState.set(itemSafeDescriptor(m_chestCosmeticItem));
-  m_legsCosmeticItemDataNetState.set(itemSafeDescriptor(m_legsCosmeticItem));
-  m_backCosmeticItemDataNetState.set(itemSafeDescriptor(m_backCosmeticItem));
+  m_headItemDataNetState.set(itemSafeDescriptor(checkItem(m_headItem)));
+  m_chestItemDataNetState.set(itemSafeDescriptor(checkItem(m_chestItem)));
+  m_legsItemDataNetState.set(itemSafeDescriptor(checkItem(m_legsItem)));
+  m_backItemDataNetState.set(itemSafeDescriptor(checkItem(m_backItem)));
+
+  m_headCosmeticItemDataNetState.set(itemSafeDescriptor(checkItem(m_headCosmeticItem)));
+  m_chestCosmeticItemDataNetState.set(itemSafeDescriptor(checkItem(m_chestCosmeticItem)));
+  m_legsCosmeticItemDataNetState.set(itemSafeDescriptor(checkItem(m_legsCosmeticItem)));
+  m_backCosmeticItemDataNetState.set(itemSafeDescriptor(checkItem(m_backCosmeticItem)));
 }
 
 } // namespace Star

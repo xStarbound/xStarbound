@@ -212,8 +212,14 @@ void ItemSlotWidget::setCosmeticHighlightEnabled(bool cosmeticHighlight) {
 
 void ItemSlotWidget::renderImpl() {
   if (m_item) {
-    if (m_drawBackingImageWhenFull && m_backingImage != "")
-      context()->drawInterfaceQuad(m_backingImage, Vec2F(screenPosition()));
+    if (!m_backingImage.empty()) {
+      if (m_drawBackingImageWhenFull)
+        context()->drawInterfaceQuad(m_backingImage, Vec2F(screenPosition()));
+      else if (auto armourItem = as<ArmorItem>(m_item)) {
+        if (armourItem->hideInStockSlots())
+          context()->drawInterfaceQuad(m_backingImage, Vec2F(screenPosition()));
+      }
+    }
 
     List<Drawable> iconDrawables = m_showSecondaryIcon ? m_item->secondaryDrawables().value(m_item->iconDrawables()) : m_item->iconDrawables();
 
@@ -233,8 +239,14 @@ void ItemSlotWidget::renderImpl() {
       context()->drawInterfaceQuad(String("/interface/inventory/itemlinkindicator.png"), Vec2F(screenPosition() - Vec2I(1, 1)));
     }
 
-    for (auto i : iconDrawables)
-      context()->drawInterfaceDrawable(i, Vec2F(screenPosition() + size() / 2));
+    bool isHiddenArmourItem = false;
+    if (auto armourItem = as<ArmorItem>(m_item))
+      isHiddenArmourItem = armourItem->hideInStockSlots();
+
+    if (m_showRarity && !isHiddenArmourItem) {
+      for (auto i : iconDrawables)
+        context()->drawInterfaceDrawable(i, Vec2F(screenPosition() + size() / 2));
+    }
 
     if (!m_newItemIndicator.isComplete())
       context()->drawInterfaceDrawable(m_newItemIndicator.drawable(1.0), Vec2F(screenPosition() + size() / 2), Color::White.toRgba());
