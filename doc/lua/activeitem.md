@@ -154,9 +154,19 @@ Sets a parameter to be used by the item's scripted animator.
 
 ---
 
-#### `void` activeItem.setInventoryIcon(`String` image)
+#### `void` activeItem.setInventoryIcon(`Variant<AssetPath<Image, Directives>, JsonArray>` image)
 
-Sets the inventory icon of the item.
+> _On xStarbound v3.7.4+ and OpenStarbound v0.1.15+, this callback can take a drawable array instead of a `String` image path, and also allows relative image paths._
+
+Sets the inventory icon of the item. On xStarbound and OpenStarbound, the image may be either an image path or an array of drawables, and relative image paths (relative to the directory containing the item's asset config) are permitted. Otherwise, the only permitted argument is an absolute asset path. An item's inventory icon is stored in its `"inventoryIcon"` parameter.
+
+---
+
+#### `void` activeItem.setSecondaryIcon(`Maybe<Variant<AssetPath<Image, Directives>, JsonArray>>` image)
+
+> **This callback is only available on xStarbound v3.7.4+ and OpenStarbound v0.1.15+.**
+
+Sets the secondary inventory icon of the item, which only shows up in the right-handed slot for a two-handed item on the action bar. The image may be either an image path or an array of drawables, and relative image paths (relative to the directory containing the item's asset config) are permitted. If the image/drawable is `nil` or unspecified, any existing secondary icon is cleared. An item's secondary icon is stored in its `"secondaryIcon"` parameter.
 
 ---
 
@@ -167,13 +177,14 @@ Sets an instance value (parameter) of the item.
 ---
 
 #### `Json` activeItem.callOtherHandScript(`String` functionName, [`Json...` args])
+
 #### `LuaValue` activeItem.callOtherHandScript(`String` functionName, [`LuaValue...` args])
 
 Attempts to call the specified function name with the specified argument values in the context of an active item held in the opposing hand and synchronously returns the result if successful.
 
 On xStarbound, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
 
-> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such clients and servers, you should avoid passing Lua bindings or anything that can call them. Calling active item bindings after the active item has been removed from the game *will* almost certainly cause segfaults or memory corruption!
+> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such clients and servers, you should avoid passing Lua bindings or anything that can call them. Calling active item bindings after the active item has been removed from the game _will_ almost certainly cause segfaults or memory corruption!
 
 ---
 

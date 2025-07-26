@@ -382,4 +382,6 @@ The following is a list of common Lua functions called by the engine when runnin
 
   If `keyDown` is `true`, the key is pressed down; otherwise, it is released. `key` is the integer ID of the key, while `keyName` is the name of the key. See `interface.md` for valid `Key` values; the integer ID is the ordinal position of the string value in that list, minus 1.
 
+- **`Json` shiftItemFromInventory(`Json` inputItemDescriptor):** Sequentially invoked on all pane scripts whenever an item in the player's inventory is **<kbd>Shift</kbd> + Left Click**'ed. If this function isn't defined or returns nothing, `nil` or `false`, the engine does nothing on this invocation. If this function returns `true`, the engine empties out the shift-clicked inventory slot on this invocation. If this function returns a valid item descriptor, the engine replaces the item slot with the returned item on this invocation. Every sequential invocation acts on the slot after it has been modified by previous invocations.
+
 Other Lua functions invoked by the engine are fairly self-explanatory; see the base game assets for examples, and if that isn't enough, see xStarbound's source code for the gory details.

@@ -709,9 +709,20 @@ Returns the configuration for the given unique status effect. If the status effe
 
 ```json
 {
-  "name": "effectName"
+  "label": "Regeneration", // The tooltip label for the effect.
+  "effectConfig": { "healTime": 60 }, // The JSON effect config.
+  "description": "", // The effect's description.
+  "name": "regeneration1", // The effect's internal name.
+  "blockingStat": "healingStatusImmunity", // If a string, the name of the stat that prevents this effect from being applied. If null, there's no blocking stat.
+  "animationConfig": "/stats/effects/regeneration/regeneration.animation", // If a string, the asset path to the animation config used by the effect. If null, no animation config is used.
+  "defaultDuration": 5, // The default duration of the effect. This is used if a duration is not explicitly specified.
+  "scripts": ["/stats/effects/regeneration/regeneration.lua"], // An array listing any scripts used by the effect.
+  "icon": "/interface/statuses/heal.png", // If a string, the asset path to the status effect's icon. If null, there's no specified icon.
+  "scriptDelta": 1 // The number of game ticks between each invocation of the effect script's `update` function. If it's `1`, it runs every tick, if `2`, every other tick, etc. If `0`, `update` never runs.
 }
 ```
+
+> **OpenStarbound note:** On OpenStarbound, this callback throws an error instead of returning `nil` if the specified status effect doesn't exist. Use `pcall` for cross-mod compatibility.
 
 ---
 

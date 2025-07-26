@@ -11,6 +11,46 @@
 
 namespace Star {
 
+// From grbr404 and Novaenia.
+static String formatShortSize(uint64_t n) {
+  if (n < 10000)
+    return toString(n);
+
+  uint64_t divisor = 1000ull;
+  char suffix = 'k';
+
+  if (n >= 1000000000000000000ull) {
+    divisor = 1000000000000000000ull;
+    suffix = 'Q';
+  } else if (n >= 1000000000000000ull) {
+    divisor = 1000000000000000ull;
+    suffix = 'q';
+  } else if (n >= 1000000000000ull) {
+    divisor = 1000000000000ull;
+    suffix = 't';
+  } else if (n >= 1000000000ull) {
+    divisor = 1000000000ull;
+    suffix = 'b';
+  } else if (n >= 1000000ull) {
+    divisor = 1000000ull;
+    suffix = 'm';
+  }
+
+  uint64_t whole = n / divisor;
+  if (whole >= 100ull)
+    return strf("{}{:c}", whole, suffix);
+
+  uint64_t remainder = n - (whole * divisor);
+  uint64_t frac = (remainder / (divisor / 1000));
+
+  if (frac == 0)
+    return strf("{}{:c}", whole, suffix);
+  else if (whole >= 10)
+    return strf("{}.{}{:c}", whole, frac / 100, suffix);
+  else
+    return strf("{}.{:02d}{:c}", whole, frac / 10, suffix);
+}
+
 ItemSlotWidget::ItemSlotWidget(ItemPtr const& item, String const& backingImage)
     : m_item(item), m_backingImage(backingImage) {
   m_drawBackingImageWhenFull = false;
@@ -144,6 +184,10 @@ void ItemSlotWidget::showLinkIndicator(bool showLinkIndicator) {
   m_showLinkIndicator = showLinkIndicator;
 }
 
+void ItemSlotWidget::showSecondaryIcon(bool showSecondaryIcon) {
+  m_showSecondaryIcon = showSecondaryIcon;
+}
+
 void ItemSlotWidget::indicateNew() {
   m_newItemIndicator.reset();
 }
@@ -163,7 +207,7 @@ void ItemSlotWidget::renderImpl() {
     if (m_drawBackingImageWhenFull && m_backingImage != "")
       context()->drawInterfaceQuad(m_backingImage, Vec2F(screenPosition()));
 
-    List<Drawable> iconDrawables = m_item->iconDrawables();
+    List<Drawable> iconDrawables = m_showSecondaryIcon ? m_item->secondaryDrawables().value(m_item->iconDrawables()) : m_item->iconDrawables();
 
     if (m_showRarity) {
       String border = rarityBorder(m_item->rarity());
@@ -225,7 +269,8 @@ void ItemSlotWidget::renderImpl() {
         context()->setFontSize(m_fontSize);
         context()->setFontColor(m_fontColor.toRgba());
         context()->setFontMode(m_countFontMode);
-        context()->renderInterfaceText(toString(m_item->count()), m_countPosition.translated(Vec2F(screenPosition())));
+        // grbr404/Novaenia: Use better stack size formatting for huge stack sizes.
+        context()->renderInterfaceText(toString(formatShortSize(m_item->count())), m_countPosition.translated(Vec2F(screenPosition())));
         context()->setFontMode(FontMode::Normal);
         context()->setDefaultFont();
       }

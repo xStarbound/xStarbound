@@ -272,10 +272,15 @@ void ActionBar::update(float dt) {
 
     if (itemSafeTwoHanded(primaryItem)) {
       widgets.right->setItem(primaryItem);
+      widgets.right->showSecondaryIcon(true);
       widgets.right->showDurability(false);
       widgets.right->showCount(false);
-      widgets.rightOverlay->show();
+      if (primaryItem->hasSecondaryDrawables())
+        widgets.rightOverlay->hide();
+      else
+        widgets.rightOverlay->show();
     } else {
+      widgets.right->showSecondaryIcon(false);
       widgets.right->setItem(secondaryItem);
       if (secondaryPreview) {
         widgets.right->showDurability(false);

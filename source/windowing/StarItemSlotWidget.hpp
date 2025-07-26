@@ -32,6 +32,7 @@ public:
   void showSingleCountOnStackables(bool show);
   void showRarity(bool showRarity);
   void showLinkIndicator(bool showLinkIndicator);
+  void showSecondaryIcon(bool showSecondaryIcon);
 
   void indicateNew();
 
@@ -52,6 +53,7 @@ private:
   bool m_showSingleCountOnStackables;
   bool m_showRarity;
   bool m_showLinkIndicator;
+  bool m_showSecondaryIcon;
 
   TextPositioning m_countPosition;
   FontMode m_countFontMode;

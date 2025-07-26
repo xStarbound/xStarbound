@@ -420,6 +420,10 @@ LuaCallbacks Pane::makePaneCallbacks() {
   return callbacks;
 }
 
+Maybe<ItemPtr> Pane::shiftItemFromInventory(ItemPtr const& input) const {
+  return Maybe<ItemPtr>{};
+}
+
 GuiReaderPtr Pane::reader() {
   return make_shared<GuiReader>();
 }

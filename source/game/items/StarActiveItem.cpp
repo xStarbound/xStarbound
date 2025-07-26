@@ -472,10 +472,47 @@ LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
       m_scriptedAnimationParameters.set(std::move(name), std::move(value));
     });
 
-  callbacks.registerCallback("setInventoryIcon", [this](String image) {
-      setInstanceValue("inventoryIcon", image);
-      setIconDrawables({Drawable::makeImage(std::move(image), 1.0f, true, Vec2F())});
-    });
+  // WasabiRaptor: setInventoryIcon can now take a drawable array, and items can now have secondary icons in the action bar. Downstreamed from OpenStarbound.
+  callbacks.registerCallback("setInventoryIcon", [this](Json const& inventoryIcon) {
+    setInstanceValue("inventoryIcon", inventoryIcon);
+
+    if (inventoryIcon.type() == Json::Type::Array) {
+      setIconDrawables(inventoryIcon.toArray().transformed([&](Json const& config) -> Drawable {
+        if (auto image = config.optString("image"))
+          return Drawable(config.set("image", AssetPath::relativeTo(directory(), *image)));
+        return Drawable(config);
+      }));
+    } else {
+      auto image = AssetPath::relativeTo(directory(), inventoryIcon.toString());
+      setIconDrawables({Drawable::makeImage(image, 1.0f, true, Vec2F())});
+    }
+  });
+
+  callbacks.registerCallback("setSecondaryIcon", [this](Json const& secondaryIcon) {
+    setInstanceValue("secondaryIcon", secondaryIcon);
+    if (secondaryIcon.type() == Json::Type::Array) {
+      setSecondaryIconDrawables(secondaryIcon.toArray().transformed([&](Json const& config) -> Drawable {
+        if (auto image = config.optString("image"))
+          return Drawable(config.set("image", AssetPath::relativeTo(directory(), *image)));
+        return Drawable(config);
+      }));
+    } else if (secondaryIcon.type() == Json::Type::String) {
+      auto image = AssetPath::relativeTo(directory(), secondaryIcon.toString());
+      setSecondaryIconDrawables(Maybe<List<Drawable>>({Drawable::makeImage(image, 1.0f, true, Vec2F())}));
+    } else {
+      setSecondaryIconDrawables(Maybe<List<Drawable>>());
+    }
+  });
+
+  callbacks.registerCallback("setDescription", [this](String const& description) {
+    setInstanceValue("description", description);
+    setDescription(description);
+  });
+
+  callbacks.registerCallback("setShortDescription", [this](String const& description) {
+    setInstanceValue("shortdescription", description);
+    setShortDescription(description);
+  });
 
   callbacks.registerCallback("setInstanceValue", [this](String name, Json val) {
       setInstanceValue(std::move(name), std::move(val));

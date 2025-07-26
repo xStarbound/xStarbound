@@ -11,6 +11,7 @@
 #include "StarCanvasWidget.hpp"
 #include "StarItemTooltip.hpp"
 #include "StarItemGridWidget.hpp"
+#include "StarItemDatabase.hpp"
 #include "StarSimpleTooltip.hpp"
 #include "StarImageWidget.hpp"
 #include "StarWorldPainter.hpp"
@@ -159,6 +160,23 @@ Maybe<String> BaseScriptPane::cursorOverride(Vec2I const& screenPosition) {
 
 GuiReaderPtr BaseScriptPane::reader() {
   return m_reader;
+}
+
+// Patman: Inventory item shift-click callback for scripted panes.
+Maybe<ItemPtr> BaseScriptPane::shiftItemFromInventory(ItemPtr const& input) const {
+  auto result = m_script.invoke<Json>("shiftItemFromInventory", input->descriptor().toJson());
+  if (!result || result->isNull())
+    return {};
+
+  const auto& itemDatabase = Root::singleton().itemDatabase();
+
+  if (result->type() == Json::Type::Bool) {
+    if (result->toBool())
+      return itemDatabase->item({});
+    return {};
+  }
+
+  return itemDatabase->item(ItemDescriptor(result.value()));
 }
 
 void BaseScriptPane::construct(Json config) {

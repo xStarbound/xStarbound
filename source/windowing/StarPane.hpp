@@ -3,6 +3,7 @@
 
 #include "StarWidget.hpp"
 #include "StarBiMap.hpp"
+#include "StarItemDatabase.hpp"
 
 namespace Star {
 
@@ -91,6 +92,8 @@ public:
   // new pane to be used as the tooltip.
   virtual PanePtr createTooltip(Vec2I const& screenPosition);
   virtual Maybe<String> cursorOverride(Vec2I const& screenPosition);
+
+  virtual Maybe<ItemPtr> shiftItemFromInventory(ItemPtr const& input) const;
 
   virtual LuaCallbacks makePaneCallbacks();
 protected:

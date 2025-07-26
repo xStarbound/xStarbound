@@ -50,6 +50,14 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
           m_containerInteractor->addToContainer(sourceItem);
           m_containerSource = inventorySlot;
           m_expectingSwap = true;
+        } else { // Patman: Shift + left-click callback for custom script panes.
+          for (PanePtr& pane : m_parent->paneManager()->getAllPanes()) {
+            auto remainder = pane->shiftItemFromInventory(inventory->itemsAt(inventorySlot));
+            if (remainder.isValid()) {
+              inventory->setItem(inventorySlot, remainder.value());
+              break;
+            }
+          }
         }
       }
     } else {
@@ -93,7 +101,7 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
       } else if (!swapItem || swapItem->empty() || swapItem->couldStack(slotItem)) {
         uint64_t count = swapItem ? swapItem->couldStack(slotItem) : slotItem->maxStack();
         if (context()->shiftHeld())
-          count = max(1, min<int>(count, slotItem->count() / 2));
+          count = max<uint64_t>(1, min<uint64_t>(count, slotItem->count() / 2));
         else
           count = 1;
 
