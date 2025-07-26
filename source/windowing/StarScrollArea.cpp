@@ -384,7 +384,18 @@ bool ScrollArea::sendEvent(InputEvent const& event) {
   return true;
 }
 
+bool ScrollArea::updatesChildren() const {
+  return m_updatesChildren;
+}
+
+void ScrollArea::setUpdatesChildren(bool shouldUpdate) {
+  m_updatesChildren = shouldUpdate;
+}
+
 void ScrollArea::update(float dt) {
+  if (m_updatesChildren)
+    Widget::update(dt);
+
   if (!m_visible)
     return;
   

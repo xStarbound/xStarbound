@@ -168,6 +168,9 @@ WidgetConstructResult WidgetParser::buttonHandler(String const& name, Json const
   if (config.contains("checked"))
     button->setChecked(config.getBool("checked"));
 
+  if (config.contains("sustainCallbackOnDownHold"))
+    button->setSustainCallbackOnDownHold(config.getBool("sustainCallbackOnDownHold"));
+
   String hAnchor = config.getString("textAlign", "center");
   if (hAnchor == "right") {
     button->setTextAlign(HorizontalAnchor::RightAnchor);
@@ -692,8 +695,8 @@ WidgetConstructResult WidgetParser::layoutHandler(String const& name, Json const
     throw WidgetParserException(strf("Invalid layout type \"{}\".  Options are \"basic\", \"flow\", \"vertical\".", type));
   }
   common(widget, config);
-  if (config.contains("children"))
-    constructImpl(config.get("children"), widget.get());
+  // if (config.contains("children"))
+  //   constructImpl(config.get("children"), widget.get());
   widget->update(0);
 
   return WidgetConstructResult(widget, name, config.getFloat("zlevel", 0));
@@ -774,11 +777,13 @@ WidgetConstructResult WidgetParser::scrollAreaHandler(String const& name, Json c
   if (config.contains("verticalScroll"))
     scrollArea->setVerticalScroll(config.getBool("verticalScroll"));
 
-  common(scrollArea, config);
+  scrollArea->setUpdatesChildren(config.getBool("updatesChildren", false));
+
+  common(scrollArea, config, false);
   return WidgetConstructResult(scrollArea, name, config.getFloat("zlevel", 0));
 }
 
-void WidgetParser::common(WidgetPtr widget, Json const& config) {
+void WidgetParser::common(WidgetPtr widget, Json const& config, bool getChildren) {
   if (config.contains("rect")) {
     auto rect = jsonToRectI(config.get("rect"));
     widget->setPosition(rect.min());
@@ -800,6 +805,9 @@ void WidgetParser::common(WidgetPtr widget, Json const& config) {
   if (!config.getBool("scissoring", true))
     widget->disableScissoring();
   widget->setMouseTransparent(config.getBool("mouseTransparent", false));
+
+  if (getChildren && config.contains("children"))
+    constructImpl(config.get("children"), widget.get());
 }
 
 ImageStretchSet WidgetParser::parseImageStretchSet(Json const& config) {
