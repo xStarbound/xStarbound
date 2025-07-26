@@ -89,6 +89,11 @@ public:
   virtual List<Drawable> dropDrawables() const;
   String largeImage() const;
 
+  Maybe<String> countString() const;
+  void setCountString(const Maybe<String>& newString);
+  Maybe<String> borderDirectives() const;
+  void setBorderDirectives(const Maybe<String>& newDirectives);
+
   String tooltipKind() const;
   virtual String category() const;
 
@@ -158,6 +163,8 @@ private:
   String m_largeImage;
   String m_category;
   StringSet m_pickupSounds;
+  Maybe<String> m_countString;
+  Maybe<String> m_borderDirectives;
 
   List<ItemDescriptor> m_matchingDescriptors;
   List<ItemDescriptor> m_learnBlueprintsOnPickup;

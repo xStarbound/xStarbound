@@ -211,7 +211,9 @@ void ItemSlotWidget::renderImpl() {
 
     if (m_showRarity) {
       String border = rarityBorder(m_item->rarity());
-      if (auto armourItem = as<ArmorItem>(m_item)) {
+      if (auto directives = m_item->borderDirectives()) {
+        border += *directives;
+      } else if (auto armourItem = as<ArmorItem>(m_item)) {
         if (armourItem->isUnderlaid())
           border += m_underlaidMarkerDirectives;
       }
@@ -248,7 +250,15 @@ void ItemSlotWidget::renderImpl() {
 
     if (m_showCount) {
       if (m_item->maxStack() == 1) {
-        if (auto armourItem = as<ArmorItem>(m_item)) {
+        if (auto countString = m_item->countString()) { // FezzedOne: Useful for ammo counters and the like.
+          context()->setFont(m_font);
+          context()->setFontSize(m_fontSize);
+          context()->setFontColor(m_fontColor.toRgba());
+          context()->setFontMode(m_countFontMode);
+          context()->renderInterfaceText(*countString, m_countPosition.translated(Vec2F(screenPosition())));
+          context()->setFontMode(FontMode::Normal);
+          context()->setDefaultFont();
+        } else if (auto armourItem = as<ArmorItem>(m_item)) {
           constexpr size_t maxCosmeticStack = 99;
           size_t cosmeticStackCount = armourItem->cosmeticStackCount();
           if (cosmeticStackCount != 0 || m_cosmeticHighlightEnabled) {

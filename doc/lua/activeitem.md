@@ -170,6 +170,38 @@ Sets the secondary inventory icon of the item, which only shows up in the right-
 
 ---
 
+#### `void` activeItem.setShortDescription(`String` shortDescription)
+
+> **This callback is only available on xStarbound v3.7.4+ and OpenStarbound v0.1.15+.**
+
+Sets the item's short description to the specified string. The short description is the item name shown in game. This change takes effect immediately. An item's short description is stored in its `"shortdescription"` parameter.
+
+---
+
+#### `void` activeItem.setDescription(`String` description)
+
+> **This callback is only available on xStarbound v3.7.4+ and OpenStarbound v0.1.15+.**
+
+Sets the item's description to the specified string. This change takes effect immediately. An item's description is stored in its `"description"` parameter.
+
+---
+
+#### `void` activeItem.setCountString(`String` description)
+
+> **This callback is only available on xStarbound v3.7.4+.**
+
+Sets the item's count indicator to the specified string, or clears the override string if `nil` or unspecified; this string is only visible when the item's `"maxStack"` and count are both 1, but _does_ visually override the cosmetic stack indicator on an armour/cosmetic item. This change takes effect immediately. An item's count string is stored in its `"countString"` parameter.
+
+---
+
+#### `void` activeItem.setRarityBorderDirectives(`String` description)
+
+> **This callback is only available on xStarbound v3.7.4+.**
+
+Sets the item's rarity border directives to those specified, or clears them if `nil` or unspecified; these directives _do_ visually override the rarity border directives used to indicate that a cosmetic item is underlaid. This change takes effect immediately. An item's rarity border directives are stored in its `"rarityBorderDirectives"` parameter.
+
+---
+
 #### `void` activeItem.setInstanceValue(`String` parameter, `Json` value)
 
 Sets an instance value (parameter) of the item.

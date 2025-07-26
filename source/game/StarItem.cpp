@@ -25,6 +25,18 @@ Item::Item(Json config, String directory, Json parameters) {
   else
     m_rarity = RarityNames.getLeft(instanceValue("rarity").toString());
 
+  Json jCountString = instanceValue("countString", Json());
+  if (jCountString.type() == Json::Type::String)
+    m_countString = jCountString.toString();
+  else
+    m_countString = {};
+
+  Json jBorderDirectives = instanceValue("rarityBorderDirectives", Json());
+  if (jBorderDirectives.type() == Json::Type::String)
+    m_borderDirectives = jBorderDirectives.toString();
+  else
+    m_borderDirectives = {};
+
   auto inventoryIcon = instanceValue("inventoryIcon", Root::singleton().assets()->json("/items/defaultParameters.config:missingIcon"));
   if (inventoryIcon.type() == Json::Type::Array) {
     setIconDrawables(inventoryIcon.toArray().transformed([&](Json const& drawable) -> Drawable {
@@ -278,6 +290,24 @@ void Item::setTwoHanded(bool twoHanded) {
 
 void Item::setTimeToLive(float timeToLive) {
   m_timeToLive = timeToLive;
+}
+
+Maybe<String> Item::countString() const {
+  return m_countString;
+}
+
+void Item::setCountString(const Maybe<String>& newString) {
+  setInstanceValue("countString", newString ? *newString : Json());
+  m_countString = newString;
+}
+
+Maybe<String> Item::borderDirectives() const {
+  return m_borderDirectives;
+}
+
+void Item::setBorderDirectives(const Maybe<String>& newDirectives) {
+  setInstanceValue("rarityBorderDirectives", newDirectives ? *newDirectives : Json());
+  m_borderDirectives = newDirectives;
 }
 
 List<QuestArcDescriptor> Item::pickupQuestTemplates() const {

@@ -514,6 +514,14 @@ LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
     setShortDescription(description);
   });
 
+  callbacks.registerCallback("setCountString", [this](Maybe<String> const& countString) {
+    setCountString(countString);
+  });
+
+  callbacks.registerCallback("setRarityBorderDirectives", [this](Maybe<String> const& borderDirectives) {
+    setBorderDirectives(borderDirectives);
+  });
+
   callbacks.registerCallback("setInstanceValue", [this](String name, Json val) {
       setInstanceValue(std::move(name), std::move(val));
     });
