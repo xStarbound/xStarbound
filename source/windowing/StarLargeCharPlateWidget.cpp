@@ -33,14 +33,14 @@ LargeCharPlateWidget::LargeCharPlateWidget(WidgetCallbackFunc mainCallback, Play
   m_portrait->setPosition(m_portraitOffset);
   addChild("portrait", m_portrait);
 
-  String modeLabelText = assets->json("/interface.config:largeCharPlate.modeText").toString();
+  m_modeLabelText = assets->json("/interface.config:largeCharPlate.modeText").toString();
   m_regularTextColor = Color::rgb(jsonToVec3B(assets->json("/interface.config:largeCharPlate.textColor")));
   m_disabledTextColor = Color::rgb(jsonToVec3B(assets->json("/interface.config:largeCharPlate.textColorDisabled")));
 
   m_modeNameOffset = jsonToVec2I(assets->json("/interface.config:largeCharPlate.modeNameOffset"));
   m_modeOffset = jsonToVec2I(assets->json("/interface.config:largeCharPlate.modeOffset"));
 
-  m_modeName = make_shared<LabelWidget>(modeLabelText, Color::White, HorizontalAnchor::HMidAnchor);
+  m_modeName = make_shared<LabelWidget>(m_modeLabelText, Color::White, HorizontalAnchor::HMidAnchor);
   addChild("modeName", m_modeName);
   m_modeName->setPosition(m_modeNameOffset);
   m_modeName->setAnchor(HorizontalAnchor::HMidAnchor, VerticalAnchor::BottomAnchor);
@@ -76,6 +76,7 @@ void LargeCharPlateWidget::renderImpl() {
     ButtonWidget::setImages(m_playerPlate, m_playerPlateHover);
     ButtonWidget::renderImpl();
     m_modeName->setColor(m_regularTextColor);
+    m_modeName->setText(m_modeLabelText);
     m_playerName->setColor(m_regularTextColor);
     m_playerName->setText(m_player->name());
   } else {
@@ -83,6 +84,7 @@ void LargeCharPlateWidget::renderImpl() {
     ButtonWidget::enable();
     ButtonWidget::renderImpl();
     m_modeName->setColor(m_disabledTextColor);
+    m_modeName->setText("");
     m_playerName->setColor(m_createCharTextColor);
     m_playerName->setText(m_createCharText);
   }
@@ -95,23 +97,17 @@ void LargeCharPlateWidget::mouseOut() {
   ButtonWidget::mouseOut();
 }
 
-void LargeCharPlateWidget::setPlayer(PlayerPtr player) {
+void LargeCharPlateWidget::setPlayer(PlayerPtr player, bool showCharCreationText) {
   m_player = player;
   m_portrait->setEntity(m_player);
 
-  if (m_player) {
+  if (m_player)
     m_playerName->setText(m_player->name());
-  } else {
-    m_playerName->setText(m_createCharText);
-  }
+  else
+    m_playerName->setText(showCharCreationText ? m_createCharText : "");
 
   auto modeTypeTextAndColor = Root::singleton().assets()->json("/interface.config:modeTypeTextAndColor").toArray();
-  int modeType;
-  if (m_player) {
-    modeType = 1 + (int)m_player->modeType();
-  } else {
-    modeType = 0;
-  }
+  int modeType = m_player ? (1 + (int)m_player->modeType()) : 0;
   auto thisModeType = modeTypeTextAndColor[modeType].toArray();
   String modeTypeText = thisModeType[0].toString();
   Color modeTypeColor = Color::rgb(jsonToVec3B(thisModeType[1]));

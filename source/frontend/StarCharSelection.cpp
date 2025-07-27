@@ -40,6 +40,9 @@ CharSelectionPane::CharSelectionPane(PlayerStoragePtr playerStorage,
   });
 
   guiReader.construct(root.assets()->json("/interface/windowconfig/charselection.config"), this);
+
+  if (!filterCallback)
+    fetchChild<ButtonWidget>("createCharButton")->hide();
 }
 
 bool CharSelectionPane::sendEvent(InputEvent const& event) {
@@ -105,7 +108,7 @@ void CharSelectionPane::updateCharacterPlates() {
         m_listNeedsUpdate = true;
       });
     } else {
-      charSelector->setPlayer(PlayerPtr());
+      charSelector->setPlayer(PlayerPtr(), !((bool)m_filterCallback));
       charSelector->disableDelete();
     }
   };

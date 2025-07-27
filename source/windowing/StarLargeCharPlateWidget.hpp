@@ -17,7 +17,7 @@ public:
 
   void mouseOut() override;
 
-  void setPlayer(PlayerPtr player = PlayerPtr());
+  void setPlayer(PlayerPtr player = PlayerPtr(), bool showCharCreationText = false);
 
   void enableDelete(WidgetCallbackFunc const& callback);
   void disableDelete();
@@ -53,6 +53,7 @@ private:
   Vec2I m_deleteOffset;
 
   String m_createCharText;
+  String m_modeLabelText;
   Color m_createCharTextColor;
 
   Color m_regularTextColor;
