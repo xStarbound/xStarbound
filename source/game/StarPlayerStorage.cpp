@@ -1,14 +1,14 @@
 #include "StarPlayerStorage.hpp"
-#include "StarFile.hpp"
-#include "StarLogging.hpp"
-#include "StarIterator.hpp"
-#include "StarTime.hpp"
-#include "StarConfiguration.hpp"
-#include "StarPlayer.hpp"
 #include "StarAssets.hpp"
+#include "StarConfiguration.hpp"
 #include "StarEntityFactory.hpp"
+#include "StarFile.hpp"
+#include "StarIterator.hpp"
+#include "StarLogging.hpp"
+#include "StarPlayer.hpp"
 #include "StarRoot.hpp"
 #include "StarText.hpp"
+#include "StarTime.hpp"
 
 namespace Star {
 
@@ -99,7 +99,7 @@ size_t PlayerStorage::playerCount(FilterCallback filter, String const& searchStr
     }
     return filteredPlayerCount;
   } else {
-    return m_savedPlayersCache.size();
+    return searchFilteredUuids.size();
   }
 }
 
@@ -113,7 +113,7 @@ List<Uuid> PlayerStorage::playerUuids(FilterCallback filter, String const& searc
     }
     return filteredUuids;
   } else {
-    return m_savedPlayersCache.keys();
+    return searchFilteredUuids;
   }
 }
 
@@ -130,8 +130,8 @@ Maybe<Uuid> PlayerStorage::playerUuidAt(size_t index, FilterCallback filter, Str
     else
       return {};
   } else {
-    if (index < m_savedPlayersCache.size())
-      return m_savedPlayersCache.keyAt(index);
+    if (index < searchFilteredUuids.size())
+      return searchFilteredUuids.at(index);
     else
       return {};
   }
@@ -351,4 +351,4 @@ void PlayerStorage::writeMetadata() {
   File::overwriteFileWithRename(Json(m_metadata).printJson(0), filename);
 }
 
-}
+} // namespace Star
