@@ -47,8 +47,12 @@ CharSelectionPane::CharSelectionPane(PlayerStoragePtr playerStorage,
 
   guiReader.construct(root.assets()->json("/interface/windowconfig/charselection.config"), this);
 
-  if (!filterCallback)
+  if (filterCallback) {
     fetchChild<ButtonWidget>("createCharButton")->hide();
+    for (int i = 1; i <= 4; i++) {
+      fetchChild<LargeCharPlateWidget>(strf("charSelector{}", i))->setNoPlayerText("/interface.config:largeCharPlate.noPlayerSwapText");
+    }
+  }
 }
 
 bool CharSelectionPane::sendEvent(InputEvent const& event) {

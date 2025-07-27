@@ -17,7 +17,9 @@ public:
 
   void mouseOut() override;
 
-  void setPlayer(PlayerPtr player = PlayerPtr(), bool showCharCreationText = false);
+  void setPlayer(PlayerPtr player = PlayerPtr());
+
+  void setNoPlayerText(String const& text);
 
   void enableDelete(WidgetCallbackFunc const& callback);
   void disableDelete();

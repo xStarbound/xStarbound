@@ -28,5 +28,9 @@
   "buttonHoverOffSound" : [ "/sfx/interface/button/hover_off.wav" ],
 
   "debugSpatialClearTime" : 0.0,
-  "debugOffset" : [80, 80]
+  "debugOffset" : [80, 80],
+
+  "largeCharPlate": {
+    "noPlayerSwapText": "???"
+  }
 }

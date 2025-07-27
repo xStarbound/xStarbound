@@ -84,7 +84,7 @@ void LargeCharPlateWidget::renderImpl() {
     ButtonWidget::enable();
     ButtonWidget::renderImpl();
     m_modeName->setColor(m_disabledTextColor);
-    m_modeName->setText("");
+    m_modeName->setText(m_modeLabelText);
     m_playerName->setColor(m_createCharTextColor);
     m_playerName->setText(m_createCharText);
   }
@@ -97,14 +97,14 @@ void LargeCharPlateWidget::mouseOut() {
   ButtonWidget::mouseOut();
 }
 
-void LargeCharPlateWidget::setPlayer(PlayerPtr player, bool showCharCreationText) {
+void LargeCharPlateWidget::setPlayer(PlayerPtr player) {
   m_player = player;
   m_portrait->setEntity(m_player);
 
   if (m_player)
     m_playerName->setText(m_player->name());
   else
-    m_playerName->setText(showCharCreationText ? m_createCharText : "");
+    m_playerName->setText(m_createCharText);
 
   auto modeTypeTextAndColor = Root::singleton().assets()->json("/interface.config:modeTypeTextAndColor").toArray();
   int modeType = m_player ? (1 + (int)m_player->modeType()) : 0;
@@ -113,6 +113,10 @@ void LargeCharPlateWidget::setPlayer(PlayerPtr player, bool showCharCreationText
   Color modeTypeColor = Color::rgb(jsonToVec3B(thisModeType[1]));
   m_mode->setText(modeTypeText);
   m_mode->setColor(modeTypeColor);
+}
+
+void LargeCharPlateWidget::setNoPlayerText(String const& text) {
+  m_createCharText = text;
 }
 
 void LargeCharPlateWidget::enableDelete(WidgetCallbackFunc const& callback) {
