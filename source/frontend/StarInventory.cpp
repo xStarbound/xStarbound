@@ -194,7 +194,7 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
     auto itemGrid = itemBagConfig.get(name).getString("itemGrid");
     invWindowReader.registerCallback(itemGrid, bind(leftClickCallback, name, _1));
     invWindowReader.registerCallback(strf("{}.right", itemGrid), bind(bagGridCallback, name, _1));
-    invWindowReader.registerCallback(strf("{}.middle", itemGrid), bind(middleClickCallback, name, _1));
+    invWindowReader.registerCallback(strf("{}.middle", itemGrid), bind(bagGridMiddleClickCallback, name, _1));
   }
 
   invWindowReader.registerCallback("close", [=](Widget*) {
