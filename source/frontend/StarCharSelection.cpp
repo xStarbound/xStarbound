@@ -118,7 +118,7 @@ void CharSelectionPane::updateCharacterPlates() {
         m_listNeedsUpdate = true;
       });
     } else {
-      charSelector->setPlayer(PlayerPtr(), !((bool)m_filterCallback));
+      charSelector->setPlayer(PlayerPtr());
       charSelector->disableDelete();
     }
   };
