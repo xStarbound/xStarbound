@@ -12,7 +12,7 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 
 - Several new commands (by @fezzedone)! Type `/xclient` for info on the new client-side commands, or `/help` (on xServer, an xClient host or in single-player on xClient) to see the new server-side ones.
 - Nicer (and optimised) non-pixelated humanoid tech and status effect scaling for players and NPCs (reimplementation by @fezzedone).
-- Now runs [Pluto](https://pluto-lang.org/), a fork of Lua 5.4!
+- Now runs [Pluto](https://pluto-lang.org/), an optimised fork of Lua 5.4!
 - Full Lua sandboxing! By @fezzedone.
   - To replace the old, potentially crash-prone sandbox-breaking code used by certain mods, xStarbound supports pane message handlers and Lua callbacks for safely saving and reading variables in global variable tables with the same expected cross-context scopes.
   - **Note:** This causes some mod compatibility issues; see below for affected mods.
@@ -26,17 +26,19 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 
   - _Network compatibility note:_ This cross-client cosmetics compatibility does not work in either direction for OpenStarbound v0.1.11+ clients connected to OpenStarbound v0.1.11+ servers, unless the OpenStarbound clients are connected in legacy mode.
 
-- Support for OpenStarbound v0.1.10/v0.1.11 cosmetic features (left-facing «flipped» clothing directives for custom items, humanoid config overrides, custom armour hiding, overlay-only items) by @novaenia. Tweaked for xStarbound by @fezzedone, including support for `"flipDirectives"` in `/render` and overridden movement parameters in humanoid config overrides; movement parameter override support was also added in OpenStarbound v0.1.11.1 by @novaenia.
+- Support for OpenStarbound v0.1.10/v0.1.11 cosmetic features (left-facing «flipped» clothing directives for custom items, humanoid config overrides, custom armour hiding, overlay-only items, middle-clicking to hide armour) by @novaenia. Tweaked for xStarbound by @fezzedone, including support for `"flipDirectives"` in `/render` and overridden movement parameters in humanoid config overrides; movement parameter override support was also added in OpenStarbound v0.1.11.1 by @novaenia.
 - Control multiple characters on a single client! Is fully multiplayer-compatible. By @fezzedone. Replaces OpenStarbound's character swapping feature.
   - `/add` and `/adduuid`: Loads and adds a player character from your saves.
   - `/swap` and `/swapuuid`: Swaps to a different character. If the character isn't loaded, replaces your current character.
   - `/remove` and `/removeuuid`: Removes a character you're not currently controlling.
   - There are some game balance restrictions — dead characters won't respawn until you beam to your ship. The restrictions can be disabled via the Lua API on a per-character basis.
+- A search bar for long character lists. By @KrashV. Also an extra **Create Character** button while in the main menu, by @WasabiRaptor.
 - An in-game character editor — use `/editor`. Works properly with modpacks too. By @fezzedone.
 - xStarbound now has OpenStarbound's world file flattening and bloat fixes! By @novaenia.
 - xStarbound automatically repacks shipworld and celestial world files when loading them, saving you quite a bit of disk space and, for xClient, reducing server lag caused by shipworlds. By @fezzedone.
   - Shipworld repacking is client-side; celestial world repacking is server-side.
   - Disable this automatic repacking by adding `"disableRepacking": true` to `xclient.config` or `xserver.config`.
+- Various UI modding callbacks and tweaks by @grbr404, @WasabiRaptor and @Novaenia.
 - Additional Lua callbacks to make player characters fully scriptable, just like NPCs!
 - The UI scale can now be adjusted in the graphics settings dialogue, complete with configurable keybinds and support for fractional scales (@fezzedone). There are also keybinds for changing the in-game camera zoom (@novaenia). Both the UI scale and zoom level are scriptable (@fezzedone). UI scaling mods are no longer needed (and in fact no longer do anything) in xStarbound!
 - Chat message history is now saved to `messages.json` in your storage directory instead of being reset on every disconnection (@fezzedone). Use the new `/clear` command on xClient to clear the chat history instead.
@@ -89,8 +91,8 @@ The following mods have special functionality that requires or is supported by x
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
-- [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports StarExtensions (with reduced functionality) and is compatible with stock Starbound. Is _not_ compatible with OpenStarbound.
-- [Infiniter Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3514830972) ([GitHub](https://github.com/bongus-jive/infiniter-inventory)) — supported by xStarbound as of xSB v3.7.3; everything but the «shift-click to Infiniter Inventory» feature is supported. Note that since the mod's Quickbar entry is not supported by Quickbar Mini (and hence does nothing), you must bind and use the keybind to open the Infiniter Inventory.
+- [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with stock Starbound.
+- [Infiniter Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3514830972) ([GitHub](https://github.com/bongus-jive/infiniter-inventory)) — supported by xStarbound as of xSB v3.7.3; all features are supported as of xSB v3.7.4. Note that since the mod's Quickbar entry is not supported by Quickbar Mini (and hence does nothing), you must bind and use either of the keybinds to open the Infiniter Inventory.
 - [LR's Storage Dimension](https://steamcommunity.com/sharedfiles/filedetails/?id=3432253227) — automatic recipe detection is fully supported by xStarbound.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
 - [Minecraft UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3412449426) — should be supported by xStarbound; report any issues.
