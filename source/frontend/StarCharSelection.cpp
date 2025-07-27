@@ -50,7 +50,7 @@ CharSelectionPane::CharSelectionPane(PlayerStoragePtr playerStorage,
   if (filterCallback) {
     fetchChild<ButtonWidget>("createCharButton")->hide();
     for (int i = 1; i <= 4; i++) {
-      fetchChild<LargeCharPlateWidget>(strf("charSelector{}", i))->setNoPlayerText("/interface.config:largeCharPlate.noPlayerSwapText");
+      fetchChild<LargeCharPlateWidget>(strf("charSelector{}", i))->setNoPlayerText(root.assets()->json("/interface.config:largeCharPlate.noPlayerSwapText").toString());
     }
   }
 }
