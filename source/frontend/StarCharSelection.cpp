@@ -1,10 +1,10 @@
 #include "StarCharSelection.hpp"
-#include "StarGuiReader.hpp"
-#include "StarRoot.hpp"
-#include "StarLargeCharPlateWidget.hpp"
 #include "StarAssets.hpp"
-#include "StarRandom.hpp"
+#include "StarGuiReader.hpp"
 #include "StarInputEvent.hpp"
+#include "StarLargeCharPlateWidget.hpp"
+#include "StarRandom.hpp"
+#include "StarRoot.hpp"
 #include "StarTextBoxWidget.hpp"
 
 namespace Star {
@@ -14,14 +14,14 @@ CharSelectionPane::CharSelectionPane(PlayerStoragePtr playerStorage,
     SelectCharacterCallback selectCallback,
     DeleteCharacterCallback deleteCallback,
     FilterCallback filterCallback)
-  : m_playerStorage(playerStorage),
-    m_downScroll(0),
-    m_createCallback(createCallback),
-    m_selectCallback(selectCallback),
-    m_deleteCallback(deleteCallback),
-    m_filterCallback(filterCallback),
-    m_listNeedsUpdate(false),
-    m_search("") {
+    : m_playerStorage(playerStorage),
+      m_downScroll(0),
+      m_createCallback(createCallback),
+      m_selectCallback(selectCallback),
+      m_deleteCallback(deleteCallback),
+      m_filterCallback(filterCallback),
+      m_listNeedsUpdate(false),
+      m_search("") {
   auto& root = Root::singleton();
 
   GuiReader guiReader;
@@ -87,16 +87,16 @@ void CharSelectionPane::update(float dt) {
 }
 
 void CharSelectionPane::shiftCharacters(int shift) {
-  m_downScroll = std::max<int>(std::min<int>(m_downScroll + shift, m_playerStorage->playerCount(m_filterCallback) - 3), 0);
+  m_downScroll = std::max<int>(std::min<int>(m_downScroll + shift, m_playerStorage->playerCount(m_filterCallback, m_search) - 3), 0);
   updateCharacterPlates();
 }
 
 void CharSelectionPane::selectCharacter(unsigned buttonIndex) {
-  if (auto playerUuid = m_playerStorage->playerUuidAt(m_downScroll + buttonIndex, m_filterCallback)) {
+  if (auto playerUuid = m_playerStorage->playerUuidAt(m_downScroll + buttonIndex, m_filterCallback, m_search)) {
     auto player = m_playerStorage->loadPlayer(*playerUuid);
     if (player->isPermaDead() && !player->isAdmin()) {
       auto sound = Random::randValueFrom(
-                       Root::singleton().assets()->json("/interface.config:buttonClickFailSound").toArray(), "")
+          Root::singleton().assets()->json("/interface.config:buttonClickFailSound").toArray(), "")
                        .toString();
       if (!sound.empty())
         context()->playAudio(sound);
@@ -111,7 +111,7 @@ void CharSelectionPane::selectCharacter(unsigned buttonIndex) {
 void CharSelectionPane::updateCharacterPlates() {
   auto updatePlayerLine = [this](String name, unsigned scrollPosition) {
     auto charSelector = fetchChild<LargeCharPlateWidget>(name);
-    if (auto playerUuid = m_playerStorage->playerUuidAt(scrollPosition, m_filterCallback)) {
+    if (auto playerUuid = m_playerStorage->playerUuidAt(scrollPosition, m_filterCallback, m_search)) {
       charSelector->setPlayer(m_playerStorage->loadPlayer(*playerUuid));
       charSelector->enableDelete([this, playerUuid](Widget*) {
         m_deleteCallback(*playerUuid);
@@ -133,10 +133,10 @@ void CharSelectionPane::updateCharacterPlates() {
   else
     fetchChild("playerUpButton")->hide();
 
-  if (m_downScroll < m_playerStorage->playerCount(m_filterCallback) - 3)
+  if (m_downScroll < m_playerStorage->playerCount(m_filterCallback, m_search) - 3)
     fetchChild("playerDownButton")->show();
   else
     fetchChild("playerDownButton")->hide();
 }
 
-}
+} // namespace Star
