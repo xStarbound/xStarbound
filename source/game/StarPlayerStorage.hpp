@@ -17,12 +17,13 @@ public:
   PlayerStorage(String const& storageDir);
   ~PlayerStorage();
 
-  size_t playerCount(FilterCallback filter = {}) const;
-  List<Uuid> playerUuids(FilterCallback filter = {}) const;
+  size_t playerCount(FilterCallback filter = {}, String const& searchStr = "");
+  List<Uuid> playerUuids(FilterCallback filter = {}, String const& searchStr = "");
   // Returns nothing if index is out of bounds.
-  Maybe<Uuid> playerUuidAt(size_t index, FilterCallback filter = {});
+  Maybe<Uuid> playerUuidAt(size_t index, FilterCallback filter = {}, String const& searchStr = "");
   // Returns nothing if name doesn't match a player.
   Maybe<Uuid> playerUuidByName(String const& name, Maybe<Uuid> except = {});
+  List<Uuid> playerUuidListByName(String const& name, Maybe<Uuid> except);
 
   // Also returns the diskStore Json if needed.
   Json savePlayer(PlayerPtr const& player);

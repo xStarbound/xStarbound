@@ -37,6 +37,7 @@ private:
   FilterCallback m_filterCallback;
 
   bool m_listNeedsUpdate;
+  String m_search;
 };
 typedef shared_ptr<CharSelectionPane> CharSelectionPanePtr;
 }

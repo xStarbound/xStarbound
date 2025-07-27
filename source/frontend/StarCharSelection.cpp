@@ -5,6 +5,7 @@
 #include "StarAssets.hpp"
 #include "StarRandom.hpp"
 #include "StarInputEvent.hpp"
+#include "StarTextBoxWidget.hpp"
 
 namespace Star {
 
@@ -19,7 +20,8 @@ CharSelectionPane::CharSelectionPane(PlayerStoragePtr playerStorage,
     m_selectCallback(selectCallback),
     m_deleteCallback(deleteCallback),
     m_filterCallback(filterCallback),
-    m_listNeedsUpdate(false) {
+    m_listNeedsUpdate(false),
+    m_search("") {
   auto& root = Root::singleton();
 
   GuiReader guiReader;
@@ -30,6 +32,12 @@ CharSelectionPane::CharSelectionPane(PlayerStoragePtr playerStorage,
   guiReader.registerCallback("charSelector2", [=](Widget*) { selectCharacter(1); });
   guiReader.registerCallback("charSelector3", [=](Widget*) { selectCharacter(2); });
   guiReader.registerCallback("charSelector4", [=](Widget*) { selectCharacter(3); });
+  guiReader.registerCallback("createCharButton", [=](Widget*) { m_createCallback(); });
+  guiReader.registerCallback("searchCharacter", [=](Widget* obj) {
+    m_downScroll = 0;
+    m_search = convert<TextBoxWidget>(obj)->getText().trim().toLower();
+    updateCharacterPlates();
+  });
 
   guiReader.construct(root.assets()->json("/interface/windowconfig/charselection.config"), this);
 }

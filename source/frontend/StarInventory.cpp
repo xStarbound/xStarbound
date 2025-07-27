@@ -33,7 +33,7 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
 
   GuiReader invWindowReader;
   auto config = Root::singleton().assets()->json("/interface/windowconfig/playerinventory.config");
-  auto playerInventoryConfig = Root::singleton().assets()->json("/player.config:inventory");
+  auto playerInventoryConfig = Root::singleton().assets()->json("/player.config:inventory", true);
   m_anyBagAllowed = playerInventoryConfig.optBool("allowAnyBagItem").value(false);
 
   auto leftClickCallback = [this](String const& bagType, Widget* widget) {
@@ -156,6 +156,14 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
       if (auto sourceItem = as<ObjectItem>(item)) {
         if (!m_player->inWorld())
           return;
+        if (Root::singleton().assets()->json("/player.config:inventory").optBool("disableInventoryObjectInteractions").value(false))
+          return;
+        auto jDisableInventoryInteraction = sourceItem->instanceValue("disableInventoryInteraction");
+        if (jDisableInventoryInteraction.isType(Json::Type::Bool)) {
+          auto disableInventoryInteraction = jDisableInventoryInteraction.toBool();
+          if (disableInventoryInteraction)
+            return;
+        }
         if (auto actionTypeName = sourceItem->instanceValue("interactAction")) {
           if (!actionTypeName.isType(Json::Type::String)) {
             Logger::warn("[xSB] InventoryPane: Interact action of an invalid type! Item descriptor: {}", sourceItem->descriptor().toJson());

@@ -1,0 +1,25 @@
+{
+  // WasabiRaptor: Extra character creation button.
+	"createCharButton": {
+		"type": "button",
+    "base" : "/interface/xsb/charselectioncreatebutton.png",
+    "hover" : "/interface/xsb/charselectioncreatebuttonhover.png",
+		"position": [ 23, 241 ],
+		"pressedOffset": [ 0, 0 ]
+	},
+  // KrashV: Character search box and clear button.
+	"searchCharacter": {
+		"type": "textbox",
+		"hint": "Search...",
+		"position": [ 130, 244 ],
+		"maxWidth": 75
+	},
+  "clearSearch" : {
+    "type" : "button",
+    "base" : "/interface/x.png",
+    "hover" : "/interface/xhover.png",
+    "pressed" : "/interface/xpress.png",
+    "position" : [ 200, 242 ],
+    "pressedOffset" : [ 0, 0 ]
+  }
+}
