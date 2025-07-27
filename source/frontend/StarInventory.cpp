@@ -150,35 +150,40 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
     rightClickCallback(slot);
   };
 
-  auto middleClickCallback = [this](String const& bagType, Widget* widget) {
-    auto itemGrid = convert<ItemGridWidget>(widget);
-    InventorySlot inventorySlot = BagSlot(bagType, itemGrid->selectedIndex());
+  auto middleClickCallback = [this](InventorySlot slot) {
     auto inventory = m_player->inventory();
-    if (auto sourceItem = as<ObjectItem>(itemGrid->selectedItem())) {
-      if (!m_player->inWorld())
-        return;
-      if (auto actionTypeName = sourceItem->instanceValue("interactAction")) {
-        if (!actionTypeName.isType(Json::Type::String)) {
-          Logger::warn("[xSB] InventoryPane: Interact action of an invalid type! Item descriptor: {}", sourceItem->descriptor().toJson());
+    if (auto item = inventory->itemsAt(slot)) {
+      if (auto sourceItem = as<ObjectItem>(item)) {
+        if (!m_player->inWorld())
           return;
+        if (auto actionTypeName = sourceItem->instanceValue("interactAction")) {
+          if (!actionTypeName.isType(Json::Type::String)) {
+            Logger::warn("[xSB] InventoryPane: Interact action of an invalid type! Item descriptor: {}", sourceItem->descriptor().toJson());
+            return;
+          }
+          auto actionTypeStr = actionTypeName.toString();
+          auto actionType = InteractActionTypeNames.maybeLeft(actionTypeStr);
+          if (!actionType) {
+            Logger::warn("[xSB] InventoryPane: Invalid interact action {} on object item in inventory! Item descriptor: {}", actionTypeStr, sourceItem->descriptor().toJson());
+            return;
+          }
+          if (*actionType >= InteractActionType::OpenCraftingInterface && *actionType <= InteractActionType::ScriptPane) {
+            auto actionData = sourceItem->instanceValue("interactData", Json());
+            if (actionData.isType(Json::Type::Object))
+              actionData = actionData.set("openWithInventory", false);
+            InteractAction action(*actionType, NullEntityId, actionData);
+            m_player->interact(action);
+          }
         }
-        auto actionTypeStr = actionTypeName.toString();
-        auto actionType = InteractActionTypeNames.maybeLeft(actionTypeStr);
-        if (!actionType) {
-          Logger::warn("[xSB] InventoryPane: Invalid interact action {} on object item in inventory! Item descriptor: {}", actionTypeStr, sourceItem->descriptor().toJson());
-          return;
-        }
-        if (*actionType >= InteractActionType::OpenCraftingInterface && *actionType <= InteractActionType::ScriptPane) {
-          auto actionData = sourceItem->instanceValue("interactData", Json());
-          if (actionData.isType(Json::Type::Object))
-            actionData = actionData.set("openWithInventory", false);
-          InteractAction action(*actionType, NullEntityId, actionData);
-          m_player->interact(action);
-        }
+      } else if (auto armourItem = as<ArmorItem>(item)) {
+        armourItem->setHideInStockSlots(!armourItem->hideInStockSlots());
       }
-    } else if (auto armourItem = as<ArmorItem>(itemGrid->selectedItem())) {
-      armourItem->setHideInStockSlots(!armourItem->hideInStockSlots());
     }
+  };
+
+  auto bagGridMiddleClickCallback = [middleClickCallback](String const& bagType, Widget* widget) {
+    auto slot = BagSlot(bagType, convert<ItemGridWidget>(widget)->selectedIndex());
+    middleClickCallback(slot);
   };
 
   Json itemBagConfig = config.get("bagConfig");
@@ -213,6 +218,12 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
     invWindowReader.registerCallback(name, [=](Widget* paneObj) {
       if (as<ItemSlotWidget>(paneObj))
         m_player->inventory()->shiftSwap(slot);
+      else
+        throw GuiException("Invalid object type, expected ItemSlotWidget");
+    });
+    invWindowReader.registerCallback(name + ".middle", [=](Widget* paneObj) {
+      if (as<ItemSlotWidget>(paneObj))
+        middleClickCallback(slot);
       else
         throw GuiException("Invalid object type, expected ItemSlotWidget");
     });
