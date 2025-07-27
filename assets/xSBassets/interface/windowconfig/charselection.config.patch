@@ -4,6 +4,7 @@
 		"type": "button",
     "base" : "/interface/xsb/charselectioncreatebutton.png",
     "hover" : "/interface/xsb/charselectioncreatebuttonhover.png",
+    "caption" : "Create Character",
 		"position": [ 23, 241 ],
 		"pressedOffset": [ 0, 0 ]
 	},
