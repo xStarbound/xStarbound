@@ -34,7 +34,7 @@ template <typename InputIterator>
 class JsonParser {
 public:
   JsonParser(JsonStream& stream)
-    : m_line(0), m_column(0), m_stream(stream) {}
+      : m_line(0), m_column(0), m_stream(stream) {}
   virtual ~JsonParser() {}
 
   // Does not throw.  On error, returned iterator will not be equal to end, and
@@ -469,10 +469,10 @@ private:
   bool isSpace(char32_t c) {
     // Only whitespace allowed by JSON
     return c == 0x20 || // space
-        c == 0x09 || // horizontal tab
-        c == 0x0a || // newline
-        c == 0x0d || // carriage return
-        c == 0xfeff; // BOM or ZWNBSP
+           c == 0x09 || // horizontal tab
+           c == 0x0a || // newline
+           c == 0x0d || // carriage return
+           c == 0xfeff; // BOM or ZWNBSP
   }
 
   char32_t m_char;
@@ -489,7 +489,7 @@ template <typename OutputIterator>
 class JsonWriter : public JsonStream {
 public:
   JsonWriter(OutputIterator out, unsigned pretty = 0)
-    : m_out(out), m_pretty(pretty) {}
+      : m_out(out), m_pretty(pretty) {}
 
   void beginObject() {
     startValue();
@@ -546,7 +546,7 @@ public:
 
     write('"');
     char32_t c = *s;
-    while (c && (len > 0)) {
+    while (len > 0) {
       if (!isPrintable(c)) {
         switch (c) {
           case '"':
@@ -729,6 +729,6 @@ private:
   std::vector<State> m_state;
 };
 
-}
+} // namespace Star
 
 #endif

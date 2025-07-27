@@ -1,22 +1,22 @@
 #include "StarWorldStorage.hpp"
-#include "StarFile.hpp"
-#include "StarCompression.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarDataStreamExtra.hpp"
-#include "StarIterator.hpp"
-#include "StarLogging.hpp"
-#include "StarRoot.hpp"
-#include "StarEntityMap.hpp"
-#include "StarEntityFactory.hpp"
 #include "StarAssets.hpp"
-#include "StarMaterialDatabase.hpp"
+#include "StarCompression.hpp"
+#include "StarDataStreamExtra.hpp"
+#include "StarEntityFactory.hpp"
+#include "StarEntityMap.hpp"
+#include "StarFile.hpp"
+#include "StarIterator.hpp"
+#include "StarJsonExtra.hpp"
 #include "StarLiquidsDatabase.hpp"
+#include "StarLogging.hpp"
+#include "StarMaterialDatabase.hpp"
+#include "StarRoot.hpp"
 
 #if defined TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
+#include "tracy/Tracy.hpp"
 #else
-  #define ZoneScoped
-  #define ZoneScopedN(name)
+#define ZoneScoped
+#define ZoneScopedN(name)
 #endif
 
 namespace Star {
@@ -24,7 +24,7 @@ namespace Star {
 /* xStarbound: Automatic world file repacking. Now much less often needed because xStarbound now has OpenStarbound's BTreeDB5 defragmentation. */
 void WorldStorage::repackWorldFile(String const& fileName, String const& fileType) {
   ZoneScoped;
-  
+
   const String repackExtension = ".repack";
   auto config = Root::singleton().configuration();
   if (!config->get("disableRepacking").optBool().value(false)) {
@@ -67,11 +67,11 @@ void WorldStorage::repackWorldFile(String const& fileName, String const& fileTyp
         newDb.close();
 
         Logger::info("WorldStorage: Detected {:.2f}% unused space (exceeding {:.2f}% threshold) in {}; repacked before load in {:.2f} ms",
-          freeSpacePercentage * 100.0f, repackingThreshold * 100.0f, fileType, (Time::monotonicTime() - startTime) * 1000.0f);
+            freeSpacePercentage * 100.0f, repackingThreshold * 100.0f, fileType, (Time::monotonicTime() - startTime) * 1000.0f);
         success = true;
       } else {
         Logger::info("WorldStorage: Detected {:.2f}% unused space (below {:.2f}% threshold) in {}; not repacking",
-          freeSpacePercentage * 100.0f, repackingThreshold * 100.0f, fileType);
+            freeSpacePercentage * 100.0f, repackingThreshold * 100.0f, fileType);
         success = false;
       }
     } catch (const std::exception& e) {
@@ -135,7 +135,7 @@ WorldChunks WorldStorage::getWorldChunksFromFile(String const& file) {
 }
 
 WorldStorage::WorldStorage(Vec2U const& worldSize, IODevicePtr const& device, WorldGeneratorFacadePtr const& generatorFacade)
-  : WorldStorage() {
+    : WorldStorage() {
   m_tileArray = make_shared<ServerTileSectorArray>(worldSize);
   m_entityMap = make_shared<EntityMap>(worldSize, MinServerEntityId, MaxServerEntityId);
   m_generatorFacade = generatorFacade;
@@ -346,8 +346,8 @@ void WorldStorage::generateQueue(Maybe<size_t> sectorGenerationLevelLimit, funct
   try {
     if (sectorOrdering) {
       m_generationQueue.sort([&sectorOrdering](auto const& a, auto const& b) {
-          return sectorOrdering(a.first, b.first);
-        });
+        return sectorOrdering(a.first, b.first);
+      });
     }
 
     unsigned total = 0;
@@ -371,13 +371,13 @@ void WorldStorage::generateQueue(Maybe<size_t> sectorGenerationLevelLimit, funct
 
 void WorldStorage::tick(float dt) {
   ZoneScoped;
-  
+
   try {
     // Tick down generation queue entries, and erase any that are expired.
     eraseWhere(m_generationQueue, [dt](auto& p) {
-        p.second -= dt;
-        return p.second <= 0.0f;
-      });
+      p.second -= dt;
+      return p.second <= 0.0f;
+    });
 
     // Tick down sector TTL values
     for (auto& p : m_sectorMetadata)
@@ -402,13 +402,13 @@ void WorldStorage::tick(float dt) {
       bool keepAlive = false;
       List<EntityPtr> zombieEntities;
       m_entityMap->forEachEntity(RectF(m_tileArray->sectorRegion(sector)), [&](EntityPtr const& entity) {
-          if (belongsInSector(sector, entity->position())) {
-            if (!keepAlive && m_generatorFacade->entityKeepAlive(this, entity))
-              keepAlive = true;
-            else if (metadata.loadLevel < SectorLoadLevel::Entities)
-              zombieEntities.append(entity);
-          }
-        });
+        if (belongsInSector(sector, entity->position())) {
+          if (!keepAlive && m_generatorFacade->entityKeepAlive(this, entity))
+            keepAlive = true;
+          else if (metadata.loadLevel < SectorLoadLevel::Entities)
+            zombieEntities.append(entity);
+        }
+      });
 
       if (keepAlive) {
         setSectorTimeToLive(sector, randomizedSectorTTL());
@@ -511,8 +511,8 @@ WorldChunks WorldStorage::readChunks() {
 
     WorldChunks chunks;
     m_db.forAll([&chunks](ByteArray k, ByteArray v) {
-        chunks.add(std::move(k), std::move(v));
-      });
+      chunks.add(std::move(k), std::move(v));
+    });
 
     return WorldChunks(chunks);
 
@@ -532,10 +532,10 @@ void WorldStorage::setFloatingDungeonWorld(bool floatingDungeonWorld) {
 }
 
 WorldStorage::TileSectorStore::TileSectorStore()
-  : tileSerializationVersion(ServerTile::CurrentSerializationVersion) {}
+    : tileSerializationVersion(ServerTile::CurrentSerializationVersion) {}
 
 WorldStorage::SectorMetadata::SectorMetadata()
-  : loadLevel(SectorLoadLevel::None), generationLevel(SectorGenerationLevel::None), timeToLive(0.0f) {}
+    : loadLevel(SectorLoadLevel::None), generationLevel(SectorGenerationLevel::None), timeToLive(0.0f) {}
 
 ByteArray WorldStorage::metadataKey() {
   DataStreamBuffer metadata(5);
@@ -710,7 +710,7 @@ float WorldStorage::randomizedSectorTTL() const {
 
 pair<bool, size_t> WorldStorage::generateSectorToLevel(Sector const& sector, SectorGenerationLevel targetGenerationLevel, size_t sectorGenerationLevelLimit) {
   ZoneScoped;
-  
+
   if (!m_tileArray->sectorValid(sector))
     return {false, 0};
 
@@ -824,9 +824,9 @@ void WorldStorage::loadSectorToLevel(Sector const& sector, SectorLoadLevel targe
 
 void WorldStorage::unloadSectorToLevel(Sector const& sector, SectorLoadLevel targetLoadLevel, bool force) {
   ZoneScoped;
-  
+
   // FezzedOne: Fix for a rare segfault upon unloading a world.
-  if (!m_tileArray)
+  if (!m_tileArray || !m_entityMap)
     return;
 
   if (!m_tileArray->sectorValid(sector) || targetLoadLevel == SectorLoadLevel::Loaded)
@@ -1018,4 +1018,4 @@ void WorldStorage::removeUniqueIndexEntry(String const& uniqueId, Sector const& 
   }
 }
 
-}
+} // namespace Star

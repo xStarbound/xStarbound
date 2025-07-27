@@ -140,6 +140,10 @@ LuaTable LuaContext::createTable() {
 LuaNullEnforcer::LuaNullEnforcer(LuaEngine& engine)
     : m_engine(&engine) { ++m_engine->m_nullTerminated; };
 
+LuaNullEnforcer::LuaNullEnforcer(LuaNullEnforcer&& enforcer) {
+  m_engine = take(enforcer.m_engine);
+}
+
 LuaNullEnforcer::~LuaNullEnforcer() { --m_engine->m_nullTerminated; };
 
 LuaValue LuaConverter<Json>::from(LuaEngine& engine, Json const& v) {
@@ -177,7 +181,7 @@ Maybe<Json> LuaConverter<Json>::to(LuaEngine&, LuaValue const& v) {
     return Json(*f);
 
   if (auto s = v.ptr<LuaString>())
-    return Json(s->ptr());
+    return Json(s->toString());
 
   if (v.is<LuaTable>())
     return LuaDetail::tableToJsonContainer(v.get<LuaTable>());
@@ -530,25 +534,29 @@ ByteArray LuaEngine::compile(ByteArray const& contents, String const& name) {
   return compile(contents.ptr(), contents.size(), name.empty() ? nullptr : name.utf8Ptr());
 }
 
-LuaString LuaEngine::createString(String const& str) {
+LuaString LuaEngine::createString(std::string const& str) {
   lua_checkstack(m_state, 1);
 
   if (m_nullTerminated > 0) {
-    if (str.utf8Ptr()) {
-      lua_pushstring(m_state, str.utf8Ptr());
-    } else {
-      const char* emptyString = "";
-      lua_pushstring(m_state, emptyString);
-    }
+    //   if (str.utf8Ptr()) {
+    lua_pushstring(m_state, str.data());
+    // } else {
+    //   const char* emptyString = "";
+    //   lua_pushstring(m_state, emptyString);
+    // }
   } else {
-    if (str.utf8Ptr()) {
-      lua_pushlstring(m_state, str.utf8Ptr(), str.utf8Size());
-    } else {
-      const char* emptyString = "";
-      lua_pushlstring(m_state, emptyString, 0);
-    }
+    // if (str.utf8Ptr()) {
+    lua_pushlstring(m_state, str.data(), str.size());
+    // } else {
+    //   const char* emptyString = "";
+    //   lua_pushlstring(m_state, emptyString, 0);
+    // }
   }
   return LuaString(LuaDetail::LuaHandle(RefPtr<LuaEngine>(this), popHandle(m_state)));
+}
+
+LuaString LuaEngine::createString(String const& str) {
+  return createString(str.utf8());
 }
 
 LuaString LuaEngine::createString(char const* str, size_t len) {
