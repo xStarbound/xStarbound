@@ -32,14 +32,14 @@ Compiled builds for Linux and Windows should be available in the usual place on 
   - `/swap` and `/swapuuid`: Swaps to a different character. If the character isn't loaded, replaces your current character.
   - `/remove` and `/removeuuid`: Removes a character you're not currently controlling.
   - There are some game balance restrictions — dead characters won't respawn until you beam to your ship. The restrictions can be disabled via the Lua API on a per-character basis.
-- A search bar for long character lists. By @KrashV. Also an extra **Create Character** button while in the main menu, by @WasabiRaptor.
+- A search box for long character lists. By @KrashV. Also an extra **Create Character** button while in the main menu, by @WasabiRaptor.
 - An in-game character editor — use `/editor`. Works properly with modpacks too. By @fezzedone.
 - xStarbound now has OpenStarbound's world file flattening and bloat fixes! By @novaenia.
 - xStarbound automatically repacks shipworld and celestial world files when loading them, saving you quite a bit of disk space and, for xClient, reducing server lag caused by shipworlds. By @fezzedone.
   - Shipworld repacking is client-side; celestial world repacking is server-side.
   - Disable this automatic repacking by adding `"disableRepacking": true` to `xclient.config` or `xserver.config`.
 - Various UI modding callbacks and tweaks by @grbr404, @WasabiRaptor and @Novaenia.
-- Additional Lua callbacks to make player characters fully scriptable, just like NPCs!
+- Additional Lua callbacks to make player characters fully scriptable, just like NPCs! By @fezzedone.
 - The UI scale can now be adjusted in the graphics settings dialogue, complete with configurable keybinds and support for fractional scales (@fezzedone). There are also keybinds for changing the in-game camera zoom (@novaenia). Both the UI scale and zoom level are scriptable (@fezzedone). UI scaling mods are no longer needed (and in fact no longer do anything) in xStarbound!
 - Chat message history is now saved to `messages.json` in your storage directory instead of being reset on every disconnection (@fezzedone). Use the new `/clear` command on xClient to clear the chat history instead.
 - Inventory and action bar expansion (or reduction) mods are now fully compatible with vanilla multiplayer with no changes needed on the mod's part. Additionally, these mods can now be safely added or removed without item loss or crashes as long as characters are loaded in xStarbound. Added by @WasabiRaptor and @fezzedone.
