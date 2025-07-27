@@ -243,7 +243,7 @@ void ItemSlotWidget::renderImpl() {
     if (auto armourItem = as<ArmorItem>(m_item))
       isHiddenArmourItem = armourItem->hideInStockSlots();
 
-    if (m_showRarity && !isHiddenArmourItem) {
+    if (!m_showRarity || !isHiddenArmourItem) {
       for (auto i : iconDrawables)
         context()->drawInterfaceDrawable(i, Vec2F(screenPosition() + size() / 2));
     }
