@@ -92,7 +92,7 @@ The following mods have special functionality that requires or is supported by x
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with stock Starbound.
-- [Infiniter Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3514830972) ([GitHub](https://github.com/bongus-jive/infiniter-inventory)) — supported by xStarbound as of xSB v3.7.3; all features are supported as of xSB v3.7.4. Note that since the mod's Quickbar entry is not supported by Quickbar Mini (and hence does nothing), you must bind and use either of the keybinds to open the Infiniter Inventory.
+- [Infiniter Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3514830972) ([GitHub](https://github.com/bongus-jive/infiniter-inventory)) — supported by xStarbound as of xSB v3.7.3; all features are supported as of xSB v3.7.4.
 - [LR's Storage Dimension](https://steamcommunity.com/sharedfiles/filedetails/?id=3432253227) — automatic recipe detection is fully supported by xStarbound.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
 - [Minecraft UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3412449426) — should be supported by xStarbound; report any issues.
@@ -184,6 +184,7 @@ The following mods are _NOT_ compatible with xStarbound:
 - [Light Limiter](https://steamcommunity.com/sharedfiles/filedetails/?id=3470727854) — neither compatible with nor necessary on xStarbound.
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [OpenStarbound Revert](https://steamcommunity.com/sharedfiles/filedetails/?id=3509533339) — not compatible with xStarbound for obvious reasons. No compatibility patch is planned. Why do you need this on xStarbound anyway?
+- [OpenStarbound WEdit](https://github.com/Mofurka/OpenStarbound-WEdit) — this WEdit fork requires OpenStarbound. Use [xWEdit](https://github.com/fezzedone/xWEdit) instead if you're using xStarbound.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
 - [Ship Pet Swapper](https://steamcommunity.com/sharedfiles/filedetails/?id=3474107812) — not compatible with xStarbound after a recent mod update. Ask about a compatibility patch.
 - [Stardust Core](https://steamcommunity.com/sharedfiles/filedetails/?id=764887546) and [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — these mods' scripts are not compatible with xStarbound's Lua sandbox. Use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) instead.
