@@ -143,11 +143,12 @@ Any mod not listed in the «partially compatible» or «not compatible» categor
 - [Updated Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=2641776549) — use this instead of the incompatible Classic Quickbar (see below).
 - [WTM (WTM Teleporter Mod)](https://steamcommunity.com/sharedfiles/filedetails/?id=1268222595) — verified compatible; the developer Hiran is also behind Digital Storage (see below).
 
-> **Note:** xStarbound does not and will not support StarExtensions' «body dynamics» and text-to-speech features. Details:
+> **Note:** xStarbound does not and will not support StarExtensions' «body dynamics» and text-to-speech features, nor will it support OpenStarbound v0.1.15+'s scriptable humanoid animation system. Details:
 >
 > - Armour, clothing and race mods with included SE «body dynamics» support are compatible, but the «non-jiggle» sprites will be displayed.
 > - Mods intended to patch in «body dynamics» support for other mods simply will not work at all.
 > - Race mods that support StarExtensions' text-to-speech feature will work just fine, but the text-to-speech functionality won't work.
+> - Race mods that use the scriptable humanoid animation system in OpenStarbound v0.1.15+ will not have correct humanoid rendering on xStarbound and may even throw a fatal error on startup due to missing expected parameters.
 
 ### ⚠️ Partially compatible
 
