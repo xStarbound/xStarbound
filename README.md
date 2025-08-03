@@ -181,6 +181,7 @@ The following mods are _NOT_ compatible with xStarbound:
 - [Digital Storage](https://steamcommunity.com/sharedfiles/filedetails/?id=946227505) — the server-side scripts are not compatible with xStarbound's Lua sandbox.
 - [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) — has various incompatibilities with xStarbound, including its usage of unintended humanoid rendering behaviour.
 - [Harder Core Mode](https://steamcommunity.com/sharedfiles/filedetails/?id=3527438945) — not compatible with xStarbound's Lua sandbox. Ask about a potential compatibility patch.
+- [inventory scrambler](https://steamcommunity.com/sharedfiles/filedetails/?id=3538536096) ([GitHub](https://github.com/bongus-jive/inventory-scrambler)) — not compatible with xStarbound's Lua sandbox. Ask about a potential compatibility patch, but seriously, why would you want to scramble your inventory?
 - [Is this Printable?](https://steamcommunity.com/sharedfiles/filedetails/?id=3507216031) — not compatible with xStarbound. Ask about a compatibility patch.
 - [Light Limiter](https://steamcommunity.com/sharedfiles/filedetails/?id=3470727854) — neither compatible with nor necessary on xStarbound.
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
