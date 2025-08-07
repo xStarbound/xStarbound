@@ -39,12 +39,7 @@ Depending on your OS and what version of Starbound you have, the log files are l
 
 **If you're reporting an «access of address 0x18» crash on xClient and you have an NVIDIA card, disable NVIDIA's «threaded optimisation» feature for xClient in the NVIDIA Control Panel or downgrade your driver to v566.x (or older) first! If the crash still occurs after doing that and restarting xClient, _then_ create an issue.**
 
-If you're reporting a crash on the MSVC / Visual Studio build on Windows, your log files are virtually **USELESS** if the `.pdb` files are not installed. If the crash happened on an MSVC build without the `.pdb` files installed, install those files and then attempt to reproduce the crash before submitting the issue or uploading logs.
-
-To install the PDB files:
-
-1. Download the `windows-pdbs.zip` file for the version of xStarbound you're using and then extract it.
-2. Once extracted, copy the `.pdb` files into the folder containing the executables of the same names. Depending on the version of Starbound you own, this folder is located at:
+If you're reporting a crash on an MSVC / Visual Studio build on Windows, rebuild on `Debug` or `RelWithDebInfo` first, then attempt to reproduce the crash and submit logs from the new build. Make sure the generated `.pdb` files for xServer and xClient are present in the same directory (or directories) as the executables on `RelWithDebInfo` builds; you'll need to copy those files from their respective nested `PDBs\` directories in the build tree.
 
 - **Windows (Steam):** Defaults to `C:\Program Files\Steam\steamapps\common\Starbound\xsb-win64\`. Replace `C:\Program Files (x86)\Steam\steamapps\common\` with the path to your custom installation directory for Starbound, if you use one.
 - **Windows (GOG):** Defaults to `C:\GOG Games\Starbound\xsb-win64\`.

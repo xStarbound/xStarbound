@@ -1,25 +1,25 @@
 #include "StarBaseScriptPane.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
-#include "StarGuiReader.hpp"
-#include "StarJsonExtra.hpp"
+#include "StarCanvasWidget.hpp"
 #include "StarConfigLuaBindings.hpp"
-#include "StarLuaGameConverters.hpp"
+#include "StarGuiReader.hpp"
+#include "StarImageWidget.hpp"
 #include "StarInterfaceLuaBindings.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarItemGridWidget.hpp"
+#include "StarItemTooltip.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLuaGameConverters.hpp"
+#include "StarRoot.hpp"
+#include "StarSimpleTooltip.hpp"
 #include "StarVoiceLuaBindings.hpp"
 #include "StarWidgetLuaBindings.hpp"
-#include "StarCanvasWidget.hpp"
-#include "StarItemTooltip.hpp"
-#include "StarItemGridWidget.hpp"
-#include "StarItemDatabase.hpp"
-#include "StarSimpleTooltip.hpp"
-#include "StarImageWidget.hpp"
 #include "StarWorldPainter.hpp"
 
 namespace Star {
 
 BaseScriptPane::BaseScriptPane(Json config, MainInterface* mainInterface, bool construct, bool removeHoakyChatCallbacks)
-: Pane(), m_rawConfig(config), m_removeHoakyChatCallbacks(removeHoakyChatCallbacks), m_mainInterface(mainInterface) {
+    : Pane(), m_rawConfig(config), m_removeHoakyChatCallbacks(removeHoakyChatCallbacks), m_mainInterface(mainInterface) {
   auto& root = Root::singleton();
   auto assets = root.assets();
 
@@ -29,7 +29,7 @@ BaseScriptPane::BaseScriptPane(Json config, MainInterface* mainInterface, bool c
   } else {
     m_config = assets->fetchJson(config);
   }
-  
+
   m_dismissable = m_config.optBool("dismissable").value(true);
   m_interactive = m_config.getBool("interactive", true);
   m_reader = make_shared<GuiReader>();
@@ -60,7 +60,7 @@ void BaseScriptPane::displayed() {
   if (!m_callbacksAdded) {
     m_script.addCallbacks("pane", makePaneCallbacks());
     m_script.addCallbacks("widget", LuaBindings::makeWidgetCallbacks(this, m_reader));
-    m_script.addCallbacks("config", LuaBindings::makeConfigCallbacks( [this](String const& name, Json const& def) {
+    m_script.addCallbacks("config", LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def) {
       return m_config.query(name, def);
     }));
     m_script.addCallbacks("voice", LuaBindings::makeVoiceCallbacks());
@@ -71,7 +71,7 @@ void BaseScriptPane::displayed() {
       m_script.addCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface, true));
       m_script.addCallbacks("camera", LuaBindings::makeCameraCallbacks(&m_mainInterface->worldPainter()->camera()));
       m_script.addCallbacks("chat",
-        LuaBindings::makeChatCallbacks(m_mainInterface, m_removeHoakyChatCallbacks));
+          LuaBindings::makeChatCallbacks(m_mainInterface, m_removeHoakyChatCallbacks));
     }
     m_callbacksAdded = true;
   }
@@ -96,12 +96,12 @@ void BaseScriptPane::tick(float dt) {
     for (auto const& clickEvent : p.first->pullClickEvents())
       // FezzedOne: Added this for consistency with the one below.
       m_script.invoke(p.second, jsonFromVec2I(clickEvent.position), (uint8_t)clickEvent.button,
-        clickEvent.buttonDown, MouseButtonNames.getRight(clickEvent.button));
+          clickEvent.buttonDown, MouseButtonNames.getRight(clickEvent.button));
   }
   for (auto p : m_canvasKeyCallbacks) {
     if (!p.first) continue;
     for (auto const& keyEvent : p.first->pullKeyEvents())
-      // FezzedOne: For OpenStarbound script compatibility. 
+      // FezzedOne: For OpenStarbound script compatibility.
       m_script.invoke(p.second, (int)keyEvent.key, keyEvent.keyDown, KeyNames.getRight(keyEvent.key));
   }
 
@@ -164,7 +164,7 @@ GuiReaderPtr BaseScriptPane::reader() {
 
 // Patman: Inventory item shift-click callback for scripted panes.
 Maybe<ItemPtr> BaseScriptPane::shiftItemFromInventory(ItemPtr const& input) const {
-  auto result = m_script.invoke<Json>("shiftItemFromInventory", input->descriptor().toJson());
+  auto result = m_script.invoke<Json>("shiftItemFromInventory", input ? input->descriptor().toJson() : Json());
   if (!result || result->isNull())
     return {};
 
@@ -192,4 +192,4 @@ void BaseScriptPane::construct(Json config) {
   m_script.setUpdateDelta(config.getUInt("scriptDelta", 1));
 }
 
-}
+} // namespace Star
