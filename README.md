@@ -92,7 +92,6 @@ The following mods have special functionality that requires or is supported by x
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with stock Starbound.
-- [Hunger Fighting Chairs](https://steamcommunity.com/sharedfiles/filedetails/?id=3546473893) — requires xStarbound or OpenStarbound.
 - [Infiniter Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3514830972) ([GitHub](https://github.com/bongus-jive/infiniter-inventory)) — supported by xStarbound as of xSB v3.7.3; all features are supported as of xSB v3.7.4.
 - [LR's Storage Dimension](https://steamcommunity.com/sharedfiles/filedetails/?id=3432253227) — automatic recipe detection is fully supported by xStarbound.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
@@ -184,6 +183,7 @@ The following mods are _NOT_ compatible with xStarbound:
 - [Digital Storage](https://steamcommunity.com/sharedfiles/filedetails/?id=946227505) — the server-side scripts are not compatible with xStarbound's Lua sandbox.
 - [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) — has various incompatibilities with xStarbound, including its usage of unintended humanoid rendering behaviour.
 - [Harder Core Mode](https://steamcommunity.com/sharedfiles/filedetails/?id=3527438945) — not compatible with xStarbound's Lua sandbox. Ask about a potential compatibility patch.
+- [Hunger Fighting Chairs](https://steamcommunity.com/sharedfiles/filedetails/?id=3546473893) — now incompatible with xStarbound due to an OpenStarbound dependency check. Ask about a potential compatibility patch.
 - [inventory scrambler](https://steamcommunity.com/sharedfiles/filedetails/?id=3538536096) ([GitHub](https://github.com/bongus-jive/inventory-scrambler)) — not compatible with xStarbound's Lua sandbox. Ask about a potential compatibility patch, but seriously, why would you want to scramble your inventory?
 - [Is this Printable?](https://steamcommunity.com/sharedfiles/filedetails/?id=3507216031) — not compatible with xStarbound. Ask about a compatibility patch.
 - [Light Limiter](https://steamcommunity.com/sharedfiles/filedetails/?id=3470727854) — neither compatible with nor necessary on xStarbound.
