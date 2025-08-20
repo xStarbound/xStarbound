@@ -1,17 +1,17 @@
 #include "StarContainerObject.hpp"
-#include "StarInteractionTypes.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
-#include "StarLexicalCast.hpp"
-#include "StarTreasure.hpp"
+#include "StarAugmentItem.hpp"
+#include "StarEntityRendering.hpp"
+#include "StarInteractionTypes.hpp"
 #include "StarItemDatabase.hpp"
 #include "StarItemDrop.hpp"
+#include "StarLexicalCast.hpp"
 #include "StarLogging.hpp"
-#include "StarWorld.hpp"
-#include "StarEntityRendering.hpp"
 #include "StarMixer.hpp"
 #include "StarObjectDatabase.hpp"
-#include "StarAugmentItem.hpp"
+#include "StarRoot.hpp"
+#include "StarTreasure.hpp"
+#include "StarWorld.hpp"
 
 namespace Star {
 
@@ -223,8 +223,8 @@ Maybe<Json> ContainerObject::receiveMessage(ConnectionId sendingConnection, Stri
 
   } else if (message.equalsIgnoreCase("clearContainer")) {
     return Json(transform<JsonArray>(doClearContainer(), [](auto const& item) {
-        return itemSafeDescriptor(item).toJson();
-      }));
+      return itemSafeDescriptor(item).toJson();
+    }));
 
   } else {
     return Object::receiveMessage(sendingConnection, message, args);
@@ -300,8 +300,8 @@ void ContainerObject::containerClose() {
 RpcPromise<ItemPtr> ContainerObject::addItems(ItemPtr const& items) {
   if (isSlave()) {
     return world()->sendEntityMessage(entityId(), "addItems", {itemSafeDescriptor(items).toJson()}).wrap([](Json res) {
-        return Root::singleton().itemDatabase()->item(ItemDescriptor(res));
-      });
+      return Root::singleton().itemDatabase()->item(ItemDescriptor(res));
+    });
   } else {
     return RpcPromise<ItemPtr>::createFulfilled(doAddItems(items));
   }
@@ -310,8 +310,8 @@ RpcPromise<ItemPtr> ContainerObject::addItems(ItemPtr const& items) {
 RpcPromise<ItemPtr> ContainerObject::putItems(size_t pos, ItemPtr const& items) {
   if (isSlave()) {
     return world()->sendEntityMessage(entityId(), "putItems", {itemSafeDescriptor(items).toJson()}).wrap([](Json res) {
-        return Root::singleton().itemDatabase()->item(ItemDescriptor(res));
-      });
+      return Root::singleton().itemDatabase()->item(ItemDescriptor(res));
+    });
   } else {
     return RpcPromise<ItemPtr>::createFulfilled(doPutItems(pos, items));
   }
@@ -320,8 +320,8 @@ RpcPromise<ItemPtr> ContainerObject::putItems(size_t pos, ItemPtr const& items) 
 RpcPromise<ItemPtr> ContainerObject::takeItems(size_t slot, size_t count) {
   if (isSlave()) {
     return world()->sendEntityMessage(entityId(), "takeItems", {slot, count}).wrap([](Json res) {
-        return Root::singleton().itemDatabase()->item(ItemDescriptor(res));
-      });
+      return Root::singleton().itemDatabase()->item(ItemDescriptor(res));
+    });
   } else {
     return RpcPromise<ItemPtr>::createFulfilled(doTakeItems(slot, count));
   }
@@ -330,8 +330,8 @@ RpcPromise<ItemPtr> ContainerObject::takeItems(size_t slot, size_t count) {
 RpcPromise<ItemPtr> ContainerObject::swapItems(size_t slot, ItemPtr const& items, bool tryCombine) {
   if (isSlave()) {
     return world()->sendEntityMessage(entityId(), "swapItems", {slot, itemSafeDescriptor(items).toJson(), tryCombine}).wrap([](Json res) {
-        return Root::singleton().itemDatabase()->item(ItemDescriptor(res));
-      });
+      return Root::singleton().itemDatabase()->item(ItemDescriptor(res));
+    });
   } else {
     return RpcPromise<ItemPtr>::createFulfilled(doSwapItems(slot, items, tryCombine));
   }
@@ -340,8 +340,8 @@ RpcPromise<ItemPtr> ContainerObject::swapItems(size_t slot, ItemPtr const& items
 RpcPromise<ItemPtr> ContainerObject::applyAugment(size_t slot, ItemPtr const& augment) {
   if (isSlave()) {
     return world()->sendEntityMessage(entityId(), "applyAugment", {slot, itemSafeDescriptor(augment).toJson()}).wrap([](Json res) {
-        return Root::singleton().itemDatabase()->item(ItemDescriptor(res));
-      });
+      return Root::singleton().itemDatabase()->item(ItemDescriptor(res));
+    });
   } else {
     return RpcPromise<ItemPtr>::createFulfilled(doApplyAugment(slot, augment));
   }
@@ -350,8 +350,8 @@ RpcPromise<ItemPtr> ContainerObject::applyAugment(size_t slot, ItemPtr const& au
 RpcPromise<bool> ContainerObject::consumeItems(ItemDescriptor const& descriptor) {
   if (isSlave()) {
     return world()->sendEntityMessage(entityId(), "consumeItems", {descriptor.toJson()}).wrap([](Json res) {
-        return res.toBool();
-      });
+      return res.toBool();
+    });
   } else {
     return RpcPromise<bool>::createFulfilled(doConsumeItems(descriptor));
   }
@@ -360,8 +360,8 @@ RpcPromise<bool> ContainerObject::consumeItems(ItemDescriptor const& descriptor)
 RpcPromise<bool> ContainerObject::consumeItems(size_t pos, size_t count) {
   if (isSlave()) {
     return world()->sendEntityMessage(entityId(), "consumeItemsAt", {pos, count}).wrap([](Json res) {
-        return res.toBool();
-      });
+      return res.toBool();
+    });
   } else {
     return RpcPromise<bool>::createFulfilled(doConsumeItems(pos, count));
   }
@@ -370,11 +370,11 @@ RpcPromise<bool> ContainerObject::consumeItems(size_t pos, size_t count) {
 RpcPromise<List<ItemPtr>> ContainerObject::clearContainer() {
   if (isSlave()) {
     return world()->sendEntityMessage(entityId(), "clearContainer", {}).wrap([](Json res) {
-        auto itemDb = Root::singleton().itemDatabase();
-        return res.toArray().transformed([itemDb](Json const& item) {
-            return itemDb->item(ItemDescriptor(item));
-          });
+      auto itemDb = Root::singleton().itemDatabase();
+      return res.toArray().transformed([itemDb](Json const& item) {
+        return itemDb->item(ItemDescriptor(item));
       });
+    });
   } else {
     return RpcPromise<List<ItemPtr>>::createFulfilled(doClearContainer());
   }
@@ -481,15 +481,13 @@ void ContainerObject::readStoredData(Json const& diskStore) {
 }
 
 Json ContainerObject::writeStoredData() const {
-  return Object::writeStoredData().setAll({
-      {"opened", m_opened.get()},
+  return Object::writeStoredData().setAll({{"opened", m_opened.get()},
       {"currentState", m_currentState},
       {"crafting", m_crafting.get()},
       {"craftingProgress", m_craftingProgress.get()},
       {"initialized", m_initialized},
       {"items", m_items->diskStore()},
-      {"ageItemsTimer", m_ageItemsTimer.toJson()}
-    });
+      {"ageItemsTimer", m_ageItemsTimer.toJson()}});
 }
 
 ItemRecipe ContainerObject::recipeForMaterials(List<ItemPtr> const& inputItems) {
@@ -501,10 +499,11 @@ ItemRecipe ContainerObject::recipeForMaterials(List<ItemPtr> const& inputItems) 
     return itemDatabase->getPreciseRecipeForMaterials(recipeGroup.toString(), inputItems, {});
 
   Maybe<Json> result = m_scriptComponent.invoke<Json>("craftingRecipe", inputItems.filtered([](ItemPtr const& item) {
-      return (bool)item;
-    }).transformed([](ItemPtr const& item) {
-      return item->descriptor().toJson();
-    }));
+                                                                                    return (bool)item;
+                                                                                  })
+                                                                            .transformed([](ItemPtr const& item) {
+                                                                              return item->descriptor().toJson();
+                                                                            }));
   if (!result || result->isNull())
     return ItemRecipe();
   return itemDatabase->parseRecipe(*result);
@@ -598,6 +597,10 @@ bool ContainerObject::doConsumeItems(size_t slot, size_t count) {
   return false;
 }
 
+bool ContainerObject::isContainerObject() const {
+  return true;
+}
+
 List<ItemPtr> ContainerObject::doClearContainer() {
   stopCrafting();
   List<ItemPtr> result = m_items->takeAll();
@@ -611,4 +614,4 @@ void ContainerObject::itemsUpdated() {
   m_runUpdatedCallback = true;
 }
 
-}
+} // namespace Star

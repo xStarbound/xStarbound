@@ -4,23 +4,21 @@
 namespace Star {
 
 EnumMap<ClientEntityMode> const ClientEntityModeNames{
-  {ClientEntityMode::ClientSlaveOnly, "ClientSlaveOnly"},
-  {ClientEntityMode::ClientMasterAllowed, "ClientMasterAllowed"},
-  {ClientEntityMode::ClientPresenceMaster, "ClientPresenceMaster"}
-};
+    {ClientEntityMode::ClientSlaveOnly, "ClientSlaveOnly"},
+    {ClientEntityMode::ClientMasterAllowed, "ClientMasterAllowed"},
+    {ClientEntityMode::ClientPresenceMaster, "ClientPresenceMaster"}};
 
 EnumMap<EntityType> const EntityTypeNames{
-  {EntityType::Plant, "plant"},
-  {EntityType::Object, "object"},
-  {EntityType::Vehicle, "vehicle"},
-  {EntityType::ItemDrop, "itemDrop"},
-  {EntityType::PlantDrop, "plantDrop"},
-  {EntityType::Projectile, "projectile"},
-  {EntityType::Stagehand, "stagehand"},
-  {EntityType::Monster, "monster"},
-  {EntityType::Npc, "npc"},
-  {EntityType::Player, "player"}
-};
+    {EntityType::Plant, "plant"},
+    {EntityType::Object, "object"},
+    {EntityType::Vehicle, "vehicle"},
+    {EntityType::ItemDrop, "itemDrop"},
+    {EntityType::PlantDrop, "plantDrop"},
+    {EntityType::Projectile, "projectile"},
+    {EntityType::Stagehand, "stagehand"},
+    {EntityType::Monster, "monster"},
+    {EntityType::Npc, "npc"},
+    {EntityType::Player, "player"}};
 
 Entity::~Entity() {}
 
@@ -117,6 +115,10 @@ void Entity::render(RenderCallback*) {}
 
 void Entity::renderLightSources(RenderCallback*) {}
 
+bool Entity::isContainerObject() const {
+  return false;
+}
+
 EntityId Entity::entityId() const {
   return m_entityId;
 }
@@ -193,4 +195,4 @@ void Entity::setTeam(EntityDamageTeam newTeam) {
   m_team = newTeam;
 }
 
-}
+} // namespace Star

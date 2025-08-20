@@ -155,6 +155,9 @@ public:
 
   virtual void renderLightSources(RenderCallback* renderer);
 
+  // FezzedOne: Fucking kludge because I can't get Clang to see all the needed headers for this.
+  virtual bool isContainerObject() const;
+
   EntityId entityId() const;
 
   EntityDamageTeam getTeam() const;
@@ -226,6 +229,6 @@ EntityFilter entityTypeFilter(function<bool(shared_ptr<EntityT> const&)> filter 
     }
   };
 }
-}
+} // namespace Star
 
 #endif

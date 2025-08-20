@@ -1,11 +1,11 @@
 #ifndef STAR_CONTAINER_OBJECT_HPP
 #define STAR_CONTAINER_OBJECT_HPP
 
+#include "StarContainerEntity.hpp"
 #include "StarItemBag.hpp"
+#include "StarItemRecipe.hpp"
 #include "StarObject.hpp"
 #include "StarWeightedPool.hpp"
-#include "StarContainerEntity.hpp"
-#include "StarItemRecipe.hpp"
 
 namespace Star {
 
@@ -43,6 +43,8 @@ public:
 
   void burnContainerContents() override;
 
+  virtual bool isContainerObject() const override;
+
   RpcPromise<ItemPtr> addItems(ItemPtr const& items) override;
   RpcPromise<ItemPtr> putItems(size_t slot, ItemPtr const& items) override;
   RpcPromise<ItemPtr> takeItems(size_t slot, size_t count = NPos) override;
@@ -75,7 +77,7 @@ private:
   bool doConsumeItems(size_t slot, size_t count);
   List<ItemPtr> doClearContainer();
 
-  template<typename T>
+  template <typename T>
   RpcPromise<T> addSlavePromise(String const& message, JsonArray const& args, function<T(Json)> converter);
 
   void itemsUpdated();
@@ -108,6 +110,6 @@ private:
   List<ItemPtr> m_lostItems;
 };
 
-}
+} // namespace Star
 
 #endif

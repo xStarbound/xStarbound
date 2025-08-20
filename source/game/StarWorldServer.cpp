@@ -608,7 +608,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
         if (entity->isMaster()) {
           if (entity->inWorld()) {
             // FezzedOne: Blocks modifications to the contents of containers (and messages to containers) for players who don't have build or `/admin` permission.
-            if (as<ContainerObject>(entity) && !clientHasBuildPermission(clientId) && !clientInfo->canBeAdmin)
+            if (entity->isContainerObject() && !clientHasBuildPermission(clientId) && !clientInfo->canBeAdmin)
               clientInfo->outgoingPackets.append(make_shared<EntityMessageResponsePacket>(makeLeft("Message not handled by entity"), entityMessagePacket->uuid));
             auto response = entity->receiveMessage(clientId, message, entityMessagePacket->args);
             if (response)
