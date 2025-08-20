@@ -1,6 +1,6 @@
 #include "StarRootLoader.hpp"
-#include "StarLexicalCast.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarLexicalCast.hpp"
 
 #ifdef STAR_SYSTEM_LINUX
 #include <regex>
@@ -56,7 +56,7 @@ Json const BaseDefaultConfiguration = Json::parseJson(R"JSON(
       "bannedUuids" : [],
       "bannedIPs" : [],
 
-      "serverName" : "A Starbound Server",
+      "serverName" : "An xStarbound Server",
       "maxPlayers" : 8,
       "maxTeamSize" : 4,
       "serverFidelity" : "automatic",
@@ -72,6 +72,14 @@ Json const BaseDefaultConfiguration = Json::parseJson(R"JSON(
       "allowAdminCommands" : true,
       "allowAdminCommandsFromAnyone" : false,
       "anonymousConnectionsAreAdmin" : false,
+
+      "buildPermissionSettings" : {
+        "enabled" : false,
+        "guestWorldSpawnsAllowed" : true,
+        "guestBuildingAllowed" : true,
+        "accountClaimsEnabled" : false,
+        "disallowServerGriefingWhenOwned" : false
+      },
 
       "clientP2PJoinable" : true,
       "clientIPJoinable" : false,
@@ -105,15 +113,15 @@ RootLoader::RootLoader(Defaults defaults) {
       strf("Boot time configuration file, defaults to xsbinit.config; only the last specified configuration file is used"));
   addParameter("logfile", "logfile", Optional,
       strf("Log to the given logfile relative to the root directory, defaults to {}",
-        defaults.logFile ? *defaults.logFile : "no log file"));
+          defaults.logFile ? *defaults.logFile : "no log file"));
   addParameter("loglevel", "level", Optional,
       strf("Sets the logging level (debug|info|warn|error), defaults to {}",
-        LogLevelNames.getRight(defaults.logLevel)));
+          LogLevelNames.getRight(defaults.logLevel)));
   addSwitch("quiet", strf("Do not log to stdout, defaults to {}", defaults.quiet));
   addSwitch("verbose", strf("Log to stdout, defaults to {}", !defaults.quiet));
   addSwitch("runtimeconfig",
       strf("Sets the path to the runtime configuration storage file relative to root directory, defaults to {}", /* FezzedOne: Fixed spelling error. */
-        defaults.runtimeConfigFile ? *defaults.runtimeConfigFile : "no storage file"));
+          defaults.runtimeConfigFile ? *defaults.runtimeConfigFile : "no storage file"));
   addSwitch("noworkshop", strf("Do not load Steam Workshop content"));
   m_defaults = std::move(defaults);
 }
@@ -146,9 +154,9 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     const String configFileName = "xsbinit.config";
     const String bootConfigFile = options.parameters.value("bootconfig").maybeLast().value(configFileName);
 #ifdef STAR_SYSTEM_LINUX
-    // FezzedOne: If the boot config file does not exist in the working directory, check `$XDG_CONFIG_HOME`.
-    #define CONFIG_ENV_VAR "XDG_CONFIG_HOME"
-    #define HOME_ENV_VAR "HOME"
+// FezzedOne: If the boot config file does not exist in the working directory, check `$XDG_CONFIG_HOME`.
+#define CONFIG_ENV_VAR "XDG_CONFIG_HOME"
+#define HOME_ENV_VAR "HOME"
     Json bootConfig = JsonObject{};
     const char* xdgConfigVar = ::getenv(CONFIG_ENV_VAR);
     const char* homePath = ::getenv(HOME_ENV_VAR);
@@ -163,8 +171,8 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     } else if (File::exists(linuxConfigPath)) {
       bootConfig = Json::parseJson(File::readFileString(linuxConfigPath));
     } else {
-      throw StarException("Cannot find boot config file; ensure xsbinit.config is present either in working directory" 
-        " or in \"$" CONFIG_ENV_VAR "/xStarbound/\" and check permissions, or use -bootconfig");
+      throw StarException("Cannot find boot config file; ensure xsbinit.config is present either in working directory"
+                          " or in \"$" CONFIG_ENV_VAR "/xStarbound/\" and check permissions, or use -bootconfig");
     }
 #else
     const Json bootConfig = Json::parseJson(File::readFileString(bootConfigFile));
@@ -173,8 +181,7 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     const Json assetsSettings = jsonMerge(
         BaseAssetsSettings,
         m_defaults.additionalAssetsSettings,
-        bootConfig.get("assetsSettings", {})
-      );
+        bootConfig.get("assetsSettings", {}));
 
     Root::Settings rootSettings;
     rootSettings.assetsSettings.assetTimeToLive = assetsSettings.getInt("assetTimeToLive");
@@ -192,24 +199,23 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     const std::string homePathStr = std::string(homePath) + "/";
     const List<String> rawAssetDirectories = jsonToStringList(bootConfig.get("assetDirectories"));
     const std::string dollarSign = "$";
-    #define HOME_SUBST_REGEX_FLAGS (std::regex::ECMAScript)
-    #define HOME_SUBST_REGEX (R"((?:^|[^\\])\$(\{)" HOME_ENV_VAR R"(\}|)" HOME_ENV_VAR R"())")
-    #define ESCAPE_SUBST_REGEX (R"(\\\$)")
+#define HOME_SUBST_REGEX_FLAGS (std::regex::ECMAScript)
+#define HOME_SUBST_REGEX (R"((?:^|[^\\])\$(\{)" HOME_ENV_VAR R"(\}|)" HOME_ENV_VAR R"())")
+#define ESCAPE_SUBST_REGEX (R"(\\\$)")
     try {
       const std::regex envVarRegex(HOME_SUBST_REGEX, HOME_SUBST_REGEX_FLAGS),
-                       escapeRegex(ESCAPE_SUBST_REGEX, HOME_SUBST_REGEX_FLAGS);
+          escapeRegex(ESCAPE_SUBST_REGEX, HOME_SUBST_REGEX_FLAGS);
 
       rootSettings.assetDirectories = {};
       for (const String& assetDir : rawAssetDirectories)
         rootSettings.assetDirectories.emplaceAppend(String(
             std::regex_replace(
-              std::regex_replace(assetDir.utf8(), envVarRegex, homePathStr), 
-              escapeRegex, dollarSign
-            )
-          ));
+                std::regex_replace(assetDir.utf8(), envVarRegex, homePathStr),
+                escapeRegex, dollarSign)));
     } catch (std::regex_error const& e) {
-      ::printf("[Error] Error during regex substitution for asset directory paths;" 
-        " not performing $" HOME_ENV_VAR " substitution: %s\nSubstitution regex: '%s'\n", e.what(), HOME_SUBST_REGEX);
+      ::printf("[Error] Error during regex substitution for asset directory paths;"
+               " not performing $" HOME_ENV_VAR " substitution: %s\nSubstitution regex: '%s'\n",
+          e.what(), HOME_SUBST_REGEX);
       rootSettings.assetDirectories = rawAssetDirectories;
     }
 #else
@@ -219,23 +225,21 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     rootSettings.defaultConfiguration = jsonMerge(
         BaseDefaultConfiguration,
         m_defaults.additionalDefaultConfiguration,
-        bootConfig.get("defaultConfiguration", {})
-      );
+        bootConfig.get("defaultConfiguration", {}));
 
 #ifdef STAR_SYSTEM_LINUX
     const std::string rawStorageDirectory = bootConfig.getString("storageDirectory").utf8();
     try {
       const std::regex envVarRegex(HOME_SUBST_REGEX, HOME_SUBST_REGEX_FLAGS),
-                       escapeRegex(ESCAPE_SUBST_REGEX, HOME_SUBST_REGEX_FLAGS);
+          escapeRegex(ESCAPE_SUBST_REGEX, HOME_SUBST_REGEX_FLAGS);
       rootSettings.storageDirectory = String(
-        std::regex_replace(
-          std::regex_replace(rawStorageDirectory, envVarRegex, homePath), 
-          escapeRegex, dollarSign
-        )
-      );
+          std::regex_replace(
+              std::regex_replace(rawStorageDirectory, envVarRegex, homePath),
+              escapeRegex, dollarSign));
     } catch (std::regex_error const& e) {
-      ::printf("[Error] Error during regex substitution for storage directory path;" 
-        " not performing $" HOME_ENV_VAR " substitution: %s\nSubstitution regex: '%s'\n", e.what(), HOME_SUBST_REGEX);
+      ::printf("[Error] Error during regex substitution for storage directory path;"
+               " not performing $" HOME_ENV_VAR " substitution: %s\nSubstitution regex: '%s'\n",
+          e.what(), HOME_SUBST_REGEX);
       rootSettings.storageDirectory = String(rawStorageDirectory);
     }
 #else
@@ -269,4 +273,4 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
   }
 }
 
-}
+} // namespace Star

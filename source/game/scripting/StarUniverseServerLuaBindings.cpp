@@ -13,10 +13,14 @@ LuaCallbacks LuaBindings::makeUniverseServerCallbacks(UniverseServer* universe) 
   callbacks.registerCallbackWithSignature<size_t>("numberOfClients", bind(UniverseServerCallbacks::numberOfClients, universe));
   callbacks.registerCallbackWithSignature<bool, ConnectionId>("isConnectedClient", bind(UniverseServerCallbacks::isConnectedClient, universe, _1));
   callbacks.registerCallbackWithSignature<Maybe<String>, ConnectionId>("clientNick", bind(UniverseServerCallbacks::clientNick, universe, _1));
+  callbacks.registerCallbackWithSignature<Maybe<String>, ConnectionId>("clientAccount", bind(UniverseServerCallbacks::clientAccount, universe, _1));
+  callbacks.registerCallbackWithSignature<Maybe<bool>, ConnectionId, Maybe<Vec3I>>("hasBuildPermission", bind(UniverseServerCallbacks::hasBuildPermission, universe, _1, _2));
   callbacks.registerCallbackWithSignature<Maybe<ConnectionId>, String>("findNick", bind(UniverseServerCallbacks::findNick, universe, _1));
   callbacks.registerCallbackWithSignature<void, String, Maybe<JsonObject>>("adminBroadcast", bind(UniverseServerCallbacks::adminBroadcast, universe, _1, _2));
   callbacks.registerCallbackWithSignature<void, ConnectionId, String, Maybe<JsonObject>>("adminWhisper", bind(UniverseServerCallbacks::adminWhisper, universe, _1, _2, _3));
   callbacks.registerCallbackWithSignature<bool, ConnectionId>("isAdmin", bind(UniverseServerCallbacks::isAdmin, universe, _1));
+  callbacks.registerCallbackWithSignature<bool, ConnectionId>("isGuest", bind(UniverseServerCallbacks::isGuest, universe, _1));
+  callbacks.registerCallbackWithSignature<bool, ConnectionId>("canBeAdmin", bind(UniverseServerCallbacks::canBeAdmin, universe, _1));
   callbacks.registerCallbackWithSignature<bool, ConnectionId>("isPvp", bind(UniverseServerCallbacks::isPvp, universe, _1));
   callbacks.registerCallbackWithSignature<void, ConnectionId, bool>("setPvp", bind(UniverseServerCallbacks::setPvp, universe, _1, _2));
   callbacks.registerCallbackWithSignature<bool, ConnectionId>("isLocal", bind(UniverseServerCallbacks::isLocal, universe, _1));
@@ -64,6 +68,27 @@ Maybe<String> LuaBindings::UniverseServerCallbacks::clientNick(UniverseServer* u
   return {};
 }
 
+// FezzedOne: Returns the server account name for the given client ID
+//
+// @param clientId the client ID in question
+// @return A string containing the account name of the given client, or nil if the client connected anonymously
+Maybe<String> LuaBindings::UniverseServerCallbacks::clientAccount(UniverseServer* universe, ConnectionId arg1) {
+  if (universe->isConnectedClient(arg1))
+    return universe->clientAccount(arg1);
+  return {};
+}
+
+// FezzedOne: Returns whether the client is allowed to spawn worlds / stations in the system where the client's ship is located
+//
+// @param clientId the client ID in question
+// @return True if the client is allowed to spawn worlds in the system where the client's ship is located, false if not
+//         or if the client's ship is not currently in a system, nil if there's no connected client with that ID
+Maybe<bool> LuaBindings::UniverseServerCallbacks::hasBuildPermission(UniverseServer* universe, ConnectionId arg1, Maybe<Vec3I> arg2) {
+  if (universe->isConnectedClient(arg1))
+    return universe->clientHasBuildPermissionCallback(arg1, arg2);
+  return {};
+}
+
 // Returns the client ID for the given nick
 //
 // @param nick the nickname of the client to search for
@@ -99,6 +124,22 @@ void LuaBindings::UniverseServerCallbacks::adminWhisper(UniverseServer* universe
 // @return a boolean containing true if the client is an admin, false otherwise
 bool LuaBindings::UniverseServerCallbacks::isAdmin(UniverseServer* universe, ConnectionId arg1) {
   return universe->isAdmin(arg1);
+}
+
+// FezzedOne: Returns whether or not a specific client is flagged as a guest or anonymous connection
+//
+// @param clientId the client id to check
+// @return a boolean containing true if the client is logged in anonymously or under a guest account, false otherwise
+bool LuaBindings::UniverseServerCallbacks::isGuest(UniverseServer* universe, ConnectionId arg1) {
+  return universe->clientIsGuest(arg1).value(false);
+}
+
+// FezzedOne: Returns whether or not a specific client is allowed to use `/admin`
+//
+// @param clientId the client id to check
+// @return a boolean containing true if the client is allowed to use `/admin`, false otherwise
+bool LuaBindings::UniverseServerCallbacks::canBeAdmin(UniverseServer* universe, ConnectionId arg1) {
+  return universe->canBecomeAdmin(arg1);
 }
 
 // Returns whether or not a specific client is flagged as pvp

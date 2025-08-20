@@ -11,13 +11,15 @@
 namespace Star {
 
 ServerClientContext::ServerClientContext(ConnectionId clientId, Maybe<HostAddress> remoteAddress, Uuid playerUuid,
-    String playerName, String playerSpecies, bool canBecomeAdmin, WorldChunks initialShipChunks)
+    String playerName, String playerSpecies, bool canBecomeAdmin, WorldChunks initialShipChunks, bool isGuestAccount, Maybe<String> playerAccount)
   : m_clientId(clientId),
     m_remoteAddress(remoteAddress),
     m_playerUuid(playerUuid),
     m_playerName(playerName),
     m_playerSpecies(playerSpecies),
     m_canBecomeAdmin(canBecomeAdmin),
+    m_isGuestAccount(isGuestAccount),
+    m_playerAccount(playerAccount),
     m_shipChunks(std::move(initialShipChunks)) {
   m_rpc.registerHandler("ship.applyShipUpgrades", [this](Json const& args) -> Json {
       RecursiveMutexLocker locker(m_mutex);
@@ -84,8 +86,16 @@ String const& ServerClientContext::playerSpecies() const {
   return m_playerSpecies;
 }
 
+Maybe<String> const& ServerClientContext::playerAccount() const {
+  return m_playerAccount;
+}
+
 bool ServerClientContext::canBecomeAdmin() const {
   return m_canBecomeAdmin;
+}
+
+bool ServerClientContext::isGuest() const {
+  return m_isGuestAccount;
 }
 
 String ServerClientContext::descriptiveName() const {

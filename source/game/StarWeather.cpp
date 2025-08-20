@@ -1,12 +1,12 @@
 #include "StarWeather.hpp"
-#include "StarIterator.hpp"
+#include "StarAssets.hpp"
+#include "StarBiomeDatabase.hpp"
 #include "StarDataStreamExtra.hpp"
+#include "StarIterator.hpp"
+#include "StarProjectile.hpp"
+#include "StarProjectileDatabase.hpp"
 #include "StarRoot.hpp"
 #include "StarTime.hpp"
-#include "StarAssets.hpp"
-#include "StarProjectileDatabase.hpp"
-#include "StarProjectile.hpp"
-#include "StarBiomeDatabase.hpp"
 
 namespace Star {
 
@@ -129,6 +129,53 @@ void ServerWeather::setNetStates() {
   m_currentWeatherIndexNetState.set(m_currentWeatherIndex);
   m_currentWeatherIntensityNetState.set(m_currentWeatherIntensity);
   m_currentWindNetState.set(m_currentWind);
+}
+
+// Mofurka: For listing and setting a world's weather.
+StringList ServerWeather::weatherList() const {
+  StringList weatherList;
+  for (size_t i = 0; i < m_weatherPool.size(); ++i)
+    weatherList.append(m_weatherPool.item(i));
+  return weatherList;
+}
+
+void ServerWeather::setWeather(String const& weatherName, bool force) {
+  size_t index = NPos;
+  for (size_t i = 0; i < m_weatherPool.size(); ++i) {
+    if (m_weatherPool.item(i) == weatherName) {
+      index = i;
+      break;
+    }
+  }
+
+  setWeatherIndex(index, force);
+}
+
+void ServerWeather::setWeatherIndex(size_t weatherIndex, bool force) {
+  if (weatherIndex == NPos || weatherIndex >= m_weatherPool.size()) {
+    if (!force) {
+      m_currentWeatherIndex = NPos;
+      m_currentWeatherType = {};
+      m_currentWeatherIntensity = 0.0f;
+      m_currentWind = 0.0f;
+    }
+  } else {
+    m_currentWeatherIndex = weatherIndex;
+    m_currentWeatherType =
+        Root::singleton().biomeDatabase()->weatherType(m_weatherPool.item(m_currentWeatherIndex));
+    m_currentWeatherIntensity = 1.0f;
+    m_currentWind = m_currentWeatherType->maximumWind * (Random::randb() ? 1 : -1);
+  }
+
+  m_lastWeatherChangeTime = m_currentTime;
+  if (force)
+    m_nextWeatherChangeTime = std::numeric_limits<double>::max();
+  else
+    m_nextWeatherChangeTime =
+        m_currentWeatherType ? m_currentTime + Random::randd(m_currentWeatherType->duration[0], m_currentWeatherType->duration[1])
+                             : m_currentTime;
+
+  setNetStates();
 }
 
 void ServerWeather::spawnWeatherProjectiles(float dt) {
@@ -361,4 +408,4 @@ void ClientWeather::spawnWeatherParticles(RectF newClientRegion, float dt) {
   m_lastParticleVisibleRegion = newClientRegion;
 }
 
-}
+} // namespace Star

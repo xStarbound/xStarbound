@@ -41,6 +41,11 @@ public:
 
   List<ProjectilePtr> pullNewProjectiles();
 
+  // From Mofurka.
+  StringList weatherList() const;
+  void setWeather(String const& weatherName, bool force);
+  void setWeatherIndex(size_t weatherIndex, bool force);
+
 private:
   void setNetStates();
 
@@ -124,6 +129,6 @@ private:
   NetElementFloat m_currentWindNetState;
 };
 
-}
+} // namespace Star
 
 #endif

@@ -5,8 +5,8 @@
 #include <fstream>
 
 #if SOUP_WINDOWS
-	#pragma comment(lib, "Gdi32.lib")
-	#pragma comment(lib, "Winmm.lib") // timeBeginPeriod, timeEndPeriod
+	#pragma comment(lib, "gdi32.lib")
+	#pragma comment(lib, "winmm.lib") // timeBeginPeriod, timeEndPeriod
 
 	#include <psapi.h>
 	#include <timeapi.h> // timeBeginPeriod, timeEndPeriod
@@ -134,13 +134,9 @@ NAMESPACE_SOUP
 	}
 #endif
 
+#if !SOUP_WINDOWS
 	void os::sleep(unsigned int ms) noexcept
 	{
-#if SOUP_WINDOWS
-		timeBeginPeriod(ms);
-		::Sleep(ms);
-		timeEndPeriod(ms);
-#else
 	#if _POSIX_C_SOURCE >= 199309L
 		struct timespec ts;
 		ts.tv_sec = ms / 1000;
@@ -157,8 +153,17 @@ NAMESPACE_SOUP
 		}
 		::usleep((ms % 1000) * 1000);
 	#endif
-#endif
 	}
+#endif
+
+#if SOUP_WINDOWS
+	void os::fastSleep(unsigned int ms) noexcept
+	{
+		timeBeginPeriod(ms);
+		::Sleep(ms);
+		timeEndPeriod(ms);
+	}
+#endif
 
 #if SOUP_WINDOWS
 	static bool copy_to_clipboard_utf16(const std::wstring& text)

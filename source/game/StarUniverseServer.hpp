@@ -61,6 +61,8 @@ public:
   String clientDescriptor(ConnectionId clientId) const;
 
   String clientNick(ConnectionId clientId) const;
+  Maybe<String> clientAccount(ConnectionId clientId) const;
+  Maybe<bool> clientIsGuest(ConnectionId clientId) const;
   Maybe<ConnectionId> findNick(String const& nick) const;
 
   Maybe<Uuid> uuidForClient(ConnectionId clientId) const;
@@ -102,6 +104,9 @@ public:
   bool unbanUuid(String const& uuidString);
 
   bool updatePlanetType(CelestialCoordinate const& coordinate, String const& newType, String const& weatherBiome);
+
+  bool clientHasBuildPermission(ServerClientContextPtr const& client, SystemWorldServerThreadPtr const& currentSystem, Maybe<Vec3I> const& currentLocation) const;
+  Maybe<bool> clientHasBuildPermissionCallback(ConnectionId clientId, Maybe<Vec3I> const& systemLocation) const;
 
 protected:
   virtual void run();

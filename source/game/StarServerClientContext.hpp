@@ -21,14 +21,16 @@ STAR_CLASS(ServerClientContext);
 class ServerClientContext {
 public:
   ServerClientContext(ConnectionId clientId, Maybe<HostAddress> remoteAddress, Uuid playerUuid,
-      String playerName, String playerSpecies, bool canBecomeAdmin, WorldChunks initialShipChunks);
+      String playerName, String playerSpecies, bool canBecomeAdmin, WorldChunks initialShipChunks, bool isGuestAccount = false, Maybe<String> playerAccount = {});
 
   ConnectionId clientId() const;
   Maybe<HostAddress> const& remoteAddress() const;
   Uuid const& playerUuid() const;
   String const& playerName() const;
   String const& playerSpecies() const;
+  Maybe<String> const& playerAccount() const;
   bool canBecomeAdmin() const;
+  bool isGuest() const;
   String descriptiveName() const;
 
   // Register additional rpc methods from other server side services.
@@ -59,7 +61,7 @@ public:
   WorldChunks shipChunks() const;
   void updateShipChunks(WorldChunks newShipChunks);
 
-  ByteArray writeInitialState() const;
+  // ByteArray writeInitialState() const;
 
   void readUpdate(ByteArray data);
   ByteArray writeUpdate();
@@ -92,6 +94,8 @@ private:
   String const m_playerName;
   String const m_playerSpecies;
   bool const m_canBecomeAdmin;
+  bool const m_isGuestAccount;
+  Maybe<String> const m_playerAccount; // FezzedOne: If empty, this player logged in anonymously.
 
   mutable RecursiveMutex m_mutex;
 

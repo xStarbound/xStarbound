@@ -588,6 +588,8 @@ namespace LuaBindings {
       callbacks.registerCallback("metadata", [serverWorld]() -> Json { return serverWorld->getMetadata(); });
       callbacks.registerCallback("setMetadata", [serverWorld](Json const& newMetadata) { serverWorld->setMetadata(newMetadata); });
 
+      callbacks.registerCallback("hasBuildPermission", [serverWorld](ConnectionId connectionId) -> bool { return serverWorld->clientHasBuildPermission(connectionId); });
+
       callbacks.registerCallbackWithSignature<bool, EntityId, bool>("breakObject", bind(ServerWorldCallbacks::breakObject, serverWorld, _1, _2));
       callbacks.registerCallbackWithSignature<bool, RectF>("isVisibleToPlayer", bind(ServerWorldCallbacks::isVisibleToPlayer, serverWorld, _1));
       callbacks.registerCallbackWithSignature<bool, RectF>("loadRegion", bind(ServerWorldCallbacks::loadRegion, serverWorld, _1));
@@ -663,6 +665,18 @@ namespace LuaBindings {
           return BiomeItemDistribution(config, Random::randu64());
         });
         return serverWorld->enqueuePlacement(std::move(distributions), id);
+      });
+
+      callbacks.registerCallback("weatherList", [serverWorld]() -> StringList {
+        return serverWorld->weatherList();
+      });
+
+      callbacks.registerCallback("setWeather", [serverWorld](String const& weatherName, Maybe<bool> force) {
+        serverWorld->setWeather(weatherName, force.value(false));
+      });
+
+      callbacks.registerCallback("setWeatherIndex", [serverWorld](size_t weatherIndex, Maybe<bool> force) {
+        serverWorld->setWeatherIndex(weatherIndex, force.value(false));
       });
     }
 

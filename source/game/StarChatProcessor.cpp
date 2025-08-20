@@ -17,6 +17,7 @@ String ChatProcessor::connectClient(ConnectionId clientId, String nick) {
     pair.second.pendingMessages.append({{MessageContext::Broadcast},
         ServerConnectionId,
         ServerNick,
+        /* FezzedOne: Can't change this or wrappers will break! */
         strf("Player '{}' connected", nick),
         JsonObject{}});
   }
@@ -40,6 +41,7 @@ List<ChatReceivedMessage> ChatProcessor::disconnectClient(ConnectionId clientId)
     pair.second.pendingMessages.append({{MessageContext::Broadcast},
         ServerConnectionId,
         ServerNick,
+        /* FezzedOne: Can't change this or wrappers will break! */
         strf("Player '{}' disconnected", clientInfo.nick),
         JsonObject{}});
   }

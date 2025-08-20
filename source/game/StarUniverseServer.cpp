@@ -29,6 +29,95 @@
 
 namespace Star {
 
+bool UniverseServer::clientHasBuildPermission(ServerClientContextPtr const& client, SystemWorldServerThreadPtr const& currentSystem, Maybe<Vec3I> const& systemLocation) const {
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
+
+  if (!client || !(currentSystem || systemLocation))
+    return false;
+
+  auto const& serverConfig = Root::singleton().configuration();
+  auto const& jXServerPerms = serverConfig->get("buildPermissionSettings");
+  JsonObject xServerPerms = jXServerPerms.isType(Json::Type::Object) ? jXServerPerms.toObject() : JsonObject{};
+
+  auto getBool = [&](String key) -> bool {
+    if (xServerPerms.hasValue(key)) {
+      auto const& value = xServerPerms.get(key);
+      return value.isType(Json::Type::Bool) ? value.toBool() : false;
+    }
+    return false;
+  };
+
+  if (!getBool("enabled"))
+    return true;
+
+  auto const& jBuildPermissions = serverConfig->get("ownedSystemsByAccount");
+  JsonObject const& buildPermissions = jBuildPermissions.isType(Json::Type::Object) ? jBuildPermissions.toObject() : JsonObject{};
+  auto const& jBuildPermissionsByUuid = serverConfig->get("ownedSystemsByUuid");
+  JsonObject const& buildPermissionsByUuid = jBuildPermissionsByUuid.isType(Json::Type::Object) ? jBuildPermissionsByUuid.toObject() : JsonObject{};
+
+  Vec3I location;
+  if (systemLocation)
+    location = *systemLocation;
+  else if (currentSystem)
+    location = currentSystem->location();
+  else
+    return false;
+
+  String const locationStr = strf("{}:{}:{}", location[0], location[1], location[2]);
+  Maybe<String> const& playerAccount = client->playerAccount();
+  String const& playerUuid = client->playerUuid().hex(); // FezzedOne: This is the UUID upon connection; also the connected ship world's UUID.
+
+  auto hasBuildPermission = [&locationStr](JsonObject const& permissionList, Maybe<String> const& accountOrUuid) -> Maybe<bool> {
+    // FezzedOne: `true` -> has permissions, `false` -> does not have permissions, `{}` -> unclaimed system.
+    if (permissionList.contains(locationStr)) {
+      auto const& jLocationPermissions = permissionList.get(locationStr);
+      JsonObject const& locationPermissions = jLocationPermissions.isType(Json::Type::Object) ? jLocationPermissions.toObject() : JsonObject{};
+      if (locationPermissions.contains("owner")) {
+        if (!accountOrUuid)
+          return false;
+        if (locationPermissions.get("owner") == *accountOrUuid)
+          return true;
+        if (locationPermissions.contains("allowedBuilders")) {
+          auto const& jAllowedBuilders = locationPermissions.get("allowedBuilders");
+          JsonArray const& allowedBuilders = jAllowedBuilders.isType(Json::Type::Array) ? jAllowedBuilders.toArray() : JsonArray{};
+          if (allowedBuilders.contains(true))
+            return true;
+          if (allowedBuilders.contains(*accountOrUuid))
+            return true;
+          return false;
+        }
+        return false;
+      }
+      return {};
+    }
+    return {};
+  };
+
+  bool guestsAllowed = getBool("guestWorldSpawnsAllowed");
+
+  if (client->canBecomeAdmin())
+    return true;
+
+  if (getBool("accountClaimsEnabled")) {
+      if (const Maybe<bool> owned = hasBuildPermission(buildPermissions, playerAccount))
+        return *owned;
+      else if (const Maybe<bool> ownedByUuid = hasBuildPermission(buildPermissionsByUuid, playerUuid))
+        return *ownedByUuid;
+      return guestsAllowed;
+  } else if (const Maybe<bool> owned = hasBuildPermission(buildPermissionsByUuid, playerUuid)) {
+    return *owned;
+  }
+
+  return guestsAllowed;
+}
+
+Maybe<bool> UniverseServer::clientHasBuildPermissionCallback(ConnectionId clientId, Maybe<Vec3I> const& systemLocation) const {
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
+  if (auto client = m_clients.value(clientId))
+    return clientHasBuildPermission(client, client->systemWorld(), systemLocation);
+  return {};
+}
+
 UniverseServer::UniverseServer(String const& storageDir)
     : Thread("UniverseServer"),
       m_workerPool("UniverseServerWorkerPool"),
@@ -198,6 +287,20 @@ String UniverseServer::clientDescriptor(ConnectionId clientId) const {
 
 String UniverseServer::clientNick(ConnectionId clientId) const {
   return m_chatProcessor->connectionNick(clientId);
+}
+
+Maybe<String> UniverseServer::clientAccount(ConnectionId clientId) const {
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
+  if (auto clientContext = m_clients.value(clientId))
+    return clientContext->playerAccount();
+  return {};
+}
+
+Maybe<bool> UniverseServer::clientIsGuest(ConnectionId clientId) const {
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
+  if (auto clientContext = m_clients.value(clientId))
+    return clientContext->isGuest();
+  return {};
 }
 
 Maybe<ConnectionId> UniverseServer::findNick(String const& nick) const {
@@ -837,7 +940,7 @@ void UniverseServer::warpPlayers() {
           // Checking the spawn target validity then adding the client is not
           // perfect, it can still become invalid in between, if we fail at
           // adding the client we need to warp them back.
-          if (toWorld && toWorld->addClient(clientId, warpToWorld.target, !clientContext->remoteAddress())) {
+          if (toWorld && toWorld->addClient(clientId, warpToWorld.target, !clientContext->remoteAddress(), clientContext->canBecomeAdmin(), clientContext->playerUuid(), clientContext->playerAccount(), clientContext->isGuest())) {
             clientContext->setPlayerWorld(toWorld);
             m_chatProcessor->joinChannel(clientId, printWorldId(warpToWorld.world));
 
@@ -1532,8 +1635,11 @@ void UniverseServer::packetsReceived(UniverseConnectionServer*, ConnectionId cli
         addCelestialRequests(clientId, std::move(celestialRequest->requests));
 
       } else if (is<SystemObjectSpawnPacket>(packet)) {
-        if (auto currentSystem = clientContext->systemWorld())
-          currentSystem->pushIncomingPacket(clientId, std::move(packet));
+        if (auto currentSystem = clientContext->systemWorld()) {
+          // FezzedOne: Build permission check on world spawns in systems. If the client doesn't have permission, no system object will be spawned.
+          if (clientHasBuildPermission(clientContext, currentSystem, {}))
+            currentSystem->pushIncomingPacket(clientId, std::move(packet));
+        }
       } else {
         if (auto currentWorld = clientContext->playerWorld())
           currentWorld->pushIncomingPackets(clientId, {std::move(packet)});
@@ -1607,12 +1713,18 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   }
 
   bool administrator = false;
+  bool isGuest = false;
 
-  String accountString = !clientConnect->account.empty() ? strf("'{}'", clientConnect->account) : "<anonymous>";
+  Maybe<String> accountName = !clientConnect->account.empty() ? clientConnect->account : Maybe<String>{};
+  // String accountString = accountName ? strf("'{}'", *accountName) : "<anonymous>";
 
   auto connectionFail = [&](String message) {
-    Logger::warn("UniverseServer: Login attempt failed with account '{}' as player '{}' from address {}, error: {}",
-        accountString, clientConnect->playerName, remoteAddressString, message);
+    if (accountName)
+      Logger::warn("UniverseServer: Login attempt failed with account '{}' as player '{}' from address {}, error: {}",
+          *accountName, clientConnect->playerName, remoteAddressString, message);
+    else
+      Logger::warn("UniverseServer: Anonymous connection attempt failed as player '{}' from address {}, error: {}",
+          clientConnect->playerName, remoteAddressString, message);
     connection.pushSingle(make_shared<ConnectFailurePacket>(std::move(message)));
     mainLocker.lock();
     m_deadConnections.append({std::move(connection), Time::monotonicMilliseconds()});
@@ -1620,6 +1732,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
 
   if (!remoteAddress) {
     administrator = true;
+    isGuest = false;
     Logger::info("UniverseServer: Logged in player '{}' locally", clientConnect->playerName);
   } else {
     if (clientConnect->assetsDigest != m_assetsDigest) {
@@ -1633,12 +1746,12 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
     }
 
     if (!m_speciesShips.contains(clientConnect->playerSpecies)) {
-      connectionFail("Unknown player species");
+      connectionFail("Unknown player species. Ensure your mods are compatible with this server.");
       Logger::warn("UniverseServer: Unknown species name is '{}'", clientConnect->playerSpecies);
       return;
     }
 
-    if (!clientConnect->account.empty()) {
+    if (accountName) {
       auto passwordSalt = secureRandomBytes(assets->json("/universe_server.config:passwordSaltLength").toUInt());
       Logger::info("UniverseServer: Sending handshake challenge");
       connection.pushSingle(make_shared<HandshakeChallengePacket>(passwordSalt));
@@ -1646,14 +1759,15 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
       connection.receiveAny(clientWaitLimit);
       shared_ptr<HandshakeResponsePacket> handshakeResponsePacket = as<HandshakeResponsePacket>(connection.pullSingle());
       if (!handshakeResponsePacket) {
-        connectionFail("Expected HandshakeResponsePacket.");
+        connectionFail("Expected HandshakeResponsePacket. Check your client and network configuration.");
         return;
       }
 
       bool success = false;
-      if (Json account = configuration->get("serverUsers").get(clientConnect->account, {})) {
+      if (Json account = configuration->get("serverUsers").get(*accountName, {})) {
         administrator = account.getBool("admin", false);
-        ByteArray passAccountSalt = (account.getString("password") + clientConnect->account).utf8Bytes();
+        isGuest = account.getBool("guest", false);
+        ByteArray passAccountSalt = (account.getString("password") + (*accountName)).utf8Bytes();
         passAccountSalt.append(passwordSalt);
         ByteArray passHash = sha256(passAccountSalt);
         if (passHash == handshakeResponsePacket->passHash)
@@ -1663,25 +1777,30 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
       // prevent account detection, overkill given the overall level of
       // security but hey, why not.
       if (!success) {
-        connectionFail(strf("No such account '{}' or incorrect password", clientConnect->account));
+        connectionFail(strf("No such account '{}' or incorrect password.", clientConnect->account));
         return;
       }
     } else {
       if (!configuration->get("allowAnonymousConnections").toBool()) {
-        connectionFail("Anonymous connections disallowed");
+        connectionFail("Anonymous connections disallowed.");
         return;
       }
       administrator = configuration->get("anonymousConnectionsAreAdmin").toBool();
+      isGuest = true;
     }
 
     if (auto reason = isBannedUser(remoteAddress, clientConnect->playerUuid)) {
-      connectionFail("You are banned: " + *reason);
+      connectionFail("You have been banned: " + *reason);
       return;
     }
   }
 
-  Logger::info("UniverseServer: Logged in account '{}' as player '{}' from address {}",
-      accountString, clientConnect->playerName, remoteAddressString);
+  if (accountName)
+    Logger::info("UniverseServer: Logged in account '{}' as player '{}' from address {}",
+        *accountName, clientConnect->playerName, remoteAddressString);
+  else
+    Logger::info("UniverseServer: Logged in anonymously as player '{}' from address {}",
+      clientConnect->playerName, remoteAddressString);
 
   mainLocker.lock();
   RecursiveMutexLocker clientsLocker(m_clientsLock);
@@ -1695,13 +1814,13 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   }
 
   if (m_clients.size() + 1 > m_maxPlayers && !administrator) {
-    connectionFail("Max player connections");
+    connectionFail("Server is at its maximum player limit. Try reconnecting later.");
     return;
   }
 
   ConnectionId clientId = m_clients.nextId();
   auto clientContext = make_shared<ServerClientContext>(clientId, remoteAddress, clientConnect->playerUuid,
-      clientConnect->playerName, clientConnect->playerSpecies, administrator, clientConnect->shipChunks);
+      clientConnect->playerName, clientConnect->playerSpecies, administrator, clientConnect->shipChunks, isGuest, accountName);
   m_clients.add(clientId, clientContext);
   clientsLocker.unlock();
 
@@ -1744,6 +1863,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
 
   Json introInstance = assets->json("/universe_server.config:introInstance");
   String speciesIntroInstance = introInstance.getString(clientConnect->playerSpecies, introInstance.getString("default", ""));
+  // FezzedOne: If the specified intro instance is an empty string, the intro is skipped.
   if (!speciesIntroInstance.empty() && !clientConnect->introComplete) {
     Logger::info("UniverseServer: Spawning player in intro instance {}", speciesIntroInstance);
     WarpAction introWarp = WarpToWorld{InstanceWorldId(speciesIntroInstance, clientContext->playerUuid()), {}};

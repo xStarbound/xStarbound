@@ -35,7 +35,7 @@ Returns the client ID associated with the given nick, or `nil` if no matching cl
 
 > **The optional `metadata` parameter is only supported on xStarbound v3.5.3+.**
 
-> _Note:_ Sending, transporting and receiving chat metadata requires xStarbound v3.5.3+ on _both_ the receiving client(s) _and_ on the server, _all_ running in xStarbound networking mode (not legacy mode!). Due to network compatibility issues, sending, transporting and receiving OpenStarbound v0.1.9+ chat metadata are _not_ supported by xStarbound! (An xStarbound server or host _must_ be running in legacy mode to accept connections from OpenStarbound clients without errors.)
+> _Note:_ Sending, transporting and receiving chat metadata requires xStarbound v3.5.3+ on _both_ the receiving client(s) _and_ on the server, _all_ running in xStarbound networking mode (not legacy mode!). Due to network compatibility issues, sending, transporting and receiving OpenStarbound v0.1.9+ chat metadata are _not_ supported by xStarbound!
 
 Broadcasts the given server message to all connected clients, optionally with the specified chat message metadata.
 
@@ -43,17 +43,17 @@ Broadcasts the given server message to all connected clients, optionally with th
 
 > **The optional `metadata` parameter is only supported on xStarbound v3.5.3+.**
 
-> _Note:_ Sending, transporting and receiving chat metadata requires xStarbound v3.5.3+ on _both_ the receiving client(s) _and_ the server, _all_ running in xStarbound networking mode (not legacy mode!). Due to network compatibility issues, sending, transporting and receiving OpenStarbound v0.1.9+ chat metadata are _not_ supported by xStarbound! (An xStarbound server or host _must_ be running in legacy mode to accept connections from OpenStarbound clients without errors.)
+> _Note:_ Sending, transporting and receiving chat metadata requires xStarbound v3.5.3+ on _both_ the receiving client(s) _and_ the server, _all_ running in xStarbound networking mode (not legacy mode!). Due to network compatibility issues, sending, transporting and receiving OpenStarbound v0.1.9+ chat metadata are _not_ supported by xStarbound!
 
 Whispers the given server message to the specified client, optionally with the specified chat message metadata.
 
 #### `bool` universe.isAdmin(`ClientId` clientId)
 
-Returns whether the given client ID is flagged as an admin.
+Returns whether the given client ID is flagged as an admin. Always returns `false` on a client ID that isn't connected.
 
 #### `bool` universe.isPvp(`ClientId` clientId)
 
-Returns whether the given client ID is currently in PvP mode.
+Returns whether the given client ID is currently in PvP mode. Always returns `false` on a client ID that isn't connected.
 
 #### `void` universe.setPvp(`ClientId` clientId, `Maybe<bool>` newPvpSetting)
 
@@ -96,3 +96,25 @@ Disconnects (i.e., kicks) the specified client from the server. If a reason is s
 > **Available only on xStarbound v3.6.2+ and OpenStarbound v0.1.10+.**
 
 Bans the specified client from the server. If a reason is specified, this reason is shown to the client upon banning. If `banByIp` is `true`, the client's IP address will be added under `"bannedIPs"` in the server config (`$storage/xserver.config` on xServer, `$storage/starbound_server.config` on other servers); if `banByUuid` is `true`, the client will be added under `"bannedUuids"` in the server config. If neither `banByIp` or `banByUuid` is true, the «ban» is equivalent to a kick. If `banTimeout` is specified, the ban will expire after a specified number of seconds from the invocation of this callback.
+
+### `Maybe<String>` universe.clientAccount(`ClientId` clientId)
+
+> **Available only on xStarbound v3.8+.**
+
+Returns the name of the server account under which the specified client is connected, or `nil` if the client is connected anonymously or is not connected.
+
+### `Maybe<String>` universe.canBeAdmin(`ClientId` clientId)
+
+> **Available only on xStarbound v3.8+.**
+
+Returns `true` if the specified connected client is allowed to use `/admin` (regardless of the client's current admin status) or `false` otherwise.
+
+### `Maybe<String>` universe.isGuest(`ClientId` clientId)
+
+> **Available only on xStarbound v3.8+.**
+
+Returns `true` if the specified connected client is connected anonymously or under a configured guest account (an account in `xserver.config` or the host's `xclient.config` whose `"guest"` entry, if present, is `true`), or `false` otherwise.
+
+### `Maybe<bool>` universe.hasBuildPermission(`ClientId` clientId, `Maybe<Vec3I>` systemLocation)
+
+Returns `true` if the specified connected client is allowed to spawn worlds or stations in a given system, `false` if the client is not allowed to do so, or `nil` if the client is not connected. Note that the callback can be run on star systems that don't exist, with no ill effects other than (most likely) a `false` return (or `true` if the system coordinates show up in `xserver.config` or the host's `xclient.config` anyway!). See `$docs/permissions.md` for more on xStarbound v3.8's build permission system.

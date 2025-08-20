@@ -227,7 +227,7 @@ bool WorldServer::spawnTargetValid(SpawnTarget const& spawnTarget) const {
   return true;
 }
 
-bool WorldServer::addClient(ConnectionId clientId, SpawnTarget const& spawnTarget, bool isLocal) {
+bool WorldServer::addClient(ConnectionId clientId, SpawnTarget const& spawnTarget, bool isLocal, bool canBeAdmin, Uuid const& clientUuid, Maybe<String> const& accountName, bool isGuest) {
   if (m_clientInfo.contains(clientId))
     return false;
 
@@ -261,7 +261,7 @@ bool WorldServer::addClient(ConnectionId clientId, SpawnTarget const& spawnTarge
 
   tracker.update(m_currentStep);
 
-  auto clientInfo = m_clientInfo.add(clientId, make_shared<ClientInfo>(clientId, tracker));
+  auto clientInfo = m_clientInfo.add(clientId, make_shared<ClientInfo>(clientId, tracker, canBeAdmin, clientUuid, accountName, isGuest));
 
   auto worldStartPacket = make_shared<WorldStartPacket>();
   worldStartPacket->templateData = m_worldTemplate->store();
@@ -355,6 +355,8 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
   ZoneScoped;
 
   auto const& clientInfo = m_clientInfo.get(clientId);
+  if (!clientInfo)
+    Logger::warn("WorldServer: Client info not found for cID {}; ignoring packets", clientId);
   auto& root = Root::singleton();
   auto entityFactory = root.entityFactory();
   auto itemDatabase = root.itemDatabase();
@@ -383,21 +385,32 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       clientInfo->pendingSectors.addAll(clientInfo->activeSectors.difference(oldSectors));
 
     } else if (auto mtpacket = as<ModifyTileListPacket>(packet)) {
-      auto unappliedModifications = applyTileModifications(mtpacket->modifications, mtpacket->allowEntityOverlap, true);
-      if (!unappliedModifications.empty())
-        clientInfo->outgoingPackets.append(make_shared<TileModificationFailurePacket>(unappliedModifications));
+      if (!clientHasBuildPermission(clientId)) {
+        clientInfo->outgoingPackets.append(make_shared<TileModificationFailurePacket>(mtpacket->modifications));
+      } else {
+        auto unappliedModifications = applyTileModifications(mtpacket->modifications, mtpacket->allowEntityOverlap, true);
+        if (!unappliedModifications.empty())
+          clientInfo->outgoingPackets.append(make_shared<TileModificationFailurePacket>(unappliedModifications));
+      }
 
     } else if (auto dtgpacket = as<DamageTileGroupPacket>(packet)) {
-      damageTiles(dtgpacket->tilePositions, dtgpacket->layer, dtgpacket->sourcePosition, dtgpacket->tileDamage, dtgpacket->sourceEntity);
+      if (clientHasBuildPermission(clientId))
+        damageTiles(dtgpacket->tilePositions, dtgpacket->layer, dtgpacket->sourcePosition, dtgpacket->tileDamage, dtgpacket->sourceEntity);
 
     } else if (auto clpacket = as<CollectLiquidPacket>(packet)) {
-      if (auto item = collectLiquid(clpacket->tilePositions, clpacket->liquidId))
-        clientInfo->outgoingPackets.append(make_shared<GiveItemPacket>(item));
+      if (clientHasBuildPermission(clientId)) {
+        if (auto item = collectLiquid(clpacket->tilePositions, clpacket->liquidId))
+          clientInfo->outgoingPackets.append(make_shared<GiveItemPacket>(item));
+      }
 
     } else if (auto sepacket = as<SpawnEntityPacket>(packet)) {
       auto entity = entityFactory->netLoadEntity(sepacket->entityType, std::move(sepacket->storeData));
+      auto const& entityType = sepacket->entityType;
       entity->readNetState(std::move(sepacket->firstNetState));
-      addEntity(std::move(entity));
+      // FezzedOne: Fixes potential bypasses to world claim protection by only allowing owners, permitted builders and admins to spawn server-mastered entities.
+      // As an exception, item drops are always allowed as they can't run arbitrary scripts.
+      if (entityType == EntityType::ItemDrop || clientHasBuildPermission(clientId))
+        addEntity(std::move(entity));
 
     } else if (auto rdpacket = as<RequestDropPacket>(packet)) {
       auto drop = m_entityMap->get<ItemDrop>(rdpacket->dropEntityId);
@@ -427,42 +440,60 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
 
     } else if (auto entityInteract = as<EntityInteractPacket>(packet)) {
       // FezzedOne: Server-side part of a fix for an entity interaction error.
-      EntityId targetId = entityInteract->interactRequest.targetId;
+      EntityId targetId = entityInteract->interactRequest.targetId,
+               sourceId = entityInteract->interactRequest.sourceId;
+      auto targetEntityConnection = connectionForEntity(targetId);
       if (auto targetEntity = m_entityMap->entity(targetId)) {
         if (auto interactiveTarget = as<InteractiveEntity>(targetEntity)) {
-          auto targetEntityConnection = connectionForEntity(targetId);
           if (targetEntityConnection == ServerConnectionId) {
             auto interactResult = interact(entityInteract->interactRequest).result();
             if (interactResult)
               clientInfo->outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, entityInteract->interactRequest.sourceId));
             else
-              Logger::warn("No result from server-side entity interaction");
+              Logger::warn("[xServer] WorldServer: No result from server-side entity interaction with entity {} started by entity {} (owned by cID {})", targetId, sourceId, clientId);
           } else {
-            auto const& forwardClientInfo = m_clientInfo.get(targetEntityConnection);
-            forwardClientInfo->outgoingPackets.append(entityInteract);
+            if (m_clientInfo.contains(targetEntityConnection)) {
+              auto const& forwardClientInfo = m_clientInfo.get(targetEntityConnection);
+              if (forwardClientInfo)
+                forwardClientInfo->outgoingPackets.append(entityInteract);
+              else
+                Logger::warn("[xServer] WorldServer: Attempt to interact from entity {} (owned by cID {}) with entity {} (owned by cID {} with missing client info)",
+                    sourceId, clientId, targetId, targetEntityConnection);
+            } else {
+              Logger::warn("[xServer] WorldServer: Attempt to interact from entity {} (owned by cID {}) with entity {} (owned by non-connected cID {})",
+                  sourceId, clientId, targetId, targetEntityConnection);
+            }
           }
         }
         // FezzedOne: For modded client compatibility, we need to specifically allow interactions with players, despite them not being considered interactive entities.
         else {
-          auto targetEntityConnection = connectionForEntity(targetId);
           if (targetEntityConnection == ServerConnectionId) {
-            EntityId sourceId = entityInteract->interactRequest.sourceId;
-            Logger::info("[xSB] Attempted interaction from entity {} with non-interactive server-side entity {}.", sourceId, targetId);
+            Logger::info("[xServer] WorldServer: Attempted interaction from entity {} (owned by cID {}) with non-interactive server-side entity {}", sourceId, clientId, targetId);
             auto interactResult = RpcPromise<InteractAction>::createFulfilled(InteractAction()).result();
             if (interactResult)
               clientInfo->outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, sourceId));
             else
-              Logger::warn("No result from server-side entity interaction");
+              Logger::warn("[xServer] WorldServer: No result from server-side entity interaction with entity {} started by entity {} (owned by cID {})", targetId, sourceId, clientId);
           } else {
-            auto const& forwardClientInfo = m_clientInfo.get(targetEntityConnection);
-            forwardClientInfo->outgoingPackets.append(entityInteract);
+            if (m_clientInfo.contains(targetEntityConnection)) {
+              auto const& forwardClientInfo = m_clientInfo.get(targetEntityConnection);
+              if (forwardClientInfo)
+                forwardClientInfo->outgoingPackets.append(entityInteract);
+              else
+                Logger::warn("[xServer] WorldServer: Attempt to interact from entity {} (owned by cID {}) with entity {} (owned by cID {} with missing client info)",
+                    sourceId, clientId, targetId, targetEntityConnection);
+            } else {
+              Logger::warn("[xServer] WorldServer: Attempt to interact from entity {} (owned by cID {}) with entity {} (owned by non-connected cID {})",
+                  sourceId, clientId, targetId, targetEntityConnection);
+            }
           }
         }
       }
       // FezzedOne: Also log any attempts to interact with a nonexistent entity.
       else {
         EntityId sourceId = entityInteract->interactRequest.sourceId;
-        Logger::info("[xSB] Attempted interaction from entity {} with nonexistent entity {}.", sourceId, targetId);
+        auto sourceEntityConnection = connectionForEntity(sourceId);
+        Logger::info("[xServer] WorldServer: Attempted interaction from entity {} (owned by cID {}) with nonexistent entity {} (owned by cID {}).", sourceId, sourceEntityConnection, targetId, targetEntityConnection);
       }
 
     } else if (auto interactResult = as<EntityInteractResultPacket>(packet)) {
@@ -470,15 +501,15 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       if (forwardClientInfo)
         forwardClientInfo->outgoingPackets.append(interactResult);
       else
-        Logger::warn("EntityInteractResult from cID {} sent to invalid cID {}", clientInfo->clientId, connectionForEntity(interactResult->sourceEntityId));
+        Logger::warn("[xServer] WorldServer: EntityInteractResult from cID {} sent to invalid cID {}", clientInfo->clientId, connectionForEntity(interactResult->sourceEntityId));
 
 
     } else if (auto entityCreate = as<EntityCreatePacket>(packet)) {
       if (!entityIdInSpace(entityCreate->entityId, clientInfo->clientId)) {
-        throw WorldServerException::format("WorldServer received entity creation packet from cID {} with illegal entity ID {}.", clientInfo->clientId, entityCreate->entityId);
+        Logger::warn("[xServer] WorldServer: Received entity creation packet from cID {} with illegal entity ID {}, ignoring", clientInfo->clientId, entityCreate->entityId);
       } else {
         if (m_entityMap->entity(entityCreate->entityId)) {
-          Logger::error("WorldServer received duplicate entity creation packet from cID {}, deleting old entity {}", clientInfo->clientId, entityCreate->entityId);
+          Logger::error("WorldServer: Received duplicate entity creation packet from cID {}, deleting old entity {}", clientInfo->clientId, entityCreate->entityId);
           removeEntity(entityCreate->entityId, false);
         }
 
@@ -503,15 +534,18 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       clientInfo->pendingForward = true;
 
     } else if (auto entityDestroy = as<EntityDestroyPacket>(packet)) {
-      if (auto entity = m_entityMap->entity(entityDestroy->entityId)) {
-        entity->readNetState(entityDestroy->finalNetState, clientInfo->interpolationTracker.interpolationLeadSteps() * GlobalTimestep);
-        // Before destroying the entity, we should make sure that the entity is
-        // using the absolute latest data, so we disable interpolation.
-        entity->disableInterpolation();
-        removeEntity(entityDestroy->entityId, entityDestroy->death);
+      if (connectionForEntity(entityDestroy->entityId) == clientId || clientHasBuildPermission(clientId)) {
+        if (auto entity = m_entityMap->entity(entityDestroy->entityId)) {
+          entity->readNetState(entityDestroy->finalNetState, clientInfo->interpolationTracker.interpolationLeadSteps() * GlobalTimestep);
+          // Before destroying the entity, we should make sure that the entity is
+          // using the absolute latest data, so we disable interpolation.
+          entity->disableInterpolation();
+          removeEntity(entityDestroy->entityId, entityDestroy->death);
+        }
       }
 
     } else if (auto disconnectWires = as<DisconnectAllWiresPacket>(packet)) {
+      if (!clientHasBuildPermission(clientId)) continue;
       for (auto wireEntity : atTile<WireEntity>(disconnectWires->entityPosition)) {
         for (auto connection : wireEntity->connectionsForNode(disconnectWires->wireNode)) {
           wireEntity->removeNodeConnection(disconnectWires->wireNode, connection);
@@ -521,6 +555,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       }
 
     } else if (auto connectWire = as<ConnectWirePacket>(packet)) {
+      if (!clientHasBuildPermission(clientId)) continue;
       for (auto source : atTile<WireEntity>(connectWire->inputConnection.entityLocation)) {
         for (auto target : atTile<WireEntity>(connectWire->outputConnection.entityLocation)) {
           source->addNodeConnection(WireNode{WireDirection::Input, connectWire->inputConnection.nodeIndex}, connectWire->outputConnection);
@@ -544,9 +579,24 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
           entity = m_entityMap->entity(loadUniqueEntity(entityMessagePacket->entityId.get<String>()));
       }
 
+      auto message = entityMessagePacket->message;
+      // FezzedOne: Added special message prefixes that the server only responds to if the client's account has the appropriate permissions.
+      if (message.beginsWith("admin::") && !clientInfo->canBeAdmin) { // Requires permission to use `/admin`.
+        clientInfo->outgoingPackets.append(make_shared<EntityMessageResponsePacket>(makeLeft("Message not handled by world server"), entityMessagePacket->uuid));
+        continue;
+      }
+      if (message.beginsWith("builder::") && !clientHasBuildPermission(clientId)) { // Requires build permission on the world.
+        clientInfo->outgoingPackets.append(make_shared<EntityMessageResponsePacket>(makeLeft("Message not handled by world server"), entityMessagePacket->uuid));
+        continue;
+      }
+      if (message.beginsWith("guest::") && !clientInfo->isGuest) { // Requires the client to be logged in anonymously or on a configured guest account.
+        clientInfo->outgoingPackets.append(make_shared<EntityMessageResponsePacket>(makeLeft("Message not handled by world server"), entityMessagePacket->uuid));
+        continue;
+      }
+
       if (!entity) {
         if (isWorldMessage) {
-          auto response = this->receiveMessage(clientId, entityMessagePacket->message, entityMessagePacket->args);
+          auto response = this->receiveMessage(clientId, message, entityMessagePacket->args);
           if (response)
             clientInfo->outgoingPackets.append(make_shared<EntityMessageResponsePacket>(makeRight(response.take()), entityMessagePacket->uuid));
           else
@@ -557,7 +607,10 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       } else {
         if (entity->isMaster()) {
           if (entity->inWorld()) {
-            auto response = entity->receiveMessage(clientId, entityMessagePacket->message, entityMessagePacket->args);
+            // FezzedOne: Blocks modifications to the contents of containers (and messages to containers) for players who don't have build or `/admin` permission.
+            if (as<ContainerObject>(entity) && !clientHasBuildPermission(clientId) && !clientInfo->canBeAdmin)
+              clientInfo->outgoingPackets.append(make_shared<EntityMessageResponsePacket>(makeLeft("Message not handled by entity"), entityMessagePacket->uuid));
+            auto response = entity->receiveMessage(clientId, message, entityMessagePacket->args);
             if (response)
               clientInfo->outgoingPackets.append(make_shared<EntityMessageResponsePacket>(makeRight(response.take()), entityMessagePacket->uuid));
             else
@@ -573,7 +626,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
     } else if (auto entityMessageResponsePacket = as<EntityMessageResponsePacket>(packet)) {
       // From OpenSB: Log errors instead of throwing and kicking everyone off the world. Also prevent server-side segfaults.
       if (!m_entityMessageResponses.contains(entityMessageResponsePacket->uuid)) {
-        Logger::warn("EntityMessageResponse received from cID {} for unknown context [UUID: {}]", clientInfo->clientId,
+        Logger::warn("WorldServer: EntityMessageResponse received from cID {} for unknown context [UUID: {}]", clientInfo->clientId,
             entityMessageResponsePacket->uuid.hex());
       } else {
         if (auto response = m_entityMessageResponses.maybeTake(entityMessageResponsePacket->uuid)) {
@@ -587,7 +640,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
               response->second.get<RpcPromiseKeeper<Json>>().fail(entityMessageResponsePacket->response.left());
           }
         } else {
-          Logger::warn("Invalid EntityMessageResponse received from cID {} [UUID: {}]", clientInfo->clientId,
+          Logger::warn("WorldServer: Invalid EntityMessageResponse received from cID {} [UUID: {}]", clientInfo->clientId,
               entityMessageResponsePacket->uuid.hex());
         }
       }
@@ -595,6 +648,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       clientInfo->outgoingPackets.append(make_shared<PongPacket>());
 
     } else if (auto updateWorldProperties = as<UpdateWorldPropertiesPacket>(packet)) {
+      if (!clientHasBuildPermission(clientId)) continue;
       // Kae: Properties set to null (nil from Lua) should be erased instead of lingering around
       for (auto& pair : updateWorldProperties->updatedProperties) {
         if (pair.second.isNull())
@@ -605,8 +659,8 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       for (auto const& pair : m_clientInfo)
         pair.second->outgoingPackets.append(make_shared<UpdateWorldPropertiesPacket>(updateWorldProperties->updatedProperties));
 
-    } else {
-      throw WorldServerException::format("Improper packet type {} received from cID {}", (int)packet->type(), clientInfo->clientId);
+    } else { // FezzedOne: Log invalid packets instead of throwing for no good reason.
+      Logger::warn("WorldServer: Improper packet type {} received from cID {}; ignoring", (int)packet->type(), clientInfo->clientId);
     }
   }
 }
@@ -952,15 +1006,18 @@ void WorldServer::setSpawningEnabled(bool spawningEnabled) {
   m_spawner.setActive(spawningEnabled);
 }
 
-TileModificationList WorldServer::validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected) const {
-  return WorldImpl::splitTileModifications(m_entityMap, modificationList, allowEntityOverlap, m_tileGetterFunction, [this](Vec2I pos, TileModification) { return !isTileProtected(pos); }, allowDisconnected).first;
+TileModificationList WorldServer::validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected, bool) const {
+  return WorldImpl::splitTileModifications(m_entityMap, modificationList, allowEntityOverlap, m_tileGetterFunction, [this](Vec2I pos, TileModification) { return !isTileProtected(pos) && !isOwned(); }, allowDisconnected).first;
 }
 
-TileModificationList WorldServer::applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected) {
+TileModificationList WorldServer::applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected, bool serverSide) {
+  if (serverSide && isOwned())
+    return modificationList;
   return doApplyTileModifications(modificationList, allowEntityOverlap, false);
 }
 
 bool WorldServer::forceModifyTile(Vec2I const& pos, TileModification const& modification, bool allowEntityOverlap) {
+  // FezzedOne: Allowing server-side `forceDestroyLiquid` to ignore world claims for now.
   return forceApplyTileModifications({{pos, modification}}, allowEntityOverlap).empty();
 }
 
@@ -1240,6 +1297,19 @@ void WorldServer::setLayerEnvironmentBiome(Vec2I const& position) {
     pair.second->outgoingPackets.append(make_shared<WorldLayoutUpdatePacket>(layoutJson));
 }
 
+// From Mofurka.
+void WorldServer::setWeatherIndex(size_t weatherIndex, bool force) {
+  m_weather.setWeatherIndex(weatherIndex, force);
+}
+
+void WorldServer::setWeather(String const& weatherName, bool force) {
+  m_weather.setWeather(weatherName, force);
+}
+
+StringList WorldServer::weatherList() const {
+  return m_weather.weatherList();
+}
+
 void WorldServer::setPlanetType(String const& planetType, String const& primaryBiomeName) {
   if (auto terrestrialParameters = as<TerrestrialWorldParameters>(m_worldTemplate->worldParameters())) {
     if (terrestrialParameters->typeName != planetType) {
@@ -1326,6 +1396,139 @@ void WorldServer::setDungeonId(RectI const& tileArea, DungeonId dungeonId) {
       }
     }
   }
+}
+
+bool WorldServer::isOwned() const {
+  auto const& serverConfig = Root::singleton().configuration();
+  auto const& jXServerPerms = serverConfig->get("buildPermissionSettings");
+  JsonObject xServerPerms = jXServerPerms.isType(Json::Type::Object) ? jXServerPerms.toObject() : JsonObject{};
+
+  auto const& jBuildPermissions = serverConfig->get("ownedWorldsByAccount");
+  JsonObject const& buildPermissions = jBuildPermissions.isType(Json::Type::Object) ? jBuildPermissions.toObject() : JsonObject{};
+  auto const& jBuildPermissionsByUuid = serverConfig->get("ownedWorldsByUuid");
+  JsonObject const& buildPermissionsByUuid = jBuildPermissionsByUuid.isType(Json::Type::Object) ? jBuildPermissionsByUuid.toObject() : JsonObject{};
+
+  auto getBool = [&](String key) -> bool {
+    if (xServerPerms.hasValue(key)) {
+      auto const& value = xServerPerms.get(key);
+      return value.isType(Json::Type::Bool) ? value.toBool() : false;
+    }
+    return false;
+  };
+
+  if (!getBool("enabled"))
+    return false;
+
+  auto const& locationStr = this->worldId();
+
+  auto serverModsDisallowed = [&locationStr, &getBool](JsonObject const& permissionList) -> bool {
+    // FezzedOne: `true` -> server entities disallowed from modifying tiles, `false` -> server entities allowed to modify tiles.
+    if (permissionList.contains(locationStr)) {
+      auto const& jLocationPermissions = permissionList.get(locationStr);
+      JsonObject const& locationPermissions = jLocationPermissions.isType(Json::Type::Object) ? jLocationPermissions.toObject() : JsonObject{};
+      if (locationPermissions.contains("owner")) {
+        if (locationPermissions.contains("allowedBuilders")) {
+          auto const& jAllowedBuilders = locationPermissions.get("allowedBuilders");
+          JsonArray const& allowedBuilders = jAllowedBuilders.isType(Json::Type::Array) ? jAllowedBuilders.toArray() : JsonArray{};
+          if (allowedBuilders.contains(true))
+            return false;
+          return getBool("disallowServerGriefingWhenOwned");
+        }
+        return getBool("disallowServerGriefingWhenOwned");
+      }
+      return false;
+    }
+    return false;
+  };
+
+  if (getBool("accountClaimsEnabled")) {
+    if (serverModsDisallowed(buildPermissions) || serverModsDisallowed(buildPermissionsByUuid))
+      return true;
+    return false;
+  } else if (serverModsDisallowed(buildPermissionsByUuid)) {
+    return true;
+  }
+
+  return false;
+}
+
+bool WorldServer::clientHasBuildPermission(ConnectionId clientId) const {
+  if (!m_clientInfo.contains(clientId))
+    return false;
+
+  auto const& client = m_clientInfo.get(clientId);
+  if (!client)
+    return false;
+
+  auto const& serverConfig = Root::singleton().configuration();
+  auto const& jXServerPerms = serverConfig->get("buildPermissionSettings");
+  JsonObject xServerPerms = jXServerPerms.isType(Json::Type::Object) ? jXServerPerms.toObject() : JsonObject{};
+
+  auto getBool = [&](String key) -> bool {
+    if (xServerPerms.hasValue(key)) {
+      auto const& value = xServerPerms.get(key);
+      return value.isType(Json::Type::Bool) ? value.toBool() : false;
+    }
+    return false;
+  };
+
+  if (!getBool("enabled"))
+    return true;
+
+  auto const& jBuildPermissions = serverConfig->get("ownedWorldsByAccount");
+  JsonObject const& buildPermissions = jBuildPermissions.isType(Json::Type::Object) ? jBuildPermissions.toObject() : JsonObject{};
+  auto const& jBuildPermissionsByUuid = serverConfig->get("ownedWorldsByUuid");
+  JsonObject const& buildPermissionsByUuid = jBuildPermissionsByUuid.isType(Json::Type::Object) ? jBuildPermissionsByUuid.toObject() : JsonObject{};
+
+  auto const& locationStr = this->worldId();
+  Maybe<String> const& playerAccount = client->accountName;
+  String const& playerUuid = client->clientUuid.hex(); // FezzedOne: This is the UUID upon connection; also the connected ship world's UUID.
+
+  auto hasBuildPermission = [&locationStr](JsonObject const& permissionList, Maybe<String> const& accountOrUuid) -> Maybe<bool> {
+    // FezzedOne: `true` -> has permissions, `false` -> does not have permissions, `{}` -> unclaimed world.
+    if (permissionList.contains(locationStr)) {
+      auto const& jLocationPermissions = permissionList.get(locationStr);
+      JsonObject const& locationPermissions = jLocationPermissions.isType(Json::Type::Object) ? jLocationPermissions.toObject() : JsonObject{};
+      if (locationPermissions.contains("owner")) {
+        if (!accountOrUuid)
+          return false;
+        if (locationPermissions.get("owner") == *accountOrUuid)
+          return true;
+        if (locationPermissions.contains("allowedBuilders")) {
+          auto const& jAllowedBuilders = locationPermissions.get("allowedBuilders");
+          JsonArray const& allowedBuilders = jAllowedBuilders.isType(Json::Type::Array) ? jAllowedBuilders.toArray() : JsonArray{};
+          if (allowedBuilders.contains(true))
+            return true;
+          if (allowedBuilders.contains(*accountOrUuid))
+            return true;
+          return false;
+        }
+        return false;
+      }
+      return {};
+    }
+    return {};
+  };
+
+  if (client->canBeAdmin)
+    return true;
+
+  if (locationStr == strf("ClientShipWorld:{}", playerUuid))
+    return true;
+
+  bool guestsAllowed = getBool("guestBuildingAllowed");
+
+  if (getBool("accountClaimsEnabled")) {
+    if (const Maybe<bool> owned = hasBuildPermission(buildPermissions, playerAccount))
+      return *owned;
+    else if (const Maybe<bool> ownedByUuid = hasBuildPermission(buildPermissionsByUuid, playerUuid))
+      return *ownedByUuid;
+    return guestsAllowed;
+  } else if (const Maybe<bool> owned = hasBuildPermission(buildPermissionsByUuid, playerUuid)) {
+    return *owned;
+  }
+
+  return guestsAllowed;
 }
 
 void WorldServer::setDungeonGravity(DungeonId dungeonId, Maybe<float> gravity) {
@@ -2566,8 +2769,9 @@ bool WorldServer::isVisibleToPlayer(RectF const& region) const {
   return false;
 }
 
-WorldServer::ClientInfo::ClientInfo(ConnectionId clientId, InterpolationTracker const trackerInit)
-    : clientId(clientId), skyNetVersion(0), weatherNetVersion(0), pendingForward(false), started(false), interpolationTracker(trackerInit) {}
+WorldServer::ClientInfo::ClientInfo(ConnectionId clientId, InterpolationTracker const trackerInit, bool canBeAdmin, Uuid clientUuid, Maybe<String> accountName, bool isGuest)
+    : clientId(clientId), skyNetVersion(0), weatherNetVersion(0), pendingForward(false), started(false),
+      canBeAdmin(canBeAdmin), isGuest(isGuest), clientUuid(clientUuid), accountName(accountName), interpolationTracker(trackerInit) {}
 
 List<RectI> WorldServer::ClientInfo::monitoringRegions(EntityMapPtr const& entityMap) const {
   return clientState.monitoringRegions([entityMap](EntityId entityId) -> Maybe<RectI> {

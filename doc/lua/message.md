@@ -1,6 +1,6 @@
 # `message` and `RpcPromise` methods
 
-> *World messages are available only on xStarbound and OpenStarbound. Universe client and pane message handlers are available only on xStarbound v3.4.5+.*
+> _World messages are available only on xStarbound and OpenStarbound. Universe client and pane message handlers are available only on xStarbound v3.4.5+._
 
 The `message` table contains a single callback, `setHandler`, which allows entities to receive messages sent using `world.sendEntityMessage` or `universe.sendWorldMessage`. Entities which can receive messages include:
 
@@ -23,20 +23,20 @@ Additionally, messages can be handled by a variety of script contexts that run o
 Additionally, on xClient, messages can be handled by the following contexts:
 
 - universe client scripts
-- pane scripts with access to `world` (i.e., *not* run in the game's main menu)
+- pane scripts with access to `world` (i.e., _not_ run in the game's main menu)
 - container pane scripts
 
 Sending a message to any player controlled by an xClient client also sends that message to the client's universe client scripts, scripted panes and container pane scripts.
 
 Lastly, world server scripts can receive (on xServer and OpenStarbound servers) world messages and (on xServer v3.5.1+) entity messages with a specified unique entity ID of `"server"` [^1] from any entity on the same world (regardless of whether the entity is server- or client-mastered). For communication between a world server script and server-side scripted entities on that world, you can also use `world.callScriptedEntity` for world-to-entity communication and `world.callScriptContext` for entity-to-world communication; this is your only option on an OpenStarbound server.
 
-[^1]: xServer v3.5.1+ reserves the unique «entity ID» `"server"` specifically for receiving world server messages from entities; *any* client can message this «entity ID» to message the world server directly. Messages with a `[world server]` target type below are directly handled by server-side worlds, not entities, and thus need to be sent to `"server"`.
+[^1]: xServer v3.5.1+ reserves the unique «entity ID» `"server"` specifically for receiving world server messages from entities; _any_ client can message this «entity ID» to message the world server directly. Messages with a `[world server]` target type below are directly handled by server-side worlds, not entities, and thus need to be sent to `"server"`.
 
 ---
 
 #### `void` message.setHandler(`Variant<String, JsonObject>` message, `LuaFunction` handler)
 
-> *On stock Starbound, `message` can only be a `String`, making the extra JSON options not available.*
+> _On stock Starbound, `message` can only be a `String`, making the extra JSON options not available._
 
 Once invoked, messages of the specified message type received by this script context will call the specified function. These messages can be networked.
 
@@ -64,6 +64,14 @@ Note that `isLocal` is always `true` for world messages — all worlds run on th
 The `handler` may optionally return a JSON-encodable value which can be accessed via the `RpcPromise:result` method if the response to the message is successfully received.
 
 **Note:** Local messages always immediately succeed; you can just call `:result` on them as soon as you receive them.
+
+**xStarbound permissions:** World entity/server messages with the following prefixes in their names that are sent to the world server or server-mastered entities are only handled if the client has the appropriate server permissions:
+
+- _`admin::`:_ Only handled if the client has permission to use `/admin` on the server.
+- _`builder::`:_ Only handled if the client has build permission for the world _or_ has permission to use `/admin` on the server.
+- _`guest::`:_ Only handled if the client is connected anonymously or under an account configured as a guest account (with `"guest": true` in `xserver.config` or the host's `xclient.config`).
+
+This permission system can be used to ensure that only clients with the appropriate permissions can do certain actions on your server.
 
 ---
 
@@ -109,7 +117,7 @@ You can disable handling non-local messages of this type for a given player on x
 
 Immediately interrupts any radio message currently being displayed for the primary player. Received and handled by the client's engine.
 
-If invoked on a secondary player, the interruption will be "queued" until the 
+If invoked on a secondary player, the interruption will be "queued" until the
 
 You can disable handling non-local messages of this type for a given player on xClient with `player.setExternalRadioMessagesIgnored`; this does not mark the message as failed.
 
@@ -119,7 +127,7 @@ You can disable handling non-local messages of this type for a given player on x
 
 Immediately warps the player to the given location, specified as a world ID.
 
-Only warps the *primary* player immediately. Any attempt to warp a secondary player will be "queued" until that player becomes primary or cleared upon disconnection. Received and handled by the client's engine.
+Only warps the _primary_ player immediately. Any attempt to warp a secondary player will be "queued" until that player becomes primary or cleared upon disconnection. Received and handled by the client's engine.
 
 You can disable handling non-local messages of this type for a given player on xClient with `player.setExternalWarpsIgnored`; this does not mark the message as failed.
 
@@ -174,13 +182,14 @@ You can disable handling non-local messages of this type for a given player on x
 ---
 
 #### `void` `"chatMessage"` [player] (`Json` message)
+
 #### `void` `"newChatMessage"` [player] (`Json` message)
 
 **`"chatMessage"` is available only on xStarbound. `"newChatMessage"` is available on xStarbound and StarExtensions.**
 
 xClient's engine sends this message locally to the primary player whenever a chat message is received, but may also be sent non-locally.
 
-Additionally, when xClient's engine receives messages of these types, it invokes *all* Lua message handlers for them and concatenates their results into a `JsonArray`. `nil` results will be explicit `null`s, so you *can* use `jsize` on the array to find out how many handlers you've tripped.
+Additionally, when xClient's engine receives messages of these types, it invokes _all_ Lua message handlers for them and concatenates their results into a `JsonArray`. `nil` results will be explicit `null`s, so you _can_ use `jsize` on the array to find out how many handlers you've tripped.
 
 The format of `"chatMessage"`'s argument is as follows:
 
@@ -197,6 +206,7 @@ jobject{
     -- Note that there is no `scripted` parameter -- assume xClient always returns a `null` or `false` here.
 }
 ```
+
 The format of `"newChatMessage"`'s argument is as follows (for compatibility with StarExtensions mods):
 
 ```lua
@@ -231,7 +241,7 @@ Any JSON value may be returned and will be displayed as a chat message in respon
 
 #### `void` `"control_on"` [vehicle] (`uint64_t` loungePosition, `String` control)
 
-Toggles *on* a specified control for a specified lounging position on a vehicle. Normally entirely handled by the engine. This message is sent by a player or NPC lounging in and controlling a vehicle.
+Toggles _on_ a specified control for a specified lounging position on a vehicle. Normally entirely handled by the engine. This message is sent by a player or NPC lounging in and controlling a vehicle.
 
 The possible controls are:
 
@@ -248,13 +258,13 @@ The possible controls are:
 
 #### `void` `"control_off"` [vehicle] (`uint64_t` loungePosition, `String` control)
 
-Toggles *off* a specified control for a specified lounging position on a vehicle. Normally entirely handled by the engine. This message is sent by a player or NPC lounging in and controlling a vehicle.
+Toggles _off_ a specified control for a specified lounging position on a vehicle. Normally entirely handled by the engine. This message is sent by a player or NPC lounging in and controlling a vehicle.
 
 See above for the possible controls.
 
 #### `void` `"control_all"` [vehicle] (`uint64_t` loungePosition, `StringList` controlsOn)
 
-Sets the toggled controls for a specified lounging position on a vehicle. Controls that are listed are toggled *on*, while those that are *not* listed are toggled *off*, all in one go. Normally entirely handled by the engine. This message is sent by a player or NPC lounging in and controlling a vehicle.
+Sets the toggled controls for a specified lounging position on a vehicle. Controls that are listed are toggled _on_, while those that are _not_ listed are toggled _off_, all in one go. Normally entirely handled by the engine. This message is sent by a player or NPC lounging in and controlling a vehicle.
 
 See above for the possible controls.
 
@@ -264,7 +274,7 @@ Sets the aim position a specified lounging position on a vehicle, as for a turre
 
 #### `void` `"requestUpgrade"` [crafting interface source entity] ()
 
-> **Note:** On xClient, the source entity of a crafting interface may now be any interactive entity. On other clients, the source entity *must* be a tile entity.
+> **Note:** On xClient, the source entity of a crafting interface may now be any interactive entity. On other clients, the source entity _must_ be a tile entity.
 
 Tells the source entity of a crafting interface — normally a crafting station object — to upgrade itself, usually to the next upgrade stage.
 
@@ -272,13 +282,13 @@ Normally sent automatically by the client's engine. This message may be handled 
 
 #### `void` `"startCrafting"` [container object] ()
 
-Tells the container to start crafting. This is used for furnaces and other similar "smelters" or "extractors" that handle their crafting server-side. 
+Tells the container to start crafting. This is used for furnaces and other similar "smelters" or "extractors" that handle their crafting server-side.
 
 Normally entirely handled by the client and server engines.
 
 #### `void` `"stopCrafting"` [container object] ()
 
-Tells the container to stop crafting. This is used for furnaces and other similar "smelters" or "extractors" that handle their crafting server-side. 
+Tells the container to stop crafting. This is used for furnaces and other similar "smelters" or "extractors" that handle their crafting server-side.
 
 Normally entirely handled by the client and server engines.
 
@@ -290,7 +300,7 @@ Normally entirely handled by the client and server engines. The client sends thi
 
 Under the hood, this message stops any container crafting, calculates how much fuel value the contents holds, destroys as much of the contents as necessary to fill up the tank to the level set by the world property `"ship.maxFuel"`, and sets the world property `"ship.fuel"` to the resulting amount.
 
-This message call *technically* doesn't actually care if it's running on a shipworld, but since anything that isn't a player shipworld (normally) has no `"ship.maxFuel"` property anyway (defaulting to `0`), it still effectively does nothing when called on an ordinary planet.
+This message call _technically_ doesn't actually care if it's running on a shipworld, but since anything that isn't a player shipworld (normally) has no `"ship.maxFuel"` property anyway (defaulting to `0`), it still effectively does nothing when called on an ordinary planet.
 
 #### `ItemDescriptor` `"addItems"` [container object] (`ItemDescriptor` itemStack)
 
@@ -348,12 +358,13 @@ Several messages handled by «built-in» scripts on xStarbound are noted below.
 
 ---
 
-#### `Json` `"metadata"` [world server] ()
+#### `Json` `"builder::metadata"` [world server] ()
 
-Returns the world's metadata if `"allowWorldMetadataChanges"` is `true` (or truthy) in the server's `xserver.config` or host's `xclient.config` (your client is the host in single-player); otherwise returns `nil`. Identical to the server-side `world.metadata` callback aside from the configuration restriction; see that callback in `$docs/lua/world.md` for more info.
+Returns the world's metadata if `"allowWorldMetadataChanges"` is `true` (or truthy according to Lua) in the server's `xserver.config` or host's `xclient.config` (your client is the host in single-player) _and_ you have permission to build on the world or are an admin; otherwise returns `nil`. Identical to the server-side `world.metadata` callback aside from the configuration and permission restrictions; see that callback in `$docs/lua/world.md` for more info.
 
 ---
 
-#### `void` `"setMetadata"` [world server] (`Json` newMetadata)
+#### `void` `"builder::setMetadata"` [world server] (`Json` newMetadata)
 
-Modifies the world's metadata if `"allowWorldMetadataChanges"` is `true` (or truthy) in the server's `xserver.config` or host's `xclient.config` (your client is the host in single-player); otherwise does nothing. Identical to the server-side `world.setMetadata` callback aside from the configuration restriction; see that callback in `$docs/lua/world.md` for more info.
+Modifies the world's metadata if `"allowWorldMetadataChanges"` is `true` (or truthy according to Lua) in the server's `xserver.config` or host's `xclient.config` (your client is the host in single-player) _and_ you have permission to build on the world or are an admin; otherwise does nothing. Identical to the server-side `world.setMetadata` callback aside from the configuration and permission restrictions; see that callback in `$docs/lua/world.md` for more info.
+

@@ -1,14 +1,14 @@
 #include "StarSky.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarDataStreamExtra.hpp"
-#include "StarRoot.hpp"
+#include "StarAssets.hpp"
 #include "StarCelestialDatabase.hpp"
 #include "StarCelestialGraphics.hpp"
-#include "StarAssets.hpp"
-#include "StarTime.hpp"
-#include "StarRandomPoint.hpp"
-#include "StarMixer.hpp"
 #include "StarCompression.hpp"
+#include "StarDataStreamExtra.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarMixer.hpp"
+#include "StarRandomPoint.hpp"
+#include "StarRoot.hpp"
+#include "StarTime.hpp"
 
 namespace Star {
 
@@ -176,15 +176,12 @@ void Sky::update(double dt) {
         m_worldOffset = m_worldMoveOffset;
       }
 
-      if (m_warpPhase == WarpPhase::SpeedingUp && m_flyingTimer >= speedupTime()
-          && !m_enterHyperspace
-          && m_destWorld) {
+      if (m_warpPhase == WarpPhase::SpeedingUp && m_flyingTimer >= speedupTime() && !m_enterHyperspace && m_destWorld) {
         jumpTo(m_destWorld.take());
         m_warpPhase = WarpPhase::SlowingDown;
       } else if (m_warpPhase == WarpPhase::SpeedingUp && m_flyingTimer >= speedupTime() && m_enterHyperspace) {
         m_warpPhase = WarpPhase::Maintain;
-      } else if (m_warpPhase == WarpPhase::Maintain && m_flyingTimer >= m_settings.queryFloat("flyingTimer")
-          && m_destWorld) {
+      } else if (m_warpPhase == WarpPhase::Maintain && m_flyingTimer >= m_settings.queryFloat("flyingTimer") && m_destWorld) {
         jumpTo(m_destWorld.take());
         m_warpPhase = WarpPhase::SlowingDown;
       } else if (m_warpPhase == WarpPhase::SlowingDown && m_flyingTimer >= slowdownTime()) {
@@ -243,11 +240,19 @@ double Sky::epochTime() const {
 }
 
 void Sky::setEpochTime(double epochTime) {
+  auto isInfinity = [](double value) -> uint8_t {
+    volatile uint64_t bits;
+    std::memcpy((void*)&bits, &value, sizeof(uint64_t));
+    if ((bits & 0x7FF0000000000000ULL) == 0x7FF0000000000000ULL)
+      return (bits & 0xFFF0000000000000ULL) == 0x7FF0000000000000ULL ? 1 : 2;
+    return 0;
+  };
+
   // FezzedOne: Fixed the inability to manually set some worlds' sky time in a server-side world or entity script.
   // Note that `m_usingOwnClock` will be reset when the world is unloaded.
-  if (epochTime == std::numeric_limits<double>::infinity()) // `math.huge` in Lua. Disables the universe clock *without* setting time.
+  if (isInfinity(epochTime) == 1) // `math.huge` in Lua. Disables the universe clock *without* setting time.
     m_usingOwnClock = true;
-  else if (epochTime == -std::numeric_limits<double>::infinity()) // `-math.huge` in Lua. (Re-)enables the universe clock *without* setting time.
+  else if (isInfinity(epochTime) == 2) // `-math.huge` in Lua. (Re-)enables the universe clock *without* setting time.
     m_usingOwnClock = false;
   else {
     m_time = epochTime;
@@ -660,4 +665,4 @@ float Sky::slowdownTime() const {
     return m_settings.queryFloat("slowdownTime");
 }
 
-}
+} // namespace Star

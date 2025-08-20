@@ -1,3 +1,0 @@
-require .
-name plutoc
-+luac.cpp

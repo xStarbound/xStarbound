@@ -1,21 +1,22 @@
 #ifndef STAR_WORLD_SERVER_HPP
 #define STAR_WORLD_SERVER_HPP
 
-#include "StarWorld.hpp"
-#include "StarWorldClientState.hpp"
-#include "StarCollisionGenerator.hpp"
-#include "StarSpawner.hpp"
-#include "StarNetPackets.hpp"
 #include "StarCellularLighting.hpp"
 #include "StarCellularLiquid.hpp"
-#include "StarWeather.hpp"
+#include "StarCollisionGenerator.hpp"
 #include "StarInterpolationTracker.hpp"
-#include "StarWorldStructure.hpp"
-#include "StarLuaRoot.hpp"
 #include "StarLuaComponents.hpp"
-#include "StarWorldRenderData.hpp"
-#include "StarWarping.hpp"
+#include "StarLuaRoot.hpp"
+#include "StarNetPackets.hpp"
 #include "StarRpcThreadPromise.hpp"
+#include "StarServerClientContext.hpp"
+#include "StarSpawner.hpp"
+#include "StarWarping.hpp"
+#include "StarWeather.hpp"
+#include "StarWorld.hpp"
+#include "StarWorldClientState.hpp"
+#include "StarWorldRenderData.hpp"
+#include "StarWorldStructure.hpp"
 
 namespace Star {
 
@@ -88,7 +89,7 @@ public:
 
   // Returns false if the client id already exists, or the spawn target is
   // invalid.
-  bool addClient(ConnectionId clientId, SpawnTarget const& spawnTarget, bool isLocal);
+  bool addClient(ConnectionId clientId, SpawnTarget const& spawnTarget, bool isLocal, bool canBeAdmin = false, Uuid const& clientUuid = Uuid(), Maybe<String> const& accountName = {}, bool isGuest = false);
 
   // Removes client, sends the WorldStopPacket, and returns any pending packets
   // for that client
@@ -132,8 +133,8 @@ public:
   LiquidLevel liquidLevel(Vec2I const& pos) const override;
   LiquidLevel liquidLevel(RectF const& region) const override;
 
-  TileModificationList validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnect = true) const override;
-  TileModificationList applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnect = true) override;
+  TileModificationList validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnect = true, bool serverSide = false) const override;
+  TileModificationList applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnect = true, bool serverSide = false) override;
   EntityPtr entity(EntityId entityId) const override;
   void addEntity(EntityPtr const& entity, EntityId entityId = NullEntityId) override;
   EntityPtr closestEntity(Vec2F const& center, float radius, EntityFilter selector = EntityFilter()) const override;
@@ -191,6 +192,9 @@ public:
   void setDungeonBreathable(DungeonId dungeonId, Maybe<bool> breathable);
 
   void setDungeonId(RectI const& tileRegion, DungeonId dungeonId);
+
+  bool isOwned() const;
+  bool clientHasBuildPermission(ConnectionId clientId) const;
 
   // Signal a region to load / generate, returns true if it is now fully loaded
   // and generated
@@ -265,12 +269,17 @@ public:
   // used to notify the universe server that the celestial planet type has changed
   Maybe<pair<String, String>> pullNewPlanetType();
 
+  // From Mofurka.
+  StringList weatherList() const;
+  void setWeather(String const& weatherName, bool force);
+  void setWeatherIndex(size_t weatherIndex, bool force);
+
   void setGlobal(Maybe<String> const& jsonPath, Json const& newValue);
   Json getGlobal(Maybe<String> const& jsonPath) const;
 
 private:
   struct ClientInfo {
-    ClientInfo(ConnectionId clientId, InterpolationTracker const trackerInit);
+    ClientInfo(ConnectionId clientId, InterpolationTracker const trackerInit, bool canBeAdmin = false, Uuid clientUuid = Uuid(), Maybe<String> accountName = {}, bool isGuest = false);
 
     List<RectI> monitoringRegions(EntityMapPtr const& entityMap) const;
 
@@ -282,6 +291,11 @@ private:
     WorldClientState clientState;
     bool pendingForward;
     bool started;
+
+    bool canBeAdmin;
+    bool isGuest;
+    Uuid clientUuid;
+    Maybe<String> accountName;
 
     List<PacketPtr> outgoingPackets;
 
@@ -303,7 +317,7 @@ private:
     List<Vec2I> roots;
   };
 
-  typedef function<ServerTile const& (Vec2I)> ServerTileGetter;
+  typedef function<ServerTile const&(Vec2I)> ServerTileGetter;
 
   void init(bool firstTime);
 
@@ -411,6 +425,6 @@ private:
   GameTimer m_expiryTimer;
 };
 
-}
+} // namespace Star
 
 #endif

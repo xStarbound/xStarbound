@@ -17,10 +17,14 @@ namespace LuaBindings {
     size_t numberOfClients(UniverseServer* universe);
     bool isConnectedClient(UniverseServer* universe, ConnectionId arg1);
     Maybe<String> clientNick(UniverseServer* universe, ConnectionId arg1);
+    Maybe<String> clientAccount(UniverseServer* universe, ConnectionId arg1);
+    Maybe<bool> hasBuildPermission(UniverseServer* universe, ConnectionId arg1, Maybe<Vec3I> arg2);
     Maybe<ConnectionId> findNick(UniverseServer* universe, String const& arg1);
     void adminBroadcast(UniverseServer* universe, String const& arg1, Maybe<JsonObject> const& arg2);
     void adminWhisper(UniverseServer* universe, ConnectionId arg1, String const& arg2, Maybe<JsonObject> const& arg3);
     bool isAdmin(UniverseServer* universe, ConnectionId arg1);
+    bool isGuest(UniverseServer* universe, ConnectionId arg1);
+    bool canBeAdmin(UniverseServer* universe, ConnectionId arg1);
     bool isPvp(UniverseServer* universe, ConnectionId arg1);
     void setPvp(UniverseServer* universe, ConnectionId arg1, Maybe<bool> arg2);
     bool isLocal(UniverseServer* universe, ConnectionId arg1);

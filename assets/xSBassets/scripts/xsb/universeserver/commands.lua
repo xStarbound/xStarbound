@@ -167,11 +167,17 @@ function commands.listworld(cid, args)
                     .. worldId
                     .. "':^reset;\n"
                 for n, connectionId in ipairs(worldConnectionIds) do
+                    local account = universe.clientAccount(connectionId)
+                    local accountInfo = string.format("%s%s",
+                        (universe.IsGuest(connectionId) and not account) and "*" or (universe.canBeAdmin(connectionId) and "#" or "@"), 
+                        account or "")
                     listing = listing
                         .. "$"
                         .. connectionId
                         .. " : "
                         .. universe.clientNick(connectionId)
+                        .. " : "
+                        .. accountInfo
                         .. " : $$"
                         .. universe.clientUuid(connectionId)
                         .. (n == playerCount and "" or "\n")

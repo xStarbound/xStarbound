@@ -409,14 +409,14 @@ LiquidLevel WorldClient::liquidLevel(RectF const& region) const {
   return WorldImpl::liquidLevel(m_tileArray, region);
 }
 
-TileModificationList WorldClient::validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected) const {
+TileModificationList WorldClient::validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected, bool) const {
   if (!inWorld())
     return {};
 
   return WorldImpl::splitTileModifications(m_entityMap, modificationList, allowEntityOverlap, m_tileGetterFunction, [this](Vec2I pos, TileModification) { return !isTileProtected(pos); }, allowDisconnected).first;
 }
 
-TileModificationList WorldClient::applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected) {
+TileModificationList WorldClient::applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected, bool) {
   if (!inWorld())
     return {};
 

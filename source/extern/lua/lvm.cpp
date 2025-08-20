@@ -858,7 +858,7 @@ static void pushclosure (lua_State *L, Proto *p, UpVal **encup, StkId base,
 
 static void inopr (lua_State *L, StkId ra, TValue *a, TValue *b) {
   if (ttisstring(a) && ttisstring(b)) {
-    if (strstr(getstr(tsvalue(b)), getstr(tsvalue(a))) != nullptr) {
+    if (std::string_view(getstr(tsvalue(b)), tsslen(tsvalue(b))).find(std::string_view(getstr(tsvalue(a)), tsslen(tsvalue(a)))) != std::string_view::npos) {
       setbtvalue(s2v(ra));
     } else {
       setbfvalue(s2v(ra));
@@ -1700,7 +1700,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         vmDumpAddA();
         vmDumpAddB();
         vmDumpAddC();
-        vmDumpOut ("; push self to call '" << getstr(key) << "'");
+        vmDumpOut ("; push self to call '" << getstr(key) << "' (" << stringify_ttype(s2v(ra)) << ")");
         vmbreak;
       }
       vmcase(OP_ADDI) {

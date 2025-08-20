@@ -825,7 +825,7 @@
 
 // If defined, Pluto will use a jumptable in the VM even if not compiled via GCC or Clang.
 // This will generally improve runtime performance but can add minutes to compile time, depending on the setup.
-//#define PLUTO_FORCE_JUMPTABLE
+#define PLUTO_FORCE_JUMPTABLE
 
 // If defined, Pluto won't imbue tables with a metatable by default.
 //#define PLUTO_NO_DEFAULT_TABLE_METATABLE
@@ -833,13 +833,13 @@
 // If defined, Pluto will add table.isfrozen & table.freeze to the standard library,
 // lua_freezetable, lua_istablefrozen, & lua_erriffrozen to the C API,
 // and all the hooks required to make it work. Note that coverage may not be perfect.
-//#define PLUTO_ENABLE_TABLE_FREEZING
+#define PLUTO_ENABLE_TABLE_FREEZING
 
 // If defined, Pluto will cache the bytecode of text files that parsed without warnings or errors,
 // and if the contents remained unchanged, it'll load the bytecode instead of reparsing the file.
 // The worst-case scenario for this optimization is small files and files that change often,
 // but even then, the overhead should be at most 1ms on modern systems.
-#define PLUTO_PARSER_CACHE
+//#define PLUTO_PARSER_CACHE
 
 /*
 ** {====================================================================

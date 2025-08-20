@@ -1,32 +1,31 @@
 #include "StarCommandProcessor.hpp"
-#include "StarLexicalCast.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarNpc.hpp"
-#include "StarWorldServer.hpp"
-#include "StarUniverseServer.hpp"
-#include "StarUniverseSettings.hpp"
-#include "StarRoot.hpp"
-#include "StarItemDatabase.hpp"
-#include "StarConfiguration.hpp"
-#include "StarItemDrop.hpp"
-#include "StarTreasure.hpp"
-#include "StarLogging.hpp"
-#include "StarPlayer.hpp"
-#include "StarMonster.hpp"
-#include "StarStagehand.hpp"
-#include "StarVehicleDatabase.hpp"
-#include "StarStagehandDatabase.hpp"
-#include "StarLiquidsDatabase.hpp"
-#include "StarChatProcessor.hpp"
 #include "StarAssets.hpp"
+#include "StarChatProcessor.hpp"
 #include "StarConfiguration.hpp"
-#include "StarWorldLuaBindings.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarItemDrop.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLexicalCast.hpp"
+#include "StarLiquidsDatabase.hpp"
+#include "StarLogging.hpp"
+#include "StarMonster.hpp"
+#include "StarNpc.hpp"
+#include "StarPlayer.hpp"
+#include "StarRoot.hpp"
+#include "StarStagehand.hpp"
+#include "StarStagehandDatabase.hpp"
+#include "StarTreasure.hpp"
+#include "StarUniverseServer.hpp"
 #include "StarUniverseServerLuaBindings.hpp"
+#include "StarUniverseSettings.hpp"
+#include "StarVehicleDatabase.hpp"
+#include "StarWorldLuaBindings.hpp"
+#include "StarWorldServer.hpp"
 
 namespace Star {
 
 CommandProcessor::CommandProcessor(UniverseServer* universe)
-  : m_universe(universe) {
+    : m_universe(universe) {
   auto assets = Root::singleton().assets();
   m_scriptComponent.addCallbacks("universe", LuaBindings::makeUniverseServerCallbacks(m_universe));
   m_scriptComponent.addCallbacks("CommandProcessor", makeCommandCallbacks());
@@ -71,10 +70,10 @@ String CommandProcessor::help(ConnectionId connectionId, String const& argumentS
   String res = "";
 
   auto commandDescriptions = [&](Json const& commandConfig) {
-      StringList commandList = commandConfig.toObject().keys();
-      sort(commandList);
-      return "/" + commandList.join(", /");
-    };
+    StringList commandList = commandConfig.toObject().keys();
+    sort(commandList);
+    return "/" + commandList.join(", /");
+  };
 
   String basicHelpFormat = assets->json("/help.config:basicHelpText").toString();
   res = res + strf(basicHelpFormat.utf8Ptr(), commandDescriptions(basicCommands));
@@ -132,8 +131,8 @@ String CommandProcessor::pvp(ConnectionId connectionId, String const&) {
 
 String CommandProcessor::whoami(ConnectionId connectionId, String const&) {
   return strf("[Server] You are {}^reset;. You are {}an admin.",
-              m_universe->clientNick(connectionId),
-              m_universe->isAdmin(connectionId) ? "" : "not ");
+      m_universe->clientNick(connectionId),
+      m_universe->isAdmin(connectionId) ? "" : "not ");
 }
 
 String CommandProcessor::warp(ConnectionId connectionId, String const& argumentString) {
@@ -153,49 +152,49 @@ String CommandProcessor::warpRandom(ConnectionId connectionId, String const& typ
   if (auto errorMsg = adminCheck(connectionId, "warp to random world"))
     return *errorMsg;
 
-	Vec2I size = {2, 2};
-	auto& celestialDatabase = m_universe->celestialDatabase();
-	Maybe<CelestialCoordinate> target = {};
+  Vec2I size = {2, 2};
+  auto& celestialDatabase = m_universe->celestialDatabase();
+  Maybe<CelestialCoordinate> target = {};
 
-	auto validPlanet = [&celestialDatabase, &typeName](CelestialCoordinate const& p) {
-			if (auto celestialParams = celestialDatabase.parameters(p)) {
-				if (auto visitableParams = celestialParams->visitableParameters()) {
-					if (visitableParams->typeName == typeName)
-						return true;
-				}
-			}
-			return false;
-		};
+  auto validPlanet = [&celestialDatabase, &typeName](CelestialCoordinate const& p) {
+    if (auto celestialParams = celestialDatabase.parameters(p)) {
+      if (auto visitableParams = celestialParams->visitableParameters()) {
+        if (visitableParams->typeName == typeName)
+          return true;
+      }
+    }
+    return false;
+  };
 
-	while (target.isNothing()) {
-		RectI region = RectI::withSize(Vec2I(Random::randi32(), Random::randi32()), size);
+  while (target.isNothing()) {
+    RectI region = RectI::withSize(Vec2I(Random::randi32(), Random::randi32()), size);
 
-		while (!celestialDatabase.scanRegionFullyLoaded(region)) {
-			celestialDatabase.scanSystems(region);
-		}
-		auto systems = celestialDatabase.scanSystems(region);
-		for (auto s : systems) {
-			for (auto planet : celestialDatabase.children(s)) {
-				if (validPlanet(planet))
-					target = planet;
-				if (target.isNothing()) {
-					for (auto moon : celestialDatabase.children(planet)) {
-						if (validPlanet(moon)) {
-							target = moon;
-							break;
-						}
-					}
-				}
-			}
-		}
-			
-		if (size.magnitude() > 1024)
-			return "Could not find matching world";
-		size *= 2;
-	}
+    while (!celestialDatabase.scanRegionFullyLoaded(region)) {
+      celestialDatabase.scanSystems(region);
+    }
+    auto systems = celestialDatabase.scanSystems(region);
+    for (auto s : systems) {
+      for (auto planet : celestialDatabase.children(s)) {
+        if (validPlanet(planet))
+          target = planet;
+        if (target.isNothing()) {
+          for (auto moon : celestialDatabase.children(planet)) {
+            if (validPlanet(moon)) {
+              target = moon;
+              break;
+            }
+          }
+        }
+      }
+    }
 
-	m_universe->clientWarpPlayer(connectionId, WarpToWorld(CelestialWorldId(*target)));
-	return strf("warping to {}", *target);
+    if (size.magnitude() > 1024)
+      return "Could not find matching world";
+    size *= 2;
+  }
+
+  m_universe->clientWarpPlayer(connectionId, WarpToWorld(CelestialWorldId(*target)));
+  return strf("warping to {}", *target);
 }
 
 String CommandProcessor::timewarp(ConnectionId connectionId, String const& argumentString) {
@@ -229,8 +228,8 @@ String CommandProcessor::setTileProtection(ConnectionId connectionId, String con
     bool isProtected = lexicalCast<bool>(arguments.at(1));
 
     bool done = m_universe->executeForClient(connectionId, [dungeonId, isProtected](WorldServer* world, PlayerPtr const&) {
-        world->setTileProtection(dungeonId, isProtected);
-      });
+      world->setTileProtection(dungeonId, isProtected);
+    });
 
     return done ? "" : "Failed to set block protection.";
   } catch (BadLexicalCast const&) {
@@ -251,8 +250,8 @@ String CommandProcessor::setDungeonId(ConnectionId connectionId, String const& a
     DungeonId dungeonId = lexicalCast<DungeonId>(arguments.at(0));
 
     bool done = m_universe->executeForClient(connectionId, [dungeonId](WorldServer* world, PlayerPtr const& player) {
-        world->setDungeonId(RectI::withSize(Vec2I(player->aimPosition()), Vec2I(1, 1)), dungeonId);
-      });
+      world->setDungeonId(RectI::withSize(Vec2I(player->aimPosition()), Vec2I(1, 1)), dungeonId);
+    });
 
     return done ? "" : "Failed to set dungeon id.";
   } catch (BadLexicalCast const&) {
@@ -265,8 +264,8 @@ String CommandProcessor::setPlayerStart(ConnectionId connectionId, String const&
     return *errorMsg;
 
   m_universe->executeForClient(connectionId, [](WorldServer* world, PlayerPtr const& player) {
-      world->setPlayerStart(player->position() + player->feetOffset());
-    });
+    world->setPlayerStart(player->position() + player->feetOffset());
+  });
 
   return "";
 }
@@ -300,9 +299,9 @@ String CommandProcessor::spawnItem(ConnectionId connectionId, String const& argu
       seed = lexicalCast<uint64_t>(arguments.at(4));
 
     bool done = m_universe->executeForClient(connectionId, [&](WorldServer* world, PlayerPtr const& player) {
-        auto itemDatabase = Root::singleton().itemDatabase();
-        world->addEntity(ItemDrop::createRandomizedDrop(itemDatabase->item(ItemDescriptor(kind, amount, parameters), level, seed, true), player->aimPosition()));
-      });
+      auto itemDatabase = Root::singleton().itemDatabase();
+      world->addEntity(ItemDrop::createRandomizedDrop(itemDatabase->item(ItemDescriptor(kind, amount, parameters), level, seed, true), player->aimPosition()));
+    });
 
     return done ? "" : "Invalid client state";
   } catch (JsonParsingException const& exception) {
@@ -337,10 +336,10 @@ String CommandProcessor::spawnTreasure(ConnectionId connectionId, String const& 
       level = lexicalCast<unsigned>(arguments.at(1));
 
     bool done = m_universe->executeForClient(connectionId, [&](WorldServer* world, PlayerPtr const& player) {
-        auto treasureDatabase = Root::singleton().treasureDatabase();
-        for (auto const& treasureItem : treasureDatabase->createTreasure(treasurePool, level, Random::randu64()))
-          world->addEntity(ItemDrop::createRandomizedDrop(treasureItem, player->aimPosition()));
-      });
+      auto treasureDatabase = Root::singleton().treasureDatabase();
+      for (auto const& treasureItem : treasureDatabase->createTreasure(treasurePool, level, Random::randu64()))
+        world->addEntity(ItemDrop::createRandomizedDrop(treasureItem, player->aimPosition()));
+    });
 
     return done ? "" : "Invalid client state";
   } catch (JsonParsingException const& exception) {
@@ -414,9 +413,9 @@ String CommandProcessor::spawnNpc(ConnectionId connectionId, String const& argum
 
     auto npc = npcDatabase->createNpc(npcDatabase->generateNpcVariant(arguments.at(0), arguments.at(1), npcLevel, seed, overrides));
     bool done = m_universe->executeForClient(connectionId, [&](WorldServer* world, PlayerPtr const& player) {
-        npc->setPosition(player->aimPosition());
-        world->addEntity(npc);
-      });
+      npc->setPosition(player->aimPosition());
+      world->addEntity(npc);
+    });
 
     return done ? "" : "Invalid client state";
   } catch (StarException const& exception) {
@@ -470,9 +469,9 @@ String CommandProcessor::spawnStagehand(ConnectionId connectionId, String const&
 
     auto stagehand = stagehandDatabase->createStagehand(arguments.at(0), parameters);
     bool done = m_universe->executeForClient(connectionId, [&](WorldServer* world, PlayerPtr player) {
-        stagehand->setPosition(player->aimPosition());
-        world->addEntity(stagehand);
-      });
+      stagehand->setPosition(player->aimPosition());
+      world->addEntity(stagehand);
+    });
 
     return done ? "" : "Invalid client state";
   } catch (StarException const& exception) {
@@ -520,8 +519,8 @@ String CommandProcessor::spawnLiquid(ConnectionId connectionId, String const& ar
     }
 
     bool done = m_universe->executeForClient(connectionId, [&](WorldServer* world, PlayerPtr const& player) {
-        world->modifyTile(Vec2I(player->aimPosition().floor()), PlaceLiquid{liquid, quantity}, true);
-      });
+      world->modifyTile(Vec2I(player->aimPosition().floor()), PlaceLiquid{liquid, quantity}, true);
+    });
     return done ? "" : "Invalid client state";
 
   } catch (StarException const& exception) {
@@ -645,8 +644,11 @@ String CommandProcessor::list(ConnectionId connectionId, String const&) {
   StringList res;
 
   auto assets = Root::singleton().assets();
-  for (auto cid : m_universe->clientIds())
-    res.append(strf("${} : {} : $${}", cid, m_universe->clientNick(cid), m_universe->uuidForClient(cid)->hex()));
+  for (auto cid : m_universe->clientIds()) {
+    auto account = m_universe->clientAccount(cid);
+    String accountInfo = strf("{}{}", (m_universe->clientIsGuest(cid) && !account) ? "*" : (m_universe->canBecomeAdmin(cid) ? "#" : "@"), account ? *account : "");
+    res.append(strf("${} : {} : {} : $${}", cid, m_universe->clientNick(cid), accountInfo, m_universe->uuidForClient(cid)->hex()));
+  }
 
   return res.join("\n");
 }
@@ -723,9 +725,7 @@ String CommandProcessor::entityEval(ConnectionId connectionId, String const& lua
 
         ScriptedEntityPtr targetEntity;
         for (auto const& entity : entities) {
-          if (!targetEntity
-              || vmagSquared(entity->position() - player->aimPosition())
-                  < vmagSquared(targetEntity->position() - player->aimPosition()))
+          if (!targetEntity || vmagSquared(entity->position() - player->aimPosition()) < vmagSquared(targetEntity->position() - player->aimPosition()))
             targetEntity = entity;
         }
 
@@ -1041,4 +1041,4 @@ LuaCallbacks CommandProcessor::makeCommandCallbacks() {
   return callbacks;
 }
 
-}
+} // namespace Star

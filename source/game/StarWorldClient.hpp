@@ -52,8 +52,8 @@ public:
   MaterialColorVariant colorVariant(Vec2I const& position, TileLayer layer) const override;
   LiquidLevel liquidLevel(Vec2I const& pos) const override;
   LiquidLevel liquidLevel(RectF const& region) const override;
-  TileModificationList validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected = false) const override;
-  TileModificationList applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected = false) override;
+  TileModificationList validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected = false, bool serverSide = false) const override;
+  TileModificationList applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected = false, bool serverSide = false) override;
   EntityPtr entity(EntityId entityId) const override;
   void addEntity(EntityPtr const& entity, EntityId entityId = NullEntityId) override;
   EntityPtr closestEntity(Vec2F const& center, float radius, EntityFilter selector = EntityFilter()) const override;

@@ -39,7 +39,7 @@ public:
 
   bool spawnTargetValid(SpawnTarget const& spawnTarget);
 
-  bool addClient(ConnectionId clientId, SpawnTarget const& spawnTarget, bool isLocal);
+  bool addClient(ConnectionId clientId, SpawnTarget const& spawnTarget, bool isLocal, bool canBeAdmin = false, Uuid const& clientUuid = Uuid(), Maybe<String> const& accountName = {}, bool isGuest = false);
   // Returns final outgoing packets
   List<PacketPtr> removeClient(ConnectionId clientId);
 

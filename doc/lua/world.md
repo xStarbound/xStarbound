@@ -1327,6 +1327,12 @@ Sets the dungeon ID of all tiles within the specified area.
 
 ---
 
+### `Maybe<bool>` world.hasBuildPermission(`ClientId` clientId)
+
+Returns `true` if the specified connected client is allowed to place or remove tiles, tile mods or objects, spawn server-side entities other than item drops, or modify the contents of containers, or `false` if the client is not allowed to do so or is not connected. See `$docs/permissions.md` for more on xStarbound v3.8's build permission system.
+
+---
+
 #### `RpcPromise<Vec2I>` world.enqueuePlacement(`List<Json>` distributionConfigs, [`DungeonId` id])
 
 Enqueues a biome distribution config for placement through world generation. The returned promise is fulfilled with the position of the placement, once it has been placed.
@@ -1496,6 +1502,24 @@ Sets the overriding gravity for the specified dungeon ID, or returns it to the w
 #### `void` world.setDungeonBreathable(`DungeonId` dungeonId, `Maybe<bool>` breathable)
 
 Sets the overriding breathability for the specified dungeon ID, or returns it to the world default if unspecified.
+
+---
+
+#### `StringList` world.weatherTypes()
+
+Lists the possible weather types for this world as configured in its metadata, in the order they are indexed internally.
+
+---
+
+#### `void` world.setWeather(`String` weatherType, [`bool` force])
+
+Sets the world's weather to the given type. The weather change takes effect immediately and resets the world's random weather change timer to the maximum configured duration for the specified weather type, so your newly set weather will persist for a while.
+
+If `force` is `true`, the specified weather is «held» permanently on the world until `world.setWeather` or `world.setWeatherIndex` is invoked again or the world is unloaded. This is particularly useful for roleplay hubs!
+
+If an out-of-range index or any string (such as an empty string) that does not correspond to a valid configured weather type is specified, the current weather is «held» indefinitely (until it's unloaded or these callbacks are invoked again) if `force` is true, or the world's normal random weather cycle is immediately resumed otherwise.
+
+If a valid weather is specified, setting `force` to false on an invocation of `world.setWeather` or `world.setWeatherIndex` after a «weather hold» was forced with a previous invocation allows the world's weather to cycle normally again after the timer for the newly specified weather expires.
 
 ---
 

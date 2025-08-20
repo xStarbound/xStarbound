@@ -43,10 +43,10 @@ public:
   virtual LiquidLevel liquidLevel(RectF const& region) const = 0;
 
   // Tests a tile modification list and returns the ones that are valid.
-  virtual TileModificationList validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected = false) const = 0;
+  virtual TileModificationList validTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected = false, bool serverSide = false) const = 0;
   // Apply a list of tile modifications in the best order to apply as many
   // possible, and returns the modifications that could not be applied.
-  virtual TileModificationList applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected = false) = 0;
+  virtual TileModificationList applyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool allowDisconnected = false, bool serverSide = false) = 0;
 
   virtual bool isTileProtected(Vec2I const& pos) const = 0;
 

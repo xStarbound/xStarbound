@@ -77,7 +77,7 @@ bool World::canModifyTile(Vec2I const& pos, TileModification const& modification
 }
 
 bool World::modifyTile(Vec2I const& pos, TileModification const& modification, bool allowEntityOverlap, bool allowDisconnected) {
-  return applyTileModifications({{pos, modification}}, allowEntityOverlap, allowDisconnected).empty();
+  return applyTileModifications({{pos, modification}}, allowEntityOverlap, allowDisconnected, isServer()).empty();
 }
 
 TileDamageResult World::damageTile(Vec2I const& tilePosition, TileLayer layer, Vec2F const& sourcePosition, TileDamage const& tileDamage, Maybe<EntityId> sourceEntity) {
