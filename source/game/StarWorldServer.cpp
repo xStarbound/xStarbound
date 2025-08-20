@@ -1475,14 +1475,21 @@ bool WorldServer::clientHasBuildPermission(ConnectionId clientId) const {
   if (!getBool("enabled"))
     return true;
 
+  if (client->canBeAdmin)
+    return true;
+
+  String const& playerUuid = client->clientUuid.hex(); // FezzedOne: This is the UUID upon connection; also the connected ship world's UUID.
+  auto const& locationStr = this->worldId();
+
+  if (locationStr == strf("ClientShipWorld:{}", playerUuid))
+    return true;
+
   auto const& jBuildPermissions = serverConfig->get("ownedWorldsByAccount");
   JsonObject const& buildPermissions = jBuildPermissions.isType(Json::Type::Object) ? jBuildPermissions.toObject() : JsonObject{};
   auto const& jBuildPermissionsByUuid = serverConfig->get("ownedWorldsByUuid");
   JsonObject const& buildPermissionsByUuid = jBuildPermissionsByUuid.isType(Json::Type::Object) ? jBuildPermissionsByUuid.toObject() : JsonObject{};
 
-  auto const& locationStr = this->worldId();
   Maybe<String> const& playerAccount = client->accountName;
-  String const& playerUuid = client->clientUuid.hex(); // FezzedOne: This is the UUID upon connection; also the connected ship world's UUID.
 
   auto hasBuildPermission = [&locationStr](JsonObject const& permissionList, Maybe<String> const& accountOrUuid) -> Maybe<bool> {
     // FezzedOne: `true` -> has permissions, `false` -> does not have permissions, `{}` -> unclaimed world.
@@ -1510,12 +1517,6 @@ bool WorldServer::clientHasBuildPermission(ConnectionId clientId) const {
     return {};
   };
 
-  if (client->canBeAdmin)
-    return true;
-
-  if (locationStr == strf("ClientShipWorld:{}", playerUuid))
-    return true;
-
   bool guestsAllowed = getBool("guestBuildingAllowed");
 
   if (getBool("accountClaimsEnabled")) {
@@ -1523,12 +1524,12 @@ bool WorldServer::clientHasBuildPermission(ConnectionId clientId) const {
       return *owned;
     else if (const Maybe<bool> ownedByUuid = hasBuildPermission(buildPermissionsByUuid, playerUuid))
       return *ownedByUuid;
-    return guestsAllowed;
+    return guestsAllowed && !locationStr.beginsWith("ClientShipWorld:");
   } else if (const Maybe<bool> owned = hasBuildPermission(buildPermissionsByUuid, playerUuid)) {
     return *owned;
   }
 
-  return guestsAllowed;
+  return guestsAllowed && !locationStr.beginsWith("ClientShipWorld:");
 }
 
 void WorldServer::setDungeonGravity(DungeonId dungeonId, Maybe<float> gravity) {
