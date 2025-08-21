@@ -1414,7 +1414,7 @@ bool WorldServer::isOwned() const {
   JsonObject const& buildPermissionsByUuid = jBuildPermissionsByUuid.isType(Json::Type::Object) ? jBuildPermissionsByUuid.toObject() : JsonObject{};
 
   auto getBool = [&](String key) -> bool {
-    if (xServerPerms.hasValue(key)) {
+    if (xServerPerms.contains(key)) {
       auto const& value = xServerPerms.get(key);
       return value.isType(Json::Type::Bool) ? value.toBool() : false;
     }
