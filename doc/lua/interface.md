@@ -297,7 +297,7 @@ jobject{
   nick = "", -- The sender's nickname. If an empty string, no nick is shown in chat.
   portrait = "", -- The chat portrait. Is an empty string if there's no portrait.
   -- Not used for messages that don't have a `"RadioMessage"` mode.
-  message = "", -- The chat message, of course.
+  text = "", -- The chat message, of course.
   showPane = true, -- Whether to show the chat pane. Optional; defaults to `true`.
   -- Ignored by a scripted chat pane.
   data = jobject{} -- Arbitrary chat message metadata. Will be an empty object if metadata was unspecified or if
