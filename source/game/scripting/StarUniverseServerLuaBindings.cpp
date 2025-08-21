@@ -1,8 +1,10 @@
 #include "StarUniverseServerLuaBindings.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarLuaGameConverters.hpp"
+#include "StarSystemWorld.hpp"
 #include "StarUniverseServer.hpp"
 #include "StarUuid.hpp"
+#include "StarWarping.hpp"
 
 namespace Star {
 
@@ -32,6 +34,48 @@ LuaCallbacks LuaBindings::makeUniverseServerCallbacks(UniverseServer* universe) 
   // Novaenia: Callbacks for kicking and banning clients.
   callbacks.registerCallbackWithSignature<void, ConnectionId, Maybe<String>>("disconnectClient", bind(UniverseServerCallbacks::disconnectClient, universe, _1, _2));
   callbacks.registerCallbackWithSignature<void, ConnectionId, Maybe<String>, Maybe<bool>, Maybe<bool>, Maybe<int>>("banClient", bind(UniverseServerCallbacks::banClient, universe, _1, _2, _3, _4, _5));
+
+  callbacks.registerCallback("sendChat", [universe](ConnectionId clientId, Json const& chatMessage) {
+    universe->addPendingChatMessage(clientId, ChatReceivedMessage(chatMessage));
+  });
+
+  callbacks.registerCallback("clientTeam", [universe](ConnectionId clientId) -> Maybe<String> {
+    return universe->clientTeam(clientId);
+  });
+
+  callbacks.registerCallback("warpClient", [universe](ConnectionId clientId, String const& warpAction) {
+    universe->clientWarpPlayer(clientId, parseWarpAction(warpAction));
+  });
+
+  callbacks.registerCallback("flyClientShip", [universe](ConnectionId clientId, Vec3I const& system, Json const& location) {
+    universe->clientFlyShip(clientId, system, jsonToSystemLocation(location));
+  });
+
+  callbacks.registerCallback("clientShipCoordinate", [universe](ConnectionId clientId) -> Json {
+    return universe->clientShipCoordinate(clientId).toJson();
+  });
+
+  callbacks.registerCallback("clientShipLocation", [universe](ConnectionId clientId) -> Json {
+    return jsonFromSystemLocation(universe->clientShipLocation(clientId));
+  });
+
+  callbacks.registerCallback("clientReturnWarp", [universe](ConnectionId clientId) -> Maybe<String> {
+    auto returnWarp = universe->clientReturnWarp(clientId);
+    return returnWarp ? printWarpAction(*returnWarp) : Maybe<String>{};
+  });
+
+  callbacks.registerCallback("clientReviveWarp", [universe](ConnectionId clientId) -> Maybe<String> {
+    auto reviveWarp = universe->clientReviveWarp(clientId);
+    return reviveWarp ? printWarpAction(*reviveWarp) : Maybe<String>{};
+  });
+
+  callbacks.registerCallback("setClientReturnWarp", [universe](ConnectionId clientId, String const& warpAction) {
+    universe->setClientReturnWarp(clientId, parseWarpAction(warpAction));
+  });
+
+  callbacks.registerCallback("setClientReviveWarp", [universe](ConnectionId clientId, String const& warpAction) {
+    universe->setClientReviveWarp(clientId, parseWarpAction(warpAction));
+  });
 
   return callbacks;
 }

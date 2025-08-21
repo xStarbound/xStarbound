@@ -53,6 +53,7 @@ public:
   void adminWhisper(ConnectionId targetClientId, String const& text, JsonObject const& metadata = {});
 
   List<ChatReceivedMessage> pullPendingMessages(ConnectionId clientId);
+  void addPendingMessage(ConnectionId clientId, ChatReceivedMessage const& chatMessage);
 
   void setCommandHandler(CommandHandler commandHandler);
   void clearCommandHandler();

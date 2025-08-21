@@ -41,12 +41,12 @@ CommandProcessor::CommandProcessor(UniverseServer* universe)
 }
 
 String CommandProcessor::adminCommand(String const& command, String const& argumentString) {
-  MutexLocker locker(m_mutex);
+  RecursiveMutexLocker locker(m_mutex);
   return handleCommand(ServerConnectionId, command, argumentString);
 }
 
 String CommandProcessor::userCommand(ConnectionId connectionId, String const& command, String const& argumentString) {
-  MutexLocker locker(m_mutex);
+  RecursiveMutexLocker locker(m_mutex);
   if (connectionId == ServerConnectionId)
     throw StarException("CommandProcessor::userCommand called with ServerConnectionId");
   return handleCommand(connectionId, command, argumentString);
@@ -1023,6 +1023,21 @@ String CommandProcessor::handleCommand(ConnectionId connectionId, String const& 
   } else {
     return strf("No such command {}", command);
   }
+}
+
+Maybe<std::tuple<ConnectionId, ChatReceivedMessage>> CommandProcessor::handleChatMessage(ConnectionId clientId, ChatReceivedMessage const& chatMessage) {
+  RecursiveMutexLocker locker(m_mutex);
+  try {
+    if (auto res = m_scriptComponent.invoke<LuaTupleReturn<Maybe<ConnectionId>, Json>>("handleChatMessage", clientId, chatMessage.toJson())) {
+      if (auto newClientId = get<0>(*res))
+        return std::tuple{*newClientId, ChatReceivedMessage(get<1>(*res))};
+      else
+        return {}; // FezzedOne: Pass a nil instead of the client ID to not send the message along.
+    }
+  } catch (std::exception const& e) {
+    Logger::error("Exception occurred while converting client ID and/or chat message values in command script, message unhandled: {}", outputException(e, false));
+  }
+  return std::tuple{clientId, chatMessage};
 }
 
 Maybe<String> CommandProcessor::adminCheck(ConnectionId connectionId, String const& commandDescription) const {

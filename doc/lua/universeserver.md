@@ -117,4 +117,66 @@ Returns `true` if the specified connected client is connected anonymously or und
 
 ### `Maybe<bool>` universe.hasBuildPermission(`ClientId` clientId, `Maybe<Vec3I>` systemLocation)
 
+> **Available only on xStarbound v3.8+.**
+
 Returns `true` if the specified connected client is allowed to spawn worlds or stations in a given system, `false` if the client is not allowed to do so, or `nil` if the client is not connected. Note that the callback can be run on star systems that don't exist, with no ill effects other than (most likely) a `false` return (or `true` if the system coordinates show up in `xserver.config` or the host's `xclient.config` anyway!). See `$docs/permissions.md` for more on xStarbound v3.8's build permission system.
+
+### `void` universe.sendChat(`ClientId` clientId, `Json` chatMessage)
+
+> **Available only on xStarbound v3.8+.**
+
+Sends the specified chat message to the specified client, if online. Nothing happens if the specified client ID is offline.
+
+Although this is the server-side equivalent of `chat.send` (see `interface.md`), the chat message object must conform to the format used by `chat.addMessage` (see that callback in `interface.md` for details), as this command skips the server-side processing used to determine which clients to relay a chat message to.
+
+### `Maybe<String>` universe.clientTeam(`ClientId` clientId)
+
+> **Available only on xStarbound v3.8+.**
+
+Returns the specified client's team UUID if the client is currently in a team; otherwise, it returns `nil`. All members of a given team have the same team UUID. The team UUID is internally used in chat message contexts and other server-side code to verify which clients a given client is teamed up with. Can be used, for example, in a custom player listing command that shows all teams on the server.
+
+### `void` universe.warpClient(`ClientId` clientId, `String` warpAction)
+
+> **Available only on xStarbound v3.8+.**
+
+Warps the given client to the given location. This is the server-side equivalent of `player.warp` (see `player.md`). Note that clients set up to ignore warp messages cannot ignore warps done by this callback. If the client is offline, this callback does nothing.
+
+As an example, this callback can be used in world server scripts to enforce claimed world whitelists or blacklists (alongside `universe.clientReturnWarp` and `universe.clientReviveWarp` to verify that a `Return` or death warp does not point to the same location, in order to avoid an infinite warp cycle and soft-lock there).
+
+### `void` universe.flyClientShip(`ClientId` clientId, `Vec3I` systemCoordinate, `SystemLocation` systemLocation)
+
+> **Available only on xStarbound v3.8+.**
+
+Flies the given client's ship to the given location. This is the server-side equivalent of `celestial.flyShip` (see `celestial.md` for more information on system location formats). Does nothing if the client is not online. Suitable for a `/spawn` command or similar.
+
+### `Maybe<CelestialCoordinate>` universe.clientShipCoordinate(`ClientId` clientId)
+
+> **Available only on xStarbound v3.8+.**
+
+Returns the client's current ship coordinate in celestial coordinate format (see `celestial.md` for more information on celestial coordinates), or `nil` if the specified client is not online.
+
+### `Maybe<SystemLocation>` universe.clientShipLocation(`ClientId` clientId)
+
+> **Available only on xStarbound v3.8+.**
+
+Returns the client's current system location, or `nil` if the client's ship is currently flying to a different location or specified client is not online.
+
+### `Maybe<String>` universe.clientReturnWarp(`ClientId` clientId)
+
+### `Maybe<String>` universe.clientReviveWarp(`ClientId` clientId)
+
+> **Available only on xStarbound v3.8+.**
+
+Returns the client's current return or revive warp location, respectively, if the client is online and currently has any such warp location.
+
+The return warp is used when the client executes any `Return` warp action. This normally happens when the client uses a «Return» action on various instance world teleporters. The revive warp is used to determine where the client should respawn after dying (on its main player for an xStarbound client).
+
+### `void` universe.setClientReturnWarp(`ClientId` clientId, `String` warpAction)
+
+### `void` universe.setClientReviveWarp(`ClientId` clientId, `String` warpAction)
+
+> **Available only on xStarbound v3.8+.**
+
+Sets the client's return or revive warp, respectively. Any warp location that is not `Nowhere`, an `InstanceWorld`, a `CelestialWorld` or `ClientShipWorld` (complete with an optional `=X.Y` world spawn coordinate) is ignored by these callbacks, as they do not really make sense for a spawn location.
+
+If you want players to respawn at the equivalent of a `Player` location, consider using `universe.clientWorld` and a universe-to-world message handler to get the XY world coordinates of the player in question.

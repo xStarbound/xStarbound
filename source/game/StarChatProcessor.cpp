@@ -196,6 +196,14 @@ List<ChatReceivedMessage> ChatProcessor::pullPendingMessages(ConnectionId client
   return {};
 }
 
+void ChatProcessor::addPendingMessage(ConnectionId clientId, ChatReceivedMessage const& chatMessage) {
+  if (clientId == ServerConnectionId) return;
+
+  RecursiveMutexLocker locker(m_mutex);
+  if (m_clients.contains(clientId))
+    m_clients.get(clientId).pendingMessages.append(std::move(chatMessage));
+}
+
 void ChatProcessor::setCommandHandler(CommandHandler commandHandler) {
   RecursiveMutexLocker locker(m_mutex);
   m_commandHandler = commandHandler;

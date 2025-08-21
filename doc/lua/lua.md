@@ -389,3 +389,13 @@ The following is a list of common Lua functions called by the engine when runnin
   Note that stock merchant and container panes always take precedence for shift-clicked items when any such panes are open, preventing scripted panes from receiving items. Also, this function is only invoked when there is initially an item in the shift-clicked inventory slot, so a `nil` descriptor can only be passed as an argument by the engine if an invocation on another pane clears the slot before the engine gets around to the current scripted pane.
 
 Other Lua functions invoked by the engine are fairly self-explanatory; see the base game assets for examples, and if that isn't enough, see xStarbound's source code for the gory details.
+
+- **`Maybe<ConnectionId>, Json` handleChatMessage(`ConnectionId` clientId, `Json` chatMessage):** _Only available on xStarbound v3.8+ servers._ Invoked in the server-side command processor script context whenever any chat message is sent or relayed on the server; use hooks for compatibility between server mods. The engine invokes this call on _each message_ for _each client_ that would receive the message; i.e., it is invoked on a given message once for _every client_ that would receive that message.
+
+  This engine call can be used by modders to perform server-side chat message formatting (and/or filter profanity or other unwanted things in chat messages), similar to how wrappers like StarryPy3k can format chat messages. A neat trick is to use `sb.stripEscapeCodes` on message nicknames to remove any colour codes specified by the client, then add your own colour codes to show things like admin or guest status.
+
+  If either return value is `nil`, or if the `ConnectionId` is `0`, the server's connection ID, the message will not be relayed by the server to any client. If the `ConnectionId` is anything other than the one passed by the engine, the message will be relayed to the client associated with the new connection ID instead, if said connection ID is associated with a currently online client; otherwise, the message is not relayed. (Note that technically, an empty message packet is sent to the specified client if the message is `nil` but the client ID is a valid and online one, but the message won't visually show up on the client.)
+
+  A `ConnectionId` is a `uint16_t`. See `$docs/lua/universeserver.md` for various callbacks available to command processor scripts that return and handle these.
+
+  `chatMessage` must be either `nil` or conform to the format specified under `chat.addMessage` in `$docs/lua/interface.md`.

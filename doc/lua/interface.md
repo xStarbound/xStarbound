@@ -290,7 +290,7 @@ jobject{
   context = jobject{
     mode = "Local", -- The chat mode, any of `"Local"`, `"Party"`, `"Broadcast"`, `"Whisper"`, `"CommandResult"`,
     -- `"RadioMessage"` or `"World"`. Defaults to `CommandResult"` for `chat.addMessage`.
-    channel = "" -- If the mode is "Party" or "Local", the channel name. This is currently only used for party UUIDs.
+    channel = "" -- If the mode is "Party" or "Local", the channel name. This is used for party UUIDs, and on the server, world IDs for world-restricted local chat.
   },
   connection = 0, -- The connection ID for the player who posted the message.
   -- Server messages have an ID of 0, while player connection IDs start at 1, going up.

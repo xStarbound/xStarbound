@@ -399,7 +399,7 @@ void UniverseServer::clientFlyShip(ConnectionId clientId, Vec3I const& system, S
   if (m_pendingFlights.contains(clientId) || m_queuedFlights.contains(clientId))
     return;
 
-  auto clientContext = m_clients.get(clientId);
+  auto clientContext = m_clients.value(clientId);
   if (!clientContext)
     return;
 
@@ -436,6 +436,15 @@ CelestialCoordinate UniverseServer::clientShipCoordinate(ConnectionId clientId) 
   if (auto clientContext = m_clients.value(clientId))
     return clientContext->shipCoordinate();
   return CelestialCoordinate();
+}
+
+SystemLocation UniverseServer::clientShipLocation(ConnectionId clientId) const {
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
+  if (auto clientContext = m_clients.value(clientId)) {
+    if (auto clientSystem = clientContext->systemWorld())
+      return clientSystem->clientShipLocation(clientId);
+  }
+  return SystemLocation();
 }
 
 ClockPtr UniverseServer::universeClock() const {
@@ -724,8 +733,14 @@ void UniverseServer::sendPendingChat() {
   RecursiveMutexLocker locker(m_mainLock);
   RecursiveMutexLocker clientsLocker(m_clientsLock);
   for (auto const& p : m_clients) {
-    for (auto const& message : m_chatProcessor->pullPendingMessages(p.first))
-      m_connectionServer->sendPackets(p.first, {make_shared<ChatReceivePacket>(message)});
+    for (auto const& message : m_chatProcessor->pullPendingMessages(p.first)) {
+      if (auto result = m_commandProcessor->handleChatMessage(p.first, message)) {
+        ConnectionId clientId = get<0>(*result);
+        ChatReceivedMessage handledMessage = get<1>(*result);
+        if (clientId != ServerConnectionId)
+          m_connectionServer->sendPackets(get<0>(*result), {make_shared<ChatReceivePacket>(handledMessage)});
+      }
+    }
   }
 }
 
@@ -900,6 +915,61 @@ void UniverseServer::processPlanetTypeChanges() {
       }
     }
   }
+}
+
+Maybe<WarpAction> UniverseServer::clientReturnWarp(ConnectionId clientId) const {
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
+  if (auto clientContext = m_clients.value(clientId)) {
+    auto returnWarp = clientContext->playerReturnWarp();
+    return returnWarp ? WarpAction(returnWarp) : Maybe<WarpAction>{};
+  }
+  return {};
+}
+
+Maybe<WarpAction> UniverseServer::clientReviveWarp(ConnectionId clientId) const {
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
+  if (auto clientContext = m_clients.value(clientId)) {
+    auto reviveWarp = clientContext->playerReviveWarp();
+    return reviveWarp ? WarpAction(reviveWarp) : Maybe<WarpAction>{};
+  }
+  return {};
+}
+
+void UniverseServer::setClientReturnWarp(ConnectionId clientId, WarpAction warp) {
+  if (auto warpToWorld = warp.maybe<WarpToWorld>()) {
+    if (!(*warpToWorld)) return;
+
+    RecursiveMutexLocker clientsLocker(m_clientsLock);
+    if (auto clientContext = m_clients.value(clientId))
+      clientContext->setPlayerReturnWarp(*warpToWorld);
+  }
+}
+
+void UniverseServer::setClientReviveWarp(ConnectionId clientId, WarpAction warp) {
+  if (auto warpToWorld = warp.maybe<WarpToWorld>()) {
+    if (!(*warpToWorld)) return;
+
+    RecursiveMutexLocker clientsLocker(m_clientsLock);
+    if (auto clientContext = m_clients.value(clientId))
+      clientContext->setPlayerReviveWarp(*warpToWorld);
+  }
+}
+
+void UniverseServer::addPendingChatMessage(ConnectionId clientId, ChatReceivedMessage const& chatMessage) {
+  // RecursiveMutexLocker locker(m_mainLock);
+  m_chatProcessor->addPendingMessage(clientId, chatMessage);
+}
+
+Maybe<String> UniverseServer::clientTeam(ConnectionId clientId) const {
+  RecursiveMutexLocker locker(m_mainLock);
+  RecursiveMutexLocker clientsLocker(m_clientsLock);
+  if (auto clientContext = m_clients.value(clientId)) {
+    auto team = m_teamManager->getTeam(clientContext->playerUuid());
+    if (team.isValid())
+      return team.value().hex();
+    return {};
+  }
+  return {};
 }
 
 void UniverseServer::warpPlayers() {
@@ -1153,7 +1223,7 @@ void UniverseServer::processChat() {
   RecursiveMutexLocker clientsLocker(m_clientsLock);
 
   for (auto const& p : take(m_pendingChat)) {
-    if (auto clientContext = m_clients.get(p.first)) {
+    if (auto clientContext = m_clients.value(p.first)) {
       for (auto const& chat : p.second) {
         if (clientContext->remoteAddress())
           Logger::info("Chat: <{}> {}", clientContext->playerName(), chat.message);

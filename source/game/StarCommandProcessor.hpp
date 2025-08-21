@@ -1,15 +1,17 @@
 #ifndef STAR_COMMAND_PROCESSOR_HPP
 #define STAR_COMMAND_PROCESSOR_HPP
 
+#include "StarChatTypes.hpp"
 #include "StarGameTypes.hpp"
-#include "StarShellParser.hpp"
 #include "StarLuaComponents.hpp"
 #include "StarLuaRoot.hpp"
+#include "StarShellParser.hpp"
 
 namespace Star {
 
 STAR_CLASS(UniverseServer);
 STAR_CLASS(CommandProcessor);
+STAR_CLASS(ChatProcessor);
 
 class CommandProcessor {
 public:
@@ -17,6 +19,7 @@ public:
 
   String adminCommand(String const& command, String const& argumentString);
   String userCommand(ConnectionId clientId, String const& command, String const& argumentString);
+  Maybe<std::tuple<ConnectionId, ChatReceivedMessage>> handleChatMessage(ConnectionId connection, ChatReceivedMessage const& chatMessage);
 
 private:
   static Maybe<ConnectionId> playerCidFromCommand(String const& player, UniverseServer* universe);
@@ -25,7 +28,7 @@ private:
   String admin(ConnectionId connectionId, String const& argumentString);
   String pvp(ConnectionId connectionId, String const& argumentString);
   String whoami(ConnectionId connectionId, String const& argumentString);
-	
+
   String warp(ConnectionId connectionId, String const& argumentString);
   String warpRandom(ConnectionId connectionId, String const& argumentString);
   String timewarp(ConnectionId connectionId, String const& argumentString);
@@ -60,7 +63,7 @@ private:
   String updatePlanetType(ConnectionId connectionId, String const& argumentString);
   String setEnvironmentBiome(ConnectionId connectionId, String const& argumentString);
 
-  mutable Mutex m_mutex;
+  mutable RecursiveMutex m_mutex;
 
   String handleCommand(ConnectionId connectionId, String const& command, String const& argumentString);
   Maybe<String> adminCheck(ConnectionId connectionId, String const& commandDescription) const;
@@ -73,6 +76,6 @@ private:
   LuaBaseComponent m_scriptComponent;
 };
 
-}
+} // namespace Star
 
 #endif

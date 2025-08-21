@@ -47,6 +47,7 @@ ChatReceivedMessage::ChatReceivedMessage(MessageContext context, ConnectionId fr
     : context(context), fromConnection(fromConnection), fromNick(fromNick), portrait(portrait), text(text), metadata(metadata) {}
 
 ChatReceivedMessage::ChatReceivedMessage(Json const& json) : ChatReceivedMessage() {
+  if (!json.isType(Json::Type::Object)) return;
   auto jContext = json.get("context");
   context = MessageContext(
       MessageContextModeNames.getLeft(jContext.getString("mode")),

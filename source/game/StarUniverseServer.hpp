@@ -108,6 +108,17 @@ public:
   bool clientHasBuildPermission(ServerClientContextPtr const& client, SystemWorldServerThreadPtr const& currentSystem, Maybe<Vec3I> const& currentLocation) const;
   Maybe<bool> clientHasBuildPermissionCallback(ConnectionId clientId, Maybe<Vec3I> const& systemLocation) const;
 
+  Maybe<WarpAction> clientReturnWarp(ConnectionId clientId) const;
+  Maybe<WarpAction> clientReviveWarp(ConnectionId clientId) const;
+  void setClientReturnWarp(ConnectionId clientId, WarpAction warp);
+  void setClientReviveWarp(ConnectionId clientId, WarpAction warp);
+
+  Maybe<String> clientTeam(ConnectionId clientId) const;
+
+  void addPendingChatMessage(ConnectionId clientId, ChatReceivedMessage const& chatMessage);
+
+  SystemLocation clientShipLocation(ConnectionId clientId) const;
+
 protected:
   virtual void run();
 
