@@ -585,6 +585,10 @@ namespace LuaBindings {
     }
 
     if (auto serverWorld = as<WorldServer>(world)) {
+      callbacks.registerCallback("id", [serverWorld]() -> String {
+        return serverWorld->worldId();
+      });
+
       callbacks.registerCallback("metadata", [serverWorld]() -> Json { return serverWorld->getMetadata(); });
       callbacks.registerCallback("setMetadata", [serverWorld](Json const& newMetadata) { serverWorld->setMetadata(newMetadata); });
 

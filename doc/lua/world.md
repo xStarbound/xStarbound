@@ -1049,6 +1049,12 @@ The following `world` bindings are available only in server-side scripts.
 
 ---
 
+#### `String` world.id()
+
+> **Available only on xServer v4.0+.**
+
+Returns the world's ID, a unique identifier for each world. No idea why this doesn't exist in vanilla Starbound.
+
 #### `Json` world.metadata()
 
 > **Available only on xServer v3.5.1+.**
