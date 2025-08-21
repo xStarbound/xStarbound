@@ -1333,7 +1333,7 @@ Returns `true` if the specified connected client is allowed to place or remove t
 
 If the optional `containerPermission` argument is `"open"`, this callback returns `true` if the specified connected client is allowed to open containers to see their contents; if `containerPermission` is `"modify"`, this callback returns `true` if the specified connected client is allowed to modify the contents of containers (and to open them, as `"modify"` implies `"open"`).
 
-See `$docs/permissions.md` for more on xStarbound v3.8's build permission system.
+See `$docs/permissions.md` for more on xStarbound v4.0+'s build permission system.
 
 ---
 

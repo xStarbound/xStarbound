@@ -390,7 +390,7 @@ The following is a list of common Lua functions called by the engine when runnin
 
 Other Lua functions invoked by the engine are fairly self-explanatory; see the base game assets for examples, and if that isn't enough, see xStarbound's source code for the gory details.
 
-- **`Maybe<ConnectionId>, Json` handleChatMessage(`ConnectionId` clientId, `Json` chatMessage):** _Only available on xStarbound v3.8+ servers._ Invoked in the server-side command processor script context whenever any chat message is sent or relayed on the server; use hooks for compatibility between server mods. The engine invokes this call on _each message_ for _each client_ that would receive the message; i.e., it is invoked on a given message once for _every client_ that would receive that message.
+- **`Maybe<ConnectionId>, Json` handleChatMessage(`ConnectionId` clientId, `Json` chatMessage):** _Only available on xStarbound v4.0+ servers._ Invoked in the server-side command processor script context whenever any chat message is sent or relayed on the server; use hooks for compatibility between server mods. The engine invokes this call on _each message_ for _each client_ that would receive the message; i.e., it is invoked on a given message once for _every client_ that would receive that message.
 
   This engine call can be used by modders to perform server-side chat message formatting (and/or filter profanity or other unwanted things in chat messages), similar to how wrappers like StarryPy3k can format chat messages. A neat trick is to use `sb.stripEscapeCodes` on message nicknames to remove any colour codes specified by the client, then add your own colour codes to show things like admin or guest status.
 

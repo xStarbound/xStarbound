@@ -99,31 +99,31 @@ Bans the specified client from the server. If a reason is specified, this reason
 
 ### `Maybe<String>` universe.clientAccount(`ClientId` clientId)
 
-> **Available only on xStarbound v3.8+.**
+> **Available only on xStarbound v4.0+.**
 
 Returns the name of the server account under which the specified client is connected, or `nil` if the client is connected anonymously or is not connected.
 
 ### `Maybe<String>` universe.canBeAdmin(`ClientId` clientId)
 
-> **Available only on xStarbound v3.8+.**
+> **Available only on xStarbound v4.0+.**
 
 Returns `true` if the specified connected client is allowed to use `/admin` (regardless of the client's current admin status) or `false` otherwise.
 
 ### `Maybe<String>` universe.isGuest(`ClientId` clientId)
 
-> **Available only on xStarbound v3.8+.**
+> **Available only on xStarbound v4.0+.**
 
 Returns `true` if the specified connected client is connected anonymously or under a configured guest account (an account in `xserver.config` or the host's `xclient.config` whose `"guest"` entry, if present, is `true`), or `false` otherwise.
 
 ### `Maybe<bool>` universe.hasBuildPermission(`ClientId` clientId, `Maybe<Vec3I>` systemLocation)
 
-> **Available only on xStarbound v3.8+.**
+> **Available only on xStarbound v4.0+.**
 
-Returns `true` if the specified connected client is allowed to spawn worlds or stations in a given system, `false` if the client is not allowed to do so, or `nil` if the client is not connected. Note that the callback can be run on star systems that don't exist, with no ill effects other than (most likely) a `false` return (or `true` if the system coordinates show up in `xserver.config` or the host's `xclient.config` anyway!). See `$docs/permissions.md` for more on xStarbound v3.8's build permission system.
+Returns `true` if the specified connected client is allowed to spawn worlds or stations in a given system, `false` if the client is not allowed to do so, or `nil` if the client is not connected. Note that the callback can be run on star systems that don't exist, with no ill effects other than (most likely) a `false` return (or `true` if the system coordinates show up in `xserver.config` or the host's `xclient.config` anyway!). See `$docs/permissions.md` for more on xStarbound v4.0's build permission system.
 
 ### `void` universe.sendChat(`ClientId` clientId, `Json` chatMessage)
 
-> **Available only on xStarbound v3.8+.**
+> **Available only on xStarbound v4.0+.**
 
 Sends the specified chat message to the specified client, if online. Nothing happens if the specified client ID is offline.
 
@@ -131,13 +131,13 @@ Although this is the server-side equivalent of `chat.send` (see `interface.md`),
 
 ### `Maybe<String>` universe.clientTeam(`ClientId` clientId)
 
-> **Available only on xStarbound v3.8+.**
+> **Available only on xStarbound v4.0+.**
 
 Returns the specified client's team UUID if the client is currently in a team; otherwise, it returns `nil`. All members of a given team have the same team UUID. The team UUID is internally used in chat message contexts and other server-side code to verify which clients a given client is teamed up with. Can be used, for example, in a custom player listing command that shows all teams on the server.
 
 ### `void` universe.warpClient(`ClientId` clientId, `String` warpAction)
 
-> **Available only on xStarbound v3.8+.**
+> **Available only on xStarbound v4.0+.**
 
 Warps the given client to the given location. This is the server-side equivalent of `player.warp` (see `player.md`). Note that clients set up to ignore warp messages cannot ignore warps done by this callback. If the client is offline, this callback does nothing.
 
@@ -145,19 +145,19 @@ As an example, this callback can be used in world server scripts to enforce clai
 
 ### `void` universe.flyClientShip(`ClientId` clientId, `Vec3I` systemCoordinate, `SystemLocation` systemLocation)
 
-> **Available only on xStarbound v3.8+.**
+> **Available only on xStarbound v4.0+.**
 
 Flies the given client's ship to the given location. This is the server-side equivalent of `celestial.flyShip` (see `celestial.md` for more information on system location formats). Does nothing if the client is not online. Suitable for a `/spawn` command or similar.
 
 ### `Maybe<CelestialCoordinate>` universe.clientShipCoordinate(`ClientId` clientId)
 
-> **Available only on xStarbound v3.8+.**
+> **Available only on xStarbound v4.0+.**
 
 Returns the client's current ship coordinate in celestial coordinate format (see `celestial.md` for more information on celestial coordinates), or `nil` if the specified client is not online.
 
 ### `Maybe<SystemLocation>` universe.clientShipLocation(`ClientId` clientId)
 
-> **Available only on xStarbound v3.8+.**
+> **Available only on xStarbound v4.0+.**
 
 Returns the client's current system location, or `nil` if the client's ship is currently flying to a different location or specified client is not online.
 
@@ -165,7 +165,7 @@ Returns the client's current system location, or `nil` if the client's ship is c
 
 ### `Maybe<String>` universe.clientReviveWarp(`ClientId` clientId)
 
-> **Available only on xStarbound v3.8+.**
+> **Available only on xStarbound v4.0+.**
 
 Returns the client's current return or revive warp location, respectively, if the client is online and currently has any such warp location.
 
@@ -175,7 +175,7 @@ The return warp is used when the client executes any `Return` warp action. This 
 
 ### `void` universe.setClientReviveWarp(`ClientId` clientId, `String` warpAction)
 
-> **Available only on xStarbound v3.8+.**
+> **Available only on xStarbound v4.0+.**
 
 Sets the client's return or revive warp, respectively. Any warp location that is not `Nowhere`, an `InstanceWorld`, a `CelestialWorld` or `ClientShipWorld` (complete with an optional `=X.Y` world spawn coordinate) is ignored by these callbacks, as they do not really make sense for a spawn location.
 

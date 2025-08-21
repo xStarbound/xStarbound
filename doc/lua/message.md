@@ -280,7 +280,7 @@ Tells the source entity of a crafting interface — normally a crafting station 
 
 Normally sent automatically by the client's engine. This message may be handled by a Lua script running on the entity so requested. On vanilla crafting stations (notwithstanding any changes by asset mods), the handling script is `$assets/objects/crafting/upgradeablecraftingobjects/upgradeablecraftingobject.lua`.
 
-> **Note:** On xServer v3.8+ servers with container protection enabled, the engine-handled container messages shown below will not modify the contents of a given container if sent by any client that is disallowed from accessing a given container, but will instead act as if the container is read-only.
+> **Note:** On xServer v4.0+ servers with container protection enabled, the engine-handled container messages shown below will not modify the contents of a given container if sent by any client that is disallowed from accessing a given container, but will instead act as if the container is read-only.
 >
 > _Examples:_ Attempts to swap items or put items in empty slots will be refused, returning the original item; attempts to apply an augment item (like a dye) will be refused, returning the augment unconsumed; attempts to shift-click any items in or out will be refused, returning items shift-clicked from the client side unmodified or nothing from the server side; crafting- and fuel-related messages will not «proc»; and so on.
 
