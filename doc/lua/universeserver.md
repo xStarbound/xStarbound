@@ -169,7 +169,7 @@ Returns the client's current system location, or `nil` if the client's ship is c
 
 Returns the client's current return or revive warp location, respectively, if the client is online and currently has any such warp location.
 
-The return warp is used when the client executes any `Return` warp action. This normally happens when the client uses a «Return» action on various instance world teleporters. The revive warp is used to determine where the client should respawn after dying (on its main player for an xStarbound client).
+The return warp is used when the client executes any `Return` warp action. This normally happens when the client uses a «Return» action on various instance world teleporters. The revive warp is used to determine where the client should respawn after dying (on its main player for an xStarbound client) on some instance worlds.
 
 ### `void` universe.setClientReturnWarp(`ClientId` clientId, `String` warpAction)
 
