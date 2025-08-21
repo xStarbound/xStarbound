@@ -34,6 +34,7 @@
     "serverexec": "Usage /serverexec <lua>. Evaluates given Lua in the universe server's context. xServer only.",
     "serverrun": "Usage /serverexec <lua>. Evaluates given Lua in the universe server's context. xServer only.",
     "entityeval": "Usage /entityeval <lua>. Evaluates given Lua in the context of the closest server-side scripted entity to the cursor. Unavailable on non-xServer servers.",
+    "worldeval": "Usage /worldeval <lua>. Evaluates given Lua in the \"worldEval\" world server script context on the current world. Unavailable on non-xServer servers.",
     "eval": "Usage /eval <lua>. Evaluates given Lua in the universe server's context. Unavailable on non-xServer servers.",
     "list" : "Usage /list. List all clients connected to the server. Format is $clientId : serverNickname : $$playerUuid. If the serverNickname contains unprintable characters the unicode escape sequence for those characters will be displayed instead. If escape codes cause issues, check your client log.",
     "exec": "Usage /exec <lua>. Evaluates given Lua in the client-side player context.",

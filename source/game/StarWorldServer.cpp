@@ -134,6 +134,14 @@ void WorldServer::initLua(UniverseServer* universe) {
     m_scriptContexts.set(p.first, scriptComponent);
     scriptComponent->init(this);
   }
+  if (!m_scriptContexts.contains("worldEval")) { // FezzedOne: Added a special script context for `/worldeval`.
+    auto scriptComponent = make_shared<ScriptComponent>();
+    scriptComponent->setScripts(StringList{});
+    scriptComponent->addCallbacks("universe", LuaBindings::makeUniverseServerCallbacks(universe));
+
+    m_scriptContexts.set("worldEval", scriptComponent);
+    scriptComponent->init(this);
+  }
 }
 
 WorldStructure WorldServer::setCentralStructure(WorldStructure centralStructure) {
@@ -2909,6 +2917,11 @@ void WorldServer::setupForceRegions() {
     bottomForceRegion.categoryFilter = regionCategoryFilter;
     m_forceRegions.append(bottomForceRegion);
   }
+}
+
+
+Maybe<LuaValue> WorldServer::evalScript(String const& code) {
+  return m_scriptContexts.get("worldEval")->eval<LuaValue>(code);
 }
 
 void WorldServer::setGlobal(Maybe<String> const& jsonPath, Json const& newValue) {

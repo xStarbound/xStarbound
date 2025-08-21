@@ -53,6 +53,7 @@ private:
   String serverHotReload(ConnectionId connectionId, String const& argumentString);
   String eval(ConnectionId connectionId, String const& lua);
   String entityEval(ConnectionId connectionId, String const& lua);
+  String worldEval(ConnectionId connectionId, String const& lua);
   String enableSpawning(ConnectionId connectionId, String const& argumentString);
   String disableSpawning(ConnectionId connectionId, String const& argumentString);
   String placeDungeon(ConnectionId connectionId, String const& argumentString);

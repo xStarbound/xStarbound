@@ -278,6 +278,8 @@ public:
   void setGlobal(Maybe<String> const& jsonPath, Json const& newValue);
   Json getGlobal(Maybe<String> const& jsonPath) const;
 
+  Maybe<LuaValue> evalScript(String const& code);
+
 private:
   struct ClientInfo {
     ClientInfo(ConnectionId clientId, InterpolationTracker const trackerInit, bool canBeAdmin = false, Uuid clientUuid = Uuid(), Maybe<String> accountName = {}, bool isGuest = false);

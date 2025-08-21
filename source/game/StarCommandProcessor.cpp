@@ -728,7 +728,7 @@ String CommandProcessor::entityEval(ConnectionId connectionId, String const& lua
 
   auto config = Root::singleton().configuration();
 
-  if (auto errorMsg = adminCheck(connectionId, "execute server entity script"))
+  if (auto errorMsg = adminCheck(connectionId, "execute server-side script"))
     return *errorMsg;
 
   String message;
@@ -748,6 +748,27 @@ String CommandProcessor::entityEval(ConnectionId connectionId, String const& lua
         }
 
         if (auto res = targetEntity->evalScript(lua))
+          message = toString(*res);
+        else
+          message = "Error evaluating script in entity context, check log";
+      });
+
+  return done ? message : "Failed to evaluate script";
+}
+
+String CommandProcessor::worldEval(ConnectionId connectionId, String const& lua) {
+  // if (auto errorMsg = localCheck(connectionId, "execute server entity script"))
+  //   return *errorMsg;
+
+  auto config = Root::singleton().configuration();
+
+  if (auto errorMsg = adminCheck(connectionId, "execute server-side script"))
+    return *errorMsg;
+
+  String message;
+  bool done = m_universe->executeForClient(connectionId,
+      [&config, &lua, &message](WorldServer* world, PlayerPtr const&) {
+        if (auto res = world->evalScript(lua))
           message = toString(*res);
         else
           message = "Error evaluating script in entity context, check log";
@@ -989,6 +1010,9 @@ String CommandProcessor::handleCommand(ConnectionId connectionId, String const& 
 
   } else if (command == "entityeval") {
     return entityEval(connectionId, argumentString);
+
+  } else if (command == "worldeval") {
+    return worldEval(connectionId, argumentString);
 
   } else if (command == "enablespawning") {
     return enableSpawning(connectionId, argumentString);
