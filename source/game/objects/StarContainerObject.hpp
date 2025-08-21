@@ -25,6 +25,8 @@ public:
   InteractAction interact(InteractRequest const& request) override;
 
   Maybe<Json> receiveMessage(ConnectionId sendingConnection, String const& message, JsonArray const& args) override;
+  Maybe<Json> receiveMessageNoContainerViewing(ConnectionId sendingConnection, String const& message, JsonArray const& args) override;
+  Maybe<Json> receiveMessageNoContainerModification(ConnectionId sendingConnection, String const& message, JsonArray const& args) override;
 
   Json containerGuiConfig() const override;
   String containerDescription() const override;

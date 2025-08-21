@@ -185,6 +185,7 @@ public:
   void setMetadata(Json const& newMetadata);
 
   void setTileProtection(DungeonId dungeonId, bool isProtected);
+  size_t setTileProtection(List<DungeonId> const& dungeonIds, bool isProtected);
   // used to globally, temporarily disable protection for certain operations
   void setTileProtectionEnabled(bool enabled);
 
@@ -194,7 +195,7 @@ public:
   void setDungeonId(RectI const& tileRegion, DungeonId dungeonId);
 
   bool isOwned() const;
-  bool clientHasBuildPermission(ConnectionId clientId) const;
+  bool clientHasBuildPermission(ConnectionId clientId, uint8_t containerPermission = 0) const;
 
   // Signal a region to load / generate, returns true if it is now fully loaded
   // and generated

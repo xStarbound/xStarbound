@@ -588,7 +588,14 @@ namespace LuaBindings {
       callbacks.registerCallback("metadata", [serverWorld]() -> Json { return serverWorld->getMetadata(); });
       callbacks.registerCallback("setMetadata", [serverWorld](Json const& newMetadata) { serverWorld->setMetadata(newMetadata); });
 
-      callbacks.registerCallback("hasBuildPermission", [serverWorld](ConnectionId connectionId) -> bool { return serverWorld->clientHasBuildPermission(connectionId); });
+      callbacks.registerCallback("hasBuildPermission", [serverWorld](ConnectionId connectionId, Maybe<String> containerPermission) -> bool {
+        uint8_t containerPermissionInt = 0;
+        if (containerPermission.value() == "open")
+          containerPermissionInt = 1;
+        else if (containerPermission.value() == "modify")
+          containerPermissionInt = 2;
+        return serverWorld->clientHasBuildPermission(connectionId, containerPermissionInt);
+      });
 
       callbacks.registerCallbackWithSignature<bool, EntityId, bool>("breakObject", bind(ServerWorldCallbacks::breakObject, serverWorld, _1, _2));
       callbacks.registerCallbackWithSignature<bool, RectF>("isVisibleToPlayer", bind(ServerWorldCallbacks::isVisibleToPlayer, serverWorld, _1));

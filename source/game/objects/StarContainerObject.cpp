@@ -231,6 +231,51 @@ Maybe<Json> ContainerObject::receiveMessage(ConnectionId sendingConnection, Stri
   }
 }
 
+Maybe<Json> ContainerObject::receiveMessageNoContainerModification(ConnectionId sendingConnection, String const& message, JsonArray const& args) {
+  auto itemDb = Root::singleton().itemDatabase();
+
+  if (message.equalsIgnoreCase("startCrafting")) {
+    return Json();
+
+  } else if (message.equalsIgnoreCase("stopCrafting")) {
+    return Json();
+
+  } else if (message.equalsIgnoreCase("burnContainerContents")) {
+    return Json();
+
+  } else if (message.equalsIgnoreCase("addItems")) {
+    return args.at(0);
+
+  } else if (message.equalsIgnoreCase("putItems")) {
+    return args.at(1);
+
+  } else if (message.equalsIgnoreCase("takeItems")) {
+    return Json();
+
+  } else if (message.equalsIgnoreCase("swapItems")) {
+    return args.at(1);
+
+  } else if (message.equalsIgnoreCase("applyAugment")) {
+    return args.at(1);
+
+  } else if (message.equalsIgnoreCase("consumeItems")) {
+    return Json(false);
+
+  } else if (message.equalsIgnoreCase("consumeItemsAt")) {
+    return Json(false);
+
+  } else if (message.equalsIgnoreCase("clearContainer")) {
+    return Json(JsonArray{});
+
+  } else {
+    return Object::receiveMessage(sendingConnection, message, args);
+  }
+}
+
+Maybe<Json> ContainerObject::receiveMessageNoContainerViewing(ConnectionId sendingConnection, String const& message, JsonArray const& args) {
+  return ContainerObject::receiveMessageNoContainerModification(sendingConnection, message, args);
+}
+
 InteractAction ContainerObject::interact(InteractRequest const& request) {
   // FezzedOne: Call `onInteraction` in container scripts whenever the container is interacted with.
   Vec2F diff = world()->geometry().diff(request.sourcePosition, position());

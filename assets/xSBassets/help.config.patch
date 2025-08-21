@@ -43,6 +43,7 @@
     "expandbiomeregion": "Usage /expandbiomeregion [new tile width]. Expands an existing biome region at the player's position. Works much like a terraformer.",
     "updateplanettype": "Usage /updateplanettype [world ID] [new type] [new weather type]. Changes the planet type and weather biome of the given world.",
     "setenvironmentbiome": "Usage /setenvironmentbiome. Used to ensure that the environment biome for the world layer the player is currently in is properly updated.",
+    "settileprotection" : "Usage /settileprotection [dungeonIds...] [isProtected]. Any number of dungeon IDs may be specified, and any dungeon ID argument may be a range of the form [X..Y]; whether X is smaller or bigger than Y doesn't matter. Valid dungeon IDs are 0-65535. Sets protection for blocks with the specified dungeonIds to be true (unbreakable) or false (breakable).",
     "listworlds": "Usage /listworlds. Lists all currently loaded worlds on the server.",
     "listworld": "Usage /listworld <world ID>. Lists all players currently on the given world; if no ID is specified, defaults to the world the invoker is on. Format is $clientId : serverNickname : $$playerUuid. Unicode characters in nicknames won't be escaped; use /list for that. If escape codes cause issues, check your client log."
   }

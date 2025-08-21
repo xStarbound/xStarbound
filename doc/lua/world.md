@@ -1327,9 +1327,13 @@ Sets the dungeon ID of all tiles within the specified area.
 
 ---
 
-### `Maybe<bool>` world.hasBuildPermission(`ClientId` clientId)
+### `Maybe<bool>` world.hasBuildPermission(`ClientId` clientId, [`String` containerPermission])
 
-Returns `true` if the specified connected client is allowed to place or remove tiles, tile mods or objects, spawn server-side entities other than item drops, or modify the contents of containers, or `false` if the client is not allowed to do so or is not connected. See `$docs/permissions.md` for more on xStarbound v3.8's build permission system.
+Returns `true` if the specified connected client is allowed to place or remove tiles, tile mods or objects, or spawn server-side entities other than item drops, or `false` if the client is not allowed to do so or is not connected.
+
+If the optional `containerPermission` argument is `"open"`, this callback returns `true` if the specified connected client is allowed to open containers to see their contents; if `containerPermission` is `"modify"`, this callback returns `true` if the specified connected client is allowed to modify the contents of containers (and to open them, as `"modify"` implies `"open"`).
+
+See `$docs/permissions.md` for more on xStarbound v3.8's build permission system.
 
 ---
 

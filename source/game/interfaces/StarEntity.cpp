@@ -109,6 +109,14 @@ Maybe<Json> Entity::receiveMessage(ConnectionId, String const&, JsonArray const&
   return {};
 }
 
+Maybe<Json> Entity::receiveMessageNoContainerViewing(ConnectionId arg1, String const& arg2, JsonArray const& arg3) {
+  return receiveMessage(arg1, arg2, arg3);
+}
+
+Maybe<Json> Entity::receiveMessageNoContainerModification(ConnectionId arg1, String const& arg2, JsonArray const& arg3) {
+  return receiveMessage(arg1, arg2, arg3);
+}
+
 void Entity::update(float dt, uint64_t) {}
 
 void Entity::render(RenderCallback*) {}

@@ -78,7 +78,9 @@ Json const BaseDefaultConfiguration = Json::parseJson(R"JSON(
         "guestWorldSpawnsAllowed" : true,
         "guestBuildingAllowed" : true,
         "accountClaimsEnabled" : false,
-        "disallowServerGriefingWhenOwned" : false
+        "disallowServerGriefingWhenOwned" : false,
+        "containerModificationProtection" : false,
+        "containerOpenProtection" : false
       },
 
       "clientP2PJoinable" : true,

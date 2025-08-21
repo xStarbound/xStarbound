@@ -148,6 +148,8 @@ public:
   // otherwise should return some Json value.
   // This will only ever be called on master entities.
   virtual Maybe<Json> receiveMessage(ConnectionId sendingConnection, String const& message, JsonArray const& args);
+  virtual Maybe<Json> receiveMessageNoContainerViewing(ConnectionId sendingConnection, String const& message, JsonArray const& args);
+  virtual Maybe<Json> receiveMessageNoContainerModification(ConnectionId sendingConnection, String const& message, JsonArray const& args);
 
   virtual void update(float dt, uint64_t currentStep);
 
