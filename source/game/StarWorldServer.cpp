@@ -1465,7 +1465,7 @@ bool WorldServer::clientHasBuildPermission(ConnectionId clientId) const {
   JsonObject xServerPerms = jXServerPerms.isType(Json::Type::Object) ? jXServerPerms.toObject() : JsonObject{};
 
   auto getBool = [&](String key) -> bool {
-    if (xServerPerms.hasValue(key)) {
+    if (xServerPerms.contains(key)) {
       auto const& value = xServerPerms.get(key);
       return value.isType(Json::Type::Bool) ? value.toBool() : false;
     }

@@ -40,7 +40,7 @@ bool UniverseServer::clientHasBuildPermission(ServerClientContextPtr const& clie
   JsonObject xServerPerms = jXServerPerms.isType(Json::Type::Object) ? jXServerPerms.toObject() : JsonObject{};
 
   auto getBool = [&](String key) -> bool {
-    if (xServerPerms.hasValue(key)) {
+    if (xServerPerms.contains(key)) {
       auto const& value = xServerPerms.get(key);
       return value.isType(Json::Type::Bool) ? value.toBool() : false;
     }
@@ -99,11 +99,11 @@ bool UniverseServer::clientHasBuildPermission(ServerClientContextPtr const& clie
     return true;
 
   if (getBool("accountClaimsEnabled")) {
-      if (const Maybe<bool> owned = hasBuildPermission(buildPermissions, playerAccount))
-        return *owned;
-      else if (const Maybe<bool> ownedByUuid = hasBuildPermission(buildPermissionsByUuid, playerUuid))
-        return *ownedByUuid;
-      return guestsAllowed;
+    if (const Maybe<bool> owned = hasBuildPermission(buildPermissions, playerAccount))
+      return *owned;
+    else if (const Maybe<bool> ownedByUuid = hasBuildPermission(buildPermissionsByUuid, playerUuid))
+      return *ownedByUuid;
+    return guestsAllowed;
   } else if (const Maybe<bool> owned = hasBuildPermission(buildPermissionsByUuid, playerUuid)) {
     return *owned;
   }
@@ -1800,7 +1800,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
         *accountName, clientConnect->playerName, remoteAddressString);
   else
     Logger::info("UniverseServer: Logged in anonymously as player '{}' from address {}",
-      clientConnect->playerName, remoteAddressString);
+        clientConnect->playerName, remoteAddressString);
 
   mainLocker.lock();
   RecursiveMutexLocker clientsLocker(m_clientsLock);
