@@ -446,6 +446,9 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       if (auto targetEntity = m_entityMap->entity(targetId)) {
         if (auto interactiveTarget = as<InteractiveEntity>(targetEntity)) {
           if (targetEntityConnection == ServerConnectionId) {
+            // FezzedOne: Need to just disable container interactions to prevent players accidentally losing items to protected containers.
+            if (interactiveTarget->isContainerObject() && !clientHasBuildPermission(clientId))
+              continue;
             auto interactResult = interact(entityInteract->interactRequest).result();
             if (interactResult)
               clientInfo->outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, entityInteract->interactRequest.sourceId));
