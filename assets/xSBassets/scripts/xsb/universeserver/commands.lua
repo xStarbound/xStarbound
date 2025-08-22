@@ -215,7 +215,7 @@ end
 
 function clientConnected(clientId)
   local nick = universe.clientNick(clientId)
-  for _, cID in ipairs(allPlayerBut(clientId)) do
+  for _, cID in ipairs(allPlayersBut(clientId)) do
     universe.sendChat(cID, {
       context = { mode = "Broadcast", channel = "" },
       fromConnection = 0,
@@ -229,7 +229,7 @@ end
 
 function clientDisconnected(clientId)
   local nick = universe.clientNick(clientId)
-  for _, cID in ipairs(allPlayerBut(clientId)) do
+  for _, cID in ipairs(allPlayersBut(clientId)) do
     universe.sendChat(cID, {
       context = { mode = "Broadcast", channel = "" },
       fromConnection = 0,
