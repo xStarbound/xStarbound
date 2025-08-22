@@ -1455,6 +1455,7 @@ Json UniverseServer::getServerData(String const& key) const {
   RecursiveMutexLocker locker(m_mainLock);
   if (m_serverData)
     return m_serverData->get(key, Json());
+  Logger::info("[xSB::Debug] Server data not yet loaded.");
   return Json();
 }
 
@@ -1462,6 +1463,7 @@ Json UniverseServer::getServerDataPath(String const& path) const {
   RecursiveMutexLocker locker(m_mainLock);
   if (m_serverData)
     return m_serverData->query(path, Json());
+  Logger::info("[xSB::Debug] Server data not yet loaded.");
   return Json();
 }
 
@@ -1469,6 +1471,8 @@ void UniverseServer::setServerData(String const& key, Json const& value) {
   RecursiveMutexLocker locker(m_mainLock);
   if (m_serverData)
     m_serverData->set(key, value);
+  else
+    Logger::info("[xSB::Debug] Server data not yet loaded.");
 }
 
 void UniverseServer::setServerDataPath(String const& path, Json const& value) {
@@ -1476,13 +1480,16 @@ void UniverseServer::setServerDataPath(String const& path, Json const& value) {
   if (m_serverData) {
     if (path.empty() && !value.isType(Json::Type::Object)) return; // FezzedOne: Keeps the root object an object.
     m_serverData->setPath(path, value);
-  }
+  } else
+    Logger::info("[xSB::Debug] Server data not yet loaded.");
 }
 
 void UniverseServer::eraseServerData(String const& key) {
   RecursiveMutexLocker locker(m_mainLock);
   if (m_serverData)
     m_serverData->eraseKey(key);
+  else
+    Logger::info("[xSB::Debug] Server data not yet loaded.");
 }
 
 void UniverseServer::eraseServerDataPath(String const& path) {
@@ -1490,7 +1497,8 @@ void UniverseServer::eraseServerDataPath(String const& path) {
   if (m_serverData) {
     if (path.empty()) return; // FezzedOne: Keeps the root object an object.
     m_serverData->erasePath(path);
-  }
+  } else
+    Logger::info("[xSB::Debug] Server data not yet loaded.");
 }
 
 Maybe<CelestialCoordinate> UniverseServer::nextStarterWorld() {
