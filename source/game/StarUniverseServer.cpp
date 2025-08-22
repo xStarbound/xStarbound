@@ -1399,7 +1399,7 @@ void UniverseServer::saveSettings() {
       m_universeSettings->toJson().set("time", m_universeClock->time()));
   VersionedJson::writeFile(versionedSettings, File::relativeTo(m_storageDirectory, "universe.dat"));
   if (m_serverData) {
-    auto versionedServerData = versioningDatabase->makeCurrentVersionedJson("ServerData", *m_serverData);
+    auto versionedServerData = versioningDatabase->makeCurrentVersionedJson("ServerData", m_serverData);
     VersionedJson::writeFile(versionedServerData, File::relativeTo(m_storageDirectory, "server.dat"));
   } else {
     Logger::warn("[xSB] UniverseServer: Server data not yet loaded");
@@ -1434,13 +1434,13 @@ void UniverseServer::loadSettings() {
   m_universeClock->start();
 
   auto loadBlankServerData = [this]() {
-    m_serverData = make_shared<Json>(JsonObject{});
+    m_serverData = JsonObject{};
   };
 
   auto serverDataFile = File::relativeTo(m_storageDirectory, "server.dat");
   if (File::isFile(serverDataFile)) {
     try {
-      m_serverData = make_shared<Json>(versioningDatabase->loadVersionedJson(VersionedJson::readFile(serverDataFile), "ServerData"));
+      m_serverData = versioningDatabase->loadVersionedJson(VersionedJson::readFile(serverDataFile), "ServerData");
     } catch (std::exception const& e) {
       Logger::error("[xSB] UniverseServer: Could not load server data file, loading blank file: {}", outputException(e, false));
       File::rename(serverDataFile, strf("{}.{}.fail", serverDataFile, Time::millisecondsSinceEpoch()));
@@ -1454,42 +1454,42 @@ void UniverseServer::loadSettings() {
 Json UniverseServer::getServerData(String const& key) const {
   RecursiveMutexLocker locker(m_mainLock);
   if (m_serverData)
-    return m_serverData->get(key, Json());
+    return m_serverData.get(key, Json());
   return Json();
 }
 
 Json UniverseServer::getServerDataPath(String const& path) const {
   RecursiveMutexLocker locker(m_mainLock);
   if (m_serverData)
-    return m_serverData->query(path, Json());
+    return m_serverData.query(path, Json());
   return Json();
 }
 
 void UniverseServer::setServerData(String const& key, Json const& value) {
   RecursiveMutexLocker locker(m_mainLock);
   if (m_serverData)
-    m_serverData->set(key, value);
+    m_serverData = m_serverData.set(key, value);
 }
 
 void UniverseServer::setServerDataPath(String const& path, Json const& value) {
   RecursiveMutexLocker locker(m_mainLock);
   if (m_serverData) {
     if (path.empty() && !value.isType(Json::Type::Object)) return; // FezzedOne: Keeps the root object an object.
-    m_serverData->setPath(path, value);
+    m_serverData = m_serverData.setPath(path, value);
   }
 }
 
 void UniverseServer::eraseServerData(String const& key) {
   RecursiveMutexLocker locker(m_mainLock);
   if (m_serverData)
-    m_serverData->eraseKey(key);
+    m_serverData = m_serverData.eraseKey(key);
 }
 
 void UniverseServer::eraseServerDataPath(String const& path) {
   RecursiveMutexLocker locker(m_mainLock);
   if (m_serverData) {
     if (path.empty()) return; // FezzedOne: Keeps the root object an object.
-    m_serverData->erasePath(path);
+    m_serverData = m_serverData.erasePath(path);
   }
 }
 

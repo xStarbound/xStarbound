@@ -285,7 +285,7 @@ private:
 
   List<TimeoutBan> m_tempBans;
 
-  shared_ptr<Json> m_serverData;
+  Json m_serverData;
 
   bool m_rememberReturnWarpsOnDeath;
 };

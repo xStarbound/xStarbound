@@ -125,7 +125,7 @@ _SBLOADED = {
 
 #### `JsonNull` null
 
-The value of this global variable is recognised as a JSON `null` when passed to any xStarbound callback that accepts JSON. Equivalent to Pluto's `json.null`.
+The value of this global variable is recognised as a JSON `null` when passed to any xStarbound callback that accepts JSON. Equivalent to Pluto's `json.null`. If a callback is noted as specifically accepting any `Maybe<Json>` arguments, `null` / `json.null` and `nil` are treated differently when passed as the noted arguments to that callback; check the callback's documentation for specific behaviour.
 
 #### `bool, Variant<T..., LuaValue..., String>` pcall(`Variant<LuaFunction<T...(Maybe<LuaValue...>)>, LuaThread>` functionOrThreadVar, `LuaValue...` args)
 
