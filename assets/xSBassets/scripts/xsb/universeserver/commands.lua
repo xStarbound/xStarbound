@@ -206,8 +206,8 @@ local function allPlayersBut(clientId)
   local clientIds = universe.clientIds()
   local res = {}
   for _, cID in ipairs(clientIds) do
-    if cId ~= clientId then
-      table.insert(res, cId)
+    if cID ~= clientId then
+      table.insert(res, cID)
     end
   end
   return res
