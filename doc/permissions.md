@@ -65,7 +65,7 @@ These two optional JSON objects define the configured world claims on the server
 "ownedWorldsByAccount" : { // Is a JSON object that acts as a world ID map for claims.
   "CelestialWorld:-201777753:-398423631:8256823:11" : {
     "owner" : "fezzedone", // The owning account. Use this for claim ownership checks in your command scripts.
-    "allowedBuilders" : [ "john", "rodriguez", "meilin", false ] // Accounts that are allowed to build
+    "allowedBuilders" : [ "john", "rodriguez", "meilin", false ], // Accounts that are allowed to build
         // on the world. They are also allowed to open and modify containers if this would overwise be
         // disallowed for non-owning clients.
       // If `false` is present in this array, server-side projectiles, scripts, etc., are allowed to «build»
@@ -75,12 +75,18 @@ These two optional JSON objects define the configured world claims on the server
         // including server-side scripts and clients without an account, to build on the world; it also
         // gives every client permission to open or modify containers if this would otherwise be disallowed
         // for non-owning clients.
+    "allowGuestContainerModification": false, // Whether to allow clients without build permission to modify
+        // the contents of containers regardless of the server's protection settings. Implicitly
+        // grants universal permission to open containers if true, regardless of the state of
+        // `"allowGuestContainerOpening"` below.
+    "allowGuestContainerOpening": true // Whether to allow clients without build permission to open
+        // containers regardless of the server's protection settings.
   }
 },
 "ownedWorldsByUuid" : { // Is a JSON object that acts as a world ID map for claims.
   "CelestialWorld:-201777753:-398423631:8256823:8:2" : {
     "owner" : "3cc245c853cd4e8e83dce8de71602b65", // The owning client UUID. Use this for claim ownership checks in your command scripts.
-    "allowedBuilders" : [ "2e49a7b16636439f815f3dec89fed405", "fcedfa377c1146cba4206ee123e90848" ]
+    "allowedBuilders" : [ "2e49a7b16636439f815f3dec89fed405", "fcedfa377c1146cba4206ee123e90848" ],
       // Client UUIDs that are allowed to build on the world. They are also allowed to open and modify
         // containers if this would overwise be disallowed for non-owning clients.
       // If `false` is present in this array, server-side projectiles,
@@ -90,6 +96,12 @@ These two optional JSON objects define the configured world claims on the server
         // including server-side scripts and clients without an account, to build on the world; it also
         // gives every client permission to open or modify containers if this would otherwise be disallowed
         // for non-owning clients.
+    "allowGuestContainerModification": false, // Whether to allow clients without build permission to modify
+        // the contents of containers regardless of the server's protection settings. Implicitly
+        // grants universal permission to open containers if true, regardless of the state of
+        // `"allowGuestContainerOpening"` below.
+    "allowGuestContainerOpening": false // Whether to allow clients without build permission to open
+        // containers regardless of the server's protection settings.
   }
 }
 ```
