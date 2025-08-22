@@ -85,18 +85,18 @@ LuaCallbacks LuaBindings::makeUniverseServerCallbacks(UniverseServer* universe) 
     return universe->getServerDataPath(path);
   });
 
-  callbacks.registerCallback("setServerData", [universe](String const& key, Maybe<Json> const& value) {
-    if (value)
-      universe->setServerData(key, *value);
-    else
-      universe->eraseServerData(key);
+  callbacks.registerCallback("setServerData", [universe](String const& key, Json const& value) {
+    // if (value)
+    universe->setServerData(key, value);
+    // else
+    //   universe->eraseServerData(key);
   });
 
-  callbacks.registerCallback("setServerDataPath", [universe](String const& path, Maybe<Json> const& value) {
-    if (value)
-      universe->setServerDataPath(path, *value);
-    else
-      universe->eraseServerDataPath(path);
+  callbacks.registerCallback("setServerDataPath", [universe](String const& path, Json const& value) {
+    // if (value)
+    universe->setServerDataPath(path, value);
+    // else
+    //   universe->eraseServerDataPath(path);
   });
 
   return callbacks;

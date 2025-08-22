@@ -17,15 +17,13 @@ These callbacks are available in the following script contexts:
 
 Gets the server data value located at the specified JSON key or path, if any, or returns `nil` if it's not found. See _JSON paths_ in `root.md` for more information on JSON paths. xStarbound server data is stored as versioned JSON with a `ServerData` identifier at `$storage/universe/server.dat`.
 
-#### `void` universe.setServerData(`String` key, `Maybe<Json>` value)
+#### `void` universe.setServerData(`String` key, `Json` value)
 
-#### `void` universe.setServerDataPath(`String` path, `Maybe<Json> value`)
+#### `void` universe.setServerDataPath(`String` path, `Json` value)
 
 Sets the server data value located at the specified JSON key or path to the specified value. See _JSON paths_ in `root.md` for more information on JSON paths. xStarbound server data is stored as versioned JSON with a `ServerData` identifier at `$storage/universe/server.dat`.
 
-If `nil` is passed, any value at the specified location is erased; use `null` or `json.null` to actually set the value to `null` instead of removing the object key or array value entirely.
-
-Additionally, if an empty path is passed and the value is not a JSON object, the callback does nothing; this is intentional so that the server data's root value is always a JSON object.
+Additionally, if an empty path is passed and the value is not a JSON object, the callback does nothing; this is intentional so that the server data's «root» is always a JSON object.
 
 #### `List<ClientId>` universe.clientIds()
 
