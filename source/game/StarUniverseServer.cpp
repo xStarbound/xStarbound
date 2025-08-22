@@ -1404,86 +1404,98 @@ void UniverseServer::updateCommandScript(float dt) {
 }
 
 void UniverseServer::saveSettings() {
-  RecursiveMutexLocker locker(m_mainLock);
-  auto versioningDatabase = Root::singleton().versioningDatabase();
-  auto versionedSettings = versioningDatabase->makeCurrentVersionedJson("UniverseSettings",
-      m_universeSettings->toJson().set("time", m_universeClock->time()));
-  VersionedJson::writeFile(versionedSettings, File::relativeTo(m_storageDirectory, "universe.dat"));
-  if (m_serverData) {
-    auto versionedServerData = versioningDatabase->makeCurrentVersionedJson("ServerData", m_serverData);
-    VersionedJson::writeFile(versionedServerData, File::relativeTo(m_storageDirectory, "server.dat"));
-  } else {
-    Logger::warn("[xSB] UniverseServer: Server data not yet loaded");
+  {
+    RecursiveMutexLocker locker(m_mainLock);
+    auto versioningDatabase = Root::singleton().versioningDatabase();
+    auto versionedSettings = versioningDatabase->makeCurrentVersionedJson("UniverseSettings",
+        m_universeSettings->toJson().set("time", m_universeClock->time()));
+    VersionedJson::writeFile(versionedSettings, File::relativeTo(m_storageDirectory, "universe.dat"));
+  }
+  {
+    MutexLocker serverDataLocker(m_serverDataLock);
+    auto versioningDatabase = Root::singleton().versioningDatabase();
+    if (m_serverData) {
+      auto versionedServerData = versioningDatabase->makeCurrentVersionedJson("ServerData", m_serverData);
+      VersionedJson::writeFile(versionedServerData, File::relativeTo(m_storageDirectory, "server.dat"));
+    } else {
+      Logger::warn("[xSB] UniverseServer: Server data not yet loaded");
+    }
   }
 }
 
 void UniverseServer::loadSettings() {
-  RecursiveMutexLocker locker(m_mainLock);
+  {
+    RecursiveMutexLocker locker(m_mainLock);
 
-  auto loadDefaultSettings = [this]() {
-    m_universeClock = make_shared<Clock>();
-    m_universeSettings = make_shared<UniverseSettings>();
-  };
-
-  auto versioningDatabase = Root::singleton().versioningDatabase();
-  auto storageFile = File::relativeTo(m_storageDirectory, "universe.dat");
-  if (File::isFile(storageFile)) {
-    try {
-      auto settings = versioningDatabase->loadVersionedJson(VersionedJson::readFile(storageFile), "UniverseSettings");
-      m_universeSettings = make_shared<UniverseSettings>(settings);
+    auto loadDefaultSettings = [this]() {
       m_universeClock = make_shared<Clock>();
-      m_universeClock->setTime(settings.getDouble("time"));
-    } catch (std::exception const& e) {
-      Logger::error("UniverseServer: Could not load universe settings file, loading defaults: {}", outputException(e, false));
-      File::rename(storageFile, strf("{}.{}.fail", storageFile, Time::millisecondsSinceEpoch()));
+      m_universeSettings = make_shared<UniverseSettings>();
+    };
+
+    auto versioningDatabase = Root::singleton().versioningDatabase();
+    auto storageFile = File::relativeTo(m_storageDirectory, "universe.dat");
+    if (File::isFile(storageFile)) {
+      try {
+        auto settings = versioningDatabase->loadVersionedJson(VersionedJson::readFile(storageFile), "UniverseSettings");
+        m_universeSettings = make_shared<UniverseSettings>(settings);
+        m_universeClock = make_shared<Clock>();
+        m_universeClock->setTime(settings.getDouble("time"));
+      } catch (std::exception const& e) {
+        Logger::error("UniverseServer: Could not load universe settings file, loading defaults: {}", outputException(e, false));
+        File::rename(storageFile, strf("{}.{}.fail", storageFile, Time::millisecondsSinceEpoch()));
+        loadDefaultSettings();
+      }
+    } else {
       loadDefaultSettings();
     }
-  } else {
-    loadDefaultSettings();
+
+    m_universeClock->start();
   }
 
-  m_universeClock->start();
+  {
+    MutexLocker serverDataLocker(m_serverDataLock);
+    auto loadBlankServerData = [this]() {
+      m_serverData = JsonObject{};
+    };
 
-  auto loadBlankServerData = [this]() {
-    m_serverData = JsonObject{};
-  };
-
-  auto serverDataFile = File::relativeTo(m_storageDirectory, "server.dat");
-  if (File::isFile(serverDataFile)) {
-    try {
-      m_serverData = versioningDatabase->loadVersionedJson(VersionedJson::readFile(serverDataFile), "ServerData");
-    } catch (std::exception const& e) {
-      Logger::error("[xSB] UniverseServer: Could not load server data file, loading blank file: {}", outputException(e, false));
-      File::rename(serverDataFile, strf("{}.{}.fail", serverDataFile, Time::millisecondsSinceEpoch()));
+    auto versioningDatabase = Root::singleton().versioningDatabase();
+    auto serverDataFile = File::relativeTo(m_storageDirectory, "server.dat");
+    if (File::isFile(serverDataFile)) {
+      try {
+        m_serverData = versioningDatabase->loadVersionedJson(VersionedJson::readFile(serverDataFile), "ServerData");
+      } catch (std::exception const& e) {
+        Logger::error("[xSB] UniverseServer: Could not load server data file, loading blank file: {}", outputException(e, false));
+        File::rename(serverDataFile, strf("{}.{}.fail", serverDataFile, Time::millisecondsSinceEpoch()));
+        loadBlankServerData();
+      }
+    } else {
       loadBlankServerData();
     }
-  } else {
-    loadBlankServerData();
   }
 }
 
 Json UniverseServer::getServerData(String const& key) const {
-  RecursiveMutexLocker locker(m_mainLock);
+  MutexLocker serverDataLocker(m_serverDataLock);
   if (m_serverData)
     return m_serverData.get(key, Json());
   return Json();
 }
 
 Json UniverseServer::getServerDataPath(String const& path) const {
-  RecursiveMutexLocker locker(m_mainLock);
+  MutexLocker serverDataLocker(m_serverDataLock);
   if (m_serverData)
     return m_serverData.query(path, Json());
   return Json();
 }
 
 void UniverseServer::setServerData(String const& key, Json const& value) {
-  RecursiveMutexLocker locker(m_mainLock);
+  MutexLocker serverDataLocker(m_serverDataLock);
   if (m_serverData)
     m_serverData = m_serverData.set(key, value);
 }
 
 void UniverseServer::setServerDataPath(String const& path, Json const& value) {
-  RecursiveMutexLocker locker(m_mainLock);
+  MutexLocker serverDataLocker(m_serverDataLock);
   if (m_serverData) {
     if (path.empty() && !value.isType(Json::Type::Object)) return; // FezzedOne: Keeps the root object an object.
     m_serverData = m_serverData.setPath(path, value);
@@ -1491,13 +1503,13 @@ void UniverseServer::setServerDataPath(String const& path, Json const& value) {
 }
 
 void UniverseServer::eraseServerData(String const& key) {
-  RecursiveMutexLocker locker(m_mainLock);
+  MutexLocker serverDataLocker(m_serverDataLock);
   if (m_serverData)
     m_serverData = m_serverData.eraseKey(key);
 }
 
 void UniverseServer::eraseServerDataPath(String const& path) {
-  RecursiveMutexLocker locker(m_mainLock);
+  MutexLocker serverDataLocker(m_serverDataLock);
   if (m_serverData) {
     if (path.empty()) return; // FezzedOne: Keeps the root object an object.
     m_serverData = m_serverData.erasePath(path);
