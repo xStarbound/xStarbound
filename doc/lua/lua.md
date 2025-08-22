@@ -312,9 +312,10 @@ The following is a list of common Lua functions called by the engine when runnin
   - For techs, uninitialisation happens when the tech is removed, and also when the player is uninitialised while the tech is active.
   - For local animator scripts, uninitialisation happens when the associated entity, tech or item is unloaded on the client. For client-controlled players, unloading happens any time a player dies, is removed, or warps away from a world.
   - For scripted panes, uninitialisation happens when the pane is closed, _after_ `dismissed` (see below) is invoked.
+  - _Only on xStarbound v4.0+:_ For command processor scripts, uninitialisation happens when the server begins its shutdown process.
   - See `statistics.md` for statistics scripts.
 - **`void` update(`Args...` args):** Called once every `n` game ticks, where `n` is the update delta (1 by default), while the entity is running (for entity, status controller and all types of player scripts), the item is held (for item scripts), the tech or status effect is running (for techs and status effects), the pane is open (for panes), or the entity is loaded on the client (for local animator scripts). If `n` is or becomes zero, `update` will never get called. See `updatablescript.md` for more on update deltas and how they're changed. The engine passes different arguments to `update` across script contexts:
-  - _`void` update(`float` dt):_ All updatable script contexts except those below. `dt` is the delta time in seconds that has passed since `update` was last called for the context.
+  - _`void` update(`float` dt):_ All updatable script contexts except those below. `dt` is the delta time in seconds that has passed since `update` was last called for the context. On xStarbound v4.0.0+, server-side command processor scripts support this `update` function call; previously, and on other servers, they did not.
   - _`void` update(`LuaTable` args):_ Tech scripts. `args` looks like this:
     ```lua
     {
@@ -399,3 +400,15 @@ Other Lua functions invoked by the engine are fairly self-explanatory; see the b
   A `ConnectionId` is a `uint16_t`. See `$docs/lua/universeserver.md` for various callbacks available to command processor scripts that return and handle these.
 
   `chatMessage` must be either `nil` or conform to the format specified under `chat.addMessage` in `$docs/lua/interface.md`.
+
+- **`Maybe<String>` connectionCheck(`String` clientIp, `String` playerName, `Maybe<String>` accountName, `bool` isAdmin, `bool` isGuest, `String` playerSpecies, `String` playerAssetsDigest, `String` assetMismatchAllowed, `bool` introComplete, `Json` shipUpgrades):** _Only available on xStarbound v4.0+ servers._ Invoked in the server-side command processor script context whenever a player attempts to connect, just after the server runs checks on the ban list, player asset digest, player species, etc., to determine whether to block the connection.
+
+  If a string is returned by this function, the pending connection is blocked and the client is given the returned string as a disconnection message. If `nil` or nothing is returned, the player is allowed onto the server.
+
+  _Tip:_ You can run player name checks in this function to kick users with difficult-to-handle names.
+
+  This function never runs on an xClient host's «connection» because the host _is_ the server.
+
+- **`Maybe<String>` clientConnected(`ClientId` client):** _Only available on xStarbound v4.0+ servers._ Invoked in the server-side command processor script context whenever a client has successfully connected to the server. The client ID is that of the client that has just connected. Used by xStarbound for client connection messages (they're scriptable now!).
+
+- **`Maybe<String>` clientDisconnected(`ClientId` client):** _Only available on xStarbound v4.0+ servers._ Invoked in the server-side command processor script context whenever a client has disconnected (or been disconnected) from the server. The client ID is that of the client that has just disconnected (or been disconnected). Used by xStarbound for client disconnection messages (they're scriptable now!).

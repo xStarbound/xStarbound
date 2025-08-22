@@ -127,6 +127,8 @@ public:
   void eraseServerData(String const& key);
   void eraseServerDataPath(String const& path);
 
+  Maybe<Json> callCommandScript(String const& function, LuaVariadic<Json> const& args);
+
 protected:
   virtual void run();
 
@@ -167,6 +169,7 @@ private:
   void handleWorldMessages();
   void shutdownInactiveWorlds();
   void doTriggeredStorage();
+  void updateCommandScript(float dt);
 
   void saveSettings();
   void loadSettings();
@@ -288,6 +291,8 @@ private:
   Json m_serverData;
 
   bool m_rememberReturnWarpsOnDeath;
+
+  double m_lastScriptUpdate;
 };
 
 } // namespace Star

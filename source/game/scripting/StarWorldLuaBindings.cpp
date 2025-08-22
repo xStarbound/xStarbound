@@ -623,6 +623,10 @@ namespace LuaBindings {
       callbacks.registerCallbackWithSignature<LuaString, LuaEngine&>("fidelity", bind(ServerWorldCallbacks::fidelity, world, _1));
       callbacks.registerCallbackWithSignature<Maybe<LuaValue>, LuaEngine&, String, String, LuaVariadic<LuaValue>>("callScriptContext", bind(ServerWorldCallbacks::callScriptContext, world, _1, _2, _3, _4));
 
+      callbacks.registerCallbackWithSignature<Maybe<Json>, String, LuaVariadic<Json>>("callCommandScript", [serverWorld](String const& function, LuaVariadic<Json> const& args) -> Maybe<Json> {
+        return serverWorld->callUniverseCommandScript(function, args);
+      });
+
       callbacks.registerCallbackWithSignature<double>("skyTime", [serverWorld]() {
         return serverWorld->sky()->epochTime();
       });

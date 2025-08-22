@@ -1297,6 +1297,16 @@ To message _other_ worlds, use `universe.sendWorldMessage` in a world context sc
 
 ---
 
+#### `Json` world.callCommandScript(`String` functionName, `Json...` args)
+
+Attempts to call the specified function (or callback) name in the command processor / universe server script context with any specified arguments and returns the result of that call.
+
+All arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
+
+To message other worlds rather than the universe server, use `universe.sendWorldMessage` in a world context script (see `universeserver.md`). If you need to message another world from a server-side entity, use `world.callScriptContext` to "pass through" to a `universe.sendWorldMessage` call. Both client- and server-side entities may also use `world.sendEntityMessage` for "passthrough".
+
+---
+
 #### `bool` world.breakObject(`EntityId` entityId, `bool` smash)
 
 Breaks the specified object and returns `true` if successful and `false` otherwise. If smash is `true` the object will not (by default) drop any items.

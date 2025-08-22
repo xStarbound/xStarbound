@@ -1064,6 +1064,58 @@ Maybe<std::tuple<ConnectionId, ChatReceivedMessage>> CommandProcessor::handleCha
   return std::tuple{clientId, chatMessage};
 }
 
+Maybe<Json> CommandProcessor::callCommandScript(String const& function, LuaVariadic<Json> const& args) {
+  RecursiveMutexLocker locker(m_mutex);
+  return m_scriptComponent.invoke<Json>(function, args);
+}
+
+void CommandProcessor::updateScript(float dt) {
+  RecursiveMutexLocker locker(m_mutex);
+  m_scriptComponent.invoke("update", dt);
+}
+
+void CommandProcessor::uninit() {
+  RecursiveMutexLocker locker(m_mutex);
+  m_scriptComponent.uninit();
+}
+
+void CommandProcessor::clientConnected(ConnectionId clientId) {
+  RecursiveMutexLocker locker(m_mutex);
+  m_scriptComponent.invoke("clientConnected", clientId);
+}
+
+void CommandProcessor::clientDisconnected(ConnectionId clientId) {
+  RecursiveMutexLocker locker(m_mutex);
+  m_scriptComponent.invoke("clientDisconnected", clientId);
+}
+
+Maybe<String> CommandProcessor::runUserCheck(
+    String const& clientIp,
+    String const& playerName,
+    Maybe<String> const& accountName,
+    bool isAdmin,
+    bool isGuest,
+    String const& playerSpecies,
+    String const& assetsDigest,
+    bool assetMismatchAllowed,
+    bool introComplete,
+    Json const& shipUpgrades) {
+  RecursiveMutexLocker locker(m_mutex);
+  auto result = m_scriptComponent.invoke<Maybe<String>>("connectionCheck",
+      clientIp,
+      playerName,
+      accountName,
+      isAdmin,
+      isGuest,
+      playerSpecies,
+      assetsDigest,
+      assetMismatchAllowed,
+      introComplete,
+      shipUpgrades);
+  if (result) return *result;
+  return {};
+}
+
 Maybe<String> CommandProcessor::adminCheck(ConnectionId connectionId, String const& commandDescription) const {
   if (connectionId == ServerConnectionId)
     return {};

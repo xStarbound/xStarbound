@@ -2943,6 +2943,10 @@ Maybe<LuaValue> WorldServer::evalScript(String const& code) {
   return m_scriptContexts.get("worldEval")->eval<LuaValue>(code);
 }
 
+Maybe<Json> WorldServer::callUniverseCommandScript(String const& function, LuaVariadic<Json> const& args) {
+  return m_universe->callCommandScript(function, args);
+}
+
 void WorldServer::setGlobal(Maybe<String> const& jsonPath, Json const& newValue) {
   if (jsonPath)
     m_scriptGlobals.set(*jsonPath, std::move(newValue));

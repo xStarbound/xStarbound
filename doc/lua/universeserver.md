@@ -4,7 +4,7 @@
 
 These callbacks are available in the following script contexts:
 
-- universe server scripts
+- command processor / universe server scripts
 - world context scripts
 
 **Note:** A `ClientId` is an unsigned integer.

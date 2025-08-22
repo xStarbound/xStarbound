@@ -16,6 +16,7 @@
 #include "StarSky.hpp"
 #include "StarTcp.hpp"
 #include "StarTeamManager.hpp"
+#include "StarTime.hpp"
 #include "StarUniverseServerLuaBindings.hpp"
 #include "StarVersioningDatabase.hpp"
 #include "StarWorldTemplate.hpp"
@@ -601,6 +602,8 @@ void UniverseServer::run() {
 
   TcpServerPtr tcpServer;
 
+  m_lastScriptUpdate = Time::monotonicTime();
+
   while (!m_stop) {
     ZoneScopedN("UNIVERSE SERVER TICK");
     if (m_tcpState == TcpState::Yes && !tcpServer) {
@@ -665,6 +668,8 @@ void UniverseServer::run() {
       handleWorldMessages();
       shutdownInactiveWorlds();
       doTriggeredStorage();
+      updateCommandScript((float)(Time::monotonicTime() - m_lastScriptUpdate));
+      m_lastScriptUpdate = Time::monotonicTime();
     } catch (std::exception const& e) {
       Logger::error("UniverseServer: exception caught: {}", outputException(e, true));
     }
@@ -675,6 +680,8 @@ void UniverseServer::run() {
   Logger::info("UniverseServer: Stopping UniverseServer");
 
   try {
+    m_commandProcessor->uninit();
+
     m_workerPool.stop();
 
     if (tcpServer) {
@@ -1392,6 +1399,10 @@ void UniverseServer::doTriggeredStorage() {
   }
 }
 
+void UniverseServer::updateCommandScript(float dt) {
+  m_commandProcessor->updateScript(dt);
+}
+
 void UniverseServer::saveSettings() {
   RecursiveMutexLocker locker(m_mainLock);
   auto versioningDatabase = Root::singleton().versioningDatabase();
@@ -1491,6 +1502,10 @@ void UniverseServer::eraseServerDataPath(String const& path) {
     if (path.empty()) return; // FezzedOne: Keeps the root object an object.
     m_serverData = m_serverData.erasePath(path);
   }
+}
+
+Maybe<Json> UniverseServer::callCommandScript(String const& function, LuaVariadic<Json> const& args) {
+  return m_commandProcessor->callCommandScript(function, args);
 }
 
 Maybe<CelestialCoordinate> UniverseServer::nextStarterWorld() {
@@ -1935,6 +1950,20 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
       connectionFail("You have been banned: " + *reason);
       return;
     }
+
+    if (Maybe<String> reason = m_commandProcessor->runUserCheck(
+            toString(*remoteAddress),
+            clientConnect->playerName,
+            accountName,
+            administrator,
+            isGuest,
+            clientConnect->playerSpecies,
+            hexEncode(clientConnect->assetsDigest),
+            clientConnect->allowAssetsMismatch,
+            clientConnect->introComplete,
+            clientConnect->shipUpgrades.toJson())) {
+      connectionFail(*reason);
+    }
   }
 
   if (accountName)
@@ -2053,6 +2082,8 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   for (auto clientId : clients) {
     m_connectionServer->sendPackets(clientId, {make_shared<ServerInfoPacket>(players, static_cast<uint16_t>(m_maxPlayers))});
   }
+
+  m_commandProcessor->clientConnected(clientId);
 }
 
 WarpToWorld UniverseServer::resolveWarpAction(WarpAction warpAction, ConnectionId clientId, bool deploy) const {
@@ -2103,6 +2134,8 @@ WarpToWorld UniverseServer::resolveWarpAction(WarpAction warpAction, ConnectionI
 
 void UniverseServer::doDisconnection(ConnectionId clientId, String const& reason) {
   if (auto clientContext = m_clients.value(clientId)) {
+    m_commandProcessor->clientDisconnected(clientId);
+
     m_teamManager->playerDisconnected(clientContext->playerUuid());
 
     // The client should revive at their ship if they are in an un-revivable

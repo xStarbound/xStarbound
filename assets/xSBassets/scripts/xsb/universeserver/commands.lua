@@ -52,7 +52,7 @@ commands.serverexec = executeLuaSource
 
 function commands.xserver(cid, _)
     local hostType = checkHostType(cid)
-    local multiplayer = #universe.clientIds() ~= 1
+local multiplayer = #universe.clientIds() ~= 1
     if hostType == "ownClient" then
         if multiplayer then
             return "^#f33;<xClient v" .. xsb.version() .. " as host>^reset;"
@@ -200,4 +200,43 @@ function command(name, cid, args)
     else
         return "Command ^orange;/" .. name .. "^reset; does not exist."
     end
+end
+
+local function allPlayersBut(clientId)
+  local clientIds = universe.clientIds()
+  local res = {}
+  for _, cID in ipairs(clientIds) do
+    if cId ~= clientId then
+      table.insert(res, cId)
+    end
+  end
+  return res
+end
+
+function clientConnected(clientId)
+  local nick = universe.clientNick(clientId)
+  for _, cID in ipairs(allPlayerBut(clientId)) do
+    universe.sendChat(cID, {
+      context = { mode = "Broadcast", channel = "" },
+      fromConnection = 0,
+      fromNick = "server",
+      portrait = "",
+      text = string.format("Player '%s' connected", nick),
+      data = jobject{}
+    }) 
+  end
+end
+
+function clientDisconnected(clientId)
+  local nick = universe.clientNick(clientId)
+  for _, cID in ipairs(allPlayerBut(clientId)) do
+    universe.sendChat(cID, {
+      context = { mode = "Broadcast", channel = "" },
+      fromConnection = 0,
+      fromNick = "server",
+      portrait = "",
+      text = string.format("Player '%s' disconnected", nick),
+      data = jobject{}
+    }) 
+  end
 end

@@ -20,6 +20,22 @@ public:
   String adminCommand(String const& command, String const& argumentString);
   String userCommand(ConnectionId clientId, String const& command, String const& argumentString);
   Maybe<std::tuple<ConnectionId, ChatReceivedMessage>> handleChatMessage(ConnectionId connection, ChatReceivedMessage const& chatMessage);
+  Maybe<Json> callCommandScript(String const& function, LuaVariadic<Json> const& args);
+  void updateScript(float dt);
+  void uninit();
+  void clientConnected(ConnectionId clientId);
+  void clientDisconnected(ConnectionId clientId);
+  Maybe<String> runUserCheck(
+      String const& clientIp,
+      String const& playerName,
+      Maybe<String> const& accountName,
+      bool isAdmin,
+      bool isGuest,
+      String const& playerSpecies,
+      String const& assetsDigest,
+      bool assetMismatchAllowed,
+      bool introComplete,
+      Json const& shipUpgrades);
 
 private:
   static Maybe<ConnectionId> playerCidFromCommand(String const& player, UniverseServer* universe);

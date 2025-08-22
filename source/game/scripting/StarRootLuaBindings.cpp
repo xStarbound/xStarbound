@@ -1,37 +1,36 @@
 #include "StarRootLuaBindings.hpp"
-#include "StarImageLuaBindings.hpp"
-#include "StarLuaGameConverters.hpp"
-#include "StarRoot.hpp"
-#include "StarStoredFunctions.hpp"
-#include "StarNpcDatabase.hpp"
-#include "StarProjectileDatabase.hpp"
-#include "StarImageMetadataDatabase.hpp"
-#include "StarLiquidsDatabase.hpp"
-#include "StarItemDatabase.hpp"
-#include "StarTenantDatabase.hpp"
-#include "StarTechDatabase.hpp"
-#include "StarTreasure.hpp"
-#include "StarImage.hpp"
-#include "StarByteArray.hpp"
+#include "StarAssetPath.hpp"
+#include "StarAssets.hpp"
 #include "StarBehaviorDatabase.hpp"
+#include "StarBiomeDatabase.hpp"
+#include "StarByteArray.hpp"
+#include "StarCollectionDatabase.hpp"
+#include "StarDamageDatabase.hpp"
+#include "StarDirectives.hpp"
+#include "StarDungeonGenerator.hpp"
+#include "StarEncode.hpp"
+#include "StarFile.hpp"
+#include "StarImage.hpp"
+#include "StarImageLuaBindings.hpp"
+#include "StarImageMetadataDatabase.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLiquidsDatabase.hpp"
+#include "StarLogging.hpp"
+#include "StarLuaGameConverters.hpp"
+#include "StarMaterialDatabase.hpp"
+#include "StarMonster.hpp"
 #include "StarNameGenerator.hpp"
 #include "StarNpc.hpp"
-#include "StarMonster.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarBiomeDatabase.hpp"
-#include "StarVersioningDatabase.hpp"
-#include "StarMaterialDatabase.hpp"
-#include "StarCollectionDatabase.hpp"
-#include "StarBehaviorDatabase.hpp"
-#include "StarDamageDatabase.hpp"
-#include "StarDungeonGenerator.hpp"
-#include "StarLogging.hpp"
-#include "StarImage.hpp"
-#include "StarAssets.hpp"
-#include "StarAssetPath.hpp"
-#include "StarFile.hpp"
-#include "StarDirectives.hpp"
+#include "StarNpcDatabase.hpp"
+#include "StarProjectileDatabase.hpp"
+#include "StarRoot.hpp"
 #include "StarStatusEffectDatabase.hpp"
+#include "StarStoredFunctions.hpp"
+#include "StarTechDatabase.hpp"
+#include "StarTenantDatabase.hpp"
+#include "StarTreasure.hpp"
+#include "StarVersioningDatabase.hpp"
 
 namespace Star {
 
@@ -80,18 +79,21 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
   callbacks.registerCallbackWithSignature<Maybe<String>, String, Maybe<String>>("materialMiningSound", bind(RootCallbacks::materialMiningSound, root, _1, _2));
   callbacks.registerCallbackWithSignature<Maybe<String>, String, Maybe<String>>("materialFootstepSound", bind(RootCallbacks::materialFootstepSound, root, _1, _2));
 
+  callbacks.registerCallback("assetsDigest", [root]() -> String {
+    return hexEncode(root->assets()->digest());
+  });
+
   // FezzedOne: Forgot this one. Whoops.
   callbacks.registerCallback("assetExists", [root](String const& assetPath) -> bool {
-      return root->assets()->assetExists(assetPath);
-    });
+    return root->assets()->assetExists(assetPath);
+  });
 
   callbacks.registerCallback("assetFrames", [root](String const& assetPath) -> Json {
     if (auto frames = root->assets()->imageFrames(assetPath))
       return JsonObject{
-        {"aliases", jsonFromMap(frames->aliases)},
-        {"frames", jsonFromMapV(frames->frames, jsonFromRectU)},
-        {"file", frames->framesFile}
-      };
+          {"aliases", jsonFromMap(frames->aliases)},
+          {"frames", jsonFromMapV(frames->frames, jsonFromRectU)},
+          {"file", frames->framesFile}};
     return Json();
   });
 
@@ -108,105 +110,105 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
     }
     return Json();
   });
-  
+
   callbacks.registerCallback("materialConfig", [root](String const& materialName) -> Json {
-      auto materialId = root->materialDatabase()->materialId(materialName);
-      if (auto path = root->materialDatabase()->materialPath(materialId))
-        return JsonObject{{"path", *path}, {"config", root->materialDatabase()->materialConfig(materialId).get()}};
-      return {};
-    });
+    auto materialId = root->materialDatabase()->materialId(materialName);
+    if (auto path = root->materialDatabase()->materialPath(materialId))
+      return JsonObject{{"path", *path}, {"config", root->materialDatabase()->materialConfig(materialId).get()}};
+    return {};
+  });
 
   callbacks.registerCallback("modConfig", [root](String const& modName) -> Json {
-      auto modId = root->materialDatabase()->modId(modName);
-      if (auto path = root->materialDatabase()->modPath(modId))
-        return JsonObject{{"path", *path}, {"config", root->materialDatabase()->modConfig(modId).get()}};
-      return {};
-    });
+    auto modId = root->materialDatabase()->modId(modName);
+    if (auto path = root->materialDatabase()->modPath(modId))
+      return JsonObject{{"path", *path}, {"config", root->materialDatabase()->modConfig(modId).get()}};
+    return {};
+  });
 
   callbacks.registerCallback("liquidConfig", [root](LuaEngine& engine, LuaValue nameOrId) -> Json {
-      LiquidId liquidId;
-      if (auto id = engine.luaMaybeTo<uint8_t>(nameOrId))
-        liquidId = *id;
-      else if (auto name = engine.luaMaybeTo<String>(nameOrId))
-        liquidId = root->liquidsDatabase()->liquidId(*name);
-      else
-        return {};
-
-      if (auto path = root->liquidsDatabase()->liquidPath(liquidId))
-        return JsonObject{{"path", *path}, {"config", root->liquidsDatabase()->liquidConfig(liquidId).get()}};
+    LiquidId liquidId;
+    if (auto id = engine.luaMaybeTo<uint8_t>(nameOrId))
+      liquidId = *id;
+    else if (auto name = engine.luaMaybeTo<String>(nameOrId))
+      liquidId = root->liquidsDatabase()->liquidId(*name);
+    else
       return {};
-    });
+
+    if (auto path = root->liquidsDatabase()->liquidPath(liquidId))
+      return JsonObject{{"path", *path}, {"config", root->liquidsDatabase()->liquidConfig(liquidId).get()}};
+    return {};
+  });
 
   callbacks.registerCallback("image", [root](String const& imagePath) -> Maybe<Image> {
-      if (auto image = root->assets()->image(imagePath))
-        return *image;
-      return {};
-    });
+    if (auto image = root->assets()->image(imagePath))
+      return *image;
+    return {};
+  });
 
   callbacks.registerCallback("newImage", [root](Vec2U const& imageSize) -> Image {
-      return Image(imageSize);
-    });
+    return Image(imageSize);
+  });
 
   callbacks.registerCallback("bytes", [root](String const& bytesPath) -> Maybe<ByteArray> {
-      if (auto bytes = root->assets()->bytes(bytesPath))
-        return *bytes;
-      return {};
-    });
+    if (auto bytes = root->assets()->bytes(bytesPath))
+      return *bytes;
+    return {};
+  });
 
   callbacks.registerCallback("newBytes", [root]() -> ByteArray {
-      return ByteArray();
-    });
+    return ByteArray();
+  });
 
   callbacks.registerCallback("exportImage", [root](Image const& image, String const& saveName) {
-      if (!File::isDirectory(root->toStoragePath("sprites"))) {
-        Logger::info("root.exportImage: Creating sprite export directory.");
-        File::makeDirectory(root->toStoragePath("sprites"));
-      }
-      if (File::baseName(saveName) == "") {
-        Logger::error("root.exportImage: Must specify a valid filename.");
-        return false;
-      }
-      try {
-        String outputPath = root->toStoragePath("sprites/" + File::baseName(saveName) + ".png");
-        image.writePng(File::open(outputPath, IOMode::Write));
-        Logger::info("root.exportImage: Saved output image to '{}'.", outputPath);
-        return true;
-      } catch (std::exception const& e) {
-        Logger::error("root.exportImage: Error saving asset path to image: {}", e.what());
-      }
+    if (!File::isDirectory(root->toStoragePath("sprites"))) {
+      Logger::info("root.exportImage: Creating sprite export directory.");
+      File::makeDirectory(root->toStoragePath("sprites"));
+    }
+    if (File::baseName(saveName) == "") {
+      Logger::error("root.exportImage: Must specify a valid filename.");
       return false;
-    });
+    }
+    try {
+      String outputPath = root->toStoragePath("sprites/" + File::baseName(saveName) + ".png");
+      image.writePng(File::open(outputPath, IOMode::Write));
+      Logger::info("root.exportImage: Saved output image to '{}'.", outputPath);
+      return true;
+    } catch (std::exception const& e) {
+      Logger::error("root.exportImage: Error saving asset path to image: {}", e.what());
+    }
+    return false;
+  });
 
   callbacks.registerCallback("liquidName", [root](LiquidId liquidId) -> String {
-      return root->liquidsDatabase()->liquidName(liquidId);
-    });
+    return root->liquidsDatabase()->liquidName(liquidId);
+  });
 
   callbacks.registerCallback("liquidId", [root](String liquidName) -> LiquidId {
-      return root->liquidsDatabase()->liquidId(liquidName);
-    });
+    return root->liquidsDatabase()->liquidId(liquidName);
+  });
 
   callbacks.registerCallback("monsterSkillParameter", [root](String const& skillName, String const& configParameterName) {
-      return root->monsterDatabase()->skillConfigParameter(skillName, configParameterName);
-    });
+    return root->monsterDatabase()->skillConfigParameter(skillName, configParameterName);
+  });
 
   callbacks.registerCallback("monsterParameters", [root](String const& monsterType, Maybe<uint64_t> seed) {
-      return root->monsterDatabase()->monsterVariant(monsterType, seed.value(0)).parameters;
-    });
+    return root->monsterDatabase()->monsterVariant(monsterType, seed.value(0)).parameters;
+  });
 
   callbacks.registerCallback("monsterMovementSettings", [root](String const& monsterType, Maybe<uint64_t> seed) {
-      return root->monsterDatabase()->monsterVariant(monsterType, seed.value(0)).movementSettings;
-    });
+    return root->monsterDatabase()->monsterVariant(monsterType, seed.value(0)).movementSettings;
+  });
 
   callbacks.registerCallback("createBiome", [root](String const& biomeName, uint64_t seed, float verticalMidPoint, float threatLevel) {
-      try {
-        if (auto biome = root->biomeDatabase()->createBiome(biomeName, seed, verticalMidPoint, threatLevel))
-          return biome->toJson();
-        else
-          return Json();
-      } catch (BiomeException const&) {
+    try {
+      if (auto biome = root->biomeDatabase()->createBiome(biomeName, seed, verticalMidPoint, threatLevel))
+        return biome->toJson();
+      else
         return Json();
-      }
-    });
+    } catch (BiomeException const&) {
+      return Json();
+    }
+  });
 
   // FezzedOne: xStarbound implementation of OpenStarbound callback.
   callbacks.registerCallback("itemFile", [root](String const& itemId) -> Maybe<String> {
@@ -243,105 +245,105 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
   });
 
   callbacks.registerCallback("materialHealth", [root](String const& materialName) {
-      auto materialId = root->materialDatabase()->materialId(materialName);
-      return root->materialDatabase()->materialDamageParameters(materialId).totalHealth();
-    });
+    auto materialId = root->materialDatabase()->materialId(materialName);
+    return root->materialDatabase()->materialDamageParameters(materialId).totalHealth();
+  });
 
   callbacks.registerCallback("techType", [root](String const& techName) {
-      return TechTypeNames.getRight(root->techDatabase()->tech(techName).type);
-    });
+    return TechTypeNames.getRight(root->techDatabase()->tech(techName).type);
+  });
 
   callbacks.registerCallback("hasTech", [root](String const& tech) {
-      return root->techDatabase()->contains(tech);
-    });
+    return root->techDatabase()->contains(tech);
+  });
 
   callbacks.registerCallback("techConfig", [root](String const& tech) {
-      return root->techDatabase()->tech(tech).parameters;
-    });
+    return root->techDatabase()->tech(tech).parameters;
+  });
 
   callbacks.registerCallbackWithSignature<Maybe<String>, String>("treeStemDirectory", [root](String const& stemName) {
-      return root->plantDatabase()->treeStemDirectory(stemName);
-    });
+    return root->plantDatabase()->treeStemDirectory(stemName);
+  });
 
   callbacks.registerCallbackWithSignature<Maybe<String>, String>("treeFoliageDirectory", [root](String const& foliageName) {
-      return root->plantDatabase()->treeFoliageDirectory(foliageName);
-    });
+    return root->plantDatabase()->treeFoliageDirectory(foliageName);
+  });
 
   callbacks.registerCallback("collection", [root](String const& collectionName) {
-      return root->collectionDatabase()->collection(collectionName);
-    });
+    return root->collectionDatabase()->collection(collectionName);
+  });
 
   callbacks.registerCallback("collectables", [root](String const& collectionName) {
-      return root->collectionDatabase()->collectables(collectionName);
-    });
+    return root->collectionDatabase()->collectables(collectionName);
+  });
 
   callbacks.registerCallback("elementalResistance", [root](String const& damageKindName) -> String {
-      DamageKind const& damageKind = root->damageDatabase()->damageKind(damageKindName);
-      return root->damageDatabase()->elementalType(damageKind.elementalType).resistanceStat;
-    });
+    DamageKind const& damageKind = root->damageDatabase()->damageKind(damageKindName);
+    return root->damageDatabase()->elementalType(damageKind.elementalType).resistanceStat;
+  });
 
   callbacks.registerCallback("dungeonMetadata", [root](String const& name) {
-      return root->dungeonDefinitions()->getMetadata(name);
-    });
+    return root->dungeonDefinitions()->getMetadata(name);
+  });
 
   callbacks.registerCallback("systemObjectTypeConfig", [](String const& name) -> Json {
-      return SystemWorld::systemObjectTypeConfig(name);
-    });
+    return SystemWorld::systemObjectTypeConfig(name);
+  });
 
   callbacks.registerCallback("itemDescriptorsMatch", [](Json const& descriptor1, Json const& descriptor2, Maybe<bool> exactMatch) -> bool {
-      return ItemDescriptor(descriptor1).matches(ItemDescriptor(descriptor2), exactMatch.value(false));
-    });
+    return ItemDescriptor(descriptor1).matches(ItemDescriptor(descriptor2), exactMatch.value(false));
+  });
 
   // Downstreamed from WasabiRaptor/OpenStarbound.
   callbacks.registerCallback("effectConfig", [root](String const& effect) -> Json {
-      auto const& effects = root->statusEffectDatabase();
-      if (effects->isUniqueEffect(effect))
-        return effects->uniqueEffectConfig(effect).toJson();
-      else
-        return Json();
-    });
+    auto const& effects = root->statusEffectDatabase();
+    if (effects->isUniqueEffect(effect))
+      return effects->uniqueEffectConfig(effect).toJson();
+    else
+      return Json();
+  });
 
   callbacks.registerCallback("getConfiguration", [root](String const& key) -> Json {
-      if (key == "") return Json();
-      if (key == "title") {
-        Logger::warn("[xSB] root.getConfiguration: Attempted to get the \"title\" key, which isn't permitted.");
-        return Json();
-      } else {
-        return root->configuration()->get(key);
-      }
-    });
+    if (key == "") return Json();
+    if (key == "title") {
+      Logger::warn("[xSB] root.getConfiguration: Attempted to get the \"title\" key, which isn't permitted.");
+      return Json();
+    } else {
+      return root->configuration()->get(key);
+    }
+  });
 
   callbacks.registerCallback("getConfigurationPath", [root](String const& path) -> Json {
-      if (path == "") return Json();
-      if (path.beginsWith("/title")) {
-        Logger::warn("[xSB] root.getConfigurationPath: Attempted to get something in the \"title\" key, which isn't permitted.");
-        return Json();
-      } else {
-        return root->configuration()->getPath(path);
-      }
-    });
+    if (path == "") return Json();
+    if (path.beginsWith("/title")) {
+      Logger::warn("[xSB] root.getConfigurationPath: Attempted to get something in the \"title\" key, which isn't permitted.");
+      return Json();
+    } else {
+      return root->configuration()->getPath(path);
+    }
+  });
 
   callbacks.registerCallback("setConfiguration", [root](String const& key, Json const& value) -> Json {
-      if (key == "") return Json();
-      if (key == "safeScripts") {
-        Logger::warn("[xSB] root.setConfiguration: Attempted to set the \"safeScripts\" key, which isn't permitted.");
-        return Json();
-      } else {
-        root->configuration()->set(key, value);
-        return value;
-      }
-    });
+    if (key == "") return Json();
+    if (key == "safeScripts") {
+      Logger::warn("[xSB] root.setConfiguration: Attempted to set the \"safeScripts\" key, which isn't permitted.");
+      return Json();
+    } else {
+      root->configuration()->set(key, value);
+      return value;
+    }
+  });
 
   callbacks.registerCallback("setConfigurationPath", [root](String const& path, Json const& value) -> Json {
-      if (path == "") return Json();
-      if (path.splitAny("[].").get(0) == "safeScripts") {
-        Logger::warn("[xSB] root.setConfigurationPath: Attempted to set something in the \"safeScripts\" key, which isn't permitted.");
-        return Json();
-      } else {
-        root->configuration()->setPath(path, value);
-        return value;
-      }
-    });
+    if (path == "") return Json();
+    if (path.splitAny("[].").get(0) == "safeScripts") {
+      Logger::warn("[xSB] root.setConfigurationPath: Attempted to set something in the \"safeScripts\" key, which isn't permitted.");
+      return Json();
+    } else {
+      root->configuration()->setPath(path, value);
+      return value;
+    }
+  });
 
   return callbacks;
 }
@@ -362,37 +364,36 @@ Json LuaBindings::RootCallbacks::assetJson(Root* root, String const& path) {
   return root->assets()->json(path);
 }
 
-Maybe<String> LuaBindings::RootCallbacks::assetSource(Root *root, String const &path) {
+Maybe<String> LuaBindings::RootCallbacks::assetSource(Root* root, String const& path) {
   if (root->assets()->assetDescriptor(path))
     return root->assets()->assetSource(path);
   return {};
 }
 
-Maybe<List<String>> LuaBindings::RootCallbacks::assetPatchSources(Root *root, String const &path)
-{
+Maybe<List<String>> LuaBindings::RootCallbacks::assetPatchSources(Root* root, String const& path) {
   if (root->assets()->assetDescriptor(path))
     return root->assets()->assetPatchSources(path);
   return {};
 }
 
-List<String> LuaBindings::RootCallbacks::assetSources(Root *root) {
+List<String> LuaBindings::RootCallbacks::assetSources(Root* root) {
   return root->assets()->assetSources();
 }
 
-Json LuaBindings::RootCallbacks::assetSourceMetadata(Root *root, String const &sourceName) {
+Json LuaBindings::RootCallbacks::assetSourceMetadata(Root* root, String const& sourceName) {
   try {
     Json result = root->assets()->assetSourceMetadata(sourceName);
     return result;
-  } catch (MapException const &e) {
+  } catch (MapException const& e) {
     return Json();
   }
   return Json();
 }
 
-Maybe<List<String>> LuaBindings::RootCallbacks::assetSourcePaths(Root *root, String const &sourceName) {
+Maybe<List<String>> LuaBindings::RootCallbacks::assetSourcePaths(Root* root, String const& sourceName) {
   try {
     return root->assets()->assetSourcePaths(sourceName);
-  } catch (MapException const &e) {
+  } catch (MapException const& e) {
     return {};
   }
   return {};
@@ -634,4 +635,4 @@ Maybe<String> LuaBindings::RootCallbacks::materialFootstepSound(
   return sound;
 }
 
-}
+} // namespace Star

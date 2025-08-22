@@ -13,14 +13,13 @@ String ChatProcessor::connectClient(ConnectionId clientId, String nick) {
 
   nick = makeNickUnique(nick);
 
-  for (auto& pair : m_clients) {
-    pair.second.pendingMessages.append({{MessageContext::Broadcast},
-        ServerConnectionId,
-        ServerNick,
-        /* FezzedOne: Can't change this or wrappers will break! */
-        strf("Player '{}' connected", nick),
-        JsonObject{}});
-  }
+  // for (auto& pair : m_clients) {
+  //   pair.second.pendingMessages.append({{MessageContext::Broadcast},
+  //       ServerConnectionId,
+  //       ServerNick,
+  //       strf("Player '{}' connected", nick),
+  //       JsonObject{}});
+  // }
 
   m_clients.add(clientId, ClientInfo(clientId, nick));
   m_nicks[nick] = clientId;
@@ -37,14 +36,13 @@ List<ChatReceivedMessage> ChatProcessor::disconnectClient(ConnectionId clientId)
 
   m_nicks.remove(clientInfo.nick);
 
-  for (auto& pair : m_clients) {
-    pair.second.pendingMessages.append({{MessageContext::Broadcast},
-        ServerConnectionId,
-        ServerNick,
-        /* FezzedOne: Can't change this or wrappers will break! */
-        strf("Player '{}' disconnected", clientInfo.nick),
-        JsonObject{}});
-  }
+  // for (auto& pair : m_clients) {
+  //   pair.second.pendingMessages.append({{MessageContext::Broadcast},
+  //       ServerConnectionId,
+  //       ServerNick,
+  //       strf("Player '{}' disconnected", clientInfo.nick),
+  //       JsonObject{}});
+  // }
 
   return clientInfo.pendingMessages;
 }

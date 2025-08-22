@@ -290,11 +290,11 @@ jobject{
   context = jobject{
     mode = "Local", -- The chat mode, any of `"Local"`, `"Party"`, `"Broadcast"`, `"Whisper"`, `"CommandResult"`,
     -- `"RadioMessage"` or `"World"`. Defaults to `CommandResult"` for `chat.addMessage`.
-    channel = "" -- If the mode is "Party" or "Local", the channel name. This is used for party UUIDs, and on the server, world IDs for world-restricted local chat.
+    channelName = "" -- If the mode is "Party" or "Local", the channel name. This is used for party UUIDs, and on the server, world IDs for world-restricted local chat.
   },
-  connection = 0, -- The connection ID for the player who posted the message.
+  fromConnection = 0, -- The connection ID for the player who posted the message.
   -- Server messages have an ID of 0, while player connection IDs start at 1, going up.
-  nick = "", -- The sender's nickname. If an empty string, no nick is shown in chat.
+  fromNick = "", -- The sender's nickname. If an empty string, no nick is shown in chat.
   portrait = "", -- The chat portrait. Is an empty string if there's no portrait.
   -- Not used for messages that don't have a `"RadioMessage"` mode.
   text = "", -- The chat message, of course.

@@ -109,6 +109,14 @@ The following `root` callbacks are available:
 
 ---
 
+#### `String` root.assetsDigest()
+
+> **Only available on xStarbound v4.0.0+.**
+
+Returns the assets digest, a hash of all the loaded assets. This hash is used by servers and hosts to check whether connecting clients have the same assets.
+
+---
+
 #### `List<FilePath>` root.assetSources()
 
 > **Only available on xStarbound. The equivalent on StarExtensions and OpenStarbound is `root.assetSourcePaths`.**

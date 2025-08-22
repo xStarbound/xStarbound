@@ -280,6 +280,8 @@ public:
 
   Maybe<LuaValue> evalScript(String const& code);
 
+  Maybe<Json> callUniverseCommandScript(String const& function, LuaVariadic<Json> const& args);
+
 private:
   struct ClientInfo {
     ClientInfo(ConnectionId clientId, InterpolationTracker const trackerInit, bool canBeAdmin = false, Uuid clientUuid = Uuid(), Maybe<String> accountName = {}, bool isGuest = false);
