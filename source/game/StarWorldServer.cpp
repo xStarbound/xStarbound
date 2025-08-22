@@ -1471,7 +1471,7 @@ bool WorldServer::isOwned() const {
         if (locationPermissions.contains("allowedBuilders")) {
           auto const& jAllowedBuilders = locationPermissions.get("allowedBuilders");
           JsonArray const& allowedBuilders = jAllowedBuilders.isType(Json::Type::Array) ? jAllowedBuilders.toArray() : JsonArray{};
-          if (allowedBuilders.contains(true) or allowedBuilders.contains(false))
+          if (allowedBuilders.contains(true) || allowedBuilders.contains(false))
             return false;
           return getBool("disallowServerGriefingWhenOwned");
         }
