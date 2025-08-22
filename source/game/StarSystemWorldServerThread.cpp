@@ -1,11 +1,11 @@
 #include "StarSystemWorldServerThread.hpp"
-#include "StarTickRateMonitor.hpp"
 #include "StarNetPackets.hpp"
+#include "StarTickRateMonitor.hpp"
 
 namespace Star {
 
 SystemWorldServerThread::SystemWorldServerThread(Vec3I const& location, SystemWorldServerPtr systemWorld, String storageFile)
-  : Thread(strf("SystemWorldServer: {}", location)), m_stop(false), m_storageFile(storageFile) {
+    : Thread(strf("SystemWorldServer: {}", location)), m_stop(false), m_storageFile(storageFile) {
   m_systemLocation = location;
   m_systemWorld = std::move(systemWorld);
 }
@@ -177,4 +177,4 @@ void SystemWorldServerThread::store() {
   VersionedJson::writeFile(versionedStore, m_storageFile);
 }
 
-}
+} // namespace Star

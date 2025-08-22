@@ -182,7 +182,7 @@ public:
   bool isTileProtected(Vec2I const& pos) const override;
 
   Json getMetadata() const;
-  void setMetadata(Json const& newMetadata);
+  void setMetadata(Json const& newMetadata, bool skipMerge = false);
 
   void setTileProtection(DungeonId dungeonId, bool isProtected);
   size_t setTileProtection(List<DungeonId> const& dungeonIds, bool isProtected);
@@ -368,6 +368,7 @@ private:
 
   Maybe<pair<String, String>> m_newPlanetType;
 
+  UniverseServer* m_universe;
   UniverseSettingsPtr m_universeSettings;
 
   EntityMapPtr m_entityMap;

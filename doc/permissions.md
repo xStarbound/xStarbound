@@ -14,7 +14,8 @@ The basic configuration is defined under `"buildPermissionSettings"` in the serv
   "accountClaimsEnabled" : false,
   "disallowServerGriefingWhenOwned" : false,
   "containerModificationProtection" : false,
-  "containerOpenProtection" : false
+  "containerOpenProtection" : false,
+  "storeClaimsInServerData" : false
 }
 ```
 
@@ -30,29 +31,43 @@ A description of each of the settings:
 - **`"containerModificationProtection"`:** Whether containers on claimed worlds are protected from modification by clients who do not have build access to claimed worlds. This setting, if enabled, can be overridden on a per-world-claim basis if `"allowGuestContainerModification": true` is present in the claim's settings. This protects against _all_ forms of container modification, but not against modded container script message handlers that aren't aware of xServer's permissions system. Modders, take note (and see `$docs/lua/message.md` for permission control prefixes on your messages)! (No such handlers exist in the vanilla assets or in most mods.)
 - **`"containerOpenProtection"`:** Whether containers on claimed worlds are protected from being opened and viewed by clients who do not have build access to claimed worlds. If enabled, this also implicitly enables `"containerModificationProtection"`, regardless of its explicit status in the configuration. This setting, if enabled, can be overridden on a per-world-claim basis if `"allowGuestContainerOpening": true` or `"allowGuestContainerModification": true` is present in the claim's settings.
   - _Caveats:_ Client-side mods may allow clients to view and copy the contents of containers without interacting with them. xServer does not stop this from happening, but _does_ stop clients from changing the contents of protected containers. If you're worried about stealthy item duping for any reason, consider telling players to be careful of who they invite to their ships, or banning or restricting client-side mods.
+- **`"storeClaimsInServerData"`:** Whether the server should check `$storage/universe/server.dat` for its `"claimData"`. If `false`, the server expects to find its `"claimData"` in `xserver.config` or the host's `xclient.config`.
 
-## `"ownedSystemsByAccount"` and `"ownedSystemsByUuid"`
+**Admin accounts and xClient hosts:** Admin accounts and hosting clients — i.e., Steam and Discord hosts — always bypass claim protections. This prevents hosting clients from getting «locked out» of building in their own local, single-player universe save. To test protection on a dedicated xServer server, consider making a non-admin account for testing!
+
+## `"claimData"` fields
+
+The `"claimData"` object is what actually stores the server's claim data. Where it's stored and how it's accessed depends on the `"storeClaimsInServerData"` setting:
+
+- **`true` → Claims in `$storage/universe/server.dat`:** xServer expects to look for the claim data in the universe's `server.dat` file. Use `universe.getServerData`, `universe.getServerDataPath`, `universe.setServerData` and `universe.setServerDataPath` to access and modify this data in server-side scripts.
+- **`false` or unspecified → Claims in `$storage/xserver.config` (or host's `$storage/xclient.config`):** xServer expects to look for the claim data in `xserver.config` (or the host's `xclient.config`). Use `root.getConfiguration`, `root.getConfigurationPath`, `root.setConfiguration` and `root.setConfigurationPath` to access and modify this data in server-side scripts.
+
+Below are the expected fields in the `"claimData"` object. Note that all object formats shown below can safely include additional fields used by your server-side scripts.
+
+### `"ownedSystemsByAccount"` and `"ownedSystemsByUuid"`
 
 These two optional JSON objects define the configured star system claims on the server. You must have account claims enabled for `"ownedSystemsByAccount"` to take effect. The claim configurations have the following format:
 
 ```json
-"ownedSystemsByAccount" : { // Is a JSON object that acts as a system coordinate map for claims.
-  "34:-12:665833932" : { // The system's coordinates in `"X:Y:Z"` format.
-    "owner" : "fezzedone", // The owning account. Use this for claim ownership checks in your command scripts.
-    "allowedBuilders" : [ "sanjay", "michael" ] // Accounts that are allowed to spawn objects in the system.
-      // If `true` is present in this array, it acts as a wildcard that gives permissions to everyone,
-        // including clients logged in without an account.
+"claimData" : {
+  "ownedSystemsByAccount" : { // Is a JSON object that acts as a system coordinate map for claims.
+    "34:-12:665833932" : { // The system's coordinates in `"X:Y:Z"` format.
+      "owner" : "fezzedone", // The owning account. Use this for claim ownership checks in your command scripts.
+      "allowedBuilders" : [ "sanjay", "michael" ] // Accounts that are allowed to spawn objects in the system.
+        // If `true` is present in this array, it acts as a wildcard that gives permissions to everyone,
+          // including clients logged in without an account.
+    }
+  },
+  "ownedSystemsByUUID" : { // Is a JSON object that acts as a system coordinate map for claims.
+    "38:-16:54372272" : { // The system's coordinates in `"X:Y:Z"` format.
+      "owner" : "3cc245c853cd4e8e83dce8de71602b65", // The owning client uuidString. Use this for claim ownership checks in your command scripts.
+      "allowedBuilders" : [ "1616ea01ba454d23a426a899d0123c17", "a3906c12984142e5a3865b8f31408e13" ]
+        // Client UUIDs that are allowed to spawn objects in the system.
+        // If `true` is present in this array, it acts as a wildcard that gives permissions to everyone,
+          // including clients logged in without an account.
+    }
   }
-},
-"ownedSystemsByUUID" : { // Is a JSON object that acts as a system coordinate map for claims.
-  "38:-16:54372272" : { // The system's coordinates in `"X:Y:Z"` format.
-    "owner" : "3cc245c853cd4e8e83dce8de71602b65", // The owning client uuidString. Use this for claim ownership checks in your command scripts.
-    "allowedBuilders" : [ "1616ea01ba454d23a426a899d0123c17", "a3906c12984142e5a3865b8f31408e13" ]
-      // Client UUIDs that are allowed to spawn objects in the system.
-      // If `true` is present in this array, it acts as a wildcard that gives permissions to everyone,
-        // including clients logged in without an account.
-  }
-},
+}
 ```
 
 Note that claiming a system does _not_ automatically claim the worlds in that system, which must be claimed separately.
@@ -62,46 +77,48 @@ Note that claiming a system does _not_ automatically claim the worlds in that sy
 These two optional JSON objects define the configured world claims on the server. You must have account claims enabled for `"ownedWorldsByAccount"` to take effect. The claim configurations have the following format:
 
 ```json
-"ownedWorldsByAccount" : { // Is a JSON object that acts as a world ID map for claims.
-  "CelestialWorld:-201777753:-398423631:8256823:11" : {
-    "owner" : "fezzedone", // The owning account. Use this for claim ownership checks in your command scripts.
-    "allowedBuilders" : [ "john", "rodriguez", "meilin", false ], // Accounts that are allowed to build
-        // on the world. They are also allowed to open and modify containers if this would overwise be
-        // disallowed for non-owning clients.
-      // If `false` is present in this array, server-side projectiles, scripts, etc., are allowed to «build»
-        // on the world or «grief» it if this would otherwise be disallowed for claimed worlds. Here,
-        // FezzedOne has enabled «griefing» because he has a few Frackin' Universe quarries on this world.
-      // If `true` is present in this array, it acts as a wildcard that gives permissions to everyone,
-        // including server-side scripts and clients without an account, to build on the world; it also
-        // gives every client permission to open or modify containers if this would otherwise be disallowed
-        // for non-owning clients.
-    "allowGuestContainerModification": false, // Whether to allow clients without build permission to modify
-        // the contents of containers regardless of the server's protection settings. Implicitly
-        // grants universal permission to open containers if true, regardless of the state of
-        // `"allowGuestContainerOpening"` below.
-    "allowGuestContainerOpening": true // Whether to allow clients without build permission to open
-        // containers regardless of the server's protection settings.
-  }
-},
-"ownedWorldsByUuid" : { // Is a JSON object that acts as a world ID map for claims.
-  "CelestialWorld:-201777753:-398423631:8256823:8:2" : {
-    "owner" : "3cc245c853cd4e8e83dce8de71602b65", // The owning client UUID. Use this for claim ownership checks in your command scripts.
-    "allowedBuilders" : [ "2e49a7b16636439f815f3dec89fed405", "fcedfa377c1146cba4206ee123e90848" ],
-      // Client UUIDs that are allowed to build on the world. They are also allowed to open and modify
-        // containers if this would overwise be disallowed for non-owning clients.
-      // If `false` is present in this array, server-side projectiles,
-        // scripts, etc., are allowed to «build» on the world or «grief» it if this would otherwise
-        // be disallowed for claimed worlds.
-      // If `true` is present in this array, it acts as a wildcard that gives permissions to everyone,
-        // including server-side scripts and clients without an account, to build on the world; it also
-        // gives every client permission to open or modify containers if this would otherwise be disallowed
-        // for non-owning clients.
-    "allowGuestContainerModification": false, // Whether to allow clients without build permission to modify
-        // the contents of containers regardless of the server's protection settings. Implicitly
-        // grants universal permission to open containers if true, regardless of the state of
-        // `"allowGuestContainerOpening"` below.
-    "allowGuestContainerOpening": false // Whether to allow clients without build permission to open
-        // containers regardless of the server's protection settings.
+"claimData" : {
+  "ownedWorldsByAccount" : { // Is a JSON object that acts as a world ID map for claims.
+    "CelestialWorld:-201777753:-398423631:8256823:11" : {
+      "owner" : "fezzedone", // The owning account. Use this for claim ownership checks in your command scripts.
+      "allowedBuilders" : [ "john", "rodriguez", "meilin", false ], // Accounts that are allowed to build
+          // on the world. They are also allowed to open and modify containers if this would overwise be
+          // disallowed for non-owning clients.
+        // If `false` is present in this array, server-side projectiles, scripts, etc., are allowed to «build»
+          // on the world or «grief» it if this would otherwise be disallowed for claimed worlds. Here,
+          // FezzedOne has enabled «griefing» because he has a few Frackin' Universe quarries on this world.
+        // If `true` is present in this array, it acts as a wildcard that gives permissions to everyone,
+          // including server-side scripts and clients without an account, to build on the world; it also
+          // gives every client permission to open or modify containers if this would otherwise be disallowed
+          // for non-owning clients.
+      "allowGuestContainerModification": false, // Whether to allow clients without build permission to modify
+          // the contents of containers regardless of the server's protection settings. Implicitly
+          // grants universal permission to open containers if true, regardless of the state of
+          // `"allowGuestContainerOpening"` below.
+      "allowGuestContainerOpening": true // Whether to allow clients without build permission to open
+          // containers regardless of the server's protection settings.
+    }
+  },
+  "ownedWorldsByUuid" : { // Is a JSON object that acts as a world ID map for claims.
+    "CelestialWorld:-201777753:-398423631:8256823:8:2" : {
+      "owner" : "3cc245c853cd4e8e83dce8de71602b65", // The owning client UUID. Use this for claim ownership checks in your command scripts.
+      "allowedBuilders" : [ "2e49a7b16636439f815f3dec89fed405", "fcedfa377c1146cba4206ee123e90848" ],
+        // Client UUIDs that are allowed to build on the world. They are also allowed to open and modify
+          // containers if this would overwise be disallowed for non-owning clients.
+        // If `false` is present in this array, server-side projectiles,
+          // scripts, etc., are allowed to «build» on the world or «grief» it if this would otherwise
+          // be disallowed for claimed worlds.
+        // If `true` is present in this array, it acts as a wildcard that gives permissions to everyone,
+          // including server-side scripts and clients without an account, to build on the world; it also
+          // gives every client permission to open or modify containers if this would otherwise be disallowed
+          // for non-owning clients.
+      "allowGuestContainerModification": false, // Whether to allow clients without build permission to modify
+          // the contents of containers regardless of the server's protection settings. Implicitly
+          // grants universal permission to open containers if true, regardless of the state of
+          // `"allowGuestContainerOpening"` below.
+      "allowGuestContainerOpening": false // Whether to allow clients without build permission to open
+          // containers regardless of the server's protection settings.
+    }
   }
 }
 ```

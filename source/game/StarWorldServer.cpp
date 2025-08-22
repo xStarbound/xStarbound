@@ -18,6 +18,7 @@
 #include "StarPhysicsEntity.hpp"
 #include "StarPlayer.hpp"
 #include "StarProjectile.hpp"
+#include "StarUniverseServer.hpp"
 #include "StarUniverseServerLuaBindings.hpp"
 #include "StarUniverseSettings.hpp"
 #include "StarWarpTargetEntity.hpp"
@@ -55,6 +56,7 @@ WorldServer::WorldServer(WorldTemplatePtr const& worldTemplate, IODevicePtr stor
   m_worldId = worldTemplate->worldName();
   m_expiryTimer = GameTimer(0.0f);
   m_scriptGlobals = JsonObject{};
+  m_universe = nullptr;
 
   init(true);
   writeMetadata();
@@ -101,6 +103,8 @@ WorldServer::~WorldServer() {
   if (m_luaRoot) {
     m_luaRoot->shutdown();
   }
+
+  m_universe = nullptr;
 }
 
 void WorldServer::setWorldId(String worldId) {
@@ -125,6 +129,7 @@ void WorldServer::setReferenceClock(ClockPtr clock) {
 }
 
 void WorldServer::initLua(UniverseServer* universe) {
+  m_universe = universe;
   auto assets = Root::singleton().assets();
   for (auto& p : assets->json("/worldserver.config:scriptContexts").toObject()) {
     auto scriptComponent = make_shared<ScriptComponent>();
@@ -1440,14 +1445,9 @@ void WorldServer::setDungeonId(RectI const& tileArea, DungeonId dungeonId) {
 }
 
 bool WorldServer::isOwned() const {
-  auto const& serverConfig = Root::singleton().configuration();
-  auto const& jXServerPerms = serverConfig->get("buildPermissionSettings");
+  auto const& configFile = Root::singleton().configuration();
+  auto const& jXServerPerms = configFile->get("buildPermissionSettings");
   JsonObject xServerPerms = jXServerPerms.isType(Json::Type::Object) ? jXServerPerms.toObject() : JsonObject{};
-
-  auto const& jBuildPermissions = serverConfig->get("ownedWorldsByAccount");
-  JsonObject const& buildPermissions = jBuildPermissions.isType(Json::Type::Object) ? jBuildPermissions.toObject() : JsonObject{};
-  auto const& jBuildPermissionsByUuid = serverConfig->get("ownedWorldsByUuid");
-  JsonObject const& buildPermissionsByUuid = jBuildPermissionsByUuid.isType(Json::Type::Object) ? jBuildPermissionsByUuid.toObject() : JsonObject{};
 
   auto getBool = [&](String key) -> bool {
     if (xServerPerms.contains(key)) {
@@ -1461,6 +1461,18 @@ bool WorldServer::isOwned() const {
     return false;
 
   auto const& locationStr = this->worldId();
+
+  Json serverConfig;
+  if (getBool("storeClaimsInServerData") && m_universe)
+    serverConfig = m_universe->getServerData("claimData");
+  else
+    serverConfig = configFile->get("claimData");
+  serverConfig = serverConfig.isType(Json::Type::Object) ? serverConfig : JsonObject{};
+
+  auto const& jBuildPermissions = serverConfig.get("ownedWorldsByAccount");
+  JsonObject const& buildPermissions = jBuildPermissions.isType(Json::Type::Object) ? jBuildPermissions.toObject() : JsonObject{};
+  auto const& jBuildPermissionsByUuid = serverConfig.get("ownedWorldsByUuid");
+  JsonObject const& buildPermissionsByUuid = jBuildPermissionsByUuid.isType(Json::Type::Object) ? jBuildPermissionsByUuid.toObject() : JsonObject{};
 
   auto serverModsDisallowed = [&locationStr, &getBool](JsonObject const& permissionList) -> bool {
     // FezzedOne: `true` -> server entities disallowed from modifying tiles, `false` -> server entities allowed to modify tiles.
@@ -1506,8 +1518,8 @@ bool WorldServer::clientHasBuildPermission(ConnectionId clientId, uint8_t contai
   if (!client)
     return false;
 
-  auto const& serverConfig = Root::singleton().configuration();
-  auto const& jXServerPerms = serverConfig->get("buildPermissionSettings");
+  auto const& configFile = Root::singleton().configuration();
+  auto const& jXServerPerms = configFile->get("buildPermissionSettings");
   JsonObject xServerPerms = jXServerPerms.isType(Json::Type::Object) ? jXServerPerms.toObject() : JsonObject{};
 
   auto getBool = [&](String key, JsonObject const* objectToCheck = nullptr) -> bool {
@@ -1544,9 +1556,16 @@ bool WorldServer::clientHasBuildPermission(ConnectionId clientId, uint8_t contai
   if (locationStr == strf("ClientShipWorld:{}", playerUuid))
     return true;
 
-  auto const& jBuildPermissions = serverConfig->get("ownedWorldsByAccount");
+  Json serverConfig;
+  if (getBool("storeClaimsInServerData") && m_universe)
+    serverConfig = m_universe->getServerData("claimData");
+  else
+    serverConfig = configFile->get("claimData");
+  serverConfig = serverConfig.isType(Json::Type::Object) ? serverConfig : JsonObject{};
+
+  auto const& jBuildPermissions = serverConfig.get("ownedWorldsByAccount");
   JsonObject const& buildPermissions = jBuildPermissions.isType(Json::Type::Object) ? jBuildPermissions.toObject() : JsonObject{};
-  auto const& jBuildPermissionsByUuid = serverConfig->get("ownedWorldsByUuid");
+  auto const& jBuildPermissionsByUuid = serverConfig.get("ownedWorldsByUuid");
   JsonObject const& buildPermissionsByUuid = jBuildPermissionsByUuid.isType(Json::Type::Object) ? jBuildPermissionsByUuid.toObject() : JsonObject{};
 
   Maybe<String> const& playerAccount = client->accountName;
@@ -2793,12 +2812,12 @@ Json WorldServer::getMetadata() const {
        })}};
 }
 
-void WorldServer::setMetadata(Json const& newMetadata) {
+void WorldServer::setMetadata(Json const& newMetadata, bool skipMerge) {
   auto versioningDatabase = Root::singleton().versioningDatabase();
-  auto oldMetadata = getMetadata();
+  Json oldMetadata = skipMerge ? Json() : getMetadata();
   auto referenceClock = m_sky->referenceClock();
   m_worldStorage->setWorldMetadata(versioningDatabase->makeCurrentVersionedJson(
-      "WorldMetadata", jsonMergeNull(oldMetadata, newMetadata)));
+      "WorldMetadata", skipMerge ? newMetadata : jsonMergeNull(oldMetadata, newMetadata)));
   try {
     readMetadata();
   } catch (std::exception const& e) {

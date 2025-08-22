@@ -80,7 +80,8 @@ Json const BaseDefaultConfiguration = Json::parseJson(R"JSON(
         "accountClaimsEnabled" : false,
         "disallowServerGriefingWhenOwned" : false,
         "containerModificationProtection" : false,
-        "containerOpenProtection" : false
+        "containerOpenProtection" : false,
+        "storeClaimsInServerData" : false
       },
 
       "clientP2PJoinable" : true,

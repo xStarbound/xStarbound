@@ -364,10 +364,14 @@ Several messages handled by «built-in» scripts on xStarbound are noted below.
 
 #### `Json` `"builder::metadata"` [world server] ()
 
-Returns the world's metadata if `"allowWorldMetadataChanges"` is `true` (or truthy according to Lua) in the server's `xserver.config` or host's `xclient.config` (your client is the host in single-player) _and_ you have permission to build on the world or are an admin; otherwise returns `nil`. Identical to the server-side `world.metadata` callback aside from the configuration and permission restrictions; see that callback in `$docs/lua/world.md` for more info.
+#### `Json` `"builder::metadataPath"` [world server] (`String` jsonPath)
+
+Returns the world's metadata, or a specific metadata value, if `"allowWorldMetadataChanges"` is `true` (or truthy according to Lua) in the server's `xserver.config` or host's `xclient.config` (your client is the host in single-player) _and_ you have permission to build on the world or are an admin or the hosting/single-player client; otherwise fails as an unhandled message. Identical to the server-side `world.metadata` and `world.metadataPath` callbacks aside from the configuration and permission restrictions; see those callbacks in `$docs/lua/world.md` for more info.
 
 ---
 
 #### `void` `"builder::setMetadata"` [world server] (`Json` newMetadata)
 
-Modifies the world's metadata if `"allowWorldMetadataChanges"` is `true` (or truthy according to Lua) in the server's `xserver.config` or host's `xclient.config` (your client is the host in single-player) _and_ you have permission to build on the world or are an admin; otherwise does nothing. Identical to the server-side `world.setMetadata` callback aside from the configuration and permission restrictions; see that callback in `$docs/lua/world.md` for more info.
+#### `Json` `"builder::setMetadataPath"` [world server] (`String` jsonPath, `Json` value)
+
+Modifies the world's metadata, or a specific metadata value, if `"allowWorldMetadataChanges"` is `true` (or truthy according to Lua) in the server's `xserver.config` or host's `xclient.config` (your client is the host in single-player) _and_ you have permission to build on the world or are an admin or the hosting/single-player client; otherwise fails as an unhandled message. Identical to the server-side `world.setMetadata` and `world.setMetadataPath` callbacks aside from the configuration and permission restrictions; see that callback in `$docs/lua/world.md` for more info.

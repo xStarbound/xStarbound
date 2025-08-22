@@ -591,6 +591,13 @@ namespace LuaBindings {
 
       callbacks.registerCallback("metadata", [serverWorld]() -> Json { return serverWorld->getMetadata(); });
       callbacks.registerCallback("setMetadata", [serverWorld](Json const& newMetadata) { serverWorld->setMetadata(newMetadata); });
+      callbacks.registerCallback("metadataPath", [serverWorld](String const& path) -> Json {
+        return serverWorld->getMetadata().query(path);
+      });
+      callbacks.registerCallback("setMetadataPath", [serverWorld](String const& path, Json const& value) {
+        Json modifiedMetadata = serverWorld->getMetadata().setPath(path, value);
+        serverWorld->setMetadata(modifiedMetadata, true);
+      });
 
       callbacks.registerCallback("hasBuildPermission", [serverWorld](ConnectionId connectionId, Maybe<String> containerPermission) -> bool {
         uint8_t containerPermissionInt = 0;
@@ -2037,7 +2044,7 @@ namespace LuaBindings {
     auto entity = as<ScriptedEntity>(world->entity(entityId));
     if (!entity || !entity->isMaster()) {
       // throw StarException::format("Entity {} does not exist or is not a local master scripted entity", entityId);
-      Logger::warn("callScriptedEntity: Entity {} does not exist or is not a local master scripted entity", entityId);
+      // Logger::warn("callScriptedEntity: Entity {} does not exist or is not a local master scripted entity", entityId);
       return {};
     }
     // if (Root::singleton().configuration()->get("safeScripts").toBool()) {

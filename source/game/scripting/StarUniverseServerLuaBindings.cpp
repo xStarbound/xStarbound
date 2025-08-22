@@ -77,6 +77,28 @@ LuaCallbacks LuaBindings::makeUniverseServerCallbacks(UniverseServer* universe) 
     universe->setClientReviveWarp(clientId, parseWarpAction(warpAction));
   });
 
+  callbacks.registerCallback("getServerData", [universe](String const& key) -> Json {
+    return universe->getServerData(key);
+  });
+
+  callbacks.registerCallback("getServerDataPath", [universe](String const& path) -> Json {
+    return universe->getServerDataPath(path);
+  });
+
+  callbacks.registerCallback("setServerData", [universe](String const& key, Maybe<Json> const& value) {
+    if (value)
+      universe->setServerData(key, *value);
+    else
+      universe->eraseServerData(key);
+  });
+
+  callbacks.registerCallback("setServerDataPath", [universe](String const& path, Maybe<Json> const& value) {
+    if (value)
+      universe->setServerDataPath(path, *value);
+    else
+      universe->eraseServerDataPath(path);
+  });
+
   return callbacks;
 }
 

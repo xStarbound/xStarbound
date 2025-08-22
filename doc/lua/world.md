@@ -935,7 +935,7 @@ On xStarbound, all arguments must be valid JSON, and an error will be thrown aft
 
 For more featureful entity messaging, use `world.sendEntityMessage`. To call a world script context, use `world.callScriptContext` server-side or set up an appropriate message handler in a server-side script and send an entity message that invokes it client-side.
 
-> **Note:** On xStarbound v3.5.2.3+, this callback will log a warning and return `nil` if the entity is not locally mastered or doesn't exist. On other servers and clients, an error will be thrown instead.
+> **Note:** On xStarbound v3.5.2.3+, this callback will return `nil` (and log a warning before v4.0.0) if the entity is not locally mastered or doesn't exist. On other servers and clients, an error will be thrown instead.
 
 > **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game _will_ almost certainly cause segfaults or memory corruption!
 
@@ -943,9 +943,9 @@ For more featureful entity messaging, use `world.sendEntityMessage`. To call a w
 
 #### `RpcPromise<Json>` world.sendEntityMessage(`Variant<EntityId, String>` entityId, `String` messageType, [`Json...` args])
 
-Sends an asynchronous message to an entity with the specified entity ID or unique ID with the specified message type and arguments and returns an `RpcPromise` which can be used to receive the result of the message when available. See the message table for information on entity message handling. This function **should not be called in any entity's `init` function**, as the sending entity will not have been fully loaded.
+Sends an asynchronous message to an entity with the specified entity ID or unique ID with the specified message type and arguments and returns an `RpcPromise` which can be used to receive the result of the message when available. See the message table for information on entity message handling. This function **should not be called in any entity's `init` function**, as the sending entity will not have been fully loaded, possibly causing the message to get lost in transit.
 
-Sending a message to the unique ID `"server"` sends that message to world server script contexts running on the world the messaging entity is located on.
+On xServer, sending a message to the unique ID `"server"` sends that message to world server script contexts running on the world the messaging entity is located on. There is no special client requirement to send `"server"` messages on xServer — it will work just fine on stock and OpenStarbound clients.
 
 See `message.md` for information on message handlers and `RpcPromise` objects.
 
@@ -1057,15 +1057,23 @@ Returns the world's ID, a unique identifier for each world. No idea why this doe
 
 #### `Json` world.metadata()
 
-> **Available only on xServer v3.5.1+.**
+#### `Json` world.metadataPath(`String` jsonPath)
+
+> **Available only on xServer v3.5.1+. `world.metadataPath` is only available on xServer v4.0+.**
 
 Returns the metadata for this world.
 
+`world.metadataPath` returns any existing metadata value at the given JSON path, or `nil` if no such value exists. See _JSON paths_ in `root.md` for more information on JSON paths.
+
 #### `void` world.setMetadata(`Json` newMetadata)
 
-> **Available only on xServer v3.5.1+.**
+#### `void` world.setMetadataPath(`String` jsonPath, `Json` value)
+
+> **Available only on xServer v3.5.1+. `world.setMetadataPath` is only available on xServer v4.0+.**
 
 Merges the given world metadata with the world's existing metadata using a JSON merge. For this callback, explicit `null`s (see `$docs/lua/lua.md`) will override existing non-`null` object values. Most modifications take effect immediately; however, certain modifications to the `"worldTemplate"` and `"centralStructure"` (particularly changes to the world's size) will not take effect until the world is fully unloaded and reloaded.
+
+If `world.setMetadataPath` is used, instead of doing a JSON merge, the existing metadata value at the given JSON path in the metadata, if it exists, is set to the specified JSON value. See _JSON paths_ in `root.md` for more information on JSON paths.
 
 Here's an abridged sample metadata «descriptor» showing the more important and/or interesting bits:
 
@@ -1094,7 +1102,7 @@ Here's an abridged sample metadata «descriptor» showing the more important and
     "size": [3000, 2000], // The world's size.
     "seed": 5421766494617969501, // The world generation seed.
     "celestialParameters": {
-      // Stuff used for navigation screen and the orbital background on
+      // Stuff used for the navigation screen and the orbital background on
       // shipworlds orbiting this world.
       /* ... */
     },
@@ -1284,8 +1292,6 @@ Attempts to call the specified function (or callback) name in the specified worl
 On xStarbound, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
 
 To message _other_ worlds, use `universe.sendWorldMessage` in a world context script (see `universeserver.md`). If you need to message another world from a server-side entity, use `world.callScriptContext` to "pass through" to a `universe.sendWorldMessage` call. Both client- and server-side entities may also use `world.sendEntityMessage` for "passthrough".
-
-> **Note:** On xStarbound v3.5.2.3+, this callback will log a warning and return `nil` if the entity is not locally mastered or doesn't exist. On other servers and clients, an error will be thrown instead.
 
 > **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game _will_ almost certainly cause segfaults or memory corruption!
 

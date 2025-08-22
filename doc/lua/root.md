@@ -57,6 +57,7 @@ Keys and index specifiers may be freely concatenated as in Lua code; e.g., `"act
 
 - Since `.` and `[` are always parsed as operators, object keys containing any `.` or `[` characters cannot be specified in a JSON path and must instead be directly accessed in Lua.
 - In asset paths, `?` always terminates a subpath, and as such, object keys containing `?` characters cannot be specified in an asset path containing a JSON subpath and have to be directly accessed in Lua instead.
+- An empty path (i.e., an empty JSON path string, or nothing after the colon in a file path) returns the root object or array (or whatever else the root JSON value is).
 
 Because of this and other considerations, JSON keys containing non-alphanumeric characters should be avoided in Starbound JSON.
 
@@ -887,4 +888,3 @@ In addition, `NodeParameterType`-specific getters and setters are available:
 #### `void` `[Blackboard]`:setString(`String` key, `Json` value)
 
 **Note:** `:setNumber` has the same caveat as `:set` done with a `NodeParameterType` of `"number"`.
-

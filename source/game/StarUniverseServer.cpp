@@ -35,8 +35,8 @@ bool UniverseServer::clientHasBuildPermission(ServerClientContextPtr const& clie
   if (!client || !(currentSystem || systemLocation))
     return false;
 
-  auto const& serverConfig = Root::singleton().configuration();
-  auto const& jXServerPerms = serverConfig->get("buildPermissionSettings");
+  auto const& configFile = Root::singleton().configuration();
+  auto const& jXServerPerms = configFile->get("buildPermissionSettings");
   JsonObject xServerPerms = jXServerPerms.isType(Json::Type::Object) ? jXServerPerms.toObject() : JsonObject{};
 
   auto getBool = [&](String key) -> bool {
@@ -50,9 +50,16 @@ bool UniverseServer::clientHasBuildPermission(ServerClientContextPtr const& clie
   if (!getBool("enabled"))
     return true;
 
-  auto const& jBuildPermissions = serverConfig->get("ownedSystemsByAccount");
+  Json serverConfig;
+  if (getBool("storeClaimsInServerData"))
+    serverConfig = this->getServerData("claimData");
+  else
+    serverConfig = configFile->get("claimData");
+  serverConfig = serverConfig.isType(Json::Type::Object) ? serverConfig : JsonObject{};
+
+  auto const& jBuildPermissions = serverConfig.get("ownedSystemsByAccount");
   JsonObject const& buildPermissions = jBuildPermissions.isType(Json::Type::Object) ? jBuildPermissions.toObject() : JsonObject{};
-  auto const& jBuildPermissionsByUuid = serverConfig->get("ownedSystemsByUuid");
+  auto const& jBuildPermissionsByUuid = serverConfig.get("ownedSystemsByUuid");
   JsonObject const& buildPermissionsByUuid = jBuildPermissionsByUuid.isType(Json::Type::Object) ? jBuildPermissionsByUuid.toObject() : JsonObject{};
 
   Vec3I location;
@@ -1391,6 +1398,12 @@ void UniverseServer::saveSettings() {
   auto versionedSettings = versioningDatabase->makeCurrentVersionedJson("UniverseSettings",
       m_universeSettings->toJson().set("time", m_universeClock->time()));
   VersionedJson::writeFile(versionedSettings, File::relativeTo(m_storageDirectory, "universe.dat"));
+  if (m_serverData) {
+    auto versionedServerData = versioningDatabase->makeCurrentVersionedJson("ServerData", *m_serverData);
+    VersionedJson::writeFile(versionedServerData, File::relativeTo(m_storageDirectory, "server.dat"));
+  } else {
+    Logger::warn("[xSB] UniverseServer: Server data not yet loaded");
+  }
 }
 
 void UniverseServer::loadSettings() {
@@ -1410,7 +1423,7 @@ void UniverseServer::loadSettings() {
       m_universeClock = make_shared<Clock>();
       m_universeClock->setTime(settings.getDouble("time"));
     } catch (std::exception const& e) {
-      Logger::error("UniverseServer: Could not load universe settings file, loading defaults {}", outputException(e, false));
+      Logger::error("UniverseServer: Could not load universe settings file, loading defaults: {}", outputException(e, false));
       File::rename(storageFile, strf("{}.{}.fail", storageFile, Time::millisecondsSinceEpoch()));
       loadDefaultSettings();
     }
@@ -1419,6 +1432,65 @@ void UniverseServer::loadSettings() {
   }
 
   m_universeClock->start();
+
+  auto loadBlankServerData = [this]() {
+    m_serverData = make_shared<Json>(JsonObject{});
+  };
+
+  auto serverDataFile = File::relativeTo(m_storageDirectory, "server.dat");
+  if (File::isFile(serverDataFile)) {
+    try {
+      m_serverData = make_shared<Json>(versioningDatabase->loadVersionedJson(VersionedJson::readFile(serverDataFile), "ServerData"));
+    } catch (std::exception const& e) {
+      Logger::error("[xSB] UniverseServer: Could not load server data file, loading blank file: {}", outputException(e, false));
+      File::rename(serverDataFile, strf("{}.{}.fail", serverDataFile, Time::millisecondsSinceEpoch()));
+      loadBlankServerData();
+    }
+  } else {
+    loadBlankServerData();
+  }
+}
+
+Json UniverseServer::getServerData(String const& key) const {
+  RecursiveMutexLocker locker(m_mainLock);
+  if (m_serverData)
+    return m_serverData->get(key, Json());
+  return Json();
+}
+
+Json UniverseServer::getServerDataPath(String const& path) const {
+  RecursiveMutexLocker locker(m_mainLock);
+  if (m_serverData)
+    return m_serverData->query(path, Json());
+  return Json();
+}
+
+void UniverseServer::setServerData(String const& key, Json const& value) {
+  RecursiveMutexLocker locker(m_mainLock);
+  if (m_serverData)
+    m_serverData->set(key, value);
+}
+
+void UniverseServer::setServerDataPath(String const& path, Json const& value) {
+  RecursiveMutexLocker locker(m_mainLock);
+  if (m_serverData) {
+    if (path.empty() && !value.isType(Json::Type::Object)) return; // FezzedOne: Keeps the root object an object.
+    m_serverData->setPath(path, value);
+  }
+}
+
+void UniverseServer::eraseServerData(String const& key) {
+  RecursiveMutexLocker locker(m_mainLock);
+  if (m_serverData)
+    m_serverData->eraseKey(key);
+}
+
+void UniverseServer::eraseServerDataPath(String const& path) {
+  RecursiveMutexLocker locker(m_mainLock);
+  if (m_serverData) {
+    if (path.empty()) return; // FezzedOne: Keeps the root object an object.
+    m_serverData->erasePath(path);
+  }
 }
 
 Maybe<CelestialCoordinate> UniverseServer::nextStarterWorld() {

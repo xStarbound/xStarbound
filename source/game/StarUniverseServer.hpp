@@ -6,6 +6,7 @@
 #include "StarIdMap.hpp"
 #include "StarLockFile.hpp"
 #include "StarServerClientContext.hpp"
+#include "StarString.hpp"
 #include "StarSystemWorldServerThread.hpp"
 #include "StarUniverseConnection.hpp"
 #include "StarUniverseSettings.hpp"
@@ -118,6 +119,13 @@ public:
   void addPendingChatMessage(ConnectionId clientId, ChatReceivedMessage const& chatMessage);
 
   SystemLocation clientShipLocation(ConnectionId clientId) const;
+
+  Json getServerData(String const& key) const;
+  Json getServerDataPath(String const& path) const;
+  void setServerData(String const& key, Json const& value);
+  void setServerDataPath(String const& path, Json const& value);
+  void eraseServerData(String const& key);
+  void eraseServerDataPath(String const& path);
 
 protected:
   virtual void run();
@@ -276,6 +284,8 @@ private:
   Map<WorldId, List<WorldServerThread::Message>> m_pendingWorldMessages;
 
   List<TimeoutBan> m_tempBans;
+
+  shared_ptr<Json> m_serverData;
 
   bool m_rememberReturnWarpsOnDeath;
 };
