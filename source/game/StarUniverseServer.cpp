@@ -1412,7 +1412,7 @@ void UniverseServer::saveSettings() {
     VersionedJson::writeFile(versionedSettings, File::relativeTo(m_storageDirectory, "universe.dat"));
   }
   {
-    MutexLocker serverDataLocker(m_serverDataLock);
+    ReadLocker serverDataLocker(m_serverDataLock);
     auto versioningDatabase = Root::singleton().versioningDatabase();
     if (m_serverData) {
       auto versionedServerData = versioningDatabase->makeCurrentVersionedJson("ServerData", m_serverData);
@@ -1453,7 +1453,7 @@ void UniverseServer::loadSettings() {
   }
 
   {
-    MutexLocker serverDataLocker(m_serverDataLock);
+    WriteLocker serverDataLocker(m_serverDataLock);
     auto loadBlankServerData = [this]() {
       m_serverData = JsonObject{};
     };
@@ -1475,27 +1475,27 @@ void UniverseServer::loadSettings() {
 }
 
 Json UniverseServer::getServerData(String const& key) const {
-  MutexLocker serverDataLocker(m_serverDataLock);
+  ReadLocker serverDataLocker(m_serverDataLock);
   if (m_serverData)
     return m_serverData.get(key, Json());
   return Json();
 }
 
 Json UniverseServer::getServerDataPath(String const& path) const {
-  MutexLocker serverDataLocker(m_serverDataLock);
+  ReadLocker serverDataLocker(m_serverDataLock);
   if (m_serverData)
     return m_serverData.query(path, Json());
   return Json();
 }
 
 void UniverseServer::setServerData(String const& key, Json const& value) {
-  MutexLocker serverDataLocker(m_serverDataLock);
+  WriteLocker serverDataLocker(m_serverDataLock);
   if (m_serverData)
     m_serverData = m_serverData.set(key, value);
 }
 
 void UniverseServer::setServerDataPath(String const& path, Json const& value) {
-  MutexLocker serverDataLocker(m_serverDataLock);
+  WriteLocker serverDataLocker(m_serverDataLock);
   if (m_serverData) {
     if (path.empty() && !value.isType(Json::Type::Object)) return; // FezzedOne: Keeps the root object an object.
     m_serverData = m_serverData.setPath(path, value);
@@ -1503,13 +1503,13 @@ void UniverseServer::setServerDataPath(String const& path, Json const& value) {
 }
 
 void UniverseServer::eraseServerData(String const& key) {
-  MutexLocker serverDataLocker(m_serverDataLock);
+  WriteLocker serverDataLocker(m_serverDataLock);
   if (m_serverData)
     m_serverData = m_serverData.eraseKey(key);
 }
 
 void UniverseServer::eraseServerDataPath(String const& path) {
-  MutexLocker serverDataLocker(m_serverDataLock);
+  WriteLocker serverDataLocker(m_serverDataLock);
   if (m_serverData) {
     if (path.empty()) return; // FezzedOne: Keeps the root object an object.
     m_serverData = m_serverData.erasePath(path);

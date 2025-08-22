@@ -288,7 +288,7 @@ private:
 
   List<TimeoutBan> m_tempBans;
 
-  mutable Mutex m_serverDataLock;
+  mutable ReadersWriterMutex m_serverDataLock;
   Json m_serverData;
 
   bool m_rememberReturnWarpsOnDeath;
