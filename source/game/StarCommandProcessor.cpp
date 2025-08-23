@@ -244,7 +244,7 @@ String CommandProcessor::setTileProtection(ConnectionId connectionId, String con
     }
     size_t changed = 0;
     if (!m_universe->executeForClient(connectionId, [&](WorldServer* world, PlayerPtr const&) {
-          world->setTileProtection(dungeonIds, isProtected);
+          changed = world->setTileProtection(dungeonIds, isProtected);
         })) {
       return "Invalid client state";
     }
