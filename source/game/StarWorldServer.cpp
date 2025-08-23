@@ -18,6 +18,7 @@
 #include "StarPhysicsEntity.hpp"
 #include "StarPlayer.hpp"
 #include "StarProjectile.hpp"
+#include "StarText.hpp"
 #include "StarUniverseServer.hpp"
 #include "StarUniverseServerLuaBindings.hpp"
 #include "StarUniverseSettings.hpp"
@@ -373,7 +374,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
 
   auto const& clientInfo = m_clientInfo.get(clientId);
   if (!clientInfo)
-    Logger::warn("WorldServer: Client info not found for cID {} on world {}; ignoring packets", clientId, worldId());
+    Logger::warn("WorldServer: Client info not found for cID {} on world '{}'; ignoring packets", clientId, Text::stripEscapeCodes(worldId()));
   auto& root = Root::singleton();
   auto entityFactory = root.entityFactory();
   auto itemDatabase = root.itemDatabase();
@@ -469,41 +470,41 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
             if (interactResult)
               clientInfo->outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, entityInteract->interactRequest.sourceId));
             else
-              Logger::warn("[xServer] WorldServer: No result from server-side entity interaction with entity {} started by entity {} (owned by cID {}) on world {}", targetId, sourceId, clientId, worldId());
+              Logger::warn("[xServer] WorldServer: No result from server-side entity interaction with entity {} started by entity {} (owned by cID {}) on world '{}'", targetId, sourceId, clientId, Text::stripEscapeCodes(worldId()));
           } else {
             if (m_clientInfo.contains(targetEntityConnection)) {
               auto const& forwardClientInfo = m_clientInfo.get(targetEntityConnection);
               if (forwardClientInfo)
                 forwardClientInfo->outgoingPackets.append(entityInteract);
               else
-                Logger::warn("[xServer] WorldServer: Attempt to interact from entity {} (owned by cID {}) with entity {} (owned by cID {} with missing client info) on world {}",
-                    sourceId, clientId, targetId, targetEntityConnection, worldId());
+                Logger::warn("[xServer] WorldServer: Attempt to interact from entity {} (owned by cID {}) with entity {} (owned by cID {} with missing client info) on world '{}'",
+                    sourceId, clientId, targetId, targetEntityConnection, Text::stripEscapeCodes(worldId()));
             } else {
-              Logger::warn("[xServer] WorldServer: Attempt to interact from entity {} (owned by cID {}) with entity {} (owned by non-connected cID {}) on world {}",
-                  sourceId, clientId, targetId, targetEntityConnection, worldId());
+              Logger::warn("[xServer] WorldServer: Attempt to interact from entity {} (owned by cID {}) with entity {} (owned by non-connected cID {}) on world '{}'",
+                  sourceId, clientId, targetId, targetEntityConnection, Text::stripEscapeCodes(worldId()));
             }
           }
         }
         // FezzedOne: For modded client compatibility, we need to specifically allow interactions with players, despite them not being considered interactive entities.
         else {
           if (targetEntityConnection == ServerConnectionId) {
-            Logger::info("[xServer] WorldServer: Attempted interaction from entity {} (owned by cID {}) with non-interactive server-side entity {} on world {}", sourceId, clientId, targetId, worldId());
+            Logger::info("[xServer] WorldServer: Attempted interaction from entity {} (owned by cID {}) with non-interactive server-side entity {} on world '{}'", sourceId, clientId, targetId, Text::stripEscapeCodes(worldId()));
             auto interactResult = RpcPromise<InteractAction>::createFulfilled(InteractAction()).result();
             if (interactResult)
               clientInfo->outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, sourceId));
             else
-              Logger::warn("[xServer] WorldServer: No result from server-side entity interaction with entity {} started by entity {} (owned by cID {}) on world {}", targetId, sourceId, clientId, worldId());
+              Logger::warn("[xServer] WorldServer: No result from server-side entity interaction with entity {} started by entity {} (owned by cID {}) on world '{}'", targetId, sourceId, clientId, Text::stripEscapeCodes(worldId()));
           } else {
             if (m_clientInfo.contains(targetEntityConnection)) {
               auto const& forwardClientInfo = m_clientInfo.get(targetEntityConnection);
               if (forwardClientInfo)
                 forwardClientInfo->outgoingPackets.append(entityInteract);
               else
-                Logger::warn("[xServer] WorldServer: Attempt to interact from entity {} (owned by cID {}) with entity {} (owned by cID {} with missing client info) on world {}",
-                    sourceId, clientId, targetId, targetEntityConnection, worldId());
+                Logger::warn("[xServer] WorldServer: Attempt to interact from entity {} (owned by cID {}) with entity {} (owned by cID {} with missing client info) on world '{}'",
+                    sourceId, clientId, targetId, targetEntityConnection, Text::stripEscapeCodes(worldId()));
             } else {
-              Logger::warn("[xServer] WorldServer: Attempt to interact from entity {} (owned by cID {}) with entity {} (owned by non-connected cID {}) on world {}",
-                  sourceId, clientId, targetId, targetEntityConnection, worldId());
+              Logger::warn("[xServer] WorldServer: Attempt to interact from entity {} (owned by cID {}) with entity {} (owned by non-connected cID {}) on world '{}'",
+                  sourceId, clientId, targetId, targetEntityConnection, Text::stripEscapeCodes(worldId()));
             }
           }
         }
@@ -512,7 +513,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       else {
         EntityId sourceId = entityInteract->interactRequest.sourceId;
         auto sourceEntityConnection = connectionForEntity(sourceId);
-        Logger::info("[xServer] WorldServer: Attempted interaction from entity {} (owned by cID {}) with nonexistent entity {} (owned by cID {}) on world {}", sourceId, sourceEntityConnection, targetId, targetEntityConnection, worldId());
+        Logger::info("[xServer] WorldServer: Attempted interaction from entity {} (owned by cID {}) with nonexistent entity {} (owned by cID {}) on world '{}'", sourceId, sourceEntityConnection, targetId, targetEntityConnection, Text::stripEscapeCodes(worldId()));
       }
 
     } else if (auto interactResult = as<EntityInteractResultPacket>(packet)) {
@@ -520,15 +521,15 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       if (forwardClientInfo)
         forwardClientInfo->outgoingPackets.append(interactResult);
       else
-        Logger::warn("[xServer] WorldServer: EntityInteractResult from cID {} sent to invalid cID {} on world {}", clientInfo->clientId, connectionForEntity(interactResult->sourceEntityId), worldId());
+        Logger::warn("[xServer] WorldServer: EntityInteractResult from cID {} sent to invalid cID {} on world '{}'", clientInfo->clientId, connectionForEntity(interactResult->sourceEntityId), Text::stripEscapeCodes(worldId()));
 
 
     } else if (auto entityCreate = as<EntityCreatePacket>(packet)) {
       if (!entityIdInSpace(entityCreate->entityId, clientInfo->clientId)) {
-        Logger::warn("[xServer] WorldServer: Received entity creation packet from cID {} with illegal entity ID {} on world {}, ignoring", clientInfo->clientId, entityCreate->entityId, worldId());
+        Logger::warn("[xServer] WorldServer: Received entity creation packet from cID {} with illegal entity ID {} on world '{}', ignoring", clientInfo->clientId, entityCreate->entityId, Text::stripEscapeCodes(worldId()));
       } else {
         if (m_entityMap->entity(entityCreate->entityId)) {
-          Logger::error("WorldServer: Received duplicate entity creation packet from cID {}, deleting old entity {} on world {}", clientInfo->clientId, entityCreate->entityId, worldId());
+          Logger::error("WorldServer: Received duplicate entity creation packet from cID {}, deleting old entity {} on world '{}'", clientInfo->clientId, entityCreate->entityId, Text::stripEscapeCodes(worldId()));
           removeEntity(entityCreate->entityId, false);
         }
 
@@ -650,8 +651,8 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
     } else if (auto entityMessageResponsePacket = as<EntityMessageResponsePacket>(packet)) {
       // From OpenSB: Log errors instead of throwing and kicking everyone off the world. Also prevent server-side segfaults.
       if (!m_entityMessageResponses.contains(entityMessageResponsePacket->uuid)) {
-        Logger::warn("WorldServer: EntityMessageResponse received from cID {} for unknown context [UUID: {}] on world {}", clientInfo->clientId,
-            entityMessageResponsePacket->uuid.hex(), worldId());
+        Logger::warn("WorldServer: EntityMessageResponse received from cID {} for unknown context [UUID: {}] on world '{}'", clientInfo->clientId,
+            entityMessageResponsePacket->uuid.hex(), Text::stripEscapeCodes(worldId()));
       } else {
         if (auto response = m_entityMessageResponses.maybeTake(entityMessageResponsePacket->uuid)) {
           if (response->second.is<ConnectionId>()) {
@@ -664,8 +665,8 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
               response->second.get<RpcPromiseKeeper<Json>>().fail(entityMessageResponsePacket->response.left());
           }
         } else {
-          Logger::warn("WorldServer: Invalid EntityMessageResponse received from cID {} [UUID: {}] on world {}", clientInfo->clientId,
-              entityMessageResponsePacket->uuid.hex(), worldId());
+          Logger::warn("WorldServer: Invalid EntityMessageResponse received from cID {} [UUID: {}] on world '{}'", clientInfo->clientId,
+              entityMessageResponsePacket->uuid.hex(), Text::stripEscapeCodes(worldId()));
         }
       }
     } else if (auto pingPacket = as<PingPacket>(packet)) {
@@ -684,7 +685,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
         pair.second->outgoingPackets.append(make_shared<UpdateWorldPropertiesPacket>(updateWorldProperties->updatedProperties));
 
     } else { // FezzedOne: Log invalid packets instead of throwing for no good reason.
-      Logger::warn("WorldServer: Improper packet type {} received from cID {} on world {}; ignoring", (int)packet->type(), clientInfo->clientId, worldId());
+      Logger::warn("WorldServer: Improper packet type {} received from cID {} on world '{}'; ignoring", (int)packet->type(), clientInfo->clientId, Text::stripEscapeCodes(worldId()));
     }
   }
 }
@@ -1263,7 +1264,7 @@ void WorldServer::addBiomeRegion(Vec2I const& position, String const& biomeName,
   auto regions = m_worldTemplate->previewAddBiomeRegion(position, width);
 
   if (regions.empty()) {
-    Logger::info("WorldServer: Aborting addBiomeRegion on world {} as it would have no result!", worldId());
+    Logger::info("WorldServer: Aborting addBiomeRegion on world '{}' as it would have no result!", Text::stripEscapeCodes(worldId()));
     return;
   }
 
@@ -1281,7 +1282,7 @@ void WorldServer::expandBiomeRegion(Vec2I const& position, int newWidth) {
   auto regions = m_worldTemplate->previewExpandBiomeRegion(position, newWidth);
 
   if (regions.empty()) {
-    Logger::info("WorldServer: Aborting expandBiomeRegion on world {} as it would have no result!", worldId());
+    Logger::info("WorldServer: Aborting expandBiomeRegion on world '{}' as it would have no result!", Text::stripEscapeCodes(worldId()));
     return;
   }
 
@@ -1405,7 +1406,7 @@ void WorldServer::setTileProtection(DungeonId dungeonId, bool isProtected) {
 
   auto newDungeonIds = m_protectedDungeonIds.values();
   sort(newDungeonIds);
-  Logger::info("WorldServer: Protected dungeon IDs for world {} set to {}", worldId(), newDungeonIds);
+  Logger::info("WorldServer: Protected dungeon IDs for world '{}' set to {}", Text::stripEscapeCodes(worldId()), newDungeonIds);
 }
 
 size_t WorldServer::setTileProtection(List<DungeonId> const& dungeonIds, bool isProtected) {
@@ -1424,7 +1425,7 @@ size_t WorldServer::setTileProtection(List<DungeonId> const& dungeonIds, bool is
 
   auto newDungeonIds = m_protectedDungeonIds.values();
   sort(newDungeonIds);
-  Logger::info("WorldServer: Protected dungeon IDs for world {} set to {}", worldId(), newDungeonIds);
+  Logger::info("WorldServer: Protected dungeon IDs for world '{}' set to {}", Text::stripEscapeCodes(worldId()), newDungeonIds);
   return updates.size();
 }
 
@@ -1694,7 +1695,7 @@ void WorldServer::init(bool firstTime) {
       DungeonId currentDungeonId = 0;
 
       for (auto const& dungeon : m_worldTemplate->dungeons()) {
-        Logger::info("Placing dungeon {} on world {}", dungeon.dungeon, worldId());
+        Logger::info("Placing dungeon {} on world '{}'", dungeon.dungeon, Text::stripEscapeCodes(worldId()));
         int retryCounter = m_serverConfig.getInt("spawnDungeonRetries");
         while (retryCounter > 0) {
           --retryCounter;
@@ -2821,7 +2822,7 @@ void WorldServer::setMetadata(Json const& newMetadata, bool skipMerge) {
   try {
     readMetadata();
   } catch (std::exception const& e) {
-    Logger::error("WorldServer: Exception occurred while modifying world metadata on world {}, restored old metadata: {}", worldId(), e.what());
+    Logger::error("WorldServer: Exception occurred while modifying world metadata on world '{}', restored old metadata: {}", Text::stripEscapeCodes(worldId()), e.what());
     m_worldStorage->setWorldMetadata(versioningDatabase->makeCurrentVersionedJson(
         "WorldMetadata", oldMetadata));
     readMetadata();
