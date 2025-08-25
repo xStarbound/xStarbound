@@ -1470,9 +1470,9 @@ bool WorldServer::isOwned() const {
     serverConfig = configFile->get("claimData");
   serverConfig = serverConfig.isType(Json::Type::Object) ? serverConfig : JsonObject{};
 
-  auto const& jBuildPermissions = serverConfig.get("ownedWorldsByAccount");
+  auto const& jBuildPermissions = serverConfig.opt("ownedWorldsByAccount").value();
   JsonObject const& buildPermissions = jBuildPermissions.isType(Json::Type::Object) ? jBuildPermissions.toObject() : JsonObject{};
-  auto const& jBuildPermissionsByUuid = serverConfig.get("ownedWorldsByUuid");
+  auto const& jBuildPermissionsByUuid = serverConfig.opt("ownedWorldsByUuid").value();
   JsonObject const& buildPermissionsByUuid = jBuildPermissionsByUuid.isType(Json::Type::Object) ? jBuildPermissionsByUuid.toObject() : JsonObject{};
 
   auto serverModsDisallowed = [&locationStr, &getBool](JsonObject const& permissionList) -> bool {
@@ -1564,9 +1564,9 @@ bool WorldServer::clientHasBuildPermission(ConnectionId clientId, uint8_t contai
     serverConfig = configFile->get("claimData");
   serverConfig = serverConfig.isType(Json::Type::Object) ? serverConfig : JsonObject{};
 
-  auto const& jBuildPermissions = serverConfig.get("ownedWorldsByAccount");
+  auto const& jBuildPermissions = serverConfig.opt("ownedWorldsByAccount").value();
   JsonObject const& buildPermissions = jBuildPermissions.isType(Json::Type::Object) ? jBuildPermissions.toObject() : JsonObject{};
-  auto const& jBuildPermissionsByUuid = serverConfig.get("ownedWorldsByUuid");
+  auto const& jBuildPermissionsByUuid = serverConfig.opt("ownedWorldsByUuid").value();
   JsonObject const& buildPermissionsByUuid = jBuildPermissionsByUuid.isType(Json::Type::Object) ? jBuildPermissionsByUuid.toObject() : JsonObject{};
 
   Maybe<String> const& playerAccount = client->accountName;

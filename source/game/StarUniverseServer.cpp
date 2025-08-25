@@ -58,9 +58,9 @@ bool UniverseServer::clientHasBuildPermission(ServerClientContextPtr const& clie
     serverConfig = configFile->get("claimData");
   serverConfig = serverConfig.isType(Json::Type::Object) ? serverConfig : JsonObject{};
 
-  auto const& jBuildPermissions = serverConfig.get("ownedSystemsByAccount");
+  auto const& jBuildPermissions = serverConfig.opt("ownedSystemsByAccount").value();
   JsonObject const& buildPermissions = jBuildPermissions.isType(Json::Type::Object) ? jBuildPermissions.toObject() : JsonObject{};
-  auto const& jBuildPermissionsByUuid = serverConfig.get("ownedSystemsByUuid");
+  auto const& jBuildPermissionsByUuid = serverConfig.opt("ownedSystemsByUuid").value();
   JsonObject const& buildPermissionsByUuid = jBuildPermissionsByUuid.isType(Json::Type::Object) ? jBuildPermissionsByUuid.toObject() : JsonObject{};
 
   Vec3I location;
