@@ -58,7 +58,7 @@ These two optional JSON objects define the configured star system claims on the 
           // including clients logged in without an account.
     }
   },
-  "ownedSystemsByUUID" : { // Is a JSON object that acts as a system coordinate map for claims.
+  "ownedSystemsByUuid" : { // Is a JSON object that acts as a system coordinate map for claims.
     "38:-16:54372272" : { // The system's coordinates in `"X:Y:Z"` format.
       "owner" : "3cc245c853cd4e8e83dce8de71602b65", // The owning client uuidString. Use this for claim ownership checks in your command scripts.
       "allowedBuilders" : [ "1616ea01ba454d23a426a899d0123c17", "a3906c12984142e5a3865b8f31408e13" ]
