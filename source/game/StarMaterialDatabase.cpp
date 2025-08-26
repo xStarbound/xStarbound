@@ -1,10 +1,10 @@
 #include "StarMaterialDatabase.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarFormat.hpp"
 #include "StarAssets.hpp"
-#include "StarRoot.hpp"
+#include "StarFormat.hpp"
+#include "StarJsonExtra.hpp"
 #include "StarLogging.hpp"
 #include "StarParticleDatabase.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -111,7 +111,7 @@ MaterialDatabase::MaterialDatabase() {
               matConfig.optUInt("requiredHarvestLevel"));
 
       material.collisionKind = CollisionKindNames.getLeft(matConfig.getString("collisionKind", "block"));
-      material.foregroundOnly = matConfig.getBool("foregroundOnly", material.collisionKind != CollisionKind::Block);
+      material.foregroundOnly = matConfig.getBool("foregroundOnly", false); // For OpenStarbound world compatibility.
       material.supportsMods = matConfig.getBool("supportsMods", !(material.falling || material.cascading || material.collisionKind != CollisionKind::Block));
 
       material.blocksLiquidFlow = matConfig.getBool("blocksLiquidFlow", isSolidColliding(material.collisionKind));
@@ -268,7 +268,7 @@ String MaterialDatabase::materialDescription(MaterialId materialNumber, String c
   auto material = m_materials[materialNumber];
   if (material)
     return material->descriptions.getString(
-      strf("{}Description", species), material->descriptions.getString("description"));
+        strf("{}Description", species), material->descriptions.getString("description"));
   return "";
 }
 
@@ -526,7 +526,7 @@ bool MaterialDatabase::supportsMod(MaterialId materialId, ModId modId) const {
 }
 
 MaterialDatabase::MetaMaterialInfo::MetaMaterialInfo(String name, MaterialId id, CollisionKind collisionKind, bool blocksLiquidFlow)
-  : name(name), id(id), collisionKind(collisionKind), blocksLiquidFlow(blocksLiquidFlow) {}
+    : name(name), id(id), collisionKind(collisionKind), blocksLiquidFlow(blocksLiquidFlow) {}
 
 MaterialDatabase::MaterialInfo::MaterialInfo() : id(NullMaterialId), tillableMod(NoModId), falling(), cascading() {}
 
@@ -591,4 +591,4 @@ shared_ptr<MaterialDatabase::ModInfo const> const& MaterialDatabase::getModInfo(
     return m_mods[modId];
 }
 
-}
+} // namespace Star
