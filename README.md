@@ -22,8 +22,8 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 
   See [`$docs/lua/lua.md`](doc/lua/lua.md), [`$docs/lua/world.md`](doc/lua/world.md) and [`$docs/lua/universeserver.md`](doc/lua/universeserver.md) for more.
 
-- Persistent, scriptable server-side data storage that can be accessed and modified from any server-side universe, world or entity script. See [`$docs/lua/universeserver.md`](doc/lua/universeserver.md) for more.
-- Fully scriptable world metadata modification, including support for changing any existing world's tile size (@fezzedone). Modders can now modify _all_ attributes of any world without resorting to external Python tools.
+- Persistent, scriptable server-side data storage that can be accessed and modified from any server-side universe, world or entity script (@FezzedOne). See [`$docs/lua/universeserver.md`](doc/lua/universeserver.md) for more.
+- Fully scriptable world metadata modification, including support for changing any existing world's tile size (@fezzedone). Modders can now modify _all_ attributes of any existing world without resorting to external Python tools. Additionally, xClient (the xStarbound client) users can safely explore very small worlds without crashing (aside from some harmless visual glitches).
 - Scriptable weather control for worlds (@Mofurka and @fezzedone) — scripts can now change a world's weather on demand.
 - Nicer (and optimised) non-pixelated humanoid tech and status effect scaling for players and NPCs (reimplementation by @fezzedone).
 - Now runs [Pluto](https://pluto-lang.org/), an optimised fork of Lua 5.4! As of xStarbound v4.0, Pluto's jump table optimisation is enabled, speeding up Lua scripts.
