@@ -11,8 +11,22 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 ## Changes
 
 - Several new commands (by @fezzedone)! Type `/xclient` for info on the new client-side commands, or `/help` (on xServer, an xClient host or in single-player on xClient) to see the new server-side ones.
+- As of v4.0+, xServer (the xStarbound server) supports scriptable functionality previously confined to wrappers like [StarryPy3k](https://github.com/StarryPy/StarryPy3k) (by @fezzedone), including:
+
+  - Permission-based build protection for worlds and systems, complete with optional container modification/viewing protection and automatic shipworld protection and claims. Includes protection against spawning or removing entities not controlled by the player's own client (except item drops, which cannot run scripts).
+  - Dedicated guest accounts and the ability to detect and handle anonymous connections in server-side scripts.
+  - Scriptable connection handling, allowing mods to run, e.g., IP address checks on connecting players.
+  - Account- and UUID-based world claims.
+  - Chat message creation, filtering and redirection. This can be used for permission-based nickname colouring, server and world MOTDs, profanity filtering, etc.
+  - Permission control, including world claim support, for entity messages handled by the server.
+
+  See `$docs/lua/world.md` and `$docs/lua/universeserver.md` for more.
+
+- Persistent, scriptable server-side data storage that can be accessed and modified from any server-side universe, world or entity script. See `$docs/lua/universeserver.md` for more.
+- Fully scriptable world metadata modification, including support for changing any existing world's tile size (@fezzedone). Modders can now modify _all_ attributes of any world without resorting to external Python tools.
+- Scriptable weather control for worlds (@Mofurka and @fezzedone) — scripts can now change a world's weather on demand.
 - Nicer (and optimised) non-pixelated humanoid tech and status effect scaling for players and NPCs (reimplementation by @fezzedone).
-- Now runs [Pluto](https://pluto-lang.org/), an optimised fork of Lua 5.4!
+- Now runs [Pluto](https://pluto-lang.org/), an optimised fork of Lua 5.4! As of xStarbound v4.0, Pluto's jump table optimisation is enabled, speeding up Lua scripts.
 - Full Lua sandboxing! By @fezzedone.
   - To replace the old, potentially crash-prone sandbox-breaking code used by certain mods, xStarbound supports pane message handlers and Lua callbacks for safely saving and reading variables in global variable tables with the same expected cross-context scopes.
   - **Note:** This causes some mod compatibility issues; see below for affected mods.
@@ -53,6 +67,7 @@ Compiled builds for Linux and Windows should be available in the usual place on 
 - You can now make `.patch` files that are just merged in, early-beta-style (@novaenia). That's why the patch files in `assets/xSBassets` are unusually simple. All of OpenStarbound's JSON patch parameters are also supported.
 - Almost all Lua callbacks from the original xSB (by @fezzedone), `input` callbacks (by @novaenia), plus some extra `player`, `chat`, `interface` and `clipboard` callbacks for compatibility with OpenStarbound mods and some StarExtensions mods (@fezzedone).
 - Various crash fixes (@fezzedone and @novaenia).
+- `/settileprotection` supports variadic arguments and ranges like on OpenStarbound (@novaenia).
 - Custom user input support with a keybindings menu (rewrite by @novaenia from StarExtensions).
 - Client-side positional voice chat that works on completely vanilla servers; is compatible with StarExtensions. This uses Opus for crisp, HD audios. Rewrite by @novaenia from StarExtensions.
   - The voice chat configuration dialogue is made available in the options menu rather than as a chat command.
