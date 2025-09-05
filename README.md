@@ -20,9 +20,9 @@ Compiled builds for Linux and Windows should be available in the usual place on 
   - Chat message creation, filtering and redirection. This can be used for permission-based nickname colouring, server and world MOTDs, profanity filtering, etc.
   - Permission control, including world claim support, for entity messages handled by the server.
 
-  See `$docs/lua/world.md` and `$docs/lua/universeserver.md` for more.
+  See [`$docs/lua/lua.md`](doc/lua/lua.md), [`$docs/lua/world.md`](doc/lua/world.md) and [`$docs/lua/universeserver.md`](doc/lua/universeserver.md) for more.
 
-- Persistent, scriptable server-side data storage that can be accessed and modified from any server-side universe, world or entity script. See `$docs/lua/universeserver.md` for more.
+- Persistent, scriptable server-side data storage that can be accessed and modified from any server-side universe, world or entity script. See [`$docs/lua/universeserver.md`](doc/lua/universeserver.md) for more.
 - Fully scriptable world metadata modification, including support for changing any existing world's tile size (@fezzedone). Modders can now modify _all_ attributes of any world without resorting to external Python tools.
 - Scriptable weather control for worlds (@Mofurka and @fezzedone) — scripts can now change a world's weather on demand.
 - Nicer (and optimised) non-pixelated humanoid tech and status effect scaling for players and NPCs (reimplementation by @fezzedone).
