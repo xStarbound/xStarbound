@@ -83,14 +83,14 @@ bool UniverseServer::clientHasBuildPermission(ServerClientContextPtr const& clie
       if (locationPermissions.contains("owner")) {
         if (!accountOrUuid)
           return false;
-        if (locationPermissions.get("owner") == *accountOrUuid)
+        if (accountOrUuid && locationPermissions.get("owner") == *accountOrUuid)
           return true;
         if (locationPermissions.contains("allowedBuilders")) {
           auto const& jAllowedBuilders = locationPermissions.get("allowedBuilders");
           JsonArray const& allowedBuilders = jAllowedBuilders.isType(Json::Type::Array) ? jAllowedBuilders.toArray() : JsonArray{};
           if (allowedBuilders.contains(true))
             return true;
-          if (allowedBuilders.contains(*accountOrUuid))
+          if (accountOrUuid && allowedBuilders.contains(*accountOrUuid))
             return true;
           return false;
         }

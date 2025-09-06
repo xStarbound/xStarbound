@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-set(XSB_VERSION 4.0.1)
+set(XSB_VERSION 4.0.2)
 set(XSB_ASSET_VERSION 4.0.0)
 set(XSB_NETWORK_VERSION 3.5.3)
 
