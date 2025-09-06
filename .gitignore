@@ -20,6 +20,7 @@ dist-qt/
 dist-static/
 dist-windows/
 cmake-build-linux-x86_64/
+cmake-build-windows-x64/
 enc_temp_folder/
 mods/*
 mods/*.pak

@@ -1,6 +1,9 @@
 @echo off
 setLocal enableDelayedExpansion
 
+:: FezzedOne: Fix for build script error when VCPKG is installed as part of MSVC.
+set "VCPKG_ROOT="
+
 echo "[xStarbound::Build] Starting build..."
 
 cd /D "%~dp0"
