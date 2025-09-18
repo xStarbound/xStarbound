@@ -173,6 +173,10 @@ WorldStorage::WorldStorage(WorldChunks const& chunks, WorldGeneratorFacadePtr co
   m_generatorFacade = generatorFacade;
   m_floatingDungeonWorld = false;
 
+  auto config = Root::singleton().configuration();
+  bool disableFlattening = config->get("disableFlattening").optBool().value(false);
+  float flatteningThreshold = disableFlattening ? -1.0f : config->get("flatteningThreshold").optFloat().value(0.05f);
+  m_db.setFreeSpaceThreshold(flatteningThreshold);
   openDatabase(m_db, File::ephemeralFile());
 
   for (auto const& p : chunks) {

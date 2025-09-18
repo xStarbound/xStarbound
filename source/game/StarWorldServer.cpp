@@ -47,7 +47,7 @@ EnumMap<WorldServerFidelity> const WorldServerFidelityNames{
     {WorldServerFidelity::Medium, "medium"},
     {WorldServerFidelity::High, "high"}};
 
-WorldServer::WorldServer(WorldTemplatePtr const& worldTemplate, IODevicePtr storage) {
+WorldServer::WorldServer(WorldTemplatePtr const& worldTemplate, IODevicePtr storage) : m_preUninitialized(false) {
   m_worldTemplate = worldTemplate;
   m_worldStorage = make_shared<WorldStorage>(m_worldTemplate->size(), storage, make_shared<WorldGenerator>(this));
   m_adjustPlayerStart = true;
@@ -66,7 +66,7 @@ WorldServer::WorldServer(WorldTemplatePtr const& worldTemplate, IODevicePtr stor
 WorldServer::WorldServer(Vec2U const& size, IODevicePtr storage)
     : WorldServer(make_shared<WorldTemplate>(size), storage) {}
 
-WorldServer::WorldServer(IODevicePtr const& storage) {
+WorldServer::WorldServer(IODevicePtr const& storage) : m_preUninitialized(false) {
   m_worldStorage = make_shared<WorldStorage>(storage, make_shared<WorldGenerator>(this));
   m_tileProtectionEnabled = true;
   m_universeSettings = make_shared<UniverseSettings>();
@@ -76,7 +76,7 @@ WorldServer::WorldServer(IODevicePtr const& storage) {
   init(false);
 }
 
-WorldServer::WorldServer(WorldChunks const& chunks) {
+WorldServer::WorldServer(WorldChunks const& chunks) : m_preUninitialized(false) {
   m_worldStorage = make_shared<WorldStorage>(chunks, make_shared<WorldGenerator>(this));
   m_tileProtectionEnabled = true;
   m_universeSettings = make_shared<UniverseSettings>();
@@ -88,6 +88,33 @@ WorldServer::WorldServer(WorldChunks const& chunks) {
 
 WorldServer::~WorldServer() {
   ZoneScoped;
+
+  if (!m_preUninitialized) {
+    for (auto& p : m_scriptContexts)
+      p.second->uninit();
+
+    m_scriptContexts.clear();
+    // FezzedOne: Why wasn't this cleared on uninit?
+    m_netStateCache.clear();
+    m_spawner.uninit();
+    writeMetadata();
+    m_worldStorage->unloadAll(true);
+    m_entityMap.reset();
+
+    // FezzedOne: Tell the Lua root to collect its fucking garbage and shut down when the world is uninitialised.
+    // Needs to be last because Lua scripts have to be called when unloading a world.
+    if (m_luaRoot) {
+      m_luaRoot->shutdown();
+    }
+  }
+
+  m_universe = nullptr;
+}
+
+// FezzedOne: Needed to ensure that any changes set in `uninit` on scripts run on shipworlds are actually saved.
+void WorldServer::preUninit() {
+  ZoneScoped;
+
   for (auto& p : m_scriptContexts)
     p.second->uninit();
 
@@ -105,7 +132,7 @@ WorldServer::~WorldServer() {
     m_luaRoot->shutdown();
   }
 
-  m_universe = nullptr;
+  m_preUninitialized = true;
 }
 
 void WorldServer::setWorldId(String worldId) {

@@ -64,6 +64,8 @@ public:
   // Load an existing world from an in-memory representation
   ~WorldServer();
 
+  void preUninit();
+
   void setWorldId(String worldId);
   String const& worldId() const;
 
@@ -421,6 +423,7 @@ private:
   HashMap<DungeonId, bool> m_dungeonIdBreathable;
   Set<DungeonId> m_protectedDungeonIds;
   bool m_tileProtectionEnabled;
+  bool m_preUninitialized;
 
   HashMap<Uuid, pair<ConnectionId, MVariant<ConnectionId, RpcPromiseKeeper<Json>>>> m_entityMessageResponses;
 

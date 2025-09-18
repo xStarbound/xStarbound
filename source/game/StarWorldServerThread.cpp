@@ -1,27 +1,27 @@
 #include "StarWorldServerThread.hpp"
-#include "StarTickRateMonitor.hpp"
-#include "StarNpc.hpp"
-#include "StarRoot.hpp"
-#include "StarLogging.hpp"
 #include "StarAssets.hpp"
+#include "StarLogging.hpp"
+#include "StarNpc.hpp"
 #include "StarPlayer.hpp"
+#include "StarRoot.hpp"
+#include "StarTickRateMonitor.hpp"
 
 #if defined TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
+#include "tracy/Tracy.hpp"
 #else
-  #define ZoneScoped
-  #define ZoneScopedN(name)
+#define ZoneScoped
+#define ZoneScopedN(name)
 #endif
 
 namespace Star {
 
 WorldServerThread::WorldServerThread(WorldServerPtr server, WorldId worldId)
-  : Thread("WorldServerThread: " + printWorldId(worldId)),
-    m_worldServer(std::move(server)),
-    m_worldId(std::move(worldId)),
-    m_stop(false),
-    m_errorOccurred(false),
-    m_shouldExpire(true) {
+    : Thread("WorldServerThread: " + printWorldId(worldId)),
+      m_worldServer(std::move(server)),
+      m_worldId(std::move(worldId)),
+      m_stop(false),
+      m_errorOccurred(false),
+      m_shouldExpire(true) {
   if (m_worldServer)
     m_worldServer->setWorldId(printWorldId(m_worldId));
 }
@@ -86,6 +86,16 @@ bool WorldServerThread::addClient(ConnectionId clientId, SpawnTarget const& spaw
     Logger::error("WorldServerThread exception caught: {}", outputException(e, true));
     m_errorOccurred = true;
     return false;
+  }
+}
+
+void WorldServerThread::preUninit() {
+  try {
+    RecursiveMutexLocker locker(m_mutex);
+    m_worldServer->preUninit();
+  } catch (std::exception const& e) {
+    Logger::error("WorldServerThread exception caught: {}", outputException(e, true));
+    m_errorOccurred = true;
   }
 }
 
@@ -329,4 +339,4 @@ void WorldServerThread::sync() {
   m_worldServer->sync();
 }
 
-}
+} // namespace Star

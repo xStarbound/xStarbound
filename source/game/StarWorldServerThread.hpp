@@ -1,9 +1,9 @@
 #ifndef STAR_WORLD_SERVER_THREAD_HPP
 #define STAR_WORLD_SERVER_THREAD_HPP
 
-#include "StarWorldServer.hpp"
-#include "StarThread.hpp"
 #include "StarRpcThreadPromise.hpp"
+#include "StarThread.hpp"
+#include "StarWorldServer.hpp"
 
 namespace Star {
 
@@ -31,6 +31,8 @@ public:
   // Signals the WorldServerThread to stop and then joins it
   void stop();
   void setPause(shared_ptr<const atomic<bool>> pause);
+
+  void preUninit();
 
   // An exception occurred from the actual WorldServer itself and the
   // WorldServerThread has stopped running.
@@ -70,7 +72,7 @@ public:
   // also in a thread safe context.
   void setUpdateAction(WorldServerAction updateAction);
 
-  // 
+  //
   void passMessages(List<Message>&& messages);
 
   // Syncs all active sectors to disk and reads the full content of the world
@@ -105,6 +107,6 @@ private:
   mutable atomic<bool> m_shouldExpire;
 };
 
-}
+} // namespace Star
 
 #endif

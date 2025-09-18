@@ -1333,8 +1333,10 @@ void UniverseServer::shutdownInactiveWorlds() {
         }
 
         if (worldId.is<ClientShipWorldId>()) {
-          if (auto clientId = getClientForUuid(worldId.get<ClientShipWorldId>()))
+          if (auto clientId = getClientForUuid(worldId.get<ClientShipWorldId>())) {
+            world->preUninit(); // FezzedOne: Ensure the world is uninitialised *before* sending its chunks.
             m_clients.get(*clientId)->updateShipChunks(world->readChunks());
+          }
         }
 
         m_worlds.remove(worldId);
