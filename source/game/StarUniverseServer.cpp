@@ -2177,8 +2177,9 @@ void UniverseServer::doDisconnection(ConnectionId clientId, String const& reason
     if (m_connectionServer->connectionIsOpen(clientId)) {
       // Send the client the last ship update.
       if (auto shipWorld = getWorld(ClientShipWorldId(clientContext->playerUuid()))) {
-        clientContext->updateShipChunks(shipWorld->readChunks());
         shipWorld->stop();
+        shipWorld->preUninit();
+        clientContext->updateShipChunks(shipWorld->readChunks());
       }
       sendClientContextUpdate(clientContext);
 
