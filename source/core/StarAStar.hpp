@@ -3,12 +3,12 @@
 
 #include <queue>
 
+#include "StarBlockAllocator.hpp"
+#include "StarLexicalCast.hpp"
 #include "StarList.hpp"
 #include "StarMap.hpp"
-#include "StarSet.hpp"
-#include "StarLexicalCast.hpp"
 #include "StarMathCommon.hpp"
-#include "StarBlockAllocator.hpp"
+#include "StarSet.hpp"
 
 namespace Star {
 namespace AStar {
@@ -80,7 +80,7 @@ namespace AStar {
       Maybe<Edge> cameFrom;
     };
 
-    Path<Edge> reconstructPath(Node currentNode);
+    Maybe<Path<Edge>> reconstructPath(Node currentNode);
 
     HeuristicFunction m_heuristicCost;
     NeighborFunction m_getAdjacent;
@@ -111,13 +111,13 @@ namespace AStar {
       Maybe<ValidateEndFunction> validateEnd,
       Maybe<double> maxFScore,
       Maybe<unsigned> maxNodesToSearch)
-    : m_heuristicCost(heuristicCost),
-      m_getAdjacent(getAdjacent),
-      m_goalReached(goalReached),
-      m_returnBestIfFailed(returnBestIfFailed),
-      m_validateEnd(validateEnd),
-      m_maxFScore(maxFScore),
-      m_maxNodesToSearch(maxNodesToSearch) {}
+      : m_heuristicCost(heuristicCost),
+        m_getAdjacent(getAdjacent),
+        m_goalReached(goalReached),
+        m_returnBestIfFailed(returnBestIfFailed),
+        m_validateEnd(validateEnd),
+        m_maxFScore(maxFScore),
+        m_maxNodesToSearch(maxNodesToSearch) {}
 
   template <class Edge, class Node>
   void Search<Edge, Node>::start(Node startNode, Node goalNode) {
@@ -146,9 +146,9 @@ namespace AStar {
       return m_result.isValid();
 
     List<Edge> neighbors;
+    size_t nodeId = 0;
     while (true) {
-      if ((m_maxNodesToSearch && m_closedSet.size() > *m_maxNodesToSearch)
-          || (m_openQueue.empty() && !m_earlyExploration)) {
+      if ((m_maxNodesToSearch && m_closedSet.size() > *m_maxNodesToSearch) || (m_openQueue.empty() && !m_earlyExploration)) {
         m_finished = true;
         // Search failed. Either return the path to the closest node to the
         // target,
@@ -198,7 +198,7 @@ namespace AStar {
       if (m_goalReached(current)) {
         m_finished = true;
         m_result = reconstructPath(current);
-        return true;
+        return (bool)m_result;
       }
 
       m_closedSet.insert(current);
@@ -212,6 +212,11 @@ namespace AStar {
           continue;
 
         double newGScore = currentScore.gScore + edge.cost;
+        // FezzedOne: This check prevents closed (infinite) loops from ever showing up during reconstruction
+        // and thus causing freezes and memory leaks, at the cost of some extra memory usage while searching.
+        // This bug was discovered by Kae/Novaenia.
+        if (m_nodeMeta.contains(edge.target))
+          edge.target.nodeId = ++nodeId;
         NodeMeta& targetMeta = m_nodeMeta[edge.target];
         Score& targetScore = targetMeta.score;
         if (m_openSet.find(edge.target) == m_openSet.end() || newGScore < targetScore.gScore) {
@@ -257,10 +262,13 @@ namespace AStar {
   }
 
   template <class Edge, class Node>
-  Path<Edge> Search<Edge, Node>::reconstructPath(Node currentNode) {
+  Maybe<Path<Edge>> Search<Edge, Node>::reconstructPath(Node currentNode) {
     Path<Edge> res; // this will be backwards, we reverse it before returning it.
     while (m_nodeMeta.find(currentNode) != m_nodeMeta.end()) {
       Maybe<Edge> currentEdge = m_nodeMeta[currentNode].cameFrom;
+      // FezzedOne: Extra sanity check just in case infinite loops ever show up despite the bugfix above.
+      if (currentEdge && res.contains(*currentEdge))
+        return Maybe<Path<Edge>>{};
       if (currentEdge.isNothing())
         break;
       res.append(*currentEdge);
@@ -269,8 +277,8 @@ namespace AStar {
     std::reverse(res.begin(), res.end());
     return res;
   }
-}
+} // namespace AStar
 
-}
+} // namespace Star
 
 #endif
