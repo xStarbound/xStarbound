@@ -206,7 +206,7 @@ namespace AStar {
       neighbors.clear();
       m_getAdjacent(current, neighbors);
 
-      for (Edge const& edge : neighbors) {
+      for (Edge& edge : neighbors) {
         if (m_closedSet.find(edge.target) != m_closedSet.end())
           // We've already visited this node.
           continue;
