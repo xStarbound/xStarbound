@@ -106,6 +106,11 @@ namespace PlatformerAStar {
     return a.position == b.position && a.velocity == b.velocity && a.nodeId == b.nodeId;
   }
 
+  // FezzedOne: Needed for an infinite loop check on paths.
+  inline bool operator==(Edge const& a, Edge const& b) {
+    return a.cost == b.cost && a.action == b.action && a.jumpVelocity == b.jumpVelocity && a.source == b.source && a.target == b.target;
+  }
+
   inline std::ostream& operator<<(std::ostream& os, Node const& node) {
     return os << strf("Node{position = {}, velocity = {}}", node.position, node.velocity);
   }
