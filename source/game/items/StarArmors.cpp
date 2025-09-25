@@ -102,7 +102,7 @@ ArmorItem::HiddenArmorTypes ArmorItem::armorTypesToHide() const {
 }
 
 void ArmorItem::setHideInStockSlots(bool hide) {
-  setInstanceValue("hideInStockSlots", hide);
+  setInstanceValue("hideInVanillaSlots", hide);
   m_hideInStockSlots = hide;
 }
 
