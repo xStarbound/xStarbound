@@ -1,18 +1,18 @@
 #include "StarObjectDatabase.hpp"
-#include "StarObject.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarIterator.hpp"
-#include "StarWorld.hpp"
 #include "StarAssets.hpp"
-#include "StarMaterialDatabase.hpp"
-#include "StarRoot.hpp"
-#include "StarImageMetadataDatabase.hpp"
-#include "StarLogging.hpp"
-#include "StarLoungeableObject.hpp"
 #include "StarContainerObject.hpp"
 #include "StarFarmableObject.hpp"
-#include "StarTeleporterObject.hpp"
+#include "StarImageMetadataDatabase.hpp"
+#include "StarIterator.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLogging.hpp"
+#include "StarLoungeableObject.hpp"
+#include "StarMaterialDatabase.hpp"
+#include "StarObject.hpp"
 #include "StarPhysicsObject.hpp"
+#include "StarRoot.hpp"
+#include "StarTeleporterObject.hpp"
+#include "StarWorld.hpp"
 
 namespace Star {
 
@@ -50,23 +50,23 @@ bool ObjectOrientation::anchorsValid(World const* world, Vec2I const& position) 
   auto materialDatabase = Root::singleton().materialDatabase();
 
   auto anchorValid = [&](Anchor const& anchor) -> bool {
-      auto space = position + anchor.position;
-      if (!world->isTileConnectable(space, anchor.layer))
+    auto space = position + anchor.position;
+    if (!world->isTileConnectable(space, anchor.layer))
+      return false;
+    if (anchor.tilled) {
+      if (!materialDatabase->isTilledMod(world->mod(space, anchor.layer)))
         return false;
-      if (anchor.tilled) {
-        if (!materialDatabase->isTilledMod(world->mod(space, anchor.layer)))
-          return false;
-      }
-      if (anchor.soil) {
-        if (!materialDatabase->isSoil(world->material(space, anchor.layer)))
-          return false;
-      }
-      if (anchor.material) {
-        if (world->material(space, anchor.layer) != *anchor.material)
-          return false;
-      }
-      return true;
-    };
+    }
+    if (anchor.soil) {
+      if (!materialDatabase->isSoil(world->material(space, anchor.layer)))
+        return false;
+    }
+    if (anchor.material) {
+      if (world->material(space, anchor.layer) != *anchor.material)
+        return false;
+    }
+    return true;
+  };
 
   bool anyValid = false;
   for (auto anchor : anchors) {
@@ -327,8 +327,8 @@ ObjectDatabase::ObjectDatabase() {
 void ObjectDatabase::cleanup() {
   MutexLocker locker(m_cacheMutex);
   m_configCache.cleanup([](String const&, ObjectConfigPtr const& config) {
-      return !config.unique();
-    });
+    return !config.unique();
+  });
 }
 
 StringList ObjectDatabase::allObjects() const {
@@ -521,21 +521,26 @@ ObjectConfigPtr ObjectDatabase::readConfig(String const& path) {
     objectConfig->health = config.getFloat("health", 1);
 
     // From N1ffe's PR: Disable particle lights if object emits light to prevent flashing (and epilepsy triggers).
-    bool particleLightsDisabled = config.get("disableParticleLights", assets->json("/objects/defaultParameters.config:disableParticleLights")).toBool()
-      && ((config.contains("lightColor") && jsonToColor(config.get("lightColor")) != Color::Black) || config.contains("lightColors"));
+    bool particleLightsDisabled = config.get("disableParticleLights", assets->json("/objects/defaultParameters.config:disableParticleLights")).toBool() && ((config.contains("lightColor") && jsonToColor(config.get("lightColor")) != Color::Black) || config.contains("lightColors"));
 
     if (auto animationConfig = config.get("animation", {})) {
       Json animationData = assets->fetchJson(animationConfig, path);
       if (particleLightsDisabled && animationData.contains("particleEmitters")) {
         auto particleEmitters = animationData.get("particleEmitters").toObject();
         for (auto& emitter : particleEmitters) {
-          auto particles = emitter.second.get("particles").toArray();
-          for (auto& particle : particles) {
-            Json innerParticle = particle.get("particle");
-            if (innerParticle.type() == Json::Type::Object && innerParticle.contains("light"))
-              particle = particle.setPath("particle.light", jsonFromColor(Color::Clear));
+          if (emitter.second.contains("particles")) {
+            auto jParticles = emitter.second.get("particles");
+            if (!jParticles.isType(Json::Type::Array)) continue;
+            auto particles = jParticles.toArray();
+            for (auto& particle : particles) {
+              if (particle.contains("particle")) {
+                Json innerParticle = particle.get("particle");
+                if (innerParticle.type() == Json::Type::Object && innerParticle.contains("light"))
+                  particle = particle.setPath("particle.light", jsonFromColor(Color::Clear));
+              }
+            }
+            emitter.second = emitter.second.setPath("particles", Json(particles));
           }
-          emitter.second = emitter.second.setPath("particles", Json(particles));
         }
         animationData = animationData.setPath("particleEmitters", Json(particleEmitters));
       }
@@ -553,18 +558,22 @@ ObjectConfigPtr ObjectDatabase::readConfig(String const& path) {
     List<ObjectOrientation::ParticleEmissionEntry> particleEmitters;
     if (config.contains("particleEmitter")) {
       Json particleEmitterConfig = config.get("particleEmitter");
-      Json particle = particleEmitterConfig.get("particle");
-      if (particleLightsDisabled && particle.type() == Json::Type::Object && particle.contains("light"))
-        particleEmitters.append(ObjectOrientation::parseParticleEmitter(path, particleEmitterConfig.setPath("particle.light", jsonFromColor(Color::Clear))));
-      else
-        particleEmitters.append(ObjectOrientation::parseParticleEmitter(path, particleEmitterConfig));
+      if (particleEmitterConfig.contains("particle")) {
+        Json particle = particleEmitterConfig.get("particle");
+        if (particleLightsDisabled && particle.type() == Json::Type::Object && particle.contains("light"))
+          particleEmitters.append(ObjectOrientation::parseParticleEmitter(path, particleEmitterConfig.setPath("particle.light", jsonFromColor(Color::Clear))));
+        else
+          particleEmitters.append(ObjectOrientation::parseParticleEmitter(path, particleEmitterConfig));
+      }
     }
     for (auto particleEmitterConfig : config.getArray("particleEmitters", {})) {
-      Json particle = particleEmitterConfig.get("particle");
-      if (particleLightsDisabled && particle.type() == Json::Type::Object && particle.contains("light"))
-        particleEmitters.append(ObjectOrientation::parseParticleEmitter(path, particleEmitterConfig.setPath("particle.light", jsonFromColor(Color::Clear))));
-      else
-        particleEmitters.append(ObjectOrientation::parseParticleEmitter(path, particleEmitterConfig));
+      if (particleEmitterConfig.contains("particle")) {
+        Json particle = particleEmitterConfig.get("particle");
+        if (particleLightsDisabled && particle.type() == Json::Type::Object && particle.contains("light"))
+          particleEmitters.append(ObjectOrientation::parseParticleEmitter(path, particleEmitterConfig.setPath("particle.light", jsonFromColor(Color::Clear))));
+        else
+          particleEmitters.append(ObjectOrientation::parseParticleEmitter(path, particleEmitterConfig));
+      }
     }
 
     for (auto orientation : objectConfig->orientations)
@@ -623,4 +632,4 @@ List<Drawable> ObjectDatabase::cursorHintDrawables(World const* world, String co
   return drawables;
 }
 
-}
+} // namespace Star
