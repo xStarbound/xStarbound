@@ -41,7 +41,6 @@ add_library(soup STATIC
   Curve25519.hpp
   DefaultRngInterface.hpp
   deflate.hpp
-  DelayedCtor.hpp
   deleter.hpp
   DetachedScheduler.hpp
   dnsClass.hpp
@@ -49,6 +48,7 @@ add_library(soup STATIC
   dnsHttpResolver.hpp
   dnsLookupTask.hpp
   dnsName.hpp
+  dnsOsResolver.hpp
   dnsQuestion.hpp
   dnsRawResolver.hpp
   dns_records.hpp
@@ -61,10 +61,13 @@ add_library(soup STATIC
   Endian.hpp
   Exception.hpp
   ffi.hpp
+  FileReader.hpp
   filesystem.hpp
   format.hpp
   FormattedText.hpp
   fwd.hpp
+  HandleBase.hpp
+  HandleRaii.hpp
   HardwareRng.hpp
   HttpRequest.hpp
   HttpRequestTask.hpp
@@ -97,13 +100,16 @@ add_library(soup STATIC
   macros.hpp
   math.hpp
   memory.hpp
-  memAllocator.hpp
+  memAllocating.hpp
   memCAllocator.hpp
+  memGuard.hpp
   MemoryRefReader.hpp
   MimeMessage.hpp
   MimeType.hpp
   Mixed.hpp
+  Module.hpp
   NamedCurves.hpp
+  Notifyable.hpp
   netConfig.hpp
   netConnectTask.hpp
   netReuseTag.hpp
@@ -118,16 +124,22 @@ add_library(soup STATIC
   ParseError.hpp
   ParserState.hpp
   parse_tree.hpp
+  Pattern.hpp
   pem.hpp
-  plusaes.hpp
+  Pointer.hpp
   PointerAndBool.hpp
+  Pointerlike.hpp
   PoppedNode.hpp
   PrimitiveRaii.hpp
+  Process.hpp
+  ProcessHandle.hpp
   Promise.hpp
   QrCode.hpp
   rand.hpp
+  Range.hpp
   RasterFont.hpp
   Reader.hpp
+  RecursiveMutex.hpp
   RegexAlternative.hpp
   RegexAnyCharConstraint.hpp
   RegexCharConstraint.hpp
@@ -210,6 +222,7 @@ add_library(soup STATIC
   TlsClientHello.hpp
   TlsContentType.hpp
   TlsEncryptedPreMasterSecret.hpp
+  TlsExtAlpn.hpp
   TlsExtensionType.hpp
   TlsHandshake.hpp
   TlsHelloExtensions.hpp
@@ -230,6 +243,7 @@ add_library(soup STATIC
   Uri.hpp
   urlenc.hpp
   version_compare.hpp
+  VirtualHandleRaii.hpp
   WeakRef.hpp
   Worker.hpp
   Writer.hpp
@@ -258,7 +272,9 @@ add_library(soup STATIC
   DetachedScheduler.cpp
   dnsHttpResolver.cpp
   dnsName.cpp
+  dnsOsResolver.cpp
   dnsRawResolver.cpp
+  dnsType.cpp
   dns_records.cpp
   dnsResolver.cpp
   dnsSmartResolver.cpp
@@ -283,7 +299,7 @@ add_library(soup STATIC
   LangDesc.cpp
   LexemeParser.cpp
   log.cpp
-  memAllocator.cpp
+  memGuard.cpp
   MimeMessage.cpp
   Mixed.cpp
   netConfig.cpp
@@ -294,9 +310,12 @@ add_library(soup STATIC
   ParserState.cpp
   parse_tree.cpp
   pem.cpp
+  Process.cpp
+  ProcessHandle.cpp
   Promise.cpp
   QrCode.cpp
   rand.cpp
+  Range.cpp
   RasterFont.cpp
   Reader.cpp
   Regex.cpp

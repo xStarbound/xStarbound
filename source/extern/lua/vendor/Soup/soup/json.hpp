@@ -2,10 +2,6 @@
 
 #include <filesystem>
 
-#include "JsonNode.hpp"
-#include "UniquePtr.hpp"
-
-// Convenience includes
 #include "JsonArray.hpp"
 #include "JsonBool.hpp"
 #include "JsonFloat.hpp"
@@ -13,13 +9,14 @@
 #include "JsonNull.hpp"
 #include "JsonObject.hpp"
 #include "JsonString.hpp"
+#include "UniquePtr.hpp"
 
 NAMESPACE_SOUP
 {
 	struct json
 	{
 		// Don't do json::decode(...)->... because:
-		// 1. UniquePtr manages the lifetime, by using the return value as a temporary like that, you will use-after-free.
+		// 1. UniquePtr manages the lifetime. By using the return value as a temporary like that, you will use-after-free.
 		// 2. The returned UniquePtr might be default-constructed in case of a parse error, so you'd be dereferencing a nullptr.
 		[[nodiscard]] static UniquePtr<JsonNode> decode(const std::string& data, int max_depth = 100) { return decode(data.data(), data.size(), max_depth); }
 		[[nodiscard]] static UniquePtr<JsonNode> decode(const char* data, size_t size, int max_depth = 100);
@@ -54,5 +51,23 @@ NAMESPACE_SOUP
 
 		void(*onArrayFinished)(void* user_data, void* array) = nullptr;
 		void(*onObjectFinished)(void* user_data, void* object) = nullptr;
+	};
+
+	struct DefaultJsonTreeWriter : public JsonTreeWriter
+	{
+		DefaultJsonTreeWriter()
+		{
+			allocArray = [](void*, size_t reserve_size) -> void* { return new JsonArray(reserve_size); };
+			allocObject = [](void*, size_t reserve_size) -> void* { return new JsonObject(reserve_size); };
+			allocString = [](void*, std::string&& value) -> void* { return new JsonString(std::move(value)); };
+			allocUnescapedString = [](void*, const char* data, size_t size) -> void* { return new JsonString(data, size); };
+			allocInt = [](void*, int64_t value) -> void* { return new JsonInt(value); };
+			allocFloat = [](void*, double value) -> void* { return new JsonFloat(value); };
+			allocBool = [](void*, bool value) -> void* { return new JsonBool(value); };
+			allocNull = [](void*) -> void* { return new JsonNull(); };
+			addToArray = [](void*, void* arr, void* value) -> void { ((JsonArray*)arr)->children.emplace_back((JsonNode*)value); };
+			addToObject = [](void*, void* obj, void* key, void* value) -> void { ((JsonObject*)obj)->children.emplace_back((JsonNode*)key, (JsonNode*)value); };
+			free = [](void*, void* node) -> void { delete (JsonNode*)node; };
+		}
 	};
 }

@@ -6,6 +6,8 @@
 #include <cstring> // memset, memcpy
 #include <string>
 
+#include "Endian.hpp"
+
 NAMESPACE_SOUP
 {
 	template <typename T>
@@ -38,6 +40,27 @@ NAMESPACE_SOUP
 			st.append(msg.data(), msg.size());
 			st.finalise();
 			return st.getDigest();
+		}
+
+		[[nodiscard]] static std::string mgf1(const void* seed_data, size_t seed_size, size_t out_len)
+		{
+			std::string out;
+			out.reserve(((out_len / T::DIGEST_BYTES) + 1) * T::DIGEST_BYTES);
+			for (uint32_t counter = 0; out.size() < out_len; ++counter)
+			{
+				const auto counter_be = Endianness::toNetwork(counter);
+
+				typename T::State st;
+				st.append(seed_data, seed_size);
+				st.append(&counter_be, 4);
+				st.finalise();
+				out.append(st.getDigest());
+			}
+			if (size_t x = out.size() - out_len)
+			{
+				out.erase(out_len, x);
+			}
+			return out;
 		}
 
 		// used as (secret, label, seed) in the RFC
@@ -97,8 +120,57 @@ NAMESPACE_SOUP
 			return res;
 		}
 
+		[[nodiscard]] static std::string hkdf_extract(const std::string& salt, const std::string& ikm) SOUP_EXCAL
+		{
+			std::string key = salt;
+			if (key.empty())
+			{
+				key.resize(T::DIGEST_BYTES, '\0');
+			}
+			HmacState st(key);
+			st.append(ikm.data(), ikm.size());
+			st.finalise();
+			return st.getDigest();
+		}
+
+		[[nodiscard]] static std::string hkdf_expand(const std::string& prk, const std::string& info, size_t bytes) SOUP_EXCAL
+		{
+			std::string okm{};
+			okm.reserve(((bytes / T::DIGEST_BYTES) + 1) * T::DIGEST_BYTES);
+
+			std::string t{};
+			uint8_t counter = 1;
+			while (okm.size() < bytes)
+			{
+				HmacState st(prk);
+				if (!t.empty())
+				{
+					st.append(t.data(), t.size());
+				}
+				st.append(info.data(), info.size());
+				st.append(&counter, 1);
+				st.finalise();
+				t = st.getDigest();
+				okm.append(t);
+				++counter;
+			}
+
+			if (okm.size() != bytes)
+			{
+				okm.erase(bytes);
+			}
+			return okm;
+		}
+
+		[[nodiscard]] static std::string hkdf(const std::string& salt, const std::string& ikm, const std::string& info, size_t bytes) SOUP_EXCAL
+		{
+			return hkdf_expand(hkdf_extract(salt, ikm), info, bytes);
+		}
+
 		struct HmacState
 		{
+			using Hash = T;
+
 			typename T::State inner;
 			typename T::State outer;
 

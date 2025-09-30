@@ -3,15 +3,28 @@
 
 #include "vendor/Soup/soup/Bigint.hpp"
 
-void pushbigint (lua_State *L, soup::Bigint&& x);
+void pushbigint (lua_State *L, soup::Bigint x);
 
 soup::Bigint* checkbigint (lua_State *L, int i) {
+  if (lua_type(L, i) == LUA_TNUMBER) {
+    lua_pushinteger(L, luaL_checkinteger(L, i));
+    size_t len;
+    const char *str = lua_tolstring(L, -1, &len);
+    pushbigint(L, soup::Bigint::fromString(str, len));
+    lua_replace(L, -2);
+    lua_replace(L, i);
+  }
   return (soup::Bigint*)luaL_checkudata(L, i, "pluto:bigint");
 }
 
 static int bigint_new (lua_State *L) {
+  int i = 1;
+  if (lua_type(L, 1) == LUA_TNUMBER) {
+    lua_pushinteger(L, luaL_checkinteger(L, 1));
+    i = -1;
+  }
   size_t len;
-  const char *str = lua_tolstring(L, 1, &len);
+  const char *str = lua_tolstring(L, i, &len);
   pushbigint(L, soup::Bigint::fromString(str, len));
   return 1;
 }
@@ -73,6 +86,13 @@ static int bigint_le (lua_State *L) {
   return 1;
 }
 
+static int bigint_unm (lua_State *L) {
+  soup::Bigint cpy = *checkbigint(L, 1);
+  cpy.negative ^= 1;
+  pushbigint(L, std::move(cpy));
+  return 1;
+}
+
 static int bigint_hex (lua_State *L) {
   pluto_pushstring(L, checkbigint(L, 1)->toStringHex());
   return 1;
@@ -88,7 +108,43 @@ static int bigint_bitlength (lua_State *L) {
   return 1;
 }
 
-void pushbigint (lua_State *L, soup::Bigint&& x) {
+static int bigint_abs (lua_State *L) {
+  pushbigint(L, checkbigint(L, 1)->abs());
+  return 1;
+}
+
+static int bigint_gcd (lua_State *L) {
+  pushbigint(L, checkbigint(L, 1)->gcd(*checkbigint(L, 2)));
+  return 1;
+}
+
+static int bigint_isprobableprime (lua_State *L) {
+  const auto self = checkbigint(L, 1);
+  const auto miller_rabin_iterations = (int)luaL_checkinteger(L, 2);
+  lua_pushboolean(L, self->isProbablePrime(miller_rabin_iterations));
+  return 1;
+}
+
+static int bigint_export (lua_State *L) {
+  const auto self = checkbigint(L, 1);
+  if (lua_isnoneornil(L, 2)) {
+    pluto_pushstring(L, self->toBinary());
+  }
+  else {
+    const auto min_bytes = luaL_checkinteger(L, 2);
+    pluto_pushstring(L, self->toBinary(min_bytes));
+  }
+  return 1;
+}
+
+static int bigint_import (lua_State *L) {
+  size_t size;
+  auto data = luaL_checklstring(L, 1, &size);
+  pushbigint(L, soup::Bigint::fromBinary(data, size));
+  return 1;
+}
+
+void pushbigint (lua_State *L, soup::Bigint x) {
   new (lua_newuserdata(L, sizeof(soup::Bigint))) soup::Bigint(std::move(x));
   if (l_unlikely(luaL_newmetatable(L, "pluto:bigint"))) {
     lua_pushliteral(L, "__gc");
@@ -127,6 +183,9 @@ void pushbigint (lua_State *L, soup::Bigint&& x) {
     lua_pushliteral(L, "__le");
     lua_pushcfunction(L, bigint_le);
     lua_settable(L, -3);
+    lua_pushliteral(L, "__unm");
+    lua_pushcfunction(L, bigint_unm);
+    lua_settable(L, -3);
     lua_pushliteral(L, "__index");
     luaL_loadbuffer(L, "return require\"pluto:bigint\"", 28, 0);
     lua_call(L, 0, 1);
@@ -150,6 +209,11 @@ static const luaL_Reg funcs_bigint[] = {
   {"hex", bigint_hex},
   {"binary", bigint_binary},
   {"bitlength", bigint_bitlength},
+  {"abs", bigint_abs},
+  {"gcd", bigint_gcd},
+  {"isprobableprime", bigint_isprobableprime},
+  {"export", bigint_export},
+  {"import", bigint_import},
   {nullptr, nullptr}
 };
 
