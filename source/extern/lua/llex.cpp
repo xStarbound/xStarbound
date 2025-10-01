@@ -344,41 +344,43 @@ void luaX_setinput (lua_State *L, LexState *ls, ZIO *z, TString *source,
           ls->tidx = std::distance(ls->tokens.begin(), i);
           luaX_syntaxerror(ls, "expected string after $include");
         }
-        const char *fname = getstr(i->seminfo.ts);
-#ifdef PLUTO_LOADFILE_HOOK
-        if (!PLUTO_LOADFILE_HOOK(ls->L, fname)) {
-          ls->tidx = std::distance(ls->tokens.begin(), i);
-          luaX_syntaxerror(ls, "disallowed by content moderation policy");
-        }
-#endif
-        std::ifstream file(fname, std::ios::binary);
-        if (l_unlikely(!file.is_open())) {
-          ls->tidx = std::distance(ls->tokens.begin(), i);
-          luaX_syntaxerror(ls, "cannot open file for $include");
-        }
-        std::string code((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        LoadS lsdata{code.c_str(), code.size()};
-        ZIO z2;
-        luaZ_init(ls->L, &z2, getS, &lsdata);
-        int firstchar = zgetc(&z2);
-        Mbuffer buff2;
-        luaZ_initbuffer(ls->L, &buff2);
-        LexState ls2;
-        ls2.buff = &buff2;
-        ls2.h = ls->h;
-        ls2.dyd = ls->dyd;
-        luaX_setinput(ls->L, &ls2, &z2, luaX_newstring(ls, fname), firstchar);
-        luaZ_freebuffer(ls->L, &buff2);
-        size_t count = ls2.tokens.size();
-        if (count > 0 && ls2.tokens.back().token == TK_EOS)
-          --count;
-        i = ls->tokens.erase(directive_begin, i + 1);  /* remove directive */
-        auto insert_pos = ls->tokens.insert(i, ls2.tokens.begin(), ls2.tokens.begin() + count);
-        for (auto pos = insert_pos; pos != insert_pos + count; ++pos)
-          pos->line = Token::LINE_INJECTED;
-        i = insert_pos + count;
-        for (auto &m : ls2.macros)
-          ls->macros.insert(m);
+        ++i; /* FezzedOne: Skip included filename after the syntax check. */
+        /* FezzedOne: Disabled the code for `$include` to prevent sandbox bypasses. */
+//         const char *fname = getstr(i->seminfo.ts);
+// #ifdef PLUTO_LOADFILE_HOOK
+//         if (!PLUTO_LOADFILE_HOOK(ls->L, fname)) {
+//           ls->tidx = std::distance(ls->tokens.begin(), i);
+//           luaX_syntaxerror(ls, "disallowed by content moderation policy");
+//         }
+// #endif
+//         std::ifstream file(fname, std::ios::binary);
+//         if (l_unlikely(!file.is_open())) {
+//           ls->tidx = std::distance(ls->tokens.begin(), i);
+//           luaX_syntaxerror(ls, "cannot open file for $include");
+//         }
+//         std::string code((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+//         LoadS lsdata{code.c_str(), code.size()};
+//         ZIO z2;
+//         luaZ_init(ls->L, &z2, getS, &lsdata);
+//         int firstchar = zgetc(&z2);
+//         Mbuffer buff2;
+//         luaZ_initbuffer(ls->L, &buff2);
+//         LexState ls2;
+//         ls2.buff = &buff2;
+//         ls2.h = ls->h;
+//         ls2.dyd = ls->dyd;
+//         luaX_setinput(ls->L, &ls2, &z2, luaX_newstring(ls, fname), firstchar);
+//         luaZ_freebuffer(ls->L, &buff2);
+//         size_t count = ls2.tokens.size();
+//         if (count > 0 && ls2.tokens.back().token == TK_EOS)
+//           --count;
+//         i = ls->tokens.erase(directive_begin, i + 1);  /* remove directive */
+//         auto insert_pos = ls->tokens.insert(i, ls2.tokens.begin(), ls2.tokens.begin() + count);
+//         for (auto pos = insert_pos; pos != insert_pos + count; ++pos)
+//           pos->line = Token::LINE_INJECTED;
+//         i = insert_pos + count;
+//         for (auto &m : ls2.macros)
+//           ls->macros.insert(m);
         continue;
       }
     }
