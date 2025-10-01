@@ -308,150 +308,161 @@ Assets::Assets(Settings settings, StringList assetSources) {
     // Runs any load scripts specified in the asset source's `_metadata` file. Not to be confused with `.patch.lua` scripts!
     auto metadata = source->metadata();
     if (auto scripts = metadata.ptr("scripts")) {
-      if (auto scriptGroup = scripts->optArray(groupName)) {
+      if (scripts->isType(Json::Type::Object)) {
         auto sourceName = metadata.value("name", File::baseName(sourcePath));
 
         String sourceNameStr = strf("{}", sourceName);
         if (sourceName.type() == Json::Type::String) sourceNameStr = sourceName.toString();
 
-        String memoryName = strf("{}::{}", sourceNameStr, groupName);
-        // FezzedOne: Add all metadata keys from the base asset source to any memory asset source derived from it, then change the name accordingly.
-        JsonObject memoryMetadata = source->metadata(); // { {"name", memoryName} };
-        memoryMetadata.set("name", memoryName);
-        auto memoryAssets = make_shared<MemoryAssetSource>(memoryName, memoryMetadata);
+        if (!scripts->get(groupName, Json()).isType(Json::Type::Array))
+          Logger::warn("Ignored non-array \"{}\" value in preprocessor script config for asset source '{}'", groupName, sourceNameStr);
 
-        Logger::info("Running {} preprocessing scripts for asset source '{}': {}", groupName == "onLoad" ? "on-load" : "post-load", sourceNameStr, *scriptGroup);
+        if (auto scriptGroup = scripts->optArray(groupName)) {
+          String memoryName = strf("{}::{}", sourceNameStr, groupName);
+          // FezzedOne: Add all metadata keys from the base asset source to any memory asset source derived from it, then change the name accordingly.
+          JsonObject memoryMetadata = source->metadata(); // { {"name", memoryName} };
+          memoryMetadata.set("name", memoryName);
+          auto memoryAssets = make_shared<MemoryAssetSource>(memoryName, memoryMetadata);
 
-        try {
-          auto context = luaEngine->createContext();
+          Logger::info("Running {} preprocessing scripts for asset source '{}': {}", groupName == "onLoad" ? "on-load" : "post-load", sourceNameStr, *scriptGroup);
 
-          // FezzedOne: Added `require` to preprocessor scripts.
-          context.setRequireFunction([&](LuaContext& context, LuaString const& module) {
-            if (!context.get("_SBLOADED").is<LuaTable>())
-              context.set("_SBLOADED", context.createTable());
-            auto t = context.get<LuaTable>("_SBLOADED");
-            if (!t.contains(module)) {
-              t.set(module, true);
-              const String path = module.toString();
+          try {
+            auto context = luaEngine->createContext();
+
+            // FezzedOne: Added `require` to preprocessor scripts.
+            context.setRequireFunction([&](LuaContext& context, LuaString const& module) {
+              if (!context.get("_SBLOADED").is<LuaTable>())
+                context.set("_SBLOADED", context.createTable());
+              auto t = context.get<LuaTable>("_SBLOADED");
+              if (!t.contains(module)) {
+                t.set(module, true);
+                const String path = module.toString();
+                ByteArray script;
+                if (m_files.contains(path)) {
+                  script = this->read(path);
+                } else {
+                  script = source->read(path);
+                }
+                context.load(script, path);
+              }
+            });
+
+            /* FezzedOne: Inlined `decorateLuaContext` to fix an optimisation-related segfault on some builds. */
+            if (memoryAssets) {
+              // Kae: Re-add the assets callbacks with more callbacks.
+              context.remove("assets");
+              auto callbacks = makeBaseAssetCallbacks(false);
+              callbacks.registerCallback("add", [this, &source, &memoryAssets](LuaEngine& engine, String const& path, LuaValue const& data) {
+                ByteArray bytes;
+                Image imageCopy;
+                bool isImage = false;
+                if (auto str = engine.luaMaybeTo<String>(data))
+                  bytes = ByteArray(str->utf8Ptr(), str->utf8Size());
+                else if (auto image = engine.luaMaybeTo<Image>(data)) {
+                  imageCopy = *image;
+                  isImage = true;
+                } else if (auto rawBytes = engine.luaMaybeTo<ByteArray>(data)) {
+                  bytes = *rawBytes;
+                } else {
+                  auto json = engine.luaTo<Json>(data).repr();
+                  bytes = ByteArray(json.utf8Ptr(), json.utf8Size());
+                }
+                if (isImage)
+                  memoryAssets->set(path, imageCopy);
+                else
+                  memoryAssets->set(path, bytes);
+
+                // FezzedOne: Make sure the asset gets added to the overall file list.
+                if (m_files.ptr(path)) {
+                  auto& descriptor = m_files[path];
+                  descriptor.sourceName = path;
+                  descriptor.source = memoryAssets;
+                } else {
+                  m_files[path] = {
+                      // FezzedOne: Fixed MSVC compatibility.
+                      path,
+                      memoryAssets,
+                      {},
+                  };
+                }
+                m_filesByExtension[AssetPath::extension(path).toLower()].insert(path);
+              });
+
+              callbacks.registerCallback("patch", [this, &memoryAssets](String const& path, String const& patchPath) -> bool {
+                if (auto file = m_files.ptr(path)) {
+                  if (memoryAssets->contains(patchPath)) {
+                    file->patchSources.append(make_pair(patchPath, memoryAssets));
+                    return true;
+                  } else {
+                    if (auto asset = m_files.ptr(patchPath)) {
+                      file->patchSources.append(make_pair(patchPath, asset->source));
+                      return true;
+                    }
+                  }
+                }
+                return false;
+              });
+
+              callbacks.registerCallback("erase", [this](String const& path) -> bool {
+                bool erased = m_files.erase(path);
+                if (erased)
+                  m_filesByExtension[AssetPath::extension(path).toLower()].erase(path);
+                return erased;
+              });
+
+              // FezzedOne: Lists all already *loaded* asset source file paths. Useful in on-load scripts. Does not list memory asset sources.
+              callbacks.registerCallback("loadedSources", [&, this]() -> StringList {
+                StringList loadedSources{};
+                for (auto loadedSource : sources) {
+                  loadedSources.append(loadedSource.first);
+                }
+                return loadedSources;
+              });
+
+              // FezzedOne: Returns metadata for a given *loaded* asset source, or `nil`. Memory asset sources will return `nil`.
+              callbacks.registerCallback("sourceMetadata", [&, this](String const& sourcePath) -> Json {
+                Json metadata = Json();
+                for (auto loadedSource : sources) {
+                  if (loadedSource.first == sourcePath) {
+                    metadata = loadedSource.second->metadata();
+                    break;
+                  }
+                }
+                return metadata;
+              });
+
+              context.setCallbacks("assets", callbacks);
+            }
+            /* End of inlined lambda. */
+
+            for (auto& jPath : *scriptGroup) {
+              if (!jPath.isType(Json::Type::String)) {
+                Logger::warn("Ignored non-string item '{}' in preprocessor script array", jPath.repr());
+                continue;
+              }
+              const String path = jPath.toString();
               ByteArray script;
-              if (m_files.contains(path)) {
-                script = this->read(path);
+              // FezzedOne: Made preprocessor scripts replaceable before they're run.
+              const String frontLoadPath = strf("{}.frontload", path);
+              if (m_files.contains(frontLoadPath)) {
+                const Json sourceName = m_files.get(frontLoadPath).source->metadata().value("name", "<no name>");
+                Logger::info("Using replacement '{}' script from '{}'",
+                    frontLoadPath,
+                    sourceName.isType(Json::Type::String) ? sourceName.toString() : sourceName.repr());
+                script = this->read(frontLoadPath);
               } else {
                 script = source->read(path);
               }
               context.load(script, path);
             }
-          });
-
-          /* FezzedOne: Inlined `decorateLuaContext` to fix an optimisation-related segfault on some builds. */
-          if (memoryAssets) {
-            // Kae: Re-add the assets callbacks with more callbacks.
-            context.remove("assets");
-            auto callbacks = makeBaseAssetCallbacks(false);
-            callbacks.registerCallback("add", [this, &source, &memoryAssets](LuaEngine& engine, String const& path, LuaValue const& data) {
-              ByteArray bytes;
-              Image imageCopy;
-              bool isImage = false;
-              if (auto str = engine.luaMaybeTo<String>(data))
-                bytes = ByteArray(str->utf8Ptr(), str->utf8Size());
-              else if (auto image = engine.luaMaybeTo<Image>(data)) {
-                imageCopy = *image;
-                isImage = true;
-              } else if (auto rawBytes = engine.luaMaybeTo<ByteArray>(data)) {
-                bytes = *rawBytes;
-              } else {
-                auto json = engine.luaTo<Json>(data).repr();
-                bytes = ByteArray(json.utf8Ptr(), json.utf8Size());
-              }
-              if (isImage)
-                memoryAssets->set(path, imageCopy);
-              else
-                memoryAssets->set(path, bytes);
-
-              // FezzedOne: Make sure the asset gets added to the overall file list.
-              if (m_files.ptr(path)) {
-                auto& descriptor = m_files[path];
-                descriptor.sourceName = path;
-                descriptor.source = memoryAssets;
-              } else {
-                m_files[path] = {
-                    // FezzedOne: Fixed MSVC compatibility.
-                    path,
-                    memoryAssets,
-                    {},
-                };
-              }
-              m_filesByExtension[AssetPath::extension(path).toLower()].insert(path);
-            });
-
-            callbacks.registerCallback("patch", [this, &memoryAssets](String const& path, String const& patchPath) -> bool {
-              if (auto file = m_files.ptr(path)) {
-                if (memoryAssets->contains(patchPath)) {
-                  file->patchSources.append(make_pair(patchPath, memoryAssets));
-                  return true;
-                } else {
-                  if (auto asset = m_files.ptr(patchPath)) {
-                    file->patchSources.append(make_pair(patchPath, asset->source));
-                    return true;
-                  }
-                }
-              }
-              return false;
-            });
-
-            callbacks.registerCallback("erase", [this](String const& path) -> bool {
-              bool erased = m_files.erase(path);
-              if (erased)
-                m_filesByExtension[AssetPath::extension(path).toLower()].erase(path);
-              return erased;
-            });
-
-            // FezzedOne: Lists all already *loaded* asset source file paths. Useful in on-load scripts. Does not list memory asset sources.
-            callbacks.registerCallback("loadedSources", [&, this]() -> StringList {
-              StringList loadedSources{};
-              for (auto loadedSource : sources) {
-                loadedSources.append(loadedSource.first);
-              }
-              return loadedSources;
-            });
-
-            // FezzedOne: Returns metadata for a given *loaded* asset source, or `nil`. Memory asset sources will return `nil`.
-            callbacks.registerCallback("sourceMetadata", [&, this](String const& sourcePath) -> Json {
-              Json metadata = Json();
-              for (auto loadedSource : sources) {
-                if (loadedSource.first == sourcePath) {
-                  metadata = loadedSource.second->metadata();
-                  break;
-                }
-              }
-              return metadata;
-            });
-
-            context.setCallbacks("assets", callbacks);
+          } catch (LuaException const& e) {
+            Logger::error("Exception while running {} scripts from asset source '{}': {}", groupName == "onLoad" ? "on-load" : "post-load", sourcePath, e.what());
+          } catch (std::exception const& e) {
+            Logger::error("Exception while loading {} scripts from asset source '{}': {}", groupName == "onLoad" ? "on-load" : "post-load", sourcePath, e.what());
           }
-          /* End of inlined lambda. */
-
-          for (auto& jPath : *scriptGroup) {
-            const String path = jPath.toString();
-            ByteArray script;
-            // FezzedOne: Made preprocessor scripts replaceable before they're run.
-            const String frontLoadPath = strf("{}.frontload", path);
-            if (m_files.contains(frontLoadPath)) {
-              const Json sourceName = m_files.get(frontLoadPath).source->metadata().value("name", "<no name>");
-              Logger::info("Using replacement '{}' script from '{}'",
-                  frontLoadPath,
-                  sourceName.isType(Json::Type::String) ? sourceName.toString() : sourceName.repr());
-              script = this->read(frontLoadPath);
-            } else {
-              script = source->read(path);
-            }
-            context.load(script, path);
-          }
-        } catch (LuaException const& e) {
-          Logger::error("Exception while running {} scripts from asset source '{}': {}", groupName, sourcePath, e.what());
+          if (!memoryAssets->empty())
+            addSource(strf("{}::{}", sourcePath, groupName), memoryAssets);
         }
-        if (!memoryAssets->empty())
-          addSource(strf("{}::{}", sourcePath, groupName), memoryAssets);
       }
     }
     // Kae: Clear any cached files that may have been added by preprocessing scripts, as they may no longer be valid.
