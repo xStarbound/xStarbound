@@ -226,7 +226,8 @@ Maybe<JsonArray> LuaConverter<JsonArray>::to(LuaEngine& engine, LuaValue v) {
 LuaEnginePtr LuaEngine::create(bool safe) {
   LuaEnginePtr self(new LuaEngine);
 
-  self->m_state = lua_newstate(allocate, nullptr);
+  // FezzedOne: Undocumented change to Pluto v0.12 where a seed argument is now required for new Lua states.
+  self->m_state = lua_newstate(allocate, nullptr, (unsigned)Time::monotonicMilliseconds());
 
   self->m_scriptDefaultEnvRegistryId = LUA_NOREF;
   self->m_wrappedFunctionMetatableRegistryId = LUA_NOREF;
