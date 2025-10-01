@@ -1042,6 +1042,63 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
     addDrawable(std::move(drawable));
   }
 
+  HashMap<uint8_t, Drawable> openSbCosmetics;
+
+  if (!m_chestArmorStack.empty() || !m_legsArmorStack.empty()) {
+    // FezzedOne: Chest and legs items in the first four OpenStarbound cosmetic slots are rendered at this point in order to emulate OpenStarbound's rendering.
+    size_t legsStackSize = m_legsArmorStack.size(), chestStackSize = m_chestArmorStack.size();
+    size_t largerStackSize = std::max<size_t>(legsStackSize, chestStackSize);
+
+    for (size_t i = 0; i < largerStackSize; i++) {
+      if (i < legsStackSize) {
+        auto& ordering = m_legsArmorStack[i].ordering;
+        if (ordering < 4) {
+          String image;
+          if (dance.isValid() && danceStep->bodyFrame)
+            image = strf("{}:{}", m_legsArmorStack[i].frameset, *danceStep->bodyFrame);
+          else if (m_state == Idle)
+            image = strf("{}:{}", m_legsArmorStack[i].frameset, m_identity.personality.idle);
+          else
+            image = strf("{}:{}.{}", m_legsArmorStack[i].frameset, frameBase(m_state), bodyStateSeq);
+          auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, {});
+          drawable.imagePart().addDirectives(m_legsArmorStack[i].directives, true);
+          openSbCosmetics[ordering] = drawable;
+        }
+      }
+
+      if (i < chestStackSize) {
+        auto& ordering = m_chestArmorStack[i].ordering;
+        if (ordering < 4) {
+          String image;
+          Vec2F position;
+          if (dance.isValid() && danceStep->bodyFrame)
+            image = strf("{}:{}", m_chestArmorStack[i].frameset, *danceStep->bodyFrame);
+          else if (m_state == Run)
+            image = strf("{}:run", m_chestArmorStack[i].frameset);
+          else if (m_state == Idle)
+            image = strf("{}:{}", m_chestArmorStack[i].frameset, m_identity.personality.idle);
+          else if (m_state == Duck)
+            image = strf("{}:duck", m_chestArmorStack[i].frameset);
+          else if ((m_state == Swim) || (m_state == SwimIdle))
+            image = strf("{}:swim", m_chestArmorStack[i].frameset);
+          else
+            image = strf("{}:chest.1", m_chestArmorStack[i].frameset);
+          if (m_state != Duck)
+            position[1] += bobYOffset;
+          auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, position);
+          drawable.imagePart().addDirectives(m_chestArmorStack[i].directives, true);
+          openSbCosmetics[ordering] = drawable;
+        }
+      }
+    }
+
+    // FezzedOne: Ensures oSB chest and leg cosmetics are rendered in the proper layer order.
+    for (size_t i = 0; i != 4; i++) {
+      if (auto drawable = openSbCosmetics.ptr(i))
+        addDrawable(std::move(*drawable));
+    }
+  }
+
   if (!m_chestArmorFrameset.empty()) {
     String image;
     Vec2F position;
@@ -1067,55 +1124,58 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
   if (!m_chestArmorStack.empty() || !m_legsArmorStack.empty()) {
     size_t legsStackSize = m_legsArmorStack.size(), chestStackSize = m_chestArmorStack.size();
     size_t largerStackSize = std::max<size_t>(legsStackSize, chestStackSize);
-    HashMap<uint8_t, Drawable> openSbCosmetics;
 
     for (size_t i = 0; i < largerStackSize; i++) {
       if (i < legsStackSize) {
-        String image;
-        if (dance.isValid() && danceStep->bodyFrame)
-          image = strf("{}:{}", m_legsArmorStack[i].frameset, *danceStep->bodyFrame);
-        else if (m_state == Idle)
-          image = strf("{}:{}", m_legsArmorStack[i].frameset, m_identity.personality.idle);
-        else
-          image = strf("{}:{}.{}", m_legsArmorStack[i].frameset, frameBase(m_state), bodyStateSeq);
-        auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, {});
-        drawable.imagePart().addDirectives(m_legsArmorStack[i].directives, true);
         auto& ordering = m_legsArmorStack[i].ordering;
-        if (ordering >= 12)
-          addDrawable(std::move(drawable));
-        else
-          openSbCosmetics[ordering] = drawable;
+        if (ordering >= 4) {
+          String image;
+          if (dance.isValid() && danceStep->bodyFrame)
+            image = strf("{}:{}", m_legsArmorStack[i].frameset, *danceStep->bodyFrame);
+          else if (m_state == Idle)
+            image = strf("{}:{}", m_legsArmorStack[i].frameset, m_identity.personality.idle);
+          else
+            image = strf("{}:{}.{}", m_legsArmorStack[i].frameset, frameBase(m_state), bodyStateSeq);
+          auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, {});
+          drawable.imagePart().addDirectives(m_legsArmorStack[i].directives, true);
+          if (ordering >= 12)
+            addDrawable(std::move(drawable));
+          else
+            openSbCosmetics[ordering] = drawable;
+        }
       }
 
       if (i < chestStackSize) {
-        String image;
-        Vec2F position;
-        if (dance.isValid() && danceStep->bodyFrame)
-          image = strf("{}:{}", m_chestArmorStack[i].frameset, *danceStep->bodyFrame);
-        else if (m_state == Run)
-          image = strf("{}:run", m_chestArmorStack[i].frameset);
-        else if (m_state == Idle)
-          image = strf("{}:{}", m_chestArmorStack[i].frameset, m_identity.personality.idle);
-        else if (m_state == Duck)
-          image = strf("{}:duck", m_chestArmorStack[i].frameset);
-        else if ((m_state == Swim) || (m_state == SwimIdle))
-          image = strf("{}:swim", m_chestArmorStack[i].frameset);
-        else
-          image = strf("{}:chest.1", m_chestArmorStack[i].frameset);
-        if (m_state != Duck)
-          position[1] += bobYOffset;
-        auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, position);
-        drawable.imagePart().addDirectives(m_chestArmorStack[i].directives, true);
         auto& ordering = m_chestArmorStack[i].ordering;
-        if (ordering >= 12)
-          addDrawable(std::move(drawable));
-        else
-          openSbCosmetics[ordering] = drawable;
+        if (ordering >= 4) {
+          String image;
+          Vec2F position;
+          if (dance.isValid() && danceStep->bodyFrame)
+            image = strf("{}:{}", m_chestArmorStack[i].frameset, *danceStep->bodyFrame);
+          else if (m_state == Run)
+            image = strf("{}:run", m_chestArmorStack[i].frameset);
+          else if (m_state == Idle)
+            image = strf("{}:{}", m_chestArmorStack[i].frameset, m_identity.personality.idle);
+          else if (m_state == Duck)
+            image = strf("{}:duck", m_chestArmorStack[i].frameset);
+          else if ((m_state == Swim) || (m_state == SwimIdle))
+            image = strf("{}:swim", m_chestArmorStack[i].frameset);
+          else
+            image = strf("{}:chest.1", m_chestArmorStack[i].frameset);
+          if (m_state != Duck)
+            position[1] += bobYOffset;
+          auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, position);
+          drawable.imagePart().addDirectives(m_chestArmorStack[i].directives, true);
+          if (ordering >= 12)
+            addDrawable(std::move(drawable));
+          else
+            openSbCosmetics[ordering] = drawable;
+        }
       }
     }
 
     // FezzedOne: Ensures oSB chest and leg cosmetics are rendered in the proper layer order.
-    for (size_t i = 0; i != 12; i++) {
+    for (size_t i = 4; i != 12; i++) {
       if (auto drawable = openSbCosmetics.ptr(i))
         addDrawable(std::move(*drawable));
     }
@@ -1175,8 +1235,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
     }
     drawable.imagePart().addDirectives(getHelmetMaskDirectives(), true);
     if (!m_headArmorStack.empty()) {
-      for (ArmorEntry entry : m_headArmorStack)
-        drawable.imagePart().addDirectives(entry.maskDirectives, true);
+      for (ArmorEntry entry : m_headArmorStack) {
+        if (!entry.maskHumanoidBaseOnly)
+          drawable.imagePart().addDirectives(entry.maskDirectives, true);
+      }
     }
     addDrawable(std::move(drawable));
   }
@@ -1197,8 +1259,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
       }
       drawable.imagePart().addDirectives(getHelmetMaskDirectives(), true);
       if (!m_headArmorStack.empty()) {
-        for (ArmorEntry entry : m_headArmorStack)
-          drawable.imagePart().addDirectives(entry.maskDirectives, true);
+        for (ArmorEntry entry : m_headArmorStack) {
+          if (!entry.maskHumanoidBaseOnly)
+            drawable.imagePart().addDirectives(entry.maskDirectives, true);
+        }
       }
       addDrawable(std::move(drawable));
     }
@@ -1213,8 +1277,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
     }
     drawable.imagePart().addDirectives(getHeadDirectives(), true);
     if (!m_headArmorStack.empty()) {
-      for (ArmorEntry entry : m_headArmorStack)
-        drawable.imagePart().addDirectives(entry.maskDirectives, true);
+      for (ArmorEntry entry : m_headArmorStack) {
+        if (!entry.maskHumanoidBaseOnly)
+          drawable.imagePart().addDirectives(entry.maskDirectives, true);
+      }
     }
     addDrawable(std::move(drawable));
   }
@@ -1230,8 +1296,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
       }
       drawable.imagePart().addDirectives(m_headArmorStack[i].directives, true);
       if (i != stackSize) {
-        for (size_t j = i + 1; j < stackSize; j++)
-          drawable.imagePart().addDirectives(m_headArmorStack[j].maskDirectives, true);
+        for (size_t j = i + 1; j < stackSize; j++) {
+          if (!m_headArmorStack[j].maskHumanoidBaseOnly)
+            drawable.imagePart().addDirectives(m_headArmorStack[j].maskDirectives, true);
+        }
       }
       addDrawable(std::move(drawable));
     }
@@ -1654,8 +1722,10 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
       }
       drawable.imagePart().addDirectives(getHelmetMaskDirectives(), true);
       if (!m_headArmorStack.empty()) {
-        for (ArmorEntry entry : m_headArmorStack)
-          drawable.imagePart().addDirectives(entry.maskDirectives, true);
+        for (ArmorEntry entry : m_headArmorStack) {
+          if (!entry.maskHumanoidBaseOnly)
+            drawable.imagePart().addDirectives(entry.maskDirectives, true);
+        }
       }
       addDrawable(std::move(drawable));
     }
@@ -1672,8 +1742,10 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
         }
         drawable.imagePart().addDirectives(getHelmetMaskDirectives(), true);
         if (!m_headArmorStack.empty()) {
-          for (ArmorEntry entry : m_headArmorStack)
-            drawable.imagePart().addDirectives(entry.maskDirectives, true);
+          for (ArmorEntry entry : m_headArmorStack) {
+            if (!entry.maskHumanoidBaseOnly)
+              drawable.imagePart().addDirectives(entry.maskDirectives, true);
+          }
         }
         addDrawable(std::move(drawable));
       }
@@ -1684,8 +1756,10 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
       Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, personality.headOffset);
       drawable.imagePart().addDirectives(getHeadDirectives(), true);
       if (!m_headArmorStack.empty()) {
-        for (ArmorEntry entry : m_headArmorStack)
-          drawable.imagePart().addDirectives(entry.maskDirectives, true);
+        for (ArmorEntry entry : m_headArmorStack) {
+          if (!entry.maskHumanoidBaseOnly)
+            drawable.imagePart().addDirectives(entry.maskDirectives, true);
+        }
       }
       addDrawable(std::move(drawable));
     }
@@ -1697,8 +1771,10 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
         Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, personality.headOffset);
         drawable.imagePart().addDirectives(m_headArmorStack[i].directives, true);
         if (i != stackSize) {
-          for (size_t j = i + 1; j < stackSize; j++)
-            drawable.imagePart().addDirectives(m_headArmorStack[j].maskDirectives, true);
+          for (size_t j = i + 1; j < stackSize; j++) {
+            if (!m_headArmorStack[j].maskHumanoidBaseOnly)
+              drawable.imagePart().addDirectives(m_headArmorStack[j].maskDirectives, true);
+          }
         }
         addDrawable(std::move(drawable));
       }

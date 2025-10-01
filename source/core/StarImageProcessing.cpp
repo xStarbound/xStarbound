@@ -12,6 +12,8 @@
 namespace Star {
 
 Image scaleNearest(Image const& srcImage, Vec2F scale) {
+  if (scale[0] == 0.0f && scale[1] == 0.0f)
+    return Image();
   if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
     if ((scale[0] < 0.0f || scale[1] < 0.0f)) {
@@ -55,6 +57,8 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
 #if defined STAR_COMPILER_CLANG
 #pragma clang fp reassociate(off) contract(on) reciprocal(off) exceptions(strict)
 #endif
+  if (scale[0] == 0.0f && scale[1] == 0.0f)
+    return Image();
   if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
     if ((scale[0] < 0.0f || scale[1] < 0.0f)) {
@@ -159,6 +163,8 @@ Image scaleBilinear(Image const& srcImage, Vec2F scale) {
 #endif
 
 Image scaleBicubic(Image const& srcImage, Vec2F scale) {
+  if (scale[0] == 0.0f && scale[1] == 0.0f)
+    return Image();
   if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
     // «Downstreamed» from Kae. Fixes a segfault.
     if ((scale[0] < 0.0f || scale[1] < 0.0f)) {

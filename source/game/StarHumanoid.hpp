@@ -137,6 +137,7 @@ public:
     Directives directives = Directives();
     Directives maskDirectives = Directives();
     uint8_t ordering = BaseCosmeticOrdering; // FezzedOne: For oSB cosmetic ordering.
+    bool maskHumanoidBaseOnly = false;
   };
 
   struct BackEntry {
