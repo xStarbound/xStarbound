@@ -107,7 +107,6 @@ The following mods have special functionality that requires or is supported by x
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with stock Starbound.
-- [Infiniter Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3514830972) ([GitHub](https://github.com/bongus-jive/infiniter-inventory)) — supported by xStarbound as of xSB v3.7.3; all features are supported as of xSB v3.7.4.
 - [LR's Storage Dimension](https://steamcommunity.com/sharedfiles/filedetails/?id=3432253227) — automatic recipe detection is fully supported by xStarbound.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
 - [Minecraft UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3412449426) — should be supported by xStarbound; report any issues.
@@ -139,21 +138,48 @@ The following mods have special functionality that requires or is supported by x
 - [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — fully supported by xStarbound as of xSB v3.4.2.
 - [Universal Keybind Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3466851780) ([GitHub](https://github.com/FezzedOne/Starbound-Universal-Keybind-Compatibility)) — fully supported by xStarbound. Install this if you have issues with getting mod keybinds to work on xStarbound or OpenStarbound.
 - [Wardrobe Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3433498458) — supported by xStarbound as of xSB v3.4.4.2.
+- [xDPC](https://github.com/FezzedOne/xDPC) — requires xStarbound for full support, but also works on OpenStarbound and StarExtensions, albeit with a few missing features.
 - [xSIP](https://github.com/fezzedone/xSIP) — xSIP's universal mod support requires xStarbound v2.5+ or OpenStarbound.
 - [xWEdit](https://github.com/fezzedone/xWEdit) — this WEdit fork requires xStarbound for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
 - Mods that change the size or number of bags in the inventory or hotbar — as of xSB v2.4, xStarbound gives these mods full compatibility with vanilla multiplayer and existing characters «out of the box».
 
+### Requires xSBCompat
+
+xStarbound now has a «universal mod compatibiliser» called xSBCompat! xSBCompat is available as a separate download on the xStarbound downloads page, and _requires_ xStarbound, so it should be installed in your `xsb-assets/` directory. The following mods require xSBCompat to resolve compatibility issues:
+
+- [All Items are Stackable!](https://steamcommunity.com/sharedfiles/filedetails/?id=3370469697) — needs xSBCompat to remove an unnecessary OpenStarbound check.
+- [Automatically Scan Objects!](https://steamcommunity.com/sharedfiles/filedetails/?id=3545869822) — ditto.
+- [Betabound!](https://steamcommunity.com/workshop/filedetails/?id=2010607826) — xSBCompat fixes compatibility issues, but doesn't enable a few OpenStarbound-specific bits and bobs.
+- [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — no comment.
+- [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — xSBCompat required to render an OpenStarbound check toothless.
+- [Dynamic Proximity Chat](https://steamcommunity.com/sharedfiles/filedetails/?id=3450266347) ([GitHub](https://github.com/cptsalt/Dynamic-Proximity-Chat)) — may have minor compatibility issues even with xSBCompat. xStarbound users should use FezzedOne's fork [xDPC](https://github.com/FezzedOne/xDPC), which does not require xSBcompat, instead, unless the «mainline» Dynamic Proximity Chat is required for a server. Note that xDPC isn't fully network-compatible with Dynamic Proximity Chat!
+- [Hunger Fighting Chairs](https://steamcommunity.com/sharedfiles/filedetails/?id=3546473893) — requires xSBCompat to defang an unnecessary OpenStarbound check.
+- [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — xSBCompat adds support for the keybind.
+- [Infiniter Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3514830972) ([GitHub](https://github.com/bongus-jive/infiniter-inventory)) — all features supported.
+- [Is this Printable?](https://steamcommunity.com/sharedfiles/filedetails/?id=3507216031) — requires xSBCompat to bypass unnecessary OpenStarbound checks.
+- [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — needs xSBCompat to defang an unneeded OpenStarbound check.
+- [NPC Mechs](https://steamcommunity.com/sharedfiles/filedetails/?id=1788644520) — the patch fixes a typo that causes an xStarbound compatibility issue.
+- [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — fully supported with xSBCompat. Use `/resetinventoryposition` if your inventory ends up off-screen after installation.
+- [Ship Pet Swapper](https://steamcommunity.com/sharedfiles/filedetails/?id=3474107812) — needs xSBCompat to remove yet another unnecessary OpenStarbound check.
+- [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — fully supported once patched.
+- [Universal Instant Crafting for All Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3251274439) — requires xSBCompat to bypass unnecessary OpenStarbound checks.
+- [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276) — Ditto.
+- [ZB SAIL: Standalone](https://steamcommunity.com/sharedfiles/filedetails/?id=3336389472) — Ditto.
+
+Feel free to ask @FezzedOne about adding support for mods that are partially or totally incompatible with xStarbound to this patch, or contribute your own PR!
+
+> **Note:** xSBCompat support for Stardust Core and Quickbar Mini is _not_ planned due to those mods' heavy reliance on engine exploits that are no longer supported by xStarbound and unfortunately require extensive, painful workarounds to patch out. Additionally, the authors of many of the mods listed above will _not_ respond (or will respond in stupid ways) to xStarbound-related support requests for stupid reasons, so don't expect «first-party» support for mods covered by this patch.
+
 ### ✅ Compatible
 
-Any mod not listed in the «partially compatible» or «not compatible» category should be compatible. Major mods that have been tested to be compatible:
+Any mod not listed as «partially compatible», «not compatible» or «requires xSBCompat» category should be compatible with xStarbound. Major mods that have been tested to be compatible:
 
 - [Arcana](https://steamcommunity.com/workshop/filedetails/?id=2359135864) — use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) to satisfy this mod's «Stardust Core Lite» dependency (see that mod below for why).
 - [Avali (Triage) Race Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=729558042).
 - [Elithian Races Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=850109963).
 - [Frackin' Universe](https://steamcommunity.com/sharedfiles/filedetails/?id=729480149) ([GitHub](https://github.com/sayterdarkwynd/FrackinUniverse)). **Requires the Frackin' Patch on the [downloads page](https://github.com/xStarbound/xStarbound/releases/latest) to fix a compatibility issue between xStarbound's sandbox and FU's power objects.**
-- [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — the keybind is not supported by xStarbound solely due to an explicit StarExtensions check.
+- [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — works, but install xSBCompat to remove an unnecessary check that prevents the keybind from working on xStarbound.
 - [Maple32](https://steamcommunity.com/sharedfiles/filedetails/?id=2568667104&searchtext=maple32).
-- [NPC Mechs](https://steamcommunity.com/sharedfiles/filedetails/?id=1788644520) — compatible, but requires the compatibility patch in this repo.
 - [OpenStarbound No Highlights on Scanned Objects and Players](https://steamcommunity.com/sharedfiles/filedetails/?id=3432675895) — compatible. Has no particular OpenStarbound or xStarbound support, actually.
 - [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034). Note that the Classic Quickbar extension (see below) has sandbox-related compatibility issues.
 - [Shellguard: Starbound Expansion Remastered](https://steamcommunity.com/sharedfiles/filedetails/?id=1563376005).
@@ -184,42 +210,29 @@ The following mods are only partially compatible with xStarbound:
 
 ### ❌ Not compatible
 
-The following mods are _NOT_ compatible with xStarbound:
+The following mods are _NOT_ compatible with xStarbound, even with xSBCompat:
 
-- [All Items are Stackable!](https://steamcommunity.com/sharedfiles/filedetails/?id=3370469697) — not compatible with xStarbound after a recent mod update. Ask about a compatibility patch.
 - [AR's Shader Pack v1.0](https://steamcommunity.com/sharedfiles/filedetails/?id=3487232242) — modular shader support is OpenStarbound-only.
-- [Automatically Scan Objects!](https://steamcommunity.com/sharedfiles/filedetails/?id=3545869822) — currently not compatible with xStarbound. Ask about a compatibility patch.
-- [Betabound!](https://steamcommunity.com/workshop/filedetails/?id=2010607826) — not compatible with xStarbound's Lua sandbox. Ask about a compatibility patch.
-- [Beta Hotbar!](https://steamcommunity.com/sharedfiles/filedetails/?id=3472065640) — not compatible with xStarbound's Lua sandbox. Ask about a compatibility patch.
-- [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — would work if it didn't have an explicit StarExtensions check.
+- [Beta Hotbar!](https://steamcommunity.com/sharedfiles/filedetails/?id=3472065640) — not compatible with xStarbound's Lua sandbox. xSBCompat support may be added in the future.
 - [Bottinator22's](https://steamcommunity.com/sharedfiles/filedetails/?id=3431152501) [shader](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151263) [mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151049) — modular shader support is OpenStarbound-only.
 - [Bott's Shaders - Disabled by Default](https://steamcommunity.com/sharedfiles/filedetails/?id=3468244512) — the mods it depends on are OpenStarbound-only, obviously.
-- [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [Classic Quickbar](https://steamcommunity.com/sharedfiles/filedetails/?id=2957136802) ([GitHub](https://github.com/bongus-jive/classic-quickbar)) — not compatible with xStarbound's Lua sandbox. Use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) instead.
 - [Cumulative Dynamic Lights](https://steamcommunity.com/sharedfiles/filedetails/?id=3444407977) — not compatible because it depends on OpenStarbound's lighting system changes. Won't do much on xStarbound.
 - [DigitalCrafting Support Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3519204938) — This mod depends on [DigitalCrafting](https://steamcommunity.com/workshop/filedetails/?id=2919830263), which itself depends on Digital Storage (see below), and is therefore incompatible with xStarbound for that reason.
-- [Digital Storage](https://steamcommunity.com/sharedfiles/filedetails/?id=946227505) — the server-side scripts are not compatible with xStarbound's Lua sandbox.
-- [Dynamic Proximity Chat](https://steamcommunity.com/sharedfiles/filedetails/?id=3450266347) ([GitHub](https://github.com/cptsalt/Dynamic-Proximity-Chat)) — no longer compatible with xStarbound for stupid reasons. Use [FezzedOne's fork](https://github.com/FezzedOne/xDPC) instead; note that the fork isn't fully network-compatible with the main mod.
-- [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) — has various incompatibilities with xStarbound, including its usage of unintended humanoid rendering behaviour.
-- [Harder Core Mode](https://steamcommunity.com/sharedfiles/filedetails/?id=3527438945) — not compatible with xStarbound's Lua sandbox. Ask about a potential compatibility patch.
-- [Hunger Fighting Chairs](https://steamcommunity.com/sharedfiles/filedetails/?id=3546473893) — now incompatible with xStarbound due to an OpenStarbound dependency check. Ask about a potential compatibility patch.
-- [inventory scrambler](https://steamcommunity.com/sharedfiles/filedetails/?id=3538536096) ([GitHub](https://github.com/bongus-jive/inventory-scrambler)) — not compatible with xStarbound's Lua sandbox. Ask about a potential compatibility patch, but seriously, why would you want to scramble your inventory?
-- [Is this Printable?](https://steamcommunity.com/sharedfiles/filedetails/?id=3507216031) — not compatible with xStarbound. Ask about a compatibility patch.
+- [Digital Storage](https://steamcommunity.com/sharedfiles/filedetails/?id=946227505) — the server-side scripts are not compatible with xStarbound's Lua sandbox. Not covered by xSBscripts due to very gnarly code.
+- [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) — uses unintended humanoid rendering behaviour that is not yet internally supported by xStarbound, so your dragons will often be invisible! As such, listed as «not compatible».
+- [Harder Core Mode](https://steamcommunity.com/sharedfiles/filedetails/?id=3527438945) — not compatible with xStarbound's Lua sandbox. Ask about xSBCompat support.
+- [inventory scrambler](https://steamcommunity.com/sharedfiles/filedetails/?id=3538536096) ([GitHub](https://github.com/bongus-jive/inventory-scrambler)) — not compatible with xStarbound's Lua sandbox. Ask about xSBCompat support, but seriously, why would you want to scramble your inventory?
 - [Light Limiter](https://steamcommunity.com/sharedfiles/filedetails/?id=3470727854) — neither compatible with nor necessary on xStarbound.
-- [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
-- [NamjeShipwright](https://github.com/namje0/namje_shipwright) — now uses an OpenStarbound callback not currently present in xStarbound.
+- [NamjeShipwright](https://github.com/namje0/namje_shipwright) — uses an OpenStarbound callback not currently present in xStarbound. Even after that callback gets added, don't expect support from the author.
 - [OpenStarbound Revert](https://steamcommunity.com/sharedfiles/filedetails/?id=3509533339) — not compatible with xStarbound for obvious reasons. No compatibility patch is planned. Why do you need this on xStarbound anyway?
 - [Psychedelic Shader](https://steamcommunity.com/sharedfiles/filedetails/?id=3573193020) — modular shader support is OpenStarbound-only.
 - [Raptor's Metroid Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3541573028) — certain scripting functionality required by this mod is not currently present in xStarbound; this may change in the future.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
-- [Ship Pet Swapper](https://steamcommunity.com/sharedfiles/filedetails/?id=3474107812) — not compatible with xStarbound after a recent mod update. Ask about a compatibility patch.
-- [Stardust Core](https://steamcommunity.com/sharedfiles/filedetails/?id=764887546) and [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — these mods' scripts are not compatible with xStarbound's Lua sandbox. Use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) instead.
+- [Stardust Core](https://steamcommunity.com/sharedfiles/filedetails/?id=764887546) and [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — these mods' scripts are not compatible with xStarbound's Lua sandbox, and xSBCompat support is _not_ planned. Use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) instead.
 - [Stardust Suite](https://github.com/zetaPRIME/sb.StardustSuite) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — Ditto.
 - [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load on xClient and may cause crashes! However, xServer fully supports the server-side part of SE's «overground» tile placement feature.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
-- [Universal Instant Crafting for All Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3251274439) — no longer compatible with xStarbound for stupid reasons. No compatibility patch is planned.
-- [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276) — not compatible with xStarbound after a recent mod update. Ask about a compatibility patch.
-- [ZB SAIL: Standalone](https://steamcommunity.com/sharedfiles/filedetails/?id=3336389472) — not compatible with xStarbound for stupid reasons. No compatibility patch is planned.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xStarbound has differently named callbacks) and is redundant anyway because xStarbound already fully supports this feature.
 - Mods that patch in StarExtensions «body dynamics» support for other mods. These won't do anything.
 
