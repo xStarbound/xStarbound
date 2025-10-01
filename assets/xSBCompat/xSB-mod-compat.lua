@@ -24,7 +24,7 @@ end
 
 pluto_try
     -- Works around various unnecessary OpenStarbound "compatibility" checks that exclude xStarbound for various stupid, non-technical reasons.
-    assets.add("/opensb/coconut.png", assets.newImage(0, 0))
+    assets.add("/opensb/coconut.png", assets.newImage(0, 0)) -- Yes, this has been used for unneeded "compatibility" checks.
     assets.add("/scripts/xsb/dummy.lua", "--- Dummy script asset. ---")
 
     local worldServerConfig = assets.json("/worldserver.config")
@@ -191,7 +191,6 @@ pluto_try
 pluto_catch e then
     logError(modName, e)
 end
-
 ::skipMyEnterniaPatch::
 
 --- Compatibility patch for lophatkao's NPC Mechs ---
@@ -215,6 +214,7 @@ pluto_try
 pluto_catch e then
     logError(modName, e)
 end
+::skipNpcMechsPatch::
 
 --- Compatibility patch for Patman's Infiniter Inventory ---
 
@@ -390,7 +390,6 @@ pluto_try
 pluto_catch e then
     logError(modName, e)
 end
-
 ::skipInfiniterInventoryPatch::
 
 --- Compatibility patch for Patman's Save Inventory Position ---
@@ -481,7 +480,6 @@ pluto_try
 pluto_catch e then
     logError(modName, e)
 end
-
 ::skipInventoryResetPatch::
 
 --- Compatibility patch for keybinds in Patman's Ruler ---
@@ -502,7 +500,6 @@ pluto_try
 pluto_catch e then
     logError(modName, e)
 end
-
 ::skipRulerPatch::
 
 --- Compatibility patch for Emmaker's Limited Lives ---
@@ -523,7 +520,6 @@ pluto_try
 pluto_catch e then
     logError(modName, e)
 end
-
 ::skipLimitedLivesPatch::
 
 --- Compatibility patch for RingSpokes' Unde Venis ---
@@ -634,7 +630,18 @@ pluto_try
         return betabound_init()
     end
     ]==]
-    assets.add(betaboundMainPlayerScriptPath, betaboundMainPlayerScript .. betaboundMainPlayerScriptPatch)
+    assets.add(betaboundMissingAssetScriptPath, betaboundMissingAssetScript .. betaboundMissingAssetScriptPatch)
+
+    local betaboundMissingAssetScriptPath = "/scripts/sb_assetmissing.lua"
+    local betaboundMissingAssetScript = assets.bytes(betaboundMissingAssetScriptPath)
+
+    local betaboundMissingAssetScriptPatch = [==[
+    ---<< END OF ORIGINAL BETABOUND MISSING ASSET SCRIPT >>---
+
+    -- Gets rid of a potentially slow asset check caused by xStarbound not supporting smuggling.
+    function sb_checkClient() return "Vanilla" end
+    ]==]
+    assets.add(betaboundMissingAssetScriptPath, betaboundMissingAssetScript .. betaboundMissingAssetScriptPatch)
 
     logInfo(modName)
 pluto_catch e then
