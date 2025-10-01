@@ -725,7 +725,7 @@ StringList Root::scanForAssetSources(StringList const& directories) {
             Logger::warn("Root: Overriding duplicate asset source '{}' named '{}' with higher or equal priority source '{}'",
                 oldAssetSource->path, *assetSource->name, assetSource->path);
             *oldAssetSource = *assetSource;
-            assetSources.append(std::move(assetSource));
+            assetSources.append(assetSource);
           } else {
             Logger::warn("Root: Skipping duplicate asset source '{}' named '{}', previous source '{}' has higher priority",
                 assetSource->path, *assetSource->name, oldAssetSource->path);
@@ -733,34 +733,36 @@ StringList Root::scanForAssetSources(StringList const& directories) {
           }
         } else {
           namedSources[*assetSource->name] = assetSource;
-          assetSources.append(std::move(assetSource));
+          assetSources.append(assetSource);
         }
       } else {
-        assetSources.append(std::move(assetSource));
+        assetSources.append(assetSource);
       }
 
       // FezzedOne: Added requirement/include substitution.
-      for (String const& substitute : assetSource->substitutes) {
-        if (auto oldAssetSource = namedSources.value(substitute)) {
-          if (oldAssetSource->priority <= assetSource->priority) {
-            Logger::warn("Root: Overriding duplicate asset source '{}' named '{}' with higher or equal priority source '{}' named '{}' substituting as '{}'",
-                oldAssetSource->path, oldAssetSource->name.value("<unnamed>"), assetSource->path, assetSource->name.value("<unnamed>"), substitute);
-            namedSources[substitute] = assetSource;
-            if (needsSubstitutionCheck) {
-              assetSources.append(std::move(assetSource));
-              needsSubstitutionCheck = false;
+      if (!assetSource->substitutes.empty()) {
+        for (String const& substitute : assetSource->substitutes) {
+          if (auto oldAssetSource = namedSources.value(substitute)) {
+            if (oldAssetSource->priority <= assetSource->priority) {
+              Logger::warn("Root: Overriding duplicate asset source '{}' named '{}' with higher or equal priority source '{}' named '{}' substituting as '{}'",
+                  oldAssetSource->path, oldAssetSource->name.value("<unnamed>"), assetSource->path, assetSource->name.value("<unnamed>"), substitute);
+              namedSources[substitute] = assetSource;
+              if (needsSubstitutionCheck) {
+                assetSources.append(assetSource);
+                needsSubstitutionCheck = false;
+              }
+            } else {
+              Logger::warn("Root: Skipping duplicate asset source '{}' named '{}', previous source '{}' named '{}' substituting as '{}' has higher priority",
+                  assetSource->path, assetSource->name.value("<unnamed>"), oldAssetSource->path, oldAssetSource->name.value("<unnamed>"), substitute);
             }
           } else {
-            Logger::warn("Root: Skipping duplicate asset source '{}' named '{}', previous source '{}' named '{}' substituting as '{}' has higher priority",
-                assetSource->path, assetSource->name.value("<unnamed>"), oldAssetSource->path, oldAssetSource->name.value("<unnamed>"), substitute);
-          }
-        } else {
-          Logger::info("Root: Asset source '{}' named '{}' substituting as '{}'",
-              assetSource->path, assetSource->name.value("<unnamed>"), substitute);
-          namedSources[substitute] = assetSource;
-          if (needsSubstitutionCheck) {
-            assetSources.append(std::move(assetSource));
-            needsSubstitutionCheck = false;
+            Logger::info("Root: Asset source '{}' named '{}' substituting as '{}'",
+                assetSource->path, assetSource->name.value("<unnamed>"), substitute);
+            namedSources[substitute] = assetSource;
+            if (needsSubstitutionCheck) {
+              assetSources.append(assetSource);
+              needsSubstitutionCheck = false;
+            }
           }
         }
       }
