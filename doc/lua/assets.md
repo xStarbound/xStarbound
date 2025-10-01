@@ -18,6 +18,7 @@ The engine does not invoke any functions in preprocessor scripts. However, the f
 ---
 
 #### `Maybe<Json<Top>>` patch(`Json<Top>` original)
+
 #### `Maybe<Image>` patch(`Image` original)
 
 Called when the JSON asset or PNG image file that this Lua script is meant to patch is loaded.
@@ -38,33 +39,33 @@ If it isn't `nil` or a JSON `null`, the return value will replace the original a
 
 The following `assets` callbacks are available to both preprocessor and patch scripts:
 
-----
+---
 
 #### `List<AssetPath<>>` assets.byExtension(`String` extension)
 
-Returns a list of all loaded assets that have the specified file extension. A leading period is optional — `"lua"` works just as well as `".lua"`. See *Asset file extensions* below for more details on extensions.
+Returns a list of all loaded assets that have the specified file extension. A leading period is optional — `"lua"` works just as well as `".lua"`. See _Asset file extensions_ below for more details on extensions.
 
 Analogous to `root.assetsByExtension`; see `$docs/lua/root.md` for more details.
 
-----
+---
 
 #### `List<AssetPath<>>` assets.scan(`String` beginOrEnd, `Maybe<String>` end)
 
-If both `beginOrEnd` and `end` are specified, returns a list of all loaded assets whose asset paths *begin* with `beginOrEnd` and *end* with `end`.
+If both `beginOrEnd` and `end` are specified, returns a list of all loaded assets whose asset paths _begin_ with `beginOrEnd` and _end_ with `end`.
 
-If only `beginOrEnd` is specified, returns a list of all loaded assets whose asset paths *end* with `beginOrEnd`. If `beginOrEnd` is a file extension, this is equivalent to `assets.byExtension` called on the specified extension.
+If only `beginOrEnd` is specified, returns a list of all loaded assets whose asset paths _end_ with `beginOrEnd`. If `beginOrEnd` is a file extension, this is equivalent to `assets.byExtension` called on the specified extension.
 
-----
+---
 
 #### `List<AssetPath<>>` assets.sourcePaths(`FilePath` sourcePath)
 
 Returns a list of paths for all asset files in the specified asset source. Ignores the metadata file.
 
-If invoked in a preprocessor script from a given asset source, files added or removed by that script will *not* be listed since the new memory asset source isn't yet finalised.
+If invoked in a preprocessor script from a given asset source, files added or removed by that script will _not_ be listed since the new memory asset source isn't yet finalised.
 
 Analogous to `root.assetSourcePaths`; see `$docs/lua/root.md` for more details.
 
-----
+---
 
 #### `List<FilePath>` assets.sources()
 
@@ -74,14 +75,15 @@ Returns a list of all asset sources detected by the game, regardless of whether 
 
 Analogous to `root.assetSources` on xStarbound and `root.assetSourcePaths` on OpenStarbound and StarExtensions; see `$docs/lua/root.md` for more details.
 
-----
+---
 
 #### `Maybe<FilePath>` assets.origin(`RawAssetPath` path)
+
 #### `Maybe<FilePath>` assets.source(`RawAssetPath` path)
 
 > **`assets.source` is only available on xStarbound. `assets.origin` is available on xStarbound and OpenStarbound v0.1.9+.**
 
-Returns the file path to the asset source for a *loaded* asset.
+Returns the file path to the asset source for a _loaded_ asset.
 
 If the loaded version of the asset was created by an asset preprocessor script, the path will be followed by `::onLoad` for an asset created by an on-load script or `::postLoad` for an asset created by a post-load script.
 
@@ -89,14 +91,15 @@ Changes made by `assets.add` or `assets.remove` are reflected immediately for th
 
 Analogous to `root.assetOrigin` and `root.assetSource`; see `$docs/lua/root.md` for more details.
 
-----
+---
 
 #### `Json` assets.patches(`RawAssetPath` path, [`bool` returnFilePaths])
+
 #### `Json` assets.patchSources(`RawAssetPath` path, [`bool` returnFilePaths])
 
 > **Only available on xStarbound.**
 
-If `returnFilePaths` is `false`, `nil` or unspecified, returns a JSON array listing file paths to all *loaded* patch sources for the specified asset; if the specified asset doesn't exist or isn't loaded, returns `nil`.
+If `returnFilePaths` is `false`, `nil` or unspecified, returns a JSON array listing file paths to all _loaded_ patch sources for the specified asset; if the specified asset doesn't exist or isn't loaded, returns `nil`.
 
 If `returnFilePaths` is `true`, returns a list of asset patches for the specified asset, or `nil` if the asset doesn't exist. The list has the following format:
 
@@ -116,7 +119,7 @@ Patches directly executed by a preprocessor script will not be listed. The outpu
 
 Analogous to `root.assetPatches` (if using `returnFilePaths`) and `root.assetPatchSources` (without `returnFilePaths`); see `$docs/lua/root.md` for more details.
 
-----
+---
 
 #### `bool` assets.exists(`RawAssetPath` path)
 
@@ -126,7 +129,7 @@ Returns whether any asset exists and is loaded at this path. Any changes made vi
 
 **Note** This will return `false` on any asset that exists in the asset sources but isn't yet loaded (as is likely to be the case in on-load preprocessor scripts that load before other mods). You can't forcibly load unloaded assets anyway, so this is a wash.
 
-----
+---
 
 #### `Json` assets.json(`AssetPath<Json>` path)
 
@@ -138,7 +141,7 @@ Consider using `assets.exists`, `assets.bytes` and/or `sb.parseJson` to avoid un
 
 See `root.md` for documentation on JSON subpaths.
 
-----
+---
 
 #### `Image` assets.image(`AssetPath<Image, Directives>` path)
 
@@ -148,7 +151,7 @@ An uncatchable warning is also logged if any directives are invalid; the returne
 
 Consider using `assets.exists` to avoid unnecessary error handling.
 
-----
+---
 
 #### `Json` assets.frames(`AssetPath<>` path)
 
@@ -158,7 +161,7 @@ Returns the frames specification this image asset would use, or `nil` if there i
 jobject{
     -- Path to the JSON frame configuration asset used to construct the return value.
     file = "/items/armors/pants.frames",
-    
+
     -- A table of frame aliases where each alias maps to the name of the actual frame it references.
     aliases = jobject{
         ["lay.1"] = "idle.1",
@@ -167,7 +170,7 @@ jobject{
         ["swim.6"] = "swimIdle.1",
         ["swim.7"] = "swimIdle.1"
     },
-    
+
     -- A list of frames where each frame name maps to a set of RectI coordinates that define the region of
     -- the image to be cropped out for that frame (as with the `?crop` directive`).
     frames = jobject{
@@ -181,7 +184,7 @@ jobject{
 
 Throws an error and may log another uncatchable error if the specified path is invalid.
 
-----
+---
 
 #### `String` assets.bytes(`AssetPath` path)
 
@@ -189,7 +192,7 @@ Returns the contents of the specified asset file as a `String` of raw bytes; for
 
 Consider using `assets.exists` to avoid unnecessary error handling.
 
-----
+---
 
 #### `String` assets.rawBytes(`AssetPath` path)
 
@@ -199,7 +202,7 @@ Returns the contents of the specified asset file as a raw `ByteArray` (see `byte
 
 Consider using `assets.exists` to avoid unnecessary error handling.
 
-----
+---
 
 #### `Image` assets.newImage(`Vec2U` size)
 
@@ -207,7 +210,7 @@ Consider using `assets.exists` to avoid unnecessary error handling.
 
 Creates a new `Image` object (see `image.md` for methods) with the specified size in pixels. All pixels are initially set to `{0, 0, 0, 0}` [`#00000000`]. 0×0-pixel image objects can be created, but they're of no real use.
 
-----
+---
 
 #### `ByteArray` assets.newRawBytes()
 
@@ -215,19 +218,20 @@ Creates a new `Image` object (see `image.md` for methods) with the specified siz
 
 Creates a raw, blank `ByteArray` (see `bytes.md` for methods) of zero length.
 
-----
+---
 
 #### `Maybe<JsonObject>` assets.sourceMetadata(`FilePath` assetSource)
 
 > **Only available on xStarbound.**
 
-Returns the metadata for any *loaded* asset source whose root directory or `.pak` is at the specified path, `jobject{}` if it lacks a metadata file (called either `.metadata` or `_metadata`), or `nil` if there's no asset source there. An example metadata return value showing all possible keys:
+Returns the metadata for any _loaded_ asset source whose root directory or `.pak` is at the specified path, `jobject{}` if it lacks a metadata file (called either `.metadata` or `_metadata`), or `nil` if there's no asset source there. An example metadata return value showing all possible keys:
 
 ```lua
 jobject{
   name = "MyMod",
   includes = jarray{},
   requires = jarray{},
+  substitutes = jarray{},
   priority = 1,
   scripts = jobject{
     onLoad = jarray{"/myscript.lua", "/myotherscript.lua", "/myplutoscript.pluto"},
@@ -248,29 +252,29 @@ If invoked on a non-finalised memory asset source (see `assets.loadedSources` ab
 
 Analogous to the callback `root.assetSourceMetadata` (see `root.md`). See `$doc/preprocessing.md` for more documentation on asset source metadata files.
 
-> *Note:* This callback was available only in preprocessor scripts prior to xStarbound v3.4.4.1.
+> _Note:_ This callback was available only in preprocessor scripts prior to xStarbound v3.4.4.1.
 
-----
+---
 
 ## Preprocessor-only callbacks
 
 The following `assets` callbacks are available only to preprocessor scripts:
 
-----
+---
 
 #### `List<FilePath>` assets.loadedSources()
 
 > **Only available on xStarbound.**
 
-Returns a list of all *loaded* asset sources. Includes all memory asset sources loaded *prior* to the preprocessor scripts for this asset source — i.e., it won't include the memory asset source being worked on by a preprocessor script, since it isn't finalised yet.
+Returns a list of all _loaded_ asset sources. Includes all memory asset sources loaded _prior_ to the preprocessor scripts for this asset source — i.e., it won't include the memory asset source being worked on by a preprocessor script, since it isn't finalised yet.
 
 **Note:** A memory asset source will not be added when finalised if it ends up containing no added files.
 
-----
+---
 
 #### `void` assets.add(`RawAssetPath` path, `Variant<String, Image, ByteArray, Json>` data)
 
-> *May not currently work properly on OpenStarbound.*
+> _May not currently work properly on OpenStarbound._
 
 Adds the specified asset data to the specified path in a memory asset source based on the working asset source. Note that strings will get converted to UTF-8 text file assets; if the string is valid JSON, it's a valid JSON asset.
 
@@ -278,7 +282,7 @@ In an on-load preprocessor script, the resulting memory asset source will be loa
 
 In a post-load script, the resulting memory asset source will be loaded after all non-memory sources are loaded, but if multiple post-load memory asset sources are loaded, they use the same precedence order as all the base asset sources with regards to other memory asset sources.
 
-----
+---
 
 #### `bool` assets.erase(`RawAssetPath` path)
 
@@ -288,7 +292,7 @@ If all memory assets previously added in a memory asset source associated with t
 
 > **Technical note:** If a patch file is added via `assets.patch` and then all files, including the patch file, in the memory asset source are removed so that it is "unloaded", the asset source will technically still be loaded even though it won't be listed by `assets.loadedSources` or `root.assetSources` (see `root.md`). The patch source will still show up when `root.assetPatchSources` (see `root.md`) or `assets.patchSources` is invoked on the patched file though.
 
-----
+---
 
 #### `bool` assets.patch(`RawAssetPath` path, `RawAssetPath` patchPath)
 
@@ -296,9 +300,9 @@ Adds the specified JSON or Lua patch file (`patchPath`) to the list of patches f
 
 If the patch file has a `.lua` extension, it will be added as a Lua patch. If it has any other extension, it will be added as a JSON patch.
 
-If the specified patch file is later modified, removed or replaced by any script in the same asset source, it will be modified but *not* deleted for the purposes of checking patches.
+If the specified patch file is later modified, removed or replaced by any script in the same asset source, it will be modified but _not_ deleted for the purposes of checking patches.
 
-----
+---
 
 ## Asset file extensions
 

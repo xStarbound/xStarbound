@@ -1,14 +1,48 @@
 local loadedModPaths = assets.loadedSources()
 local loadedMods = {}
+local xSBCompatVersion
 for loadedModPaths as loadedMod do
-    table.insert(loadedMods, assets.sourceMetadata(loadedMod).name ?? loadedMod)
+    local metadata = assets.sourceMetadata(loadedMod)
+    local modName = metadata.name
+    table.insert(loadedMods, modName ?? loadedMod)
+    if modName == "xSBCompat" then
+        xSBCompatVersion = metadata.version
+    end
 end
 
-local logInfo = |modName| -> sb.logInfo($"[xSB] Detected and applied compatibility patch to {modName}")
-local logError = |modName, error| -> sb.logError($"[xSB] Error while applying compatibility patch for {modName}: {error}")
+local logInfo = |modName| -> sb.logInfo($"[xSBCompat] Detected and applied compatibility patch to {modName}")
+local logError = |modName, error| -> sb.logError($"[xSBCompat] Error while applying compatibility patch for {modName}: {error}")
 local modName
 
---- Compatibility patch for navigation UI mods ---
+if xSBCompatVersion then
+    sb.logInfo($"[xSBCompat] Loaded xSBCompat v{xSBCompatVersion}.")
+else
+    return
+end
+
+--- Universal compatibility patch ---
+
+pluto_try
+    -- Works around various unnecessary OpenStarbound "compatibility" checks that exclude xStarbound for various stupid, non-technical reasons.
+    assets.add("/opensb/coconut.png", assets.newImage(0, 0))
+    assets.add("/scripts/xsb/dummy.lua", "--- Dummy script asset. ---")
+
+    local worldServerConfig = assets.json("/worldserver.config")
+    worldServerConfig.scriptContexts.OpenStarbound ??= "/scripts/xsb/dummy.lua"
+    assets.add("/worldserver.config", worldServerConfig)
+
+    local clientConfig = assets.json("/client.config")
+    clientConfig.universeScriptContexts.OpenStarbound ??= "/scripts/xsb/dummy.lua"
+    assets.add("/client.config", clientConfig)
+
+    local playerConfig = assets.json("/player.config")
+    playerConfig.genericScriptContexts.OpenStarbound ??= "/scripts/xsb/dummy.lua"
+    assets.add("/player.config", playerConfig)
+pluto_catch e then
+  sb.logError($"[xSBCompat] Error while applying universal compatibility patch: {error}")
+end
+
+--- Compatibility patch / bugfix for navigation UI mods ---
 
 local morePlanetInfoPatch = jarray{
     jobject{
@@ -24,6 +58,163 @@ local morePlanetInfoPatch = jarray{
 -- The patch must be done post-load to «catch» the existence of More Planet Info and other navigation UI mods.
 assets.add("/interface/cockpit/cockpit.config.postproc", morePlanetInfoPatch)
 assets.patch("/interface/cockpit/cockpit.config", "/interface/cockpit/cockpit.config.postproc")
+
+--- Compatibility patch for Sayter's Frackin' Universe ---
+
+if not "FrackinUniverse" in loadedMods then goto skipFUPatch end
+modName = "Sayter's Frackin' Universe"
+
+pluto_try
+    local needsPatch = "/scripts/fupower.lua"
+    local needsPatch2 = "/objects/crafting/clonelab/clonelab.lua"
+
+    local patchCode = [==[
+    function power.onNodeConnectionChange(arg,iterations)
+        if power.objectPowerType then
+            local inputCounter=0
+            local outputCounter=0
+            if (power.objectPowerType == 'battery') then return arg end
+            --sb.logInfo("iterations: %s",iterations)
+            iterations=(iterations and iterations + 1) or 1
+            if arg then
+                entitylist = arg
+            else
+        -- FezzedOne: Needs JSON type hints here because of xStarbound's Lua-sandbox-related changes to entity messages on same-mastered entities.
+                if power.objectPowerType == 'battery' then
+                    entitylist = jobject{battery = jarray{entity.id()}, output = jarray{},            all = jarray{entity.id()}}
+                elseif power.objectPowerType == 'output' then
+                    entitylist = jobject{battery = jarray{},            output = jarray{entity.id()}, all = jarray{entity.id()}}
+                else
+                    entitylist = jobject{battery = jarray{},            output = jarray{},            all = jarray{entity.id()}}
+                end
+            end
+
+            -- Update "entitylist" by querying every entity that has its IDs listed in "idlist" array.
+            local function updateEntityList(idlist, iterations2)
+                for value in pairs(idlist) do
+                    powertype = callEntity(value,'isPower',iterations2)
+                    if powertype then
+                        for j=1,#entitylist.all+1 do
+                            if j == #entitylist.all+1 then
+                                if powertype == 'battery' then
+                                    table.insert(entitylist.battery,value)
+                                elseif powertype == 'output' then
+                                    table.insert(entitylist.output,value)
+                                end
+
+                                table.insert(entitylist.all,value)
+                                entitylist = (callEntity(value,'power.onNodeConnectionChange',entitylist,iterations2) or entitylist)
+                            elseif entitylist.all[j] == value then
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+
+            if iterations < 100 then
+                for i=0,object.inputNodeCount()-1 do
+                    if object.isInputNodeConnected(i) then
+                        local idlist = object.getInputNodeIds(i)
+                        inputCounter=inputCounter+util.tableSize(idlist)
+
+                        updateEntityList(idlist, iterations)
+                    end
+                end
+                for i=0,object.outputNodeCount()-1 do
+                    if object.isOutputNodeConnected(i) then
+                        local idlist = object.getOutputNodeIds(i)
+                        outputCounter=outputCounter+util.tableSize(idlist)
+
+                        updateEntityList(idlist, iterations)
+                    end
+                end
+            else
+                sb.logWarn("fupower.lua:power.onNodeConnectionChange: Critical recursion threshhold reached!")
+            end
+            if arg then
+                return entitylist
+            else
+                power.entitylist = entitylist
+                for i=2,#entitylist.all do
+                    callEntity(entitylist.all[i],'updateList',entitylist)
+                end
+            end
+            power.lastInputCount=inputCounter
+            power.lastOutputCount=outputCounter
+        end
+    end
+    ]==]
+
+    local patchCode2 = [==[
+    null = nil -- The script in question expects `null` to be exactly the same as `nil` to avoid a nil dereference error.
+    -- This conflicts with xStarbound's special `null` value. Fix your shit, Sayter!
+    ]==]
+
+    if assets.exists(needsPatch) then
+        local patchedScript = assets.bytes(needsPatch) .. patchCode
+        assets.add(needsPatch, patchedScript)
+    end
+    if assets.exists(needsPatch2) then
+        local patchedScript2 = assets.bytes(needsPatch2) .. patchCode2
+        assets.add(needsPatch2, patchedScript2)
+    end
+
+    logInfo(modName)
+pluto_catch e then
+    logError(modName, e)
+end
+
+::skipFUPatch::
+
+--- Compatibility patch for Ceterai's My Enternia ---
+
+if not "My Enternia" in loadedMods then goto skipMyEnterniaPatch end
+modName = "Ceterai's My Enternia"
+
+pluto_try
+    local scriptPath = "/items/buildscripts/alta/object.lua"
+    if assets.exists(scriptPath) then
+        local objectScript = assets.bytes(scriptPath)
+        objectScript = objectScript:gsub('"%%02s"', '"%%2s"')
+        assets.add(scriptPath, objectScript)
+    end
+
+    local scriptPath2 = "/items/buildscripts/alta/item.lua"
+    if assets.exists(scriptPath2) then
+        local itemScript = assets.bytes(scriptPath2)
+        itemScript = itemScript:gsub("if get%('objectImage'%) then", "if type(get('objectImage')) == 'string' then")
+        assets.add(scriptPath2, itemScript)
+    end
+
+    logInfo(modName)
+pluto_catch e then
+    logError(modName, e)
+end
+
+::skipMyEnterniaPatch::
+
+--- Compatibility patch for lophatkao's NPC Mechs ---
+
+if not "xs_crumex" in loadedMods then goto skipNpcMechsPatch end
+modName = "lophatkao's NPC Mechs"
+
+pluto_try
+    -- This patch fixes a typo in one of NPC Mechs' scripts that causes a compatibility issue with xStarbound.
+    local modularMechNpc2ScriptPath = "/vehicles/modularmech/modularmechnpc2.lua"
+
+    if assets.exists(modularMechNpc2ScriptPath) then
+        local typoLine = "if thisarm.npcfiretime > 0then%-%- %-maxtyme then"
+        local patchedLine = "if thisarm.npcfiretime > 0 then -- -maxtyme then"
+        local scriptToPatch = assets.bytes(modularMechNpc2ScriptPath)
+        assets.remove(modularMechNpc2ScriptPath)
+        assets.add(modularMechNpc2ScriptPath, scriptToPatch:gsub(typoLine, patchedLine))
+    end
+
+    logInfo(modName)
+pluto_catch e then
+    logError(modName, e)
+end
 
 --- Compatibility patch for Patman's Infiniter Inventory ---
 
@@ -293,39 +484,6 @@ end
 
 ::skipInventoryResetPatch::
 
---- Compatibility patch for Silver Sokolova's Quick Commands! ---
-
-if not "XRC_quickCommands" in loadedMods then goto skipQuickCommandsPatch end
-modName = "Silver Sokolova's Quick Commands"
-
-pluto_try
-    local quickCommandsScriptPath = "/xrc_bindings.lua"
-
-    local quickCommandsScript = assets.bytes(quickCommandsScriptPath)
-    local quickCommandsScriptPatch = [==[
-        local quickCommands_oldInit = init
-        function init()
-            local oldAssetJson = root.assetJson
-            root.assetJson = function(path)
-                -- Fool the mod script into thinking it's running on OpenStarbound.
-                local result = oldAssetJson(path)
-                if path == "/player.config:genericScriptContexts" then
-                    result.OpenStarbound = true
-                end
-                return result
-            end
-            quickCommands_oldInit()
-        end
-    ]==] .. "\n"
-    assets.add(quickCommandsScriptPath, quickCommandsScript .. quickCommandsScriptPatch)
-
-    logInfo(modName)
-pluto_catch e then
-    logError(modName, e)
-end
-
-::skipQuickCommandsPatch::
-
 --- Compatibility patch for keybinds in Patman's Ruler ---
 
 if not "pat_ruler" in loadedMods then goto skipRulerPatch end
@@ -367,31 +525,6 @@ pluto_catch e then
 end
 
 ::skipLimitedLivesPatch::
-
---- Compatibility patch for Patman's Matter Manipulator Keybinds ---
-
-if not "pat_mmbinds" in loadedMods then goto skipMmBindsPatch end
-modName = "Patman's Matter Manipulator Keybinds"
-
-pluto_try
-    local mmBindsScriptPath = "/pat_mmbinds.lua"
-
-    local mmBindsScript = assets.bytes(mmBindsScriptPath)
-    local mmBindsScriptPatch =  "\n" .. [==[
-        local mmBinds_oldInit = init
-        function init()
-            root.assetOrigin = root.assetSource -- Emulate the StarExtensions callback expected by this mod.
-            mmBinds_oldInit()
-        end
-    ]==]
-    assets.add(mmBindsScriptPath, mmBindsScript .. mmBindsScriptPatch)
-
-    logInfo(modName)
-pluto_catch e then
-    logError(modName, e)
-end
-
-::skipMmBindsPatch::
 
 --- Compatibility patch for RingSpokes' Unde Venis ---
 
@@ -465,3 +598,46 @@ pluto_catch e then
     logError(modName, e)
 end
 ::skipWardrobeCumulativePatch::
+
+--- Compatibility patch for Silver Sokolova's Betabound ---
+-- This patch ensures the mod works as if on a vanilla client, but doesn't enable anything locked behind OpenStarbound checks.
+
+if not "XRC_BETA_STARBOUND" in loadedMods then goto skipBetaboundPatch end
+modName = "Silver Sokolova's Betabound"
+
+pluto_try
+    local betaboundStatusControllerScriptPath = "/stats/sb_player_primary.lua"
+    local betaboundStatusControllerScript = assets.bytes(betaboundStatusControllerScriptPath)
+
+    local betaboundStatusControllerScriptPatch = [==[
+    ---<< END OF ORIGINAL BETABOUND STATUS CONTROLLER SCRIPT >>---
+
+    local betabound_init = init
+    function init()
+        -- `player` is already available in this context on xStarbound, so this fools the code that expects it to have to be smuggled in.
+        math.betabound_player = player
+        return betabound_init()
+    end
+    ]==]
+    assets.add(betaboundStatusControllerScriptPath, betaboundStatusControllerScript .. betaboundStatusControllerScriptPatch)
+
+    local betaboundMainPlayerScriptPath = "/scripts/player/sb_main.lua"
+    local betaboundMainPlayerScript = assets.bytes(betaboundMainPlayerScriptPath)
+
+    local betaboundMainPlayerScriptPatch = [==[
+    ---<< END OF ORIGINAL BETABOUND PLAYER SCRIPT >>---
+
+    local betabound_init = init
+    function init()
+        -- `mcontroller` is already available in this context on xStarbound, so this fools the code that expects it to have to be smuggled in.
+        math.betabound_mcontroller = mcontroller
+        return betabound_init()
+    end
+    ]==]
+    assets.add(betaboundMainPlayerScriptPath, betaboundMainPlayerScript .. betaboundMainPlayerScriptPatch)
+
+    logInfo(modName)
+pluto_catch e then
+    logError(modName, e)
+end
+::skipBetaboundPatch::

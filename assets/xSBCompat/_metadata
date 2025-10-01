@@ -1,0 +1,14 @@
+
+{
+  "author" : "FezzedOne and xSB contributors",
+  "description" : "Universal mod compatibility patch for xStarbound. Updated separately from xStarbound itself.",
+  "name" : "xSBCompat",
+  "priority" : -9999,
+  "friendlyName" : "xSBCompat",
+  "requires" : ["xSBassets"],
+  "substitutes" : ["opensb_base"],
+  "scripts": {
+    "postLoad": ["/xSB-mod-compat.lua"]
+  },
+  "version" : "4.1.0"
+}

@@ -3,9 +3,10 @@
   "name" : "xSBassets",
   "priority" : -9999,
   "friendlyName" : "xStarbound Assets",
+  "description" : "Assets required by xStarbound.",
   "requires" : ["base"],
   "scripts": {
-    "postLoad": ["/titlebar.lua", "/xSB-mod-compat.lua"]
+    "postLoad": ["/titlebar.lua"]
   },
-  "version" : "4.0.0"
+  "version" : "4.1.0"
 }

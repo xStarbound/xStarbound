@@ -623,6 +623,7 @@ StringList Root::scanForAssetSources(StringList const& directories) {
     float priority;
     StringList requires_;
     StringList includes;
+    StringList substitutes;
     Maybe<String> version;
   };
   List<shared_ptr<AssetSource>> assetSources;
@@ -699,20 +700,36 @@ StringList Root::scanForAssetSources(StringList const& directories) {
         }
         assetSource->includes = includesList;
       }
+      if (auto substitutesJson = metadata.ptr("substitutes")) {
+        StringList substitutesList{};
+        if (substitutesJson->isType(Json::Type::Array)) {
+          for (auto val : substitutesJson->iterateArray()) {
+            substitutesList.append(val.isType(Json::Type::String) ? val.toString() : val.repr());
+          }
+        } else {
+          Logger::warn("Root: Asset source '{}' (file name '{}') has non-array \"substitutes\" value; skipping substitutions",
+              assetSource->name, fileName);
+        }
+        assetSource->substitutes = substitutesList;
+      }
       if (auto versionJson = metadata.ptr("version"))
         assetSource->version = versionJson->isType(Json::Type::String) ? versionJson->toString() : versionJson->repr();
       else
         assetSource->version = {};
 
+      bool needsSubstitutionCheck = false;
+
       if (assetSource->name) {
         if (auto oldAssetSource = namedSources.value(*assetSource->name)) {
           if (oldAssetSource->priority <= assetSource->priority) {
-            Logger::warn("Root: Overriding duplicate asset source '{}' named '{}' with higher or equal priority source '{}",
+            Logger::warn("Root: Overriding duplicate asset source '{}' named '{}' with higher or equal priority source '{}'",
                 oldAssetSource->path, *assetSource->name, assetSource->path);
             *oldAssetSource = *assetSource;
+            assetSources.append(std::move(assetSource));
           } else {
             Logger::warn("Root: Skipping duplicate asset source '{}' named '{}', previous source '{}' has higher priority",
-                assetSource->path, *assetSource->name, oldAssetSource->priority);
+                assetSource->path, *assetSource->name, oldAssetSource->path);
+            needsSubstitutionCheck = true;
           }
         } else {
           namedSources[*assetSource->name] = assetSource;
@@ -720,6 +737,32 @@ StringList Root::scanForAssetSources(StringList const& directories) {
         }
       } else {
         assetSources.append(std::move(assetSource));
+      }
+
+      // FezzedOne: Added requirement/include substitution.
+      for (String const& substitute : assetSource->substitutes) {
+        if (auto oldAssetSource = namedSources.value(substitute)) {
+          if (oldAssetSource->priority <= assetSource->priority) {
+            Logger::warn("Root: Overriding duplicate asset source '{}' named '{}' with higher or equal priority source '{}' named '{}' substituting as '{}'",
+                oldAssetSource->path, oldAssetSource->name.value("<unnamed>"), assetSource->path, assetSource->name.value("<unnamed>"), substitute);
+            namedSources[substitute] = assetSource;
+            if (needsSubstitutionCheck) {
+              assetSources.append(std::move(assetSource));
+              needsSubstitutionCheck = false;
+            }
+          } else {
+            Logger::warn("Root: Skipping duplicate asset source '{}' named '{}', previous source '{}' named '{}' substituting as '{}' has higher priority",
+                assetSource->path, assetSource->name.value("<unnamed>"), oldAssetSource->path, oldAssetSource->name.value("<unnamed>"), substitute);
+          }
+        } else {
+          Logger::info("Root: Asset source '{}' named '{}' substituting as '{}'",
+              assetSource->path, assetSource->name.value("<unnamed>"), substitute);
+          namedSources[substitute] = assetSource;
+          if (needsSubstitutionCheck) {
+            assetSources.append(std::move(assetSource));
+            needsSubstitutionCheck = false;
+          }
+        }
       }
     }
   }
@@ -772,6 +815,7 @@ StringList Root::scanForAssetSources(StringList const& directories) {
   bool xSbAssetsFound = false;
   bool baseAssetsFound = false;
   for (auto const& source : dependencySortedSources) {
+    if (sourcePaths.contains(source->path)) continue;
     if (source->name) {
       if (*source->name == "base") {
         baseAssetsFound = true;

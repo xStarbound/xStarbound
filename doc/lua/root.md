@@ -208,6 +208,7 @@ jobject{
   name = "MyMod",
   includes = jarray{},
   requires = jarray{},
+  substitutes = jarray{},
   priority = 1,
   scripts = jobject{
     onLoad = jarray{"/myscript.lua", "/myotherscript.lua"},

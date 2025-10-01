@@ -85,13 +85,11 @@ null = nil -- The script in question expects `null` to be exactly the same as `n
 -- This conflicts with xStarbound's special `null` value. Fix your shit, Sayter!
 ]==]
 
-if xsb then
-    if assets.exists(needsPatch) then
-        local patchedScript = assets.bytes(needsPatch) .. patchCode
-        assets.add(needsPatch, patchedScript)
-    end
-    if assets.exists(needsPatch2) then
-        local patchedScript2 = assets.bytes(needsPatch2) .. patchCode2
-        assets.add(needsPatch2, patchedScript2)
-    end
+if assets.exists(needsPatch) then
+    local patchedScript = assets.bytes(needsPatch) .. patchCode
+    assets.add(needsPatch, patchedScript)
+end
+if assets.exists(needsPatch2) then
+    local patchedScript2 = assets.bytes(needsPatch2) .. patchCode2
+    assets.add(needsPatch2, patchedScript2)
 end

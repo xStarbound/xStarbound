@@ -4,6 +4,7 @@
   "priority" : -9999,
   "friendlyName" : "xStarbound Assets",
   "requires" : ["base"],
+  "substitutes" : ["opensb_base"],
   "scripts": {
     "postLoad": ["/titlebar.lua", "/xSB-mod-compat.lua"]
   },
