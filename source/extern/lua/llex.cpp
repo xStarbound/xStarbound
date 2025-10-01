@@ -344,7 +344,8 @@ void luaX_setinput (lua_State *L, LexState *ls, ZIO *z, TString *source,
           ls->tidx = std::distance(ls->tokens.begin(), i);
           luaX_syntaxerror(ls, "expected string after $include");
         }
-        ++i; /* FezzedOne: Skip included filename after the syntax check. */
+        ls->tidx = std::distance(ls->tokens.begin(), i);
+        luaX_syntaxerror(ls, "$include is disallowed on xStarbound");
         /* FezzedOne: Disabled the code for `$include` to prevent sandbox bypasses. */
 //         const char *fname = getstr(i->seminfo.ts);
 // #ifdef PLUTO_LOADFILE_HOOK
