@@ -429,6 +429,8 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
 
   m_xAimPositionNetState.setInterpolator(world->geometry().xLerpFunction());
   refreshEquipment();
+  // Force a cosmetics sync to make sure humanoid overrides get applied on initialisation.
+  m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude(), true);
 }
 
 void Player::uninit() {
