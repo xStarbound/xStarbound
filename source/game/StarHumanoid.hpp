@@ -112,7 +112,7 @@ public:
 
   Humanoid(Json const& config);
   Humanoid(HumanoidIdentity const& identity);
-  Humanoid(Humanoid const&) = default;
+  // Humanoid(Humanoid const&) = default;
 
   struct HumanoidTiming {
     explicit HumanoidTiming(Json config = Json());

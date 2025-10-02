@@ -586,7 +586,7 @@ The following callbacks can be used to get or alter the player's current humanoi
 
 #### `void` player.setHumanoidIdentity(`Json` newIdentity)
 
-Sets the player's identity. The new identity will be merged with the current one; as a special case, if the `"imagePath"` key (and _only_ that key) has been explicitly set to a `nil` value, _and_ either the table was created with `jobject()` or its metatable's `"__nils"` table otherwise contains `"imagePath"` (e.g., the metatable is `{["__nils"] = {imagePath = 0}}`), the `"imagePath"` will be set to `null`. Will log a warning and leave the species and/or image path unchanged if the new identity includes a `"species"` and/or `"imagePath"` that doesn't exist in the loaded assets.
+Sets the player's identity. The new identity will be merged with the current one; as a special case, if the `"imagePath"` key (and _only_ that key) has been explicitly set to a `nil` value, _and_ either the table was created with `jobject()` or its metatable's `"__nils"` table otherwise contains `"imagePath"` (e.g., the metatable is `{["__nils"] = {imagePath = 0}}`), the `"imagePath"` will be set to `null`. Will log a warning and leave the species unchanged if the new identity includes a `"species"` that doesn't exist in the loaded assets.
 
 ---
 

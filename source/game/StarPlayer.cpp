@@ -2488,8 +2488,8 @@ bool Player::checkSpecies(String const& species, Maybe<String> const& maybeCallb
     }
   }
 
-  if (!speciesFound)
-    Logger::warn("{}: Nonexistent species / image path '{}'; retained the old one.", callbackName, species);
+  if (!speciesFound && maybeCallbackName)
+    Logger::warn("{}: Nonexistent species '{}'; species was not changed or base species used instead of \"imagePath\" species for humanoid config.", callbackName, species);
   return speciesFound;
 }
 
@@ -2497,7 +2497,7 @@ void Player::setSpecies(String const& species) {
   if (checkSpecies(species)) { // FezzedOne: Only sets the species if it actually exists. Prevents crashes.
     m_identity.species = species;
     auto speciesToUse = m_identity.imagePath ? *m_identity.imagePath : species;
-    auto speciesDef = Root::singleton().speciesDatabase()->species(speciesToUse);
+    auto speciesDef = Root::singleton().speciesDatabase()->species(checkSpecies(speciesToUse, String("setSpecies")) ? speciesToUse : species);
     m_humanoid = make_shared<Humanoid>(speciesDef->humanoidConfig());
     updateIdentity();
   }
@@ -2525,13 +2525,11 @@ void Player::setPersonality(Personality const& personality) {
 
 void Player::setImagePath(Maybe<String> const& imagePath) {
   String speciesName = imagePath ? *imagePath : m_identity.species;
-  if (checkSpecies(speciesName, String("setImagePath"))) { // FezzedOne: Only sets the image path if it actually exists. Prevents crashes.
-    m_identity.imagePath = imagePath;
-    auto speciesToUse = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
-    auto speciesDef = Root::singleton().speciesDatabase()->species(speciesToUse);
-    m_humanoid = make_shared<Humanoid>(speciesDef->humanoidConfig());
-    updateIdentity();
-  };
+  m_identity.imagePath = imagePath;
+  auto speciesToUse = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
+  auto speciesDef = Root::singleton().speciesDatabase()->species(checkSpecies(speciesToUse) ? speciesToUse : m_identity.species);
+  m_humanoid = make_shared<Humanoid>(speciesDef->humanoidConfig());
+  updateIdentity();
 }
 
 HumanoidPtr Player::humanoid() {
@@ -2579,13 +2577,9 @@ void Player::setIdentity(Json const& newIdentity) {
       mergedIdentity = mergedIdentity.set("species", oldIdentity.getString("species"));
       speciesName = oldSpecies;
     }
-    if (!checkSpecies(imagePath, String("setIdentity"))) { // FezzedOne: If the new image path is invalid, retain the old image path.
-      mergedIdentity = mergedIdentity.set("imagePath", oldIdentity.getString("imagePath"));
-      imagePath = oldImagePath ? *oldImagePath : speciesName;
-    }
     m_identity = HumanoidIdentity(mergedIdentity);
     if (imagePath != oldSpecies) {
-      auto speciesDef = Root::singleton().speciesDatabase()->species(imagePath);
+      auto speciesDef = Root::singleton().speciesDatabase()->species(checkSpecies(imagePath) ? imagePath : speciesName);
       m_humanoid = make_shared<Humanoid>(speciesDef->humanoidConfig());
     }
     updateIdentity();

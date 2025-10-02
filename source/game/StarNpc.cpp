@@ -1,35 +1,35 @@
 #include "StarNpc.hpp"
-#include "StarDataStreamExtra.hpp"
-#include "StarWorld.hpp"
-#include "StarRoot.hpp"
-#include "StarDamageManager.hpp"
-#include "StarDamageDatabase.hpp"
-#include "StarLogging.hpp"
-#include "StarConfigLuaBindings.hpp"
-#include "StarEntityLuaBindings.hpp"
-#include "StarWorldLuaBindings.hpp"
-#include "StarRootLuaBindings.hpp"
-#include "StarStatusControllerLuaBindings.hpp"
+#include "StarArmors.hpp"
+#include "StarAssets.hpp"
 #include "StarBehaviorLuaBindings.hpp"
+#include "StarConfigLuaBindings.hpp"
+#include "StarDamageDatabase.hpp"
+#include "StarDamageManager.hpp"
+#include "StarDanceDatabase.hpp"
+#include "StarDataStreamExtra.hpp"
 #include "StarEmoteProcessor.hpp"
-#include "StarTreasure.hpp"
 #include "StarEncode.hpp"
+#include "StarEntityLuaBindings.hpp"
+#include "StarEntityRendering.hpp"
+#include "StarFireableItem.hpp"
 #include "StarItemDatabase.hpp"
 #include "StarItemDrop.hpp"
-#include "StarAssets.hpp"
-#include "StarEntityRendering.hpp"
-#include "StarTime.hpp"
-#include "StarArmors.hpp"
-#include "StarFireableItem.hpp"
-#include "StarStatusController.hpp"
 #include "StarJsonExtra.hpp"
-#include "StarDanceDatabase.hpp"
+#include "StarLogging.hpp"
+#include "StarRoot.hpp"
+#include "StarRootLuaBindings.hpp"
 #include "StarSpeciesDatabase.hpp"
+#include "StarStatusController.hpp"
+#include "StarStatusControllerLuaBindings.hpp"
+#include "StarTime.hpp"
+#include "StarTreasure.hpp"
+#include "StarWorld.hpp"
+#include "StarWorldLuaBindings.hpp"
 
 namespace Star {
 
 Npc::Npc(NpcVariant const& npcVariant)
-  : m_humanoid(npcVariant.humanoidConfig) {
+    : m_humanoid(npcVariant.humanoidConfig) {
   m_disableWornArmor.set(npcVariant.disableWornArmor);
 
   m_emoteState = HumanoidEmote::Idle;
@@ -132,26 +132,25 @@ Npc::Npc(NpcVariant const& npcVariant, Json const& diskStore) : Npc(npcVariant) 
 
 Json Npc::diskStore() const {
   return JsonObject{
-    {"npcVariant", Root::singleton().npcDatabase()->writeNpcVariantToJson(m_npcVariant)},
-    {"movementController", m_movementController->storeState()},
-    {"statusController", m_statusController->diskStore()},
-    {"armor", m_armor->diskStore()},
-    {"tools", m_tools->diskStore()},
-    {"aimPosition", jsonFromVec2F({m_xAimPosition.get(), m_yAimPosition.get()})},
-    {"humanoidState", Humanoid::StateNames.getRight(m_humanoid.state())},
-    {"humanoidEmoteState", HumanoidEmoteNames.getRight(m_humanoid.emoteState())},
-    {"isInteractive", m_isInteractive.get()},
-    {"shifting", m_shifting.get()},
-    {"damageOnTouch", m_damageOnTouch.get()},
-    {"effectEmitter", m_effectEmitter->toJson()},
-    {"disableWornArmor", m_disableWornArmor.get()},
-    {"scriptStorage", m_scriptComponent.getScriptStorage()},
-    {"uniqueId", jsonFromMaybe(uniqueId())},
-    {"team", getTeam().toJson()},
-    {"deathParticleBurst", jsonFromMaybe(m_deathParticleBurst.get())},
-    {"dropPools", m_dropPools.get().transformed(construct<Json>())},
-    {"aggressive", m_aggressive.get()}
-  };
+      {"npcVariant", Root::singleton().npcDatabase()->writeNpcVariantToJson(m_npcVariant)},
+      {"movementController", m_movementController->storeState()},
+      {"statusController", m_statusController->diskStore()},
+      {"armor", m_armor->diskStore()},
+      {"tools", m_tools->diskStore()},
+      {"aimPosition", jsonFromVec2F({m_xAimPosition.get(), m_yAimPosition.get()})},
+      {"humanoidState", Humanoid::StateNames.getRight(m_humanoid.state())},
+      {"humanoidEmoteState", HumanoidEmoteNames.getRight(m_humanoid.emoteState())},
+      {"isInteractive", m_isInteractive.get()},
+      {"shifting", m_shifting.get()},
+      {"damageOnTouch", m_damageOnTouch.get()},
+      {"effectEmitter", m_effectEmitter->toJson()},
+      {"disableWornArmor", m_disableWornArmor.get()},
+      {"scriptStorage", m_scriptComponent.getScriptStorage()},
+      {"uniqueId", jsonFromMaybe(uniqueId())},
+      {"team", getTeam().toJson()},
+      {"deathParticleBurst", jsonFromMaybe(m_deathParticleBurst.get())},
+      {"dropPools", m_dropPools.get().transformed(construct<Json>())},
+      {"aggressive", m_aggressive.get()}};
 }
 
 ByteArray Npc::netStore() {
@@ -183,8 +182,7 @@ void Npc::init(World* world, EntityId entityId, EntityMode mode) {
       setItemSlot(item.first, item.second);
     m_scriptComponent.addCallbacks("npc", makeNpcCallbacks());
     m_scriptComponent.addCallbacks("config",
-        LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def)
-            { return m_npcVariant.scriptConfig.query(name, def); }));
+        LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def) { return m_npcVariant.scriptConfig.query(name, def); }));
     m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
     m_scriptComponent.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_statusController.get()));
     m_scriptComponent.addCallbacks("behavior", LuaBindings::makeBehaviorLuaCallbacks(&m_behaviors));
@@ -261,7 +259,7 @@ pair<ByteArray, uint64_t> Npc::writeNetState(uint64_t fromVersion) {
     if (auto mode = entityMode()) {
       if (*mode == EntityMode::Master && connectionForEntity(entityId()) != ServerConnectionId) {
         PolyF poly = m_movementController->collisionPoly();
-        m_movementController->setCollisionPoly({ { 0.0f, -3.402823466e+38F }});
+        m_movementController->setCollisionPoly({{0.0f, -3.402823466e+38F}});
         auto result = m_netGroup.writeNetState(fromVersion);
         m_movementController->setCollisionPoly(poly);
         return result;
@@ -325,11 +323,10 @@ List<DamageNotification> Npc::applyDamage(DamageRequest const& damage) {
 
   if (totalDamage > 0 && m_hitDamageNotificationLimiter < m_hitDamageNotificationLimit) {
     m_scriptComponent.invoke("damage", JsonObject{
-        {"sourceId", damage.sourceEntityId},
-        {"damage", totalDamage},
-        {"sourceDamage", damage.damage},
-        {"sourceKind", damage.damageSourceKind}
-      });
+                                           {"sourceId", damage.sourceEntityId},
+                                           {"damage", totalDamage},
+                                           {"sourceDamage", damage.damage},
+                                           {"sourceKind", damage.damageSourceKind}});
     m_hitDamageNotificationLimiter++;
   }
 
@@ -486,10 +483,10 @@ void Npc::render(RenderCallback* renderCallback) {
 
   auto extractScaleDirectives = [&](Directives const& directives) -> pair<Vec2F, Directives> {
     Vec2F finalScale = Vec2F::filled(1.0f);
-    
+
     if (!directives)
       return make_pair(finalScale, Directives());
-    
+
     for (auto& entry : directives.shared->entries) {
       ScaleImageOperation* op = const_cast<ScaleImageOperation*>(entry.loadOperation(*directives.shared).ptr<ScaleImageOperation>());
       if (op) {
@@ -519,7 +516,7 @@ void Npc::render(RenderCallback* renderCallback) {
     drawable.translate(position());
     if (drawable.isImage())
       drawable.imagePart().addDirectivesGroup(humanoidDirectives, true);
-      // drawable.imagePart().addDirectivesGroup(m_statusController->parentDirectives(), true);
+    // drawable.imagePart().addDirectivesGroup(m_statusController->parentDirectives(), true);
     renderCallback->addDrawable(std::move(drawable), renderLayer);
   }
 
@@ -685,28 +682,28 @@ LuaCallbacks Npc::makeNpcCallbacks() {
   callbacks.registerCallback("maxEnergy", [this]() { return m_statusController->resourceMax("energy"); });
 
   callbacks.registerCallback("say", [this](String line, Maybe<StringMap<String>> const& tags, Json const& config) {
-      if (tags)
-        line = line.replaceTags(*tags, false);
+    if (tags)
+      line = line.replaceTags(*tags, false);
 
-      if (!line.empty()) {
-        addChatMessage(line, config);
-        return true;
-      }
+    if (!line.empty()) {
+      addChatMessage(line, config);
+      return true;
+    }
 
-      return false;
-    });
+    return false;
+  });
 
   callbacks.registerCallback("sayPortrait", [this](String line, String portrait, Maybe<StringMap<String>> const& tags, Json const& config) {
-      if (tags)
-        line = line.replaceTags(*tags, false);
+    if (tags)
+      line = line.replaceTags(*tags, false);
 
-      if (!line.empty()) {
-        addChatMessage(line, config, portrait);
-        return true;
-      }
+    if (!line.empty()) {
+      addChatMessage(line, config, portrait);
+      return true;
+    }
 
-      return false;
-    });
+    return false;
+  });
 
   callbacks.registerCallback("emote", [this](String const& arg1) { addEmote(HumanoidEmoteNames.getLeft(arg1)); });
 
@@ -715,67 +712,65 @@ LuaCallbacks Npc::makeNpcCallbacks() {
   callbacks.registerCallback("setInteractive", [this](bool interactive) { m_isInteractive.set(interactive); });
 
   callbacks.registerCallback("setLounging", [this](EntityId loungeableEntityId, Maybe<size_t> maybeAnchorIndex) {
-      size_t anchorIndex = maybeAnchorIndex.value(0);
-      auto loungeableEntity = world()->get<LoungeableEntity>(loungeableEntityId);
-      if (!loungeableEntity || anchorIndex >= loungeableEntity->anchorCount()
-          || !loungeableEntity->entitiesLoungingIn(anchorIndex).empty()
-          || !loungeableEntity->loungeAnchor(anchorIndex))
-        return false;
+    size_t anchorIndex = maybeAnchorIndex.value(0);
+    auto loungeableEntity = world()->get<LoungeableEntity>(loungeableEntityId);
+    if (!loungeableEntity || anchorIndex >= loungeableEntity->anchorCount() || !loungeableEntity->entitiesLoungingIn(anchorIndex).empty() || !loungeableEntity->loungeAnchor(anchorIndex))
+      return false;
 
-      m_movementController->setAnchorState({loungeableEntityId, anchorIndex});
-      return true;
-    });
+    m_movementController->setAnchorState({loungeableEntityId, anchorIndex});
+    return true;
+  });
 
   callbacks.registerCallback("resetLounging", [this]() { m_movementController->resetAnchorState(); });
 
   callbacks.registerCallback("isLounging", [this]() { return is<LoungeAnchor>(m_movementController->entityAnchor()); });
 
   callbacks.registerCallback("loungingIn", [this]() -> Maybe<EntityId> {
-      auto loungingState = loungingIn();
-      if (loungingState)
-        return loungingState.value().entityId;
-      else
-        return {};
-    });
+    auto loungingState = loungingIn();
+    if (loungingState)
+      return loungingState.value().entityId;
+    else
+      return {};
+  });
 
   callbacks.registerCallback("setOfferedQuests", [this](Maybe<JsonArray> const& offeredQuests) {
-      m_offeredQuests.set(offeredQuests.value().transformed(&QuestArcDescriptor::fromJson));
-    });
+    m_offeredQuests.set(offeredQuests.value().transformed(&QuestArcDescriptor::fromJson));
+  });
 
   callbacks.registerCallback("setTurnInQuests", [this](Maybe<StringList> const& turnInQuests) {
-      m_turnInQuests.set(StringSet::from(turnInQuests.value()));
-    });
+    m_turnInQuests.set(StringSet::from(turnInQuests.value()));
+  });
 
   callbacks.registerCallback("setItemSlot", [this](String const& slot, Json const& itemDescriptor) -> Json {
-      return setItemSlot(slot, ItemDescriptor(itemDescriptor));
-    });
+    return setItemSlot(slot, ItemDescriptor(itemDescriptor));
+  });
 
   callbacks.registerCallback("getItemSlot", [this](String const& entry) -> Json {
-      if (entry.equalsIgnoreCase("head"))
-        return m_armor->headItemDescriptor().toJson();
-      else if (entry.equalsIgnoreCase("headCosmetic"))
-        return m_armor->headCosmeticItemDescriptor().toJson();
-      else if (entry.equalsIgnoreCase("chest"))
-        return m_armor->chestItemDescriptor().toJson();
-      else if (entry.equalsIgnoreCase("chestCosmetic"))
-        return m_armor->chestCosmeticItemDescriptor().toJson();
-      else if (entry.equalsIgnoreCase("legs"))
-        return m_armor->legsItemDescriptor().toJson();
-      else if (entry.equalsIgnoreCase("legsCosmetic"))
-        return m_armor->legsCosmeticItemDescriptor().toJson();
-      else if (entry.equalsIgnoreCase("back"))
-        return m_armor->backItemDescriptor().toJson();
-      else if (entry.equalsIgnoreCase("backCosmetic"))
-        return m_armor->backCosmeticItemDescriptor().toJson();
-      else if (entry.equalsIgnoreCase("primary"))
-        return m_tools->primaryHandItemDescriptor().toJson();
-      else if (entry.equalsIgnoreCase("alt"))
-        return m_tools->altHandItemDescriptor().toJson();
-      else if (m_npcVariant.items.contains(entry))
-        return m_npcVariant.items.get(entry).toJson();
+    if (entry.equalsIgnoreCase("head"))
+      return m_armor->headItemDescriptor().toJson();
+    else if (entry.equalsIgnoreCase("headCosmetic"))
+      return m_armor->headCosmeticItemDescriptor().toJson();
+    else if (entry.equalsIgnoreCase("chest"))
+      return m_armor->chestItemDescriptor().toJson();
+    else if (entry.equalsIgnoreCase("chestCosmetic"))
+      return m_armor->chestCosmeticItemDescriptor().toJson();
+    else if (entry.equalsIgnoreCase("legs"))
+      return m_armor->legsItemDescriptor().toJson();
+    else if (entry.equalsIgnoreCase("legsCosmetic"))
+      return m_armor->legsCosmeticItemDescriptor().toJson();
+    else if (entry.equalsIgnoreCase("back"))
+      return m_armor->backItemDescriptor().toJson();
+    else if (entry.equalsIgnoreCase("backCosmetic"))
+      return m_armor->backCosmeticItemDescriptor().toJson();
+    else if (entry.equalsIgnoreCase("primary"))
+      return m_tools->primaryHandItemDescriptor().toJson();
+    else if (entry.equalsIgnoreCase("alt"))
+      return m_tools->altHandItemDescriptor().toJson();
+    else if (m_npcVariant.items.contains(entry))
+      return m_npcVariant.items.get(entry).toJson();
 
-      return {};
-    });
+    return {};
+  });
 
   callbacks.registerCallback("disableWornArmor", [this](bool disable) { m_disableWornArmor.set(disable); });
 
@@ -789,14 +784,14 @@ LuaCallbacks Npc::makeNpcCallbacks() {
   callbacks.registerCallback("aimPosition", [this]() { return jsonFromVec2F(aimPosition()); });
 
   callbacks.registerCallback("setAimPosition", [this](Vec2F const& pos) {
-      auto aimPosition = world()->geometry().diff(pos, position());
-      m_xAimPosition.set(aimPosition[0]);
-      m_yAimPosition.set(aimPosition[1]);
-    });
+    auto aimPosition = world()->geometry().diff(pos, position());
+    m_xAimPosition.set(aimPosition[0]);
+    m_yAimPosition.set(aimPosition[1]);
+  });
 
   callbacks.registerCallback("setDeathParticleBurst", [this](Maybe<String> const& deathParticleBurst) {
-      m_deathParticleBurst.set(deathParticleBurst);
-    });
+    m_deathParticleBurst.set(deathParticleBurst);
+  });
 
   callbacks.registerCallback("setStatusText", [this](Maybe<String> const& status) { m_statusText.set(status); });
   callbacks.registerCallback("setDisplayNametag", [this](bool display) { m_displayNametag.set(display); });
@@ -948,7 +943,8 @@ bool Npc::isInteractive() const {
 
 InteractAction Npc::interact(InteractRequest const& request) {
   auto result = m_scriptComponent.invoke<Json>("interact",
-      JsonObject{{"sourceId", request.sourceId}, {"sourcePosition", jsonFromVec2F(request.sourcePosition)}}).value();
+                                     JsonObject{{"sourceId", request.sourceId}, {"sourcePosition", jsonFromVec2F(request.sourcePosition)}})
+                    .value();
 
   if (result.isNull())
     return {};
@@ -1194,13 +1190,13 @@ List<PhysicsForceRegion> Npc::forceRegions() const {
 }
 
 bool Npc::checkSpecies(String const& species, Maybe<String> const& maybeCallbackName) { // Check whether a species exists in the loaded assets.
-  Star::Root &root = Root::singleton();
+  Star::Root& root = Root::singleton();
   String callbackName = "setSpecies";
   if (maybeCallbackName)
     callbackName = maybeCallbackName.get();
   bool speciesFound = false;
 
-  for (auto const &nameDefPair : root.speciesDatabase()->allSpecies()) {
+  for (auto const& nameDefPair : root.speciesDatabase()->allSpecies()) {
     String speciesName = nameDefPair.second->options().species;
 
     if (species == speciesName) {
@@ -1209,13 +1205,16 @@ bool Npc::checkSpecies(String const& species, Maybe<String> const& maybeCallback
     }
   }
 
-  if (!speciesFound)
+  if (!speciesFound && maybeCallbackName)
     Logger::error("{}: Nonexistent species '{}'.", callbackName, species);
   return speciesFound;
 }
 
 void Npc::setIdentity(Json const& newIdentity) {
-  Json oldIdentity = m_humanoid.identity().toJson();
+  auto identity = m_humanoid.identity();
+  Maybe<String> oldImagePath = identity.imagePath;
+  String oldSpecies = oldImagePath ? *oldImagePath : identity.species;
+  Json oldIdentity = identity.toJson();
   Json mergedIdentity = oldIdentity;
   if (newIdentity.type() == Json::Type::Object) {
     mergedIdentity = jsonMerge(oldIdentity, newIdentity);
@@ -1227,12 +1226,20 @@ void Npc::setIdentity(Json const& newIdentity) {
       }
     }
     String speciesName = mergedIdentity.getString("species");
-    if (!checkSpecies(speciesName, String("npc.setIdentity"))) { // FezzedOne: If the new species doesn't exist, retain the old species.
+    String imagePath = mergedIdentity.optString("imagePath").value(speciesName);
+    if (!checkSpecies(speciesName, String("setIdentity"))) { // FezzedOne: If the new species doesn't exist, retain the old species.
       mergedIdentity = mergedIdentity.set("species", oldIdentity.getString("species"));
+      speciesName = oldSpecies;
     }
-    HumanoidIdentity identity = HumanoidIdentity(mergedIdentity);
+    identity = HumanoidIdentity(mergedIdentity);
+    if (imagePath != oldSpecies) {
+      auto speciesDef = Root::singleton().speciesDatabase()->species(checkSpecies(imagePath, {}) ? imagePath : speciesName);
+      m_humanoid = Humanoid(speciesDef->humanoidConfig());
+    }
     m_humanoid.setIdentity(identity);
+    // FezzedOne: Make sure to update armour on NPCs.
+    m_armor->setupHumanoidClothingDrawables(m_humanoid, false);
   }
 }
 
-}
+} // namespace Star
