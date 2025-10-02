@@ -65,6 +65,8 @@ EnumMap<Player::State> const Player::StateNames{
     {Player::State::Crouch, "crouch"},
     {Player::State::Lounge, "lounge"}};
 
+atomic<bool> Player::s_headRotation = false;
+
 Player::Player(PlayerConfigPtr config, Uuid uuid) {
   auto assets = Root::singleton().assets();
   // FezzedOne: Pre-cache the player config to prevent various lag spikes.
