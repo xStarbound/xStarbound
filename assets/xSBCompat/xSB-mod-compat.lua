@@ -24,7 +24,7 @@ end
 
 pluto_try
     -- Works around various unnecessary OpenStarbound "compatibility" checks that exclude xStarbound for various stupid, non-technical reasons.
-    assets.add("/opensb/coconut.png", assets.newImage(0, 0)) -- Yes, this has been used for unneeded "compatibility" checks.
+    assets.add("/opensb/coconut.png", assets.newImage({0, 0})) -- Yes, this has been used for unneeded "compatibility" checks.
     assets.add("/scripts/xsb/dummy.lua", "--- Dummy script asset. ---")
 
     local worldServerConfig = assets.json("/worldserver.config")
@@ -38,8 +38,6 @@ pluto_try
     local playerConfig = assets.json("/player.config")
     playerConfig.genericScriptContexts.OpenStarbound ??= "/scripts/xsb/dummy.lua"
     assets.add("/player.config", playerConfig)
-
-    sb.logInfo("assets.getConfiguration(\"configurationVersion\") = " .. sb.printJson(assets.getConfiguration("configurationVersion")))
 
     -- Copies all vanilla human sprites and framesheet configs into the `nudehuman` directory.
     local humanSpriteAssets = assets.scan("/humanoid/human/", ".png")
@@ -61,7 +59,7 @@ pluto_try
         assets.add("/humanoid/nudehuman/femalebody.png", assets.rawBytes("/humanoid/human/femalebody.png"))
     end
 pluto_catch e then
-  sb.logError($"[xSBCompat] Error while applying universal compatibility patch: {error}")
+  sb.logError($"[xSBCompat] Error while applying universal compatibility patch: {e}")
 end
 
 --- Compatibility patch / bugfix for navigation UI mods ---
