@@ -2244,9 +2244,9 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides) {
   auto baseConfig = m_baseHumanoidConfig;
   if (auto jIdentityOverrides = overrides.get("identity", Json()); jIdentityOverrides.isType(Json::Type::Object)) {
     auto baseSpecies = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
-    auto speciesToCheck = jIdentityOverrides.optString("imagePath").value(jIdentityOverrides.getString("species"));
-    auto speciesToUse = checkSpecies(speciesToCheck) ? speciesToCheck : baseSpecies;
     auto newIdentity = HumanoidIdentity(jsonMerge(m_identity.toJson(), jIdentityOverrides));
+    auto speciesToCheck = newIdentity.imagePath ? *newIdentity.imagePath : newIdentity.species;
+    auto speciesToUse = checkSpecies(speciesToCheck) ? speciesToCheck : baseSpecies;
     newIdentity.species = m_identity.species;
     newIdentity.imagePath = speciesToUse;
     setIdentity(m_identity, newIdentity);

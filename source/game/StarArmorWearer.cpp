@@ -38,6 +38,7 @@ ArmorWearer::ArmorWearer() : m_lastNude(true), m_lastFacingDirection(255) {
   }
 
   m_isOpenSb = false;
+  m_warned = false;
 }
 
 ArmorWearer::ArmorWearer(bool isPlayer) : ArmorWearer() {
@@ -62,8 +63,10 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   bool backNeedsSync = m_backNeedsSync;
 
   bool anyNeedsSync = forceSync || headNeedsSync || chestNeedsSync || legsNeedsSync || backNeedsSync || nudeChanged;
-  if (anyNeedsSync)
+  if (anyNeedsSync) {
+    m_warned = false;
     netElementsNeedLoad(true);
+  }
 
   bool bodyHidden = false;
   Json humanoidOverrides = JsonObject{};
@@ -91,7 +94,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   m_isOpenSb |= pulledOpenSbCosmeticUpdate;
 
   // FezzedOne: Also handle OpenStarbound idiosyncrasies (such as human nudity), if so configured. Any overrides from armour take priority over this.
-  if (m_isOpenSb) {
+  if (m_isOpenSb && (m_player && m_player->isSlave()) && (pulledOpenSbCosmeticUpdate || anyNeedsSync)) {
     auto identity = humanoid.identity();
     auto imagePath = identity.imagePath ? *identity.imagePath : identity.species;
     if (auto overrides = m_openSbOverrides.ptr(imagePath)) {
@@ -709,9 +712,10 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     try {
       humanoid.updateHumanoidConfigOverrides(humanoidOverrides);
     } catch (std::exception const& e) {
-      Logger::warn("ArmorWearer: Exception caught while handling humanoid overrides; attempted to restore base humanoid config for player's species. "
-                   "Check the \"humanoidConfig\" on your cosmetic items.\n  Exception: {}",
-          outputException(e, false));
+      if (!m_warned)
+        Logger::warn("ArmorWearer: Exception caught while handling humanoid overrides; attempted to restore base humanoid config for player's species. "
+                     "Check the \"humanoidConfig\" on your cosmetic items.\n  Exception: {}",
+            outputException(e, false));
       humanoid.updateHumanoidConfigOverrides(JsonObject{});
     }
   }

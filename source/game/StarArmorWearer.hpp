@@ -96,6 +96,7 @@ private:
 
   bool m_isPlayer;
   bool m_isOpenSb;
+  bool m_warned;
   Player* m_player = nullptr;
 
   uint8_t m_lastFacingDirection;
