@@ -8,7 +8,8 @@
   "requires" : ["xSBassets"],
   "substitutes" : ["opensb_base"],
   "scripts": {
-    "postLoad": ["/xSB-mod-compat.lua"]
+    "onLoad": ["/xSB-mod-compat.onload.pluto"],
+    "postLoad": ["/xSB-mod-compat.postload.pluto"]
   },
   "version" : "4.1.1"
 }

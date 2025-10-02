@@ -15,54 +15,9 @@ local logError = |modName, error| -> sb.logError($"[xSBCompat] Error while apply
 local modName
 
 if xSBCompatVersion then
-    sb.logInfo($"[xSBCompat] Loaded xSBCompat v{xSBCompatVersion}.")
+    sb.logInfo($"[xSBCompat] Loaded xSBCompat v{xSBCompatVersion} - post-load stage.")
 else
     return
-end
-
---- Universal compatibility patch ---
-
-pluto_try
-    -- Works around various unnecessary OpenStarbound "compatibility" checks that exclude xStarbound for various stupid, non-technical reasons.
-    assets.add("/opensb/coconut.png", assets.newImage({0, 0})) -- Yes, this has been used for unneeded "compatibility" checks.
-    assets.add("/scripts/xsb/dummy.lua", "--- Dummy script asset. ---")
-
-    local worldServerConfig = assets.json("/worldserver.config")
-    worldServerConfig.scriptContexts.OpenStarbound ??= jarray{"/scripts/xsb/dummy.lua"}
-    assets.add("/worldserver.config", worldServerConfig)
-
-    local clientConfig = assets.json("/client.config")
-    clientConfig.universeScriptContexts.OpenStarbound ??= jarray{"/scripts/xsb/dummy.lua"}
-    assets.add("/client.config", clientConfig)
-
-    local playerConfig = assets.json("/player.config")
-    playerConfig.genericScriptContexts.OpenStarbound ??= "/scripts/xsb/dummy.lua"
-    assets.add("/player.config", playerConfig)
-
-    -- Copies all vanilla human sprites and framesheet configs into the `nudehuman` directory.
-    local humanSpriteAssets = assets.scan("/humanoid/human/", ".png")
-    local humanFrameConfigs = assets.scan("/humanoid/human/", ".frames")
-    for humanSpriteAssets as asset do
-        local subPath = asset:sub(17, -1)
-        if subPath ~= "malebody.png" and subPath ~= "femalebody.png" then
-            local newAssetPath = "/humanoid/nudehuman/" .. subPath
-            assets.add(newAssetPath, assets.rawBytes(asset))
-        end
-    end
-    for humanFrameConfigs as asset do
-        local newAssetPath = "/humanoid/nudehuman/" .. asset:sub(17, -1)
-        assets.add(newAssetPath, assets.bytes(asset))
-    end
-
-    -- If anything other than `base` modifies the `human` body spritesheets, replace the `nudehuman` body spritesheets too.
-    if (assets.origin("/humanoid/human/malebody.png") |> assets.sourceMetadata).name ~= "base" then
-        assets.add("/humanoid/nudehuman/malebody.png", assets.rawBytes("/humanoid/human/malebody.png"))
-    end
-    if (assets.origin("/humanoid/human/femalebody.png") |> assets.sourceMetadata).name ~= "base" then
-        assets.add("/humanoid/nudehuman/femalebody.png", assets.rawBytes("/humanoid/human/femalebody.png"))
-    end
-pluto_catch e then
-  sb.logError($"[xSBCompat] Error while applying universal compatibility patch: {e}")
 end
 
 --- Compatibility patch / bugfix for navigation UI mods ---

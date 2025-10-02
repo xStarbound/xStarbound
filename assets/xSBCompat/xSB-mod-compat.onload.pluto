@@ -1,0 +1,80 @@
+local loadedModPaths = assets.loadedSources()
+local loadedMods = {}
+local xSBCompatVersion
+for loadedModPaths as loadedMod do
+    local metadata = assets.sourceMetadata(loadedMod)
+    local modName = metadata.name
+    table.insert(loadedMods, modName ?? loadedMod)
+    if modName == "xSBCompat" then
+        xSBCompatVersion = metadata.version
+    end
+end
+
+if xSBCompatVersion then
+    sb.logInfo($"[xSBCompat] Loaded xSBCompat v{xSBCompatVersion} - on-load stage.")
+else
+    return
+end
+
+--- Universal compatibility patch ---
+
+pluto_try
+    -- Works around various unnecessary OpenStarbound "compatibility" checks that exclude xStarbound for various stupid, non-technical reasons.
+    assets.add("/opensb/coconut.png", assets.newImage({0, 0})) -- Yes, this has been used for unneeded "compatibility" checks.
+    assets.add("/scripts/xsb/dummy.lua", "--- Dummy script asset. ---")
+
+    local worldServerConfig = assets.json("/worldserver.config")
+    worldServerConfig.scriptContexts.OpenStarbound ??= jarray{"/scripts/xsb/dummy.lua"}
+    assets.add("/worldserver.config", worldServerConfig)
+
+    local clientConfig = assets.json("/client.config")
+    clientConfig.universeScriptContexts.OpenStarbound ??= jarray{"/scripts/xsb/dummy.lua"}
+    assets.add("/client.config", clientConfig)
+
+    local playerConfig = assets.json("/player.config")
+    playerConfig.genericScriptContexts.OpenStarbound ??= "/scripts/xsb/dummy.lua"
+    assets.add("/player.config", playerConfig)
+
+    sb.logInfo($"[xSBCompat] Applied universal compatibility patch")
+pluto_catch e then
+    sb.logError($"[xSBCompat] Error while applying universal compatibility patch: {e}")
+end
+
+--- Human sprite handling ---
+
+pluto_try
+    -- Copies all human sprites and framesheet configs into the `nudehuman` and `undyhuman` directories.
+    for assets.scan("/humanoid/human/", ".png") as asset do
+        local subPath = asset:sub(17, -1)
+        local assetBytes = assets.rawBytes(asset)
+        if subPath ~= "malebody.png" and subPath ~= "femalebody.png" then
+            local nudeHumanPath = "/humanoid/nudehuman/" .. subPath
+            assets.add(nudeHumanPath, assetBytes)
+        end
+        local undyHumanPath = "/humanoid/undyhuman/" .. subPath
+        assets.add(undyHumanPath, assetBytes)
+    end
+
+    for assets.scan("/humanoid/human/", ".frames") as asset do
+        local assetBytes = assets.bytes(asset)
+        local nudeHumanPath = "/humanoid/nudehuman/" .. asset:sub(17, -1)
+        assets.add(nudeHumanPath, assetBytes)
+        local undyHumanPath = "/humanoid/undyhuman/" .. asset:sub(17, -1)
+        assets.add(undyHumanPath, assetBytes)
+    end
+
+    -- Checks for `"removeHumanUndies"` option in xStarbound's config file. If enabled, uses OpenStarbound's nude human sprites as the default.
+    -- As per OpenStarbound's behaviour, the sprites will be overridden by any higher-priority mods.
+    if assets.getConfiguration("removeHumanUndies") then
+        if (assets.origin("/humanoid/nudehuman/malebody.png") |> assets.sourceMetadata).name == "xSBCompat" then
+            assets.add("/humanoid/human/malebody.png", assets.rawBytes("/humanoid/nudehuman/malebody.png"))
+        end
+        if (assets.origin("/humanoid/nudehuman/femalebody.png") |> assets.sourceMetadata).name == "xSBCompat" then
+            assets.add("/humanoid/human/femalebody.png", assets.rawBytes("/humanoid/nudehuman/femalebody.png"))
+        end
+    end
+
+    sb.logInfo($"[xSBCompat] Applied human sprite patch")
+pluto_catch e then
+    sb.logError($"[xSBCompat] Error while applying human sprite patch: {e}")
+end
