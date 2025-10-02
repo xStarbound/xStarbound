@@ -2248,7 +2248,7 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides) {
     auto speciesToCheck = newIdentity.imagePath ? *newIdentity.imagePath : newIdentity.species;
     auto speciesToUse = checkSpecies(speciesToCheck) ? speciesToCheck : baseSpecies;
     newIdentity.species = m_identity.species;
-    newIdentity.imagePath = speciesToUse;
+    newIdentity.imagePath = speciesToCheck;
     setIdentity(m_identity, newIdentity);
     baseConfig = Root::singleton().speciesDatabase()->species(speciesToUse)->humanoidConfig();
   } else {
