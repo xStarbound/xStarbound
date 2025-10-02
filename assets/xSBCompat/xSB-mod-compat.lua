@@ -43,8 +43,11 @@ pluto_try
     local humanSpriteAssets = assets.scan("/humanoid/human/", ".png")
     local humanFrameConfigs = assets.scan("/humanoid/human/", ".frames")
     for humanSpriteAssets as asset do
-        local newAssetPath = "/humanoid/nudehuman/" .. asset:sub(17, -1)
-        assets.add(newAssetPath, assets.rawBytes(asset))
+        local subPath = asset:sub(17, -1)
+        if subPath ~= "malebody.png" and subPath ~= "femalebody.png" then
+            local newAssetPath = "/humanoid/nudehuman/" .. subPath
+            assets.add(newAssetPath, assets.rawBytes(asset))
+        end
     end
     for humanFrameConfigs as asset do
         local newAssetPath = "/humanoid/nudehuman/" .. asset:sub(17, -1)
