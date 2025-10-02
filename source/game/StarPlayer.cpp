@@ -1111,7 +1111,8 @@ void Player::update(float dt, uint64_t) {
       bool edgeTriggeredUse = take(m_edgeTriggeredUse);
 
       m_inventory->cleanup();
-      refreshEquipment();
+      refreshArmor(false);
+      refreshItems();
 
       if (inConflictingLoungeAnchor())
         m_movementController->resetAnchorState();
@@ -1526,12 +1527,13 @@ void Player::refreshItems() {
   m_tools->setItems(m_inventory->primaryHeldItem(), m_inventory->secondaryHeldItem());
 }
 
-void Player::refreshArmor() {
+void Player::refreshArmor(bool fullRefresh) {
   if (isSlave())
     return;
 
   // FezzedOne: Force the ArmorWearer to check armour.
-  m_armor->reset();
+  if (fullRefresh)
+    m_armor->reset();
   m_armor->setHeadItem(m_inventory->headArmor());
   m_armor->setHeadCosmeticItem(m_inventory->headCosmetic());
   m_armor->setChestItem(m_inventory->chestArmor());
