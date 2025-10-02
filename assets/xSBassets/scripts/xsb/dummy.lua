@@ -1,1 +1,0 @@
---- Intentional dummy script. ---

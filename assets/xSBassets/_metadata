@@ -4,9 +4,9 @@
   "priority" : -9999,
   "friendlyName" : "xStarbound Assets",
   "requires" : ["base"],
-  "substitutes" : ["opensb_base"],
   "scripts": {
-    "postLoad": ["/titlebar.lua"]
+    "onLoad": ["/scripts/xsb/onload/humansprites.pluto"],
+    "postLoad": ["/scripts/xsb/postload/titlebar.lua"]
   },
-  "version" : "4.1.0"
+  "version" : "4.1.1"
 }
