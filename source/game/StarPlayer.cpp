@@ -2398,6 +2398,7 @@ Vec2F Player::nametagOrigin() const {
 void Player::updateIdentity() {
   m_identityUpdated = true;
   m_humanoid->setIdentity(m_identity);
+  m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude(), true);
 }
 
 void Player::setBodyDirectives(String const& directives) {
