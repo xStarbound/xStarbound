@@ -28,15 +28,15 @@ pluto_try
     assets.add("/scripts/xsb/dummy.lua", "--- Dummy script asset. ---")
 
     local worldServerConfig = assets.json("/worldserver.config")
-    worldServerConfig.scriptContexts.OpenStarbound ??= "/scripts/xsb/dummy.lua"
+    worldServerConfig.scriptContexts.OpenStarbound ??= jarray{"/scripts/xsb/dummy.lua"}
     assets.add("/worldserver.config", worldServerConfig)
 
     local clientConfig = assets.json("/client.config")
-    clientConfig.universeScriptContexts.OpenStarbound ??= "/scripts/xsb/dummy.lua"
+    clientConfig.universeScriptContexts.OpenStarbound ??= jarray{"/scripts/xsb/dummy.lua"}
     assets.add("/client.config", clientConfig)
 
     local playerConfig = assets.json("/player.config")
-    playerConfig.genericScriptContexts.OpenStarbound ??= "/scripts/xsb/dummy.lua"
+    playerConfig.genericScriptContexts.OpenStarbound ??= jarray{"/scripts/xsb/dummy.lua"}
     assets.add("/player.config", playerConfig)
 
     -- Copies all vanilla human sprites and framesheet configs into the `nudehuman` directory.
