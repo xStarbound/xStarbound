@@ -551,6 +551,9 @@ public:
   Array<ArmorItemPtr, 12> const& getNetArmorSecrets();
   bool pulledCosmeticUpdate();
 
+  // FezzedOne: Should avoid potential mutex contention in single-player from reading the config every tick.
+  static atomic<bool> s_headRotation;
+
 private:
   enum class State {
     Idle,

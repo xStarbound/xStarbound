@@ -270,8 +270,12 @@ Humanoid::Humanoid(HumanoidIdentity const& identity)
   setIdentity(identity);
 }
 
-void Humanoid::setIdentity(HumanoidIdentity const& identity) {
+void Humanoid::setIdentity(HumanoidIdentity const& identity, Maybe<HumanoidIdentity> const& visualOverrides) {
   m_identity = identity;
+  if (visualOverrides)
+    m_visualIdentity = *visualOverrides;
+  else
+    m_visualIdentity = identity;
   m_headFrameset = getHeadFromIdentity();
   m_bodyFrameset = getBodyFromIdentity();
   m_emoteFrameset = getFacialEmotesFromIdentity();
@@ -282,9 +286,10 @@ void Humanoid::setIdentity(HumanoidIdentity const& identity) {
   m_frontArmFrameset = getFrontArmFromIdentity();
   m_vaporTrailFrameset = getVaporTrailFrameset();
 
+  auto const& visualIdentity = visualOverrides ? *visualOverrides : identity;
   auto speciesDatabase = Root::singleton().speciesDatabase();
   Json config = JsonObject{};
-  String resolvedSpecies = identity.imagePath ? *identity.imagePath : identity.species;
+  String resolvedSpecies = visualIdentity.imagePath ? *visualIdentity.imagePath : visualIdentity.species;
   if (speciesDatabase->allSpecies().contains(resolvedSpecies))
     config = speciesDatabase->species(resolvedSpecies)->humanoidConfig();
 
@@ -2109,53 +2114,53 @@ String Humanoid::emoteFrameBase(HumanoidEmote state) const {
 
 String Humanoid::getHeadFromIdentity() const {
   return strf("/humanoid/{}/{}head.png",
-      m_identity.imagePath ? *m_identity.imagePath : m_identity.species,
-      GenderNames.getRight(m_identity.gender));
+      m_visualIdentity.imagePath ? *m_visualIdentity.imagePath : m_visualIdentity.species,
+      GenderNames.getRight(m_visualIdentity.gender));
 }
 
 String Humanoid::getBodyFromIdentity() const {
   return strf("/humanoid/{}/{}body.png",
-      m_identity.imagePath ? *m_identity.imagePath : m_identity.species,
-      GenderNames.getRight(m_identity.gender));
+      m_visualIdentity.imagePath ? *m_visualIdentity.imagePath : m_visualIdentity.species,
+      GenderNames.getRight(m_visualIdentity.gender));
 }
 
 String Humanoid::getFacialEmotesFromIdentity() const {
-  return strf("/humanoid/{}/emote.png", m_identity.imagePath ? *m_identity.imagePath : m_identity.species);
+  return strf("/humanoid/{}/emote.png", m_visualIdentity.imagePath ? *m_visualIdentity.imagePath : m_visualIdentity.species);
 }
 
 String Humanoid::getHairFromIdentity() const {
-  if (m_identity.hairType.empty())
+  if (m_visualIdentity.hairType.empty())
     return "";
   return strf("/humanoid/{}/{}/{}.png",
-      m_identity.imagePath ? *m_identity.imagePath : m_identity.species,
-      m_identity.hairGroup,
-      m_identity.hairType);
+      m_visualIdentity.imagePath ? *m_visualIdentity.imagePath : m_visualIdentity.species,
+      m_visualIdentity.hairGroup,
+      m_visualIdentity.hairType);
 }
 
 String Humanoid::getFacialHairFromIdentity() const {
-  if (m_identity.facialHairType.empty())
+  if (m_visualIdentity.facialHairType.empty())
     return "";
   return strf("/humanoid/{}/{}/{}.png",
-      m_identity.imagePath ? *m_identity.imagePath : m_identity.species,
-      m_identity.facialHairGroup,
-      m_identity.facialHairType);
+      m_visualIdentity.imagePath ? *m_visualIdentity.imagePath : m_visualIdentity.species,
+      m_visualIdentity.facialHairGroup,
+      m_visualIdentity.facialHairType);
 }
 
 String Humanoid::getFacialMaskFromIdentity() const {
-  if (m_identity.facialMaskType.empty())
+  if (m_visualIdentity.facialMaskType.empty())
     return "";
   return strf("/humanoid/{}/{}/{}.png",
-      m_identity.imagePath ? *m_identity.imagePath : m_identity.species,
-      m_identity.facialMaskGroup,
-      m_identity.facialMaskType);
+      m_visualIdentity.imagePath ? *m_visualIdentity.imagePath : m_visualIdentity.species,
+      m_visualIdentity.facialMaskGroup,
+      m_visualIdentity.facialMaskType);
 }
 
 String Humanoid::getBackArmFromIdentity() const {
-  return strf("/humanoid/{}/backarm.png", m_identity.imagePath ? *m_identity.imagePath : m_identity.species);
+  return strf("/humanoid/{}/backarm.png", m_visualIdentity.imagePath ? *m_visualIdentity.imagePath : m_visualIdentity.species);
 }
 
 String Humanoid::getFrontArmFromIdentity() const {
-  return strf("/humanoid/{}/frontarm.png", m_identity.imagePath ? *m_identity.imagePath : m_identity.species);
+  return strf("/humanoid/{}/frontarm.png", m_visualIdentity.imagePath ? *m_visualIdentity.imagePath : m_visualIdentity.species);
 }
 
 String Humanoid::getVaporTrailFrameset() const {
@@ -2163,23 +2168,23 @@ String Humanoid::getVaporTrailFrameset() const {
 }
 
 Directives Humanoid::getBodyDirectives() const {
-  return m_identity.bodyDirectives;
+  return m_visualIdentity.bodyDirectives;
 }
 
 Directives Humanoid::getHairDirectives() const {
-  return m_identity.hairDirectives;
+  return m_visualIdentity.hairDirectives;
 }
 
 Directives Humanoid::getEmoteDirectives() const {
-  return m_identity.emoteDirectives;
+  return m_visualIdentity.emoteDirectives;
 }
 
 Directives Humanoid::getFacialHairDirectives() const {
-  return m_identity.facialHairDirectives;
+  return m_visualIdentity.facialHairDirectives;
 }
 
 Directives Humanoid::getFacialMaskDirectives() const {
-  return m_identity.facialMaskDirectives;
+  return m_visualIdentity.facialMaskDirectives;
 }
 
 Directives Humanoid::getHelmetMaskDirectives() const {
@@ -2223,9 +2228,30 @@ Directives Humanoid::getBackUnderlayDirectives() const {
 }
 
 void Humanoid::updateHumanoidConfigOverrides(Json overrides) {
+  auto checkSpecies = [](String const& species) -> bool { // FezzedOne: Check whether a species exists in the loaded assets.
+    bool speciesFound = false;
+    for (auto const& nameDefPair : Root::singleton().speciesDatabase()->allSpecies()) {
+      if (species == nameDefPair.second->options().species) {
+        speciesFound = true;
+        break;
+      }
+    }
+    return speciesFound;
+  };
+
   if (overrides == m_previousOverrides) return;
   if (!overrides.isType(Json::Type::Object)) overrides = JsonObject{};
-  Json config = jsonMerge(m_baseHumanoidConfig, overrides);
+  auto baseConfig = m_baseHumanoidConfig;
+  if (auto jIdentityOverrides = overrides.get("identityOverrides", Json()); jIdentityOverrides.isType(Json::Type::Object)) {
+    setIdentity(m_identity, HumanoidIdentity(jsonMerge(m_identity.toJson(), jIdentityOverrides)));
+    auto baseSpecies = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
+    auto speciesToCheck = m_visualIdentity.imagePath ? *m_visualIdentity.imagePath : m_visualIdentity.species;
+    auto speciesToUse = checkSpecies(speciesToCheck) ? speciesToCheck : baseSpecies;
+    baseConfig = Root::singleton().speciesDatabase()->species(speciesToUse)->humanoidConfig();
+  } else {
+    setIdentity(m_identity);
+  }
+  Json config = jsonMerge(baseConfig, overrides);
   m_previousOverrides = overrides;
 
   m_timing = HumanoidTiming(config.getObject("humanoidTiming"));

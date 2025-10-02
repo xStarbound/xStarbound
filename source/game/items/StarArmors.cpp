@@ -46,6 +46,14 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
   m_hideBody = config.getBool("hideBody", false);
   if (auto jHideBody = instanceValue("hideBody"); jHideBody.isType(Json::Type::Bool))
     m_hideBody = jHideBody.toBool();
+
+  Json genderOverride = instanceValue("gender", config.get("gender", Json()));
+  m_genderOverride = false;
+  if (genderOverride == "male" || genderOverride == "female") {
+    m_femaleOverride = genderOverride == "female";
+    m_genderOverride = true;
+  }
+
   m_underlaid = instanceValue("underlaid").optBool().value(false);
 
   if (auto jArmorTypesToHide = instanceValue("armorTypesToHide"); jArmorTypesToHide.isType(Json::Type::Array)) {
@@ -230,6 +238,8 @@ ItemPtr HeadArmor::clone() const {
 }
 
 String const& HeadArmor::frameset(Gender gender) const {
+  if (m_genderOverride)
+    return m_femaleOverride ? m_femaleImage : m_maleImage;
   if (gender == Gender::Male)
     return m_maleImage;
   else
@@ -265,6 +275,8 @@ ItemPtr ChestArmor::clone() const {
 }
 
 String const& ChestArmor::bodyFrameset(Gender gender) const {
+  if (m_genderOverride)
+    return m_femaleOverride ? m_femaleBodyImage : m_maleBodyImage;
   if (gender == Gender::Male)
     return m_maleBodyImage;
   else
@@ -272,6 +284,8 @@ String const& ChestArmor::bodyFrameset(Gender gender) const {
 }
 
 String const& ChestArmor::frontSleeveFrameset(Gender gender) const {
+  if (m_genderOverride)
+    return m_femaleOverride ? m_femaleFrontSleeveImage : m_maleFrontSleeveImage;
   if (gender == Gender::Male)
     return m_maleFrontSleeveImage;
   else
@@ -279,6 +293,8 @@ String const& ChestArmor::frontSleeveFrameset(Gender gender) const {
 }
 
 String const& ChestArmor::backSleeveFrameset(Gender gender) const {
+  if (m_genderOverride)
+    return m_femaleOverride ? m_femaleBackSleeveImage : m_maleBackSleeveImage;
   if (gender == Gender::Male)
     return m_maleBackSleeveImage;
   else
@@ -303,6 +319,8 @@ ItemPtr LegsArmor::clone() const {
 }
 
 String const& LegsArmor::frameset(Gender gender) const {
+  if (m_genderOverride)
+    return m_femaleOverride ? m_femaleImage : m_maleImage;
   if (gender == Gender::Male)
     return m_maleImage;
   else
@@ -336,6 +354,8 @@ ItemPtr BackArmor::clone() const {
 }
 
 String const& BackArmor::frameset(Gender gender) const {
+  if (m_genderOverride)
+    return m_femaleOverride ? m_femaleImage : m_maleImage;
   if (gender == Gender::Male)
     return m_maleImage;
   else

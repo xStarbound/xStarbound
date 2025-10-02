@@ -147,7 +147,7 @@ public:
     bool rotateWithHead = false;
   };
 
-  void setIdentity(HumanoidIdentity const& identity);
+  void setIdentity(HumanoidIdentity const& identity, Maybe<HumanoidIdentity> const& visualOverrides = {});
   HumanoidIdentity const& identity() const;
 
   void updateHumanoidConfigOverrides(Json overrides = Json());
@@ -460,6 +460,7 @@ private:
   bool m_twoHanded;
 
   HumanoidIdentity m_identity;
+  HumanoidIdentity m_visualIdentity;
   HumanoidTiming m_timing;
 
   float m_animationTimer;

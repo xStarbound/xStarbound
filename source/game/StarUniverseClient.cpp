@@ -45,6 +45,8 @@ UniverseClient::UniverseClient(PlayerStoragePtr playerStorage, StatisticsPtr sta
   m_playerToSwitchTo = {};
   m_playersToLoad = {};
   m_loadedPlayers = {};
+  auto jHeadRotation = Root::singleton().configuration()->get("playerHeadRotation");
+  Player::s_headRotation = jHeadRotation.isType(Json::Type::Bool) ? jHeadRotation.toBool() : false;
   reset();
 }
 

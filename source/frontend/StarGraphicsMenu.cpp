@@ -1,14 +1,15 @@
 #include "StarGraphicsMenu.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
+#include "StarButtonWidget.hpp"
 #include "StarConfiguration.hpp"
 #include "StarGuiReader.hpp"
-#include "StarListWidget.hpp"
-#include "StarLabelWidget.hpp"
-#include "StarSliderBar.hpp"
-#include "StarButtonWidget.hpp"
-#include "StarOrderedSet.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarLabelWidget.hpp"
+#include "StarListWidget.hpp"
+#include "StarOrderedSet.hpp"
+#include "StarPlayer.hpp"
+#include "StarRoot.hpp"
+#include "StarSliderBar.hpp"
 
 namespace Star {
 
@@ -24,69 +25,70 @@ GraphicsMenu::GraphicsMenu() {
         applyWindowSettings();
       });
   reader.registerCallback("resSlider", [=](Widget*) {
-      Vec2U res = m_resList[fetchChild<SliderBarWidget>("resSlider")->val()];
-      m_localChanges.set("fullscreenResolution", jsonFromVec2U(res));
-      syncGui();
-    });
+    Vec2U res = m_resList[fetchChild<SliderBarWidget>("resSlider")->val()];
+    m_localChanges.set("fullscreenResolution", jsonFromVec2U(res));
+    syncGui();
+  });
   reader.registerCallback("zoomSlider", [=](Widget*) {
-      auto slider = fetchChild<SliderBarWidget>("zoomSlider");
-      m_localChanges.set("zoomLevel", m_zoomList[slider->val()]);
-      Root::singleton().configuration()->set("zoomLevel", m_zoomList[slider->val()]);
-      syncGui();
-    });
+    auto slider = fetchChild<SliderBarWidget>("zoomSlider");
+    m_localChanges.set("zoomLevel", m_zoomList[slider->val()]);
+    Root::singleton().configuration()->set("zoomLevel", m_zoomList[slider->val()]);
+    syncGui();
+  });
   reader.registerCallback("interfaceScaleSlider", [=](Widget*) {
-      auto slider = fetchChild<SliderBarWidget>("interfaceScaleSlider");
-      m_localChanges.set("interfaceScale", m_interfaceScaleList[slider->val()]);
-      if (!slider->jogDragActive())
-        Root::singleton().configuration()->set("interfaceScale", m_interfaceScaleList[slider->val()]);
-      syncGui();
-    });
+    auto slider = fetchChild<SliderBarWidget>("interfaceScaleSlider");
+    m_localChanges.set("interfaceScale", m_interfaceScaleList[slider->val()]);
+    if (!slider->jogDragActive())
+      Root::singleton().configuration()->set("interfaceScale", m_interfaceScaleList[slider->val()]);
+    syncGui();
+  });
   reader.registerCallback("speechBubbleCheckbox", [=](Widget*) {
-      auto button = fetchChild<ButtonWidget>("speechBubbleCheckbox");
-      m_localChanges.set("speechBubbles", button->isChecked());
-      Root::singleton().configuration()->set("speechBubbles", button->isChecked());
-      syncGui();
-    });
+    auto button = fetchChild<ButtonWidget>("speechBubbleCheckbox");
+    m_localChanges.set("speechBubbles", button->isChecked());
+    Root::singleton().configuration()->set("speechBubbles", button->isChecked());
+    syncGui();
+  });
   reader.registerCallback("interactiveHighlightCheckbox", [=](Widget*) {
-      auto button = fetchChild<ButtonWidget>("interactiveHighlightCheckbox");
-      m_localChanges.set("interactiveHighlight", button->isChecked());
-      Root::singleton().configuration()->set("interactiveHighlight", button->isChecked());
-      syncGui();
-    });
+    auto button = fetchChild<ButtonWidget>("interactiveHighlightCheckbox");
+    m_localChanges.set("interactiveHighlight", button->isChecked());
+    Root::singleton().configuration()->set("interactiveHighlight", button->isChecked());
+    syncGui();
+  });
   reader.registerCallback("fullscreenCheckbox", [=](Widget*) {
-      bool checked = fetchChild<ButtonWidget>("fullscreenCheckbox")->isChecked();
-      m_localChanges.set("fullscreen", checked);
-      if (checked)
-        m_localChanges.set("borderless", !checked);
-      syncGui();
-    });
+    bool checked = fetchChild<ButtonWidget>("fullscreenCheckbox")->isChecked();
+    m_localChanges.set("fullscreen", checked);
+    if (checked)
+      m_localChanges.set("borderless", !checked);
+    syncGui();
+  });
   reader.registerCallback("borderlessCheckbox", [=](Widget*) {
-      bool checked = fetchChild<ButtonWidget>("borderlessCheckbox")->isChecked();
-      m_localChanges.set("borderless", checked);
-      if (checked)
-        m_localChanges.set("fullscreen", !checked);
-      syncGui();
-    });
+    bool checked = fetchChild<ButtonWidget>("borderlessCheckbox")->isChecked();
+    m_localChanges.set("borderless", checked);
+    if (checked)
+      m_localChanges.set("fullscreen", !checked);
+    syncGui();
+  });
   reader.registerCallback("textureLimitCheckbox", [=](Widget*) {
-      m_localChanges.set("limitTextureAtlasSize", fetchChild<ButtonWidget>("textureLimitCheckbox")->isChecked());
-      syncGui();
-    });
+    m_localChanges.set("limitTextureAtlasSize", fetchChild<ButtonWidget>("textureLimitCheckbox")->isChecked());
+    syncGui();
+  });
   reader.registerCallback("multiTextureCheckbox", [=](Widget*) {
-      m_localChanges.set("useMultiTexturing", fetchChild<ButtonWidget>("multiTextureCheckbox")->isChecked());
-      syncGui();
-    });
+    m_localChanges.set("useMultiTexturing", fetchChild<ButtonWidget>("multiTextureCheckbox")->isChecked());
+    syncGui();
+  });
   reader.registerCallback("monochromeCheckbox", [=](Widget*) {
-      bool checked = fetchChild<ButtonWidget>("monochromeCheckbox")->isChecked();
-      m_localChanges.set("monochromeLighting", checked);
-      Root::singleton().configuration()->set("monochromeLighting", checked);
-      syncGui();
-    });
+    bool checked = fetchChild<ButtonWidget>("monochromeCheckbox")->isChecked();
+    m_localChanges.set("monochromeLighting", checked);
+    Root::singleton().configuration()->set("monochromeLighting", checked);
+    syncGui();
+  });
   reader.registerCallback("headRotationCheckbox", [=](Widget*) {
-      bool checked = fetchChild<ButtonWidget>("headRotationCheckbox")->isChecked();
-      m_localChanges.set("playerHeadRotation", checked);
-      Root::singleton().configuration()->set("playerHeadRotation", checked);
-      syncGui();
-    });
+    bool checked = fetchChild<ButtonWidget>("headRotationCheckbox")->isChecked();
+    m_localChanges.set("playerHeadRotation", checked);
+    Root::singleton().configuration()->set("playerHeadRotation", checked);
+    Player::s_headRotation = checked;
+    syncGui();
+  });
 
   auto assets = Root::singleton().assets();
 
@@ -131,18 +133,17 @@ void GraphicsMenu::toggleFullscreen() {
 }
 
 StringList const GraphicsMenu::ConfigKeys = {
-  "fullscreenResolution",
-  "zoomLevel",
-  "interfaceScale",
-  "speechBubbles",
-  "interactiveHighlight",
-  "fullscreen",
-  "borderless",
-  "limitTextureAtlasSize",
-  "useMultiTexturing",
-  "monochromeLighting",
-  "playerHeadRotation"
-};
+    "fullscreenResolution",
+    "zoomLevel",
+    "interfaceScale",
+    "speechBubbles",
+    "interactiveHighlight",
+    "fullscreen",
+    "borderless",
+    "limitTextureAtlasSize",
+    "useMultiTexturing",
+    "monochromeLighting",
+    "playerHeadRotation"};
 
 void GraphicsMenu::initConfig() {
   auto configuration = Root::singleton().configuration();
@@ -156,8 +157,8 @@ void GraphicsMenu::syncGui() {
   Vec2U res = jsonToVec2U(m_localChanges.get("fullscreenResolution"));
   auto resSlider = fetchChild<SliderBarWidget>("resSlider");
   auto resIt = std::lower_bound(m_resList.begin(), m_resList.end(), res, [&](Vec2U const& a, Vec2U const& b) {
-      return a[0] * a[1] < b[0] * b[1]; // sort by number of pixels
-    });
+    return a[0] * a[1] < b[0] * b[1]; // sort by number of pixels
+  });
   if (resIt != m_resList.end()) {
     size_t resIndex = resIt - m_resList.begin();
     resIndex = std::min(resIndex, m_resList.size() - 1);
@@ -219,4 +220,4 @@ void GraphicsMenu::applyWindowSettings() {
     appController->setNormalWindow(jsonToVec2U(configuration->get("windowedResolution")));
 }
 
-}
+} // namespace Star

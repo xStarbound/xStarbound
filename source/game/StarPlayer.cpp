@@ -461,7 +461,7 @@ List<Drawable> Player::drawables() const {
 
   Maybe<float> playerAimAngle = {}; // FezzedOne: Angle used to rotate the head.
   if (inWorld()) {                  // FezzedOne: Only clients need to run this head rotation code.
-    if (world()->isClient() && Root::singleton().configuration()->get("playerHeadRotation").optBool().value(true))
+    if (world()->isClient() && s_headRotation)
       playerAimAngle = getAngleSide(world()->geometry().diff(aimPosition(), position()).angle()).first;
   }
 
