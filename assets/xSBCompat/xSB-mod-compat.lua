@@ -286,7 +286,7 @@ pluto_try
         -- imperfect `addWidget` compatibility) for forward compatibility with updates to Infiniter Inventory that
         -- might modify the stock inventory pane.
 
-        local patman_oldInit = init
+        local patman_infInv_oldInit = init
 
         local __generateCanvasWidgetBridge = function(canvasName)
             local canvasWidgetBridge = {}
@@ -354,7 +354,7 @@ pluto_try
                     return nil
                 end
             end
-            patman_oldInit()
+            patman_infInv_oldInit()
         end
     ]==]
     assets.add(infiniterInventoryPaneScriptPath, infiniterInventoryPaneScript .. infiniterInventoryPaneScriptPatch)
@@ -444,7 +444,7 @@ pluto_try
     local saveInventoryPositionPatch = [==[
         -- Note: The patched mod script only works properly when `"safeScripts"` is *enabled*.
 
-        local patman_oldInit = init
+        local patman_saveInv_oldInit = init
 
         local oldPrimaryUuid = nil
         InventoryPane = nil
@@ -465,7 +465,7 @@ pluto_try
             message ??= {
                 setHandler = function() end
             }
-            patman_oldInit()
+            patman_saveInv_oldInit()
             script.setUpdateDelta(1)
 
             oldPrimaryUuid = world.primaryPlayerUuid()
@@ -628,11 +628,11 @@ pluto_try
     local betaboundStatusControllerScriptPatch = [==[
     ---<< END OF ORIGINAL BETABOUND STATUS CONTROLLER SCRIPT >>---
 
-    local betabound_init = init
+    local betabound_status_init = init
     function init()
         -- `player` is already available in this context on xStarbound, so this fools the code that expects it to have to be smuggled in.
         math.betabound_player = player
-        return betabound_init()
+        return betabound_status_init()
     end
     ]==]
     assets.add(betaboundStatusControllerScriptPath, betaboundStatusControllerScript .. betaboundStatusControllerScriptPatch)
@@ -643,11 +643,11 @@ pluto_try
     local betaboundMainPlayerScriptPatch = [==[
     ---<< END OF ORIGINAL BETABOUND PLAYER SCRIPT >>---
 
-    local betabound_init = init
+    local betabound_player_init = init
     function init()
         -- `mcontroller` is already available in this context on xStarbound, so this fools the code that expects it to have to be smuggled in.
         math.betabound_mcontroller = mcontroller
-        return betabound_init()
+        return betabound_player_init()
     end
     ]==]
     assets.add(betaboundMissingAssetScriptPath, betaboundMissingAssetScript .. betaboundMissingAssetScriptPatch)
