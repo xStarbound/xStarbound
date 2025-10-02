@@ -2242,11 +2242,14 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides) {
   if (overrides == m_previousOverrides) return;
   if (!overrides.isType(Json::Type::Object)) overrides = JsonObject{};
   auto baseConfig = m_baseHumanoidConfig;
-  if (auto jIdentityOverrides = overrides.get("identityOverrides", Json()); jIdentityOverrides.isType(Json::Type::Object)) {
-    setIdentity(m_identity, HumanoidIdentity(jsonMerge(m_identity.toJson(), jIdentityOverrides)));
+  if (auto jIdentityOverrides = overrides.get("identity", Json()); jIdentityOverrides.isType(Json::Type::Object)) {
     auto baseSpecies = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
-    auto speciesToCheck = m_visualIdentity.imagePath ? *m_visualIdentity.imagePath : m_visualIdentity.species;
+    auto speciesToCheck = jIdentityOverrides.optString("imagePath").value(jIdentityOverrides.getString("species"));
     auto speciesToUse = checkSpecies(speciesToCheck) ? speciesToCheck : baseSpecies;
+    auto newIdentity = HumanoidIdentity(jsonMerge(m_identity.toJson(), jIdentityOverrides));
+    newIdentity.species = m_identity.species;
+    newIdentity.imagePath = speciesToUse;
+    setIdentity(m_identity, newIdentity);
     baseConfig = Root::singleton().speciesDatabase()->species(speciesToUse)->humanoidConfig();
   } else {
     setIdentity(m_identity);
