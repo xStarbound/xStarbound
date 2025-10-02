@@ -1,11 +1,12 @@
 #ifndef STAR_ROOT_HPP
 #define STAR_ROOT_HPP
 
-#include "StarJson.hpp"
-#include "StarLogging.hpp"
-#include "StarListener.hpp"
 #include "StarAssets.hpp"
 #include "StarConfiguration.hpp"
+#include "StarJson.hpp"
+#include "StarListener.hpp"
+#include "StarLogging.hpp"
+#include "StarRootBase.hpp"
 
 namespace Star {
 
@@ -51,15 +52,13 @@ STAR_CLASS(CollectionDatabase);
 
 STAR_CLASS(Root);
 
-STAR_EXCEPTION(RootException, StarException);
-
 // Singleton Root object for starbound providing access to the unique
 // Configuration class, as well as the assets, root factories, and databases.
 // Root, and all members of Root, should be thread safe.  Root initialization
 // should be completed before any code dependent on Root is started in any
 // thread, and all Root dependent code in any thread should be finished before
 // letting Root destruct.
-class Root {
+class Root final : public RootBase {
 public:
   struct Settings {
     Assets::Settings assetsSettings;
@@ -139,8 +138,8 @@ public:
   // All of the Root member accessors are safe to call at any time after Root
   // initialization, if they are not loaded they will load before returning.
 
-  AssetsConstPtr assets();
-  ConfigurationPtr configuration();
+  virtual AssetsConstPtr assets() override;
+  virtual ConfigurationPtr configuration() override;
 
   ObjectDatabaseConstPtr objectDatabase();
   PlantDatabaseConstPtr plantDatabase();
@@ -341,6 +340,6 @@ private:
   Mutex m_collectionDatabaseMutex;
 };
 
-}
+} // namespace Star
 
 #endif

@@ -298,11 +298,41 @@ If all memory assets previously added in a memory asset source associated with t
 
 Adds the specified JSON or Lua patch file (`patchPath`) to the list of patches for the specified base asset (`path`). The patch will be loaded after any other "standard" patches for the same asset in the asset source. Returns whether the patch is added.
 
-If the patch file has a `.lua` extension, it will be added as a Lua patch. If it has any other extension, it will be added as a JSON patch.
+If the patch file has a `.lua` or `.pluto` extension, it will be added as a Lua/Pluto patch. If it has any other extension, it will be added as a JSON patch.
 
 If the specified patch file is later modified, removed or replaced by any script in the same asset source, it will be modified but _not_ deleted for the purposes of checking patches.
 
 ---
+
+#### `Json` root.getConfiguration(`String` key)
+
+> **Only available on xStarbound v4.1.1+.**
+
+Gets the value of the specified key in `xclient.config` (on xClient, even if the script is running server-side) or `xserver.config` (on xServer). Returns `nil` if the key doesn't exist. Will log a warning and return `nil` if any attempt is made to get the value of `"title"`, since that may contain server login info. Analogous to `root.getConfiguration` (see `root.md`).
+
+---
+
+#### `Json` root.getConfigurationPath(`String` path)
+
+> **Only available on xStarbound v4.1.1+.**
+
+Gets the value at the specified JSON path in `xclient.config` (on xClient, even if the script is running server-side) or `xserver.config` (on xServer). Uses the same path syntax used in JSON patches. Will log a warning and return `nil` on any attempt to get the value of `"/title"` or anything inside it, since that may contain server login info. Analogous to `root.getConfigurationPath` (see `root.md`).
+
+---
+
+#### `Json` root.setConfiguration(`String` key)
+
+> **Only available on xStarbound v4.1.1+.**
+
+Sets the value of the specified key `xclient.config` (on xClient, even if the script is running server-side) or `xserver.config` (on xServer) to the specified value, returning the newly set value if successful. Returns `nil` if the key doesn't exist. Will log a warning and return `nil` if any attempt is made to set the value of `"safeScripts"`, for obvious reasons. Analogous to `root.setConfiguration` (see `root.md`).
+
+---
+
+#### `Json` root.setConfigurationPath(`String` path)
+
+> **Only available on xStarbound v4.1.1+.**
+
+Sets the value at the specified JSON path `xclient.config` (on xClient, even if the script is running server-side) or `xserver.config` (on xServer) to the specified value, returning the newly set value if successful. Uses the same path syntax used in JSON patches. Returns `nil` if nothing exists at the specified path. Will log a warning and return `nil` if any attempt is made to set the value of `"/safeScripts"` or anything inside it, for obvious reasons. Analogous to `root.setConfiguration` (see `root.md`).
 
 ## Asset file extensions
 

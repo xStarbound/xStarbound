@@ -29,7 +29,7 @@ public:
   ArmorWearer(bool isPlayer);
   ArmorWearer(Player* player);
 
-  void setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude);
+  void setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude, bool forceSync = false);
   void effects(EffectEmitter& effectEmitter);
   List<PersistentStatusEffect> statusEffects() const;
 
@@ -95,9 +95,12 @@ private:
   bool m_backNeedsSync;
 
   bool m_isPlayer;
+  bool m_isOpenSb;
   Player* m_player = nullptr;
 
   uint8_t m_lastFacingDirection;
+
+  StringMap<Json> m_openSbOverrides;
 };
 
 } // namespace Star

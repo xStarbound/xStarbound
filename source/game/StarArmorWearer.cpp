@@ -30,6 +30,14 @@ ArmorWearer::ArmorWearer() : m_lastNude(true), m_lastFacingDirection(255) {
   addNetElement(&m_backCosmeticItemDataNetState);
 
   reset();
+
+  m_openSbOverrides = {};
+  auto jOpenSbOverrides = Root::singleton().assets()->json("/humanoid.config").get("openSbOverrides", Json());
+  if (jOpenSbOverrides.isType(Json::Type::Object)) {
+    m_openSbOverrides = jOpenSbOverrides.toObject();
+  }
+
+  m_isOpenSb = false;
 }
 
 ArmorWearer::ArmorWearer(bool isPlayer) : ArmorWearer() {
@@ -40,7 +48,7 @@ ArmorWearer::ArmorWearer(Player* player) : ArmorWearer(true) {
   m_player = player;
 }
 
-void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude) {
+void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude, bool forceSync) {
   bool nudeChanged = m_lastNude != forceNude;
   m_lastNude = forceNude;
 
@@ -53,7 +61,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   bool legsNeedsSync = m_legsNeedsSync;
   bool backNeedsSync = m_backNeedsSync;
 
-  bool anyNeedsSync = headNeedsSync || chestNeedsSync || legsNeedsSync || backNeedsSync || nudeChanged;
+  bool anyNeedsSync = forceSync || headNeedsSync || chestNeedsSync || legsNeedsSync || backNeedsSync || nudeChanged;
   if (anyNeedsSync)
     netElementsNeedLoad(true);
 
@@ -80,6 +88,17 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   List<Humanoid::BackEntry> backArmorStack = {};
 
   bool pulledOpenSbCosmeticUpdate = m_player ? m_player->pulledCosmeticUpdate() : false;
+  m_isOpenSb |= pulledOpenSbCosmeticUpdate;
+
+  // FezzedOne: Also handle OpenStarbound idiosyncrasies (such as human nudity), if so configured. Any overrides from armour take priority over this.
+  if (m_isOpenSb) {
+    auto identity = humanoid.identity();
+    auto imagePath = identity.imagePath ? *identity.imagePath : identity.species;
+    if (auto overrides = m_openSbOverrides.ptr(imagePath)) {
+      humanoidOverrides = jsonMerge(humanoidOverrides, *overrides);
+    }
+  }
+
   auto& openSbCosmeticStack = m_player ? m_player->getNetArmorSecrets() : Array<ArmorItemPtr, 12>::filled(nullptr);
 
   if (anyNeedsSync) { // FezzedOne: Handle armour hiding from stock cosmetic slots.

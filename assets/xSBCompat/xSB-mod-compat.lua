@@ -38,6 +38,28 @@ pluto_try
     local playerConfig = assets.json("/player.config")
     playerConfig.genericScriptContexts.OpenStarbound ??= "/scripts/xsb/dummy.lua"
     assets.add("/player.config", playerConfig)
+
+    sb.logInfo("assets.getConfiguration(\"configurationVersion\") = " .. sb.printJson(assets.getConfiguration("configurationVersion")))
+
+    -- Copies all vanilla human sprites and framesheet configs into the `nudehuman` directory.
+    local humanSpriteAssets = assets.scan("/humanoid/human/", ".png")
+    local humanFrameConfigs = assets.scan("/humanoid/human/", ".frames")
+    for humanSpriteAssets as asset do
+        local newAssetPath = "/humanoid/nudehuman/" .. asset:sub(17, -1)
+        assets.add(newAssetPath, assets.rawBytes(asset))
+    end
+    for humanFrameConfigs as asset do
+        local newAssetPath = "/humanoid/nudehuman/" .. asset:sub(17, -1)
+        assets.add(newAssetPath, assets.bytes(asset))
+    end
+
+    -- If anything other than `base` modifies the `human` body spritesheets, replace the `nudehuman` body spritesheets too.
+    if (assets.origin("/humanoid/human/malebody.png") |> assets.sourceMetadata).name ~= "base" then
+        assets.add("/humanoid/nudehuman/malebody.png", assets.rawBytes("/humanoid/human/malebody.png"))
+    end
+    if (assets.origin("/humanoid/human/femalebody.png") |> assets.sourceMetadata).name ~= "base" then
+        assets.add("/humanoid/nudehuman/femalebody.png", assets.rawBytes("/humanoid/human/femalebody.png"))
+    end
 pluto_catch e then
   sb.logError($"[xSBCompat] Error while applying universal compatibility patch: {error}")
 end

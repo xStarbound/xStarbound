@@ -10,5 +10,5 @@
   "scripts": {
     "postLoad": ["/xSB-mod-compat.lua"]
   },
-  "version" : "4.1.0"
+  "version" : "4.1.1"
 }

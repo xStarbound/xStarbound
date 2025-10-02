@@ -1238,7 +1238,7 @@ void Npc::setIdentity(Json const& newIdentity) {
     }
     m_humanoid.setIdentity(identity);
     // FezzedOne: Make sure to update armour on NPCs.
-    m_armor->setupHumanoidClothingDrawables(m_humanoid, false);
+    m_armor->setupHumanoidClothingDrawables(m_humanoid, false, true);
   }
 }
 

@@ -2,6 +2,7 @@
 #include "StarAssetPath.hpp"
 #include "StarAudio.hpp"
 #include "StarCasting.hpp"
+#include "StarConfiguration.hpp"
 #include "StarDataStreamDevices.hpp"
 #include "StarDirectoryAssetSource.hpp"
 #include "StarFile.hpp"
@@ -19,6 +20,7 @@
 #include "StarMemoryAssetSource.hpp"
 #include "StarPackedAssetSource.hpp"
 #include "StarRandom.hpp"
+#include "StarRootBase.hpp"
 #include "StarSha256.hpp"
 #include "StarTime.hpp"
 #include "StarUtilityLuaBindings.hpp"
@@ -257,6 +259,48 @@ Assets::Assets(Settings settings, StringList assetSources) {
         return this->assetSourceMetadata(path);
       });
     }
+
+    callbacks.registerCallback("getConfiguration", [](String const& key) -> Json {
+      if (key == "") return Json();
+      if (key == "title") {
+        Logger::warn("[xSB] assets.getConfiguration: Attempted to get the \"title\" key, which isn't permitted.");
+        return Json();
+      } else {
+        return RootBase::singleton().configuration()->get(key);
+      }
+    });
+
+    callbacks.registerCallback("getConfigurationPath", [](String const& path) -> Json {
+      if (path == "") return Json();
+      if (path.beginsWith("/title")) {
+        Logger::warn("[xSB] assets.getConfigurationPath: Attempted to get something in the \"title\" key, which isn't permitted.");
+        return Json();
+      } else {
+        return RootBase::singleton().configuration()->getPath(path);
+      }
+    });
+
+    callbacks.registerCallback("setConfiguration", [](String const& key, Json const& value) -> Json {
+      if (key == "") return Json();
+      if (key == "safeScripts") {
+        Logger::warn("[xSB] assets.setConfiguration: Attempted to set the \"safeScripts\" key, which isn't permitted.");
+        return Json();
+      } else {
+        RootBase::singleton().configuration()->set(key, value);
+        return value;
+      }
+    });
+
+    callbacks.registerCallback("setConfigurationPath", [](String const& path, Json const& value) -> Json {
+      if (path == "") return Json();
+      if (path.splitAny("[].").get(0) == "safeScripts") {
+        Logger::warn("[xSB] assets.setConfigurationPath: Attempted to set something in the \"safeScripts\" key, which isn't permitted.");
+        return Json();
+      } else {
+        RootBase::singleton().configuration()->setPath(path, value);
+        return value;
+      }
+    });
 
     return callbacks;
   };

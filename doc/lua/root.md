@@ -740,7 +740,7 @@ Returns the configuration for the given unique status effect. If the status effe
 
 > **Only available on xStarbound, OpenStarbound and StarExtensions.**
 
-Gets the value of the specified key in `xclient.config`. Returns `nil` if the key doesn't exist. Will log a warning and return `nil` if any attempt is made to get the value of `"title"`, since that may contain server login info.
+Gets the value of the specified key in `xclient.config` (on xClient, even if the script is running server-side) or `xserver.config` (on xServer). Returns `nil` if the key doesn't exist. Will log a warning and return `nil` if any attempt is made to get the value of `"title"`, since that may contain server login info. On OpenStarbound and StarExtensions, substitute `xclient.config` for `starbound.config` and `xserver.config` for `starbound_server.config`.
 
 ---
 
@@ -748,7 +748,7 @@ Gets the value of the specified key in `xclient.config`. Returns `nil` if the ke
 
 > **Only available on xStarbound, OpenStarbound and StarExtensions.**
 
-Gets the value at the specified JSON path in `xclient.config`. Uses the same path syntax used in JSON patches. Returns `nil` if nothing exists at the specified path. Will log a warning and return `nil` if any attempt is made to get the value of `"/title"` or anything inside it, since that may contain server login info.
+Gets the value at the specified JSON path in `xclient.config` (on xClient, even if the script is running server-side) or `xserver.config` (on xServer). Uses the same path syntax used in JSON patches. Returns `nil` if nothing exists at the specified path. Will log a warning and return `nil` if any attempt is made to get the value of `"/title"` or anything inside it, since that may contain server login info. On OpenStarbound and StarExtensions, substitute `xclient.config` for `starbound.config` and `xserver.config` for `starbound_server.config`.
 
 ---
 
@@ -756,7 +756,7 @@ Gets the value at the specified JSON path in `xclient.config`. Uses the same pat
 
 > **Only available on xStarbound, OpenStarbound and StarExtensions.**
 
-Sets the value of the specified key in `xclient.config` to the specified value, returning the newly set value if successful. Returns `nil` if the key doesn't exist. Will log a warning and return `nil` if any attempt is made to set the value of `"safeScripts"`, for obvious reasons.
+Sets the value of the specified key in `xclient.config` (on xClient, even if the script is running server-side) or `xserver.config` (on xServer) to the specified value, returning the newly set value if successful. Returns `nil` if the key doesn't exist. Will log a warning and return `nil` if any attempt is made to set the value of `"safeScripts"`, for obvious reasons. On OpenStarbound and StarExtensions, substitute `xclient.config` for `starbound.config` and `xserver.config` for `starbound_server.config`.
 
 ---
 
@@ -764,7 +764,7 @@ Sets the value of the specified key in `xclient.config` to the specified value, 
 
 > **Only available on xStarbound, OpenStarbound and StarExtensions.**
 
-Sets the value at the specified JSON path in `xclient.config` to the specified value, returning the newly set value if successful. Uses the same path syntax used in JSON patches. Returns `nil` if nothing exists at the specified path. Will log a warning and return `nil` if any attempt is made to set the value of `"/safeScripts"` or anything inside it, for obvious reasons.
+Sets the value at the specified JSON path in `xclient.config` (on xClient, even if the script is running server-side) or `xserver.config` (on xServer) to the specified value, returning the newly set value if successful. Uses the same path syntax used in JSON patches. Returns `nil` if nothing exists at the specified path. Will log a warning and return `nil` if any attempt is made to set the value of `"/safeScripts"` or anything inside it, for obvious reasons. On OpenStarbound and StarExtensions, substitute `xclient.config` for `starbound.config` and `xserver.config` for `starbound_server.config`.
 
 ---
 
