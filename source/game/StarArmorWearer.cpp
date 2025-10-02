@@ -93,15 +93,6 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   bool pulledOpenSbCosmeticUpdate = m_player ? m_player->pulledCosmeticUpdate() : false;
   m_isOpenSb |= pulledOpenSbCosmeticUpdate;
 
-  // FezzedOne: Also handle OpenStarbound idiosyncrasies (such as human nudity), if so configured. Any overrides from armour take priority over this.
-  if (m_isOpenSb && (m_player && m_player->isSlave()) && (pulledOpenSbCosmeticUpdate || anyNeedsSync)) {
-    auto identity = humanoid.identity();
-    auto imagePath = identity.imagePath ? *identity.imagePath : identity.species;
-    if (auto overrides = m_openSbOverrides.ptr(imagePath)) {
-      humanoidOverrides = jsonMerge(humanoidOverrides, *overrides);
-    }
-  }
-
   auto& openSbCosmeticStack = m_player ? m_player->getNetArmorSecrets() : Array<ArmorItemPtr, 12>::filled(nullptr);
 
   if (anyNeedsSync) { // FezzedOne: Handle armour hiding from stock cosmetic slots.
