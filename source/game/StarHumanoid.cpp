@@ -2227,7 +2227,7 @@ Directives Humanoid::getBackUnderlayDirectives() const {
   return m_backArmorUnderlayDirectives;
 }
 
-void Humanoid::updateHumanoidConfigOverrides(Json overrides) {
+void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
   auto checkSpecies = [](String const& species) -> bool { // FezzedOne: Check whether a species exists in the loaded assets.
     bool speciesFound = false;
     for (auto const& nameDefPair : Root::singleton().speciesDatabase()->allSpecies()) {
@@ -2239,7 +2239,7 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides) {
     return speciesFound;
   };
 
-  if (overrides == m_previousOverrides) return;
+  if (overrides == m_previousOverrides && !force) return;
   if (!overrides.isType(Json::Type::Object)) overrides = JsonObject{};
   auto baseConfig = m_baseHumanoidConfig;
   if (auto jIdentityOverrides = overrides.get("identity", Json()); jIdentityOverrides.isType(Json::Type::Object)) {

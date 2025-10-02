@@ -710,7 +710,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
 
   if (anyNeedsSync) {
     try {
-      humanoid.updateHumanoidConfigOverrides(humanoidOverrides);
+      humanoid.updateHumanoidConfigOverrides(humanoidOverrides, forceSync);
     } catch (std::exception const& e) {
       if (!m_warned) {
         Logger::warn("ArmorWearer: Exception caught while handling humanoid overrides; attempted to restore base humanoid config for player's species. "
@@ -718,7 +718,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             outputException(e, false));
         m_warned = true;
       }
-      humanoid.updateHumanoidConfigOverrides(JsonObject{});
+      humanoid.updateHumanoidConfigOverrides(JsonObject{}, forceSync);
     }
   }
 

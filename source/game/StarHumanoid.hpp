@@ -150,7 +150,7 @@ public:
   void setIdentity(HumanoidIdentity const& identity, Maybe<HumanoidIdentity> const& visualOverrides = {});
   HumanoidIdentity const& identity() const;
 
-  void updateHumanoidConfigOverrides(Json overrides = Json());
+  void updateHumanoidConfigOverrides(Json overrides = Json(), bool force = false);
 
   // All of the image identifiers here are meant to be image *base* names, with
   // a collection of frames specific to each piece.  If an image is set to
