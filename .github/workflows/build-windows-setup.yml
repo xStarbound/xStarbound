@@ -5,7 +5,7 @@ on: workflow_dispatch
 jobs:
   windows-setup:
     name: Build xStarbound for Windows
-    runs-on: windows-2022
+    runs-on: windows-latest
 
     steps:
       - name: Export GitHub Actions cache environment variables
@@ -39,7 +39,7 @@ jobs:
           Copy-Item -Path "${{ github.workspace }}\cmake-build-windows-x64\source\utility\RelWithDebInfo\*.dll" -Destination "${{ github.workspace }}\xstarbound-install\xsb-win64\" -Force
 
       - name: Create Setup
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
         with:
           path: "cmake-build-windows-x64/inno-installer/xsb-installer.iss"
 
