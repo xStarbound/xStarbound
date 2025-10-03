@@ -43,23 +43,27 @@ jobs:
         with:
           path: "cmake-build-windows-x64/inno-installer/xsb-installer.iss"
 
+      - name: Rename Setup EXE
+        run: |
+          Move-Item -Path "${{ github.workspace }}\cmake-build-windows-x64\inno-installer\compiled\windows-install.exe" -Destination "${{ github.workspace }}\cmake-build-windows-x64\inno-installer\compiled\windows-msvc-install.exe" -Force
+
       - name: Upload Setup EXE
         uses: actions/upload-artifact@v4
         with:
-          name: windows-x64-setup
-          path: cmake-build-windows-x64/inno-installer/compiled/windows-install.exe
+          name: windows-msvc-install
+          path: cmake-build-windows-x64/inno-installer/compiled/windows-msvc-install.exe
           compression-level: 0
 
       - name: Upload ZIP Archive
         uses: actions/upload-artifact@v4
         with:
-          name: windows-x64-archive
+          name: windows-msvc
           path: xstarbound-install/*
           compression-level: 9
 
       - name: Upload Debug Symbols
         uses: actions/upload-artifact@v4
         with:
-          name: windows-x64-debug-symbols
+          name: windows-msvc-pdbs
           path: cmake-build-windows-x64/PDB/
           compression-level: 9
