@@ -23,6 +23,30 @@ See `movementcontroller.md` for documentation on the `mcontroller` table for bas
 
 ---
 
+#### `MovementParameters` mcontroller.parameters()
+
+> **Only available on xStarbound v4.1.1+ and OpenStarbound v0.1.15+. On stock Starbound and StarExtensions, this callback is only available to non-actor movement controllers.**
+
+Returns a table containing the movement parameters for the movement controller.
+
+---
+
+#### `void` mcontroller.applyParameters(`Json` parameters)
+
+> **Only available on xStarbound v4.1.1+ and OpenStarbound v0.1.15+. On stock Starbound and StarExtensions, this callback is only available to non-actor movement controllers.**
+
+Applies the given parameters to the movement controller. The provided parameters are merged into the current movement parameters.
+
+---
+
+#### `void` mcontroller.resetParameters()
+
+> **Only available on xStarbound v4.1.1+ and OpenStarbound v0.1.15+. On stock Starbound and StarExtensions, this callback is only available to non-actor movement controllers.**
+
+Resets movement parameters to their original state.
+
+---
+
 #### `RectF` mcontroller.boundBox()
 
 Returns a `RectF` containing the entire collision of the movement controller, in local coordinates.
@@ -31,13 +55,29 @@ Returns a `RectF` containing the entire collision of the movement controller, in
 
 #### `PolyF` mcontroller.collisionPoly()
 
-Returns the collision poly of the movement controller, in local coordinates.
+Returns the collision poly of the movement controller, in local coordinates. Does _not_ include rotation.
 
 ---
 
 #### `PolyF` mcontroller.collisionBody()
 
-Returns the collision poly of the movement controller, in world coordinates.
+Returns the collision poly of the movement controller, in world coordinates. Includes rotation.
+
+---
+
+#### `RectF` mcontroller.collisionBoundBox()
+
+> **Only available on xStarbound v4.1.1+ and OpenStarbound v0.1.15+. On stock Starbound and StarExtensions, this callback is only available to non-actor movement controllers.**
+
+Returns a rect containing the entire collision poly of the movement controller, in world coordinates. Factors in rotation.
+
+---
+
+#### `RectF` mcontroller.localBoundBox()
+
+> **Only available on xStarbound v4.1.1+ and OpenStarbound v0.1.15+. On stock Starbound and StarExtensions, this callback is only available to non-actor movement controllers.**
+
+Returns a rect containing the entire collision of the movement controller, in local coordinates. Factors in rotation.
 
 ---
 

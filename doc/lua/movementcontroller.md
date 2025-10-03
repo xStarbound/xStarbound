@@ -79,25 +79,25 @@ Returns the current rotation of the movement controller in radians.
 
 #### `PolyF` mcontroller.collisionPoly()
 
-Returns the collision poly of the movement controller, in local coordinates.
+Returns the collision poly of the movement controller, in local coordinates. Does _not_ include rotation.
 
 ---
 
 #### `PolyF` mcontroller.collisionBody()
 
-Returns the collision poly of the movement controller, in world coordinates.
+Returns the collision poly of the movement controller, in world coordinates. Includes rotation.
 
 ---
 
 #### `RectF` mcontroller.collisionBoundBox()
 
-Returns a rect containing the entire collision poly of the movement controller, in world coordinates.
+Returns a rect containing the entire collision poly of the movement controller, in world coordinates. Factors in rotation.
 
 ---
 
 #### `RectF` mcontroller.localBoundBox()
 
-Returns a rect containing the entire collision of the movement controller, in local coordinates.
+Returns a rect containing the entire collision of the movement controller, in local coordinates. Factors in rotation.
 
 ---
 
