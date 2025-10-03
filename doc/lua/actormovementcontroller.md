@@ -27,7 +27,7 @@ See `movementcontroller.md` for documentation on the `mcontroller` table for bas
 
 > **Only available on xStarbound v4.1.1+ and OpenStarbound v0.1.15+. On stock Starbound and StarExtensions, this callback is only available to non-actor movement controllers.**
 
-Returns a table containing the movement parameters for the movement controller.
+Returns a table containing the current movement parameters for the movement controller.
 
 ---
 
@@ -35,7 +35,7 @@ Returns a table containing the movement parameters for the movement controller.
 
 > **Only available on xStarbound v4.1.1+ and OpenStarbound v0.1.15+. On stock Starbound and StarExtensions, this callback is only available to non-actor movement controllers.**
 
-Applies the given parameters to the movement controller. The provided parameters are merged into the current movement parameters.
+Applies the given parameters to the movement controller. The provided parameters are merged into the current movement parameters. Note that this only modifies parameters used by both actor and non-actor movement controllers; actor-specific parameters remain unmodified.
 
 ---
 
@@ -43,7 +43,7 @@ Applies the given parameters to the movement controller. The provided parameters
 
 > **Only available on xStarbound v4.1.1+ and OpenStarbound v0.1.15+. On stock Starbound and StarExtensions, this callback is only available to non-actor movement controllers.**
 
-Resets movement parameters to their original state.
+Resets movement parameters to their original state. Note that this only resets parameters used by both actor and non-actor movement controllers; actor-specific parameters remain unmodified.
 
 ---
 

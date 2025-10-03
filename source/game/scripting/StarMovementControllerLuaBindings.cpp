@@ -1,6 +1,6 @@
 #include "StarMovementControllerLuaBindings.hpp"
-#include "StarMovementController.hpp"
 #include "StarLuaGameConverters.hpp"
+#include "StarMovementController.hpp"
 
 namespace Star {
 
@@ -14,6 +14,9 @@ LuaCallbacks LuaBindings::makeMovementControllerCallbacks(MovementController* mo
   callbacks.registerCallbackWithSignature<void, Json>(
       "resetParameters", bind(&MovementController::resetParameters, movementController, _1));
   callbacks.registerCallbackWithSignature<float>("mass", bind(&MovementController::mass, movementController));
+  callbacks.registerCallback("boundBox", [movementController]() {
+    return movementController->collisionPoly().boundBox();
+  });
   callbacks.registerCallbackWithSignature<PolyF>(
       "collisionPoly", bind(&MovementController::collisionPoly, movementController));
   callbacks.registerCallbackWithSignature<Vec2F>("position", bind(&MovementController::position, movementController));
@@ -80,4 +83,4 @@ LuaCallbacks LuaBindings::makeMovementControllerCallbacks(MovementController* mo
   return callbacks;
 }
 
-}
+} // namespace Star

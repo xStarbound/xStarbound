@@ -13,7 +13,7 @@ See `actormovementcontroller.md` for documentation on the `mcontroller` table fo
 
 #### `MovementParameters` mcontroller.parameters()
 
-Returns a table containing the movement parameters for the movement controller.
+Returns a table containing the current movement parameters for the movement controller.
 
 ---
 
@@ -26,6 +26,14 @@ Applies the given parameters to the movement controller. The provided parameters
 #### `void` mcontroller.resetParameters()
 
 Resets movement parameters to their original state.
+
+---
+
+#### `RectF` mcontroller.boundBox()
+
+> **Only available on xStarbound v4.1.1+ and OpenStarbound v0.1.15+. On stock Starbound and StarExtensions, this callback is only available to actor movement controllers.**
+
+Returns a `RectF` containing the entire collision of the movement controller, in local coordinates.
 
 ---
 
