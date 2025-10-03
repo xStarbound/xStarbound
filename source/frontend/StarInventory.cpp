@@ -185,6 +185,7 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
         }
       } else if (auto armourItem = as<ArmorItem>(item)) {
         armourItem->setHideInStockSlots(!armourItem->hideInStockSlots());
+        m_player->refreshArmor();
       }
     }
   };
