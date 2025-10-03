@@ -5,7 +5,7 @@ on: workflow_dispatch
 jobs:
   windows-setup:
     name: Build xStarbound for Windows
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
       - name: Export GitHub Actions cache environment variables
