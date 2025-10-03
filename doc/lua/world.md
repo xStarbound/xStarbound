@@ -261,7 +261,7 @@ Returns the duration of a day on the current world.
 
 ---
 
-### `Maybe<String>` world.biomeAt(`Vec2I` tilePos, `Maybe<bool>` getBlockBiome)
+#### `Maybe<String>` world.biomeAt(`Vec2I` tilePos, `Maybe<bool>` getBlockBiome)
 
 > **Only available on xStarbound.**
 
@@ -269,7 +269,7 @@ Returns the biome at the given world tile position for this world, or `nil` if t
 
 ---
 
-### `Maybe<JsonObject>` world.biomeParametersAt(`Vec2I` tilePos, `Maybe<bool>` getBlockBiome)
+#### `Maybe<JsonObject>` world.biomeParametersAt(`Vec2I` tilePos, `Maybe<bool>` getBlockBiome)
 
 > **Only available on xStarbound.**
 
@@ -1043,6 +1043,20 @@ Displays text visible in debug mode at the specified position using the specifie
 
 ---
 
+#### `void` world.wire(`Vec21` outputPosition, `size_t` outputIndex, `Vec2I` inputPosition, `size_t` inputIndex)
+
+#### `void` world.addWire(`Vec21` outputPosition, `size_t` outputIndex, `Vec2I` inputPosition, `size_t` inputIndex)
+
+> **`world.wire` is available only on xStarbound v4.1.1+ and OpenStarbound v0.1.15+. `world.addWire` is available only on xServer v4.1.1+.**
+
+Attempts to add a wire connection from the specified output node index of any output object(s) occupying the specified output position to the specified input node index of any input object(s) occupying the specified input position. Does nothing if there are no wireable input or output objects at the given positions, and skips wiring any object if specified node index does not exist for that object.
+
+> **Note:** On OpenStarbound, `world.wire` throws an error on any attempt to wire a nonexistent node on an object. If invoked client-side, this can throw a server-side exception that kicks you and everyone else off the world on non-xServer servers, so be careful!
+
+This callback and its corollaries `world.removeWire` (server-side only, see below) and `world.disconnectWires` (client-side only, see below) are particularly useful to creators of build- or dungeon-related mods.
+
+---
+
 ## Server-side bindings
 
 The following `world` bindings are available only in server-side scripts.
@@ -1555,27 +1569,13 @@ If a valid weather is specified, setting `force` to false on an invocation of `w
 
 ---
 
-#### `void` world.wire(`Vec21` outputPosition, `size_t` outputIndex, `Vec2I` inputPosition, `size_t` inputIndex)
-
-#### `void` world.addWire(`Vec21` outputPosition, `size_t` outputIndex, `Vec2I` inputPosition, `size_t` inputIndex)
-
-> **`world.wire` is available only on xServer v4.1.1+ and OpenStarbound v0.1.15+ servers. `world.addWire` is available only on xServer v4.1.1+. Also available server-side on the respective clients.**
-
-Attempts to add a wire connection from the specified output node index of any output object(s) occupying the specified output position to the specified input node index of any input object(s) occupying the specified input position. Does nothing if there are no wireable input or output objects at the given positions, and skips wiring any object if specified node index does not exist for that object.
-
-> **Note:** On OpenStarbound, `world.wire` throws an error on any attempt to wire a nonexistent node on an object.
-
-This callback and its corollary `world.removeWire` are particularly useful to creators of build- or dungeon-related mods.
-
----
-
 #### `void` world.removeWire(`Vec21` outputPosition, `size_t` outputIndex, `Vec2I` inputPosition, `size_t` inputIndex)
 
 > **`world.removeWire` is available only on xStarbound v4.1.1+.**
 
 Attempts to remove any wire connection from the specified output node index of any output object(s) occupying the specified output position to the specified input node index of any input object(s) occupying the specified input position. Does nothing if there are no wireable input or output objects at the given positions.
 
-This callback and its corollary `world.wire` / `world.addWire` are particularly useful to creators of build- or dungeon-related mods.
+This callback and its corollary `world.wire` / `world.addWire` are particularly useful to creators of build- or dungeon-related mods. The equivalent client-side callback is `world.disconnectWires` (see below).
 
 ---
 
@@ -1823,3 +1823,15 @@ Will return `nil` if the player doesn't exist, the player save failed validation
 > **Available only on xStarbound v3.1+.**
 
 Returns whether the player with the specified UUID is currently loaded and active. Note that this callback will return `false` instead of throwing an error if the specified UUID is invalid.
+
+---
+
+#### `void` world.disconnectWires(`Vec21` nodePosition, `String` wireDirection, `size_t` nodeIndex)
+
+> **`world.disconnectWires` is available only on xClient v4.1.1+.**
+
+Attempts to remove all wires connected to the specified object wire node. Does nothing if the object or node doesn't exist, or if there are no wires to remove. The `wireDirection` may be either `"input"` or `"output"`; the callback does nothing if any other string is specified.
+
+> **Note:** This can throw a server-side exception on non-xServer servers that kicks you and everyone else off the world if you specify a node that doesn't exist. Be careful!
+
+This callback and its corollary `world.wire` / `world.addWire` are particularly useful to creators of build- or dungeon-related mods. The server-side equivalent of this callback is `world.removeWire` (see above).

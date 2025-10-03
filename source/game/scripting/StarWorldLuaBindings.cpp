@@ -585,6 +585,18 @@ namespace LuaBindings {
       callbacks.registerCallback("latency", [worldClient]() -> int64_t {
         return worldClient->latency();
       });
+      callbacks.registerCallback("wire", [worldClient](Vec2I const& outputPosition, size_t outputIndex, Vec2I const& inputPosition, size_t inputIndex) {
+        worldClient->connectWire(WireConnection{outputPosition, outputIndex}, WireConnection{inputPosition, inputIndex});
+      });
+      callbacks.registerCallback("addWire", [worldClient](Vec2I const& outputPosition, size_t outputIndex, Vec2I const& inputPosition, size_t inputIndex) {
+        worldClient->connectWire(WireConnection{outputPosition, outputIndex}, WireConnection{inputPosition, inputIndex});
+      });
+      callbacks.registerCallback("disconnectWires", [worldClient](Vec2I const& nodePosition, String const& wireDirectionStr, size_t nodeIndex) {
+        if (wireDirectionStr == "input" || wireDirectionStr == "output") {
+          worldClient->disconnectAllWires(nodePosition,
+              WireNode{wireDirectionStr == "input" ? WireDirection::Input : WireDirection::Output, nodeIndex});
+        }
+      });
     }
 
     if (auto serverWorld = as<WorldServer>(world)) {
