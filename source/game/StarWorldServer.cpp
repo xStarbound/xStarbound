@@ -2989,4 +2989,29 @@ Json WorldServer::getGlobal(Maybe<String> const& jsonPath) const {
     return m_scriptGlobals;
 }
 
+
+// From Namje's PR to OpenStarbound.
+void WorldServer::wire(Vec2I const& outputPosition, size_t outputIndex, Vec2I const& inputPosition, size_t inputIndex) {
+  WireConnection output = {outputPosition, outputIndex};
+  WireConnection input = {inputPosition, inputIndex};
+  for (auto source : atTile<WireEntity>(input.entityLocation)) {
+    for (auto target : atTile<WireEntity>(output.entityLocation)) {
+      source->addNodeConnection(WireNode{WireDirection::Input, input.nodeIndex}, output);
+      target->addNodeConnection(WireNode{WireDirection::Output, output.nodeIndex}, input);
+    }
+  }
+}
+
+// FezzedOne: And its obvious corollary.
+void WorldServer::removeWire(Vec2I const& outputPosition, size_t outputIndex, Vec2I const& inputPosition, size_t inputIndex) {
+  WireConnection output = {outputPosition, outputIndex};
+  WireConnection input = {inputPosition, inputIndex};
+  for (auto source : atTile<WireEntity>(input.entityLocation)) {
+    for (auto target : atTile<WireEntity>(output.entityLocation)) {
+      source->removeNodeConnection(WireNode{WireDirection::Input, input.nodeIndex}, output);
+      target->removeNodeConnection(WireNode{WireDirection::Output, output.nodeIndex}, input);
+    }
+  }
+}
+
 } // namespace Star

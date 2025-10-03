@@ -131,6 +131,8 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
 
   unsigned timeout = assets->json("/client.config:serverConnectTimeout").toUInt();
 
+  Logger::info("UniverseClient: Client connection timeout set to {} {}", timeout, timeout == 1 ? "millisecond" : "milliseconds");
+
   // FezzedOne: Due to networking code changes in OpenStarbound that cause compatibility issues, added a
   // `"forceLegacyConnection"` setting to `xclient.config` and also allowed prepending `@` to the
   // server address to force a legacy connection. At v3.5.3+, `@` or `"forceLegacyConnection"` is
@@ -149,7 +151,7 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
 
   auto protocolResponsePacket = as<ProtocolResponsePacket>(connection.pullSingle());
   if (!protocolResponsePacket)
-    return String("Join failed! Timeout while establishing connection.");
+    return String("Join failed! Timed out while establishing connection.");
   else if (!protocolResponsePacket->allowed)
     return String(strf("Join failed! Server does not support {} connections with protocol version {}!{}",
         shouldForceLegacyConnection ? "legacy" : "xStarbound",
@@ -221,11 +223,9 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     m_celestialDatabase = make_shared<CelestialSlaveDatabase>(std::move(success->celestialInformation));
     m_systemWorldClient = make_shared<SystemWorldClient>(m_universeClock, m_celestialDatabase, m_mainPlayer->universeMap());
 
-    size_t playerCount = m_playerStorage->playerCount();
-
     Logger::info("UniverseClient: Joined {} server as client {}",
         m_legacyServer ? "stock" : "custom",
-        success->clientId);
+        success->clientId, timeout);
     return {};
   } else if (auto failure = as<ConnectFailurePacket>(packet)) {
     Logger::error("UniverseClient: Join failed: {}", failure->reason);

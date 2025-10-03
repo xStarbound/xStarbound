@@ -582,6 +582,9 @@ namespace LuaBindings {
         auto result = worldClient->defaultEntityRenderDirectives();
         return LuaTupleReturn<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>>{std::get<0>(result), std::get<1>(result), std::get<2>(result)};
       });
+      callbacks.registerCallback("latency", [worldClient]() -> int64_t {
+        return worldClient->latency();
+      });
     }
 
     if (auto serverWorld = as<WorldServer>(world)) {
@@ -699,6 +702,18 @@ namespace LuaBindings {
 
       callbacks.registerCallback("setWeatherIndex", [serverWorld](size_t weatherIndex, Maybe<bool> force) {
         serverWorld->setWeatherIndex(weatherIndex, force.value(false));
+      });
+
+      callbacks.registerCallback("wire", [serverWorld](Vec2I const& outputPosition, size_t outputIndex, Vec2I const& inputPosition, size_t inputIndex) {
+        serverWorld->wire(outputPosition, outputIndex, inputPosition, inputIndex);
+      });
+
+      callbacks.registerCallback("addWire", [serverWorld](Vec2I const& outputPosition, size_t outputIndex, Vec2I const& inputPosition, size_t inputIndex) {
+        serverWorld->wire(outputPosition, outputIndex, inputPosition, inputIndex);
+      });
+
+      callbacks.registerCallback("removeWire", [serverWorld](Vec2I const& outputPosition, size_t outputIndex, Vec2I const& inputPosition, size_t inputIndex) {
+        serverWorld->removeWire(outputPosition, outputIndex, inputPosition, inputIndex);
       });
     }
 

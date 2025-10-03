@@ -1837,6 +1837,9 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
 
   RecursiveMutexLocker mainLocker(m_mainLock, false);
 
+  Logger::info("UniverseServer: Handling new client connection; timing out in {} {}",
+      clientWaitLimit, clientWaitLimit == 1 ? "millisecond" : "milliseconds");
+
   connection.receiveAny(clientWaitLimit);
   auto protocolRequest = as<ProtocolRequestPacket>(connection.pullSingle());
   if (!protocolRequest) {

@@ -284,6 +284,11 @@ public:
 
   Maybe<Json> callUniverseCommandScript(String const& function, LuaVariadic<Json> const& args);
 
+  // From Namje's PR to OpenStarbound.
+  void wire(Vec2I const& outputPosition, size_t outputIndex, Vec2I const& inputPosition, size_t inputIndex);
+  // FezzedOne: And a corollary method to remove wire connections.
+  void removeWire(Vec2I const& outputPosition, size_t outputIndex, Vec2I const& inputPosition, size_t inputIndex);
+
 private:
   struct ClientInfo {
     ClientInfo(ConnectionId clientId, InterpolationTracker const trackerInit, bool canBeAdmin = false, Uuid clientUuid = Uuid(), Maybe<String> accountName = {}, bool isGuest = false);

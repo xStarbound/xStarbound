@@ -197,6 +197,8 @@ public:
   std::tuple<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>> defaultEntityRenderDirectives() const;
   void setDefaultEntityRenderDirectives(Maybe<Directives> const& primaryDirectives, Maybe<Directives> const& underlayDirectives, Maybe<Directives> const& overlayDirectives);
 
+  int64_t latency() const;
+
 private:
   static const float DropDist;
 

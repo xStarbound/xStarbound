@@ -789,22 +789,25 @@ bool Object::nodeState(WireNode wireNode) const {
 }
 
 void Object::addNodeConnection(WireNode wireNode, WireConnection nodeConnection) {
-  if (wireNode.direction == WireDirection::Input) {
-    m_inputNodes.at(wireNode.nodeIndex).connections.update([&](auto& list) {
-      if (list.contains(nodeConnection))
-        return false;
-      list.append(nodeConnection);
-      return true;
-    });
-  } else {
-    m_outputNodes.at(wireNode.nodeIndex).connections.update([&](auto& list) {
-      if (list.contains(nodeConnection))
-        return false;
-      list.append(nodeConnection);
-      return true;
-    });
+  // FezzedOne: Also block attempts to add wire connections to nonexistent nodes to avoid an exception getting thrown over that and shutting down the world.
+  if (wireNode.nodeIndex < nodeCount(wireNode.direction)) {
+    if (wireNode.direction == WireDirection::Input) {
+      m_inputNodes.at(wireNode.nodeIndex).connections.update([&](auto& list) {
+        if (list.contains(nodeConnection))
+          return false;
+        list.append(nodeConnection);
+        return true;
+      });
+    } else {
+      m_outputNodes.at(wireNode.nodeIndex).connections.update([&](auto& list) {
+        if (list.contains(nodeConnection))
+          return false;
+        list.append(nodeConnection);
+        return true;
+      });
+    }
+    m_scriptComponent.invoke("onNodeConnectionChange");
   }
-  m_scriptComponent.invoke("onNodeConnectionChange");
 }
 
 void Object::removeNodeConnection(WireNode wireNode, WireConnection nodeConnection) {
@@ -819,8 +822,8 @@ void Object::removeNodeConnection(WireNode wireNode, WireConnection nodeConnecti
         return list.remove(nodeConnection);
       });
     }
+    m_scriptComponent.invoke("onNodeConnectionChange");
   }
-  m_scriptComponent.invoke("onNodeConnectionChange");
 }
 
 void Object::evaluate(WireCoordinator* coordinator) {

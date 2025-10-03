@@ -2695,6 +2695,10 @@ void WorldClient::setDefaultEntityRenderDirectives(Maybe<Directives> const& dire
   m_allEntityDirectives = {std::move(directives), std::move(underlayDirectives), std::move(overlayDirectives)};
 }
 
+int64_t WorldClient::latency() const {
+  return m_latency;
+}
+
 std::tuple<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>> WorldClient::entityRenderDirectives(EntityId entityId) const {
   if (m_entitySpecificDirectives.contains(entityId)) {
     auto& entry = m_entitySpecificDirectives.get(entityId);

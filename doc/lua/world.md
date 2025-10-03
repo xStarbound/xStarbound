@@ -1533,11 +1533,17 @@ Sets the overriding breathability for the specified dungeon ID, or returns it to
 
 #### `StringList` world.weatherTypes()
 
+> **Available only on xServer (and server-side on xClient).**
+
 Lists the possible weather types for this world as configured in its metadata, in the order they are indexed internally.
 
 ---
 
 #### `void` world.setWeather(`String` weatherType, [`bool` force])
+
+#### `void` world.setWeather(`size_t` weatherIndex, [`bool` force])
+
+> **Available only on xServer (and server-side on xClient).**
 
 Sets the world's weather to the given type. The weather change takes effect immediately and resets the world's random weather change timer to the maximum configured duration for the specified weather type, so your newly set weather will persist for a while.
 
@@ -1546,6 +1552,30 @@ If `force` is `true`, the specified weather is «held» permanently on the world
 If an out-of-range index or any string (such as an empty string) that does not correspond to a valid configured weather type is specified, the current weather is «held» indefinitely (until it's unloaded or these callbacks are invoked again) if `force` is true, or the world's normal random weather cycle is immediately resumed otherwise.
 
 If a valid weather is specified, setting `force` to false on an invocation of `world.setWeather` or `world.setWeatherIndex` after a «weather hold» was forced with a previous invocation allows the world's weather to cycle normally again after the timer for the newly specified weather expires.
+
+---
+
+#### `void` world.wire(`Vec21` outputPosition, `size_t` outputIndex, `Vec2I` inputPosition, `size_t` inputIndex)
+
+#### `void` world.addWire(`Vec21` outputPosition, `size_t` outputIndex, `Vec2I` inputPosition, `size_t` inputIndex)
+
+> **`world.wire` is available only on xServer v4.1.1+ and OpenStarbound v0.1.15+ servers. `world.addWire` is available only on xServer v4.1.1+. Also available server-side on the respective clients.**
+
+Attempts to add a wire connection from the specified output node index of any output object(s) occupying the specified output position to the specified input node index of any input object(s) occupying the specified input position. Does nothing if there are no wireable input or output objects at the given positions, and skips wiring any object if specified node index does not exist for that object.
+
+> **Note:** On OpenStarbound, `world.wire` throws an error on any attempt to wire a nonexistent node on an object.
+
+This callback and its corollary `world.removeWire` are particularly useful to creators of build- or dungeon-related mods.
+
+---
+
+#### `void` world.removeWire(`Vec21` outputPosition, `size_t` outputIndex, `Vec2I` inputPosition, `size_t` inputIndex)
+
+> **`world.removeWire` is available only on xStarbound v4.1.1+.**
+
+Attempts to remove any wire connection from the specified output node index of any output object(s) occupying the specified output position to the specified input node index of any input object(s) occupying the specified input position. Does nothing if there are no wireable input or output objects at the given positions.
+
+This callback and its corollary `world.wire` / `world.addWire` are particularly useful to creators of build- or dungeon-related mods.
 
 ---
 
@@ -1673,6 +1703,14 @@ Sets which entity types should be rendered by the client. If a JSON object is pa
 > **Available only on xStarbound v3.6+.**
 
 Clears and resets all client-side entity-specific rendering directives.
+
+---
+
+#### `int64_t` world.latency()
+
+> **Available on xStarbound v4.1.1+, OpenStarbound v0.1.15+ and StarExtensions.**
+
+Returns the latency of the client's connection to the server in milliseconds.
 
 ---
 
