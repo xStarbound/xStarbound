@@ -149,6 +149,7 @@ public:
 
   void setIdentity(HumanoidIdentity const& identity, Maybe<HumanoidIdentity> const& visualOverrides = {});
   HumanoidIdentity const& identity() const;
+  HumanoidIdentity const& netIdentity() const;
 
   void updateHumanoidConfigOverrides(Json overrides = Json(), bool force = false);
 
@@ -453,6 +454,7 @@ private:
   bool m_drawVaporTrail;
   bool m_backArmorHeadRotation;
   bool m_backArmorUnderlayHeadRotation;
+  bool m_broadcastToStock;
 
   HandDrawingInfo m_primaryHand;
   HandDrawingInfo m_altHand;

@@ -263,6 +263,8 @@ Humanoid::Humanoid(Json const& config) {
   m_animationTimer = 0.0f;
 
   m_humanoidRotationSettings = HumanoidRotationSettings::Null;
+
+  m_broadcastToStock = false;
 }
 
 Humanoid::Humanoid(HumanoidIdentity const& identity)
@@ -303,6 +305,10 @@ void Humanoid::setIdentity(HumanoidIdentity const& identity, Maybe<HumanoidIdent
 
 HumanoidIdentity const& Humanoid::identity() const {
   return m_identity;
+}
+
+HumanoidIdentity const& Humanoid::netIdentity() const {
+  return m_broadcastToStock ? m_visualIdentity : m_identity;
 }
 
 void Humanoid::setHeadArmorDirectives(Directives directives) {
@@ -2239,11 +2245,32 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
     return speciesFound;
   };
 
+  auto getString = [](Json const& json, String const& key) -> String {
+    Json jValue = json.opt(key).value(Json());
+    return jValue.isType(Json::Type::String) ? jValue.toString() : "<base>";
+  };
+
+  auto replaceBaseTag = [](String const& base, String const& merger) -> String {
+    StringMap<String> tags{{"base", merger}};
+    return base.replaceTags(tags, false);
+  };
+
+  auto mergeOverrides = [getString, replaceBaseTag](Json& base, String const& key, String const& merger) {
+    base.set("bodyDirectives", replaceBaseTag(getString(base, key), merger));
+  };
+
   if (overrides == m_previousOverrides && !force) return;
   if (!overrides.isType(Json::Type::Object)) overrides = JsonObject{};
   auto baseConfig = m_baseHumanoidConfig;
   if (auto jIdentityOverrides = overrides.get("identity", Json()); jIdentityOverrides.isType(Json::Type::Object)) {
+    Json jBroadcastToStock = jIdentityOverrides.opt("broadcast").value(Json());
+    m_broadcastToStock = jBroadcastToStock.isType(Json::Type::Bool) ? jBroadcastToStock.toBool() : false;
     auto baseSpecies = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
+    mergeOverrides(jIdentityOverrides, "bodyDirectives", m_identity.bodyDirectives.string());
+    mergeOverrides(jIdentityOverrides, "hairDirectives", m_identity.hairDirectives.string());
+    mergeOverrides(jIdentityOverrides, "emoteDirectives", m_identity.emoteDirectives.string());
+    mergeOverrides(jIdentityOverrides, "facialHairDirectives", m_identity.facialHairDirectives.string());
+    mergeOverrides(jIdentityOverrides, "facialMaskDirectives", m_identity.facialMaskDirectives.string());
     auto newIdentity = HumanoidIdentity(jsonMerge(m_identity.toJson(), jIdentityOverrides));
     auto speciesToCheck = newIdentity.imagePath ? *newIdentity.imagePath : newIdentity.species;
     auto speciesToUse = checkSpecies(speciesToCheck) ? speciesToCheck : baseSpecies;
@@ -2253,6 +2280,7 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
     baseConfig = Root::singleton().speciesDatabase()->species(speciesToUse)->humanoidConfig();
   } else {
     setIdentity(m_identity);
+    m_broadcastToStock = false;
   }
   Json config = jsonMerge(baseConfig, overrides);
   m_previousOverrides = overrides;

@@ -71,10 +71,36 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   bool bodyHidden = false;
   Json humanoidOverrides = JsonObject{};
 
+  auto getDirectiveString = [](Json const& json, String const& key) -> String {
+    Json jValue = json.opt(key).value(Json());
+    return jValue.isType(Json::Type::String) ? jValue.toString() : "<base>";
+  };
+
+  auto replaceBaseTag = [](String const& base, String const& merger) -> String {
+    StringMap<String> tags{{"base", merger}};
+    return base.replaceTags(tags, false);
+  };
+
+  auto mergeDirectives = [replaceBaseTag, getDirectiveString](Json& base, String const& key, Json const& merger) {
+    base.set(key, replaceBaseTag(getDirectiveString(merger, key), getDirectiveString(base, key)));
+  };
+
   auto mergeHumanoidConfig = [&](auto armourItem) {
     Json configToMerge = armourItem->instanceValue("humanoidConfig", Json());
-    if (configToMerge.isType(Json::Type::Object))
+    if (configToMerge.isType(Json::Type::Object)) {
       humanoidOverrides = jsonMerge(humanoidOverrides, configToMerge);
+      if (Json identityToMerge = configToMerge.opt("identity").value(Json()); identityToMerge.isType(Json::Type::Object)) {
+        Json jBaseIdentity = humanoidOverrides.opt("identity").value(Json());
+        Json baseIdentity = jBaseIdentity.isType(Json::Type::Object) ? jBaseIdentity : JsonObject{};
+        baseIdentity = jsonMerge(baseIdentity, identityToMerge);
+        mergeDirectives(baseIdentity, "bodyDirectives", identityToMerge);
+        mergeDirectives(baseIdentity, "hairDirectives", identityToMerge);
+        mergeDirectives(baseIdentity, "emoteDirectives", identityToMerge);
+        mergeDirectives(baseIdentity, "facialHairDirectives", identityToMerge);
+        mergeDirectives(baseIdentity, "facialMaskDirectives", identityToMerge);
+        humanoidOverrides.set("identity", baseIdentity);
+      }
+    }
   };
 
   auto getDirectives = [&](auto armourItem) -> Directives {

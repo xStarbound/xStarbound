@@ -36,10 +36,12 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
   // Novaenia: Support for flipped (left-facing) armour directives. Appended directives can now apply to `"colorIndex"`-based directives.
   if (auto jFlipDirectives = instanceValue("flipDirectives"); jFlipDirectives.isType(Json::Type::String)) {
     auto flipDirectives = jFlipDirectives.toString();
-    if (flipDirectives.beginsWith('+'))
+    if (flipDirectives.beginsWith('+')) {
       m_flipDirectives = Directives(directives + flipDirectives.substr(1));
-    else
-      m_flipDirectives = Directives(std::move(flipDirectives));
+    } else { // FezzedOne: Add support for a `<base>` directives tag to allow placing the base directives anywhere in the flip directives.
+      StringMap<String> baseTag = {{"base", directives}};
+      m_flipDirectives = Directives(flipDirectives.replaceTags(baseTag, false));
+    }
   }
 
 

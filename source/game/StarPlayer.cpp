@@ -2867,7 +2867,7 @@ ByteArray Player::netStore() {
   ds.write(*uniqueId());
   ds.write(m_description);
   ds.write(m_modeType);
-  ds.write(m_identity);
+  ds.write(m_humanoid ? m_humanoid->netIdentity() : m_identity);
 
   return ds.data();
 }
