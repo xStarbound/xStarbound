@@ -186,7 +186,6 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   auto mergeHumanoidConfig = [&](auto armourItem) {
     Json configToMerge = armourItem->instanceValue("humanoidConfig", Json());
     if (configToMerge.isType(Json::Type::Object)) {
-      humanoidOverrides = jsonMerge(humanoidOverrides, configToMerge);
       if (Json identityToMerge = configToMerge.opt("identity").value(Json()); identityToMerge.isType(Json::Type::Object)) {
         Json jBaseIdentity = humanoidOverrides.opt("identity").value(Json());
         Json baseIdentity = jBaseIdentity.isType(Json::Type::Object) ? jBaseIdentity : JsonObject{};
@@ -195,8 +194,10 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         mergeDirectives(baseIdentity, "emoteDirectives", identityToMerge);
         mergeDirectives(baseIdentity, "facialHairDirectives", identityToMerge);
         mergeDirectives(baseIdentity, "facialMaskDirectives", identityToMerge);
-        baseIdentity = jsonMerge(baseIdentity, identityToMerge);
         humanoidOverrides = humanoidOverrides.set("identity", baseIdentity);
+        baseIdentity = jsonMerge(baseIdentity, identityToMerge);
+      } else {
+        humanoidOverrides = jsonMerge(humanoidOverrides, configToMerge);
       }
     }
   };
