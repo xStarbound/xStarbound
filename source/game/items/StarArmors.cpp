@@ -225,7 +225,9 @@ void ArmorItem::refreshIconDrawables() {
   for (auto& drawable : drawables) {
     if (drawable.isImage()) {
       // drawable.imagePart().removeDirectives(true); // FezzedOne: Removed this because not being able to have nice inventory icons for custom clothing items is annoying.
-      if (!m_directives.string().beginsWith("??")) // FezzedOne: Double question mark at the beginning of armour directives skips applying them to the icon.
+      auto const& dirStr = directives().string();
+      bool skipArmourDirectives = dirStr.length() >= 2 && dirStr.at(0) == '?' && dirStr.at(1) == '?';
+      if (!skipArmourDirectives) // FezzedOne: Double question mark at the beginning of armour directives skips applying them to the icon.
         drawable.imagePart().addDirectives(m_directives, true);
     }
   }
