@@ -1364,12 +1364,12 @@ void PlayerInventory::netElementsNeedStore() {
     }
   };
 
-  auto serializeItemMap = [&](auto& netStatesMap, auto& itemMap) {
+  auto serializeItemMap = [&](auto& netStatesMap, auto& itemMap, bool replaceArmourTags = false) {
     for (auto k : netStatesMap.keys())
-      serializeItem(netStatesMap[k], itemMap[k]);
+      serializeItem(netStatesMap[k], itemMap[k], replaceArmourTags);
   };
 
-  serializeItemMap(m_equipmentNetState, m_equipment);
+  serializeItemMap(m_equipmentNetState, m_equipment, true);
 
   for (auto bagType : m_bagsNetState.keys()) {
     // Check if the bag exists in the player's real inventory. If not, fill it with empty slots.

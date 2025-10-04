@@ -22,6 +22,8 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
     m_techModule = AssetPath::relativeTo(directory, *m_techModule);
 
   String directives = instanceValue("directives", "").toString();
+  if (auto jXSBdirectives = instanceValue("xSBdirectives", Json()); jXSBdirectives.isType(Json::Type::String))
+    directives = jXSBdirectives.toString();
   m_directives = Directives(directives);
 
   m_colorOptions = colorDirectivesFromConfig(config.getArray("colorOptions", JsonArray{""}));
@@ -33,17 +35,31 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
   if (auto jBypassNudity = instanceValue("bypassNude"); jBypassNudity.isType(Json::Type::Bool))
     m_bypassNudity = jBypassNudity.toBool();
 
-  // Novaenia: Support for flipped (left-facing) armour directives. Appended directives can now apply to `"colorIndex"`-based directives.
-  if (auto jFlipDirectives = instanceValue("flipDirectives"); jFlipDirectives.isType(Json::Type::String)) {
-    auto flipDirectives = jFlipDirectives.toString();
-    if (flipDirectives.beginsWith('+')) {
-      m_flipDirectives = Directives(directives + flipDirectives.substr(1));
-    } else { // FezzedOne: Add support for a `<base>` directives tag to allow placing the base directives anywhere in the flip directives.
-      StringMap<String> baseTag = {{"base", directives}};
-      m_flipDirectives = Directives(flipDirectives.replaceTags(baseTag, false));
+  {
+    // Novaenia: Support for flipped (left-facing) armour directives. Appended directives can now apply to `"colorIndex"`-based directives.
+    String flipDirectives;
+    auto jFlipDirectives = instanceValue("flipDirectives");
+    auto jXSBflipDirectives = instanceValue("xSBflipDirectives");
+    if (jFlipDirectives.isType(Json::Type::String) && !jXSBflipDirectives.isType(Json::Type::String)) {
+      auto flipDirectives = jFlipDirectives.toString();
+      if (flipDirectives.beginsWith('+')) {
+        flipDirectives = directives + flipDirectives.substr(1);
+      } else { // FezzedOne: Add support for a `<base>` directives tag to allow placing the base directives anywhere in the flip directives.
+        StringMap<String> baseTag = {{"base", directives}};
+        flipDirectives = flipDirectives.replaceTags(baseTag, false);
+      }
     }
+    if (jXSBflipDirectives.isType(Json::Type::String)) {
+      auto flipDirectives = jXSBflipDirectives.toString();
+      if (flipDirectives.beginsWith('+')) {
+        flipDirectives = directives + flipDirectives.substr(1);
+      } else { // FezzedOne: Add support for a `<base>` directives tag to allow placing the base directives anywhere in the flip directives.
+        StringMap<String> baseTag = {{"base", directives}};
+        flipDirectives = flipDirectives.replaceTags(baseTag, false);
+      }
+    }
+    m_flipDirectives = Directives(flipDirectives);
   }
-
 
   m_hideBody = config.getBool("hideBody", false);
   if (auto jHideBody = instanceValue("hideBody"); jHideBody.isType(Json::Type::Bool))
@@ -195,8 +211,9 @@ void ArmorItem::refreshIconDrawables() {
   auto drawables = iconDrawables();
   for (auto& drawable : drawables) {
     if (drawable.isImage()) {
-      drawable.imagePart().removeDirectives(true);
-      drawable.imagePart().addDirectives(m_directives, true);
+      // drawable.imagePart().removeDirectives(true); // FezzedOne: Removed this because not being able to have nice inventory icons for custom clothing items is annoying.
+      if (!m_directives.string().beginsWith("??")) // FezzedOne: Double question mark at the beginning of armour directives skips applying them to the icon.
+        drawable.imagePart().addDirectives(m_directives, true);
     }
   }
   setIconDrawables(std::move(drawables));
