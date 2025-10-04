@@ -1545,6 +1545,7 @@ void Player::refreshArmor(bool fullRefresh) {
   m_armor->setBackItem(m_inventory->backArmor());
   m_armor->setBackCosmeticItem(m_inventory->backCosmetic());
   m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters)));
+  m_identityUpdated = true;
 }
 
 void Player::refreshEquipment() {
@@ -2227,7 +2228,7 @@ void Player::setNetStates() {
   m_yAimPositionNetState.set(m_aimPosition[1]);
 
   if (m_identityUpdated) {
-    m_identityNetState.push(m_identity);
+    m_identityNetState.push(m_humanoid ? m_humanoid->netIdentity() : m_identity);
     m_identityUpdated = false;
   }
 
