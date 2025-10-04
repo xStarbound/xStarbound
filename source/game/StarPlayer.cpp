@@ -3319,7 +3319,8 @@ void Player::setSecretProperty(String const& name, Json const& value) {
 }
 
 void Player::setNetArmorSecret(uint8_t cosmeticSlot, ArmorItemPtr const& armor) { // FezzedOne: Called in the ArmorWearer whenever armour is updated.
-  String const& slotName = strf("cosmetic{}", cosmeticSlot + 1);
+  String const& slotName = strf("cosmetic{}", ((cosmeticSlot + 4) % 12) + 1);     // FezzedOne: Hacky workaround for OpenStarbound's weird legs/chest layering
+  // that should make it less likely for overlays to be covered up by an item in the stock chest slot on OpenStarbound.
 
   auto const& playerIdentity = m_identity;
 

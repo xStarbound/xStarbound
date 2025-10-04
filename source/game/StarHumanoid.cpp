@@ -2274,11 +2274,13 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
   auto replaceBaseTag = [this](String const& base, String const& merger) -> String {
     // FezzedOne: Need to perform one final tag replacement in the humanoid renderer to substitute the base identity directives in that «slot» for any remaining `<base>` tags.
     StringMap<String> tags{{"base", merger}};
-    return base.replaceTags(tags, false);
+    return base.replaceTags(tags, true, "");
   };
 
   auto mergeOverrides = [this, getString, replaceBaseTag](Json& base, String const& key, String const& merger) {
-    base.set(key, replaceBaseTag(getString(base, key), merger));
+    auto detaggedString = replaceBaseTag(getString(base, key), merger);
+    detaggedString = detaggedString == "<base>" ? "" : detaggedString; // FezzedOne: Because the Futara Dragon compatibility «fix» interferes here.
+    base.set(key, detaggedString);
   };
 
   if (overrides == m_previousOverrides && !force) return;
