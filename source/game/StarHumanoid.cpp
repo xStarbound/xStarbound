@@ -2268,7 +2268,12 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
 
   auto getString = [](Json const& json, String const& key) -> String {
     Json jValue = json.opt(key).value(Json());
-    return jValue.isType(Json::Type::String) ? jValue.toString() : "<base>";
+    return jValue.isType(Json::Type::String) ? jValue.toString() : "";
+  };
+
+  auto checkString = [](Json const& json, String const& key) -> bool {
+    Json jValue = json.opt(key).value(Json());
+    return jValue.isType(Json::Type::String);
   };
 
   auto replaceBaseTag = [this](String const& base, String const& merger) -> String {
@@ -2277,10 +2282,11 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
     return base.replaceTags(tags, true, "");
   };
 
-  auto mergeOverrides = [this, getString, replaceBaseTag](Json& base, String const& key, String const& merger) {
-    auto detaggedString = replaceBaseTag(getString(base, key), merger);
-    detaggedString = detaggedString == "<base>" ? "" : detaggedString; // FezzedOne: Because the Futara Dragon compatibility «fix» interferes here.
-    base.set(key, detaggedString);
+  auto mergeOverrides = [this, getString, checkString, replaceBaseTag](Json& base, String const& key, String const& merger) {
+    if (checkString(base, key)) {
+      auto detaggedString = replaceBaseTag(getString(base, key), merger);
+      base.set(key, detaggedString);
+    }
   };
 
   if (overrides == m_previousOverrides && !force) return;
