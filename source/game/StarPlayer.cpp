@@ -3372,7 +3372,7 @@ void Player::setNetArmorSecret(uint8_t cosmeticSlot, ArmorItemPtr const& armor) 
       processedDirectives["xSBdirectives"] = Json();
       processedDirectives["xSBflipDirectives"] = Json();
 
-      armourItem.applyParameters(params.toObject());
+      armourItem.applyParameters(processedDirectives);
     }
 
     setSecretProperty(strf("armorWearer.{}.data", slotName), armourItem.diskStore());

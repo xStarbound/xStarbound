@@ -1331,7 +1331,7 @@ void PlayerInventory::netElementsNeedStore() {
       processedDirectives["xSBdirectives"] = Json();
       processedDirectives["xSBflipDirectives"] = Json();
 
-      armourItem.applyParameters(params.toObject());
+      armourItem.applyParameters(processedDirectives);
 
       if (!overlays.empty()) {
         JsonArray jOverlays{};
@@ -1348,7 +1348,7 @@ void PlayerInventory::netElementsNeedStore() {
             processedDirectives["xSBdirectives"] = Json();
             processedDirectives["xSBflipDirectives"] = Json();
 
-            item.applyParameters(params.toObject());
+            item.applyParameters(processedDirectives);
           }
           jOverlays.emplaceAppend(item.diskStore());
         }
