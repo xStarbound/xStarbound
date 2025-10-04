@@ -2279,7 +2279,8 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
   auto replaceBaseTag = [this](String const& base, String const& merger) -> String {
     // FezzedOne: Need to perform one final tag replacement in the humanoid renderer to substitute the base identity directives in that «slot» for any remaining `<base>` tags.
     StringMap<String> tags{{"base", merger}};
-    return base.replaceTags(tags, true, "");
+    return base.replaceTags(tags, false)
+        .replaceTags(tags, false);
   };
 
   auto mergeOverrides = [this, getString, checkString, replaceBaseTag](Json& base, String const& key, String const& merger) {
