@@ -2279,13 +2279,12 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
   auto replaceBaseTag = [this](String const& base, String const& merger) -> String {
     // FezzedOne: Need to perform one final tag replacement in the humanoid renderer to substitute the base identity directives in that «slot» for any remaining `<base>` tags.
     StringMap<String> tags{{"base", merger}};
-    return base.replaceTags(tags, false)
-        .replaceTags(tags, false);
+    return base.replaceTags(tags, false);
   };
 
-  auto mergeOverrides = [this, getString, checkString, replaceBaseTag](Json& base, String const& key, String const& merger) {
+  auto mergeOverrides = [this, getString, checkString, replaceBaseTag](Json& base, String const& key, Directives const& merger) {
     if (checkString(base, key)) {
-      auto detaggedString = replaceBaseTag(getString(base, key), merger);
+      auto detaggedString = replaceBaseTag(getString(base, key), merger.prefix() + merger.string());
       base.set(key, detaggedString);
     }
   };
@@ -2297,11 +2296,11 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
     Json jBroadcastToStock = jIdentityOverrides.opt("broadcast").value(Json());
     m_broadcastToStock = jBroadcastToStock.isType(Json::Type::Bool) ? jBroadcastToStock.toBool() : false;
     auto baseSpecies = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
-    mergeOverrides(jIdentityOverrides, "bodyDirectives", m_identity.bodyDirectives.string());
-    mergeOverrides(jIdentityOverrides, "hairDirectives", m_identity.hairDirectives.string());
-    mergeOverrides(jIdentityOverrides, "emoteDirectives", m_identity.emoteDirectives.string());
-    mergeOverrides(jIdentityOverrides, "facialHairDirectives", m_identity.facialHairDirectives.string());
-    mergeOverrides(jIdentityOverrides, "facialMaskDirectives", m_identity.facialMaskDirectives.string());
+    mergeOverrides(jIdentityOverrides, "bodyDirectives", m_identity.bodyDirectives);
+    mergeOverrides(jIdentityOverrides, "hairDirectives", m_identity.hairDirectives);
+    mergeOverrides(jIdentityOverrides, "emoteDirectives", m_identity.emoteDirectives);
+    mergeOverrides(jIdentityOverrides, "facialHairDirectives", m_identity.facialHairDirectives);
+    mergeOverrides(jIdentityOverrides, "facialMaskDirectives", m_identity.facialMaskDirectives);
     auto newIdentity = HumanoidIdentity(jsonMerge(m_identity.toJson(), jIdentityOverrides));
     auto speciesToCheck = newIdentity.imagePath ? *newIdentity.imagePath : newIdentity.species;
     auto speciesToUse = checkSpecies(speciesToCheck) ? speciesToCheck : baseSpecies;
