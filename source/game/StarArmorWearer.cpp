@@ -196,7 +196,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         mergeDirectives(baseIdentity, "emoteDirectives", identityToMerge);
         mergeDirectives(baseIdentity, "facialHairDirectives", identityToMerge);
         mergeDirectives(baseIdentity, "facialMaskDirectives", identityToMerge);
-        humanoidOverrides.set("identity", baseIdentity);
+        humanoidOverrides = humanoidOverrides.set("identity", baseIdentity);
       }
     }
   };
