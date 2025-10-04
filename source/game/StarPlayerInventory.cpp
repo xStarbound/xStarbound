@@ -1358,9 +1358,9 @@ void PlayerInventory::netElementsNeedStore() {
     }
   };
 
-  auto serializeItem = [&](NetElementData<ItemDescriptor>& netState, ItemPtr& item, bool replaceArmourTags = false) {
+  auto serializeItem = [&](NetElementData<ItemDescriptor>& netState, ItemPtr& item) {
     auto armourItem = as<ArmorItem>(item);
-    if (replaceArmourTags && armourItem) {
+    if (armourItem) {
       auto cloneDesc = itemSafeDescriptor(item);
       auto overlays = armourItem ? armourItem->getStackedCosmetics() : List<ItemPtr>{};
       handleDirectiveTags(cloneDesc,
@@ -1386,12 +1386,12 @@ void PlayerInventory::netElementsNeedStore() {
     }
   };
 
-  auto serializeItemMap = [&](auto& netStatesMap, auto& itemMap, bool replaceArmourTags = false) {
+  auto serializeItemMap = [&](auto& netStatesMap, auto& itemMap) {
     for (auto k : netStatesMap.keys())
-      serializeItem(netStatesMap[k], itemMap[k], replaceArmourTags);
+      serializeItem(netStatesMap[k], itemMap[k]);
   };
 
-  serializeItemMap(m_equipmentNetState, m_equipment, true);
+  serializeItemMap(m_equipmentNetState, m_equipment);
 
   for (auto bagType : m_bagsNetState.keys()) {
     // Check if the bag exists in the player's real inventory. If not, fill it with empty slots.
