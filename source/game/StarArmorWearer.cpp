@@ -132,7 +132,12 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
 
   auto getDirectiveString = [](Json const& json, String const& key) -> String {
     Json jValue = json.opt(key).value(Json());
-    return jValue.isType(Json::Type::String) ? jValue.toString() : "<base>";
+    return jValue.isType(Json::Type::String) ? jValue.toString() : "";
+  };
+
+  auto checkDirectiveString = [](Json const& json, String const& key) -> bool {
+    Json jValue = json.opt(key).value(Json());
+    return jValue.isType(Json::Type::String);
   };
 
   auto const& playerIdentity = humanoid.identity();
@@ -162,12 +167,13 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
       {"color", Color::rgba(playerIdentity.color).toHex()}};
 
-  auto replaceBaseTag = [&](String const& base, String const& merger) -> String {
-    return base.replaceTags(StringMap<String>{{"base", merger}}, false).replaceTags(identityTags, false);
+  auto replaceBaseTag = [&](String const& merger, String const& base) -> String {
+    return merger.replaceTags(StringMap<String>{{"base", base}}, false).replaceTags(identityTags, false);
   };
 
-  auto mergeDirectives = [replaceBaseTag, getDirectiveString](Json& base, String const& key, Json const& merger) {
-    base = base.set(key, replaceBaseTag(getDirectiveString(merger, key), getDirectiveString(base, key)));
+  auto mergeDirectives = [replaceBaseTag, getDirectiveString, checkDirectiveString](Json& base, String const& key, Json const& merger) {
+    if (checkDirectiveString(base, key))
+      base = base.set(key, replaceBaseTag(getDirectiveString(merger, key), getDirectiveString(base, key)));
   };
 
   auto mergeHumanoidConfig = [&](auto armourItem) {
