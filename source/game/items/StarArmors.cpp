@@ -48,6 +48,7 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
         StringMap<String> baseTag = {{"base", directives}};
         flipDirectives = flipDirectives.replaceTags(baseTag, false);
       }
+      m_flipDirectives = Directives(flipDirectives);
     }
     if (jXSBflipDirectives.isType(Json::Type::String)) {
       auto flipDirectives = jXSBflipDirectives.toString();
@@ -57,8 +58,8 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
         StringMap<String> baseTag = {{"base", directives}};
         flipDirectives = flipDirectives.replaceTags(baseTag, false);
       }
+      m_flipDirectives = Directives(flipDirectives);
     }
-    m_flipDirectives = Directives(flipDirectives);
   }
 
   m_hideBody = config.getBool("hideBody", false);
