@@ -167,7 +167,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   };
 
   auto mergeDirectives = [replaceBaseTag, getDirectiveString](Json& base, String const& key, Json const& merger) {
-    base.set(key, replaceBaseTag(getDirectiveString(merger, key), getDirectiveString(base, key)));
+    base = base.set(key, replaceBaseTag(getDirectiveString(merger, key), getDirectiveString(base, key)));
   };
 
   auto mergeHumanoidConfig = [&](auto armourItem) {
