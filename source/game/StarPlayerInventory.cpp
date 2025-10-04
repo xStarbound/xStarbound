@@ -1310,12 +1310,27 @@ void PlayerInventory::netElementsNeedStore() {
       {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
       {"color", Color::rgba(playerIdentity.color).toHex()}};
 
+  auto selectDirectives = [](Json const& a, Json const& b) -> Maybe<String> {
+    if (a.isType(Json::Type::String))
+      return a.toString();
+    if (b.isType(Json::Type::String))
+      return b.toString();
+    return Maybe<String>{};
+  };
+
   auto handleDirectiveTags = [&](ItemDescriptor& armourItem, List<ItemDescriptor> const& overlays) {
     if (auto params = armourItem.parameters(); params.isType(Json::Type::Object)) {
       auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
-      auto processedDirectives = JsonObject{
-          {"directives", jDirectives.toString().replaceTags(identityTags, false)},
-          {"flipDirectives", jFlipDirectives.toString().replaceTags(identityTags, false)}};
+      auto jXSBDirectives = params.opt("xSBdirectives").value(Json()), jXSBFlipDirectives = params.opt("xSBflipDirectives").value(Json());
+      auto processedDirectives = JsonObject{};
+
+      if (auto directives = selectDirectives(jXSBDirectives, jDirectives))
+        processedDirectives["directives"] = directives->replaceTags(identityTags, false);
+      if (auto flipDirectives = selectDirectives(jXSBFlipDirectives, jFlipDirectives))
+        processedDirectives["flipDirectives"] = flipDirectives->replaceTags(identityTags, false);
+      processedDirectives["xSBdirectives"] = Json();
+      processedDirectives["xSBflipDirectives"] = Json();
+
       armourItem.applyParameters(params.toObject());
 
       if (!overlays.empty()) {
@@ -1323,9 +1338,16 @@ void PlayerInventory::netElementsNeedStore() {
         for (auto& item : overlays) {
           if (auto params = item.parameters(); params.isType(Json::Type::Object)) {
             auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
-            auto processedDirectives = JsonObject{
-                {"directives", jDirectives.toString().replaceTags(identityTags, false)},
-                {"flipDirectives", jFlipDirectives.toString().replaceTags(identityTags, false)}};
+            auto jXSBDirectives = params.opt("xSBdirectives").value(Json()), jXSBFlipDirectives = params.opt("xSBflipDirectives").value(Json());
+
+            auto processedDirectives = JsonObject{};
+            if (auto directives = selectDirectives(jXSBDirectives, jDirectives))
+              processedDirectives["directives"] = directives->replaceTags(identityTags, false);
+            if (auto flipDirectives = selectDirectives(jXSBFlipDirectives, jFlipDirectives))
+              processedDirectives["flipDirectives"] = flipDirectives->replaceTags(identityTags, false);
+            processedDirectives["xSBdirectives"] = Json();
+            processedDirectives["xSBflipDirectives"] = Json();
+
             item.applyParameters(params.toObject());
           }
           jOverlays.emplaceAppend(item.toJson());
