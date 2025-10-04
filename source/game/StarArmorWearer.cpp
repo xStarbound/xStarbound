@@ -168,12 +168,19 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       {"color", Color::rgba(playerIdentity.color).toHex()}};
 
   auto replaceBaseTag = [&](String const& merger, String const& base) -> String {
-    return merger.replaceTags(StringMap<String>{{"base", base}}, false).replaceTags(identityTags, false);
+    return merger.replaceTags(StringMap<String>{{"base", base}}, false);
   };
 
-  auto mergeDirectives = [replaceBaseTag, getDirectiveString, checkDirectiveString](Json& base, String const& key, Json const& merger) {
-    if (checkDirectiveString(base, key))
-      base = base.set(key, replaceBaseTag(getDirectiveString(merger, key), getDirectiveString(base, key)));
+  auto mergeDirectives = [&](Json& base, String const& key, Json const& merger) {
+    if (checkDirectiveString(merger, key)) {
+      String value;
+      if (checkDirectiveString(base, key))
+        value = replaceBaseTag(getDirectiveString(merger, key), getDirectiveString(base, key));
+      else
+        value = getDirectiveString(merger, key);
+      value = value.replaceTags(identityTags, false);
+      base = base.set(key, value);
+    }
   };
 
   auto mergeHumanoidConfig = [&](auto armourItem) {
