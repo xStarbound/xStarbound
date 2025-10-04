@@ -121,7 +121,7 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
   m_statusController = make_shared<StatusController>(m_config->statusControllerSettings);
   m_deployment = make_shared<PlayerDeployment>(m_config->deploymentConfig);
 
-  m_inventory = make_shared<PlayerInventory>();
+  m_inventory = make_shared<PlayerInventory>(this);
   m_blueprints = make_shared<PlayerBlueprints>();
   m_universeMap = make_shared<PlayerUniverseMap>();
   m_codexes = make_shared<PlayerCodexes>();

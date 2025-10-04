@@ -76,9 +76,35 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     return jValue.isType(Json::Type::String) ? jValue.toString() : "<base>";
   };
 
-  auto replaceBaseTag = [](String const& base, String const& merger) -> String {
-    StringMap<String> tags{{"base", merger}};
-    return base.replaceTags(tags, false);
+  auto const& playerIdentity = humanoid.identity();
+  // FezzedOne: Substitution tags that can be used in both armour directives and overridden identity directives.
+  // Directive tag substitutions are done internally by xClient and the post-substitution directives «replicated» to other clients in a vanilla-compatible manner,
+  // so *any* client can see the automatically substituted directives.
+  const StringMap<String> identityTags{
+      {"species", playerIdentity.species},
+      {"imagePath", playerIdentity.imagePath ? *playerIdentity.imagePath : playerIdentity.species},
+      {"gender", playerIdentity.gender == Gender::Male ? "male" : "female"},
+      {"bodyDirectives", playerIdentity.bodyDirectives.string()},
+      {"emoteDirectives", playerIdentity.bodyDirectives.string()},
+      {"hairGroup", playerIdentity.hairGroup},
+      {"hairType", playerIdentity.hairType},
+      {"hairDirectives", playerIdentity.hairDirectives.string()},
+      {"facialHairGroup", playerIdentity.facialHairGroup},
+      {"facialHairType", playerIdentity.facialHairType},
+      {"facialHairDirectives", playerIdentity.facialHairDirectives.string()},
+      {"facialMaskGroup", playerIdentity.facialMaskGroup},
+      {"facialMaskType", playerIdentity.facialMaskType},
+      {"facialMaskDirectives", playerIdentity.facialMaskDirectives.string()},
+      {"personalityIdle", playerIdentity.personality.idle},
+      {"personalityArmIdle", playerIdentity.personality.armIdle},
+      {"headOffsetX", strf("{}", playerIdentity.personality.headOffset[0])},
+      {"headOffsetY", strf("{}", playerIdentity.personality.headOffset[1])},
+      {"armOffsetX", strf("{}", playerIdentity.personality.armOffset[0])},
+      {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
+      {"color", Color::rgba(playerIdentity.color).toHex()}};
+
+  auto replaceBaseTag = [&](String const& base, String const& merger) -> String {
+    return base.replaceTags(StringMap<String>{{"base", merger}}, false).replaceTags(identityTags, false);
   };
 
   auto mergeDirectives = [replaceBaseTag, getDirectiveString](Json& base, String const& key, Json const& merger) {
@@ -104,7 +130,15 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   };
 
   auto getDirectives = [&](auto armourItem) -> Directives {
-    return currentDirection == (uint8_t)Direction::Left ? armourItem->flippedDirectives() : armourItem->directives();
+    // Check to ensure this isn't a remotely controlled player to avoid an unnecessary (and useless) tag replacement on items whose tags were already replaced by the other player's xClient client.
+    auto remotePlayer = m_player && m_player->isSlave();
+    if (!remotePlayer) {
+      auto const& playerIdentity = humanoid.identity();
+      String directives = currentDirection == (uint8_t)Direction::Left ? armourItem->flippedDirectives().string() : armourItem->directives().string();
+      return Directives(directives.replaceTags(identityTags, false));
+    } else {
+      return currentDirection == (uint8_t)Direction::Left ? armourItem->flippedDirectives() : armourItem->directives();
+    }
   };
 
   ArmorItem::HiddenArmorTypes hiddenArmourSlots = {false, false, false, false};

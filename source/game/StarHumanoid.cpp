@@ -2251,35 +2251,13 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
   };
 
   auto replaceBaseTag = [this](String const& base, String const& merger) -> String {
-    StringMap<String> tags{
-        {"base", merger}, // Base directives for this humanoid entry.
-        {"species", m_identity.species},
-        {"imagePath", m_identity.imagePath ? *m_identity.imagePath : m_identity.species},
-        {"gender", m_identity.gender == Gender::Male ? "male" : "female"},
-        {"bodyDirectives", m_identity.bodyDirectives.string()},
-        {"emoteDirectives", m_identity.bodyDirectives.string()},
-        {"hairGroup", m_identity.hairGroup},
-        {"hairType", m_identity.hairType},
-        {"hairDirectives", m_identity.hairDirectives.string()},
-        {"facialHairGroup", m_identity.facialHairGroup},
-        {"facialHairType", m_identity.facialHairType},
-        {"facialHairDirectives", m_identity.facialHairDirectives.string()},
-        {"facialMaskGroup", m_identity.facialMaskGroup},
-        {"facialMaskType", m_identity.facialMaskType},
-        {"facialMaskDirectives", m_identity.facialMaskDirectives.string()},
-        {"personalityIdle", m_identity.personality.idle},
-        {"personalityArmIdle", m_identity.personality.armIdle},
-        {"headOffsetX", strf("{}", m_identity.personality.headOffset[0])},
-        {"headOffsetY", strf("{}", m_identity.personality.headOffset[1])},
-        {"armOffsetX", strf("{}", m_identity.personality.armOffset[0])},
-        {"armOffsetY", strf("{}", m_identity.personality.armOffset[1])},
-        // FezzedOne: Always converted to hex even if specified as a colour name.
-        {"color", Color::rgba(m_identity.color).toHex()}};
+    // FezzedOne: Need to perform one final tag replacement in the humanoid renderer to substitute the base identity directives in that «slot» for any remaining `<base>` tags.
+    StringMap<String> tags{{"base", merger}};
     return base.replaceTags(tags, false);
   };
 
   auto mergeOverrides = [this, getString, replaceBaseTag](Json& base, String const& key, String const& merger) {
-    base.set("bodyDirectives", replaceBaseTag(getString(base, key), merger));
+    base.set(key, replaceBaseTag(getString(base, key), merger));
   };
 
   if (overrides == m_previousOverrides && !force) return;

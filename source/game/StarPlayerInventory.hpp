@@ -1,10 +1,11 @@
 #ifndef STAR_PLAYER_INVENTORY_HPP
 #define STAR_PLAYER_INVENTORY_HPP
 
+#include "StarHumanoid.hpp"
 #include "StarInventoryTypes.hpp"
+#include "StarItemDescriptor.hpp"
 #include "StarMultiArray.hpp"
 #include "StarNetElementSystem.hpp"
-#include "StarItemDescriptor.hpp"
 
 namespace Star {
 
@@ -14,6 +15,7 @@ STAR_CLASS(HeadArmor);
 STAR_CLASS(ChestArmor);
 STAR_CLASS(LegsArmor);
 STAR_CLASS(BackArmor);
+STAR_CLASS(Player);
 
 STAR_CLASS(PlayerInventory);
 
@@ -77,7 +79,7 @@ public:
   static bool itemAllowedInBag(ItemPtr const& item, String const& bagType);
   static bool itemAllowedAsEquipment(ItemPtr const& item, EquipmentSlot equipmentSlot);
 
-  PlayerInventory();
+  PlayerInventory(Player* player);
 
   ItemPtr itemsAt(InventorySlot const& slot) const;
 
@@ -240,6 +242,8 @@ private:
   void netElementsNeedLoad(bool full) override;
   void netElementsNeedStore() override;
 
+  Player* m_player;
+
   Map<EquipmentSlot, ItemPtr> m_equipment;
   Map<String, ItemBagPtr> m_bags;
   ItemPtr m_swapSlot;
@@ -270,6 +274,6 @@ private:
   InventorySettings m_inventorySettings;
 };
 
-}
+} // namespace Star
 
 #endif

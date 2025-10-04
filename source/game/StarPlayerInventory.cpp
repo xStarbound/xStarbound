@@ -1,16 +1,17 @@
 #include "StarPlayerInventory.hpp"
-#include "StarRoot.hpp"
-#include "StarCurrency.hpp"
 #include "StarArmors.hpp"
+#include "StarAssets.hpp"
+#include "StarCurrency.hpp"
+#include "StarItem.hpp"
+#include "StarItemBag.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarJsonExtra.hpp"
 #include "StarLiquidItem.hpp"
 #include "StarMaterialItem.hpp"
 #include "StarObjectItem.hpp"
-#include "StarItemDatabase.hpp"
+#include "StarPlayer.hpp"
 #include "StarPointableItem.hpp"
-#include "StarItemBag.hpp"
-#include "StarAssets.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarItem.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -39,11 +40,12 @@ bool PlayerInventory::itemAllowedAsEquipment(ItemPtr const& item, EquipmentSlot 
     return is<BackArmor>(item);
 }
 
-PlayerInventory::PlayerInventory() {
+PlayerInventory::PlayerInventory(Player* player) : m_player(player) {
   // To avoid client-side lag spikes on very large modpacks, persistently preload these infrequently accessed configs.
   auto config = Root::singleton().assets()->json("/player.config:inventory", true);
   auto currenciesConfig = Root::singleton().assets()->json("/currencies.config", true);
-  volatile Json _ = Root::singleton().assets()->json("/player.config:inventoryFilters", true); (void)_;
+  volatile Json _ = Root::singleton().assets()->json("/player.config:inventoryFilters", true);
+  (void)_;
 
   m_inventorySettings = InventorySettings::Default;
   if (config.optBool("allowAnyBagItem").value(false))
@@ -102,8 +104,8 @@ PlayerInventory::PlayerInventory() {
   addNetElement(&m_customBarGroupNetState);
   m_customBarNetState.resize(m_networkedCustomBarGroups, m_networkedCustomBarIndexes);
   m_customBarNetState.forEach([this](Array2S const&, NetElementData<CustomBarLinkCompat>& e) {
-      addNetElement(&e);
-    });
+    addNetElement(&e);
+  });
 
   addNetElement(&m_selectedActionBarNetState);
 
@@ -230,7 +232,7 @@ ItemPtr PlayerInventory::addItems(ItemPtr items) {
   }
 
   // Then, try adding equipment to the equipment slots.
-  
+
   if (is<HeadArmor>(items) && !headArmor())
     m_equipment[EquipmentSlot::Head] = items->take(1);
   if (is<ChestArmor>(items) && !chestArmor())
@@ -521,21 +523,21 @@ void PlayerInventory::condenseBagStacks(String const& bagType) {
   auto bag = m_bags[bagType];
 
   bag->condenseStacks();
-  
+
   m_customBar.forEach([&](auto const& index, CustomBarLink& link) {
-      if (link.first) {
-        if (auto bs = link.first->ptr<BagSlot>()) {
-          if (bs->first == bagType && !bag->at(bs->second))
-            link.first = {};
-        }
+    if (link.first) {
+      if (auto bs = link.first->ptr<BagSlot>()) {
+        if (bs->first == bagType && !bag->at(bs->second))
+          link.first = {};
       }
-      if (link.second) {
-        if (auto bs = link.second->ptr<BagSlot>()) {
-          if (bs->first == bagType && !bag->at(bs->second))
-            link.second = {};
-        }
+    }
+    if (link.second) {
+      if (auto bs = link.second->ptr<BagSlot>()) {
+        if (bs->first == bagType && !bag->at(bs->second))
+          link.second = {};
       }
-    });
+    }
+  });
 }
 
 void PlayerInventory::sortBag(String const& bagType) {
@@ -545,43 +547,43 @@ void PlayerInventory::sortBag(String const& bagType) {
   // pointing if any of them were pointing to the bag we are about to sort.
   MultiArray<pair<ItemPtr, ItemPtr>, 2> savedCustomBar(m_customBar.size());
   m_customBar.forEach([&](auto const& index, CustomBarLink const& link) {
-      if (link.first) {
-        if (auto bs = link.first->ptr<BagSlot>()) {
-          if (bs->first == bagType)
-            savedCustomBar(index).first = bag->at(bs->second);
-        }
+    if (link.first) {
+      if (auto bs = link.first->ptr<BagSlot>()) {
+        if (bs->first == bagType)
+          savedCustomBar(index).first = bag->at(bs->second);
       }
-      if (link.second) {
-        if (auto bs = link.second->ptr<BagSlot>()) {
-          if (bs->first == bagType)
-            savedCustomBar(index).second = bag->at(bs->second);
-        }
+    }
+    if (link.second) {
+      if (auto bs = link.second->ptr<BagSlot>()) {
+        if (bs->first == bagType)
+          savedCustomBar(index).second = bag->at(bs->second);
       }
-    });
+    }
+  });
 
   auto itemDatabase = Root::singletonPtr()->itemDatabase();
   bag->items().sort([itemDatabase](ItemPtr const& a, ItemPtr const& b) {
-      if (a && !b)
-        return true;
-      if (!a)
-        return false;
-
-      auto aType = itemDatabase->itemType(a->name());
-      auto bType = itemDatabase->itemType(b->name());
-      if (aType != bType)
-        return aType < bType;
-
-      if (a->rarity() != b->rarity())
-        return a->rarity() > b->rarity();
-
-      if (a->name().compare(b->name()) != 0)
-        return a->name().compare(b->name()) < 0;
-
-      if (a->count() != b->count())
-        return a->count() > b->count();
-
+    if (a && !b)
+      return true;
+    if (!a)
       return false;
-    });
+
+    auto aType = itemDatabase->itemType(a->name());
+    auto bType = itemDatabase->itemType(b->name());
+    if (aType != bType)
+      return aType < bType;
+
+    if (a->rarity() != b->rarity())
+      return a->rarity() > b->rarity();
+
+    if (a->name().compare(b->name()) != 0)
+      return a->name().compare(b->name()) < 0;
+
+    if (a->count() != b->count())
+      return a->count() > b->count();
+
+    return false;
+  });
 
   // Once we are done sorting, we need to restore the potentially action bar
   // links to point to where the item with the same identity is now residing.
@@ -593,11 +595,11 @@ void PlayerInventory::sortBag(String const& bagType) {
   }
 
   savedCustomBar.forEach([&](auto const& index, auto const& savedItems) {
-      if (savedItems.first)
-        m_customBar.at(index).first.set(BagSlot(bagType, itemIndexes.get(savedItems.first)));
-      if (savedItems.second)
-        m_customBar.at(index).second.set(BagSlot(bagType, itemIndexes.get(savedItems.second)));
-    });
+    if (savedItems.first)
+      m_customBar.at(index).first.set(BagSlot(bagType, itemIndexes.get(savedItems.first)));
+    if (savedItems.second)
+      m_customBar.at(index).second.set(BagSlot(bagType, itemIndexes.get(savedItems.second)));
+  });
 }
 
 void PlayerInventory::shiftSwap(InventorySlot const& slot) {
@@ -876,7 +878,7 @@ Maybe<InventorySlot> PlayerInventory::secondaryHeldSlot() const {
 }
 
 // From WasabiRaptor's PR: Function to take overflowed items from a player's inventory whenever it gets resized by a mod.
-List<ItemPtr> PlayerInventory::clearOverflow(){
+List<ItemPtr> PlayerInventory::clearOverflow() {
   auto list = m_inventoryLoadOverflow;
   m_inventoryLoadOverflow.clear();
   return list;
@@ -887,8 +889,8 @@ bool PlayerInventory::slotValid(InventorySlot const& slot) const {
     if (auto bag = m_bags.get(bagSlot->first)) {
       if ((size_t)bagSlot->second >= bag->size())
         return false;
-    }
-    else return false;
+    } else
+      return false;
   }
   return true;
 }
@@ -964,19 +966,16 @@ void PlayerInventory::load(Json const& store) {
 
   for (size_t i = 0; i < m_customBar.size(0); ++i) {
     for (size_t j = 0; j < m_customBar.size(1); ++j) {
-      Json cbl = store.get("customBar").get(i,JsonArray()).get(j,JsonArray());
+      Json cbl = store.get("customBar").get(i, JsonArray()).get(j, JsonArray());
       // From WasabiRaptor's PR: Function to check whether a hotbar «slot» is valid.
       auto validateLink = [this](Json link) -> Json {
-        if ((link.isType(Json::Type::Object))
-        && (m_bags.keys().contains(link.getString("type")))
-        && (m_bags[link.getString("type")].get()->size() > link.getUInt("location")))
+        if ((link.isType(Json::Type::Object)) && (m_bags.keys().contains(link.getString("type"))) && (m_bags[link.getString("type")].get()->size() > link.getUInt("location")))
           return link;
         return Json();
       };
       m_customBar.at(i, j) = CustomBarLink{
-        jsonToMaybe<InventorySlot>(validateLink(cbl.get(0, Json())), jsonToInventorySlot),
-        jsonToMaybe<InventorySlot>(validateLink(cbl.get(1, Json())), jsonToInventorySlot)
-      };
+          jsonToMaybe<InventorySlot>(validateLink(cbl.get(0, Json())), jsonToInventorySlot),
+          jsonToMaybe<InventorySlot>(validateLink(cbl.get(1, Json())), jsonToInventorySlot)};
     }
   }
 
@@ -996,7 +995,7 @@ Json PlayerInventory::store() const {
   for (size_t i = 0; i < m_customBar.size(0); ++i) {
     JsonArray customBarGroup;
     for (size_t j = 0; j < m_customBar.size(1); ++j) {
-      auto const& cbl  = m_customBar.at(i, j);
+      auto const& cbl = m_customBar.at(i, j);
       customBarGroup.append(JsonArray{jsonFromMaybe(cbl.first, jsonFromInventorySlot), jsonFromMaybe(cbl.second, jsonFromInventorySlot)});
     }
     customBar.append(take(customBarGroup));
@@ -1016,49 +1015,47 @@ Json PlayerInventory::store() const {
 
   if (overflowExists) {
     return JsonObject{
-      {"headSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Head))},
-      {"chestSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Chest))},
-      {"legsSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Legs))},
-      {"backSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Back))},
-      {"headCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::HeadCosmetic))},
-      {"chestCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::ChestCosmetic))},
-      {"legsCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::LegsCosmetic))},
-      {"backCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::BackCosmetic))},
-      {"itemBags", itemBags},
-      {"swapSlot", itemDatabase->diskStore(m_swapSlot)},
-      {"trashSlot", itemDatabase->diskStore(m_trashSlot)},
-      {"currencies", jsonFromMap(m_currencies)},
-      {"customBarGroup", m_customBarGroup},
-      {"customBar", std::move(customBar)},
-      {"selectedActionBar", jsonFromSelectedActionBarLocation(m_selectedActionBar)},
-      {"beamAxe", itemDatabase->diskStore(m_essential.value(EssentialItem::BeamAxe))},
-      {"wireTool", itemDatabase->diskStore(m_essential.value(EssentialItem::WireTool))},
-      {"paintTool", itemDatabase->diskStore(m_essential.value(EssentialItem::PaintTool))},
-      {"inspectionTool", itemDatabase->diskStore(m_essential.value(EssentialItem::InspectionTool))},
-      {"overflow", overflow}
-    };
+        {"headSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Head))},
+        {"chestSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Chest))},
+        {"legsSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Legs))},
+        {"backSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Back))},
+        {"headCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::HeadCosmetic))},
+        {"chestCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::ChestCosmetic))},
+        {"legsCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::LegsCosmetic))},
+        {"backCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::BackCosmetic))},
+        {"itemBags", itemBags},
+        {"swapSlot", itemDatabase->diskStore(m_swapSlot)},
+        {"trashSlot", itemDatabase->diskStore(m_trashSlot)},
+        {"currencies", jsonFromMap(m_currencies)},
+        {"customBarGroup", m_customBarGroup},
+        {"customBar", std::move(customBar)},
+        {"selectedActionBar", jsonFromSelectedActionBarLocation(m_selectedActionBar)},
+        {"beamAxe", itemDatabase->diskStore(m_essential.value(EssentialItem::BeamAxe))},
+        {"wireTool", itemDatabase->diskStore(m_essential.value(EssentialItem::WireTool))},
+        {"paintTool", itemDatabase->diskStore(m_essential.value(EssentialItem::PaintTool))},
+        {"inspectionTool", itemDatabase->diskStore(m_essential.value(EssentialItem::InspectionTool))},
+        {"overflow", overflow}};
   } else {
     return JsonObject{
-      {"headSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Head))},
-      {"chestSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Chest))},
-      {"legsSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Legs))},
-      {"backSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Back))},
-      {"headCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::HeadCosmetic))},
-      {"chestCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::ChestCosmetic))},
-      {"legsCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::LegsCosmetic))},
-      {"backCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::BackCosmetic))},
-      {"itemBags", itemBags},
-      {"swapSlot", itemDatabase->diskStore(m_swapSlot)},
-      {"trashSlot", itemDatabase->diskStore(m_trashSlot)},
-      {"currencies", jsonFromMap(m_currencies)},
-      {"customBarGroup", m_customBarGroup},
-      {"customBar", std::move(customBar)},
-      {"selectedActionBar", jsonFromSelectedActionBarLocation(m_selectedActionBar)},
-      {"beamAxe", itemDatabase->diskStore(m_essential.value(EssentialItem::BeamAxe))},
-      {"wireTool", itemDatabase->diskStore(m_essential.value(EssentialItem::WireTool))},
-      {"paintTool", itemDatabase->diskStore(m_essential.value(EssentialItem::PaintTool))},
-      {"inspectionTool", itemDatabase->diskStore(m_essential.value(EssentialItem::InspectionTool))}
-    };
+        {"headSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Head))},
+        {"chestSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Chest))},
+        {"legsSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Legs))},
+        {"backSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::Back))},
+        {"headCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::HeadCosmetic))},
+        {"chestCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::ChestCosmetic))},
+        {"legsCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::LegsCosmetic))},
+        {"backCosmeticSlot", itemDatabase->diskStore(m_equipment.value(EquipmentSlot::BackCosmetic))},
+        {"itemBags", itemBags},
+        {"swapSlot", itemDatabase->diskStore(m_swapSlot)},
+        {"trashSlot", itemDatabase->diskStore(m_trashSlot)},
+        {"currencies", jsonFromMap(m_currencies)},
+        {"customBarGroup", m_customBarGroup},
+        {"customBar", std::move(customBar)},
+        {"selectedActionBar", jsonFromSelectedActionBarLocation(m_selectedActionBar)},
+        {"beamAxe", itemDatabase->diskStore(m_essential.value(EssentialItem::BeamAxe))},
+        {"wireTool", itemDatabase->diskStore(m_essential.value(EssentialItem::WireTool))},
+        {"paintTool", itemDatabase->diskStore(m_essential.value(EssentialItem::PaintTool))},
+        {"inspectionTool", itemDatabase->diskStore(m_essential.value(EssentialItem::InspectionTool))}};
   }
 }
 
@@ -1080,23 +1077,23 @@ void PlayerInventory::forEveryItem(function<void(InventorySlot const&, ItemPtr&)
 
 void PlayerInventory::forEveryItem(function<void(InventorySlot const&, ItemPtr const&)> function) const {
   return const_cast<PlayerInventory*>(this)->forEveryItem([function = std::move(function)](InventorySlot const& slot, ItemPtr& item) {
-      function(slot, item);
-    });
+    function(slot, item);
+  });
 }
 
 List<ItemPtr> PlayerInventory::allItems() const {
   List<ItemPtr> items;
   forEveryItem([&items](InventorySlot const&, ItemPtr const& item) {
-      items.append(item);
-    });
+    items.append(item);
+  });
   return items;
 }
 
 Map<String, uint64_t> PlayerInventory::itemSummary() const {
   Map<String, uint64_t> result;
   forEveryItem([&result](auto const&, auto const& item) {
-      result[item->name()] += item->count();
-    });
+    result[item->name()] += item->count();
+  });
   return result;
 }
 
@@ -1117,23 +1114,23 @@ void PlayerInventory::cleanup() {
     m_trashSlot = ItemPtr();
 
   m_customBar.forEach([this](Array2S const&, CustomBarLink& p) {
-      ItemPtr primary = p.first ? retrieve(*p.first) : ItemPtr();
-      ItemPtr secondary = p.second ? retrieve(*p.second) : ItemPtr();
+    ItemPtr primary = p.first ? retrieve(*p.first) : ItemPtr();
+    ItemPtr secondary = p.second ? retrieve(*p.second) : ItemPtr();
 
-      // Reset the primary and secondary action bar link if the item is gone
-      if (!primary)
-        p.first.reset();
-      if (!secondary)
-        p.second.reset();
+    // Reset the primary and secondary action bar link if the item is gone
+    if (!primary)
+      p.first.reset();
+    if (!secondary)
+      p.second.reset();
 
-      // If the primary hand item is two handed, the secondary hand should not be
-      // set
-      if (itemSafeTwoHanded(primary))
-        p.second.reset();
-      // Two handed items are not allowed in the secondary slot
-      if (itemSafeTwoHanded(secondary))
-        p.second.reset();
-    });
+    // If the primary hand item is two handed, the secondary hand should not be
+    // set
+    if (itemSafeTwoHanded(primary))
+      p.second.reset();
+    // Two handed items are not allowed in the secondary slot
+    if (itemSafeTwoHanded(secondary))
+      p.second.reset();
+  });
 }
 
 bool PlayerInventory::checkInventoryFilter(ItemPtr const& items, String const& filterName) {
@@ -1154,16 +1151,16 @@ bool PlayerInventory::checkInventoryFilter(ItemPtr const& items, String const& f
   auto itemTags = itemDatabase->itemTags(items->name());
   if (filterConfig.contains("tagWhitelist")) {
     auto whitelistedTags = filterConfig.getArray("tagWhitelist").filtered([itemTags](Json const& tag) {
-        return itemTags.contains(tag.toString());
-      });
+      return itemTags.contains(tag.toString());
+    });
     if (whitelistedTags.size() == 0)
       return false;
   }
 
   if (filterConfig.contains("tagBlacklist")) {
     auto blacklistedTags = filterConfig.getArray("tagBlacklist").filtered([itemTags](Json const& tag) {
-        return itemTags.contains(tag.toString());
-      });
+      return itemTags.contains(tag.toString());
+    });
     if (blacklistedTags.size() > 0)
       return false;
   }
@@ -1212,16 +1209,16 @@ ItemPtr& PlayerInventory::retrieve(InventorySlot const& slot) {
 
 void PlayerInventory::swapCustomBarLinks(InventorySlot a, InventorySlot b) {
   m_customBar.forEach([&](Array2S const&, CustomBarLink& p) {
-      if (p.first == a)
-        p.first = b;
-      else if (p.first == b)
-        p.first = a;
+    if (p.first == a)
+      p.first = b;
+    else if (p.first == b)
+      p.first = a;
 
-      if (p.second == a)
-        p.second = b;
-      else if (p.second == b)
-        p.second = a;
-    });
+    if (p.second == a)
+      p.second = b;
+    else if (p.second == b)
+      p.second = a;
+  });
 }
 
 void PlayerInventory::autoAddToCustomBar(InventorySlot slot) {
@@ -1271,12 +1268,12 @@ void PlayerInventory::netElementsNeedLoad(bool) {
 
   m_customBarGroup = m_customBarGroupNetState.get();
   m_customBarNetState.forEach([&](Array<size_t, 2> const& index, auto& ns) {
-      // FezzedOne: Assume the action bar is fully empty. This prevents a server-side segfault caused by
-      // action bar slots being linked to inventory slots the server cannot see.
-      // Also don't try to fill custom bar slots that don't exist.
-      if (index[0] < m_customBar.size(0) && index[1] < m_customBar.size(1))
-        m_customBar.at(index) = CustomBarLink{{}, {}}; // ns.get();
-    });
+    // FezzedOne: Assume the action bar is fully empty. This prevents a server-side segfault caused by
+    // action bar slots being linked to inventory slots the server cannot see.
+    // Also don't try to fill custom bar slots that don't exist.
+    if (index[0] < m_customBar.size(0) && index[1] < m_customBar.size(1))
+      m_customBar.at(index) = CustomBarLink{{}, {}}; // ns.get();
+  });
 
   m_selectedActionBar = m_selectedActionBarNetState.get();
 
@@ -1288,8 +1285,49 @@ void PlayerInventory::netElementsNeedLoad(bool) {
 void PlayerInventory::netElementsNeedStore() {
   cleanup();
 
-  auto serializeItem = [](NetElementData<ItemDescriptor>& netState, ItemPtr& item) {
-    netState.set(itemSafeDescriptor(item));
+  auto const& playerIdentity = m_player->identity();
+
+  const StringMap<String> identityTags{
+      {"species", playerIdentity.species},
+      {"imagePath", playerIdentity.imagePath ? *playerIdentity.imagePath : playerIdentity.species},
+      {"gender", playerIdentity.gender == Gender::Male ? "male" : "female"},
+      {"bodyDirectives", playerIdentity.bodyDirectives.string()},
+      {"emoteDirectives", playerIdentity.bodyDirectives.string()},
+      {"hairGroup", playerIdentity.hairGroup},
+      {"hairType", playerIdentity.hairType},
+      {"hairDirectives", playerIdentity.hairDirectives.string()},
+      {"facialHairGroup", playerIdentity.facialHairGroup},
+      {"facialHairType", playerIdentity.facialHairType},
+      {"facialHairDirectives", playerIdentity.facialHairDirectives.string()},
+      {"facialMaskGroup", playerIdentity.facialMaskGroup},
+      {"facialMaskType", playerIdentity.facialMaskType},
+      {"facialMaskDirectives", playerIdentity.facialMaskDirectives.string()},
+      {"personalityIdle", playerIdentity.personality.idle},
+      {"personalityArmIdle", playerIdentity.personality.armIdle},
+      {"headOffsetX", strf("{}", playerIdentity.personality.headOffset[0])},
+      {"headOffsetY", strf("{}", playerIdentity.personality.headOffset[1])},
+      {"armOffsetX", strf("{}", playerIdentity.personality.armOffset[0])},
+      {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
+      {"color", Color::rgba(playerIdentity.color).toHex()}};
+
+  auto handleDirectiveTags = [&](ItemDescriptor& armourItem) {
+    if (auto params = armourItem.parameters(); params.isType(Json::Type::Object)) {
+      auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
+      auto processedDirectives = JsonObject{
+          {"directives", jDirectives.toString().replaceTags(identityTags, false)},
+          {"flipDirectives", jFlipDirectives.toString().replaceTags(identityTags, false)}};
+      armourItem.applyParameters(params.toObject());
+    }
+  };
+
+  auto serializeItem = [&](NetElementData<ItemDescriptor>& netState, ItemPtr& item, bool replaceArmourTags = false) {
+    if (replaceArmourTags && item && as<ArmorItem>(item)) {
+      auto cloneDesc = itemSafeDescriptor(item);
+      handleDirectiveTags(cloneDesc);
+      netState.set(cloneDesc);
+    } else {
+      netState.set(itemSafeDescriptor(item));
+    }
   };
 
   auto serializeItemList = [&](List<NetElementData<ItemDescriptor>>& netStatesList, List<ItemPtr>& itemList) {
@@ -1332,10 +1370,10 @@ void PlayerInventory::netElementsNeedStore() {
 
   // FezzedOne: Spoof the networked custom bars.
   m_customBarNetState.forEach([&](auto const& index, auto& cbl) {
-      // FezzedOne: Spoof *all* slots as empty. This prevents the case where an action bar slot linked to an
-      // inventory slot the server can't see causes the server to segfault.
-      m_customBarNetState.at(index).set(CustomBarLinkCompat{{}, {}});
-    });
+    // FezzedOne: Spoof *all* slots as empty. This prevents the case where an action bar slot linked to an
+    // inventory slot the server can't see causes the server to segfault.
+    m_customBarNetState.at(index).set(CustomBarLinkCompat{{}, {}});
+  });
 
   // FezzedOne: Spoof the selected custom bar slot.
   if (auto nonEssentialSlot = m_selectedActionBar.maybe<CustomBarIndex>()) {
@@ -1351,4 +1389,4 @@ void PlayerInventory::netElementsNeedStore() {
   serializeItemMap(m_essentialNetState, m_essential);
 }
 
-}
+} // namespace Star
