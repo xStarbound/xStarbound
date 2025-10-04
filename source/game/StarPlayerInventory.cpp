@@ -1310,20 +1310,39 @@ void PlayerInventory::netElementsNeedStore() {
       {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
       {"color", Color::rgba(playerIdentity.color).toHex()}};
 
-  auto handleDirectiveTags = [&](ItemDescriptor& armourItem) {
+  auto handleDirectiveTags = [&](ItemDescriptor& armourItem, List<ItemDescriptor> const& overlays) {
     if (auto params = armourItem.parameters(); params.isType(Json::Type::Object)) {
       auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
       auto processedDirectives = JsonObject{
           {"directives", jDirectives.toString().replaceTags(identityTags, false)},
           {"flipDirectives", jFlipDirectives.toString().replaceTags(identityTags, false)}};
       armourItem.applyParameters(params.toObject());
+
+      if (!overlays.empty()) {
+        JsonArray jOverlays{};
+        for (auto& item : overlays) {
+          if (auto params = item.parameters(); params.isType(Json::Type::Object)) {
+            auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
+            auto processedDirectives = JsonObject{
+                {"directives", jDirectives.toString().replaceTags(identityTags, false)},
+                {"flipDirectives", jFlipDirectives.toString().replaceTags(identityTags, false)}};
+            item.applyParameters(params.toObject());
+          }
+          jOverlays.emplaceAppend(item.toJson());
+        }
+        armourItem.applyParameters(JsonObject{
+            {"stackedItems", jOverlays}});
+      }
     }
   };
 
   auto serializeItem = [&](NetElementData<ItemDescriptor>& netState, ItemPtr& item, bool replaceArmourTags = false) {
-    if (replaceArmourTags && item && as<ArmorItem>(item)) {
+    auto armourItem = as<ArmorItem>(item);
+    if (replaceArmourTags && armourItem) {
       auto cloneDesc = itemSafeDescriptor(item);
-      handleDirectiveTags(cloneDesc);
+      auto overlays = armourItem ? armourItem->getStackedCosmetics() : List<ItemPtr>{};
+      handleDirectiveTags(cloneDesc,
+          overlays.transformed([](ItemPtr const& item) { return itemSafeDescriptor(as<ArmorItem>(item)); }));
       netState.set(cloneDesc);
     } else {
       netState.set(itemSafeDescriptor(item));
