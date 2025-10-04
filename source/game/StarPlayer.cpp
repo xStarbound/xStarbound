@@ -3320,10 +3320,63 @@ void Player::setSecretProperty(String const& name, Json const& value) {
 
 void Player::setNetArmorSecret(uint8_t cosmeticSlot, ArmorItemPtr const& armor) { // FezzedOne: Called in the ArmorWearer whenever armour is updated.
   String const& slotName = strf("cosmetic{}", cosmeticSlot + 1);
+
+  auto const& playerIdentity = m_identity;
+
+  const StringMap<String> identityTags{
+      {"species", playerIdentity.species},
+      {"imagePath", playerIdentity.imagePath ? *playerIdentity.imagePath : playerIdentity.species},
+      {"gender", playerIdentity.gender == Gender::Male ? "male" : "female"},
+      {"bodyDirectives", playerIdentity.bodyDirectives.string()},
+      {"emoteDirectives", playerIdentity.bodyDirectives.string()},
+      {"hairGroup", playerIdentity.hairGroup},
+      {"hairType", playerIdentity.hairType},
+      {"hairDirectives", playerIdentity.hairDirectives.string()},
+      {"facialHairGroup", playerIdentity.facialHairGroup},
+      {"facialHairType", playerIdentity.facialHairType},
+      {"facialHairDirectives", playerIdentity.facialHairDirectives.string()},
+      {"facialMaskGroup", playerIdentity.facialMaskGroup},
+      {"facialMaskType", playerIdentity.facialMaskType},
+      {"facialMaskDirectives", playerIdentity.facialMaskDirectives.string()},
+      {"personalityIdle", playerIdentity.personality.idle},
+      {"personalityArmIdle", playerIdentity.personality.armIdle},
+      {"headOffsetX", strf("{}", playerIdentity.personality.headOffset[0])},
+      {"headOffsetY", strf("{}", playerIdentity.personality.headOffset[1])},
+      {"armOffsetX", strf("{}", playerIdentity.personality.armOffset[0])},
+      {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
+      {"color", Color::rgba(playerIdentity.color).toHex()}};
+
+  auto selectDirectives = [](Json const& a, Json const& b) -> Maybe<String> {
+    if (a.isType(Json::Type::String))
+      return a.toString();
+    if (b.isType(Json::Type::String))
+      return b.toString();
+    return Maybe<String>{};
+  };
+
   if (!m_startedNetworkingCosmetics) {
     setSecretProperty("armorWearer.isXStarbound", true);
   }
-  setSecretProperty(strf("armorWearer.{}.data", slotName), armor ? itemSafeDescriptor(armor).diskStore() : Json());
+
+  if (armor) {
+    auto armourItem = itemSafeDescriptor(armor);
+    if (auto params = armourItem.parameters(); params.isType(Json::Type::Object)) {
+      auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
+      auto jXSBDirectives = params.opt("xSBdirectives").value(Json()), jXSBFlipDirectives = params.opt("xSBflipDirectives").value(Json());
+      auto processedDirectives = JsonObject{};
+
+      if (auto directives = selectDirectives(jXSBDirectives, jDirectives))
+        processedDirectives["directives"] = directives->replaceTags(identityTags, false);
+      if (auto flipDirectives = selectDirectives(jXSBFlipDirectives, jFlipDirectives))
+        processedDirectives["flipDirectives"] = flipDirectives->replaceTags(identityTags, false);
+      processedDirectives["xSBdirectives"] = Json();
+      processedDirectives["xSBflipDirectives"] = Json();
+
+      armourItem.applyParameters(params.toObject());
+    }
+
+    setSecretProperty(strf("armorWearer.{}.data", slotName), armourItem.diskStore());
+  }
   if (!m_startedNetworkingCosmetics) {
     setSecretProperty("armorWearer.replicating", true);
     m_startedNetworkingCosmetics = true;

@@ -1350,7 +1350,7 @@ void PlayerInventory::netElementsNeedStore() {
 
             item.applyParameters(params.toObject());
           }
-          jOverlays.emplaceAppend(item.toJson());
+          jOverlays.emplaceAppend(item.diskStore());
         }
         armourItem.applyParameters(JsonObject{
             {"stackedItems", jOverlays}});
