@@ -171,7 +171,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     return merger.replaceTags(StringMap<String>{{"base", base}}, false);
   };
 
-  auto mergeDirectives = [&](Json& base, String const& key, Json const& merger) {
+  auto mergeDirectives = [&](Json const& base, String const& key, Json& merger) {
     if (checkDirectiveString(merger, key)) {
       String value;
       if (checkDirectiveString(base, key))
@@ -179,7 +179,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       else
         value = getDirectiveString(merger, key);
       value = value.replaceTags(identityTags, false);
-      base = base.set(key, value);
+      merger = merger.set(key, value);
     }
   };
 
@@ -190,12 +190,12 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       if (Json identityToMerge = configToMerge.opt("identity").value(Json()); identityToMerge.isType(Json::Type::Object)) {
         Json jBaseIdentity = humanoidOverrides.opt("identity").value(Json());
         Json baseIdentity = jBaseIdentity.isType(Json::Type::Object) ? jBaseIdentity : JsonObject{};
-        baseIdentity = jsonMerge(baseIdentity, identityToMerge);
         mergeDirectives(baseIdentity, "bodyDirectives", identityToMerge);
         mergeDirectives(baseIdentity, "hairDirectives", identityToMerge);
         mergeDirectives(baseIdentity, "emoteDirectives", identityToMerge);
         mergeDirectives(baseIdentity, "facialHairDirectives", identityToMerge);
         mergeDirectives(baseIdentity, "facialMaskDirectives", identityToMerge);
+        baseIdentity = jsonMerge(baseIdentity, identityToMerge);
         humanoidOverrides = humanoidOverrides.set("identity", baseIdentity);
       }
     }
