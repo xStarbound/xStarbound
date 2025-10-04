@@ -2284,8 +2284,8 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
 
   auto mergeOverrides = [this, getString, checkString, replaceBaseTag](Json& base, String const& key, Directives const& merger) {
     if (checkString(base, key)) {
-      auto detaggedString = replaceBaseTag(getString(base, key), merger.prefix() + merger.string());
-      base.set(key, detaggedString);
+      auto detaggedString = replaceBaseTag(getString(base, key), merger.prefix());
+      base = base.set(key, detaggedString);
     }
   };
 
