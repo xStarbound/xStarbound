@@ -1285,90 +1285,90 @@ void PlayerInventory::netElementsNeedLoad(bool) {
 void PlayerInventory::netElementsNeedStore() {
   cleanup();
 
-  auto const& playerIdentity = m_player->identity();
-
-  const StringMap<String> identityTags{
-      {"species", playerIdentity.species},
-      {"imagePath", playerIdentity.imagePath ? *playerIdentity.imagePath : playerIdentity.species},
-      {"gender", playerIdentity.gender == Gender::Male ? "male" : "female"},
-      {"bodyDirectives", playerIdentity.bodyDirectives.string()},
-      {"emoteDirectives", playerIdentity.bodyDirectives.string()},
-      {"hairGroup", playerIdentity.hairGroup},
-      {"hairType", playerIdentity.hairType},
-      {"hairDirectives", playerIdentity.hairDirectives.string()},
-      {"facialHairGroup", playerIdentity.facialHairGroup},
-      {"facialHairType", playerIdentity.facialHairType},
-      {"facialHairDirectives", playerIdentity.facialHairDirectives.string()},
-      {"facialMaskGroup", playerIdentity.facialMaskGroup},
-      {"facialMaskType", playerIdentity.facialMaskType},
-      {"facialMaskDirectives", playerIdentity.facialMaskDirectives.string()},
-      {"personalityIdle", playerIdentity.personality.idle},
-      {"personalityArmIdle", playerIdentity.personality.armIdle},
-      {"headOffsetX", strf("{}", playerIdentity.personality.headOffset[0])},
-      {"headOffsetY", strf("{}", playerIdentity.personality.headOffset[1])},
-      {"armOffsetX", strf("{}", playerIdentity.personality.armOffset[0])},
-      {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
-      {"color", Color::rgba(playerIdentity.color).toHex()}};
-
-  auto selectDirectives = [](Json const& a, Json const& b) -> Maybe<String> {
-    if (a.isType(Json::Type::String))
-      return a.toString();
-    if (b.isType(Json::Type::String))
-      return b.toString();
-    return Maybe<String>{};
-  };
-
-  auto handleDirectiveTags = [&](ItemDescriptor& armourItem, List<ItemDescriptor> const& overlays) {
-    if (auto params = armourItem.parameters(); params.isType(Json::Type::Object)) {
-      auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
-      auto jXSBDirectives = params.opt("xSBdirectives").value(Json()), jXSBFlipDirectives = params.opt("xSBflipDirectives").value(Json());
-      auto processedDirectives = JsonObject{};
-
-      if (auto directives = selectDirectives(jXSBDirectives, jDirectives))
-        processedDirectives["directives"] = directives->replaceTags(identityTags, false);
-      if (auto flipDirectives = selectDirectives(jXSBFlipDirectives, jFlipDirectives))
-        processedDirectives["flipDirectives"] = flipDirectives->replaceTags(identityTags, false);
-      processedDirectives["xSBdirectives"] = Json();
-      processedDirectives["xSBflipDirectives"] = Json();
-
-      armourItem.applyParameters(processedDirectives);
-
-      if (!overlays.empty()) {
-        JsonArray jOverlays{};
-        for (auto& item : overlays) {
-          if (auto params = item.parameters(); params.isType(Json::Type::Object)) {
-            auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
-            auto jXSBDirectives = params.opt("xSBdirectives").value(Json()), jXSBFlipDirectives = params.opt("xSBflipDirectives").value(Json());
-            auto processedDirectives = JsonObject{};
-
-            if (auto directives = selectDirectives(jXSBDirectives, jDirectives))
-              processedDirectives["directives"] = directives->replaceTags(identityTags, false);
-            if (auto flipDirectives = selectDirectives(jXSBFlipDirectives, jFlipDirectives))
-              processedDirectives["flipDirectives"] = flipDirectives->replaceTags(identityTags, false);
-            processedDirectives["xSBdirectives"] = Json();
-            processedDirectives["xSBflipDirectives"] = Json();
-
-            item.applyParameters(processedDirectives);
-          }
-          jOverlays.emplaceAppend(item.diskStore());
-        }
-        armourItem.applyParameters(JsonObject{
-            {"stackedItems", jOverlays}});
-      }
-    }
-  };
+  // auto const& playerIdentity = m_player->identity();
+  //
+  // const StringMap<String> identityTags{
+  //     {"species", playerIdentity.species},
+  //     {"imagePath", playerIdentity.imagePath ? *playerIdentity.imagePath : playerIdentity.species},
+  //     {"gender", playerIdentity.gender == Gender::Male ? "male" : "female"},
+  //     {"bodyDirectives", playerIdentity.bodyDirectives.string()},
+  //     {"emoteDirectives", playerIdentity.bodyDirectives.string()},
+  //     {"hairGroup", playerIdentity.hairGroup},
+  //     {"hairType", playerIdentity.hairType},
+  //     {"hairDirectives", playerIdentity.hairDirectives.string()},
+  //     {"facialHairGroup", playerIdentity.facialHairGroup},
+  //     {"facialHairType", playerIdentity.facialHairType},
+  //     {"facialHairDirectives", playerIdentity.facialHairDirectives.string()},
+  //     {"facialMaskGroup", playerIdentity.facialMaskGroup},
+  //     {"facialMaskType", playerIdentity.facialMaskType},
+  //     {"facialMaskDirectives", playerIdentity.facialMaskDirectives.string()},
+  //     {"personalityIdle", playerIdentity.personality.idle},
+  //     {"personalityArmIdle", playerIdentity.personality.armIdle},
+  //     {"headOffsetX", strf("{}", playerIdentity.personality.headOffset[0])},
+  //     {"headOffsetY", strf("{}", playerIdentity.personality.headOffset[1])},
+  //     {"armOffsetX", strf("{}", playerIdentity.personality.armOffset[0])},
+  //     {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
+  //     {"color", Color::rgba(playerIdentity.color).toHex()}};
+  //
+  // auto selectDirectives = [](Json const& a, Json const& b) -> Maybe<String> {
+  //   if (a.isType(Json::Type::String))
+  //     return a.toString();
+  //   if (b.isType(Json::Type::String))
+  //     return b.toString();
+  //   return Maybe<String>{};
+  // };
+  //
+  // auto handleDirectiveTags = [&](ItemDescriptor& armourItem, List<ItemDescriptor> const& overlays) {
+  //   if (auto params = armourItem.parameters(); params.isType(Json::Type::Object)) {
+  //     auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
+  //     auto jXSBDirectives = params.opt("xSBdirectives").value(Json()), jXSBFlipDirectives = params.opt("xSBflipDirectives").value(Json());
+  //     auto processedDirectives = JsonObject{};
+  //
+  //     if (auto directives = selectDirectives(jXSBDirectives, jDirectives))
+  //       processedDirectives["directives"] = directives->replaceTags(identityTags, false);
+  //     if (auto flipDirectives = selectDirectives(jXSBFlipDirectives, jFlipDirectives))
+  //       processedDirectives["flipDirectives"] = flipDirectives->replaceTags(identityTags, false);
+  //     processedDirectives["xSBdirectives"] = Json();
+  //     processedDirectives["xSBflipDirectives"] = Json();
+  //
+  //     armourItem.applyParameters(processedDirectives);
+  //
+  //     if (!overlays.empty()) {
+  //       JsonArray jOverlays{};
+  //       for (auto& item : overlays) {
+  //         if (auto params = item.parameters(); params.isType(Json::Type::Object)) {
+  //           auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
+  //           auto jXSBDirectives = params.opt("xSBdirectives").value(Json()), jXSBFlipDirectives = params.opt("xSBflipDirectives").value(Json());
+  //           auto processedDirectives = JsonObject{};
+  //
+  //           if (auto directives = selectDirectives(jXSBDirectives, jDirectives))
+  //             processedDirectives["directives"] = directives->replaceTags(identityTags, false);
+  //           if (auto flipDirectives = selectDirectives(jXSBFlipDirectives, jFlipDirectives))
+  //             processedDirectives["flipDirectives"] = flipDirectives->replaceTags(identityTags, false);
+  //           processedDirectives["xSBdirectives"] = Json();
+  //           processedDirectives["xSBflipDirectives"] = Json();
+  //
+  //           item.applyParameters(processedDirectives);
+  //         }
+  //         jOverlays.emplaceAppend(item.diskStore());
+  //       }
+  //       armourItem.applyParameters(JsonObject{
+  //           {"stackedItems", jOverlays}});
+  //     }
+  //   }
+  // };
 
   auto serializeItem = [&](NetElementData<ItemDescriptor>& netState, ItemPtr& item) {
-    auto armourItem = as<ArmorItem>(item);
-    if (armourItem) {
-      auto cloneDesc = itemSafeDescriptor(item);
-      auto overlays = armourItem ? armourItem->getStackedCosmetics() : List<ItemPtr>{};
-      handleDirectiveTags(cloneDesc,
-          overlays.transformed([](ItemPtr const& item) { return itemSafeDescriptor(as<ArmorItem>(item)); }));
-      netState.set(cloneDesc);
-    } else {
-      netState.set(itemSafeDescriptor(item));
-    }
+    // auto armourItem = as<ArmorItem>(item);
+    // if (armourItem) {
+    //   auto cloneDesc = itemSafeDescriptor(item);
+    //   auto overlays = armourItem ? armourItem->getStackedCosmetics() : List<ItemPtr>{};
+    //   handleDirectiveTags(cloneDesc,
+    //       overlays.transformed([](ItemPtr const& item) { return itemSafeDescriptor(as<ArmorItem>(item)); }));
+    //   netState.set(cloneDesc);
+    // } else {
+    netState.set(itemSafeDescriptor(item));
+    // }
   };
 
   auto serializeItemList = [&](List<NetElementData<ItemDescriptor>>& netStatesList, List<ItemPtr>& itemList) {
@@ -1406,7 +1406,7 @@ void PlayerInventory::netElementsNeedStore() {
 
   m_currenciesNetState.set(m_currencies);
 
-  // FezzedOne: Spoof the selected custom bar group.
+  // FezzedOne: Spoof the selected custom bar group.h
   m_customBarGroupNetState.set(m_customBarGroup < m_networkedCustomBarGroups ? m_customBarGroup : m_networkedCustomBarGroups - 1);
 
   // FezzedOne: Spoof the networked custom bars.

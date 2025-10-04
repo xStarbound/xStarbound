@@ -3346,35 +3346,12 @@ void Player::setNetArmorSecret(uint8_t cosmeticSlot, ArmorItemPtr const& armor) 
       {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
       {"color", Color::rgba(playerIdentity.color).toHex()}};
 
-  auto selectDirectives = [](Json const& a, Json const& b) -> Maybe<String> {
-    if (a.isType(Json::Type::String))
-      return a.toString();
-    if (b.isType(Json::Type::String))
-      return b.toString();
-    return Maybe<String>{};
-  };
-
   if (!m_startedNetworkingCosmetics) {
     setSecretProperty("armorWearer.isXStarbound", true);
   }
 
   if (armor) {
-    auto armourItem = itemSafeDescriptor(armor);
-    if (auto params = armourItem.parameters(); params.isType(Json::Type::Object)) {
-      auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
-      auto jXSBDirectives = params.opt("xSBdirectives").value(Json()), jXSBFlipDirectives = params.opt("xSBflipDirectives").value(Json());
-      auto processedDirectives = JsonObject{};
-
-      if (auto directives = selectDirectives(jXSBDirectives, jDirectives))
-        processedDirectives["directives"] = directives->replaceTags(identityTags, false);
-      if (auto flipDirectives = selectDirectives(jXSBFlipDirectives, jFlipDirectives))
-        processedDirectives["flipDirectives"] = flipDirectives->replaceTags(identityTags, false);
-      processedDirectives["xSBdirectives"] = Json();
-      processedDirectives["xSBflipDirectives"] = Json();
-
-      armourItem.applyParameters(processedDirectives);
-    }
-
+    auto armourItem = ArmorWearer::setUpArmourItemNetworking(identityTags, armor);
     setSecretProperty(strf("armorWearer.{}.data", slotName), armourItem.diskStore());
   }
   if (!m_startedNetworkingCosmetics) {

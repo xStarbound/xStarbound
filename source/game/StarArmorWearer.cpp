@@ -19,6 +19,59 @@
 
 namespace Star {
 
+ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& identityTags, ArmorItemPtr const& armourItem) {
+  auto checkDirectives = [](Json const& a) -> Maybe<String> {
+    if (a.isType(Json::Type::String))
+      return a.toString();
+    return Maybe<String>{};
+  };
+
+  auto handleDirectiveTags = [&](StringMap<String> const& identityTags, ItemDescriptor& armourItem, List<ItemDescriptor> const& overlays) {
+    if (auto params = armourItem.parameters(); params.isType(Json::Type::Object)) {
+      auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
+      auto jXSBDirectives = params.opt("xSBdirectives").value(Json()), jXSBFlipDirectives = params.opt("xSBflipDirectives").value(Json());
+      auto processedDirectives = JsonObject{};
+
+      if (auto directives = checkDirectives(jXSBDirectives))
+        processedDirectives["directives"] = directives->replaceTags(identityTags, false);
+      if (auto flipDirectives = checkDirectives(jXSBFlipDirectives))
+        processedDirectives["flipDirectives"] = flipDirectives->replaceTags(identityTags, false);
+
+      armourItem = armourItem.applyParameters(processedDirectives);
+
+      if (!overlays.empty()) {
+        JsonArray jOverlays{};
+        for (auto& item : overlays) {
+          if (auto params = item.parameters(); params.isType(Json::Type::Object)) {
+            auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
+            auto jXSBDirectives = params.opt("xSBdirectives").value(Json()), jXSBFlipDirectives = params.opt("xSBflipDirectives").value(Json());
+            auto processedDirectives = JsonObject{};
+
+            if (auto directives = checkDirectives(jXSBDirectives))
+              processedDirectives["directives"] = directives->replaceTags(identityTags, false);
+            if (auto flipDirectives = checkDirectives(jXSBFlipDirectives))
+              processedDirectives["flipDirectives"] = flipDirectives->replaceTags(identityTags, false);
+
+            item.applyParameters(processedDirectives);
+          }
+          jOverlays.emplaceAppend(item.diskStore());
+        }
+        armourItem = armourItem.applyParameters(JsonObject{{"stackedItems", jOverlays}});
+      }
+    }
+  };
+
+  if (armourItem && !armourItem->hideInStockSlots()) {
+    auto desc = itemSafeDescriptor(as<Item>(armourItem));
+    auto overlays = armourItem ? armourItem->getStackedCosmetics() : List<ItemPtr>{};
+    handleDirectiveTags(identityTags, desc,
+        overlays.transformed([](ItemPtr const& item) { return itemSafeDescriptor(as<ArmorItem>(item)); }));
+    return desc;
+  }
+  return itemSafeDescriptor(ItemPtr());
+}
+
+
 ArmorWearer::ArmorWearer() : m_lastNude(true), m_lastFacingDirection(255) {
   addNetElement(&m_headItemDataNetState);
   addNetElement(&m_chestItemDataNetState);
@@ -134,8 +187,11 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     auto remotePlayer = m_player && m_player->isSlave();
     if (!remotePlayer) {
       auto const& playerIdentity = humanoid.identity();
-      String directives = currentDirection == (uint8_t)Direction::Left ? armourItem->flippedDirectives().string() : armourItem->directives().string();
-      return Directives(directives.replaceTags(identityTags, false));
+      Maybe<String> directives = currentDirection == (uint8_t)Direction::Left ? armourItem->xSBflippedDirectives() : armourItem->xSBdirectives();
+      if (directives)
+        return Directives(directives->replaceTags(identityTags, false));
+      else
+        return currentDirection == (uint8_t)Direction::Left ? armourItem->flippedDirectives() : armourItem->directives();
     } else {
       return currentDirection == (uint8_t)Direction::Left ? armourItem->flippedDirectives() : armourItem->directives();
     }
@@ -1021,21 +1077,43 @@ void ArmorWearer::netElementsNeedLoad(bool) {
 
 void ArmorWearer::netElementsNeedStore() {
   auto itemDatabase = Root::singleton().itemDatabase();
-  auto checkItem = [](auto armourItem) {
-    if (armourItem && !armourItem->hideInStockSlots())
-      return armourItem;
-    return (decltype(armourItem))nullptr;
-  };
 
-  m_headItemDataNetState.set(itemSafeDescriptor(checkItem(m_headItem)));
-  m_chestItemDataNetState.set(itemSafeDescriptor(checkItem(m_chestItem)));
-  m_legsItemDataNetState.set(itemSafeDescriptor(checkItem(m_legsItem)));
-  m_backItemDataNetState.set(itemSafeDescriptor(checkItem(m_backItem)));
+  auto const& playerIdentity = m_player->identity();
+  // FezzedOne: Substitution tags that can be used in both armour directives and overridden identity directives.
+  // Directive tag substitutions are done internally by xClient and the post-substitution directives «replicated» to other clients in a vanilla-compatible manner,
+  // so *any* client can see the automatically substituted directives.
+  const StringMap<String> identityTags{
+      {"species", playerIdentity.species},
+      {"imagePath", playerIdentity.imagePath ? *playerIdentity.imagePath : playerIdentity.species},
+      {"gender", playerIdentity.gender == Gender::Male ? "male" : "female"},
+      {"bodyDirectives", playerIdentity.bodyDirectives.string()},
+      {"emoteDirectives", playerIdentity.bodyDirectives.string()},
+      {"hairGroup", playerIdentity.hairGroup},
+      {"hairType", playerIdentity.hairType},
+      {"hairDirectives", playerIdentity.hairDirectives.string()},
+      {"facialHairGroup", playerIdentity.facialHairGroup},
+      {"facialHairType", playerIdentity.facialHairType},
+      {"facialHairDirectives", playerIdentity.facialHairDirectives.string()},
+      {"facialMaskGroup", playerIdentity.facialMaskGroup},
+      {"facialMaskType", playerIdentity.facialMaskType},
+      {"facialMaskDirectives", playerIdentity.facialMaskDirectives.string()},
+      {"personalityIdle", playerIdentity.personality.idle},
+      {"personalityArmIdle", playerIdentity.personality.armIdle},
+      {"headOffsetX", strf("{}", playerIdentity.personality.headOffset[0])},
+      {"headOffsetY", strf("{}", playerIdentity.personality.headOffset[1])},
+      {"armOffsetX", strf("{}", playerIdentity.personality.armOffset[0])},
+      {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
+      {"color", Color::rgba(playerIdentity.color).toHex()}};
 
-  m_headCosmeticItemDataNetState.set(itemSafeDescriptor(checkItem(m_headCosmeticItem)));
-  m_chestCosmeticItemDataNetState.set(itemSafeDescriptor(checkItem(m_chestCosmeticItem)));
-  m_legsCosmeticItemDataNetState.set(itemSafeDescriptor(checkItem(m_legsCosmeticItem)));
-  m_backCosmeticItemDataNetState.set(itemSafeDescriptor(checkItem(m_backCosmeticItem)));
+  m_headItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headItem)));
+  m_chestItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestItem)));
+  m_legsItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsItem)));
+  m_backItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backItem)));
+
+  m_headCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headCosmeticItem)));
+  m_chestCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestCosmeticItem)));
+  m_legsCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsCosmeticItem)));
+  m_backCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backCosmeticItem)));
 }
 
 } // namespace Star

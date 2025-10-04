@@ -12,6 +12,7 @@
 namespace Star {
 
 STAR_CLASS(ObjectItem);
+STAR_CLASS(ArmorItem);
 STAR_CLASS(HeadArmor);
 STAR_CLASS(ChestArmor);
 STAR_CLASS(LegsArmor);
@@ -64,6 +65,8 @@ public:
   ItemDescriptor legsCosmeticItemDescriptor() const;
   ItemDescriptor backItemDescriptor() const;
   ItemDescriptor backCosmeticItemDescriptor() const;
+
+  static ItemDescriptor setUpArmourItemNetworking(StringMap<String> const& identityTags, ArmorItemPtr const& armourItem);
 
 private:
   void netElementsNeedLoad(bool full) override;

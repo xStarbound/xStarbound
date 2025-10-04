@@ -45,6 +45,9 @@ public:
   Directives const& directives() const;
   Directives const& flippedDirectives() const;
 
+  Maybe<String> const& xSBdirectives() const;
+  Maybe<String> const& xSBflippedDirectives() const;
+
   bool hideBody() const;
   bool isUnderlaid() const;
 
@@ -72,6 +75,8 @@ protected:
   StringSet m_effectSources;
   Directives m_directives;
   Maybe<Directives> m_flipDirectives;
+  Maybe<String> m_xSBdirectives;     // FezzedOne: Can't be compiled yet because it may contain unexpanded tags.
+  Maybe<String> m_xSBflipDirectives; // FezzedOne: Ditto.
   bool m_hideBody;
   bool m_underlaid;
   // FezzedOne: For oSB's `"hideInVanillaSlots"`. On xSB, this makes the item visible only when used as an overlay.

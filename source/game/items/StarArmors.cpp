@@ -22,9 +22,10 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
     m_techModule = AssetPath::relativeTo(directory, *m_techModule);
 
   String directives = instanceValue("directives", "").toString();
-  if (auto jXSBdirectives = instanceValue("xSBdirectives", Json()); jXSBdirectives.isType(Json::Type::String))
-    directives = jXSBdirectives.toString();
   m_directives = Directives(directives);
+
+  if (auto jXSBdirectives = instanceValue("xSBdirectives", Json()); jXSBdirectives.isType(Json::Type::String))
+    m_xSBdirectives = jXSBdirectives.toString();
 
   m_colorOptions = colorDirectivesFromConfig(config.getArray("colorOptions", JsonArray{""}));
   if (!m_directives)
@@ -40,7 +41,7 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
     String flipDirectives;
     auto jFlipDirectives = instanceValue("flipDirectives");
     auto jXSBflipDirectives = instanceValue("xSBflipDirectives");
-    if (jFlipDirectives.isType(Json::Type::String) && !jXSBflipDirectives.isType(Json::Type::String)) {
+    if (jFlipDirectives.isType(Json::Type::String)) {
       auto flipDirectives = jFlipDirectives.toString();
       if (flipDirectives.beginsWith('+')) {
         flipDirectives = directives + flipDirectives.substr(1);
@@ -58,7 +59,7 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
         StringMap<String> baseTag = {{"base", directives}};
         flipDirectives = flipDirectives.replaceTags(baseTag, false);
       }
-      m_flipDirectives = Directives(flipDirectives);
+      m_xSBflipDirectives = flipDirectives;
     }
   }
 
@@ -198,6 +199,17 @@ Directives const& ArmorItem::directives() const {
 
 Directives const& ArmorItem::flippedDirectives() const {
   return m_flipDirectives ? *m_flipDirectives : m_directives;
+}
+
+Maybe<String> const& ArmorItem::xSBdirectives() const {
+  return m_xSBdirectives;
+}
+
+Maybe<String> const& ArmorItem::xSBflippedDirectives() const {
+  if (m_xSBflipDirectives)
+    return m_xSBflipDirectives;
+  else
+    return m_xSBdirectives;
 }
 
 bool ArmorItem::hideBody() const {
