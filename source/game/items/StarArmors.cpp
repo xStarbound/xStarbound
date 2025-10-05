@@ -28,8 +28,10 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
     m_xSBdirectives = jXSBdirectives.toString();
 
   m_colorOptions = colorDirectivesFromConfig(config.getArray("colorOptions", JsonArray{""}));
+  // FezzedOne: Removed extra prepended question mark to ensure the `??` tag works properly, at the cost of requiring a question mark
+  // at the beginning of directive strings in `"colorOptions"` (which nobody uses, as far as I know).
   if (!m_directives)
-    m_directives = "?" + m_colorOptions.wrap(instanceValue("colorIndex", 0).toUInt());
+    m_directives = m_colorOptions.wrap(instanceValue("colorIndex", 0).toUInt());
   refreshIconDrawables();
 
   m_bypassNudity = false;
