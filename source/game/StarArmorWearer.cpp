@@ -1137,6 +1137,8 @@ void ArmorWearer::netElementsNeedStore() {
     m_legsCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsCosmeticItem)));
     m_backCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backCosmeticItem)));
   } else {
+    const StringMap<String> identityTags{};
+
     m_headItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headItem)));
     m_chestItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestItem)));
     m_legsItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsItem)));
