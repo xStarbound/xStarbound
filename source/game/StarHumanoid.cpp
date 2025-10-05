@@ -274,7 +274,7 @@ Humanoid::Humanoid(HumanoidIdentity const& identity)
 
 void Humanoid::setIdentity(HumanoidIdentity const& identity, Maybe<HumanoidIdentity> const& visualOverrides) {
   m_identity = identity;
-  if (m_bodyHidden || visualOverrides)
+  if (visualOverrides)
     m_visualIdentity = *visualOverrides;
   else
     m_visualIdentity = identity;
