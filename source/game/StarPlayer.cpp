@@ -430,7 +430,7 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
   m_xAimPositionNetState.setInterpolator(world->geometry().xLerpFunction());
   refreshEquipment();
   // Force a cosmetics sync to make sure humanoid overrides get applied on initialisation.
-  m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude(), true);
+  m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude(), true, m_movementController->facingDirection());
 }
 
 void Player::uninit() {
@@ -595,12 +595,12 @@ List<Drawable> Player::portrait(PortraitMode mode) const {
     return m_humanoid->renderSkull();
   if (invisible())
     return {};
-  m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude());
+  m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude(), false, m_movementController->facingDirection());
   return m_humanoid->renderPortrait(mode);
 }
 
 List<Drawable> Player::renderHumanoid(bool withItems, bool withRotation) {
-  m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude());
+  m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude(), false, m_movementController->facingDirection());
   return m_humanoid->render(withItems, withRotation);
 }
 
@@ -1267,7 +1267,7 @@ void Player::update(float dt, uint64_t) {
 
   bool isClient = world()->isClient();
   if (isClient)
-    m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude());
+    m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude(), false, m_movementController->facingDirection());
 
   m_tools->suppressItems(suppressedItems);
   m_tools->tick(dt, m_shifting, m_pendingMoves);
@@ -2399,7 +2399,7 @@ Vec2F Player::nametagOrigin() const {
 void Player::updateIdentity() {
   m_identityUpdated = true;
   m_humanoid->setIdentity(m_identity);
-  m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude(), true);
+  m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude(), true, m_movementController->facingDirection());
 }
 
 void Player::setBodyDirectives(String const& directives) {
@@ -3352,7 +3352,7 @@ void Player::setNetArmorSecret(uint8_t cosmeticSlot, ArmorItemPtr const& armor) 
   }
 
   if (armor) {
-    auto armourItem = ArmorWearer::setUpArmourItemNetworking(identityTags, armor);
+    auto armourItem = ArmorWearer::setUpArmourItemNetworking(identityTags, armor, m_movementController->facingDirection());
     setSecretProperty(strf("armorWearer.{}.data", slotName), armourItem.diskStore());
   }
   if (!m_startedNetworkingCosmetics) {

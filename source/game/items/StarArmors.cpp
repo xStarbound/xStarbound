@@ -24,8 +24,10 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
   String directives = instanceValue("directives", "").toString();
   m_directives = Directives(directives);
 
-  if (auto jXSBdirectives = instanceValue("xSBdirectives", Json()); jXSBdirectives.isType(Json::Type::String))
-    m_xSBdirectives = jXSBdirectives.toString();
+  if (auto jXSBdirectives = instanceValue("xSBdirectives", Json()); jXSBdirectives.isType(Json::Type::String)) {
+    StringMap<String> baseTag = {{"base", directives}};
+    m_xSBdirectives = jXSBdirectives.toString().replaceTags(baseTag, false);
+  }
 
   m_colorOptions = colorDirectivesFromConfig(config.getArray("colorOptions", JsonArray{""}));
   // FezzedOne: Removed extra prepended question mark to ensure the `??` tag works properly, at the cost of requiring a question mark
@@ -44,24 +46,25 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
     auto jFlipDirectives = instanceValue("flipDirectives");
     auto jXSBflipDirectives = instanceValue("xSBflipDirectives");
     if (jFlipDirectives.isType(Json::Type::String)) {
-      auto flipDirectives = jFlipDirectives.toString();
+      flipDirectives = jFlipDirectives.toString();
+      String finalFlipDirectives = flipDirectives;
       if (flipDirectives.beginsWith('+')) {
-        flipDirectives = directives + flipDirectives.substr(1);
-      } else { // FezzedOne: Add support for a `<base>` directives tag to allow placing the base directives anywhere in the flip directives.
-        StringMap<String> baseTag = {{"base", directives}};
-        flipDirectives = flipDirectives.replaceTags(baseTag, false);
+        flipDirectives = flipDirectives.substr(1);
+        finalFlipDirectives = directives + flipDirectives;
       }
-      m_flipDirectives = Directives(flipDirectives);
+      m_flipDirectives = Directives(finalFlipDirectives);
     }
     if (jXSBflipDirectives.isType(Json::Type::String)) {
-      auto flipDirectives = jXSBflipDirectives.toString();
-      if (flipDirectives.beginsWith('+')) {
-        flipDirectives = directives + flipDirectives.substr(1);
-      } else { // FezzedOne: Add support for a `<base>` directives tag to allow placing the base directives anywhere in the flip directives.
-        StringMap<String> baseTag = {{"base", directives}};
-        flipDirectives = flipDirectives.replaceTags(baseTag, false);
+      auto xSBflipDirectives = jXSBflipDirectives.toString();
+      auto xSBdirectives = m_xSBdirectives ? *m_xSBdirectives : directives;
+      StringMap<String> baseTag = {{"base", flipDirectives}};
+      if (xSBflipDirectives.beginsWith('+')) {
+        xSBflipDirectives = (m_xSBdirectives ? *m_xSBdirectives : directives) + xSBflipDirectives.substr(1).replaceTags(baseTag, false);
+      } else { // FezzedOne: Add support for a `<right>` directives tag to allow placing the right-facing directives anywhere in the flip directives.
+        StringMap<String> unflippedTag = {{"right", xSBdirectives}};
+        xSBflipDirectives = xSBflipDirectives.replaceTags(baseTag, false).replaceTags(unflippedTag, false);
       }
-      m_xSBflipDirectives = flipDirectives;
+      m_xSBflipDirectives = xSBflipDirectives;
     }
   }
 

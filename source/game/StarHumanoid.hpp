@@ -150,6 +150,7 @@ public:
   void setIdentity(HumanoidIdentity const& identity, Maybe<HumanoidIdentity> const& visualOverrides = {});
   HumanoidIdentity const& identity() const;
   HumanoidIdentity const& netIdentity() const;
+  HumanoidIdentity const& visualIdentity() const;
 
   void updateHumanoidConfigOverrides(Json overrides = Json(), bool force = false);
 

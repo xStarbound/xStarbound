@@ -217,7 +217,7 @@ Set your species: ^cyan;/identity set species [newSpecies]^reset;
                         })
                         return "Set ^cyan;" .. key .. "^reset; to ^cyan;[" .. x .. ", " .. y .. "]^reset;."
                     else
-                        return "Missing or invalid arguments. Syntax is ^cyan;/set "
+                        return "Missing or invalid arguments. Syntax is ^cyan;/identity set "
                             .. key
                             .. " [x] [y]^reset;,"
                             .. " where ^cyan;x^reset; and ^cyan;y^reset; are numbers specifying a pixel offset."
@@ -232,12 +232,12 @@ Set your species: ^cyan;/identity set species [newSpecies]^reset;
                             })
                             return "Set ^cyan;color^reset; to ^cyan;[" .. r .. ", " .. g .. ", " .. b .. "]^reset;."
                         else
-                            return "Missing or invalid arguments. Syntax is ^cyan;/set color [r] [g] [b]^reset;,"
+                            return "Missing or invalid arguments. Syntax is ^cyan;/identity set color [r] [g] [b]^reset;,"
                                 .. " where ^cyan;r^reset;, ^cyan;g^reset; and ^cyan;b^reset; are numbers between"
                                 .. " ^cyan;0^reset; and ^cyan;255^reset;, inclusive."
                         end
                     else
-                        return "Missing or invalid arguments. Syntax is ^cyan;/set color [r] [g] [b]^reset;,"
+                        return "Missing or invalid arguments. Syntax is ^cyan;/identity set color [r] [g] [b]^reset;,"
                             .. " where ^cyan;r^reset;, ^cyan;g^reset; and ^cyan;b^reset; are numbers between"
                             .. " ^cyan;0^reset; and ^cyan;255^reset;, inclusive."
                     end
@@ -266,7 +266,7 @@ Set your species: ^cyan;/identity set species [newSpecies]^reset;
                     end
                     if args[3] then
                         if key == "gender" and args[3] ~= "male" and args[3] ~= "female" then
-                            return "Nonexistent gender. Syntax is ^cyan;/set gender [male/female]^reset;."
+                            return "Nonexistent gender. Syntax is ^cyan;/identity set gender [male/female]^reset;."
                         end
                         local nameArg = chat.parseArguments(rawArgs)[3]
                         -- for n = 3, #args, 1 do
@@ -286,11 +286,11 @@ Set your species: ^cyan;/identity set species [newSpecies]^reset;
                         end
                     else
                         if key == "gender" then
-                            return "Missing argument. Syntax is ^cyan;/set gender [male/female]^reset;."
+                            return "Missing argument. Syntax is ^cyan;/identity set gender [male/female]^reset;."
                         elseif key == "name" then
-                            return "Missing argument. Syntax is ^cyan;/set name [name]^reset;. The new name may contain spaces; quotes will show up in the name."
+                            return "Missing argument. Syntax is ^cyan;/identity set name [name]^reset;. The new name may contain spaces; quotes will show up in the name."
                         end
-                        return "Missing argument. Syntax is ^cyan;/set " .. key .. " [string]^reset;."
+                        return "Missing argument. Syntax is ^cyan;/identity set " .. key .. " [string]^reset;."
                     end
                 end
             end

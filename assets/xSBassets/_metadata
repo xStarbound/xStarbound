@@ -8,5 +8,5 @@
     "onLoad": ["/scripts/xsb/onload/humansprites.pluto"],
     "postLoad": ["/scripts/xsb/postload/titlebar.lua"]
   },
-  "version" : "4.1.1"
+  "version" : "4.1.2"
 }

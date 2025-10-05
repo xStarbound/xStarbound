@@ -30,7 +30,7 @@ public:
   ArmorWearer(bool isPlayer);
   ArmorWearer(Player* player);
 
-  void setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude, bool forceSync = false);
+  void setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude, bool forceSync = false, Maybe<Direction> facingDirection = {});
   void effects(EffectEmitter& effectEmitter);
   List<PersistentStatusEffect> statusEffects() const;
 
@@ -66,7 +66,7 @@ public:
   ItemDescriptor backItemDescriptor() const;
   ItemDescriptor backCosmeticItemDescriptor() const;
 
-  static ItemDescriptor setUpArmourItemNetworking(StringMap<String> const& identityTags, ArmorItemPtr const& armourItem);
+  static ItemDescriptor setUpArmourItemNetworking(StringMap<String> const& identityTags, ArmorItemPtr const& armourItem, Direction direction);
 
 private:
   void netElementsNeedLoad(bool full) override;

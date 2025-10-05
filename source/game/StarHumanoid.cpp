@@ -274,10 +274,13 @@ Humanoid::Humanoid(HumanoidIdentity const& identity)
 
 void Humanoid::setIdentity(HumanoidIdentity const& identity, Maybe<HumanoidIdentity> const& visualOverrides) {
   m_identity = identity;
-  if (visualOverrides)
+  if (m_bodyHidden || visualOverrides)
     m_visualIdentity = *visualOverrides;
   else
     m_visualIdentity = identity;
+  if (m_bodyHidden)
+    m_visualIdentity.bodyDirectives = m_visualIdentity.emoteDirectives = m_visualIdentity.hairDirectives =
+        m_visualIdentity.facialHairDirectives = m_visualIdentity.facialMaskDirectives = Directives("?scale=0");
   m_headFrameset = getHeadFromIdentity();
   m_bodyFrameset = getBodyFromIdentity();
   m_emoteFrameset = getFacialEmotesFromIdentity();
@@ -309,6 +312,10 @@ HumanoidIdentity const& Humanoid::identity() const {
 
 HumanoidIdentity const& Humanoid::netIdentity() const {
   return m_broadcastToStock ? m_visualIdentity : m_identity;
+}
+
+HumanoidIdentity const& Humanoid::visualIdentity() const {
+  return m_visualIdentity;
 }
 
 void Humanoid::setHeadArmorDirectives(Directives directives) {
@@ -1913,6 +1920,8 @@ List<Drawable> Humanoid::renderDummy(Gender gender, Maybe<HeadArmor const*> head
     setChestArmorUnderlayFrameset("");
     setChestArmorUnderlayDirectives("");
     setChestArmorUnderlayStack({});
+    setBackSleeveUnderlayStack({});
+    setFrontSleeveUnderlayStack({});
     if (auto chestPtr = *chest) {
       setBackSleeveFrameset(chestPtr->backSleeveFrameset(gender));
       setFrontSleeveFrameset(chestPtr->frontSleeveFrameset(gender));
@@ -2295,6 +2304,7 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
   if (auto jIdentityOverrides = overrides.get("identity", Json()); jIdentityOverrides.isType(Json::Type::Object)) {
     Json jBroadcastToStock = jIdentityOverrides.opt("broadcast").value(Json());
     m_broadcastToStock = jBroadcastToStock.isType(Json::Type::Bool) ? jBroadcastToStock.toBool() : false;
+    m_broadcastToStock |= m_bodyHidden;
     auto baseSpecies = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
     mergeOverrides(jIdentityOverrides, "bodyDirectives", m_identity.bodyDirectives);
     mergeOverrides(jIdentityOverrides, "hairDirectives", m_identity.hairDirectives);
@@ -2310,7 +2320,7 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
     baseConfig = Root::singleton().speciesDatabase()->species(speciesToUse)->humanoidConfig();
   } else {
     setIdentity(m_identity);
-    m_broadcastToStock = false;
+    m_broadcastToStock = m_bodyHidden;
   }
   Json config = jsonMerge(baseConfig, overrides);
   m_previousOverrides = overrides;
