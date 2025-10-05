@@ -67,7 +67,7 @@ ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& i
     return armourItem;
   };
 
-  if (armourItem && !armourItem->hideInStockSlots()) {
+  if (armourItem && !armourItem->hideInStockSlots() && !identityTags.empty()) {
     auto desc = itemSafeDescriptor(as<Item>(armourItem));
     auto overlays = armourItem ? armourItem->getStackedCosmetics() : List<ItemPtr>{};
     desc = handleDirectiveTags(identityTags, desc,
@@ -1099,42 +1099,54 @@ void ArmorWearer::netElementsNeedLoad(bool) {
 void ArmorWearer::netElementsNeedStore() {
   auto itemDatabase = Root::singleton().itemDatabase();
 
-  auto const& playerIdentity = m_player->identity();
-  // FezzedOne: Substitution tags that can be used in both armour directives and overridden identity directives.
-  // Directive tag substitutions are done internally by xClient and the post-substitution directives «replicated» to other clients in a vanilla-compatible manner,
-  // so *any* client can see the automatically substituted directives.
-  const StringMap<String> identityTags{
-      {"species", playerIdentity.species},
-      {"imagePath", playerIdentity.imagePath ? *playerIdentity.imagePath : playerIdentity.species},
-      {"gender", playerIdentity.gender == Gender::Male ? "male" : "female"},
-      {"bodyDirectives", playerIdentity.bodyDirectives.string()},
-      {"emoteDirectives", playerIdentity.bodyDirectives.string()},
-      {"hairGroup", playerIdentity.hairGroup},
-      {"hairType", playerIdentity.hairType},
-      {"hairDirectives", playerIdentity.hairDirectives.string()},
-      {"facialHairGroup", playerIdentity.facialHairGroup},
-      {"facialHairType", playerIdentity.facialHairType},
-      {"facialHairDirectives", playerIdentity.facialHairDirectives.string()},
-      {"facialMaskGroup", playerIdentity.facialMaskGroup},
-      {"facialMaskType", playerIdentity.facialMaskType},
-      {"facialMaskDirectives", playerIdentity.facialMaskDirectives.string()},
-      {"personalityIdle", playerIdentity.personality.idle},
-      {"personalityArmIdle", playerIdentity.personality.armIdle},
-      {"headOffsetX", strf("{}", playerIdentity.personality.headOffset[0])},
-      {"headOffsetY", strf("{}", playerIdentity.personality.headOffset[1])},
-      {"armOffsetX", strf("{}", playerIdentity.personality.armOffset[0])},
-      {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
-      {"color", Color::rgba(playerIdentity.color).toHex()}};
+  if (m_player) {
+    auto const& playerIdentity = m_player->identity();
+    // FezzedOne: Substitution tags that can be used in both armour directives and overridden identity directives.
+    // Directive tag substitutions are done internally by xClient and the post-substitution directives «replicated» to other clients in a vanilla-compatible manner,
+    // so *any* client can see the automatically substituted directives.
+    const StringMap<String> identityTags{
+        {"species", playerIdentity.species},
+        {"imagePath", playerIdentity.imagePath ? *playerIdentity.imagePath : playerIdentity.species},
+        {"gender", playerIdentity.gender == Gender::Male ? "male" : "female"},
+        {"bodyDirectives", playerIdentity.bodyDirectives.string()},
+        {"emoteDirectives", playerIdentity.bodyDirectives.string()},
+        {"hairGroup", playerIdentity.hairGroup},
+        {"hairType", playerIdentity.hairType},
+        {"hairDirectives", playerIdentity.hairDirectives.string()},
+        {"facialHairGroup", playerIdentity.facialHairGroup},
+        {"facialHairType", playerIdentity.facialHairType},
+        {"facialHairDirectives", playerIdentity.facialHairDirectives.string()},
+        {"facialMaskGroup", playerIdentity.facialMaskGroup},
+        {"facialMaskType", playerIdentity.facialMaskType},
+        {"facialMaskDirectives", playerIdentity.facialMaskDirectives.string()},
+        {"personalityIdle", playerIdentity.personality.idle},
+        {"personalityArmIdle", playerIdentity.personality.armIdle},
+        {"headOffsetX", strf("{}", playerIdentity.personality.headOffset[0])},
+        {"headOffsetY", strf("{}", playerIdentity.personality.headOffset[1])},
+        {"armOffsetX", strf("{}", playerIdentity.personality.armOffset[0])},
+        {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
+        {"color", Color::rgba(playerIdentity.color).toHex()}};
 
-  m_headItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headItem)));
-  m_chestItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestItem)));
-  m_legsItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsItem)));
-  m_backItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backItem)));
+    m_headItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headItem)));
+    m_chestItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestItem)));
+    m_legsItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsItem)));
+    m_backItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backItem)));
 
-  m_headCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headCosmeticItem)));
-  m_chestCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestCosmeticItem)));
-  m_legsCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsCosmeticItem)));
-  m_backCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backCosmeticItem)));
+    m_headCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headCosmeticItem)));
+    m_chestCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestCosmeticItem)));
+    m_legsCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsCosmeticItem)));
+    m_backCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backCosmeticItem)));
+  } else {
+    m_headItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headItem)));
+    m_chestItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestItem)));
+    m_legsItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsItem)));
+    m_backItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backItem)));
+
+    m_headCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headCosmeticItem)));
+    m_chestCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestCosmeticItem)));
+    m_legsCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsCosmeticItem)));
+    m_backCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backCosmeticItem)));
+  }
 }
 
 } // namespace Star
