@@ -307,7 +307,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
               if (auto armourItem = as<HeadArmor>(item)) {
                 bool hidden = armourItem->hideInStockSlots();
                 if (m_player && m_player->isMaster())
-                  headItems.emplace_back(hidden ? nullptr : item);
+                  headItems.emplace_back(hidden ? nullptr : armourItem);
                 headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                     armourItem->frameset(humanoid.visualIdentity().gender),
                     hidden ? Directives("?scale=0") : getDirectives(armourItem),
@@ -371,7 +371,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             if (auto armourItem = as<HeadArmor>(item)) {
               bool hidden = armourItem->hideInStockSlots();
               if (m_player && m_player->isMaster())
-                headItems.emplace_back(hidden ? nullptr : item);
+                headItems.emplace_back(hidden ? nullptr : armourItem);
               headArmorStack.emplaceAppend(Humanoid::ArmorEntry{
                   armourItem->frameset(humanoid.visualIdentity().gender),
                   hidden ? Directives("?scale=0") : getDirectives(armourItem),
