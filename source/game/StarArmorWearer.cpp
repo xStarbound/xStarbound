@@ -20,62 +20,61 @@
 namespace Star {
 
 ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& identityTags, ArmorItemPtr const& armourItem, Direction facingDirection) {
-  auto checkDirectives = [](Json const& a) -> Maybe<String> {
-    if (a.isType(Json::Type::String))
-      return a.toString();
-    return Maybe<String>{};
-  };
+  auto handleDirectiveTags = [&](StringMap<String> const& identityTags, ArmorItemPtr const& armourItem) -> ItemDescriptor {
+    if (!armourItem) return ItemDescriptor();
+    auto armourItemDesc = itemSafeDescriptor(as<Item>(armourItem));
+    auto params = armourItemDesc.parameters();
+    auto processedDirectives = JsonObject{};
 
-  auto handleDirectiveTags = [&](StringMap<String> const& identityTags, ItemDescriptor& armourItem, List<ItemDescriptor> const& overlays) -> ItemDescriptor {
-    if (auto params = armourItem.parameters(); params.isType(Json::Type::Object)) {
-      auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
-      auto jXSBDirectives = params.opt("xSBdirectives").value(Json()), jXSBFlipDirectives = params.opt("xSBflipDirectives").value(Json());
-      auto processedDirectives = JsonObject{};
+    auto directives = armourItem->xSBdirectives();
+    auto flipDirectives = armourItem->xSBflippedDirectives();
 
-      // FezzedOne: Network flip directives as normal directives, allowing stock clients to see flipping.
-      if (auto flipDirectives = checkDirectives(jXSBFlipDirectives); facingDirection == Direction::Left && flipDirectives) {
-        processedDirectives["directives"] = flipDirectives->replaceTags(identityTags, false);
-        processedDirectives["flipDirectives"] = Json();
-      } else if (auto directives = checkDirectives(jXSBDirectives)) {
-        processedDirectives["directives"] = directives->replaceTags(identityTags, false);
-      }
+    // FezzedOne: Network flip directives as normal directives, allowing stock clients to see flipping.
+    if (facingDirection == Direction::Left && flipDirectives) {
+      processedDirectives["directives"] = flipDirectives->replaceTags(identityTags, false);
+      processedDirectives["flipDirectives"] = Json();
+    } else if (directives) {
+      processedDirectives["directives"] = directives->replaceTags(identityTags, false);
+    }
 
-      armourItem = armourItem.applyParameters(processedDirectives);
+    armourItemDesc = armourItemDesc.applyParameters(processedDirectives);
 
-      if (!overlays.empty()) {
-        JsonArray jOverlays{};
-        for (auto& item : overlays) {
-          ItemDescriptor newItem = item;
-          if (auto params = item.parameters(); params.isType(Json::Type::Object)) {
-            auto jDirectives = params.opt("directives").value(Json()), jFlipDirectives = params.opt("flipDirectives").value(Json());
-            auto jXSBDirectives = params.opt("xSBdirectives").value(Json()), jXSBFlipDirectives = params.opt("xSBflipDirectives").value(Json());
+    auto overlays = armourItem->getStackedCosmetics();
+
+    if (!overlays.empty()) {
+      JsonArray jOverlays{};
+      for (auto& item : overlays) {
+        if (auto armourOverlay = as<ArmorItem>(item)) {
+          ItemDescriptor newItem = itemSafeDescriptor(item);
+          if (auto params = newItem.parameters(); params.isType(Json::Type::Object)) {
             auto processedDirectives = JsonObject{};
 
-            if (auto flipDirectives = checkDirectives(jXSBFlipDirectives); facingDirection == Direction::Left && flipDirectives) {
+            auto directives = armourOverlay->xSBdirectives();
+            auto flipDirectives = armourOverlay->xSBflippedDirectives();
+
+            // FezzedOne: Network flip directives as normal directives, allowing stock clients to see flipping.
+            if (facingDirection == Direction::Left && flipDirectives) {
               processedDirectives["directives"] = flipDirectives->replaceTags(identityTags, false);
               processedDirectives["flipDirectives"] = Json();
-            } else if (auto directives = checkDirectives(jXSBDirectives)) {
+            } else if (directives) {
               processedDirectives["directives"] = directives->replaceTags(identityTags, false);
             }
-
-            newItem = item.applyParameters(processedDirectives);
           }
           jOverlays.emplaceAppend(newItem.diskStore());
         }
-        armourItem = armourItem.applyParameters(JsonObject{{"stackedItems", jOverlays}});
       }
+      armourItemDesc = armourItemDesc.applyParameters(JsonObject{{"stackedItems", jOverlays}});
     }
 
-    return armourItem;
+    return armourItemDesc;
   };
 
   if (armourItem && !armourItem->hideInStockSlots()) {
-    auto desc = itemSafeDescriptor(as<Item>(armourItem));
-    if (!identityTags.empty()) {
-      auto overlays = armourItem ? armourItem->getStackedCosmetics() : List<ItemPtr>{};
-      desc = handleDirectiveTags(identityTags, desc,
-          overlays.transformed([](ItemPtr const& item) { return itemSafeDescriptor(as<ArmorItem>(item)); }));
-    }
+    ItemDescriptor desc;
+    if (!identityTags.empty())
+      desc = handleDirectiveTags(identityTags, armourItem);
+    else
+      desc = itemSafeDescriptor(as<Item>(armourItem));
     return desc;
   }
   return itemSafeDescriptor(ItemPtr());
