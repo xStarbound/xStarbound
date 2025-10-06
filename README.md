@@ -2,7 +2,7 @@
 
 This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound); all credit for the original code goes to the respective authors. Contributions are welcomed. You **must** own a copy of Starbound to use xStarbound. Base game assets are not provided for obvious reasons.
 
-# [Windows and Linux downloads](https://github.com/xStarbound/xStarbound/releases/latest)
+**Download the latest release [here](https://github.com/xStarbound/xStarbound/releases/latest). Older releases for Linux and Windows [are also available](https://github.com/xStarbound/xStarbound/releases).**
 
 > ⚠️ **Notice: Several previously partially compatible mods have become _totally incompatible_ with xStarbound as of v3.5. See [Mod compatibility](#mod-compatibility) below for more info.**
 
