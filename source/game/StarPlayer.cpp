@@ -3354,6 +3354,8 @@ void Player::setNetArmorSecret(uint8_t cosmeticSlot, ArmorItemPtr const& armor) 
   if (armor) {
     auto armourItem = ArmorWearer::setUpArmourItemNetworking(identityTags, armor, m_movementController->facingDirection());
     setSecretProperty(strf("armorWearer.{}.data", slotName), armourItem.diskStore());
+  } else {
+    setSecretProperty(strf("armorWearer.{}.data", slotName), Json());
   }
   if (!m_startedNetworkingCosmetics) {
     setSecretProperty("armorWearer.replicating", true);

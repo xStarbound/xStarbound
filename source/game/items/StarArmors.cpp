@@ -59,7 +59,7 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
       auto xSBdirectives = m_xSBdirectives ? *m_xSBdirectives : directives;
       StringMap<String> baseTag = {{"base", flipDirectives}};
       if (xSBflipDirectives.beginsWith('+')) {
-        xSBflipDirectives = (m_xSBdirectives ? *m_xSBdirectives : directives) + xSBflipDirectives.substr(1).replaceTags(baseTag, false);
+        xSBflipDirectives = xSBdirectives + xSBflipDirectives.substr(1).replaceTags(baseTag, false);
       } else { // FezzedOne: Add support for a `<right>` directives tag to allow placing the right-facing directives anywhere in the flip directives.
         StringMap<String> unflippedTag = {{"right", xSBdirectives}};
         xSBflipDirectives = xSBflipDirectives.replaceTags(baseTag, false).replaceTags(unflippedTag, false);

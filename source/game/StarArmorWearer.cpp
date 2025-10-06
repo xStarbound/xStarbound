@@ -51,10 +51,12 @@ ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& i
             auto jXSBDirectives = params.opt("xSBdirectives").value(Json()), jXSBFlipDirectives = params.opt("xSBflipDirectives").value(Json());
             auto processedDirectives = JsonObject{};
 
-            if (auto directives = checkDirectives(jXSBDirectives))
+            if (auto flipDirectives = checkDirectives(jXSBFlipDirectives); facingDirection == Direction::Left && flipDirectives) {
+              processedDirectives["directives"] = flipDirectives->replaceTags(identityTags, false);
+              processedDirectives["flipDirectives"] = Json();
+            } else if (auto directives = checkDirectives(jXSBDirectives)) {
               processedDirectives["directives"] = directives->replaceTags(identityTags, false);
-            if (auto flipDirectives = checkDirectives(jXSBFlipDirectives))
-              processedDirectives["flipDirectives"] = flipDirectives->replaceTags(identityTags, false);
+            }
 
             newItem = item.applyParameters(processedDirectives);
           }
@@ -67,11 +69,13 @@ ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& i
     return armourItem;
   };
 
-  if (armourItem && !armourItem->hideInStockSlots() && !identityTags.empty()) {
+  if (armourItem && !armourItem->hideInStockSlots()) {
     auto desc = itemSafeDescriptor(as<Item>(armourItem));
-    auto overlays = armourItem ? armourItem->getStackedCosmetics() : List<ItemPtr>{};
-    desc = handleDirectiveTags(identityTags, desc,
-        overlays.transformed([](ItemPtr const& item) { return itemSafeDescriptor(as<ArmorItem>(item)); }));
+    if (!identityTags.empty()) {
+      auto overlays = armourItem ? armourItem->getStackedCosmetics() : List<ItemPtr>{};
+      desc = handleDirectiveTags(identityTags, desc,
+          overlays.transformed([](ItemPtr const& item) { return itemSafeDescriptor(as<ArmorItem>(item)); }));
+    }
     return desc;
   }
   return itemSafeDescriptor(ItemPtr());
