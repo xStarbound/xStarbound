@@ -4,8 +4,6 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
 
 **Download the latest release for Linux and Windows [here](https://github.com/xStarbound/xStarbound/releases/latest). Older releases [are also available](https://github.com/xStarbound/xStarbound/releases).**
 
-> ⚠️ **Notice: Several previously partially compatible mods have become _totally incompatible_ with xStarbound as of v3.5. See [Mod compatibility](#mod-compatibility) below for more info.**
-
 > 🪧 **FYI:** If you're connecting to an OpenStarbound server or hosting for OpenStarbound clients, scroll down to _Network compatibility_!
 
 ## Changes
