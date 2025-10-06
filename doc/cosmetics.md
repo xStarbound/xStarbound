@@ -144,3 +144,5 @@ Note that for OpenStarbound clients viewing players mastered by an xClient clien
 - This item is in an armour (not cosmetic) slot and an item is also worn in the corresponding cosmetic slot. This applies _regardless_ of xStarbound's underlay status.
 - This item is a cosmetic overlay, the player is wearing more than 12 total overlays on items in the armour or cosmetic slots (_not_ counting overlays on items in a given armour slot if the player/NPC is wearing an item _not_ hidden because of `"hideinVanillaSlots"` status in the corresponding cosmetic slot), and this overlay happens to be number 13 or higher in xClient's visitation order (see above).
 - This item is in an armour (not cosmetic) slot, there is no item worn in the corresponding cosmetic slot, and this item has _any_ visible overlays (i.e., overlays not hidden by `"hideInVanillaSlots"`).
+
+Humanoid identity overrides with `"broadcast"` enabled _don't_ abide by the additional OpenStarbound criteria if the wearer is a player on xClient. If it's visible on xClient, the overrides are visible to everyone else!
