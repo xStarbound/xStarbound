@@ -31,6 +31,16 @@ The following `world` bindings are available in both client- and server-side scr
 
 ---
 
+#### `bool` world.isClient()
+
+#### `bool` world.isServer()
+
+> **Available on xStarbound v4.1.2+ and OpenStarbound.**
+
+`world.isClient` returns whether this script is running on the client, while `world.isServer` returns the opposite — whether this script is running on the server.
+
+---
+
 #### `Json` world.getGlobal(`Maybe<String>` key)
 
 #### `Json` world.getGlobals()
@@ -1732,7 +1742,9 @@ Returns a list of entity IDs for all player entities currently mastered by the c
 
 #### `EntityId` world.primaryPlayer()
 
-> **Available only on xStarbound.**
+#### `EntityId` world.mainPlayer()
+
+> **`world.primaryPlayer` is available only on xStarbound. `world.mainPlayer` is available on OpenStarbound and xStarbound v4.1.2+.**
 
 Returns the entity ID of the client's primary player — i.e., the one to and from which client input and output are currently being passed.
 

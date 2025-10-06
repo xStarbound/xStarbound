@@ -297,6 +297,14 @@ namespace LuaBindings {
         worldServer->setGlobal(Maybe<String>{}, value);
     });
 
+    callbacks.registerCallback("isClient", [world]() -> bool {
+      return world->isClient();
+    });
+
+    callbacks.registerCallback("isServer", [world]() -> bool {
+      return world->isServer();
+    });
+
     callbacks.registerCallbackWithSignature<float, Vec2F, Maybe<Vec2F>>("magnitude", bind(&WorldCallbacks::magnitude, world, _1, _2));
     callbacks.registerCallbackWithSignature<Vec2F, Vec2F, Vec2F>("distance", bind(WorldCallbacks::distance, world, _1, _2));
     callbacks.registerCallbackWithSignature<bool, PolyF, Vec2F>("polyContains", bind(WorldCallbacks::polyContains, world, _1, _2));
@@ -493,6 +501,10 @@ namespace LuaBindings {
         return playerIds;
       });
       callbacks.registerCallback("primaryPlayer", [clientWorld]() {
+        return clientWorld->mainPlayer()->entityId();
+      });
+      // FezzedOne: Needed for oSB parity.
+      callbacks.registerCallback("mainPlayer", [clientWorld]() {
         return clientWorld->mainPlayer()->entityId();
       });
       callbacks.registerCallback("ownPlayerUuids", [clientWorld]() {
