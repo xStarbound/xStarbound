@@ -1,15 +1,15 @@
 #include "StarStatusPane.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarRoot.hpp"
-#include "StarUniverseClient.hpp"
-#include "StarGuiReader.hpp"
-#include "StarImageWidget.hpp"
-#include "StarPlayer.hpp"
 #include "StarAssets.hpp"
-#include "StarStatusEffectDatabase.hpp"
+#include "StarGuiReader.hpp"
 #include "StarImageMetadataDatabase.hpp"
 #include "StarImageProcessing.hpp"
+#include "StarImageWidget.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarPlayer.hpp"
+#include "StarRoot.hpp"
 #include "StarSimpleTooltip.hpp"
+#include "StarStatusEffectDatabase.hpp"
+#include "StarUniverseClient.hpp"
 
 namespace Star {
 
@@ -29,7 +29,7 @@ StatusPane::StatusPane(MainInterfacePaneManager* paneManager, UniverseClientPtr 
 PanePtr StatusPane::createTooltip(Vec2I const& screenPosition) {
   auto interfaceScale = m_guiContext->interfaceScale();
   for (auto const& indicator : m_statusIndicators) {
-    if (indicator.screenRect.contains(Vec2F(screenPosition * interfaceScale))) {
+    if (indicator.screenRect.contains(Vec2F(screenPosition) * interfaceScale)) {
       if (!indicator.label.empty())
         return SimpleTooltipBuilder::buildTooltip(indicator.label);
     }
@@ -63,7 +63,7 @@ void StatusPane::update(float dt) {
 
   auto assets = Root::singleton().assets();
   auto interfaceScale = m_guiContext->interfaceScale();
-  int roundWindowHeight = ceil(windowHeight() / interfaceScale) * interfaceScale;
+  int roundWindowHeight = (int)((float)(ceil((float)windowHeight() / interfaceScale)) * interfaceScale);
 
   auto imageMetadataDatabase = Root::singleton().imageMetadataDatabase();
   auto statusEffectDatabase = Root::singleton().statusEffectDatabase();
@@ -89,4 +89,4 @@ void StatusPane::update(float dt) {
   setSize(Vec2I::round(boundRect.size() / interfaceScale));
 }
 
-}
+} // namespace Star

@@ -1,21 +1,20 @@
 #include "StarPaneManager.hpp"
+#include "StarAssets.hpp"
 #include "StarGameTypes.hpp"
 #include "StarJsonExtra.hpp"
-#include "StarAssets.hpp"
 #include "StarRoot.hpp"
 
 namespace Star {
 
 EnumMap<PaneLayer> const PaneLayerNames{
-  {PaneLayer::Tooltip, "Tooltip"},
-  {PaneLayer::ModalWindow, "ModalWindow"},
-  {PaneLayer::Window, "Window"},
-  {PaneLayer::Hud, "Hud"},
-  {PaneLayer::World, "World"}
-};
+    {PaneLayer::Tooltip, "Tooltip"},
+    {PaneLayer::ModalWindow, "ModalWindow"},
+    {PaneLayer::Window, "Window"},
+    {PaneLayer::Hud, "Hud"},
+    {PaneLayer::World, "World"}};
 
 PaneManager::PaneManager()
-  : m_context(GuiContext::singletonPtr()), m_prevInterfaceScale(1.0f) {
+    : m_context(GuiContext::singletonPtr()), m_prevInterfaceScale(1.0f) {
   auto assets = Root::singleton().assets();
   m_tooltipMouseoverTime = assets->json("/panes.config:tooltipMouseoverTime").toFloat();
   m_tooltipMouseoverRadius = assets->json("/panes.config:tooltipMouseoverRadius").toFloat();
@@ -293,7 +292,7 @@ void PaneManager::update(float dt) {
         Vec2I offsetDirection = Vec2I::filled(1);
         Vec2I offsetAdjust = Vec2I();
 
-        if (m_tooltipLastMousePos[0] + m_tooltipMouseOffset[0] + m_activeTooltip->size()[0] > (int)m_context->windowWidth() / m_context->interfaceScale()) {
+        if (m_tooltipLastMousePos[0] + m_tooltipMouseOffset[0] + m_activeTooltip->size()[0] > (int)((float)m_context->windowWidth() / m_context->interfaceScale())) {
           offsetDirection[0] = -1;
           offsetAdjust[0] = -m_activeTooltip->size()[0];
         }
@@ -417,4 +416,4 @@ bool PaneManager::dismiss(PanePtr const& pane) {
   return dismissed;
 }
 
-}
+} // namespace Star
