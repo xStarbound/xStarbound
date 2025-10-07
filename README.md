@@ -101,6 +101,7 @@ The following mods have special functionality that requires or is supported by x
 - [Armor Augment Slot](https://steamcommunity.com/sharedfiles/filedetails/?id=3448934708) — requires xStarbound or Openstarbound.
 - [Auto DoubleTap Bind for Modded Techs](https://steamcommunity.com/sharedfiles/filedetails/?id=3502260176) — Requires xStarbound, OpenStarbound or StarExtensions.
 - [Back Weapon II](https://steamcommunity.com/sharedfiles/filedetails/?id=3405399202) — fully supported by xStarbound.
+- [Back Weapon II SChinese patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3581572023) — requires xStarbound or OpenStarbound for some of the translation patches to work properly.
 - [Clicky Keyboard UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3476945792) — should be supported by xStarbound; report any issues.
 - [Drop pixels on death](https://steamcommunity.com/sharedfiles/filedetails/?id=3350355857) ([GitHub](https://github.com/bongus-jive/drop-money-on-death)) — fully supported by xStarbound.
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
