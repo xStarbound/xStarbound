@@ -1,14 +1,14 @@
 #include "StarAssetTextureGroup.hpp"
-#include "StarIterator.hpp"
-#include "StarTime.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
 #include "StarImageMetadataDatabase.hpp"
+#include "StarIterator.hpp"
+#include "StarRoot.hpp"
+#include "StarTime.hpp"
 
 namespace Star {
 
 AssetTextureGroup::AssetTextureGroup(TextureGroupPtr textureGroup)
-  : m_textureGroup(std::move(textureGroup)) {
+    : m_textureGroup(std::move(textureGroup)) {
   m_reloadTracker = make_shared<TrackerListener>();
   Root::singleton().registerReloadListener(m_reloadTracker);
 }
@@ -35,18 +35,18 @@ void AssetTextureGroup::cleanup(int64_t textureTimeout) {
 
     List<Texture const*> liveTextures;
     filter(m_textureMap, [&](auto const& pair) {
-        if (time - pair.second.second < textureTimeout) {
-          liveTextures.append(pair.second.first.get());
-          return true;
-        }
-        return false;
-      });
+      if (time - pair.second.second < textureTimeout) {
+        liveTextures.append(pair.second.first.get());
+        return true;
+      }
+      return false;
+    });
 
     liveTextures.sort();
 
     eraseWhere(m_textureDeduplicationMap, [&](auto const& p) {
-        return !liveTextures.containsSorted(p.second.get());
-      });
+      return !liveTextures.containsSorted(p.second.get());
+    });
   }
 }
 
@@ -87,4 +87,4 @@ TexturePtr AssetTextureGroup::loadTexture(AssetPath const& imagePath, bool tryTe
   }
 }
 
-}
+} // namespace Star
