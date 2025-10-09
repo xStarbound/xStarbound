@@ -1,0 +1,977 @@
+require("/scripts/util.lua")
+
+local function logError(formatStr, ...)
+    sb.logError("[xServerHelper] " .. formatStr, ...)
+end
+
+local function logWarn(formatStr, ...)
+    sb.logWarn("[xServerHelper] " .. formatStr, ...)
+end
+
+local function logInfo(formatStr, ...)
+    sb.logInfo("[xServerHelper] " .. formatStr, ...)
+end
+
+local function allPlayersBut(clientId)
+  local clientIds = universe.clientIds()
+  local res = {}
+  for _, cID in ipairs(clientIds) do
+    if cID ~= clientId then
+      table.insert(res, cID)
+    end
+  end
+  return res
+end
+
+local function beginsWith(str, beginning)
+    if type(str) == "string" and type(beginning) == "string" then
+        return str:sub(1, #beginning) == beginning
+    else
+        return false
+    end
+end
+
+local function getBuildConfig()
+    local buildConfig = root.getConfiguration("buildPermissionSettings")
+    local configuration
+    if type(buildConfig) == "table" then
+        configuration = buildConfig
+    else
+        configuration = jobject({})
+    end
+    return configuration
+end
+
+local function setBuildConfig(key, value)
+    local buildConfig = root.getConfiguration("buildPermissionSettings")
+    local configuration
+    if type(buildConfig) == "table" then
+        configuration = buildConfig
+    else
+        configuration = jobject({})
+    end
+    configuration[tostring(key)] = value
+    root.setConfiguration("buildPermissionSettings", configuration)
+end
+
+local function getConfig()
+    local xServerHelperConfig = root.getConfiguration("xServerHelper")
+    local configuration
+    if type(xServerHelperConfig) == "table" then
+        configuration = xServerHelperConfig
+    else
+        configuration = jobject({})
+    end
+    return configuration
+end
+
+local function setConfig(key, value)
+    local xServerHelperConfig = root.getConfiguration("xServerHelper")
+    local configuration
+    if type(xServerHelperConfig) == "table" then
+        configuration = xServerHelperConfig
+    else
+        configuration = jobject({})
+    end
+    configuration[tostring(key)] = value
+    root.setConfiguration("xServerHelper", configuration)
+end
+
+local function accountExists(username) -- FezzedOne: And is not a guest account.
+    if type(username) ~= "string" return false end
+    local accountConfig = root.getConfiguration("serverUsers")
+    local configuration = type(accountConfig) == "table" ? accountConfig : jobject{}
+    if type(configuration[username]) == "table" then
+        return configuration[username].guest ~= true
+    else
+        return false
+    end
+end
+
+local function getAccountConnectionId(username)
+    if type(username) ~= "string" return nil end
+    for universe.clientIds() as clientId do
+        if account := universe.clientAccount(clientId) then
+            if account == username then return clientId end
+        end
+    end
+    return nil
+end
+
+local function addAccount(username, password, isAdmin, isGuest)
+    local accountConfig = root.getConfiguration("serverUsers")
+    local validConfig = type(accountConfig) == "table"
+    if not validConfig then root.setConfiguration("serverUsers", jobject{}) end
+    local configuration = validConfig ? accountConfig : jobject{}
+    if configuration[username] == nil then
+        local newAccount = jobject{
+            admin = isAdmin,
+            password = password,
+            guest = isGuest
+        }
+        root.setConfigurationPath("serverUsers." .. username, newAccount)
+    else
+        return false
+    end
+    return true
+end
+
+local function setAccount(username, password, isAdmin, isGuest)
+    local accountConfig = root.getConfiguration("serverUsers")
+    local validConfig = type(accountConfig) == "table"
+    if not validConfig then root.setConfiguration("serverUsers", jobject{}) end
+    local configuration = validConfig ? accountConfig : jobject{}
+    if configuration[username] == nil then
+        local newAccount = jobject{
+            admin = isAdmin,
+            password = password,
+            guest = isGuest
+        }
+        root.setConfigurationPath("serverUsers." .. username, newAccount)
+    elseif type(configuration[username]) == "table" then
+        local oldAccount = configuration[username]
+        local accountInfo = jobject{
+            admin = isAdmin ~= nil ? isAdmin : oldAccount.isAdmin,
+            password = password ~= nil ? (password == "" ? nil : password) : oldAccount.password,
+            guest = isGuest ~= nil ? isGuest : oldAccount.guest
+        }
+        root.setConfigurationPath("serverUsers." .. username, accountInfo)
+    else
+        return false
+    end
+    return true
+end
+
+local function sanitiseCheck(str)
+    if type(str) ~= "string" then return false end
+    if sb.stripEscapeCodes(str) ~= str or str:gsub('%W','') ~= str then
+        return false
+    end
+    return true
+end
+
+local function sendServerChat(cID, message)
+    if math.tointeger(cID) then
+        universe.sendChat(cID, {
+            context = { mode = "Broadcast", channel = "" },
+            fromConnection = 0,
+            fromNick = "server",
+            portrait = "",
+            text = tostring(message),
+            data = jobject{},
+        })
+    end
+end
+
+local function sendWorldChat(world, message)
+    for universe.clientIds as cID do
+        if universe.clientWorld(cID) ~= world then continue end
+        universe.sendChat(cID, {
+            context = { mode = "Broadcast", channel = "" },
+            fromConnection = 0,
+            fromNick = "server",
+            portrait = "",
+            text = tostring(message),
+            data = jobject{},
+        })
+    end
+end
+
+local commands = {}
+
+local function checkHostType(cid)
+    if universe.isLocal(cid) then
+        return "ownClient"
+    else
+        local connectionIds = universe.clientIds()
+        for _, clientId in ipairs(connectionIds) do
+            if universe.isLocal(clientId) then return "otherClient" end
+        end
+        return "server"
+    end
+end
+
+--- /serverrun and /serverexec ---
+
+local function executeLuaSource(cid, args)
+    if universe.isAdmin(cid) then
+        if load then
+            local src = args[1]
+            local success, result = pcall(load, src, "/run", "t", _ENV)
+            if not success then
+                return "^#f00;Compiler error: " .. result
+            else
+                local success, result = pcall(result)
+                if not success then
+                    return "^#f00;Error: " .. result
+                else
+                    local success, printed = pcall(sb.printJson, result)
+                    if not success then
+                        success, printed = pcall(sb.print, result)
+                    end
+                    if not success then
+                        return "^#f00;Could not print return value: " .. printed
+                    else
+                        return printed
+                    end
+                end
+            end
+        else
+            return '^cyan;"safeScripts"^reset; must be disabled in ^cyan;'
+                .. (checkHostType(cid) == "server" and "xserver.config" or "xclient.config")
+                .. "^reset; in order to use this command."
+        end
+    else
+        return "Insufficient privileges to execute Lua code on the server"
+    end
+end
+
+commands.serverrun = executeLuaSource
+commands.serverexec = executeLuaSource
+
+--- /xserver ---
+
+function commands.xserver(cid, _)
+    local hostType = checkHostType(cid)
+local multiplayer = #universe.clientIds() ~= 1
+    if hostType == "ownClient" then
+        if multiplayer then
+            return "^#f33;<xClient::Helper v" .. xsb.version() .. " as host>^reset;"
+        else
+            return "^#f33;<xClient::Helper v" .. xsb.version() .. ">^reset;"
+        end
+    elseif hostType == "otherClient" then
+        return "^#f33;<hosted on xClient::Helper v" .. xsb.version() .. ">^reset;"
+    else
+        return "^#f33;<xServer::Helper v" .. xsb.version() .. ">^reset;"
+    end
+end
+
+--- /who ---
+
+function commands.who(cid, _)
+    local hostType = checkHostType(cid)
+    local connectionIds = universe.clientIds()
+    local playerCount = #connectionIds
+    if hostType == "ownClient" and playerCount == 1 then return "Client is in single-player" end
+    local outputString = "^#f33;"
+        .. tostring(playerCount)
+        .. (playerCount == 1 and " player online: " or " players online: ")
+        .. "^reset;\n"
+    if playerCount ~= 0 then
+        for _, client in ipairs(connectionIds) do
+            local nick = universe.clientNick(client)
+            if getConfig().stripNicks then nick = sb.stripEscapeCodes(nick) end
+            if nick == "" then
+                nick = "^#f33;<$" .. toString(client) .. ">^reset;"
+            else
+                nick = nick .. "^reset;"
+            end
+            local accountName = universe.clientAccount(clientId)
+            accountName = accountName and (string.format(" (%s)", accountName)) or ""
+            outputString = outputString .. nick .. accountName .. ", "
+        end
+        outputString = outputString:sub(1, -3)
+    else
+        outputString = "No players online"
+    end
+    return outputString
+end
+
+--- /world ---
+
+function commands.world(cid, _)
+    local hostType = checkHostType(cid)
+    local connectionIds = universe.clientIds()
+    local universePlayerCount = #connectionIds
+    if hostType == "ownClient" and universePlayerCount == 1 then return "Client is in single-player" end
+    local worldConnectionIds = {}
+    local worldId = universe.clientWorld(cid)
+    for connectionIds as connectionId do
+        if universe.clientWorld(connectionId) == worldId then table.insert(worldConnectionIds, connectionId) end
+    end
+    local playerCount = #worldConnectionIds
+    local outputString = "^#f33;"
+        .. tostring(playerCount)
+        .. (playerCount == 1 and " player on this world: " or " players on this world: ")
+        .. "^reset;\n"
+    if playerCount ~= 0 then
+        for _, client in ipairs(worldConnectionIds) do
+            local nick = universe.clientNick(client)
+            if getConfig().stripNicks then nick = sb.stripEscapeCodes(nick) end
+            if nick == "" then
+                nick = "^#f33;<$" .. tostring(client) .. ">^reset;"
+            else
+                nick = nick .. "^reset;"
+            end
+            local accountName = universe.clientAccount(clientId)
+            accountName = accountName and (string.format(" (%s)", accountName)) or ""
+            outputString = outputString .. nick .. accountName .. ", "
+        end
+        outputString = outputString:sub(1, -3)
+    else
+        outputString = "No players on this world"
+    end
+    return outputString
+end
+
+--- /listworlds ---
+
+function commands.listworlds(cid, _)
+    if universe.isAdmin(cid) then
+        local activeWorlds = universe.activeWorlds()
+        local worldCount = #activeWorlds
+        if worldCount ~= 0 then
+            local listing = "^#f33;"
+                .. tostring(worldCount)
+                .. " active "
+                .. (worldCount == 1 and "world" or "worlds")
+                .. ":^reset;\n"
+            for n, worldId in ipairs(activeWorlds) do
+                listing = listing .. worldId .. (n == worldCount and "" or "\n")
+            end
+            return listing
+        else
+            return "No active worlds"
+        end
+    else
+        return "Insufficient privileges to list active worlds"
+    end
+end
+
+--- /listworld ---
+
+function commands.listworld(cid, args)
+    if universe.isAdmin(cid) then
+        local hostType = checkHostType(cid)
+        local connectionIds = universe.clientIds()
+        local worldConnectionIds = {}
+        local worldId = (args[1] and args[1] ~= "") ? args[1] : universe.clientWorld(cid) 
+        if worldId then
+            for connectionIds as connectionId do
+                if universe.clientWorld(connectionId) == worldId then
+                    table.insert(worldConnectionIds, connectionId)
+                end
+            end
+            local playerCount = #worldConnectionIds
+            if playerCount ~= 0 then
+                local listing = "^#f33;"
+                    .. tostring(playerCount)
+                    .. (playerCount == 1 and " player" or " players")
+                    .. " on world '"
+                    .. worldId
+                    .. "':^reset;\n"
+                for n, connectionId in ipairs(worldConnectionIds) do
+                    local account = universe.clientAccount(connectionId)
+                    local accountInfo = string.format("%s%s",
+                        (universe.isGuest(connectionId) and not account) and "*" or (universe.canBeAdmin(connectionId) and "#" or "@"), 
+                        account or "")
+                    listing = listing
+                        .. "$"
+                        .. connectionId
+                        .. " : "
+                        .. universe.clientNick(connectionId)
+                        .. " : "
+                        .. accountInfo
+                        .. " : $$"
+                        .. universe.clientUuid(connectionId)
+                        .. (n == playerCount and "" or "\n")
+                end
+                return listing
+            else
+                return "No players on world '" .. worldId .. "'"
+            end
+        else
+            return "Must specify a valid world ID."
+        end
+    else
+        return "Insufficient privileges to list players"
+    end
+end
+
+--- /register ---
+
+function commands.register(cid, args)
+    if universe.isGuest(cid) and getConfig().registrationEnabled then
+        local account, password = args:unpack()
+        local success = false
+        if account ~= "" and sanitiseCheck(account) and password then
+            success = addAccount(account, password)
+        end
+        return success
+            ? $"Successfully registered account '{tostring(account)}'. Please disconnect and reconnect with your new account details to use the account."
+            : $"Failed to register account. Choose a unique username and ensure it only contains alphanumeric characters."
+    elseif universe.isGuest(cid) then
+        return "Account registration is disabled."
+    else
+        return "Only guests are permitted to register accounts."
+    end
+end
+
+--- /claim ---
+
+local function newWorldClaim(world, owner, cID)
+    return jobject{
+        owner = beginsWith(world, "ClientShipWorld:") ? universe.clientAccount(cID) : nil,
+        allowedBuilders = jarray{false},
+        allowGuestContainerModification = false,
+        allowGuestContainerOpening = false,
+    }
+end
+
+local function listOwnedWorlds(account)
+    local useServerData = getBuildConfig().storeClaimsInServerData == true
+    local getData = useServerData ? universe.getServerDataPath : root.getConfigurationPath
+    pluto_try 
+        local worldClaims = getData("claimData.ownedWorldsByAccount")
+        return (type(worldClaims) == "table" ? worldClaims : jobject{})
+            :filter(|v| -> type(v) == "table")
+            :filter(|k, _| -> not beginsWith("ClientShipWorld:", k), true)
+            :filter(|v| -> v.owner == account)
+            :keys()
+    pluto_catch e then
+        logError("Error while getting world claim data: %s", e)
+        return {}
+    end
+    return {}
+end
+
+local function getWorldClaimData(world)
+    local useServerData = getBuildConfig().storeClaimsInServerData == true
+    local getData = useServerData ? universe.getServerDataPath : root.getConfigurationPath
+    if type(claimData) ~= "table" then
+        setData("claimData", jobject{})
+    end
+    local claimData = nil
+    pluto_try 
+        local worldClaims = getData("claimData.ownedWorldsByAccount")
+        worldClaims = type(worldClaims) == "table" ? worldClaims : jobject{}
+        claimData = worldClaims[world] or newWorldClaim(world)
+    pluto_catch e then
+        logError("Error while getting world claim data: %s", e)
+        return jobject{}
+    end
+    return claimData or jobject{}
+end
+
+local function setWorldClaimData(world, claimData)
+    local useServerData = getBuildConfig().storeClaimsInServerData == true
+    local getData = useServerData ? universe.getServerDataPath : root.getConfigurationPath
+    local setData = useServerData ? universe.setServerDataPath : root.setConfigurationPath
+    local claimData = getData("claimData")
+    if type(claimData) ~= "table" then
+        setData("claimData", jobject{})
+    end
+    local worldClaims = getData("claimData.ownedWorldsByAccount")
+    if type(worldClaims) ~= "table" then
+        setData("claimData.ownedWorldsByAccount", jobject{})
+    end
+    local prefix = "claimData.ownedWorldsByAccount"
+    if not sanitiseCheck(account) then return false end
+    if claimData == nil or claimData == null or type(claimData) == "table" then
+        pluto_try
+            setData(prefix .. "." .. world, claimData ? jobject(claimData) : claimData)
+        pluto_catch e then
+            logError("Error while setting world claim data for world '%s': %s", tostring(world), e)
+            return false
+        end
+        return true
+    end
+    return false
+end
+
+local function addBuilder(world, newBuilder)
+    local claimData = getWorldClaimData(world)
+    local builderList = type(claimData.allowedBuilders) == "table" ? jarray(claimData.allowedBuilders) : jarray{}
+    if newBuilder in builderList then return false end
+    claimData.allowedBuilders = builderList:insert(newBuilder) or builderList
+    return setWorldClaimData(world, claimData)
+end
+
+local function removeBuilder(world, builderToRemove)
+    local claimData = getWorldClaimData(world)
+    local builderList = type(claimData.allowedBuilders) == "table" ? jarray(claimData.allowedBuilders) : jarray{}
+    if not newBuilder in builderList then return false end
+    claimData.allowedBuilders = builderList:filter(|v| -> v ~= newBuilder):reorder()
+    return setWorldClaimData(world, claimData)
+end
+
+local function accountOwnsWorld(cid, world)
+    local account = universe.clientAccount(cid)
+    local isAdmin = universe.isAdmin(cid)
+    if type(accountName) == "string" or isAdmin then
+        local worldData = getWorldClaimData(world)
+        return isAdmin or worldData.owner == accountName
+    else
+        return false
+    end
+end
+
+local function worldOwner(world)
+    if type(accountName) == "string" then
+        local worldData = getWorldClaimData(world)
+        return type(worldData.owner) == "string" ? worldData.owner : true
+    else
+        return nil
+    end
+end
+
+function printSubCommands(list)
+    local str = ""
+    for list as cmd do
+        str ..= "^orange;" .. cmd .. "^reset;, "
+    end
+    return str:sub(1, -3)
+end
+
+function newClaimData(owner)
+    return jobject{
+        owner = owner,
+        allowedBuilders = jarray{},
+        allowGuestContainerModification = false,
+        allowGuestContainerOpening = false
+    }
+end
+
+function commands.claim(cid, args)
+    pluto_try
+        local buildConfig = getBuildConfig()
+        local validSubCommands = { "add", "remove", "setowner", "builder", "containers", "list" }
+        local validBuilderSubCommands = { "add", "remove", "list" }
+        local builderTags = {
+            ["@all"] = true,
+            ["@everyone"] = true,
+            ["@server"] = false
+        }
+        local builderNames = {
+            ["@all"] = "^orange;all players^reset;",
+            ["@everyone"] = "^orange;all players^reset;",
+            ["@server"] = "^orange;server-side entities and weather^reset;"
+        }
+        local validContainersSubCommands = { 
+            view = "allowGuestContainerOpening",
+            modify = "allowGuestContainerModification"
+        }
+        if buildConfig.enabled == true and buildConfig.accountClaimsEnabled == true then
+            if not universe.isGuest(cid) then
+                if args[1] in validSubCommands then
+                    local world = universe.clientWorld(cid)
+                    local ownsClaim = accountOwnsWorld(cid, world)
+                    local isAdmin = universe.isAdmin(cid)
+                    local account = universe.clientAccount(cid)
+                    local canClaim, canRemoveClaim = false, false
+                    switch args[1] do
+                        case "add":
+                            if world == ("ClientShipWorld:" .. universe.clientUuid(cid)) then
+                                return "Your ship is already claimed by you."
+                            elseif beginsWith(world, "ClientShipWorld:") then
+                                return "^red;Cannot claim another player's ship."
+                            elseif beginsWith(world, "InstanceWorld:")
+                                and (not beginsWith(world, "InstanceWorld:playerstation:"))
+                                and not isAdmin then
+                                return "^red;Claiming this type of world is not permitted."
+                            elseif isAdmin then
+                                canClaim = true
+                            elseif owner := worldOwner(world) then
+                                return ( owner == true
+                                    ? "This world is already claimed."
+                                    : $"This world is already claimed by ^cyan;{owner}^reset;."
+                                )
+                            else
+                                canClaim = true
+                            end
+                            if canClaim then
+                                if isAdmin and args[2] then
+                                    if accountExists(sanitiseCheck(args[2])) then
+                                        setWorldClaimData(world, newClaimData(args[2]))
+                                        sendServerChat(getAccountConnectionId(args[2]), $"You have been granted an ownership claim to the world ^cyan;{world}^reset;.")
+                                        return $"Granted world claim to ^cyan;{args[2]}^reset;."
+                                    else
+                                        return $"Account ^cyan;{args[2]}^reset; does not exist or is an invalid account name. No claim granted."
+                                    end
+                                else
+                                    setWorldClaimData(world, newClaimData(account))
+                                    return "Claimed this world."
+                                end
+                            else
+                                return "Cannot claim this world."
+                            end
+                            break
+                        case "remove":
+                            local canRemoveClaim = false
+                            if world == ("ClientShipWorld:" .. universe.clientUuid(cid)) then
+                                return "Cannot remove your shipworld's implicit claim."
+                            elseif beginsWith(world, "ClientShipWorld:") then
+                                return isAdmin ? "Cannot remove implicit shipworld claim." : "You do not own this world."
+                            elseif beginsWith(world, "InstanceWorld:")
+                                and (not beginsWith(world, "InstanceWorld:playerstation:"))
+                                and not isAdmin then
+                                if owner := worldOwner(world) then
+                                    if account == owner then
+                                        -- FezzedOne: Non-admins who own instance worlds are allowed to revoke their own claims despite being unable to claim instance worlds in general.
+                                        canRemoveClaim = true 
+                                    else
+                                        return "You do not own this world."
+                                    end
+                                else
+                                    return "This world is unclaimed and cannot be claimed."
+                                end
+                            elseif isAdmin then
+                                canRemoveClaim = true
+                            elseif owner := worldOwner(world) then
+                                if account == owner then
+                                    canRemoveClaim = true
+                                else
+                                    return "You do not own this world."
+                                end
+                            else
+                                return "You do not own this world."
+                            end
+                            if canRemoveClaim then
+                                if args[2] == "confirm" then
+                                    setWorldClaimData(world, nil)
+                                    return "^orange;Unclaimed this world."
+                                else
+                                    return "Confirm you want to unclaim this world by entering ^orange;/claim remove confirm^reset;."
+                                end
+                            else
+                                return "Cannot unclaim this world."
+                            end
+                            break
+                        case "setowner":
+                            if not accountOwnsWorld(cid, world) then
+                                return "You do not own this world."
+                            end
+                            if accountExists(sanitiseCheck(args[2])) then
+                                local claimData = getWorldClaimData(world)
+                                claimData.owner = args[2]
+                                setWorldClaimData(world, claimData)
+                                sendServerChat(getAccountConnectionId(args[2]), $"Ownership of the world ^cyan;{world}^reset; has been transferred to you.")
+                                return $"Granted world claim to ^cyan;{args[2]}^reset;."
+                            else
+                                return $"Account ^cyan;{args[2]}^reset; does not exist or is an invalid account name. Claim ownership not changed."
+                            end
+                            break
+                        case "builder":
+                            if args[3] then
+                                if not accountOwnsWorld(cid, world) then
+                                    return "You do not own this world."
+                                end
+                                if args[2] == "add" or args[2] == "remove" then
+                                    if not sanitiseCheck(args[3]) then
+                                        return $"Account ^cyan;{args[3]}^reset; is an invalid account name."
+                                    end
+                                    if args[2] == "add" and (not accountExists(args[3])) and not builderTags[args[3]] then
+                                        return $"Account ^cyan;{args[3]}^reset; does not exist."
+                                    end
+                                elseif args[2] == "list" then
+                                    local allowedBuilders = getWorldClaimData(world).allowedBuilders
+                                    if type(allowedBuilders) == "table" then
+                                        local builders = allowedBuilders:filtered(|v| -> type(v) == "string"):reorder():map(|v| -> $"^cyan;{}^reset;")
+                                        local returnStr = ""
+                                        local serverDisallowed = getBuildConfig().disallowServerGriefingWhenOwned == true and (not false in allowedBuilders) and (not true in allowedBuilders)
+                                        local allCanBuild = true in allowedBuilders
+                                        if allCanBuild then
+                                            if #builders ~= 0 then
+                                                returnStr = "Everyone is permitted to build on this world.\n"
+                                                    .. $"^#f33;{#builders} {#builders == 1 ? "builder" : "builders"} listed:\n"
+                                                    .. builders:concat("\n")
+                                            else
+                                                returnStr = "Everyone is permitted to build on this world."
+                                            end
+                                        else
+                                            if #builders ~= 0 then
+                                                returnStr = $"^#f33;{#builders} allowed {#builders == 1 ? "builder" : "builders"}:\n"
+                                                    .. builders:concat("\n")
+                                                    .. (serverDisallowed ? "\n^gray;[Build permission revoked from server-side entities and weather events.]" : "")
+                                            else
+                                                returnStr = "This world has no permitted builders."
+                                                    .. (serverDisallowed ? " ^gray;[Build permission revoked from server-side entities and weather events.]" : "")
+                                            end
+                                        end
+                                    else
+                                        local serverDisallowed = getBuildConfig().disallowServerGriefingWhenOwned == true
+                                        return "This world has no permitted builders."
+                                            .. (serverDisallowed ? " ^gray;[Build permission revoked from server-side entities and weather events.]" : "")
+                                    end
+                                elseif args[2] ~= "add" and args[2] ~= "remove" and args[2] ~= "list" then
+                                    return "Invalid ^orange;/claim builder^reset; subcommand. Valid subcommands are ^orange;add^reset; and ^orange;remove^reset;. Use ^orange;/claim^reset; with no arguments to see help."
+                                end
+                                local isAdding = args[2] == "add"
+                                local builder = builderTags[args[3]] ?? args[3]
+                                local builderName = builderNames[args[3]] ?? ("^cyan;" .. args[3] .. "^reset;")
+                                if (isAdding ? addBuilder : removeBuilder)(world, builder) then
+                                    if builder ~= true and builder ~= false then
+                                        sendServerChat(getAccountConnectionId(builder), $"Build permission for world ^cyan;{world}^reset;{isAdding ? "granted to" : "revoked from"} you.")
+                                    else
+                                        sendWorldChat(world, $"Build permission for this world has been {isAdding ? "^cyan;GRANTED^reset; to" : "^orange;REVOKED^reset; from"} {builderName}.")
+                                    end
+                                    return $"{isAdding ? "Gave" : "Revoked"} build permission {isAdding ? "to" : "from"} {builderName}."
+                                else
+                                    return $"Failed to {isAdding ? "give" : "revoke"} build permission {isAdding ? "to" : "from"} {builderName}, likely because the user already {isAdding ? "has" : "does not have"} permission."
+                                end
+                            else
+                                return "Missing builder account/tag argument. Use ^orange;/claim^reset; with no arguments to see help for ^orange;/claim builder^reset;."
+                            end
+                            break
+                        case "containers":
+                            if not accountOwnsWorld(cid, world) then
+                                return "You do not own this world."
+                            end
+                            if key := validContainersSubCommands[args[2]] then
+                                local claimData = getWorldClaimData(world)
+                                local currentState = claimData[key] == true
+                                local enabledOnServer = getBuildConfig()[args[2] == "view" ? "containerOpenProtection" : "containerModificationProtection"] == true
+                                local typeName = args[2] == "view" ? "viewing" : "modification"
+                                if args[3] == "on" or args[3] == "off" then
+                                    local enable = args[3] == "off"
+                                    if enabledOnServer then
+                                        claimData[key] = enable
+                                        if setWorldClaimData(world, claimData) then
+                                            return "Guests are now "
+                                            .. (currentState ? "^cyan;ALLOWED^reset;" : "^orange;NOT ALLOWED^reset;" )
+                                            .. " to " .. args[2] .. " containers on this world."
+                                        else
+                                            return "^red;Failed to change container " .. typeName .. " setting for this claimed world."
+                                        end
+                                    else
+                                        return "Container " .. typeName .. " protection is disabled on this server."
+                                    end
+                                elseif args[3] == "" or not args[3] then
+                                    if enabledOnServer then
+                                        return "Guests are currently "
+                                          .. (currentState ? "^cyan;ALLOWED^reset;" : "^orange;NOT ALLOWED^reset;" )
+                                          .. " to " .. args[2] .. " containers on this world."
+                                    else
+                                        return "Container " .. typeName .. " protection is disabled on this server."
+                                    end
+                                else
+                                    return "Invalid parameter passed to ^orange;/claim containers^reset; subcommand. Valid syntax is ^orange;/claim containers <view/modify> [on/off]^reset;. Use ^orange;/claim^reset; with no arguments to see available subcommands and help."
+                                end
+                            else
+                                return "Invalid parameter passed to ^orange;/claim containers^reset; subcommand. Valid syntax is ^orange;/claim containers <view/modify> [on/off]^reset;. Use ^orange;/claim^reset; with no arguments to see available subcommands and help."
+                            end
+                            break
+                        case "list":
+                            do
+                                local accountName, ownAccount = universe.clientAccount(cid), true
+                                if args[2] and universe.canBeAdmin(cid) then
+                                    ownAccount = args[2] == accountName
+                                    accountName = args[2] ~= "" ? args[2] : accountName
+                                end
+                                if accountName then
+                                    local worldList = listOwnedWorlds(accountName):map(|v| -> $"^cyan;{}^reset;")
+                                    if #worldList == 0 then
+                                        if ownAccount then
+                                            return "^#f33;You have no claimed worlds."
+                                        else
+                                            return $"^#cyan;{accountName}^#f33 has no claimed worlds."
+                                        end
+                                    else
+                                        if ownAccount then
+                                            return $"^#f33;You have {#worldList} claimed {#worldList == 1 ? "world" : "worlds"}:\n" .. worldList:concat("\n")
+                                        else
+                                            return $"^#cyan;{accountName}^#f33 has {#worldList} claimed {#worldList == 1 ? "world" : "worlds"}:\n" .. worldList:concat("\n")
+                                        end
+                                    end
+                                else
+                                    return "You are a guest."
+                                end
+                            end
+                            break
+                        default:
+                            return "Invalid ^orange;/claim^reset; subcommand. Use ^orange;/claim^reset; with no arguments to see available subcommands and help."
+                    end
+                else
+                    return $"^#f33;</claim>^reset; The following subcommands are available: {printSubCommands(validSubCommands)}.\n^red;Subcommand reference:^reset;\n"
+                        .. "^orange;/claim add^reset;: Claim the world you're on if it's unclaimed.\n"
+                        .. "^orange;/claim remove^reset;: Unclaim the world you're on.\n"
+                        .. "^orange;/claim setowner <account>^reset;: Transfer claim ownership of this world to another account.\n"
+                        .. ( getBuildConfig().disallowServerGriefingWhenOwned == true
+                            ? "^orange;/claim builder add <account/@server/@all/@everyone>^reset;: Give build permissions for this claimed world to specified accounts, the server or everyone. (Server build permission is required for objects and weather events to modify tiles on claimed worlds.)\n"
+                            : "^orange;/claim builder add <account/@all/@everyone>^reset;: Give build permissions for this claimed world to specified accounts or everyone.\n"
+                        ) .. ( getBuildConfig().disallowServerGriefingWhenOwned == true
+                            ? "^orange;/claim builder remove <account/@server/@all/@everyone>^reset;: Revoke build permissions for this claimed world from specified accounts, the server or everyone. (Server build permission is required for objects and weather events to modify tiles on claimed worlds.)\n"
+                            : "^orange;/claim builder remove <account/@all/@everyone>^reset;: Revoke build permissions for this claimed world from specified accounts or everyone.\n"
+                        ) .. ( getBuildConfig().containerModificationProtection == true
+                            ? "^orange;/claim containers modify [on/off]^reset;: See whether non-builders can modify the contents of containers and mannequins on this claimed world. Omit the ^orange;on^reset;/^orange;off^reset; argument to view the world's current setting.\n"
+                            : ""
+                        ) .. ( getBuildConfig().containerOpenProtection == true
+                            ? "^orange;/claim containers view [on/off]^reset;: Toggle whether non-builders can open and see the contents of containers and mannequins on this claimed world. Omit the ^orange;on^reset;/^orange;off^reset; argument to view the world's current setting.\n"
+                            : ""
+                        ) .. ( universe.canBeAdmin(cid)
+                            ? "^orange;/claim list [account]^reset;: List worlds claimed by the specified account, not including ship worlds. If the account is unspecified, this lists your own claims.\n"
+                            : "^orange;/claim list^reset;: List your own claimed worlds, not including your ship.\n"
+                        ) .. ( universe.isAdmin(cid)
+                            ? "^red;[ADMIN]^reset; Allowed to modify all claims and claim non-player-station instance worlds."
+                            : ( 
+                                "All subcommands other than ^orange;/claim add^reset; require ownership of this world to use." 
+                                .. ( universe.canBeAdmin(cid) ? " Use ^orange;/admin^reset; to override this." : "" )
+                            )
+                        )
+                end
+            else
+                if getConfig().registrationEnabled then
+                    return "An account is required to set up world claims. Use ^orange;/register <account> <password>^reset; to register a server account,"
+                        .. " and then reconnect with your new account."
+                else
+                    return "A server account is required to set up world claims. Account registration is currently disabled; ask the owner/host or staff about getting an account."
+                end
+            end
+        else
+            return "Player world claims are not enabled on this server."
+        end
+    pluto_catch e then
+        logError("Error while handling /claim command: %s", e)
+        return "^red;Error occurred while handling command; check server log"
+    end
+end
+
+--- /getconfig and /setconfig ---
+
+function commands.getconfig(cid, args)
+    if universe.isAdmin(cid) then
+        local path = args:unpack()
+        if path ~= "" then
+            local configToReturn
+            pluto_try
+                if beginsWith(path, "title") then
+                    error("Not permitted to access the \"title\" key, as this may contain sensitive client login info.")
+                else
+                    configToReturn = root.getConfigurationPath(path)
+                end
+            pluto_catch e then
+                logError("Error while getting server configuration: %s", e)
+                return "^red;Error while getting server configuration; check server log."
+            end
+            return $"Server configuration value at ^cyan;{path}^reset;: {sb.printJson(configToReturn)}"
+        else
+            return "^red;Must specify a valid server configuration path."
+        end
+    else
+        return "Insufficient privileges to view server configuration."
+            .. (universe.canBeAdmin(cid) ? " Use ^orange;/admin^reset; to gain privileges." : "")
+    end
+end
+
+function commands.setconfig(cid, args)
+    if universe.isAdmin(cid) then
+        local path, value = args:unpack()
+        if path ~= "" and value and value ~= "" then
+            local parsedValue, valueToPrint
+            pluto_try
+                if beginsWith(path, "safeScripts") then
+                    error("Not permitted to modify the \"safeScripts\" key.")
+                else
+                    parsedValue = sb.parseJson(value)
+                    root.setConfigurationPath(path, parsedValue)
+                    valueToPrint = sb.printJson(parsedValue)
+                end
+            pluto_catch e then
+                logError("Error while setting server configuration: %s", e)
+                return "^red;Error while setting server configuration; check server log and ensure value is valid JSON."
+            end
+            return $"Set server configuration value at ^cyan;{path}^reset; to: {tostring(valueToPrint)}"
+        else
+            return "^red;Must specify a valid server configuration path and value."
+        end
+    else
+        return "Insufficient privileges to modify server configuration."
+            .. (universe.canBeAdmin(cid) ? " Use ^orange;/admin^reset; to gain privileges." : "")
+    end
+end
+
+--- /getserverdata and /setserverdata ---
+
+function commands.getserverdata(cid, args)
+    if universe.isAdmin(cid) then
+        local path = args:unpack()
+        if path ~= "" then
+            local configToReturn
+            pluto_try
+                configToReturn = universe.getServerDataPath(path)
+            pluto_catch e then
+                logError("Error while getting server data: %s", e)
+                return "^red;Error while getting server data; check server log."
+            end
+            return $"Configuration value at ^cyan;{path}^reset;: {sb.printJson(configToReturn)}"
+        else
+            return "^red;Must specify a valid server data path."
+        end
+    else
+        return "Insufficient privileges to view server-side data."
+            .. (universe.canBeAdmin(cid) ? " Use ^orange;/admin^reset; to gain privileges." : "")
+    end
+end
+
+function commands.setserverdata(cid, args)
+    if universe.isAdmin(cid) then
+        local path, value = args:unpack()
+        if path ~= "" and value and value ~= "" then
+            local parsedValue, valueToPrint
+            pluto_try
+                parsedValue = sb.parseJson(value)
+                universe.setServerDataPath(path, parsedValue)
+                valueToPrint = sb.printJson(parsedValue)
+            pluto_catch e then
+                logError("Error while setting server data: %s", e)
+                return "^red;Error while setting server data; check server log and ensure value is valid JSON."
+            end
+            return $"Set server data value at ^cyan;{path}^reset; to: {tostring(valueToPrint)}"
+        else
+            return "^red;Must specify a valid server data path and value."
+        end
+    else
+        return "Insufficient privileges to modify server-side data."
+            .. (universe.canBeAdmin(cid) ? " Use ^orange;/admin^reset; to gain privileges." : "")
+    end
+end
+
+--- Connection/disconnection messages ---
+
+function clientConnected(clientId)
+    local nick = universe.clientNick(clientId)
+    if getConfig().stripNicks then nick = sb.stripEscapeCodes(nick) end
+    local accountName = universe.clientAccount(clientId)
+    accountName = accountName and (string.format("(%s) ", accountName)) or ""
+    local connectionMessage = string.format("Player '%s' %sconnected", accountName, nick)
+    for _, cID in ipairs(allPlayersBut(clientId)) do
+        universe.sendChat(cID, {
+            context = { mode = "Broadcast", channel = "" },
+            fromConnection = 0,
+            fromNick = "server",
+            portrait = "",
+            text = connectionMessage,
+            data = jobject({}),
+        })
+    end
+    local buildConfig = getBuildConfig()
+end
+
+function clientDisconnected(clientId)
+    local nick = universe.clientNick(clientId)
+    if getConfig().stripNicks then nick = sb.stripEscapeCodes(nick) end
+    local accountName = universe.clientAccount(clientId)
+    accountName = accountName and (string.format("(%s) ", accountName)) or ""
+    local disconnectionMessage = string.format("Player '%s' %sdisconnected", accountName, nick)
+    for _, cID in ipairs(allPlayersBut(clientId)) do
+        universe.sendChat(cID, {
+            context = { mode = "Broadcast", channel = "" },
+            fromConnection = 0,
+            fromNick = "server",
+            portrait = "",
+            text = disconnectionMessage,
+            data = jobject({}),
+        })
+    end
+end
+
+--- Command handler ---
+
+function command(name, cid, args)
+    if type(commands[name]) == "function" then
+        return commands[name](cid, args)
+    else
+        return "Command ^orange;/" .. name .. "^reset; does not exist."
+    end
+end

@@ -315,7 +315,7 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
 
   callbacks.registerCallback("getConfigurationPath", [root](String const& path) -> Json {
     if (path == "") return Json();
-    if (path.beginsWith("/title")) {
+    if (path.splitAny("[].").get(0) == "title") {
       Logger::warn("[xSB] root.getConfigurationPath: Attempted to get something in the \"title\" key, which isn't permitted.");
       return Json();
     } else {

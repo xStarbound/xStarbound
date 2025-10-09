@@ -119,13 +119,13 @@ Bans the specified client from the server. If a reason is specified, this reason
 
 Returns the name of the server account under which the specified client is connected, or `nil` if the client is connected anonymously or is not connected.
 
-### `Maybe<String>` universe.canBeAdmin(`ClientId` clientId)
+### `bool` universe.canBeAdmin(`ClientId` clientId)
 
 > **Available only on xStarbound v4.0+.**
 
 Returns `true` if the specified connected client is allowed to use `/admin` (regardless of the client's current admin status) or `false` otherwise.
 
-### `Maybe<String>` universe.isGuest(`ClientId` clientId)
+### `bool` universe.isGuest(`ClientId` clientId)
 
 > **Available only on xStarbound v4.0+.**
 
