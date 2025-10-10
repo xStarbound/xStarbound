@@ -1,0 +1,14 @@
+{
+  "basicCommands": {
+    "who": "Usage /who. Lists all players on the server along with their server account names.",
+    "world": "Usage /world. Lists all players, along with their server account names, on the same world as the player invoking the command.",
+    "register": "Usage /register <account> <password>. If you are a guest and registration is enabled on the server, this command allows registration of a server account, which is in turn required to use the /claim command.",
+    "claim": "Usage /claim <subcommand> <args...>. Manages world claims and protection, if enabled on the server. Invoke the /claim command by itself (without any arguments) for further help. /claim requires a server account to use."
+  },
+  "adminCommands": {
+    "getconfig": "Usage /getconfig <JSON config path>. Gets the configuration value at the specified path in the server's config (xserver.config on xServer, xclient.config on an xClient host or in single-player).",
+    "setconfig": "Usage /setconfig <JSON config path> <JSON value>. Sets the configuration value at the specified path in the server's config (xserver.config on xServer, xclient.config on an xClient host or in single-player). Note that JSON string values need to be surrounded with extra quotes; e.g., '\"string\"'. Useful for adding server accounts or changing xServer or xServerHelper settings; e.g., /setconfig serverAccounts.mynewaccount '{\"admin\": false, \"guest\": false, \"password\": \"newpassword\"}' or /setconfig xServerHelper.motd '\"My new MOTD!\"'.",
+    "getserverdata": "Usage /getserverdata <JSON server data path>. Gets the server data value at the specified path in the server's data file (server.dat in $storage/universe/). It is possible to set up world claim data to be stored in the server's data file.",
+    "setserverdata": "Usage /setserverdata <JSON server data path> <JSON value>. Sets the server data value at the specified path in the server's data file (server.dat in $storage/universe/). Note that JSON string values need to be surrounded with extra quotes; e.g., '\"string\"'. It is possible to set up world claim data to be stored in the server's data file.",
+  }
+}
