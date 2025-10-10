@@ -20,6 +20,8 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
 
   See [`$docs/lua/lua.md`](doc/lua/lua.md), [`$docs/lua/world.md`](doc/lua/world.md) and [`$docs/lua/universeserver.md`](doc/lua/universeserver.md) for more.
 
+  As of v4.1.2.3, an xServer::Helper utility mod is available. This mod adds a `/claim` command for setting world protection and claims, as well as an optional user account registration command and several admin commands for viewing and changing the server configuration without having to restart xServer. Download xServer::Helper on [the releases page](https://github.com/xStarbound/xStarbound/releases/latest).
+
 - Persistent, scriptable server-side data storage that can be accessed and modified from any server-side universe, world or entity script (@FezzedOne). See [`$docs/lua/universeserver.md`](doc/lua/universeserver.md) for more.
 - Fully scriptable world metadata modification, including support for changing any existing world's tile size (@fezzedone). Modders can now modify _all_ attributes of any existing world without resorting to external Python tools. Additionally, xClient (the xStarbound client) users can safely explore very small worlds without crashing (aside from some harmless visual glitches).
 - Scriptable weather control for worlds (@Mofurka and @fezzedone) — scripts can now change a world's weather on demand.
