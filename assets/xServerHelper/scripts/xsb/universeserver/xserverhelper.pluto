@@ -94,7 +94,7 @@ local function adminAccountExists()
     local accountConfig = root.getConfiguration("serverUsers")
     local configuration = type(accountConfig) == "table" ? accountConfig : jobject{}
     for _, v in pairs(configuration) do
-        if type(v) == "table" and v.admin = true then
+        if type(v) == "table" and v.admin == true then
             return true
         end
     end
