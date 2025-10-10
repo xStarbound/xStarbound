@@ -90,6 +90,17 @@ local function accountExists(username) -- FezzedOne: And is not a guest account.
     end
 end
 
+local function adminAccountExists()
+    local accountConfig = root.getConfiguration("serverUsers")
+    local configuration = type(accountConfig) == "table" ? accountConfig : jobject{}
+    for _, v in pairs(configuration) do
+        if type(v) == "table" and v.admin = true then
+            return true
+        end
+    end
+    return false
+end
+
 local function getAccountConnectionId(username)
     if type(username) ~= "string" then return nil end
     for universe.clientIds() as clientId do
@@ -1032,6 +1043,32 @@ function init()
                 password = "<set admin password here>"
             }
         })
+    end
+    if (checkHostType(1) ~= "ownClient") then
+        if root.getConfiguration("allowAdminCommandsFromAnyone") == true or root.getConfiguration("anonymousConnectionsAreAdmin") == true then
+            logWarn("Detected potentially insecure xServer settings! The current configuration allows *any* user to use admin commands and prevents xServer's "
+                .. "build protection system from having any effect even if enabled. Check to ensure you didn't leave \"allowAdminCommandsFromAnyone\" or " 
+                .. "\"anonymousConnectionsAreAdmin\" enabled by mistake!")
+        end
+        if root.getConfiguration("allowAdminCommands") == false then
+            logInfo("Admin commands are completely disabled on this server due to \"allowAdminCommands\" being enabled in the server config.")
+        end
+        if not adminAccountExists() then
+            logInfo("There are no admin accounts set up on this server. Consider setting one up in \"serverAccounts\" for server management.")
+        end
+        local buildConfig = getBuildConfig()
+        if buildConfig.enabled ~= true or buildConfig.accountClaimsEnabled ~= true then
+            logInfo("This server is not currently configured to allow use of the /claim command. Ensure that both \"enabled\" and \"accountClaimsEnabled\" "
+                .. "in \"buildPermissionSettings\" are set to true in order to use the /claim command.")
+        else
+            if buildConfig.storeClaimsInServerData == true then
+                logInfo("Server configured to use the universe server data file for world claim data.")
+            else
+                logInfo("Server configured to use the server configuration file for world claim data.")
+            end
+        end
+    else
+        logInfo("Running xServer::Helper on xClient.")
     end
 end
 
