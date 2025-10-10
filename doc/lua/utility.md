@@ -56,13 +56,15 @@ Returns a human-readable string representation of the specified JSON value. If `
 
 #### `Json` sb.parseJson(`String` jsonToParse)
 
-#### `Json` sb.parseJsonFragment(`String` jsonToParse)
+#### `Json` sb.jsonParse(`String` jsonToParse)
 
 #### `Json` sb.jsonFromString(`String` jsonToParse)
 
+**`sb.jsonParse` is available on xStarbound and OpenStarbound, `sb.jsonFromString` is available on xStarbound and StarExtensions, and `sb.jsonParse` is xStarbound-only.**
+
 Attempts to parse the given text as JSON, returning a "JSONised" Lua value (with an appropriate metatable) that faithfully represents the parsed JSON text to any callbacks that accept JSON. If anything that isn't valid JSON is passed to any of these callbacks, an error will be thrown.
 
-`sb.parseJsonFragment` accept any valid JSON value as a valid top-level value, while `sb.parseJson` and `sb.jsonFromString` accept only JSON arrays and objects as valid top-level values (as per the JSON standard).
+`sb.jsonParse` accept any valid JSON value as a valid top-level value, while `sb.parseJson` and `sb.jsonFromString` accept only JSON arrays and objects as valid top-level values (as per the JSON standard).
 
 ---
 

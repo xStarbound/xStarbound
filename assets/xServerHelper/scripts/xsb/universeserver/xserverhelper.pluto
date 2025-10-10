@@ -1,5 +1,7 @@
 require("/scripts/util.lua")
 
+local motdQueue = {}
+
 local function logError(formatStr, ...)
     sb.logError("[xServerHelper] " .. formatStr, ...)
 end
@@ -78,7 +80,7 @@ local function setConfig(key, value)
 end
 
 local function accountExists(username) -- FezzedOne: And is not a guest account.
-    if type(username) ~= "string" return false end
+    if type(username) ~= "string" then return false end
     local accountConfig = root.getConfiguration("serverUsers")
     local configuration = type(accountConfig) == "table" ? accountConfig : jobject{}
     if type(configuration[username]) == "table" then
@@ -89,7 +91,7 @@ local function accountExists(username) -- FezzedOne: And is not a guest account.
 end
 
 local function getAccountConnectionId(username)
-    if type(username) ~= "string" return nil end
+    if type(username) ~= "string" then return nil end
     for universe.clientIds() as clientId do
         if account := universe.clientAccount(clientId) then
             if account == username then return clientId end
@@ -143,20 +145,24 @@ local function setAccount(username, password, isAdmin, isGuest)
 end
 
 local function sanitiseCheck(str)
-    if type(str) ~= "string" then return false end
+    if type(str) ~= "string" then return nil end
     if sb.stripEscapeCodes(str) ~= str or str:gsub('%W','') ~= str then
-        return false
+        return nil
     end
-    return true
+    return str
 end
 
 local function sendServerChat(cID, message)
     if math.tointeger(cID) then
+        local serverNick = getConfig().serverNick
+        serverNick = type(serverNick) == "string" ? serverNick : ""
+        local serverPortrait = getConfig().serverPortrait
+        serverPortrait = type(serverPortrait) == "string" ? serverPortrait : ""
         universe.sendChat(cID, {
             context = { mode = "Broadcast", channel = "" },
             fromConnection = 0,
-            fromNick = "server",
-            portrait = "",
+            fromNick = serverNick,
+            portrait = serverPortrait,
             text = tostring(message),
             data = jobject{},
         })
@@ -164,13 +170,17 @@ local function sendServerChat(cID, message)
 end
 
 local function sendWorldChat(world, message)
-    for universe.clientIds as cID do
+    for universe.clientIds() as cID do
+        local serverNick = getConfig().serverNick
+        serverNick = type(serverNick) == "string" ? serverNick : ""
+        local serverPortrait = getConfig().serverPortrait
+        serverPortrait = type(serverPortrait) == "string" ? serverPortrait : ""
         if universe.clientWorld(cID) ~= world then continue end
         universe.sendChat(cID, {
             context = { mode = "Broadcast", channel = "" },
             fromConnection = 0,
-            fromNick = "server",
-            portrait = "",
+            fromNick = serverNick,
+            portrait = serverPortrait,
             text = tostring(message),
             data = jobject{},
         })
@@ -267,8 +277,8 @@ function commands.who(cid, _)
             else
                 nick = nick .. "^reset;"
             end
-            local accountName = universe.clientAccount(clientId)
-            accountName = accountName and (string.format(" (%s)", accountName)) or ""
+            local accountName = universe.clientAccount(client)
+            accountName = accountName and (string.format(" (^cyan;%s^reset;)", accountName)) or ""
             outputString = outputString .. nick .. accountName .. ", "
         end
         outputString = outputString:sub(1, -3)
@@ -304,8 +314,8 @@ function commands.world(cid, _)
             else
                 nick = nick .. "^reset;"
             end
-            local accountName = universe.clientAccount(clientId)
-            accountName = accountName and (string.format(" (%s)", accountName)) or ""
+            local accountName = universe.clientAccount(client)
+            accountName = accountName and (string.format(" (^cyan;%s^reset;)", accountName)) or ""
             outputString = outputString .. nick .. accountName .. ", "
         end
         outputString = outputString:sub(1, -3)
@@ -393,7 +403,7 @@ end
 
 function commands.register(cid, args)
     if universe.isGuest(cid) and getConfig().registrationEnabled then
-        local account, password = args:unpack()
+        local account, password = table.unpack(args)
         local success = false
         if account ~= "" and sanitiseCheck(account) and password then
             success = addAccount(account, password)
@@ -412,7 +422,7 @@ end
 
 local function newWorldClaim(world, owner, cID)
     return jobject{
-        owner = beginsWith(world, "ClientShipWorld:") ? universe.clientAccount(cID) : nil,
+        owner = beginsWith(world, "ClientShipWorld:") ? "@ship" : nil,
         allowedBuilders = jarray{false},
         allowGuestContainerModification = false,
         allowGuestContainerOpening = false,
@@ -425,10 +435,10 @@ local function listOwnedWorlds(account)
     pluto_try 
         local worldClaims = getData("claimData.ownedWorldsByAccount")
         return (type(worldClaims) == "table" ? worldClaims : jobject{})
-            :filter(|v| -> type(v) == "table")
-            :filter(|k, _| -> not beginsWith("ClientShipWorld:", k), true)
-            :filter(|v| -> v.owner == account)
-            :keys()
+            |> table.filter| function(v) return type(v) == "table" end |
+            |> table.filter| function(k, _) return not beginsWith("ClientShipWorld:", k) end, true |
+            |> table.filter| function(v) return v.owner == account end |
+            |> table.keys
     pluto_catch e then
         logError("Error while getting world claim data: %s", e)
         return {}
@@ -440,7 +450,7 @@ local function getWorldClaimData(world)
     local useServerData = getBuildConfig().storeClaimsInServerData == true
     local getData = useServerData ? universe.getServerDataPath : root.getConfigurationPath
     if type(claimData) ~= "table" then
-        setData("claimData", jobject{})
+        getData("claimData", jobject{})
     end
     local claimData = nil
     pluto_try 
@@ -454,7 +464,7 @@ local function getWorldClaimData(world)
     return claimData or jobject{}
 end
 
-local function setWorldClaimData(world, claimData)
+local function setWorldClaimData(world, claim)
     local useServerData = getBuildConfig().storeClaimsInServerData == true
     local getData = useServerData ? universe.getServerDataPath : root.getConfigurationPath
     local setData = useServerData ? universe.setServerDataPath : root.setConfigurationPath
@@ -467,10 +477,12 @@ local function setWorldClaimData(world, claimData)
         setData("claimData.ownedWorldsByAccount", jobject{})
     end
     local prefix = "claimData.ownedWorldsByAccount"
-    if not sanitiseCheck(account) then return false end
-    if claimData == nil or claimData == null or type(claimData) == "table" then
+    if claim == nil or claim == null or type(claim) == "table" then
+        if type(claim) == "table" and beginsWith(world, "ClientShipWorld:") then
+            claim.owner = "@ship"
+        end
         pluto_try
-            setData(prefix .. "." .. world, claimData ? jobject(claimData) : claimData)
+            setData(prefix .. "." .. world, claim ? jobject(claim) : claim)
         pluto_catch e then
             logError("Error while setting world claim data for world '%s': %s", tostring(world), e)
             return false
@@ -484,36 +496,33 @@ local function addBuilder(world, newBuilder)
     local claimData = getWorldClaimData(world)
     local builderList = type(claimData.allowedBuilders) == "table" ? jarray(claimData.allowedBuilders) : jarray{}
     if newBuilder in builderList then return false end
-    claimData.allowedBuilders = builderList:insert(newBuilder) or builderList
+    claimData.allowedBuilders = table.insert(builderList, newBuilder) or builderList
     return setWorldClaimData(world, claimData)
 end
 
 local function removeBuilder(world, builderToRemove)
     local claimData = getWorldClaimData(world)
     local builderList = type(claimData.allowedBuilders) == "table" ? jarray(claimData.allowedBuilders) : jarray{}
-    if not newBuilder in builderList then return false end
-    claimData.allowedBuilders = builderList:filter(|v| -> v ~= newBuilder):reorder()
+    if not builderToRemove in builderList then return false end
+claimData.allowedBuilders = table.filter(builderList, |v| -> v ~= builderToRemove) |> table.reorder
     return setWorldClaimData(world, claimData)
 end
 
 local function accountOwnsWorld(cid, world)
     local account = universe.clientAccount(cid)
     local isAdmin = universe.isAdmin(cid)
-    if type(accountName) == "string" or isAdmin then
+    local uuid = universe.clientUuid(cid)
+    if type(account) == "string" or isAdmin then
         local worldData = getWorldClaimData(world)
-        return isAdmin or worldData.owner == accountName
+        return isAdmin or worldData.owner == account or world == ("ClientShipWorld:" .. uuid)
     else
         return false
     end
 end
 
 local function worldOwner(world)
-    if type(accountName) == "string" then
-        local worldData = getWorldClaimData(world)
-        return type(worldData.owner) == "string" ? worldData.owner : true
-    else
-        return nil
-    end
+    local worldData = getWorldClaimData(world)
+    return type(worldData.owner) == "string" ? worldData.owner : true
 end
 
 function printSubCommands(list)
@@ -527,7 +536,7 @@ end
 function newClaimData(owner)
     return jobject{
         owner = owner,
-        allowedBuilders = jarray{},
+        allowedBuilders = jarray{false},
         allowGuestContainerModification = false,
         allowGuestContainerOpening = false
     }
@@ -573,10 +582,14 @@ function commands.claim(cid, args)
                             elseif isAdmin then
                                 canClaim = true
                             elseif owner := worldOwner(world) then
-                                return ( owner == true
-                                    ? "This world is already claimed."
-                                    : $"This world is already claimed by ^cyan;{owner}^reset;."
-                                )
+                                if owner == account then
+                                    return "This world is already claimed by you."
+                                else
+                                    return ( owner == true
+                                        ? "This world is already claimed."
+                                        : $"This world is already claimed by ^cyan;{owner}^reset;."
+                                    )
+                                end
                             else
                                 canClaim = true
                             end
@@ -585,12 +598,14 @@ function commands.claim(cid, args)
                                     if accountExists(sanitiseCheck(args[2])) then
                                         setWorldClaimData(world, newClaimData(args[2]))
                                         sendServerChat(getAccountConnectionId(args[2]), $"You have been granted an ownership claim to the world ^cyan;{world}^reset;.")
+                                        sendWorldChat(world, $"^cyan;{args[2]}^reset; has been granted an ownership claim to this world.")
                                         return $"Granted world claim to ^cyan;{args[2]}^reset;."
                                     else
                                         return $"Account ^cyan;{args[2]}^reset; does not exist or is an invalid account name. No claim granted."
                                     end
                                 else
                                     setWorldClaimData(world, newClaimData(account))
+                                    sendWorldChat(world, $"^cyan;{account}^reset; has claimed this world.")
                                     return "Claimed this world."
                                 end
                             else
@@ -598,7 +613,6 @@ function commands.claim(cid, args)
                             end
                             break
                         case "remove":
-                            local canRemoveClaim = false
                             if world == ("ClientShipWorld:" .. universe.clientUuid(cid)) then
                                 return "Cannot remove your shipworld's implicit claim."
                             elseif beginsWith(world, "ClientShipWorld:") then
@@ -630,6 +644,7 @@ function commands.claim(cid, args)
                             if canRemoveClaim then
                                 if args[2] == "confirm" then
                                     setWorldClaimData(world, nil)
+                                    sendWorldChat(world, "This world is no longer claimed.")
                                     return "^orange;Unclaimed this world."
                                 else
                                     return "Confirm you want to unclaim this world by entering ^orange;/claim remove confirm^reset;."
@@ -642,32 +657,42 @@ function commands.claim(cid, args)
                             if not accountOwnsWorld(cid, world) then
                                 return "You do not own this world."
                             end
+                            if beginsWith(world, "ClientShipWorld:") then
+                                return world == ("ClientShipWorld:" .. universe.clientUuid(cid))
+                                    ? "Ownership of your ship cannot be transferred to another user."
+                                    : "Ownership of a ship world cannot be transferred to another user."
+                            end
                             if accountExists(sanitiseCheck(args[2])) then
-                                local claimData = getWorldClaimData(world)
-                                claimData.owner = args[2]
-                                setWorldClaimData(world, claimData)
-                                sendServerChat(getAccountConnectionId(args[2]), $"Ownership of the world ^cyan;{world}^reset; has been transferred to you.")
-                                return $"Granted world claim to ^cyan;{args[2]}^reset;."
+                                if args[3] == "confirm" then
+                                    local claimData = getWorldClaimData(world)
+                                    claimData.owner = args[2]
+                                    setWorldClaimData(world, claimData)
+                                    sendWorldChat(world, $"Ownership of this world has been transferred to ^cyan;{args[2]}^reset;.")
+                                    sendServerChat(getAccountConnectionId(args[2]), $"Ownership of the world ^cyan;{world}^reset; has been transferred to you.")
+                                    return $"Granted world claim to ^cyan;{args[2]}^reset;."
+                                else
+                                    return $"Use ^orange;/claim setowner {args[2]} confirm^reset; to confirm you want to transfer your claim ownership to ^cyan;{args[2]}^reset;."
+                                end
                             else
                                 return $"Account ^cyan;{args[2]}^reset; does not exist or is an invalid account name. Claim ownership not changed."
                             end
                             break
                         case "builder":
-                            if args[3] then
+                            if args[3] or args[2] == "list" then
                                 if not accountOwnsWorld(cid, world) then
                                     return "You do not own this world."
                                 end
                                 if args[2] == "add" or args[2] == "remove" then
-                                    if not sanitiseCheck(args[3]) then
+                                    if (not sanitiseCheck(args[3])) and builderTags[args[3]] == nil then
                                         return $"Account ^cyan;{args[3]}^reset; is an invalid account name."
                                     end
-                                    if args[2] == "add" and (not accountExists(args[3])) and not builderTags[args[3]] then
+                                    if args[2] == "add" and (not accountExists(args[3])) and builderTags[args[3]] == nil then
                                         return $"Account ^cyan;{args[3]}^reset; does not exist."
                                     end
                                 elseif args[2] == "list" then
                                     local allowedBuilders = getWorldClaimData(world).allowedBuilders
                                     if type(allowedBuilders) == "table" then
-                                        local builders = allowedBuilders:filtered(|v| -> type(v) == "string"):reorder():map(|v| -> $"^cyan;{}^reset;")
+                                        local builders = table.filtered(allowedBuilders, |v| -> type(v) == "string") |> table.reorder |> table.map| function(v) return $"^cyan;{v}^reset;" end |
                                         local returnStr = ""
                                         local serverDisallowed = getBuildConfig().disallowServerGriefingWhenOwned == true and (not false in allowedBuilders) and (not true in allowedBuilders)
                                         local allCanBuild = true in allowedBuilders
@@ -689,6 +714,7 @@ function commands.claim(cid, args)
                                                     .. (serverDisallowed ? " ^gray;[Build permission revoked from server-side entities and weather events.]" : "")
                                             end
                                         end
+                                        return returnStr
                                     else
                                         local serverDisallowed = getBuildConfig().disallowServerGriefingWhenOwned == true
                                         return "This world has no permitted builders."
@@ -702,13 +728,13 @@ function commands.claim(cid, args)
                                 local builderName = builderNames[args[3]] ?? ("^cyan;" .. args[3] .. "^reset;")
                                 if (isAdding ? addBuilder : removeBuilder)(world, builder) then
                                     if builder ~= true and builder ~= false then
-                                        sendServerChat(getAccountConnectionId(builder), $"Build permission for world ^cyan;{world}^reset;{isAdding ? "granted to" : "revoked from"} you.")
+                                        sendServerChat(getAccountConnectionId(builder), $"Build permission for world ^cyan;{world}^reset; has been {isAdding ? "granted to" : "revoked from"} you.")
                                     else
                                         sendWorldChat(world, $"Build permission for this world has been {isAdding ? "^cyan;GRANTED^reset; to" : "^orange;REVOKED^reset; from"} {builderName}.")
                                     end
                                     return $"{isAdding ? "Gave" : "Revoked"} build permission {isAdding ? "to" : "from"} {builderName}."
                                 else
-                                    return $"Failed to {isAdding ? "give" : "revoke"} build permission {isAdding ? "to" : "from"} {builderName}, likely because the user already {isAdding ? "has" : "does not have"} permission."
+                                    return $"Failed to {isAdding ? "grant" : "revoke"} build permission {isAdding ? "to" : "from"} {builderName}, likely because the user already {isAdding ? "has" : "does not have"} permission."
                                 end
                             else
                                 return "Missing builder account/tag argument. Use ^orange;/claim^reset; with no arguments to see help for ^orange;/claim builder^reset;."
@@ -724,13 +750,15 @@ function commands.claim(cid, args)
                                 local enabledOnServer = getBuildConfig()[args[2] == "view" ? "containerOpenProtection" : "containerModificationProtection"] == true
                                 local typeName = args[2] == "view" ? "viewing" : "modification"
                                 if args[3] == "on" or args[3] == "off" then
-                                    local enable = args[3] == "off"
+                                    local enable = args[3] == "on"
                                     if enabledOnServer then
                                         claimData[key] = enable
                                         if setWorldClaimData(world, claimData) then
-                                            return "Guests are now "
-                                            .. (currentState ? "^cyan;ALLOWED^reset;" : "^orange;NOT ALLOWED^reset;" )
-                                            .. " to " .. args[2] .. " containers on this world."
+                                            local str = "Guests are now "
+                                                .. (enable ? "^cyan;ALLOWED^reset;" : "^orange;NOT ALLOWED^reset;" )
+                                                .. " to " .. args[2] .. " containers on this world."
+                                            sendWorldChat(world, str)
+                                            return str
                                         else
                                             return "^red;Failed to change container " .. typeName .. " setting for this claimed world."
                                         end
@@ -760,18 +788,18 @@ function commands.claim(cid, args)
                                     accountName = args[2] ~= "" ? args[2] : accountName
                                 end
                                 if accountName then
-                                    local worldList = listOwnedWorlds(accountName):map(|v| -> $"^cyan;{}^reset;")
+                                    local worldList = listOwnedWorlds(accountName) |> table.map| function(v) return $"^cyan;{v}^reset;" end |
                                     if #worldList == 0 then
                                         if ownAccount then
                                             return "^#f33;You have no claimed worlds."
                                         else
-                                            return $"^#cyan;{accountName}^#f33 has no claimed worlds."
+                                            return $"^cyan;{accountName}^#f33; has no claimed worlds."
                                         end
                                     else
                                         if ownAccount then
                                             return $"^#f33;You have {#worldList} claimed {#worldList == 1 ? "world" : "worlds"}:\n" .. worldList:concat("\n")
                                         else
-                                            return $"^#cyan;{accountName}^#f33 has {#worldList} claimed {#worldList == 1 ? "world" : "worlds"}:\n" .. worldList:concat("\n")
+                                            return $"^cyan;{accountName}^#f33; has {#worldList} claimed {#worldList == 1 ? "world" : "worlds"}:\n" .. worldList:concat("\n")
                                         end
                                     end
                                 else
@@ -812,7 +840,7 @@ function commands.claim(cid, args)
                 end
             else
                 if getConfig().registrationEnabled then
-                    return "An account is required to set up world claims. Use ^orange;/register <account> <password>^reset; to register a server account,"
+                    return "A server account is required to set up world claims. Use ^orange;/register <account> <password>^reset; to register a server account,"
                         .. " and then reconnect with your new account."
                 else
                     return "A server account is required to set up world claims. Account registration is currently disabled; ask the owner/host or staff about getting an account."
@@ -831,7 +859,7 @@ end
 
 function commands.getconfig(cid, args)
     if universe.isAdmin(cid) then
-        local path = args:unpack()
+        local path = table.unpack(args)
         if path ~= "" then
             local configToReturn
             pluto_try
@@ -856,14 +884,14 @@ end
 
 function commands.setconfig(cid, args)
     if universe.isAdmin(cid) then
-        local path, value = args:unpack()
+        local path, value = table.unpack(args)
         if path ~= "" and value and value ~= "" then
             local parsedValue, valueToPrint
             pluto_try
                 if beginsWith(path, "safeScripts") then
                     error("Not permitted to modify the \"safeScripts\" key.")
                 else
-                    parsedValue = sb.parseJson(value)
+                    parsedValue = sb.jsonParse(value)
                     root.setConfigurationPath(path, parsedValue)
                     valueToPrint = sb.printJson(parsedValue)
                 end
@@ -885,7 +913,7 @@ end
 
 function commands.getserverdata(cid, args)
     if universe.isAdmin(cid) then
-        local path = args:unpack()
+        local path = table.unpack(args)
         if path ~= "" then
             local configToReturn
             pluto_try
@@ -906,11 +934,11 @@ end
 
 function commands.setserverdata(cid, args)
     if universe.isAdmin(cid) then
-        local path, value = args:unpack()
+        local path, value = table.unpack(args)
         if path ~= "" and value and value ~= "" then
             local parsedValue, valueToPrint
             pluto_try
-                parsedValue = sb.parseJson(value)
+                parsedValue = sb.jsonParse(value)
                 universe.setServerDataPath(path, parsedValue)
                 valueToPrint = sb.printJson(parsedValue)
             pluto_catch e then
@@ -933,33 +961,42 @@ function clientConnected(clientId)
     local nick = universe.clientNick(clientId)
     if getConfig().stripNicks then nick = sb.stripEscapeCodes(nick) end
     local accountName = universe.clientAccount(clientId)
-    accountName = accountName and (string.format("(%s) ", accountName)) or ""
-    local connectionMessage = string.format("Player '%s' %sconnected", accountName, nick)
+    accountName = accountName and (string.format("(^cyan;%s^reset;) ", accountName)) or ""
+    local connectionMessage = string.format("Player '%s' %sconnected", nick, accountName)
+    local serverNick = getConfig().serverNick
+    serverNick = type(serverNick) == "string" ? serverNick : ""
+    local serverPortrait = getConfig().serverPortrait
+    serverPortrait = type(serverPortrait) == "string" ? serverPortrait : ""
     for _, cID in ipairs(allPlayersBut(clientId)) do
         universe.sendChat(cID, {
             context = { mode = "Broadcast", channel = "" },
             fromConnection = 0,
-            fromNick = "server",
-            portrait = "",
+            fromNick = serverNick,
+            portrait = serverPortrait,
             text = connectionMessage,
             data = jobject({}),
         })
     end
-    local buildConfig = getBuildConfig()
+
+    motdQueue[clientId] = tonumber(getConfig().motdDelay) or 0
 end
 
 function clientDisconnected(clientId)
     local nick = universe.clientNick(clientId)
     if getConfig().stripNicks then nick = sb.stripEscapeCodes(nick) end
     local accountName = universe.clientAccount(clientId)
-    accountName = accountName and (string.format("(%s) ", accountName)) or ""
-    local disconnectionMessage = string.format("Player '%s' %sdisconnected", accountName, nick)
+    accountName = accountName and (string.format("(^cyan;%s^reset;) ", accountName)) or ""
+    local disconnectionMessage = string.format("Player '%s' %sdisconnected", nick, accountName)
+    local serverNick = getConfig().serverNick
+    serverNick = type(serverNick) == "string" ? serverNick : ""
+    local serverPortrait = getConfig().serverPortrait
+    serverPortrait = type(serverPortrait) == "string" ? serverPortrait : ""
     for _, cID in ipairs(allPlayersBut(clientId)) do
         universe.sendChat(cID, {
             context = { mode = "Broadcast", channel = "" },
             fromConnection = 0,
-            fromNick = "server",
-            portrait = "",
+            fromNick = serverNick,
+            portrait = serverPortrait,
             text = disconnectionMessage,
             data = jobject({}),
         })
@@ -973,5 +1010,56 @@ function command(name, cid, args)
         return commands[name](cid, args)
     else
         return "Command ^orange;/" .. name .. "^reset; does not exist."
+    end
+end
+
+function init()
+    if type(root.getConfiguration("xServerHelper")) ~= "table" then
+        root.setConfiguration("xServerHelper", jobject{
+            stripNicks = false,
+            registrationEnabled = false,
+            motd = null,
+            motdDelay = 0,
+            serverNick = "server",
+            serverPortrait = null
+        })
+    end
+    if type(root.getConfiguration("serverUsers")) ~= "table" then
+        root.setConfiguration("serverUsers", jobject{
+            admin = jobject{
+                admin = true,
+                guest = false,
+                password = "<set admin password here>"
+            }
+        })
+    end
+end
+
+function update(dt)
+    if #table.keys(motdQueue) ~= 0 then
+        local motd = getConfig().motd
+        if type(motd) == "string" then
+            local serverNick = getConfig().serverNick
+            serverNick = type(serverNick) == "string" ? serverNick : ""
+            local serverPortrait = getConfig().serverPortrait
+            serverPortrait = type(serverPortrait) == "string" ? serverPortrait : ""
+            for clientId, timer in pairs(motdQueue) do
+                if tonumber(timer) then
+                    if timer <= 0 then
+                        universe.sendChat(clientId, {
+                            context = { mode = "Broadcast", channel = "" },
+                            fromConnection = 0,
+                            fromNick = serverNick,
+                            portrait = serverPortrait,
+                            text = motd,
+                            data = jobject({}),
+                        })
+                        motdQueue[clientId] = nil
+                    else
+                        motdQueue[clientId] -= dt
+                    end
+                end
+            end
+        end
     end
 end
