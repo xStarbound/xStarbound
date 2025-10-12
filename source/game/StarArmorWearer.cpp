@@ -17,9 +17,17 @@
 #include "StarTools.hpp"
 #include "StarWorld.hpp"
 
+#if defined TRACY_ENABLE
+#include "tracy/Tracy.hpp"
+#else
+#define ZoneScoped
+#define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& identityTags, ArmorItemPtr const& armourItem, Direction facingDirection) {
+  ZoneScoped;
   auto handleDirectiveTags = [&](StringMap<String> const& identityTags, ArmorItemPtr const& armourItem) -> ItemDescriptor {
     if (!armourItem) return ItemDescriptor();
     auto armourItemDesc = itemSafeDescriptor(as<Item>(armourItem));
@@ -112,6 +120,7 @@ ArmorWearer::ArmorWearer(Player* player) : ArmorWearer(true) {
 }
 
 void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude, bool forceSync, Maybe<Direction> facingDirection) {
+  ZoneScoped;
   bool nudeChanged = m_lastNude != forceNude;
   m_lastNude = forceNude;
 

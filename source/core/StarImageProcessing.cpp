@@ -9,6 +9,13 @@
 //#include "StarTime.hpp"
 #include "StarLogging.hpp"
 
+#if defined TRACY_ENABLE
+#include "tracy/Tracy.hpp"
+#else
+#define ZoneScoped
+#define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 Image scaleNearest(Image const& srcImage, Vec2F scale) {
@@ -280,6 +287,7 @@ FadeToColorImageOperation::FadeToColorImageOperation(Vec3B color, float amount) 
 }
 
 ImageOperation imageOperationFromString(StringView string) {
+  ZoneScopedN("imageOperationFromString");
   try {
     std::string_view view = string.utf8(); // A view into the string containing all the image operations to be compiled.
     // «Bits» are the `;`/`=`-separated parts of the operation, where the first «bit» is the operation's name and the rest are arguments.
@@ -693,6 +701,7 @@ StringList imageOperationReferences(List<ImageOperation> const& operations) {
 }
 
 void processImageOperation(ImageOperation const& operation, Image& image, ImageReferenceCallback refCallback) {
+  ZoneScopedN("processImageOperation");
   if (auto op = operation.ptr<HueShiftImageOperation>()) {
     image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
       if (pixel[3] != 0)

@@ -1,8 +1,15 @@
 #include "StarDirectives.hpp"
 #include "StarImage.hpp"
 #include "StarImageProcessing.hpp"
-#include "StarXXHash.hpp"
 #include "StarLogging.hpp"
+#include "StarXXHash.hpp"
+
+#if defined TRACY_ENABLE
+#include "tracy/Tracy.hpp"
+#else
+#define ZoneScoped
+#define ZoneScopedN(name)
+#endif
 
 namespace Star {
 
@@ -26,8 +33,9 @@ Directives::Entry::Entry(Entry const& other) {
 
 ImageOperation const& Directives::Entry::loadOperation(Shared const& parent) const {
   if (operation.is<NullImageOperation>()) {
-    try { operation = imageOperationFromString(string(parent)); }
-    catch (StarException const& e) { operation = ErrorImageOperation{ std::current_exception() }; }
+    try {
+      operation = imageOperationFromString(string(parent));
+    } catch (StarException const& e) { operation = ErrorImageOperation{std::current_exception()}; }
   }
   return operation;
 }
@@ -102,6 +110,7 @@ void Directives::loadOperations() const {
 }
 
 void Directives::parse(String&& directives) {
+  ZoneScopedN("Directives::parse");
   if (directives.empty()) {
     shared.reset();
     return;
@@ -116,13 +125,11 @@ void Directives::parse(String&& directives) {
         try {
           ImageOperation operation = imageOperationFromString(split);
           newList.emplace_back(std::move(operation), beg, end);
-        }
-        catch (StarException const& e) {
+        } catch (StarException const& e) {
           prefix = split;
           return;
         }
-      }
-      else {
+      } else {
         ImageOperation operation = NullImageOperation();
         newList.emplace_back(std::move(operation), beg, end);
       }
@@ -218,7 +225,7 @@ DataStream& operator>>(DataStream& ds, Directives& directives) {
   return ds;
 }
 
-DataStream& operator<<(DataStream & ds, Directives const& directives) {
+DataStream& operator<<(DataStream& ds, Directives const& directives) {
   if (directives)
     ds.write(directives.shared->string);
   else
@@ -375,4 +382,4 @@ size_t hash<DirectivesGroup>::operator()(DirectivesGroup const& s) const {
   return s.hash();
 }
 
-}
+} // namespace Star

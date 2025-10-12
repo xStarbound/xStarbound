@@ -9,6 +9,13 @@
 #include "StarSpeciesDatabase.hpp"
 #include <cstddef>
 
+#if defined TRACY_ENABLE
+#include "tracy/Tracy.hpp"
+#else
+#define ZoneScoped
+#define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 extern EnumMap<HumanoidEmote> const HumanoidEmoteNames{
@@ -273,6 +280,7 @@ Humanoid::Humanoid(HumanoidIdentity const& identity)
 }
 
 void Humanoid::setIdentity(HumanoidIdentity const& identity, Maybe<HumanoidIdentity> const& visualOverrides) {
+  ZoneScoped;
   m_identity = identity;
   if (visualOverrides)
     m_visualIdentity = *visualOverrides;
@@ -343,6 +351,7 @@ void Humanoid::setFrontSleeveFrameset(String frontSleeveFrameset) {
 }
 
 void Humanoid::setLegsArmorDirectives(Directives directives) {
+  Logger::info("[xSB::Debug] Set legs armour directives to: '{}'", directives.string());
   m_legsArmorDirectives = std::move(directives);
 }
 
@@ -616,6 +625,7 @@ void Humanoid::resetAnimation() {
 }
 
 List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> aimAngle) {
+  ZoneScoped;
   List<Drawable> drawables;
 
   int armStateSeq = getArmStateSequence();
@@ -1502,6 +1512,8 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
 }
 
 List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
+  ZoneScoped;
+
   List<Drawable> drawables;
   int emoteStateSeq = m_timing.emoteStateSeq(m_emoteAnimationTimer, m_emoteState);
 
@@ -1872,6 +1884,7 @@ List<Drawable> Humanoid::renderSkull() const {
 }
 
 Humanoid Humanoid::makeDummy(Gender gender) {
+  ZoneScoped;
   auto assets = Root::singleton().assets();
   Humanoid humanoid(assets->json("/humanoid.config"));
 
