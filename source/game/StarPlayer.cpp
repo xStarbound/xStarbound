@@ -3329,7 +3329,7 @@ void Player::setNetArmorSecret(uint8_t cosmeticSlot, ArmorItemPtr const& armor) 
       {"imagePath", playerIdentity.imagePath ? *playerIdentity.imagePath : playerIdentity.species},
       {"gender", playerIdentity.gender == Gender::Male ? "male" : "female"},
       {"bodyDirectives", playerIdentity.bodyDirectives.string()},
-      {"emoteDirectives", playerIdentity.bodyDirectives.string()},
+      {"emoteDirectives", playerIdentity.emoteDirectives.string()},
       {"hairGroup", playerIdentity.hairGroup},
       {"hairType", playerIdentity.hairType},
       {"hairDirectives", playerIdentity.hairDirectives.string()},
