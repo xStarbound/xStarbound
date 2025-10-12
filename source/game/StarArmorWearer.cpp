@@ -112,11 +112,12 @@ ArmorWearer::ArmorWearer() : m_lastNude(true), m_lastFacingDirection(255) {
 }
 
 ArmorWearer::ArmorWearer(bool isPlayer) : ArmorWearer() {
-  m_isPlayer = isPlayer;
+  m_isPlayer = isPlayer; // Using this as an "is mastered NPC" variable.
 }
 
-ArmorWearer::ArmorWearer(Player* player) : ArmorWearer(true) {
+ArmorWearer::ArmorWearer(Player* player) : ArmorWearer(false) {
   m_player = player;
+  if (m_player) m_isPlayer = m_player->isMaster();
 }
 
 void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude, bool forceSync, Maybe<Direction> facingDirection) {
@@ -240,7 +241,6 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   List<Humanoid::BackEntry> backArmorStack = {};
 
   bool pulledOpenSbCosmeticUpdate = m_player ? m_player->pulledCosmeticUpdate() : false;
-  m_isOpenSb |= pulledOpenSbCosmeticUpdate;
 
   auto& openSbCosmeticStack = m_player ? m_player->getNetArmorSecrets() : Array<ArmorItemPtr, 12>::filled(nullptr);
 
@@ -1024,11 +1024,8 @@ void ArmorWearer::setChestCosmeticItem(ChestArmorPtr chestCosmeticItem) {
 }
 
 void ArmorWearer::setLegsItem(LegsArmorPtr legsItem) {
-  Logger::info("[xSB::Debug] {} legs item.", legsItem ? "Setting" : "Removing");
-  if (Item::itemsEqual(m_legsItem, legsItem)) {
-    Logger::info("[xSB::Debug] New legs item (or lack thereof) same as existing item (or lack thereof) in slot.");
+  if (Item::itemsEqual(m_legsItem, legsItem))
     return;
-  }
   m_legsItem = legsItem;
   m_legsNeedsSync = true;
 }
@@ -1135,7 +1132,7 @@ ItemDescriptor ArmorWearer::backCosmeticItemDescriptor() const {
 }
 
 void ArmorWearer::netElementsNeedLoad(bool) {
-  // if (m_player && m_player->isMaster()) return;
+  if (m_isPlayer) return; // FezzedOne: Required sanity check. Mastered entities should not have enslaved armour wearers. `m_isPlayer` is actually a «is mastered» check here.
 
   auto itemDatabase = Root::singleton().itemDatabase();
 
@@ -1148,8 +1145,6 @@ void ArmorWearer::netElementsNeedLoad(bool) {
   if (m_backCosmeticItemDataNetState.pullUpdated())
     m_backNeedsSync = itemDatabase->loadItem(m_backCosmeticItemDataNetState.get(), m_backCosmeticItem) || m_backNeedsSync;
 
-  bool hadLegsItem = (bool)m_legsItem;
-
   if (m_headItemDataNetState.pullUpdated())
     m_headNeedsSync = (itemDatabase->loadItem(m_headItemDataNetState.get(), m_headItem)) || m_headNeedsSync;
   if (m_chestItemDataNetState.pullUpdated())
@@ -1158,9 +1153,6 @@ void ArmorWearer::netElementsNeedLoad(bool) {
     m_legsNeedsSync = (itemDatabase->loadItem(m_legsItemDataNetState.get(), m_legsItem)) || m_legsNeedsSync;
   if (m_backItemDataNetState.pullUpdated())
     m_backNeedsSync = (itemDatabase->loadItem(m_backItemDataNetState.get(), m_backItem)) || m_backNeedsSync;
-
-  if (m_legsItem && !hadLegsItem && (m_player && m_player->isMaster()))
-    Logger::info("This should NOT be happening!");
 }
 
 void ArmorWearer::netElementsNeedStore() {
@@ -1196,10 +1188,6 @@ void ArmorWearer::netElementsNeedStore() {
 
     m_headItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headItem), (Direction)m_lastFacingDirection));
     m_chestItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestItem), (Direction)m_lastFacingDirection));
-    if (m_legsItem)
-      Logger::info("[xSB::Debug] Sending legs item over network.");
-    else
-      Logger::info("[xSB::Debug] Sending empty legs item slot over network.");
     m_legsItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsItem), (Direction)m_lastFacingDirection));
     m_backItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backItem), (Direction)m_lastFacingDirection));
 
