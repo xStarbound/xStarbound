@@ -85,7 +85,7 @@ ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& i
       desc = itemSafeDescriptor(as<Item>(armourItem));
     return desc;
   }
-  return itemSafeDescriptor(ItemPtr());
+  return ItemDescriptor();
 }
 
 
@@ -1135,6 +1135,8 @@ ItemDescriptor ArmorWearer::backCosmeticItemDescriptor() const {
 }
 
 void ArmorWearer::netElementsNeedLoad(bool) {
+  // if (m_player && m_player->isMaster()) return;
+
   auto itemDatabase = Root::singleton().itemDatabase();
 
   if (m_headCosmeticItemDataNetState.pullUpdated())
@@ -1206,6 +1208,10 @@ void ArmorWearer::netElementsNeedStore() {
 
     m_headItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headItem), (Direction)m_lastFacingDirection));
     m_chestItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestItem), (Direction)m_lastFacingDirection));
+    if (m_legsItem)
+      Logger::info("[xSB::Debug] Sending legs item over network.");
+    else
+      Logger::info("[xSB::Debug] Sending empty legs item slot over network.");
     m_legsItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsItem), (Direction)m_lastFacingDirection));
     m_backItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backItem), (Direction)m_lastFacingDirection));
 
