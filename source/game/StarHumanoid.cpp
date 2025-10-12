@@ -351,7 +351,6 @@ void Humanoid::setFrontSleeveFrameset(String frontSleeveFrameset) {
 }
 
 void Humanoid::setLegsArmorDirectives(Directives directives) {
-  Logger::info("[xSB::Debug] Set legs armour directives to: '{}'", directives.string());
   m_legsArmorDirectives = std::move(directives);
 }
 
