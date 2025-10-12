@@ -1146,6 +1146,8 @@ void ArmorWearer::netElementsNeedLoad(bool) {
   if (m_backCosmeticItemDataNetState.pullUpdated())
     m_backNeedsSync = itemDatabase->loadItem(m_backCosmeticItemDataNetState.get(), m_backCosmeticItem) || m_backNeedsSync;
 
+  bool hadLegsItem = (bool)m_legsItem;
+
   if (m_headItemDataNetState.pullUpdated())
     m_headNeedsSync = (itemDatabase->loadItem(m_headItemDataNetState.get(), m_headItem)) || m_headNeedsSync;
   if (m_chestItemDataNetState.pullUpdated())
@@ -1154,6 +1156,9 @@ void ArmorWearer::netElementsNeedLoad(bool) {
     m_legsNeedsSync = (itemDatabase->loadItem(m_legsItemDataNetState.get(), m_legsItem)) || m_legsNeedsSync;
   if (m_backItemDataNetState.pullUpdated())
     m_backNeedsSync = (itemDatabase->loadItem(m_backItemDataNetState.get(), m_backItem)) || m_backNeedsSync;
+
+  if (m_legsItem && !hadLegsItem && (m_player && m_player->isMaster()))
+    Logger::info("This should NOT be happening!");
 }
 
 void ArmorWearer::netElementsNeedStore() {
