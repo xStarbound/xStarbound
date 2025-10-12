@@ -323,6 +323,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           // humanoid.setHeadArmorStack(headArmorStack);
         } else {
           humanoid.setHeadArmorFrameset("");
+          humanoid.setHeadArmorDirectives("");
           humanoid.setHelmetMaskDirectives("");
         }
       }
@@ -350,6 +351,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             humanoid.setHeadArmorUnderlayStack(headUnderlayArmorStack);
           } else {
             humanoid.setHeadArmorUnderlayFrameset("");
+            humanoid.setHeadArmorUnderlayDirectives("");
             humanoid.setHelmetMaskUnderlayDirectives("");
             humanoid.setHeadArmorUnderlayStack({});
           }
@@ -358,6 +360,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       } else {
         if (anyNeedsSync) {
           humanoid.setHeadArmorUnderlayFrameset("");
+          humanoid.setHeadArmorUnderlayDirectives("");
           humanoid.setHelmetMaskUnderlayDirectives("");
           humanoid.setHeadArmorUnderlayStack({});
         }
@@ -386,6 +389,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         }
         // humanoid.setHeadArmorStack(headArmorStack);
         humanoid.setHeadArmorUnderlayFrameset("");
+        humanoid.setHeadArmorUnderlayDirectives("");
         humanoid.setHelmetMaskUnderlayDirectives("");
         humanoid.setHeadArmorUnderlayStack({});
       }
@@ -393,8 +397,10 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     } else {
       if (anyNeedsSync) {
         humanoid.setHeadArmorFrameset("");
+        humanoid.setHeadArmorDirectives("");
         humanoid.setHelmetMaskDirectives("");
         humanoid.setHeadArmorUnderlayFrameset("");
+        humanoid.setHeadArmorUnderlayDirectives("");
         humanoid.setHelmetMaskUnderlayDirectives("");
         // humanoid.setHeadArmorStack(headArmorStack);
         humanoid.setHeadArmorUnderlayStack({});
@@ -443,6 +449,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             humanoid.setBackSleeveFrameset("");
             humanoid.setFrontSleeveFrameset("");
             humanoid.setChestArmorFrameset("");
+            humanoid.setChestArmorDirectives("");
           }
         }
         if (m_chestItem && !hiddenArmourSlots.chest && !m_chestItem->hideInStockSlots()) {
@@ -482,6 +489,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
               humanoid.setBackSleeveUnderlayFrameset("");
               humanoid.setFrontSleeveUnderlayFrameset("");
               humanoid.setChestArmorUnderlayFrameset("");
+              humanoid.setChestArmorUnderlayDirectives("");
               humanoid.setChestArmorUnderlayStack({});
               humanoid.setFrontSleeveUnderlayStack({});
               humanoid.setBackSleeveUnderlayStack({});
@@ -493,6 +501,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             humanoid.setBackSleeveUnderlayFrameset("");
             humanoid.setFrontSleeveUnderlayFrameset("");
             humanoid.setChestArmorUnderlayFrameset("");
+            humanoid.setChestArmorUnderlayDirectives("");
             humanoid.setChestArmorUnderlayStack({});
             humanoid.setFrontSleeveUnderlayStack({});
             humanoid.setBackSleeveUnderlayStack({});
@@ -535,6 +544,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           humanoid.setBackSleeveUnderlayFrameset("");
           humanoid.setFrontSleeveUnderlayFrameset("");
           humanoid.setChestArmorUnderlayFrameset("");
+          humanoid.setChestArmorUnderlayDirectives("");
           humanoid.setChestArmorUnderlayStack({});
           humanoid.setFrontSleeveUnderlayStack({});
           humanoid.setBackSleeveUnderlayStack({});
@@ -545,9 +555,11 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           humanoid.setBackSleeveFrameset("");
           humanoid.setFrontSleeveFrameset("");
           humanoid.setChestArmorFrameset("");
+          humanoid.setChestArmorDirectives("");
           humanoid.setBackSleeveUnderlayFrameset("");
           humanoid.setFrontSleeveUnderlayFrameset("");
           humanoid.setChestArmorUnderlayFrameset("");
+          humanoid.setChestArmorUnderlayDirectives("");
           // humanoid.setChestArmorStack(chestArmorStack);
           // humanoid.setFrontSleeveStack(frontSleeveStack);
           // humanoid.setBackSleeveStack(backSleeveStack);
@@ -581,6 +593,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             // humanoid.setLegsArmorStack(legsArmorStack);
           } else {
             humanoid.setLegsArmorFrameset("");
+            humanoid.setLegsArmorDirectives("");
           }
         }
         if (m_legsItem && !hiddenArmourSlots.legs && !m_legsItem->hideInStockSlots()) {
@@ -606,6 +619,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
               humanoid.setLegsArmorUnderlayStack(legsArmorUnderlayStack);
             } else {
               humanoid.setLegsArmorUnderlayFrameset("");
+              humanoid.setLegsArmorUnderlayDirectives("");
               humanoid.setLegsArmorUnderlayStack({});
             }
           }
@@ -613,6 +627,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         } else {
           if (anyNeedsSync) {
             humanoid.setLegsArmorUnderlayFrameset("");
+            humanoid.setLegsArmorUnderlayDirectives("");
             humanoid.setLegsArmorUnderlayStack({});
           }
         }
@@ -639,13 +654,16 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           }
           // humanoid.setLegsArmorStack(legsArmorStack);
           humanoid.setLegsArmorUnderlayFrameset("");
+          humanoid.setLegsArmorUnderlayDirectives("");
           humanoid.setLegsArmorUnderlayStack({});
         }
         bodyHidden = bodyHidden || m_legsItem->hideBody();
       } else {
         if (anyNeedsSync) {
           humanoid.setLegsArmorFrameset("");
+          humanoid.setLegsArmorDirectives("");
           humanoid.setLegsArmorUnderlayFrameset("");
+          humanoid.setLegsArmorUnderlayDirectives("");
           // humanoid.setLegsArmorStack(legsArmorStack);
           humanoid.setLegsArmorUnderlayStack({});
         }
@@ -698,6 +716,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           // humanoid.setBackArmorStack(backArmorStack);
         } else {
           humanoid.setBackArmorFrameset("");
+          humanoid.setBackArmorDirectives("");
           humanoid.setBackArmorHeadRotation(false);
         }
       }
@@ -726,6 +745,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             humanoid.setBackArmorUnderlayStack(backArmorUnderlayStack);
           } else {
             humanoid.setBackArmorUnderlayFrameset("");
+            humanoid.setBackArmorUnderlayDirectives("");
             humanoid.setBackArmorUnderlayStack({});
             humanoid.setBackArmorUnderlayHeadRotation(false);
           }
@@ -734,7 +754,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       } else {
         if (anyNeedsSync) {
           humanoid.setBackArmorUnderlayFrameset("");
+          humanoid.setBackArmorUnderlayDirectives("");
           humanoid.setBackArmorUnderlayStack({});
+          humanoid.setBackArmorUnderlayHeadRotation(false);
         }
       }
       bodyHidden = bodyHidden || m_backCosmeticItem->hideBody();
@@ -762,6 +784,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         }
         // humanoid.setBackArmorStack(backArmorStack);
         humanoid.setBackArmorUnderlayFrameset("");
+        humanoid.setBackArmorUnderlayDirectives("");
         humanoid.setBackArmorUnderlayHeadRotation(false);
         humanoid.setBackArmorUnderlayStack({});
       }
@@ -769,8 +792,10 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     } else {
       if (anyNeedsSync) {
         humanoid.setBackArmorFrameset("");
+        humanoid.setBackArmorDirectives("");
         humanoid.setBackArmorHeadRotation(false);
         humanoid.setBackArmorUnderlayFrameset("");
+        humanoid.setBackArmorUnderlayDirectives("");
         humanoid.setBackArmorUnderlayHeadRotation(false);
         // humanoid.setBackArmorStack(backArmorStack);
         humanoid.setBackArmorUnderlayStack({});
