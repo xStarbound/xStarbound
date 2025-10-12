@@ -1024,8 +1024,11 @@ void ArmorWearer::setChestCosmeticItem(ChestArmorPtr chestCosmeticItem) {
 }
 
 void ArmorWearer::setLegsItem(LegsArmorPtr legsItem) {
-  if (Item::itemsEqual(m_legsItem, legsItem))
+  Logger::info("[xSB::Debug] {} legs item.", legsItem ? "Setting" : "Removing");
+  if (Item::itemsEqual(m_legsItem, legsItem)) {
+    Logger::info("[xSB::Debug] New legs item (or lack thereof) same as existing item (or lack thereof) in slot.");
     return;
+  }
   m_legsItem = legsItem;
   m_legsNeedsSync = true;
 }
