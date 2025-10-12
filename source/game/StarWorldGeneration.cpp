@@ -685,8 +685,12 @@ void WorldGenerator::initEntity(WorldStorage*, EntityId entityId, EntityPtr cons
 }
 
 void WorldGenerator::destructEntity(WorldStorage*, EntityPtr const& entity) {
-  if (entity->isSlave())
-    throw StarException("Cannot destruct slave entity in WorldStorage, something has gone wrong!");
+  if (entity->isSlave()) { // FezzedOne: Should hopefully fix a crash related to earlier `uninit` changes for shipworlds.
+    auto entityId = entity->entityId();
+    Logger::warn("WorldStorage: Ignoring storage of client-mastered entity {} owned by cID {}...", entityId, connectionForEntity(entityId));
+    return;
+    // throw StarException("Cannot destruct slave entity in WorldStorage, something has gone wrong!");
+  }
   if (auto tileEntity = as<TileEntity>(entity))
     m_worldServer->updateTileEntityTiles(tileEntity, true, false);
   entity->uninit();
