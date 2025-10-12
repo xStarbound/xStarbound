@@ -172,7 +172,8 @@ void Npc::init(World* world, EntityId entityId, EntityMode mode) {
   m_statusController->init(this, m_movementController.get());
   m_tools->init(this);
 
-  m_armor->setupHumanoidClothingDrawables(m_humanoid, false, true, m_movementController->facingDirection());
+  // FezzedOne: Since NPCs never use `forceNude` anyway, using that parameter as an 'is master' parameter required for sane armour item networking.
+  m_armor->setupHumanoidClothingDrawables(m_humanoid, isMaster(), true, m_movementController->facingDirection());
 
   if (isMaster()) {
     m_movementController->resetAnchorState();
@@ -645,7 +646,7 @@ void Npc::tickShared(float dt) {
     }
   }
 
-  m_armor->setupHumanoidClothingDrawables(m_humanoid, false, false, m_movementController->facingDirection());
+  m_armor->setupHumanoidClothingDrawables(m_humanoid, isMaster(), false, m_movementController->facingDirection());
 
   m_tools->suppressItems(!canUseTool());
   m_tools->tick(dt, m_shifting.get(), {});
