@@ -1334,7 +1334,7 @@ void UniverseServer::shutdownInactiveWorlds() {
 
         if (worldId.is<ClientShipWorldId>()) {
           if (auto clientId = getClientForUuid(worldId.get<ClientShipWorldId>())) {
-            world->preUninit(); // FezzedOne: Ensure the world is uninitialised *before* sending its chunks.
+            // world->preUninit(); // FezzedOne: Never mind, can't do this without risking crashes.
             m_clients.get(*clientId)->updateShipChunks(world->readChunks());
           }
         }
@@ -2181,7 +2181,7 @@ void UniverseServer::doDisconnection(ConnectionId clientId, String const& reason
       // Send the client the last ship update.
       if (auto shipWorld = getWorld(ClientShipWorldId(clientContext->playerUuid()))) {
         shipWorld->stop();
-        shipWorld->preUninit();
+        // shipWorld->preUninit();
         clientContext->updateShipChunks(shipWorld->readChunks());
       }
       sendClientContextUpdate(clientContext);
