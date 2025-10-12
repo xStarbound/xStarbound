@@ -124,7 +124,8 @@ void WorldServer::preUninit() {
   m_spawner.uninit();
   writeMetadata();
   m_worldStorage->unloadAll(true);
-  m_entityMap.reset();
+  // FezzedOne: Entity map needs to be available for queries if non-owning players are on the shipworld when it's uninitialised.
+  // m_entityMap.reset();
 
   // FezzedOne: Tell the Lua root to collect its fucking garbage and shut down when the world is uninitialised.
   // Needs to be last because Lua scripts have to be called when unloading a world.
