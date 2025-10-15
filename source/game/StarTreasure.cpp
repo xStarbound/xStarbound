@@ -41,7 +41,7 @@ TreasureDatabase::TreasureDatabase() {
 
         ItemPool itemPool;
 
-        if (!config.get("fill", Json()).isType(Json::Type::Array))
+        if (!config.get("fill", JsonArray{}).isType(Json::Type::Array))
           throw TreasureException(strf("Fill value in TreasurePool entry '{}' in file '{}' is not an array", entry, file));
         for (auto const& entry : config.getArray("fill", {}))
           if (entry.contains("pool"))
@@ -51,7 +51,7 @@ TreasureDatabase::TreasureDatabase() {
           else
             throw TreasureException(strf("TreasurePool entry '{}' did not specify a valid 'item' or 'pool'", entry));
 
-        if (!config.get("pool", Json()).isType(Json::Type::Array))
+        if (!config.get("pool", JsonArray{}).isType(Json::Type::Array))
           throw TreasureException(strf("Pool value in TreasurePool entry '{}' in file '{}' is not an array", entry, file));
         for (auto const& entry : config.getArray("pool", {})) {
           if (!entry.contains("weight"))
