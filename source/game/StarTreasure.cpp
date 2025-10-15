@@ -1,12 +1,12 @@
 #include "StarTreasure.hpp"
+#include "StarAssets.hpp"
+#include "StarContainerObject.hpp"
+#include "StarItemBag.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarJsonExtra.hpp"
 #include "StarObjectDatabase.hpp"
 #include "StarRoot.hpp"
-#include "StarItemDatabase.hpp"
-#include "StarAssets.hpp"
-#include "StarItemBag.hpp"
 #include "StarWorld.hpp"
-#include "StarContainerObject.hpp"
-#include "StarJsonExtra.hpp"
 
 namespace Star {
 
@@ -20,14 +20,19 @@ TreasureDatabase::TreasureDatabase() {
   assets->queueJsons(treasureChests);
 
   for (auto file : treasurePools) {
+    auto jsonConfig = assets->json(file);
+    if (!jsonConfig.isType(Json::Type::Object))
+      throw TreasureException(strf("Root level of treasure pool file '{}' is not an object", file));
     for (auto const& pair : assets->json(file).iterateObject()) {
       if (m_treasurePools.contains(pair.first))
         throw TreasureException(strf("Duplicate TreasurePool config '{}' from file '{}'", pair.first, file));
 
       auto& treasurePool = m_treasurePools[pair.first];
+      if (!pair.second.isType(Json::Type::Array))
+        throw TreasureException(strf("TreasurePool entry '{}' from file '{}' is not an array", pair.first, file));
       for (auto const& entry : pair.second.iterateArray()) {
         if (entry.size() != 2)
-          throw TreasureException("Wrong size for TreasurePool entry, list must be 2");
+          throw TreasureException(strf("Wrong size for TreasurePool entry '{}' from file '{}', array must have 2 elements", pair.first, file));
 
         float startLevel = entry.getFloat(0);
         auto config = entry.get(1);
@@ -71,11 +76,16 @@ TreasureDatabase::TreasureDatabase() {
   }
 
   for (auto file : treasureChests) {
-    for (auto const& pair : assets->json(file).iterateObject()) {
+    auto jsonConfig = assets->json(file);
+    if (!jsonConfig.isType(Json::Type::Object))
+      throw TreasureException(strf("Root level of treasure chest file '{}' is not an object", file));
+    for (auto const& pair : jsonConfig.iterateObject()) {
       if (m_treasureChestSets.contains(pair.first))
         throw TreasureException(strf("Duplicate TreasureChestSet config '{}' from file '{}'", pair.first, file));
 
       auto& treasureChestSet = m_treasureChestSets[pair.first];
+      if (!pair.second.isType(Json::Type::Array))
+        throw TreasureException(strf("TreasureChestSet entry '{}' from file '{}' is not an array", pair.first, file));
       for (auto const& entry : pair.second.iterateArray()) {
         TreasureChest treasureChest;
 
@@ -216,4 +226,4 @@ ContainerObjectPtr TreasureDatabase::createTreasureChest(World* world, String co
   return containerObject;
 }
 
-}
+} // namespace Star
