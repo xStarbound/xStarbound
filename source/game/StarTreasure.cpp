@@ -31,14 +31,18 @@ TreasureDatabase::TreasureDatabase() {
       if (!pair.second.isType(Json::Type::Array))
         throw TreasureException(strf("TreasurePool entry '{}' from file '{}' is not an array", pair.first, file));
       for (auto const& entry : pair.second.iterateArray()) {
+        if (!entry.isType(Json::Type::Array))
+          throw TreasureException(strf("TreasurePool entry '{}' from file '{}' is not an array", entry, file));
         if (entry.size() != 2)
-          throw TreasureException(strf("Wrong size for TreasurePool entry '{}' from file '{}', array must have 2 elements", pair.first, file));
+          throw TreasureException(strf("Wrong size for TreasurePool entry '{}' from file '{}', array must have 2 elements", entry, file));
 
         float startLevel = entry.getFloat(0);
         auto config = entry.get(1);
 
         ItemPool itemPool;
 
+        if (!config.get("fill", Json()).isType(Json::Type::Array))
+          throw TreasureException(strf("Fill value in TreasurePool entry '{}' in file '{}' is not an array", entry, file));
         for (auto const& entry : config.getArray("fill", {}))
           if (entry.contains("pool"))
             itemPool.fill.append(entry.getString("pool"));
@@ -47,6 +51,8 @@ TreasureDatabase::TreasureDatabase() {
           else
             throw TreasureException(strf("TreasurePool entry '{}' did not specify a valid 'item' or 'pool'", entry));
 
+        if (!config.get("pool", Json()).isType(Json::Type::Array))
+          throw TreasureException(strf("Pool value in TreasurePool entry '{}' in file '{}' is not an array", entry, file));
         for (auto const& entry : config.getArray("pool", {})) {
           if (!entry.contains("weight"))
             throw TreasureException(strf("TreasurePool entry '{}' did not specify a weight", entry));
