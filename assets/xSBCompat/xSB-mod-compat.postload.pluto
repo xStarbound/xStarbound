@@ -204,11 +204,17 @@ pluto_try
     local nodachiScriptPath = "/nScripts/nOdachi.lua"
 
     if assets.exists(nodachiScriptPath) then
-        local typoLine = "if (fireMode == \"alt\" or fireMode == \"primary\") and odachi.pCD == 0  and odachi.aCD == 0then"
-        local patchedLine = "if (fireMode == \"alt\" or fireMode == \"primary\") and odachi.pCD == 0  and odachi.aCD == 0 then"
+        local typoLine = "odachi.aCD == 0then"
+        local patchedLine = "odachi.aCD == 0 then"
         local scriptToPatch = assets.bytes(nodachiScriptPath)
         assets.erase(nodachiScriptPath)
-        assets.add(nodachiScriptPath, scriptToPatch:gsub(typoLine, patchedLine))
+        local result, numChanges = scriptToPatch:gsub(typoLine, patchedLine)
+        if numChanges == 0 then
+            sb.logInfo("[xSBCompat::Debug] Nodachi script not patched!")
+        end
+        assets.add(nodachiScriptPath, result)
+    else
+        sb.logInfo("[xSBCompat::Debug] Nodachi script not found!")
     end
 
     logInfo(modName)
