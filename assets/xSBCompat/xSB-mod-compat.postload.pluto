@@ -194,6 +194,29 @@ pluto_catch e then
 end
 ::skipNpcMechsPatch::
 
+--- Compatibility patch for me's Nodachi ---
+
+if not "[ex] Nodachi" in loadedMods then goto skipNodachiPatch end
+modName = "me's Nodachi"
+
+pluto_try
+    -- The same exact type of typo as NPC Mechs also exists in this mod.
+    local nodachiScriptPath = "/nScripts/nOdachi.lua"
+
+    if assets.exists(nodachiScriptPath) then
+        local typoLine = "if (fireMode == \"alt\" or fireMode == \"primary\") and odachi.pCD == 0  and odachi.aCD == 0then"
+        local patchedLine = "if (fireMode == \"alt\" or fireMode == \"primary\") and odachi.pCD == 0  and odachi.aCD == 0 then"
+        local scriptToPatch = assets.bytes(nodachiScriptPath)
+        assets.remove(nodachiScriptPath)
+        assets.add(nodachiScriptPath, scriptToPatch:gsub(typoLine, patchedLine))
+    end
+
+    logInfo(modName)
+pluto_catch e then
+    logError(modName, e)
+end
+::skipNodachiPatch::
+
 --- Compatibility patch for Patman's Infiniter Inventory ---
 
 -- FezzedOne: This patch is needed to replace the unsafe smuggled Infiniter Inventory pane callback with a pane message,
