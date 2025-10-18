@@ -184,7 +184,7 @@ pluto_try
         local typoLine = "if thisarm.npcfiretime > 0then%-%- %-maxtyme then"
         local patchedLine = "if thisarm.npcfiretime > 0 then -- -maxtyme then"
         local scriptToPatch = assets.bytes(modularMechNpc2ScriptPath)
-        assets.remove(modularMechNpc2ScriptPath)
+        assets.erase(modularMechNpc2ScriptPath)
         assets.add(modularMechNpc2ScriptPath, scriptToPatch:gsub(typoLine, patchedLine))
     end
 
@@ -207,7 +207,7 @@ pluto_try
         local typoLine = "if (fireMode == \"alt\" or fireMode == \"primary\") and odachi.pCD == 0  and odachi.aCD == 0then"
         local patchedLine = "if (fireMode == \"alt\" or fireMode == \"primary\") and odachi.pCD == 0  and odachi.aCD == 0 then"
         local scriptToPatch = assets.bytes(nodachiScriptPath)
-        assets.remove(nodachiScriptPath)
+        assets.erase(nodachiScriptPath)
         assets.add(nodachiScriptPath, scriptToPatch:gsub(typoLine, patchedLine))
     end
 
