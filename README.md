@@ -162,7 +162,8 @@ xStarbound now has a «universal mod compatibiliser» called xSBCompat! xSBCompa
 - [Infiniter Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3514830972) ([GitHub](https://github.com/bongus-jive/infiniter-inventory)) — all features supported.
 - [Is this Printable?](https://steamcommunity.com/sharedfiles/filedetails/?id=3507216031) — requires xSBCompat to bypass unnecessary OpenStarbound checks.
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — needs xSBCompat to defang an unneeded OpenStarbound check.
-- [NPC Mechs](https://steamcommunity.com/sharedfiles/filedetails/?id=1788644520) — the patch fixes a typo that causes an xStarbound compatibility issue.
+- [Nodachi](https://steamcommunity.com/sharedfiles/filedetails/?id=2995409356) — the patch fixes a typo that causes an xStarbound compatibility issue.
+- [NPC Mechs](https://steamcommunity.com/sharedfiles/filedetails/?id=1788644520) — ditto.
 - [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — fully supported with xSBCompat. Use `/resetinventoryposition` if your inventory ends up off-screen after installation.
 - [Ship Pet Swapper](https://steamcommunity.com/sharedfiles/filedetails/?id=3474107812) — needs xSBCompat to remove yet another unnecessary OpenStarbound check.
 - [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — fully supported once patched.
