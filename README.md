@@ -104,6 +104,7 @@ The following mods have special functionality that requires or is supported by x
 - [Auto DoubleTap Bind for Modded Techs](https://steamcommunity.com/sharedfiles/filedetails/?id=3502260176) — Requires xStarbound, OpenStarbound or StarExtensions.
 - [Back Weapon II](https://steamcommunity.com/sharedfiles/filedetails/?id=3405399202) — fully supported by xStarbound.
 - [Back Weapon II SChinese patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3581572023) — requires xStarbound or OpenStarbound for some of the translation patches to work properly.
+- [Chaos](https://steamcommunity.com/sharedfiles/filedetails/?id=3590904263) — requires xStarbound or OpenStarbound to actually scramble treasure pools. Fun for randomiser playthroughs.
 - [Clicky Keyboard UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3476945792) — should be supported by xStarbound; report any issues.
 - [Drop pixels on death](https://steamcommunity.com/sharedfiles/filedetails/?id=3350355857) ([GitHub](https://github.com/bongus-jive/drop-money-on-death)) — fully supported by xStarbound.
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
