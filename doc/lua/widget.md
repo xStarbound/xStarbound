@@ -5,14 +5,15 @@ The `widget` table contains callbacks used to manipulate and get data about widg
 - pane scripts
 - container interface scripts
 
-The `widgetName` passed into most of these callbacks can contain period separators for getting children. This is *distinct* from the JSON path syntax explained in `root.md`.
+The `widgetName` passed into most of these callbacks can contain period separators for getting children. This is _distinct_ from the JSON path syntax explained in `root.md`.
 
 Example:
+
 ```lua
 widget.getPosition("itemScrollArea.itemList.1.name")
 ```
 
-**Note:** All pixel sizes are in *interface* pixels, so there is rarely any need to account for changes to interface scale.
+**Note:** All pixel sizes are in _interface_ pixels, so there is rarely any need to account for changes to interface scale.
 
 ## General callbacks
 
@@ -88,8 +89,7 @@ Returns the arbitrary data value set for the widget.
 
 #### `void` widget.setData(`String` widgetName, `Json` data)
 
-Sets arbitrary data for the widget.
----
+## Sets arbitrary data for the widget.
 
 #### `String` widget.getChildAt(`Vec2I` screenPosition)
 
@@ -334,6 +334,14 @@ Sets the progress overlay on the item slot to the specified value (between 0 and
 
 ---
 
+#### `void` widget.addFlowImage(`String` widgetName, `String` childName, `AssetPath<Image, Directives>` imagePath)
+
+> _This callback exists in stock Starbound, but isn't shown in the vanilla documentation._
+
+Adds a new image widget with the specified name and image to the specified flow layout widget. The newly image widget is appended to the end of the flow layout's image widget list, in left-to-right, top-to-bottom order. In vanilla Starbound, this binding is used in the ship navigation screen's Lua script to display a world's weather and ore icons in the world info box.
+
+---
+
 #### `Maybe<String>` widget.getHint(`String` widgetName)
 
 > **Only available on xStarbound v3.4.5.1+ and OpenStarbound v0.1.9+.**
@@ -390,7 +398,7 @@ Binds the canvas widget with the specified name as a `CanvasWidget` userdata obj
 
 **Note:** A removed canvas widget object will "dangle" even if it's removed with `pane.removeWidget` (see `scriptpane.md`). As long as you have a `CanvasWidget` object, you can still safely render stuff with it.
 
-----
+---
 
 ##### `Vec2I` `[CanvasWidget]`:size()
 
