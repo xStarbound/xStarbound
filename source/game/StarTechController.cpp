@@ -1,35 +1,34 @@
 #include "StarTechController.hpp"
-#include "StarStatusController.hpp"
-#include "StarDataStreamExtra.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarLuaGameConverters.hpp"
-#include "StarWorldLuaBindings.hpp"
 #include "StarConfigLuaBindings.hpp"
+#include "StarDataStreamExtra.hpp"
 #include "StarEntityLuaBindings.hpp"
-#include "StarPlayerLuaBindings.hpp"
-#include "StarPlayer.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLogging.hpp"
+#include "StarLoungingEntities.hpp"
+#include "StarLuaGameConverters.hpp"
 #include "StarNetworkedAnimatorLuaBindings.hpp"
-#include "StarStatusControllerLuaBindings.hpp"
+#include "StarPlayer.hpp"
+#include "StarPlayerLuaBindings.hpp"
 #include "StarRoot.hpp"
 #include "StarScriptedEntity.hpp"
-#include "StarLoungingEntities.hpp"
+#include "StarStatusController.hpp"
+#include "StarStatusControllerLuaBindings.hpp"
 #include "StarWorld.hpp"
-#include "StarLogging.hpp"
+#include "StarWorldLuaBindings.hpp"
 
 namespace Star {
 
 EnumMap<TechController::ParentState> const TechController::ParentStateNames{
-  {TechController::ParentState::Stand, "Stand"},
-  {TechController::ParentState::Fly, "Fly"},
-  {TechController::ParentState::Fall, "Fall"},
-  {TechController::ParentState::Sit, "Sit"},
-  {TechController::ParentState::Lay, "Lay"},
-  {TechController::ParentState::Duck, "Duck"},
-  {TechController::ParentState::Walk, "Walk"},
-  {TechController::ParentState::Run, "Run"},
-  {TechController::ParentState::Swim, "Swim"},
-  {TechController::ParentState::SwimIdle, "SwimIdle"}
-};
+    {TechController::ParentState::Stand, "Stand"},
+    {TechController::ParentState::Fly, "Fly"},
+    {TechController::ParentState::Fall, "Fall"},
+    {TechController::ParentState::Sit, "Sit"},
+    {TechController::ParentState::Lay, "Lay"},
+    {TechController::ParentState::Duck, "Duck"},
+    {TechController::ParentState::Walk, "Walk"},
+    {TechController::ParentState::Run, "Run"},
+    {TechController::ParentState::Swim, "Swim"},
+    {TechController::ParentState::SwimIdle, "SwimIdle"}};
 
 TechController::TechController() {
   m_parentEntity = nullptr;
@@ -68,20 +67,18 @@ Json TechController::diskStore() {
     return JsonObject{{"techModules", modules}};
   } else {
     return JsonObject{{"techModules", transform<JsonArray>(m_techModules, [](TechModule const& tm) {
-        return JsonObject{
-            {"module", tm.config.name},
-            {"scriptData", tm.scriptComponent.getScriptStorage()}
-          };
-      })
-    }};
+                         return JsonObject{
+                             {"module", tm.config.name},
+                             {"scriptData", tm.scriptComponent.getScriptStorage()}};
+                       })}};
   }
 }
 
 void TechController::diskLoad(Json const& store) {
   auto techDatabase = Root::singleton().techDatabase();
   auto techModules = store.getArray("techModules", {}).transformed([](Json const& v) {
-      return make_tuple(v.getString("module"), v.getObject("scriptData", {}));
-    });
+    return make_tuple(v.getString("module"), v.getObject("scriptData", {}));
+  });
   for (auto& tm : techModules) {
     if (!techDatabase->contains(get<0>(tm)))
       Logger::warn("Tech module '{}' not found in tech database", get<0>(tm)); /* FezzedOne: Much less spammy here. */
@@ -231,18 +228,17 @@ void TechController::tickMaster(float dt) {
 
   for (auto& module : m_techModules) {
     JsonObject moves = {
-      {"run", m_moveRun},
-      {"up", m_moveUp},
-      {"down", m_moveDown},
-      {"left", m_moveLeft},
-      {"right", m_moveRight},
-      {"jump", m_moveJump},
-      {"primaryFire", m_movePrimaryFire},
-      {"altFire", m_moveAltFire},
-      {"special1", m_moveSpecial1},
-      {"special2", m_moveSpecial2},
-      {"special3", m_moveSpecial3}
-    };
+        {"run", m_moveRun},
+        {"up", m_moveUp},
+        {"down", m_moveDown},
+        {"left", m_moveLeft},
+        {"right", m_moveRight},
+        {"jump", m_moveJump},
+        {"primaryFire", m_movePrimaryFire},
+        {"altFire", m_moveAltFire},
+        {"special1", m_moveSpecial1},
+        {"special2", m_moveSpecial2},
+        {"special3", m_moveSpecial3}};
 
     module.scriptComponent.update(JsonObject{{"moves", moves}, {"dt", dt}});
   }
@@ -258,6 +254,10 @@ void TechController::tickSlave(float dt) {
 
 Maybe<TechController::ParentState> TechController::parentState() const {
   return m_parentState.get();
+}
+
+void TechController::setParentState(Maybe<TechController::ParentState> const& newState) {
+  m_parentState.set(newState);
 }
 
 DirectivesGroup const& TechController::parentDirectives() const {
@@ -455,8 +455,8 @@ void TechController::initializeModules() {
   for (auto& module : m_techModules) {
     module.scriptComponent.addCallbacks("tech", makeTechCallbacks(module));
     module.scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks([&module](String const& name, Json const& def) {
-        return module.config.parameters.query(name, def);
-      }));
+      return module.config.parameters.query(name, def);
+    }));
     module.scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(m_parentEntity));
     module.scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_techAnimators.getNetElement(module.animatorId)->animator));
     module.scriptComponent.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_statusController));
@@ -509,65 +509,65 @@ LuaCallbacks TechController::makeTechCallbacks(TechModule& techModule) {
   LuaCallbacks callbacks;
 
   callbacks.registerCallback("aimPosition", [this]() {
-      return m_aimPosition;
-    });
+    return m_aimPosition;
+  });
 
   callbacks.registerCallback("setVisible", [&techModule](bool visible) {
-      techModule.visible = visible;
-    });
+    techModule.visible = visible;
+  });
 
   callbacks.registerCallback("setParentState", [this](Maybe<String> const& state) {
-      if (state)
-        m_parentState.set(ParentStateNames.getLeft(*state));
-      else
-        m_parentState.set({});
-    });
+    if (state)
+      m_parentState.set(ParentStateNames.getLeft(*state));
+    else
+      m_parentState.set({});
+  });
 
   callbacks.registerCallback("setParentDirectives", [this, &techModule](Maybe<String> const& directives) {
-      // FezzedOne: Added this workaround because some mods forget to prepend a `?` to the first directive for some reason.
-      if (auto p = directives.ptr()) {
-        String const& directiveString = *p;
-        if (!directiveString.empty() && !directiveString.beginsWith('?'))
-          techModule.parentDirectives = Directives('?' + directiveString);
-        else
-          techModule.parentDirectives = Directives(std::move(directiveString));
-      } else {
-        techModule.parentDirectives = Directives();
-      }
+    // FezzedOne: Added this workaround because some mods forget to prepend a `?` to the first directive for some reason.
+    if (auto p = directives.ptr()) {
+      String const& directiveString = *p;
+      if (!directiveString.empty() && !directiveString.beginsWith('?'))
+        techModule.parentDirectives = Directives('?' + directiveString);
+      else
+        techModule.parentDirectives = Directives(std::move(directiveString));
+    } else {
+      techModule.parentDirectives = Directives();
+    }
 
-      DirectivesGroup newParentDirectives;
-      for (auto& module : m_techModules)
-        newParentDirectives.append(module.parentDirectives);
-      m_parentDirectives.set(std::move(newParentDirectives));
-    });
+    DirectivesGroup newParentDirectives;
+    for (auto& module : m_techModules)
+      newParentDirectives.append(module.parentDirectives);
+    m_parentDirectives.set(std::move(newParentDirectives));
+  });
 
   callbacks.registerCallback("setParentHidden", [this](bool hidden) {
-      m_parentHidden.set(hidden);
-    });
+    m_parentHidden.set(hidden);
+  });
 
   callbacks.registerCallback("setParentOffset", [this](Vec2F const& po) {
-      m_xParentOffset.set(po[0]);
-      m_yParentOffset.set(po[1]);
-    });
+    m_xParentOffset.set(po[0]);
+    m_yParentOffset.set(po[1]);
+  });
 
   callbacks.registerCallback("parentLounging", [this]() {
-      if (auto loungingEntity = as<LoungingEntity>(m_parentEntity))
-        return loungingEntity->loungingIn().isValid();
-      return false;
-    });
+    if (auto loungingEntity = as<LoungingEntity>(m_parentEntity))
+      return loungingEntity->loungingIn().isValid();
+    return false;
+  });
 
   callbacks.registerCallback("setToolUsageSuppressed", [this, &techModule](bool suppressed) {
-      techModule.toolUsageSuppressed = suppressed;
-      bool anySuppressed = false;
-      bool playerToolUsageSuppressed = false;
-      if (auto parentPlayer = as<Player>(m_parentEntity))
-        playerToolUsageSuppressed = parentPlayer->toolUsageSuppressed();
-      for (auto& module : m_techModules)
-        anySuppressed = anySuppressed || module.toolUsageSuppressed || playerToolUsageSuppressed;
-      m_toolUsageSuppressed.set(anySuppressed);
-    });
+    techModule.toolUsageSuppressed = suppressed;
+    bool anySuppressed = false;
+    bool playerToolUsageSuppressed = false;
+    if (auto parentPlayer = as<Player>(m_parentEntity))
+      playerToolUsageSuppressed = parentPlayer->toolUsageSuppressed();
+    for (auto& module : m_techModules)
+      anySuppressed = anySuppressed || module.toolUsageSuppressed || playerToolUsageSuppressed;
+    m_toolUsageSuppressed.set(anySuppressed);
+  });
 
   return callbacks;
 }
 
-}
+} // namespace Star

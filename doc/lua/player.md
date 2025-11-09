@@ -1068,7 +1068,7 @@ Overrides the player's humanoid state. Available states are:
 - `"swim"`
 - `"swimIdle"`
 
-Any other string will set the state to `"idle"`. If `nil` or no argument is passed, any existing override is cleared. Most tech parent state equivalences are obvious, but note that `"idle"` is equivalent to the tech parent state `"Stand"` and `"jump"` is equivalent to the tech parent state `"Fly"`.
+Any other string will set the state to `"idle"`. If `nil` or no argument is passed, any existing override is cleared. Most tech parent state equivalences are obvious, but note that `"idle"` is equivalent to the tech parent state `"Stand"` and `"jump"` is equivalent to the tech parent state `"Fly"`. Setting the override state with this binding also sets the tech parent state due to how it's networked. Only xStarbound and OpenStarbound clients can see the `"swimIdle"` state; to any other client (including stock), `"swimIdle"` appears as if no state override were applied.
 
 ---
 

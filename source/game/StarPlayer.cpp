@@ -3190,9 +3190,22 @@ void Player::setToolUsageSuppressed(Maybe<bool> suppressed) {
   m_techController->setPlayerToolUsageSuppressed(m_toolUsageSuppressed);
 }
 
-// FezzedOne: Sets the player's humanoid override state. Resets every tick.
+// FezzedOne: Sets the player's humanoid override state.
 void Player::setOverrideState(Maybe<Humanoid::State> overrideState) {
+  // FezzedOne: Because the two enums are in different orders. Annoying.
+  const TechController::ParentState humanoidToTechStateMap[10] = {
+      TechController::ParentState::Stand,
+      TechController::ParentState::Walk,
+      TechController::ParentState::Run,
+      TechController::ParentState::Fly,
+      TechController::ParentState::Fall,
+      TechController::ParentState::Swim,
+      TechController::ParentState::SwimIdle,
+      TechController::ParentState::Duck,
+      TechController::ParentState::Sit,
+      TechController::ParentState::Lay};
   m_overrideState = overrideState;
+  m_techController->setParentState(overrideState ? humanoidToTechStateMap[(uint8_t)(*overrideState)] : Maybe<TechController::ParentState>{});
 }
 
 Maybe<pair<Json, RpcPromiseKeeper<Json>>> Player::pullPendingConfirmation() {

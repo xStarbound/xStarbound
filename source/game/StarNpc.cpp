@@ -811,14 +811,14 @@ LuaCallbacks Npc::makeNpcCallbacks() {
 
   callbacks.registerCallback("parameters", [this]() -> Json { return diskStore(); });
 
-  callbacks.registerCallback("setOverrideState", [this](Maybe<String> newState) {
-    if (newState) {
-      Humanoid::State newHumanoidState = Humanoid::StateNames.valueLeft(newState.get(), Humanoid::State::Idle);
-      m_overrideState.set(newHumanoidState);
-    } else {
-      m_overrideState = {};
-    }
-  });
+  // callbacks.registerCallback("setOverrideState", [this](Maybe<String> newState) {
+  //   if (newState) {
+  //     Humanoid::State newHumanoidState = Humanoid::StateNames.valueLeft(newState.get(), Humanoid::State::Idle);
+  //     m_overrideState.set(newHumanoidState);
+  //   } else {
+  //     m_overrideState = {};
+  //   }
+  // });
 
   return callbacks;
 }

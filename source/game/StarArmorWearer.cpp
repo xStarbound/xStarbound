@@ -67,6 +67,7 @@ ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& i
             } else if (directives) {
               processedDirectives["directives"] = directives->replaceTags(identityTags, false);
             }
+            newItem.applyParameters(processedDirectives);
           }
           jOverlays.emplaceAppend(newItem.diskStore());
         }

@@ -1,12 +1,12 @@
 #ifndef STAR_TECH_CONTROLLER_HPP
 #define STAR_TECH_CONTROLLER_HPP
 
+#include "StarDirectives.hpp"
+#include "StarLuaActorMovementComponent.hpp"
+#include "StarLuaComponents.hpp"
 #include "StarNetElementSystem.hpp"
 #include "StarNetworkedAnimator.hpp"
-#include "StarLuaComponents.hpp"
-#include "StarLuaActorMovementComponent.hpp"
 #include "StarTechDatabase.hpp"
-#include "StarDirectives.hpp"
 
 namespace Star {
 
@@ -69,6 +69,7 @@ public:
   void tickSlave(float dt);
 
   Maybe<ParentState> parentState() const;
+  void setParentState(Maybe<ParentState> const& newState);
   DirectivesGroup const& parentDirectives() const;
   Vec2F parentOffset() const;
   bool toolUsageSuppressed() const;
@@ -169,6 +170,6 @@ private:
   NetElementBool m_toolUsageSuppressed;
 };
 
-}
+} // namespace Star
 
 #endif

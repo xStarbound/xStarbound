@@ -18,7 +18,7 @@ Sets whether the tech should be visible.
 
 #### `void` tech.setParentState(`String` state)
 
-> *The `"SwimIdle"` state is available only on xStarbound and OpenStarbound.
+> _The `"SwimIdle"` state is available only on xStarbound and OpenStarbound. When networked to vanilla clients, the `"SwimIdle"` state looks as if **no** parent state override is applied._
 
 Set the animation state of the player.
 
@@ -33,7 +33,7 @@ Valid states:
 - `"Walk"`
 - `"Run"`
 - `"Swim"`
-- `"SwimIdle"`
+- `"SwimIdle"` (xStarbound and OpenStarbound only)
 
 ---
 
@@ -65,4 +65,5 @@ Returns whether the player is lounging.
 
 Sets whether the player can use held items. Identical to `player.setToolUsageSuppressed` (see `player.md`).
 
-**Note:** The internal values used by *both* `player.setToolUsageSuppressed` and `tech.setToolUsageSuppressed` must be `false` for the player to use held items.
+**Note:** The internal values used by _both_ `player.setToolUsageSuppressed` and `tech.setToolUsageSuppressed` must be `false` for the player to use held items.
+
