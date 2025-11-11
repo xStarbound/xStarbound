@@ -144,6 +144,7 @@ The following mods have special functionality that requires or is supported by x
 - [Time Control Command](https://steamcommunity.com/sharedfiles/filedetails/?id=3256623666) ([GitHub](https://github.com/bongus-jive/TimeControlCommand)) — fully supported by xStarbound.
 - [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — fully supported by xStarbound as of xSB v3.4.2.
 - [Universal Keybind Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3466851780) ([GitHub](https://github.com/FezzedOne/Starbound-Universal-Keybind-Compatibility)) — requires xStarbound or OpenStarbound. Install this mod if you have issues with getting mod keybinds, like RPG Growth's tech keybinds, to work on xStarbound or OpenStarbound.
+- [Universal Printable Objects Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3603139264) — requires xStarbound or OpenStarbound to do anything.
 - [Universal Upgradeable Weapons Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3595603580) — requires xStarbound or OpenStarbound to do anything.
 - [Wardrobe Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3433498458) — supported by xStarbound as of xSB v3.4.4.2.
 - [xDPC](https://github.com/FezzedOne/xDPC) — requires xStarbound for full support, but also works on OpenStarbound and StarExtensions, albeit with a few missing features.
