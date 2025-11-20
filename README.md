@@ -161,7 +161,7 @@ xStarbound now has a «universal mod compatibiliser» called xSBCompat! xSBCompa
 - [Betabound!](https://steamcommunity.com/workshop/filedetails/?id=2010607826) — xSBCompat fixes compatibility issues, but doesn't enable a few OpenStarbound-specific bits and bobs.
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — no comment.
 - [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — xSBCompat required to render an OpenStarbound check toothless.
-- [Dynamic Proximity Chat](https://steamcommunity.com/sharedfiles/filedetails/?id=3450266347) ([GitHub](https://github.com/cptsalt/Dynamic-Proximity-Chat)) — may have minor compatibility issues even with xSBCompat. xStarbound users should use FezzedOne's fork [xDPC](https://github.com/FezzedOne/xDPC), which does not require xSBcompat, instead, unless the «mainline» Dynamic Proximity Chat is required for a server. Note that xDPC isn't fully network-compatible with Dynamic Proximity Chat!
+  - [Dynamic Proximity Chat](https://steamcommunity.com/sharedfiles/filedetails/?id=3450266347) ([GitHub](https://github.com/cptsalt/Dynamic-Proximity-Chat)) — may have minor compatibility issues even with xSBCompat. xStarbound users should use FezzedOne's fork [xDPC](https://github.com/FezzedOne/xDPC), which does not require xSBcompat, instead, unless the «mainline» Dynamic Proximity Chat is required for a server. Note that xDPC doesn't interact at all with «mainline» Dynamic Proximity Chat and acts as an entirely separate plugin now.
 - [Hunger Fighting Chairs](https://steamcommunity.com/sharedfiles/filedetails/?id=3546473893) — requires xSBCompat to defang an unnecessary OpenStarbound check.
 - [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — xSBCompat adds support for the keybind.
 - [Infiniter Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3514830972) ([GitHub](https://github.com/bongus-jive/infiniter-inventory)) — all features supported.
@@ -174,6 +174,7 @@ xStarbound now has a «universal mod compatibiliser» called xSBCompat! xSBCompa
 - [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — fully supported once patched.
 - [Universal Instant Crafting for All Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3251274439) — requires xSBCompat to bypass unnecessary OpenStarbound checks.
 - [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276) — Ditto.
+- [Warp Doors](https://steamcommunity.com/sharedfiles/filedetails/?id=3608977430) — needs a patch because this mod's client-side command script expects the OpenStarbound/StarExtensions version of `chat.parseArguments`. This mod also lacks an «[oSB]» or «[oSB/SE]» tag on the Workshop that it should have had (although no DLL/executable mod is required when installed _server-side_).
 - [ZB SAIL: Standalone](https://steamcommunity.com/sharedfiles/filedetails/?id=3336389472) — Ditto.
 
 Feel free to ask @FezzedOne about adding support for mods that are partially or totally incompatible with xStarbound to this patch, or contribute your own PR!

@@ -655,3 +655,34 @@ pluto_catch e then
     logError(modName, e)
 end
 ::skipBetaboundPatch::
+
+--- Compatibility Patch for Captain Salt's Warp Doors ---
+-- Needed to fix a `chat.parseArguments` call in the mod's command script, as xStarbound's version returns an array
+-- containing the arguments instead of a variadic return value containing the same.
+
+if not "warpdoors" in loadedMods then goto skipWarpDoorsPatch end
+modName = "Captain Salt's Warp Doors"
+
+pluto_try
+    local warpDoorsPath = "/warpcommands.lua"
+    local warpDoorsScript = assets.bytes(warpDoorsPath)
+
+    local warpDoorsPatch = [==[
+    ---<< END OF ORIGINAL WARP DOORS SCRIPT >>---
+
+    local warp_doors_init = init
+    function init()
+        _ENV.base_chat_parseArguments = chat.parseArguments
+        chat.parseArguments = function(argStr)
+            return table.unpack(_ENV.base_chat_parseArguments(argStr))
+        end
+        return warp_doors_init()
+    end
+    ]==]
+    assets.add(warpDoorsScript .. warpDoorsPatch)
+
+    logInfo(modName)
+pluto_catch e then
+    logError(modName, e)
+end
+::skipWarpDoorsPatch::
