@@ -147,6 +147,7 @@ The following mods have special functionality that requires or is supported by x
 - [Universal Printable Objects Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3603139264) — requires xStarbound or OpenStarbound to do anything.
 - [Universal Upgradeable Weapons Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3595603580) — requires xStarbound or OpenStarbound to do anything.
 - [Wardrobe Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3433498458) — supported by xStarbound as of xSB v3.4.4.2.
+- [Warp Doors](https://steamcommunity.com/sharedfiles/filedetails/?id=3608977430) — xStarbound, OpenStarbound or StarExtensions required to use the client-side commands for generating warp doors and getting coordinates; may be installed on a stock client with no errors aside from the commands being unavailable. Mod must be installed server-side for placed warp doors to function, but placed warp doors function on any client regardless of whether the mod is installed client-side.
 - [xDPC](https://github.com/FezzedOne/xDPC) — requires xStarbound for full support, but also works on OpenStarbound and StarExtensions, albeit with a few missing features.
 - [xSIP](https://github.com/fezzedone/xSIP) — xSIP's universal mod support requires xStarbound v2.5+ or OpenStarbound.
 - [xWEdit](https://github.com/fezzedone/xWEdit) — this WEdit fork requires xStarbound for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
@@ -175,7 +176,6 @@ xStarbound now has a «universal mod compatibiliser» called xSBCompat! xSBCompa
 - [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — fully supported once patched.
 - [Universal Instant Crafting for All Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3251274439) — requires xSBCompat to bypass unnecessary OpenStarbound checks.
 - [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276) — Ditto.
-- [Warp Doors](https://steamcommunity.com/sharedfiles/filedetails/?id=3608977430) — needs a patch because this mod's client-side command script expects the OpenStarbound/StarExtensions version of `chat.parseArguments`. This mod also lacks an «[oSB]» or «[oSB/SE]» tag on the Workshop that it should have had (although no DLL/executable mod is required when installed _server-side_).
 - [ZB SAIL: Standalone](https://steamcommunity.com/sharedfiles/filedetails/?id=3336389472) — Ditto.
 
 Feel free to ask @FezzedOne about adding support for mods that are partially or totally incompatible with xStarbound to this patch, or contribute your own PR!
