@@ -460,6 +460,7 @@ end
 local function getWorldClaimData(world)
     local useServerData = getBuildConfig().storeClaimsInServerData == true
     local getData = useServerData ? universe.getServerDataPath : root.getConfigurationPath
+    local foundClaim = false
     if type(claimData) ~= "table" then
         getData("claimData", jobject{})
     end
@@ -467,12 +468,13 @@ local function getWorldClaimData(world)
     pluto_try 
         local worldClaims = getData("claimData.ownedWorldsByAccount")
         worldClaims = type(worldClaims) == "table" ? worldClaims : jobject{}
+        foundClaim = not not worldClaims[world]
         claimData = worldClaims[world] or newWorldClaim(world)
     pluto_catch e then
         logError("Error while getting world claim data: %s", e)
         return jobject{}
     end
-    return claimData or jobject{}
+    return claimData or jobject{}, foundClaim
 end
 
 local function setWorldClaimData(world, claim)
@@ -532,8 +534,12 @@ local function accountOwnsWorld(cid, world)
 end
 
 local function worldOwner(world)
-    local worldData = getWorldClaimData(world)
-    return type(worldData.owner) == "string" ? worldData.owner : true
+    local worldData, isClaimed = getWorldClaimData(world)
+    if isClaimed then
+        return type(worldData.owner) == "string" ? worldData.owner : true
+    else
+        return nil
+    end
 end
 
 function printSubCommands(list)
