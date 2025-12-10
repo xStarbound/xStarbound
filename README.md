@@ -18,6 +18,7 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
     - Ability to remove tiles, plants and objects without removing objects or plants anchored to them. Note that liquids still remove hydrophobic objects (like vanilla torches) even with «creative mode» enabled, because if this exception weren't made, hydrophobic objects would still plop off anyway as soon as «creative mode» is disabled.
     - Ability to place or remove gravity-affected tiles without them falling.
     - Ability to place or remove liquids without «proccing» falling tiles or flows of liquids other than what you're placing.
+    - Ability to remove unbreakable objects as if they are breakable.
   - The following «creative mode» features require _both_ xServer / hosting xClient v4.2+ _and_ xClient v4.2+ on the client's end in multiplayer, or xClient v4.2+ in single-player:
     - In-place tile replacement. Works with all placeable material items.
     - Mid-air tile placement with placeable material items.
