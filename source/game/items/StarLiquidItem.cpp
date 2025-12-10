@@ -1,14 +1,14 @@
 #include "StarLiquidItem.hpp"
+#include "StarAssets.hpp"
 #include "StarJson.hpp"
 #include "StarLiquidsDatabase.hpp"
 #include "StarRoot.hpp"
-#include "StarAssets.hpp"
 #include "StarWorld.hpp"
 
 namespace Star {
 
 LiquidItem::LiquidItem(Json const& config, String const& directory, Json const& settings)
-  : Item(config, directory, settings), FireableItem(config), BeamItem(config) {
+    : Item(config, directory, settings), FireableItem(config), BeamItem(config) {
   m_liquidId = Root::singleton().liquidsDatabase()->liquidId(config.getString("liquid"));
 
   setTwoHanded(config.getBool("twoHanded", false));
@@ -52,6 +52,9 @@ void LiquidItem::fire(FireMode mode, bool shifting, bool edgeTriggered) {
   if (!initialized() || !ready() || !owner()->inToolRange())
     return;
 
+  const auto jBypassChecks = owner()->inWorld() ? world()->getProperty("bypassBuildChecks", false) : false;
+  const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+
   PlaceLiquid placeLiquid{liquidId(), liquidQuantity()};
   TileModificationList modifications;
 
@@ -71,12 +74,13 @@ void LiquidItem::fire(FireMode mode, bool shifting, bool edgeTriggered) {
   }
 
   // Make sure not to make any more modifications than we have consumables.
-  if (modifications.size() > count())
+  if (!bypassChecks && modifications.size() > count())
     modifications.resize(count());
-  size_t failed = world()->applyTileModifications(modifications, false).size();
+  size_t failed = world()->applyTileModifications(modifications, bypassChecks, bypassChecks).size();
   if (failed < modifications.size()) {
     FireableItem::fire(mode, shifting, edgeTriggered);
-    consume(modifications.size() - failed);
+    if (!bypassChecks)
+      consume(modifications.size() - failed);
   }
 }
 
@@ -136,6 +140,10 @@ bool LiquidItem::canPlace(bool shifting) const {
 }
 
 bool LiquidItem::canPlaceAtTile(Vec2I pos) const {
+  const auto jBypassChecks = owner()->inWorld() ? world()->getProperty("bypassBuildChecks", false) : false;
+  const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+  if (bypassChecks) return true;
+
   auto bgTileMaterial = world()->material(pos, TileLayer::Background);
   if (bgTileMaterial != EmptyMaterialId) {
     auto fgTileMaterial = world()->material(pos, TileLayer::Foreground);
@@ -152,4 +160,4 @@ bool LiquidItem::multiplaceEnabled() const {
   return (count() > 1);
 }
 
-}
+} // namespace Star

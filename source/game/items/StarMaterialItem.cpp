@@ -163,6 +163,9 @@ void MaterialItem::fire(FireMode mode, bool shifting, bool edgeTriggered) {
   if (!initialized() || !ready())
     return;
 
+  const auto jBypassChecks = owner()->inWorld() ? world()->getProperty("bypassBuildChecks", false) : false;
+  const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+
   auto layer = (mode == FireMode::Primary || !twoHanded() ? TileLayer::Foreground : TileLayer::Background);
   TileModificationList modifications;
 
@@ -202,12 +205,13 @@ void MaterialItem::fire(FireMode mode, bool shifting, bool edgeTriggered) {
       modifications.emplaceAppend(pos, PlaceMaterial{layer, materialId(), placementHueShift(pos), m_collisionOverride});
 
     // Make sure not to make any more modifications than we have consumables.
-    if (modifications.size() > count())
+    if (!bypassChecks && modifications.size() > count())
       modifications.resize(count());
-    size_t failed = world()->applyTileModifications(modifications, collisionKind <= CollisionKind::Platform).size();
+    size_t failed = world()->applyTileModifications(modifications, bypassChecks || collisionKind <= CollisionKind::Platform, bypassChecks).size();
     if (failed < modifications.size()) {
       size_t placed = modifications.size() - failed;
-      consume(placed);
+      if (!bypassChecks)
+        consume(placed);
       total += placed;
     }
   }
@@ -314,7 +318,7 @@ bool MaterialItem::canPlace(bool shifting) const {
     for (auto& pos : tileArea(radius, owner()->aimPosition())) {
       MaterialHue hueShift = placementHueShift(pos);
 
-      if (world()->canModifyTile(pos, PlaceMaterial{TileLayer::Foreground, material, hueShift}, false, bypassChecks) || world()->canModifyTile(pos, PlaceMaterial{TileLayer::Background, material, hueShift}, false, bypassChecks))
+      if (world()->canModifyTile(pos, PlaceMaterial{TileLayer::Foreground, material, hueShift}, bypassChecks, bypassChecks) || world()->canModifyTile(pos, PlaceMaterial{TileLayer::Background, material, hueShift}, bypassChecks, bypassChecks))
         return true;
     }
   }

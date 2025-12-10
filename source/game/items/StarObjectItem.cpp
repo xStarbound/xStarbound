@@ -1,16 +1,16 @@
 #include "StarObjectItem.hpp"
-#include "StarRoot.hpp"
-#include "StarObject.hpp"
-#include "StarLogging.hpp"
-#include "StarObjectDatabase.hpp"
-#include "StarWorld.hpp"
-#include "StarJsonExtra.hpp"
 #include "StarDrawable.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLogging.hpp"
+#include "StarObject.hpp"
+#include "StarObjectDatabase.hpp"
+#include "StarRoot.hpp"
+#include "StarWorld.hpp"
 
 namespace Star {
 
 ObjectItem::ObjectItem(Json const& config, String const& directory, Json const& objectParameters)
-  : Item(config, directory, objectParameters), FireableItem(config), BeamItem(config) {
+    : Item(config, directory, objectParameters), FireableItem(config), BeamItem(config) {
   setTwoHanded(config.getBool("twoHanded", false));
 
   // Make sure that all script objects that have retainObjectParametersInItem
@@ -81,8 +81,17 @@ bool ObjectItem::placeInWorld(FireMode, bool shifting) {
   auto pos = Vec2I(owner()->aimPosition().floor());
   auto objectDatabase = Root::singleton().objectDatabase();
   try {
+    const auto jBypassChecks = owner()->inWorld() ? world()->getProperty("bypassBuildChecks", false) : false;
+    const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+    Json params = objectParameters();
+    if (bypassChecks && objectName() == "sapling") {
+      params = params.set("stages", JsonArray{
+                                        JsonObject{{"duration"}, JsonArray{0.0, 0.0}},
+                                        JsonObject{{"duration"}, JsonArray{0.0, 0.0}},
+                                        JsonObject{{"tree", true}}});
+    }
     if (auto object = objectDatabase->createForPlacement(world(), objectName(), pos, owner()->walkingDirection(), objectParameters())) {
-      if (consume(1)) {
+      if (bypassChecks || consume(1)) {
         world()->addEntity(object);
         return true;
       }
@@ -109,4 +118,4 @@ bool ObjectItem::canPlace(bool) const {
   return false;
 }
 
-}
+} // namespace Star
