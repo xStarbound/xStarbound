@@ -74,7 +74,7 @@ void MiningTool::fire(FireMode mode, bool shifting, bool edgeTriggered) {
           worldClient->forEachEntity(RectF(Vec2F(pos), Vec2F(pos) + Vec2F::filled(0.999)), [worldClient](EntityPtr const& entity) {
             if (auto tileEntity = as<TileEntity>(entity)) {
               if (tileEntity->spaces().empty())
-                worldClient->removeEntity(entity->entityId(), false);
+                worldClient->removeEntity(entity->entityId(), true);
             }
           });
         }
@@ -445,7 +445,7 @@ void BeamMiningTool::fire(FireMode mode, bool shifting, bool edgeTriggered) {
           worldClient->forEachEntity(RectF(Vec2F(pos), Vec2F(pos) + Vec2F::filled(0.999)), [worldClient](EntityPtr const& entity) {
             if (auto tileEntity = as<TileEntity>(entity)) {
               if (tileEntity->spaces().empty())
-                worldClient->removeEntity(entity->entityId(), false);
+                worldClient->removeEntity(entity->entityId(), true);
             }
           });
         }
