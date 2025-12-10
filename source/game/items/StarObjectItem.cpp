@@ -110,6 +110,10 @@ bool ObjectItem::placeInWorld(FireMode, bool shifting) {
 bool ObjectItem::canPlace(bool) const {
   if (initialized()) {
     if (owner()->isAdmin() || owner()->inToolRange()) {
+      const auto jBypassChecks = owner()->inWorld() ? world()->getProperty("bypassBuildChecks", false) : false;
+      const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+      if (bypassChecks) return true;
+
       auto pos = Vec2I(owner()->aimPosition().floor());
       auto objectDatabase = Root::singleton().objectDatabase();
       return objectDatabase->canPlaceObject(world(), pos, objectName());
