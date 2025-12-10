@@ -61,17 +61,20 @@ void MiningTool::fire(FireMode mode, bool shifting, bool edgeTriggered) {
     String blockSound;
     List<Vec2I> brushArea;
 
+    const auto jBypassChecks = owner()->inWorld() ? world()->getProperty("bypassBuildChecks", false) : false;
+    const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+
     auto layer = (mode == FireMode::Primary ? TileLayer::Foreground : TileLayer::Background);
     auto worldClient = as<WorldClient>(world());
     if (owner()->isAdmin() || owner()->inToolRange()) {
       brushArea = tileAreaBrush(radius, owner()->aimPosition(), true);
       for (auto pos : brushArea) {
         // FezzedOne: Allows removal of otherwise unremovable objects with no spaces.
-        if (worldClient) {
+        if (worldClient && bypassChecks) {
           worldClient->forEachEntity(RectF(Vec2F(pos), Vec2F(pos) + Vec2F::filled(0.999)), [worldClient](EntityPtr const& entity) {
             if (auto tileEntity = as<TileEntity>(entity)) {
               if (tileEntity->spaces().empty())
-                worldClient->removeEntity(entity->entityId(), true);
+                worldClient->removeEntity(entity->entityId(), false);
             }
           });
         }
@@ -427,6 +430,9 @@ void BeamMiningTool::fire(FireMode mode, bool shifting, bool edgeTriggered) {
     String blockSound;
     List<Vec2I> brushArea;
 
+    const auto jBypassChecks = owner()->inWorld() ? world()->getProperty("bypassBuildChecks", false) : false;
+    const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+
     auto layer = (mode == FireMode::Primary ? TileLayer::Foreground : TileLayer::Background);
     if (ownerp->isAdmin() || ownerp->inToolRange()) {
       brushArea = tileAreaBrush(radius, ownerp->aimPosition(), true);
@@ -435,11 +441,11 @@ void BeamMiningTool::fire(FireMode mode, bool shifting, bool edgeTriggered) {
 
       for (auto pos : brushArea) {
         // FezzedOne: Allows removal of otherwise unremovable objects with no spaces.
-        if (worldClient) {
+        if (worldClient && bypassChecks) {
           worldClient->forEachEntity(RectF(Vec2F(pos), Vec2F(pos) + Vec2F::filled(0.999)), [worldClient](EntityPtr const& entity) {
             if (auto tileEntity = as<TileEntity>(entity)) {
               if (tileEntity->spaces().empty())
-                worldClient->removeEntity(entity->entityId(), true);
+                worldClient->removeEntity(entity->entityId(), false);
             }
           });
         }
