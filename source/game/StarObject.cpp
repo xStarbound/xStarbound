@@ -208,6 +208,10 @@ void Object::init(World* world, EntityId entityId, EntityMode mode) {
     m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
     m_scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(m_networkedAnimator.get()));
     m_scriptComponent.init(world);
+
+    // FezzedOne: Fail-safe that automatically plops off the object if it ever ends up unremovable without hacks.
+    if (!currentOrientation())
+      m_broken = true;
   }
 
   if (world->isClient()) {
@@ -337,6 +341,7 @@ void Object::setDirection(Direction direction) {
 
 void Object::updateOrientation() {
   setOrientationIndex(m_config->findValidOrientation(world(), tilePosition(), m_direction.get()));
+  if (m_orientationIndex == NPos && orientations().size()) setOrientationIndex(0);
   if (auto orientation = currentOrientation()) {
     if (orientation->directionAffinity)
       m_direction.set(*orientation->directionAffinity);
@@ -403,6 +408,12 @@ void Object::update(float dt, uint64_t) {
     m_networkedAnimator->setFlipped(direction() == Direction::Left, m_animationCenterLine);
 
     m_scriptComponent.update(m_scriptComponent.updateDt(dt));
+
+    if (spaces().empty() && !interactiveSpaces().empty())
+      m_interactive.set(true);
+
+    if (!currentOrientation())
+      m_broken = true;
 
   } else {
     m_networkedAnimator->update(dt, &m_networkedAnimatorDynamicTarget);
@@ -587,7 +598,7 @@ String Object::category() const {
 }
 
 ObjectOrientationPtr Object::currentOrientation() const {
-  if (m_orientationIndex != NPos)
+  if (m_orientationIndex < orientations().size() && m_orientationIndex != NPos)
     return orientations().at(m_orientationIndex);
   else
     return {};
@@ -1184,6 +1195,9 @@ bool Object::isInteractive() const {
 }
 
 InteractAction Object::interact(InteractRequest const& request) {
+  if (spaces().empty())
+    m_broken = true;
+
   Vec2F diff = world()->geometry().diff(request.sourcePosition, position());
   auto result = m_scriptComponent.invoke<Json>(
       "onInteraction", JsonObject{{"source", JsonArray{diff[0], diff[1]}}, {"sourceId", request.sourceId}});
@@ -1270,7 +1284,7 @@ void Object::addChatMessage(String const& message, Json const& config, String co
 }
 
 List<Drawable> Object::orientationDrawables(size_t orientationIndex) const {
-  if (orientationIndex == NPos)
+  if (orientationIndex == NPos || orientationIndex >= orientations().size())
     return {};
 
   auto& orientation = orientations().at(orientationIndex);

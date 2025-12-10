@@ -9,6 +9,19 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
 ## Changes
 
 - Several new commands (by @fezzedone)! Type `/xclient` for info on the new client-side commands, or `/help` (on xServer, an xClient host or in single-player on xClient) to see the new server-side ones.
+- As of v4.2, xStarbound supports a new «creative mode» (by @fezzedone) that bypasses various placement restrictions applied to tiles, objects, plants and liquids. Its status is controlled by the `"bypassBuildChecks"` world property on a given world; if `true`, «creative mode» is enabled for that world. On xServer, build permission (or admin access) is required to toggle «creative mode» on a world. [xWEdit](https://github.com/FezzedOne/xWEdit) provides a `/creative` command for toggling «creative mode». More details:
+  - The following «creative mode» features require xClient v4.2+, but do not require xServer in multiplayer:
+    - Non-consumable material, liquid and object items.
+    - Instant tree growth upon placement.
+    - Unrestricted object placement: Allows objects to be placed in mid-air or overlapping tiles, plants or other objects.
+  - The following «creative mode» features require xServer v4.2+ / hosting xClient v4.2+ but _not_ xClient on the client's end in multiplayer, or xClient v4.2+ in single-player:
+    - Ability to remove tiles, plants and objects without removing objects or plants anchored to them. Note that liquids still remove hydrophobic objects (like vanilla torches) even with «creative mode» enabled, because if this exception weren't made, hydrophobic objects would still plop off anyway as soon as «creative mode» is disabled.
+    - Ability to place or remove gravity-affected tiles without them falling.
+    - Ability to place or remove liquids without «proccing» falling tiles or flows of liquids other than what you're placing.
+  - The following «creative mode» features require _both_ xServer / hosting xClient v4.2+ _and_ xClient v4.2+ on the client's end in multiplayer, or xClient v4.2+ in single-player:
+    - In-place tile replacement. Works with all placeable material items.
+    - Mid-air tile placement with placeable material items.
+    - Removal of all other tile placement restrictions.
 - As of v4.0+, xServer (the xStarbound server) supports scriptable functionality previously confined to wrappers like [StarryPy3k](https://github.com/StarryPy/StarryPy3k) (by @fezzedone), including:
 
   - Permission-based build protection for worlds and systems, complete with optional container modification/viewing protection and automatic shipworld protection and claims. Includes protection against spawning or removing entities not controlled by the player's own client (except item drops, which cannot run scripts).

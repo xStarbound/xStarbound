@@ -98,7 +98,8 @@ size_t ObjectConfig::findValidOrientation(World const* world, Vec2I const& posit
       return i;
   }
 
-  return NPos;
+  // FezzedOne: Additional fallback to ensure objects have *some* spaces.
+  return orientations.size() ? 0 : NPos;
 }
 
 Json ObjectDatabase::parseTouchDamage(String const& path, Json const& config) {
