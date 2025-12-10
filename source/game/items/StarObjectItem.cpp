@@ -86,8 +86,8 @@ bool ObjectItem::placeInWorld(FireMode, bool shifting) {
     Json params = objectParameters();
     if (bypassChecks && objectName() == "sapling") {
       params = params.set("stages", JsonArray{
-                                        JsonObject{{"duration"}, JsonArray{0.0, 0.0}},
-                                        JsonObject{{"duration"}, JsonArray{0.0, 0.0}},
+                                        JsonObject{{"duration", JsonArray{0.0, 0.0}}},
+                                        JsonObject{{"duration", JsonArray{0.0, 0.0}}},
                                         JsonObject{{"tree", true}}});
     }
     if (auto object = objectDatabase->createForPlacement(world(), objectName(), pos, owner()->walkingDirection(), objectParameters())) {
