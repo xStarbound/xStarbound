@@ -839,7 +839,7 @@ function commands.claim(cid, args)
                             ? "^orange;/claim builder remove <account/@server/@all/@everyone>^reset;: Revoke build permissions for this claimed world from specified accounts, the server or everyone. (Server build permission is required for objects and weather events to modify tiles on claimed worlds.)\n"
                             : "^orange;/claim builder remove <account/@all/@everyone>^reset;: Revoke build permissions for this claimed world from specified accounts or everyone.\n"
                         ) .. ( getBuildConfig().containerModificationProtection == true
-                            ? "^orange;/claim containers modify [on/off]^reset;: See whether non-builders can modify the contents of containers and mannequins on this claimed world. Omit the ^orange;on^reset;/^orange;off^reset; argument to view the world's current setting.\n"
+                            ? "^orange;/claim containers modify [on/off]^reset;: Toggle whether non-builders can modify the contents of containers and mannequins on this claimed world. Omit the ^orange;on^reset;/^orange;off^reset; argument to view the world's current setting.\n"
                             : ""
                         ) .. ( getBuildConfig().containerOpenProtection == true
                             ? "^orange;/claim containers view [on/off]^reset;: Toggle whether non-builders can open and see the contents of containers and mannequins on this claimed world. Omit the ^orange;on^reset;/^orange;off^reset; argument to view the world's current setting.\n"

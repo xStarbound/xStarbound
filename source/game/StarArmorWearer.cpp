@@ -44,6 +44,8 @@ ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& i
     } else if (directives) {
       processedDirectives["directives"] = directives->replaceTags(identityTags, false);
     }
+    processedDirectives["xSBdirectives"] = Json();
+    processedDirectives["xSBflipDirectives"] = Json();
 
     armourItemDesc = armourItemDesc.applyParameters(processedDirectives);
 
@@ -67,6 +69,8 @@ ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& i
             } else if (directives) {
               processedDirectives["directives"] = directives->replaceTags(identityTags, false);
             }
+            processedDirectives["xSBdirectives"] = Json();
+            processedDirectives["xSBflipDirectives"] = Json();
             newItem = newItem.applyParameters(processedDirectives);
           }
           jOverlays.emplaceAppend(newItem.diskStore());
@@ -223,17 +227,17 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
 
   auto getDirectives = [&](auto armourItem) -> Directives {
     // Check to ensure this isn't a remotely controlled player to avoid an unnecessary (and useless) tag replacement on items whose tags were already replaced by the other player's xClient client.
-    auto remotePlayer = m_player && m_player->isSlave();
-    if (!remotePlayer) {
-      auto const& playerIdentity = humanoid.identity();
-      Maybe<String> directives = currentDirection == (uint8_t)Direction::Left ? armourItem->xSBflippedDirectives() : armourItem->xSBdirectives();
-      if (directives)
-        return Directives(directives->replaceTags(identityTags, false));
-      else
-        return currentDirection == (uint8_t)Direction::Left ? armourItem->flippedDirectives() : armourItem->directives();
-    } else {
+    // auto remotePlayer = m_player && m_player->isSlave();
+    // if (!remotePlayer) {
+    auto const& playerIdentity = humanoid.identity();
+    Maybe<String> directives = currentDirection == (uint8_t)Direction::Left ? armourItem->xSBflippedDirectives() : armourItem->xSBdirectives();
+    if (directives)
+      return Directives(directives->replaceTags(identityTags, false));
+    else
       return currentDirection == (uint8_t)Direction::Left ? armourItem->flippedDirectives() : armourItem->directives();
-    }
+    // } else {
+    //   return currentDirection == (uint8_t)Direction::Left ? armourItem->flippedDirectives() : armourItem->directives();
+    // }
   };
 
   ArmorItem::HiddenArmorTypes hiddenArmourSlots = {false, false, false, false};

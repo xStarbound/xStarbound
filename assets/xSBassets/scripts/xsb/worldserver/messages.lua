@@ -16,7 +16,7 @@ function module:init()
         if isLocal or root.getConfiguration("allowWorldMetadataChanges") then return world.metadataPath(key) end
     end)
 
-    message.setHandler("builder::setMetadata", function(_, isLocal, key, value)
+    message.setHandler("builder::setMetadataPath", function(_, isLocal, key, value)
         if isLocal or root.getConfiguration("allowWorldMetadataChanges") then
             return world.setMetadataPath(key, value)
         end

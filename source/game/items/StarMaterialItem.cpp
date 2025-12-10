@@ -1,15 +1,15 @@
 #include "StarMaterialItem.hpp"
+#include "StarAssets.hpp"
+#include "StarInput.hpp"
 #include "StarJson.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarMaterialDatabase.hpp"
+#include "StarPlayer.hpp"
 #include "StarRoot.hpp"
-#include "StarAssets.hpp"
+#include "StarTileDrawer.hpp"
 #include "StarWorld.hpp"
 #include "StarWorldClient.hpp"
 #include "StarWorldTemplate.hpp"
-#include "StarInput.hpp"
-#include "StarTileDrawer.hpp"
-#include "StarPlayer.hpp"
 
 namespace Star {
 
@@ -19,7 +19,7 @@ const String AltBlockRadiusPropertyKey = "building.altBlockRadius";
 const String CollisionOverridePropertyKey = "building.collisionOverride";
 
 MaterialItem::MaterialItem(Json const& config, String const& directory, Json const& settings)
-  : Item(config, directory, settings), FireableItem(config), BeamItem(config) {
+    : Item(config, directory, settings), FireableItem(config), BeamItem(config) {
   m_material = config.getInt("materialId");
   m_materialHueShift = materialHueFromDegrees(instanceValue("materialHueShift", 0).toFloat());
   auto materialDatabase = Root::singleton().materialDatabase();
@@ -117,8 +117,7 @@ void MaterialItem::update(float dt, FireMode fireMode, bool shifting, HashSet<Mo
         player->setSecretProperty(BlockRadiusPropertyKey, m_blockRadius);
         owner()->addSound("/sfx/tools/buildradiusshrink.wav", 1.0f, 1.0f + m_blockRadius / BlockRadiusLimit);
       }
-    }
-    else
+    } else
       updatePropertiesFromPlayer(player);
   }
 }
@@ -190,8 +189,8 @@ void MaterialItem::fire(FireMode mode, bool shifting, bool edgeTriggered) {
   }
 
   CollisionKind collisionKind = m_collisionOverride != TileCollisionOverride::None
-    ? collisionKindFromOverride(m_collisionOverride)
-    : Root::singleton().materialDatabase()->materialCollisionKind(m_material);
+                                    ? collisionKindFromOverride(m_collisionOverride)
+                                    : Root::singleton().materialDatabase()->materialCollisionKind(m_material);
 
   size_t total = 0;
   for (int i = 0; i != steps; ++i) {
@@ -236,10 +235,10 @@ List<Drawable> const& MaterialItem::generatedPreview(Vec2I position) const {
       auto locker = tileDrawer->lockRenderData();
       WorldRenderData& renderData = tileDrawer->renderData();
       renderData.geometry = WorldGeometry(3, 3);
-      renderData.tiles.resize({ 3, 3 });
+      renderData.tiles.resize({3, 3});
       renderData.tiles.fill(TileDrawer::DefaultRenderTile);
-      renderData.tileMinPosition = { 0, 0 };
-      RenderTile& tile = renderData.tiles.at({ 1, 1 });
+      renderData.tileMinPosition = {0, 0};
+      RenderTile& tile = renderData.tiles.at({1, 1});
       tile.foreground = m_material;
       tile.foregroundHueShift = m_materialHueShift;
       tile.foregroundColorVariant = 0;
@@ -250,7 +249,7 @@ List<Drawable> const& MaterialItem::generatedPreview(Vec2I position) const {
       TileDrawer::TerrainLayer layer = isBlock ? TileDrawer::TerrainLayer::Foreground : TileDrawer::TerrainLayer::Midground;
       for (int x = 0; x != 3; ++x) {
         for (int y = 0; y != 3; ++y)
-          tileDrawer->produceTerrainDrawables(tileDrawables, layer, { x, y }, renderData, 1.0f / TilePixels, position - Vec2I(1, 1));
+          tileDrawer->produceTerrainDrawables(tileDrawables, layer, {x, y}, renderData, 1.0f / TilePixels, position - Vec2I(1, 1));
       }
 
       locker.unlock();
@@ -264,8 +263,7 @@ List<Drawable> const& MaterialItem::generatedPreview(Vec2I position) const {
       }
 
       m_generatedPreviewCache.emplace(std::move(drawables));
-    }
-    else
+    } else
       m_generatedPreviewCache.emplace(iconDrawables());
   }
   return *m_generatedPreviewCache;
@@ -307,14 +305,16 @@ MaterialHue MaterialItem::materialHueShift() const {
 
 bool MaterialItem::canPlace(bool shifting) const {
   if (initialized()) {
+    const auto jBypassChecks = owner()->inWorld() ? world()->getProperty("bypassBuildChecks", false) : false;
+    const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
     MaterialId material = materialId();
 
     float radius = calcRadius(shifting);
 
     for (auto& pos : tileArea(radius, owner()->aimPosition())) {
       MaterialHue hueShift = placementHueShift(pos);
-      if (world()->canModifyTile(pos, PlaceMaterial{TileLayer::Foreground, material, hueShift}, false)
-          || world()->canModifyTile(pos, PlaceMaterial{TileLayer::Background, material, hueShift}, false))
+
+      if (world()->canModifyTile(pos, PlaceMaterial{TileLayer::Foreground, material, hueShift}, false, bypassChecks) || world()->canModifyTile(pos, PlaceMaterial{TileLayer::Background, material, hueShift}, false, bypassChecks))
         return true;
     }
   }
@@ -355,8 +355,7 @@ List<PreviewTile> MaterialItem::previewTiles(bool shifting) const {
       if (world()->canModifyTile(pos, PlaceMaterial{TileLayer::Foreground, material, hueShift}, false)) {
         result.append({pos, true, material, hueShift, true});
         c++;
-      } else if (twoHanded()
-          && world()->canModifyTile(pos, PlaceMaterial{TileLayer::Background, material, hueShift}, false)) {
+      } else if (twoHanded() && world()->canModifyTile(pos, PlaceMaterial{TileLayer::Background, material, hueShift}, false)) {
         result.append({pos, true, material, hueShift, true, light, true, color});
         c++;
       } else {
@@ -378,4 +377,4 @@ MaterialHue MaterialItem::placementHueShift(Vec2I const& pos) const {
   }
 }
 
-}
+} // namespace Star

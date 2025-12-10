@@ -448,7 +448,9 @@ void Object::renderLightSources(RenderCallback* renderCallback) {
 }
 
 bool Object::damageTiles(List<Vec2I> const&, Vec2F const&, TileDamage const& tileDamage) {
-  if (m_unbreakable)
+  const auto jBypassChecks = inWorld() ? world()->getProperty("bypassBuildChecks", false) : false;
+  const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+  if (m_unbreakable && !bypassChecks)
     return false;
   m_tileDamageStatus->damage(m_config->tileDamageParameters, tileDamage);
   if (m_tileDamageStatus->dead())
@@ -457,7 +459,9 @@ bool Object::damageTiles(List<Vec2I> const&, Vec2F const&, TileDamage const& til
 }
 
 bool Object::checkBroken() {
-  if (!m_broken && !m_unbreakable) {
+  const auto jBypassChecks = inWorld() ? world()->getProperty("bypassBuildChecks", false) : false;
+  const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+  if (!m_broken && (bypassChecks || !m_unbreakable)) {
     auto orientation = currentOrientation();
     if (orientation) {
       if (!orientation->anchorsValid(world(), tilePosition()))
@@ -1131,7 +1135,9 @@ PolyF Object::statusEffectArea() const {
 }
 
 Maybe<HitType> Object::queryHit(DamageSource const& source) const {
-  if (!m_config->smashable || !inWorld() || m_health.get() <= 0.0f || m_unbreakable)
+  const auto jBypassChecks = inWorld() ? world()->getProperty("bypassBuildChecks", false) : false;
+  const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+  if (!m_config->smashable || !inWorld() || m_health.get() <= 0.0f || (m_unbreakable && !bypassChecks))
     return {};
 
   if (source.intersectsWithPoly(world()->geometry(), hitPoly().get()))

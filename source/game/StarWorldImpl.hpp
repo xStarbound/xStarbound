@@ -1,20 +1,20 @@
 #ifndef STAR_WORLD_IMPL_HPP
 #define STAR_WORLD_IMPL_HPP
 
-#include "StarIterator.hpp"
-#include "StarEntityMap.hpp"
-#include "StarWorldTiles.hpp"
-#include "StarBlocksAlongLine.hpp"
-#include "StarBiome.hpp"
-#include "StarSky.hpp"
-#include "StarWorldTemplate.hpp"
-#include "StarLiquidsDatabase.hpp"
-#include "StarCellularLighting.hpp"
-#include "StarRoot.hpp"
-#include "StarMaterialDatabase.hpp"
 #include "StarAssets.hpp"
+#include "StarBiome.hpp"
+#include "StarBlocksAlongLine.hpp"
+#include "StarCellularLighting.hpp"
+#include "StarEntityMap.hpp"
+#include "StarIterator.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarLiquidsDatabase.hpp"
+#include "StarMaterialDatabase.hpp"
+#include "StarRoot.hpp"
+#include "StarSky.hpp"
 #include "StarTileModification.hpp"
+#include "StarWorldTemplate.hpp"
+#include "StarWorldTiles.hpp"
 
 namespace Star {
 
@@ -25,7 +25,7 @@ namespace WorldImpl {
 
   template <typename TileSectorArray>
   CollisionKind tileCollisionKind(shared_ptr<TileSectorArray> const& tileSectorArray, EntityMapPtr const& entityMap,
-    Vec2I const& pos);
+      Vec2I const& pos);
 
   template <typename TileSectorArray>
   bool rectTileCollision(shared_ptr<TileSectorArray> const& tileSectorArray, RectI const& region, bool solidCollision);
@@ -58,7 +58,7 @@ namespace WorldImpl {
   // Split modification list into good and bad
   template <typename GetTileFunction>
   pair<TileModificationList, TileModificationList> splitTileModifications(EntityMapPtr const& entityMap, TileModificationList const& modificationList,
-    bool allowEntityOverlap, GetTileFunction& getTile, function<bool(Vec2I pos, TileModification modification)> extraCheck = {}, bool allowDisconnected = false);
+      bool allowEntityOverlap, GetTileFunction& getTile, function<bool(Vec2I pos, TileModification modification)> extraCheck = {}, bool allowDisconnected = false);
 
   template <typename TileSectorArray>
   float windLevel(shared_ptr<TileSectorArray> const& tileSectorArray, Vec2F const& position, float weatherWindLevel);
@@ -94,24 +94,24 @@ namespace WorldImpl {
 
   template <typename TileSectorArray>
   CollisionKind tileCollisionKind(shared_ptr<TileSectorArray> const& tileSectorArray, EntityMapPtr const& entityMap,
-    Vec2I const& pos) {
+      Vec2I const& pos) {
     return tileSectorArray->tile(pos).collision;
   }
 
   template <typename TileSectorArray>
   bool rectTileCollision(shared_ptr<TileSectorArray> const& tileSectorArray, RectI const& region, CollisionSet const& collisionSet) {
     return tileSectorArray->tileSatisfies(region, [&collisionSet](Vec2I const&, typename TileSectorArray::Tile const& tile) {
-        // FezzedOne: Need a `getCollision` call here to make sure the correct collision is returned.
-        return isColliding(tile.getCollision(), collisionSet);
-      });
+      // FezzedOne: Need a `getCollision` call here to make sure the correct collision is returned.
+      return isColliding(tile.getCollision(), collisionSet);
+    });
   }
 
   template <typename TileSectorArray>
   bool lineTileCollision(WorldGeometry const& worldGeometry, shared_ptr<TileSectorArray> const& tileSectorArray,
       Vec2F const& begin, Vec2F const& end, CollisionSet const& collisionSet) {
     return !forBlocksAlongLine<float>(begin, worldGeometry.diff(end, begin), [=](int x, int y) -> bool {
-        return !tileSectorArray->tile({x, y}).isColliding(collisionSet);
-      });
+      return !tileSectorArray->tile({x, y}).isColliding(collisionSet);
+    });
   }
 
   template <typename TileSectorArray>
@@ -119,13 +119,13 @@ namespace WorldImpl {
       Vec2F const& begin, Vec2F const& end, CollisionSet const& collisionSet) {
     Maybe<Vec2I> collidingBlock;
     auto clear = forBlocksAlongLine<float>(begin, worldGeometry.diff(end, begin), [=, &collidingBlock](int x, int y) -> bool {
-        if (tileSectorArray->tile({x, y}).isColliding(collisionSet)) {
-          collidingBlock = Vec2I(x, y);
-          return false;
-        } else {
-          return true;
-        }
-      });
+      if (tileSectorArray->tile({x, y}).isColliding(collisionSet)) {
+        collidingBlock = Vec2I(x, y);
+        return false;
+      } else {
+        return true;
+      }
+    });
 
     if (clear)
       return {}; // no colliding blocks along the line
@@ -174,12 +174,12 @@ namespace WorldImpl {
     float totalSpace = 0;
     Map<LiquidId, float> totals;
     tileSectorArray->tileEach(sampleRect, [&region, &totalSpace, &totals](Vec2I const& pos, typename TileSectorArray::Tile const& tile) {
-        float blockIncidence = RectF(pos[0], pos[1], pos[0] + 1, pos[1] + 1).overlap(region).volume();
-        totalSpace += blockIncidence;
-        auto liquidLevel = tile.liquid;
-        if (liquidLevel.liquid != EmptyLiquidId)
-          totals[liquidLevel.liquid] += min(1.0f, liquidLevel.level) * blockIncidence;
-      });
+      float blockIncidence = RectF(pos[0], pos[1], pos[0] + 1, pos[1] + 1).overlap(region).volume();
+      totalSpace += blockIncidence;
+      auto liquidLevel = tile.liquid;
+      if (liquidLevel.liquid != EmptyLiquidId)
+        totals[liquidLevel.liquid] += min(1.0f, liquidLevel.level) * blockIncidence;
+    });
 
     float totalLiquidLevel = 0.0f;
     float maximumLiquidLevel = 0.0f;
@@ -199,12 +199,12 @@ namespace WorldImpl {
       Vec2F const& begin, Vec2F const& end, CollisionSet const& collisionSet, size_t maxSize, bool includeEdges) {
     List<Vec2I> res;
     forBlocksAlongLine<float>(begin, worldGeometry.diff(end, begin), [&](int x, int y) {
-        if (res.size() >= maxSize)
-          return false;
-        if (tileSectorArray->tile({x, y}).isColliding(collisionSet))
-          res.append({x, y});
-        return true;
-      });
+      if (res.size() >= maxSize)
+        return false;
+      if (tileSectorArray->tile({x, y}).isColliding(collisionSet))
+        res.append({x, y});
+      return true;
+    });
 
     if (includeEdges)
       return res;
@@ -235,7 +235,7 @@ namespace WorldImpl {
       int maxY = pos.y() + distance + 1;
       int maxX = pos.x() + distance + 1;
       for (int y = pos.y() - distance; y != maxY; ++y) {
-        Vec2I tPos = { 0, y };
+        Vec2I tPos = {0, y};
         for (int x = pos.x() - distance; x != maxX; ++x) {
           tPos[0] = x;
           if (tPos != pos) {
@@ -248,15 +248,15 @@ namespace WorldImpl {
       return false;
     };
 
-    if (!materialDatabase->canPlaceInLayer(material, layer))
+    if (!allowDisconnected && !materialDatabase->canPlaceInLayer(material, layer))
       return false;
 
     auto& tile = getTile(pos);
     if (layer == TileLayer::Background) {
-      if (tile.background != EmptyMaterialId && tile.background != ObjectPlatformMaterialId)
+      if (tile.background != EmptyMaterialId && tile.background != ObjectPlatformMaterialId && !allowDisconnected)
         return false;
 
-      // FezzedOne: Allowing overriding the tile connectivity check. This allows mid-air placement. Always `true` on xServer, deferring to the client.
+      // FezzedOne: Allow overriding the tile connectivity check. This allows mid-air placement. Always `true` on xServer, deferring to the client.
       if (allowDisconnected)
         return true;
 
@@ -265,7 +265,7 @@ namespace WorldImpl {
       if (!isAdjacentToConnectable(pos, 1, false) && !isConnectableMaterial(tile.foreground))
         return false;
     } else {
-      if (tile.foreground != EmptyMaterialId && tile.foreground != ObjectPlatformMaterialId)
+      if (tile.foreground != EmptyMaterialId && tile.foreground != ObjectPlatformMaterialId && !allowDisconnected)
         return false;
 
       if (!allowTileOverlap && entityMap->tileIsOccupied(pos))
@@ -293,15 +293,15 @@ namespace WorldImpl {
     if (!isRealMaterial(material))
       return false;
 
-    if (!materialDatabase->canPlaceInLayer(material, layer))
+    if (!allowDisconnected && !materialDatabase->canPlaceInLayer(material, layer))
       return false;
 
     auto& tile = getTile(pos);
     if (layer == TileLayer::Background) {
-      if (tile.background != EmptyMaterialId && tile.background != ObjectPlatformMaterialId)
+      if (tile.background != EmptyMaterialId && tile.background != ObjectPlatformMaterialId && !allowDisconnected)
         return false;
     } else {
-      if (tile.foreground != EmptyMaterialId && tile.foreground != ObjectPlatformMaterialId)
+      if (tile.foreground != EmptyMaterialId && tile.foreground != ObjectPlatformMaterialId && !allowDisconnected)
         return false;
 
       if (!allowTileOverlap && entityMap->tileIsOccupied(pos))
@@ -340,9 +340,9 @@ namespace WorldImpl {
   pair<bool, bool> validateTileModification(EntityMapPtr const& entityMap, Vec2I const& pos, TileModification const& modification, bool allowEntityOverlap, GetTileFunction& getTile, bool allowDisconnected) {
     bool good = false;
     bool perhaps = false;
-    
+
     if (auto placeMaterial = modification.ptr<PlaceMaterial>()) {
-      bool allowTileOverlap = placeMaterial->collisionOverride != TileCollisionOverride::None && collisionKindFromOverride(placeMaterial->collisionOverride) < CollisionKind::Dynamic;
+      bool allowTileOverlap = (placeMaterial->collisionOverride != TileCollisionOverride::None && collisionKindFromOverride(placeMaterial->collisionOverride) < CollisionKind::Dynamic) || allowDisconnected;
       perhaps = WorldImpl::perhapsCanPlaceMaterial(entityMap, pos, placeMaterial->layer, placeMaterial->material, allowEntityOverlap, allowTileOverlap, getTile, allowDisconnected);
       if (perhaps)
         good = WorldImpl::canPlaceMaterial(entityMap, pos, placeMaterial->layer, placeMaterial->material, allowEntityOverlap, allowTileOverlap, getTile, allowDisconnected);
@@ -356,12 +356,12 @@ namespace WorldImpl {
       good = false;
     }
 
-    return { good, perhaps };
+    return {good, perhaps};
   }
 
   template <typename GetTileFunction>
   pair<TileModificationList, TileModificationList> splitTileModifications(EntityMapPtr const& entityMap, TileModificationList const& modificationList,
-    bool allowEntityOverlap, GetTileFunction& getTile, function<bool(Vec2I pos, TileModification modification)> extraCheck, bool allowDisconnected) {
+      bool allowEntityOverlap, GetTileFunction& getTile, function<bool(Vec2I pos, TileModification modification)> extraCheck, bool allowDisconnected) {
     TileModificationList success;
     TileModificationList unknown;
     TileModificationList failures;
@@ -433,24 +433,23 @@ namespace WorldImpl {
     // sector size.
     CellularLightIntensityCalculator::Cell lightingCellColumn[WorldSectorSize];
     tileSectorArray->tileEvalColumns(lighting.calculationRegion(), [&](Vec2I const& pos, typename TileSectorArray::Tile const* column, size_t ySize) {
-        for (size_t y = 0; y < ySize; ++y) {
-          auto& tile = column[y];
-          auto& cell = lightingCellColumn[y];
+      for (size_t y = 0; y < ySize; ++y) {
+        auto& tile = column[y];
+        auto& cell = lightingCellColumn[y];
 
-          bool backgroundTransparent = materialDatabase->backgroundLightTransparent(tile.background);
-          bool foregroundTransparent = materialDatabase->foregroundLightTransparent(tile.foreground)
-              && tile.collision != CollisionKind::Dynamic;
+        bool backgroundTransparent = materialDatabase->backgroundLightTransparent(tile.background);
+        bool foregroundTransparent = materialDatabase->foregroundLightTransparent(tile.foreground) && tile.collision != CollisionKind::Dynamic;
 
-          cell = {materialDatabase->radiantLight(tile.foreground, tile.foregroundMod).sum() / 3.0f, !foregroundTransparent};
-          cell.light += liquidsDatabase->radiantLight(tile.liquid).sum() / 3.0f;
-          if (foregroundTransparent) {
-            cell.light += materialDatabase->radiantLight(tile.background, tile.backgroundMod).sum() / 3.0f;
-            if (backgroundTransparent && pos[1] > undergroundLevel)
-              cell.light += environmentLight.sum() / 3.0f;
-          }
+        cell = {materialDatabase->radiantLight(tile.foreground, tile.foregroundMod).sum() / 3.0f, !foregroundTransparent};
+        cell.light += liquidsDatabase->radiantLight(tile.liquid).sum() / 3.0f;
+        if (foregroundTransparent) {
+          cell.light += materialDatabase->radiantLight(tile.background, tile.backgroundMod).sum() / 3.0f;
+          if (backgroundTransparent && pos[1] > undergroundLevel)
+            cell.light += environmentLight.sum() / 3.0f;
         }
-        lighting.setCellColumn(pos, lightingCellColumn, ySize);
-      });
+      }
+      lighting.setCellColumn(pos, lightingCellColumn, ySize);
+    });
 
     for (auto const& entity : entityMap->entityQuery(RectF(lighting.calculationRegion()))) {
       for (auto const& light : entity->lightSources()) {
@@ -472,7 +471,7 @@ namespace WorldImpl {
         if (isTileEntityInRange(geometry, entityMap, tileEntity->entityId(), sourcePosition, maxRange))
           return entity;
       } else {
-        if (geometry.diffToNearestCoordInBox(entity->interactiveBoundBox().translated(entity->position()), sourcePosition) .magnitude() <= maxRange)
+        if (geometry.diffToNearestCoordInBox(entity->interactiveBoundBox().translated(entity->position()), sourcePosition).magnitude() <= maxRange)
           return entity;
       }
     }
@@ -505,11 +504,11 @@ namespace WorldImpl {
     auto const canReachTile = [&](Vec2F const& end) -> bool {
       Vec2I const& endTile = Vec2I::floor(end);
       return forBlocksAlongLine<float>(sourcePosition, geometry.diff(end, sourcePosition), [=](int x, int y) -> bool {
-          Vec2I diff = geometry.diff(endTile, Vec2I(x, y));
-          if (diff[0] == 0 && diff[1] == 0)
-            return true;
-          return !tileSectorArray->tile({x, y}).isColliding(DefaultCollisionSet);
-        });
+        Vec2I diff = geometry.diff(endTile, Vec2I(x, y));
+        if (diff[0] == 0 && diff[1] == 0)
+          return true;
+        return !tileSectorArray->tile({x, y}).isColliding(DefaultCollisionSet);
+      });
     };
 
     if (auto tileEntity = as<TileEntity>(entity)) {
@@ -528,12 +527,11 @@ namespace WorldImpl {
       if (!geometry.rectIntersectsCircle(entityBounds, sourcePosition, maxRange))
         return false;
 
-      return
-          !lineTileCollision(geometry, tileSectorArray, sourcePosition, entityBounds.nearestCoordTo(sourcePosition), DefaultCollisionSet) ||
-          !lineTileCollision(geometry, tileSectorArray, sourcePosition, Vec2F(entityBounds.xMin(), entityBounds.yMin()), DefaultCollisionSet) ||
-          !lineTileCollision(geometry, tileSectorArray, sourcePosition, Vec2F(entityBounds.xMin(), entityBounds.yMax()), DefaultCollisionSet) ||
-          !lineTileCollision(geometry, tileSectorArray, sourcePosition, Vec2F(entityBounds.xMax(), entityBounds.yMax()), DefaultCollisionSet) ||
-          !lineTileCollision(geometry, tileSectorArray, sourcePosition, Vec2F(entityBounds.xMax(), entityBounds.yMin()), DefaultCollisionSet);
+      return !lineTileCollision(geometry, tileSectorArray, sourcePosition, entityBounds.nearestCoordTo(sourcePosition), DefaultCollisionSet) ||
+             !lineTileCollision(geometry, tileSectorArray, sourcePosition, Vec2F(entityBounds.xMin(), entityBounds.yMin()), DefaultCollisionSet) ||
+             !lineTileCollision(geometry, tileSectorArray, sourcePosition, Vec2F(entityBounds.xMin(), entityBounds.yMax()), DefaultCollisionSet) ||
+             !lineTileCollision(geometry, tileSectorArray, sourcePosition, Vec2F(entityBounds.xMax(), entityBounds.yMax()), DefaultCollisionSet) ||
+             !lineTileCollision(geometry, tileSectorArray, sourcePosition, Vec2F(entityBounds.xMax(), entityBounds.yMin()), DefaultCollisionSet);
     } else {
       if (geometry.diff(entity->position(), sourcePosition).magnitude() <= maxRange)
         return !lineTileCollision(geometry, tileSectorArray, sourcePosition, entity->position(), DefaultCollisionSet);
@@ -541,8 +539,8 @@ namespace WorldImpl {
 
     return false;
   }
-}
+} // namespace WorldImpl
 
-}
+} // namespace Star
 
 #endif

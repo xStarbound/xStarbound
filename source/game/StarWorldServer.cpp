@@ -1079,6 +1079,9 @@ TileModificationList WorldServer::forceApplyTileModifications(TileModificationLi
 }
 
 TileDamageResult WorldServer::damageTiles(List<Vec2I> const& positions, TileLayer layer, Vec2F const& sourcePosition, TileDamage const& damage, Maybe<EntityId> sourceEntity) {
+  const auto jBypassChecks = getProperty("bypassBuildChecks", false);
+  const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+
   Set<Vec2I> positionSet;
   for (auto const& pos : positions)
     positionSet.add(m_geometry.xwrap(pos));
@@ -1096,7 +1099,7 @@ TileDamageResult WorldServer::damageTiles(List<Vec2I> const& positions, TileLaye
       if (layer == TileLayer::Foreground) {
         Vec2I entityDamagePos = pos;
         Set<Vec2I> damagePositionSet = Set<Vec2I>(positionSet);
-        if (tile->rootSource) {
+        if (tile->rootSource && !bypassChecks) {
           entityDamagePos = tile->rootSource.value();
           damagePositionSet.add(entityDamagePos);
         }
@@ -1113,6 +1116,7 @@ TileDamageResult WorldServer::damageTiles(List<Vec2I> const& positions, TileLaye
             auto object = as<Object>(entity);
             if (object)
               unbreakableObject = object->unbreakable();
+            unbreakableObject |= bypassChecks; // FezzedOne: Don't touch objects rooted on the tile when checks are bypassed.
             if (sourceEntity.isValid() && broken) {
               Maybe<String> name;
               if (object)
@@ -1140,7 +1144,7 @@ TileDamageResult WorldServer::damageTiles(List<Vec2I> const& positions, TileLaye
         auto materialDatabase = Root::singleton().materialDatabase();
 
         if (layer == TileLayer::Foreground && isRealMaterial(tile->foreground)) {
-          if (!tile->rootSource || damagedEntities.empty()) {
+          if (bypassChecks || !tile->rootSource || damagedEntities.empty()) {
             if (isRealMod(tile->foregroundMod)) {
               if (tileDamageIsPenetrating(tileDamage.type))
                 tile->foregroundDamage.damage(materialDatabase->materialDamageParameters(tile->foreground), sourcePosition, tileDamage);
@@ -1785,6 +1789,9 @@ Maybe<unsigned> WorldServer::shouldRunThisStep(String const& timingConfiguration
 TileModificationList WorldServer::doApplyTileModifications(TileModificationList const& modificationList, bool allowEntityOverlap, bool ignoreTileProtection) {
   auto materialDatabase = Root::singleton().materialDatabase();
 
+  const auto jBypassChecks = getProperty("bypassBuildChecks", false);
+  const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+
   TileModificationList unapplied = modificationList;
   size_t unappliedSize = unapplied.size();
   auto it = makeSMutableIterator(unapplied);
@@ -1799,7 +1806,8 @@ TileModificationList WorldServer::doApplyTileModifications(TileModificationList 
     if (auto placeMaterial = modification.ptr<PlaceMaterial>()) {
       bool allowTileOverlap = placeMaterial->collisionOverride != TileCollisionOverride::None && collisionKindFromOverride(placeMaterial->collisionOverride) < CollisionKind::Dynamic;
       // Let the *client* handle whether mid-air placement is allowed (see last parameter of the call).
-      if (!WorldImpl::canPlaceMaterial(m_entityMap, pos, placeMaterial->layer, placeMaterial->material, allowEntityOverlap, allowTileOverlap, m_tileGetterFunction, true))
+      if (!WorldImpl::canPlaceMaterial(m_entityMap, pos, placeMaterial->layer, placeMaterial->material,
+              bypassChecks || allowEntityOverlap, bypassChecks || allowTileOverlap, m_tileGetterFunction, true))
         continue;
 
       ServerTile* tile = m_tileArray->modifyTile(pos);
@@ -1843,11 +1851,13 @@ TileModificationList WorldServer::doApplyTileModifications(TileModificationList 
 
       tile->dungeonId = ConstructionDungeonId;
 
-      checkEntityBreaks(RectF::withSize(Vec2F(pos), Vec2F(1, 1)));
-      m_liquidEngine->visitLocation(pos);
-      m_fallingBlocksAgent->visitLocation(pos);
-      if (placeMaterial->layer == TileLayer::Foreground)
-        dirtyCollision(RectI::withSize(pos, {1, 1}));
+      if (!bypassChecks) {
+        checkEntityBreaks(RectF::withSize(Vec2F(pos), Vec2F(1, 1)));
+        m_liquidEngine->visitLocation(pos);
+        m_fallingBlocksAgent->visitLocation(pos);
+        if (placeMaterial->layer == TileLayer::Foreground)
+          dirtyCollision(RectI::withSize(pos, {1, 1}));
+      }
       queueTileUpdates(pos);
 
     } else if (auto placeMod = modification.ptr<PlaceMod>()) {
@@ -1872,7 +1882,8 @@ TileModificationList WorldServer::doApplyTileModifications(TileModificationList 
           tile->foregroundModHueShift = m_worldTemplate->biomeModHueShift(tile->blockBiomeIndex, placeMod->mod);
       }
 
-      m_liquidEngine->visitLocation(pos);
+      if (!bypassChecks)
+        m_liquidEngine->visitLocation(pos);
       queueTileUpdates(pos);
 
     } else if (auto placeMaterialColor = modification.ptr<PlaceMaterialColor>()) {
@@ -1899,7 +1910,8 @@ TileModificationList WorldServer::doApplyTileModifications(TileModificationList 
 
     } else if (auto plpacket = modification.ptr<PlaceLiquid>()) {
       modifyLiquid(pos, plpacket->liquid, plpacket->liquidLevel, true);
-      m_liquidEngine->visitLocation(pos);
+      if (!bypassChecks)
+        m_liquidEngine->visitLocation(pos);
       m_fallingBlocksAgent->visitLocation(pos);
     }
 
