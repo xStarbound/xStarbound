@@ -90,7 +90,7 @@ bool ObjectItem::placeInWorld(FireMode, bool shifting) {
                                         JsonObject{{"duration", JsonArray{0.0, 0.0}}},
                                         JsonObject{{"tree", true}}});
     }
-    if (auto object = objectDatabase->createForPlacement(world(), objectName(), pos, owner()->walkingDirection(), objectParameters())) {
+    if (auto object = objectDatabase->createForPlacement(world(), objectName(), pos, owner()->walkingDirection(), params)) {
       if (bypassChecks || consume(1)) {
         world()->addEntity(object);
         return true;
