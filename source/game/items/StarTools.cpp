@@ -1,17 +1,17 @@
 #include "StarTools.hpp"
-#include "StarRoot.hpp"
-#include "StarMaterialDatabase.hpp"
-#include "StarJsonExtra.hpp"
 #include "StarAssets.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarMaterialDatabase.hpp"
+#include "StarParticleDatabase.hpp"
+#include "StarRoot.hpp"
 #include "StarWiring.hpp"
 #include "StarWorld.hpp"
 #include "StarWorldClient.hpp"
-#include "StarParticleDatabase.hpp"
 
 namespace Star {
 
 MiningTool::MiningTool(Json const& config, String const& directory, Json const& parameters)
-  : Item(config, directory, parameters), SwingableItem(config) {
+    : Item(config, directory, parameters), SwingableItem(config) {
   auto assets = Root::singleton().assets();
 
   m_image = AssetPath::relativeTo(directory, instanceValue("image").toString());
@@ -62,9 +62,19 @@ void MiningTool::fire(FireMode mode, bool shifting, bool edgeTriggered) {
     List<Vec2I> brushArea;
 
     auto layer = (mode == FireMode::Primary ? TileLayer::Foreground : TileLayer::Background);
+    auto worldClient = as<WorldClient>(world());
     if (owner()->isAdmin() || owner()->inToolRange()) {
       brushArea = tileAreaBrush(radius, owner()->aimPosition(), true);
       for (auto pos : brushArea) {
+        // FezzedOne: Allows removal of otherwise unremovable objects with no spaces.
+        if (worldClient) {
+          worldClient->forEachEntity(RectF(Vec2F(pos), Vec2F(pos) + Vec2F::filled(0.999)), [worldClient](EntityPtr const& entity) {
+            if (auto tileEntity = as<TileEntity>(entity)) {
+              if (tileEntity->spaces().empty())
+                worldClient->removeEntity(entity->entityId(), true);
+            }
+          });
+        }
         blockSound = materialDatabase->miningSound(world()->material(pos, layer), world()->mod(pos, layer));
         if (!blockSound.empty())
           break;
@@ -72,8 +82,7 @@ void MiningTool::fire(FireMode mode, bool shifting, bool edgeTriggered) {
       if (blockSound.empty()) {
         for (auto pos : brushArea) {
           blockSound = materialDatabase->footstepSound(world()->material(pos, layer), world()->mod(pos, layer));
-          if (!blockSound.empty()
-              && blockSound != Root::singleton().assets()->json("/client.config:defaultFootstepSound").toString())
+          if (!blockSound.empty() && blockSound != Root::singleton().assets()->json("/client.config:defaultFootstepSound").toString())
             break;
         }
       }
@@ -147,7 +156,7 @@ void MiningTool::changeDurability(float amount) {
 }
 
 HarvestingTool::HarvestingTool(Json const& config, String const& directory, Json const& parameters)
-  : Item(config, directory, parameters), SwingableItem(config) {
+    : Item(config, directory, parameters), SwingableItem(config) {
   auto assets = Root::singleton().assets();
 
   m_image = AssetPath::relativeTo(directory, instanceValue("image").toString());
@@ -216,7 +225,7 @@ float HarvestingTool::getAngle(float aimAngle) {
 }
 
 Flashlight::Flashlight(Json const& config, String const& directory, Json const& parameters)
-  : Item(config, directory, parameters) {
+    : Item(config, directory, parameters) {
   m_image = AssetPath::relativeTo(directory, instanceValue("image").toString());
   m_handPosition = jsonToVec2F(instanceValue("handPosition"));
   m_lightPosition = jsonToVec2F(instanceValue("lightPosition"));
@@ -249,7 +258,7 @@ List<LightSource> Flashlight::lightSources() const {
 }
 
 WireTool::WireTool(Json const& config, String const& directory, Json const& parameters)
-  : Item(config, directory, parameters), FireableItem(config), BeamItem(config.setAll(parameters.toObject())) {
+    : Item(config, directory, parameters), FireableItem(config), BeamItem(config.setAll(parameters.toObject())) {
   auto assets = Root::singleton().assets();
 
   m_handPosition = jsonToVec2F(instanceValue("handPosition"));
@@ -324,7 +333,7 @@ void WireTool::setConnector(WireConnector* connector) {
 }
 
 BeamMiningTool::BeamMiningTool(Json const& config, String const& directory, Json const& parameters)
-  : Item(config, directory, parameters), FireableItem(config), BeamItem(config.setAll(parameters.toObject())) {
+    : Item(config, directory, parameters), FireableItem(config), BeamItem(config.setAll(parameters.toObject())) {
   auto assets = Root::singleton().assets();
 
   m_blockRadius = instanceValue("blockRadius").toFloat();
@@ -422,8 +431,18 @@ void BeamMiningTool::fire(FireMode mode, bool shifting, bool edgeTriggered) {
     if (ownerp->isAdmin() || ownerp->inToolRange()) {
       brushArea = tileAreaBrush(radius, ownerp->aimPosition(), true);
       auto aimPosition = Vec2I(ownerp->aimPosition());
+      auto worldClient = as<WorldClient>(world());
 
       for (auto pos : brushArea) {
+        // FezzedOne: Allows removal of otherwise unremovable objects with no spaces.
+        if (worldClient) {
+          worldClient->forEachEntity(RectF(Vec2F(pos), Vec2F(pos) + Vec2F::filled(0.999)), [worldClient](EntityPtr const& entity) {
+            if (auto tileEntity = as<TileEntity>(entity)) {
+              if (tileEntity->spaces().empty())
+                worldClient->removeEntity(entity->entityId(), true);
+            }
+          });
+        }
         blockSound = materialDatabase->miningSound(worldp->material(pos, layer), worldp->mod(pos, layer));
         if (!blockSound.empty())
           break;
@@ -431,8 +450,7 @@ void BeamMiningTool::fire(FireMode mode, bool shifting, bool edgeTriggered) {
       if (blockSound.empty()) {
         for (auto pos : brushArea) {
           blockSound = materialDatabase->footstepSound(worldp->material(pos, layer), worldp->mod(pos, layer));
-          if (!blockSound.empty()
-              && blockSound != Root::singleton().assets()->json("/client.config:defaultFootstepSound").toString())
+          if (!blockSound.empty() && blockSound != Root::singleton().assets()->json("/client.config:defaultFootstepSound").toString())
             break;
         }
       }
@@ -498,7 +516,7 @@ float BeamMiningTool::getAngle(float angle) {
 }
 
 TillingTool::TillingTool(Json const& config, String const& directory, Json const& parameters)
-  : Item(config, directory, parameters), SwingableItem(config) {
+    : Item(config, directory, parameters), SwingableItem(config) {
   auto assets = Root::singleton().assets();
 
   m_image = AssetPath::relativeTo(directory, instanceValue("image").toString());
@@ -549,8 +567,7 @@ void TillingTool::fire(FireMode mode, bool shifting, bool edgeTriggered) {
       if (world()->material(pos, layer) == EmptyMaterialId)
         pos = pos - Vec2I(0, 1);
 
-      if ((layer == TileLayer::Background)
-          && world()->material(pos + Vec2I(0, 1), TileLayer::Background) != EmptyMaterialId)
+      if ((layer == TileLayer::Background) && world()->material(pos + Vec2I(0, 1), TileLayer::Background) != EmptyMaterialId)
         continue;
 
       if (owner()->isAdmin() || owner()->inToolRange()) {
@@ -594,7 +611,7 @@ float TillingTool::getAngle(float aimAngle) {
 }
 
 PaintingBeamTool::PaintingBeamTool(Json const& config, String const& directory, Json const& parameters)
-  : Item(config, directory, parameters), FireableItem(config), BeamItem(config) {
+    : Item(config, directory, parameters), FireableItem(config), BeamItem(config) {
   auto assets = Root::singleton().assets();
 
   m_blockRadius = instanceValue("blockRadius").toFloat();
@@ -696,9 +713,8 @@ void PaintingBeamTool::fire(FireMode mode, bool shifting, bool edgeTriggered) {
       if (ownerp->isAdmin() || ownerp->inToolRange()) {
         for (auto pos : tileAreaBrush(radius, ownerp->aimPosition(), true)) {
           TileModificationList modifications = {
-            {pos, PlaceMaterialColor{TileLayer::Foreground, (MaterialColorVariant)m_colorIndex}},
-            {pos, PlaceMaterialColor{TileLayer::Background, (MaterialColorVariant)m_colorIndex}}
-          };
+              {pos, PlaceMaterialColor{TileLayer::Foreground, (MaterialColorVariant)m_colorIndex}},
+              {pos, PlaceMaterialColor{TileLayer::Background, (MaterialColorVariant)m_colorIndex}}};
           auto failed = worldp->applyTileModifications(modifications, true);
           if (failed.count() < 2)
             used = true;
@@ -717,4 +733,4 @@ float PaintingBeamTool::getAngle(float angle) {
   return BeamItem::getAngle(angle);
 }
 
-}
+} // namespace Star
