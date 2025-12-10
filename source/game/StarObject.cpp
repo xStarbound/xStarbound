@@ -465,9 +465,9 @@ bool Object::checkBroken() {
     auto orientation = currentOrientation();
     if (orientation) {
       if (!orientation->anchorsValid(world(), tilePosition()))
-        m_broken = true;
+        m_broken = !bypassChecks;
     } else {
-      m_broken = true;
+      m_broken = !bypassChecks;
     }
   }
   return m_broken;

@@ -1,25 +1,25 @@
 #include "StarPlant.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarWorld.hpp"
-#include "StarRoot.hpp"
-#include "StarObjectDatabase.hpp"
-#include "StarPlantDrop.hpp"
-#include "StarImageMetadataDatabase.hpp"
 #include "StarAssets.hpp"
-#include "StarImage.hpp"
 #include "StarEntityRendering.hpp"
+#include "StarImage.hpp"
+#include "StarImageMetadataDatabase.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarObjectDatabase.hpp"
 #include "StarParticleDatabase.hpp"
+#include "StarPlantDrop.hpp"
+#include "StarRoot.hpp"
+#include "StarWorld.hpp"
 
 namespace Star {
 
 float const Plant::PlantScanThreshold = 0.1f;
 
 EnumMap<Plant::RotationType> const Plant::RotationTypeNames{
-  {Plant::RotationType::DontRotate, "dontRotate"},
-  {Plant::RotationType::RotateBranch, "rotateBranch"},
-  {Plant::RotationType::RotateLeaves, "rotateLeaves"},
-  {Plant::RotationType::RotateCrownBranch, "rotateCrownBranch"},
-  {Plant::RotationType::RotateCrownLeaves, "rotateCrownLeaves"},
+    {Plant::RotationType::DontRotate, "dontRotate"},
+    {Plant::RotationType::RotateBranch, "rotateBranch"},
+    {Plant::RotationType::RotateLeaves, "rotateLeaves"},
+    {Plant::RotationType::RotateCrownBranch, "rotateCrownBranch"},
+    {Plant::RotationType::RotateCrownLeaves, "rotateCrownLeaves"},
 };
 
 Plant::PlantPiece::PlantPiece() {
@@ -293,8 +293,7 @@ Plant::Plant(TreeVariant const& config, uint64_t seed) : Plant() {
               m_pieces.append(piece);
             }
 
-            if (branchLeavesSettings.contains("backimage")
-                && !branchLeavesSettings.get("backimage").toString().empty()) {
+            if (branchLeavesSettings.contains("backimage") && !branchLeavesSettings.get("backimage").toString().empty()) {
               String branchLeavesBackFile =
                   AssetPath::relativeTo(config.foliageDirectory, branchLeavesSettings.get("backimage").toString());
               PlantPiece piece;
@@ -398,16 +397,16 @@ Plant::Plant(TreeVariant const& config, uint64_t seed) : Plant() {
 
 Json Plant::diskStore() const {
   return JsonObject{
-    {"tilePosition", jsonFromVec2I(m_tilePosition)},
-    {"ceiling", m_ceiling},
-    {"stemDropConfig", m_stemDropConfig},
-    {"foliageDropConfig", m_foliageDropConfig},
-    {"saplingDropConfig", m_saplingDropConfig},
-    {"descriptions", m_descriptions},
-    {"ephemeral", m_ephemeral},
-    {"tileDamageParameters", m_tileDamageParameters.toJson()},
-    {"fallsWhenDead", m_fallsWhenDead},
-    {"pieces", writePiecesToJson()},
+      {"tilePosition", jsonFromVec2I(m_tilePosition)},
+      {"ceiling", m_ceiling},
+      {"stemDropConfig", m_stemDropConfig},
+      {"foliageDropConfig", m_foliageDropConfig},
+      {"saplingDropConfig", m_saplingDropConfig},
+      {"descriptions", m_descriptions},
+      {"ephemeral", m_ephemeral},
+      {"tileDamageParameters", m_tileDamageParameters.toJson()},
+      {"fallsWhenDead", m_fallsWhenDead},
+      {"pieces", writePiecesToJson()},
   };
 }
 
@@ -650,6 +649,12 @@ bool Plant::shouldDestroy() const {
 }
 
 bool Plant::checkBroken() {
+  const auto jBypassChecks = inWorld() ? world()->getProperty("bypassBuildChecks", false) : false;
+  const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+  if (bypassChecks) {
+    m_broken = false;
+    return false;
+  }
   if (!m_broken) {
     if (!allSpacesOccupied(m_roots)) {
       if (m_fallsWhenDead) {
@@ -800,16 +805,16 @@ void Plant::readPieces(ByteArray pieces) {
   if (!pieces.empty()) {
     DataStreamBuffer ds(std::move(pieces));
     ds.readContainer(m_pieces, [](DataStream& ds, PlantPiece& piece) {
-        ds.read(piece.image);
-        ds.read(piece.offset[0]);
-        ds.read(piece.offset[1]);
-        ds.read(piece.rotationType);
-        ds.read(piece.rotationOffset);
-        ds.read(piece.structuralSegment);
-        ds.read(piece.kind);
-        ds.read(piece.segmentIdx);
-        ds.read(piece.flip);
-      });
+      ds.read(piece.image);
+      ds.read(piece.offset[0]);
+      ds.read(piece.offset[1]);
+      ds.read(piece.rotationType);
+      ds.read(piece.rotationOffset);
+      ds.read(piece.structuralSegment);
+      ds.read(piece.kind);
+      ds.read(piece.segmentIdx);
+      ds.read(piece.flip);
+    });
     m_piecesScanned = false;
     if (inWorld())
       validatePieces();
@@ -818,32 +823,32 @@ void Plant::readPieces(ByteArray pieces) {
 
 ByteArray Plant::writePieces() const {
   return DataStreamBuffer::serializeContainer(m_pieces, [](DataStream& ds, PlantPiece const& piece) {
-      ds.write(piece.image);
-      ds.write(piece.offset[0]);
-      ds.write(piece.offset[1]);
-      ds.write(piece.rotationType);
-      ds.write(piece.rotationOffset);
-      ds.write(piece.structuralSegment);
-      ds.write(piece.kind);
-      ds.write(piece.segmentIdx);
-      ds.write(piece.flip);
-    });
+    ds.write(piece.image);
+    ds.write(piece.offset[0]);
+    ds.write(piece.offset[1]);
+    ds.write(piece.rotationType);
+    ds.write(piece.rotationOffset);
+    ds.write(piece.structuralSegment);
+    ds.write(piece.kind);
+    ds.write(piece.segmentIdx);
+    ds.write(piece.flip);
+  });
 }
 
 void Plant::readPiecesFromJson(Json const& pieces) {
   m_pieces = jsonToList<PlantPiece>(pieces, [](Json const& v) -> PlantPiece {
-      PlantPiece res;
-      res.image = v.getString("image");
-      res.offset = jsonToVec2F(v.get("offset"));
-      res.rotationType = RotationTypeNames.getLeft(v.getString("rotationType"));
-      res.rotationOffset = v.getFloat("rotationOffset");
-      res.structuralSegment = v.getBool("structuralSegment");
-      res.kind = (PlantPieceKind)v.getInt("kind");
-      res.segmentIdx = v.getInt("segmentIdx");
-      res.flip = v.getBool("flip");
+    PlantPiece res;
+    res.image = v.getString("image");
+    res.offset = jsonToVec2F(v.get("offset"));
+    res.rotationType = RotationTypeNames.getLeft(v.getString("rotationType"));
+    res.rotationOffset = v.getFloat("rotationOffset");
+    res.structuralSegment = v.getBool("structuralSegment");
+    res.kind = (PlantPieceKind)v.getInt("kind");
+    res.segmentIdx = v.getInt("segmentIdx");
+    res.flip = v.getBool("flip");
 
-      return res;
-    });
+    return res;
+  });
   m_piecesScanned = false;
   if (inWorld())
     validatePieces();
@@ -851,7 +856,7 @@ void Plant::readPiecesFromJson(Json const& pieces) {
 
 Json Plant::writePiecesToJson() const {
   return jsonFromList<PlantPiece>(m_pieces, [](PlantPiece const& piece) -> Json {
-      return JsonObject{
+    return JsonObject{
         {"image", piece.image},
         {"offset", jsonFromVec2F(piece.offset)},
         {"rotationType", RotationTypeNames.getRight(piece.rotationType)},
@@ -860,8 +865,8 @@ Json Plant::writePiecesToJson() const {
         {"kind", piece.kind},
         {"segmentIdx", piece.segmentIdx},
         {"flip", piece.flip},
-      };
-    });
+    };
+  });
 }
 
 void Plant::validatePieces() {
@@ -1074,4 +1079,4 @@ bool Plant::damagable() const {
   return true;
 }
 
-}
+} // namespace Star
