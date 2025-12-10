@@ -1910,9 +1910,10 @@ TileModificationList WorldServer::doApplyTileModifications(TileModificationList 
 
     } else if (auto plpacket = modification.ptr<PlaceLiquid>()) {
       modifyLiquid(pos, plpacket->liquid, plpacket->liquidLevel, true);
-      if (!bypassChecks)
+      if (!bypassChecks) {
         m_liquidEngine->visitLocation(pos);
-      m_fallingBlocksAgent->visitLocation(pos);
+        m_fallingBlocksAgent->visitLocation(pos);
+      }
     }
 
     it.remove();
@@ -2159,6 +2160,9 @@ List<ItemDescriptor> WorldServer::destroyBlock(TileLayer layer, Vec2I const& pos
   if (!tile)
     return {};
 
+  const auto jBypassChecks = getProperty("bypassBuildChecks", false);
+  const bool bypassChecks = jBypassChecks.isType(Json::Type::Bool) ? jBypassChecks.toBool() : false;
+
   List<ItemDescriptor> drops;
 
   if (layer == TileLayer::Background) {
@@ -2216,9 +2220,11 @@ List<ItemDescriptor> WorldServer::destroyBlock(TileLayer layer, Vec2I const& pos
 
   tile->dungeonId = DestroyedBlockDungeonId;
 
-  checkEntityBreaks(RectF::withSize(Vec2F(pos), Vec2F(1, 1)));
-  m_liquidEngine->visitLocation(pos);
-  m_fallingBlocksAgent->visitLocation(pos);
+  if (!bypassChecks) {
+    checkEntityBreaks(RectF::withSize(Vec2F(pos), Vec2F(1, 1)));
+    m_liquidEngine->visitLocation(pos);
+    m_fallingBlocksAgent->visitLocation(pos);
+  }
   queueTileUpdates(pos);
   queueTileDamageUpdates(pos, layer);
 
