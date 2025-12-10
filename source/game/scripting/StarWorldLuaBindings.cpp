@@ -1117,7 +1117,7 @@ namespace LuaBindings {
       Vec2I const& worldPosition,
       Maybe<int> const& objectDirection,
       Json const& objectParameters,
-      /* FE-only. */ Maybe<bool> forcePlacement) {
+      Maybe<bool> forcePlacement) {
     auto objectDatabase = Root::singleton().objectDatabase();
 
     try {
@@ -1127,19 +1127,17 @@ namespace LuaBindings {
 
       Json parameters = objectParameters ? objectParameters : JsonObject();
 
-      // FE code.
       bool forcePlace = false;
       if (forcePlacement)
         forcePlace = *forcePlacement;
-      //
 
-      auto placedObject = objectDatabase->createForPlacement(world, objectType, worldPosition, direction, parameters, /* FE-only. */ forcePlace);
+      auto placedObject = objectDatabase->createForPlacement(world, objectType, worldPosition, direction, parameters, forcePlace);
       if (placedObject) {
         world->addEntity(placedObject);
         return true;
       }
     } catch (StarException const& exception) {
-      Logger::warn("Could not create placable object of kind '{}', exception caught: {}",
+      Logger::warn("Could not create placeable object of kind '{}', exception caught: {}",
           objectType,
           outputException(exception, false));
     }

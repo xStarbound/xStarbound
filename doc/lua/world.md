@@ -193,9 +193,11 @@ Returns `true` if the specified tile position is occupied by a material or tile 
 
 ---
 
-#### `bool` world.placeObject(`String` objectName, `Vec2I` tilePosition, [`int` direction], [`Json` parameters])
+#### `bool` world.placeObject(`String` objectName, `Vec2I` tilePosition, [`int` direction], [`Json` parameters], [`bool` forcePlacement])
 
-Attempts to place the specified object into the world at the specified position, preferring it to be right-facing if direction is positive (or unspecified) and left-facing if it is negative. If parameters are specified they will be applied to the object. Returns `true` if the object is placed successfully and `false` otherwise.
+> _The `forcePlacement` parameter is only available on xStarbound._
+
+Attempts to place the specified object into the world at the specified position, preferring it to be right-facing if direction is positive (or unspecified) and left-facing if it is negative. If parameters are specified they will be applied to the object. If `forcePlacement` is `true`, ignores all object placement restrictions (tile/object overlaps, anchors, etc.), aside from xServer/wrapper build protection, when placing the object; usage of forced placement requires xClient but not xServer. Returns `true` if the object is placed successfully or `false` otherwise.
 
 ---
 
@@ -318,6 +320,8 @@ Returns the gravity at the specified position. This should be consistent for all
 #### `bool` world.spawnLiquid(`Vec2F` position, `LiquidId` liquid, `float` quantity)
 
 Attempts to place the specified quantity of the specified liquid at the specified position. Returns `true` if successful and `false` otherwise.
+
+> **xStarbound v4.2:** If `"bypassBuildChecks"` is enabled on xServer, liquid placement does not «proc» falling tiles or liquid flows outside of the liquid type being spawned.
 
 ---
 
@@ -475,6 +479,8 @@ Sets the colour variant of the material at the specified position and layer to t
 
 Damages all tiles in the specified layer and positions by the specified amount. The source position of the damage determines the initial direction of the damage particles. Damage types are: `"plantish"`, `"blockish"`, `"beamish"`, `"explosive"`, `"fire"`, `"tilling"`. Harvest level determines whether destroyed materials or mods will drop as items. Returns `true` if any damage was done and `false` otherwise.
 
+> **xStarbound v4.2+:** If the `"bypassBuildChecks"` world property is enabled on an xStarbound v4.2+ server (regardless of client), tile damage on the world does not «proc» liquid flows, falling tiles or object/plant breakages on neighbouring tiles, and unbreakable objects can be damaged or broken. Objects _occupying_ damaged foreground tiles are still damaged even with the bypass enabled; that is, the bypass only disables changes to tiles and tile entities _not_ explicitly specified by this callback.
+
 > **Technical note:** Tiles with a configured `"health"` value of infinity (`math.huge` in Lua) can only be destroyed with an infinite amount of damage (again, `math.huge` in Lua). The only way to set such a `"health"` value is with a Lua patch script (_not_ a preprocessor script!), as this is the only way to set any value _after_ text parsing, which considers any `inf` or `Infinity` values invalid (as per the JSON standard).
 
 ---
@@ -482,6 +488,8 @@ Damages all tiles in the specified layer and positions by the specified amount. 
 #### `bool` world.damageTileArea(`Vec2F` center, `float` radius, `String` layerName, `Vec2F` sourcePosition, `String` damageType, `float` damageAmount, [`unsigned` harvestLevel], [`EntityId` sourceEntity])
 
 Identical to `world.damageTiles`, but applies to tiles in a circular radius around the specified center point.
+
+> **xStarbound v4.2:** Again identical to `world.damageTiles`.
 
 ---
 
@@ -491,33 +499,35 @@ Returns a list of existing tiles within `radius` of the given position, on the s
 
 ---
 
-#### `bool` world.placeMaterial(`Vec2I` position, `String` layerName, `String` materialName, [`int` hueShift], [`bool` allowOverlap], [`bool` allowDisconnected])
+#### `bool` world.placeMaterial(`Vec2I` position, `String` layerName, `String` materialName, [`int` hueShift], [`bool` allowOverlap], [`bool` allowFreePlacement])
 
 #### `bool` world.placeMaterial(`Vec2I` position, `String` layerName, `String` materialName, [`int` hueShift], [`bool` allowOverlap])
 
-> _`allowDisconnected` is only available on xStarbound, and layer names are only available on xStarbound and OpenStarbound._
+> _`allowFreePlacement` is only available on xStarbound, and collision modifiers in layer names are only available on xStarbound and OpenStarbound. In-place tile replacement with this callback requires xStarbound v4.2+ on both the client and server._
 
-Attempts to place the specified material in the specified position and layer. If `allowOverlap` is `true`, the material can be placed in a space occupied by mobile entities, otherwise such placement attempts will fail. If `allowDisconnected` is `true`, the material does not need to be connected to any other tiles to be placed. Returns `true` if the placement succeeds and `false` otherwise.
+Attempts to place the specified material in the specified position and layer. If `allowOverlap` is `true`, the material can be placed in a space occupied by mobile entities, otherwise such placement attempts will fail. If `allowFreePlacement` is `true`, the material does not need to be connected to any other tiles to be placed, _any_ material can be placed on either layer regardless of restrictions defined by its asset config, placed materials can overlap objects regardless of collision modifiers, and existing tiles can be replaced Terraria-style (retaining any anchored objects and matmods). Returns `true` if the placement succeeds or `false` otherwise.
 
-> **Note on `allowDisconnected`:** The client-side use of `allowDisconnected` to ignore the requirement for newly placed tiles to be connected to existing tiles currently requires _both_ xClient _and_ xServer (although this may change), or only xClient if you're in single-player. Server-side use of `allowDisconnected` only requires xServer.
+> **`allowFreePlacement` argument:** Client-side use of `allowFreePlacement` currently requires _both_ xClient _and_ xServer, or only xClient if you're in single-player. Server-side use of `allowDisconnected` only requires xServer.
 
-> **Note on `layerName`:** The `layerName` may optionally include any one of the following collision modifiers (e.g. `"foreground+none"`, `"background+block"`):
+> **OpenStarbound tile replacement:** xStarbound does _not_ support OpenStarbound's tile replacement feature (either way around) due to incompatible netcode. Despite that, OpenStarbound clients on an xStarbound-hosted world with `"bypassBuildChecks"` enabled in its properties can still use OpenStarbound's tile replacement feature _almost_ as advertised (since OpenStarbound uses vanilla-compatible netcode on xStarbound servers). The «almost» is because the replaced tiles currently aren't dropped as items by xServer.
+
+> **`layerName` argument:** On xStarbound and OpenStarbound, the `layerName` may optionally include any one of the following collision modifiers (e.g. `"foreground+none"`, `"background+block"`):
 >
-> - `+none`: The tile is placed with no collision. Entities can move through the tile regardless of whether collision is active in their movement controllers, and objects can be placed in front of or behind the tile, depending on its layer. However, entities with active collision cannot stand on the tile, nor can objects be anchored to it.
-> - `+platform`: The tile is placed with platform collision. Entities can move through the tile regardless of whether collision is active in their movement controllers, but objects cannot be placed in front of or behind the tile. Entities with active collision can stand on the tile and objects can be anchored to it, provided there is enough space around the tile.
-> - `+block`: The tile is placed with block collision. Entities cannot move through the tile unless collision is disabled in their movement controllers, nor can objects be placed in front or behind the tile. Entities with active collision can stand on the tile and objects can be anchored to it, provided there is enough space around the tile.
+> - `+none`: The tile is placed with no collision. Entities can move through the tile regardless of whether collision is active in their movement controllers, and objects can normally be placed in front of or behind the tile, depending on its layer. However, entities with active collision cannot stand on the tile, nor can objects be anchored to it.
+> - `+platform`: The tile is placed with platform collision. Entities can move through the tile regardless of whether collision is active in their movement controllers, but objects cannot normally be placed in front of or behind the tile. Entities with active collision can stand on the tile and objects can be anchored to it, provided there is enough space around the tile.
+> - `+block`: The tile is placed with block collision. Entities cannot move through the tile unless collision is disabled in their movement controllers, nor can objects normally be placed in front or behind the tile. Entities with active collision can stand on the tile and objects can be anchored to it, provided there is enough space around the tile.
 >
 > Collision modifiers affect only foreground tiles; background tiles always have no collision. To see what kind of tile collision a given foreground tile has, enable `/debug` and `/boxes`. If no collision modifier is specified, the default configured collision for the material type is used when placing foreground tiles; this is normally platform collision for platforms and block collision for other tiles.
 >
 > Collision modifiers are currently supported on xServer and OpenStarbound servers. StarExtensions collision modifiers are network-compatible with xServer v2.0.0+ (and OpenStarbound) servers, although StarExtensions provides no modified `world.placeMaterial` callback for this.
 
-> **Tip:** Use [xWEdit](https://github.com/FezzedOne/xWEdit) if you want WEdit support for all the new features of `placeMaterial`.
+> **Tip:** Use [xWEdit](https://github.com/FezzedOne/xWEdit) if you want WEdit support for all of xStarbound's added features in `placeMaterial`.
 
 ---
 
 #### `bool` world.placeMod(`Vec2I` position, `String` layerName, `String` modName, [`int` hueShift], [`bool` allowOverlap])
 
-Attempts to place the specified mod in the specified position and layer. If allowOverlap is `true` the mod can be placed in a space occupied by mobile entities, otherwise such placement attempts will fail. Returns `true` if the placement succeeds and `false` otherwise.
+Attempts to place the specified material mod in the specified position and layer. If `allowOverlap` is `true` the mod can be placed in a space occupied by mobile entities. Otherwise, any such placement attempts will fail. Returns `true` if the placement succeeds and `false` otherwise.
 
 ---
 
