@@ -339,7 +339,7 @@ void Object::updateOrientation() {
   auto jOrientationIndex = configValue("orientationIndex", Json());
   Maybe<size_t> orientationIndex = {};
   size_t orientationCount = orientations().size();
-  if (!jOrientationIndex.isType(Json::Type::Int)) {
+  if (jOrientationIndex.isType(Json::Type::Int)) {
     auto index = (size_t)jOrientationIndex.toInt();
     if (index < orientationCount)
       orientationIndex = index;
