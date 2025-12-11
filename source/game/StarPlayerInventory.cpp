@@ -145,7 +145,7 @@ ItemPtr PlayerInventory::takeSlot(InventorySlot const& slot) {
   if (slot.is<SwapSlot>())
     m_swapReturnSlot = {};
   auto& item = retrieve(slot);
-  item->markTaken();
+  if (item) item->markTaken();
   return take(item);
 }
 

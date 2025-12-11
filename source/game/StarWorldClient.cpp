@@ -213,7 +213,7 @@ bool WorldClient::respawnInWorld() const {
   return m_respawnInWorld;
 }
 
-void WorldClient::removeEntity(EntityId entityId, bool andDie) {
+void WorldClient::removeEntity(EntityId entityId, bool andDie, bool serverSide) {
   ZoneScoped;
 
   auto entity = m_entityMap->entity(entityId);
@@ -251,12 +251,14 @@ void WorldClient::removeEntity(EntityId entityId, bool andDie) {
     m_samples.appendAll(std::move(renderCallback.audios));
   }
 
-  if (is<TileEntity>(entity)) {            // FezzedOne: Tile entities often don't get updated by the server, so skip the update check for these.
-    ByteArray finalNetState = ByteArray(); // FezzedOne: Don't check for a new delta change for the entity; just send an empty one.
-    m_outgoingPackets.append(make_shared<EntityDestroyPacket>(entity->entityId(), std::move(finalNetState), andDie));
-  } else if (auto version = m_masterEntitiesNetVersion.maybeTake(entity->entityId())) {
-    ByteArray finalNetState = entity->writeNetState(*version).first;
-    m_outgoingPackets.append(make_shared<EntityDestroyPacket>(entity->entityId(), std::move(finalNetState), andDie));
+  if (serverSide) {
+    if (is<TileEntity>(entity)) {            // FezzedOne: Tile entities often don't get updated by the server, so skip the update check for these.
+      ByteArray finalNetState = ByteArray(); // FezzedOne: Don't check for a new delta change for the entity; just send an empty one.
+      m_outgoingPackets.append(make_shared<EntityDestroyPacket>(entity->entityId(), std::move(finalNetState), andDie));
+    } else if (auto version = m_masterEntitiesNetVersion.maybeTake(entity->entityId())) {
+      ByteArray finalNetState = entity->writeNetState(*version).first;
+      m_outgoingPackets.append(make_shared<EntityDestroyPacket>(entity->entityId(), std::move(finalNetState), andDie));
+    }
   }
 
   m_entitySpecificDirectives.remove(entityId);
@@ -2051,7 +2053,7 @@ void WorldClient::clearWorld() {
   if (m_entityMap) {
     while (m_entityMap->size() > 0) {
       for (auto entityId : m_entityMap->entityIds())
-        removeEntity(entityId, false);
+        removeEntity(entityId, false, false);
     }
   }
   m_entitySpecificDirectives = {};

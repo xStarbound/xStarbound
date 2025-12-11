@@ -1,13 +1,13 @@
 #include "StarKeybindingsMenu.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
+#include "StarButtonWidget.hpp"
 #include "StarConfiguration.hpp"
 #include "StarGuiReader.hpp"
-#include "StarListWidget.hpp"
-#include "StarLabelWidget.hpp"
-#include "StarButtonWidget.hpp"
-#include "StarOrderedSet.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarLabelWidget.hpp"
+#include "StarListWidget.hpp"
+#include "StarOrderedSet.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -132,9 +132,9 @@ void KeybindingsMenu::buildListsFromConfig() {
       }
 
       m_childToAction.insert({newListMember->fetchChild<ButtonWidget>("boundKeys").get(), action});
-      newListMember->fetchChild<LabelWidget>("actionName")->setText(keybind.getString("label"));
-      newListMember->fetchChild<ButtonWidget>("boundKeys")->setText(StringList(inputDesc.transformed(printInputDescriptor)).join(", "));
-      newListMember->fetchChild<ButtonWidget>("deleteBinding")->hide();
+      if (auto widget = newListMember->fetchChild<LabelWidget>("actionName")) widget->setText(keybind.getString("label"));
+      if (auto widget = newListMember->fetchChild<ButtonWidget>("boundKeys")) widget->setText(StringList(inputDesc.transformed(printInputDescriptor)).join(", "));
+      if (auto widget = newListMember->fetchChild<ButtonWidget>("deleteBinding")) widget->hide();
     }
   };
 
@@ -148,7 +148,8 @@ bool KeybindingsMenu::activateBinding(Widget* widget) {
   exitActiveMode();
 
   m_activeKeybinding = widget;
-  m_activeKeybinding->parent()->fetchChild<ButtonWidget>("deleteBinding")->show();
+  if (auto deleteWidget = m_activeKeybinding->parent()->fetchChild<ButtonWidget>("deleteBinding"))
+    deleteWidget->show();
   convert<ButtonWidget>(m_activeKeybinding)->setHighlighted(true);
 
   return false;
@@ -216,7 +217,8 @@ void KeybindingsMenu::exitActiveMode() {
   if (!m_activeKeybinding)
     return;
 
-  m_activeKeybinding->parent()->fetchChild<ButtonWidget>("deleteBinding")->hide();
+  if (auto deleteWidget = m_activeKeybinding->parent()->fetchChild<ButtonWidget>("deleteBinding"))
+    deleteWidget->hide();
   convert<ButtonWidget>(m_activeKeybinding)->setHighlighted(false);
   m_activeKeybinding = nullptr;
   m_currentMods = KeyMod::NoMod;
@@ -241,4 +243,4 @@ void KeybindingsMenu::resetDefaults() {
   buildListsFromConfig();
 }
 
-}
+} // namespace Star

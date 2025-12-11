@@ -115,7 +115,7 @@ public:
   void reviveMainPlayer();
   bool respawnInWorld() const;
 
-  void removeEntity(EntityId entityId, bool andDie);
+  void removeEntity(EntityId entityId, bool andDie, bool serverSide = true);
 
   WorldTemplateConstPtr currentTemplate() const;
   SkyConstPtr currentSky() const;
