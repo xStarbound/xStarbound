@@ -352,6 +352,7 @@ void Object::updateOrientation() {
     if (m_orientationIndex == NPos && orientationCount != 0) {
       bool foundFacingOrientation = false;
       for (size_t i = 0; i < orientationCount; ++i) {
+        if (!orientations()[i]) continue;
         auto const& affinity = orientations()[i]->directionAffinity;
         if (affinity && *affinity == direction) {
           foundFacingOrientation = true;
@@ -638,7 +639,7 @@ List<Drawable> Object::cursorHintDrawables() const {
       List<Drawable> result;
       auto& orients = orientations();
       for (size_t i = 0; i < orients.size(); ++i) {
-        if (orients[i]->directionAffinity && orients[i]->directionAffinity == m_direction.get()) {
+        if (orients[i] && orients[i]->directionAffinity && orients[i]->directionAffinity == m_direction.get()) {
           result = orientationDrawables(i);
           break;
         }
