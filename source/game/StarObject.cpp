@@ -336,8 +336,33 @@ void Object::setDirection(Direction direction) {
 }
 
 void Object::updateOrientation() {
-  setOrientationIndex(m_config->findValidOrientation(world(), tilePosition(), m_direction.get()));
-  if (m_orientationIndex == NPos && orientations().size()) setOrientationIndex(0);
+  auto jOrientationIndex = configValue("orientationIndex", Json());
+  Maybe<size_t> orientationIndex = {};
+  size_t orientationCount = orientations().size();
+  if (!jOrientationIndex.isType(Json::Type::Int)) {
+    auto index = (size_t)jOrientationIndex.toInt();
+    if (index < orientationCount)
+      orientationIndex = index;
+  }
+  if (orientationIndex) {
+    setOrientationIndex(*orientationIndex);
+  } else {
+    auto direction = m_direction.get();
+    setOrientationIndex(m_config->findValidOrientation(world(), tilePosition(), direction));
+    if (m_orientationIndex == NPos && orientationCount != 0) {
+      bool foundFacingOrientation = false;
+      for (size_t i = 0; i < orientationCount; ++i) {
+        auto const& affinity = orientations()[i]->directionAffinity;
+        if (affinity && *affinity == direction) {
+          foundFacingOrientation = true;
+          setOrientationIndex(i);
+          break;
+        }
+      }
+      if (!foundFacingOrientation)
+        setOrientationIndex(0);
+    }
+  }
   if (auto orientation = currentOrientation()) {
     if (orientation->directionAffinity)
       m_direction.set(*orientation->directionAffinity);
