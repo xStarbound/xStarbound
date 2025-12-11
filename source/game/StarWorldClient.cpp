@@ -1369,8 +1369,11 @@ void WorldClient::update(float dt) {
 #endif
         entity->update(dt, m_currentStep);
 
-        if (entity->shouldDestroy() && entity->entityMode() == EntityMode::Master)
+        if (entity->shouldDestroy() && entity->entityMode() == EntityMode::Master) {
+          if (entity->entityId() >= MinServerEntityId)
+            Logger::info("[xClient::Debug] Tried to remove entity {} not controlled by this client!", entity->entityId());
           toRemove.append(entity->entityId());
+        }
         if (entity->isMaster() && entity->clientEntityMode() == ClientEntityMode::ClientPresenceMaster)
           clientPresenceEntities.append(entity->entityId()); }, [](EntityPtr const& a, EntityPtr const& b) { return a->entityType() < b->entityType(); });
 
