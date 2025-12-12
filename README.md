@@ -125,6 +125,7 @@ The following mods have special functionality that requires or is supported by x
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with stock Starbound.
+- [Improved Containers: OpenStarbound Post-Load Mega-Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3430203726) — requires xStarbound or OpenStarbound.
 - [LR's Storage Dimension](https://steamcommunity.com/sharedfiles/filedetails/?id=3432253227) — automatic recipe detection is fully supported by xStarbound.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
 - [Minecraft UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3412449426) — should be supported by xStarbound; report any issues.
@@ -212,12 +213,14 @@ Any mod not listed as «partially compatible», «not compatible» or «requires
 - [Updated Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=2641776549) — use this instead of the incompatible Classic Quickbar (see below).
 - [WTM (WTM Teleporter Mod)](https://steamcommunity.com/sharedfiles/filedetails/?id=1268222595) — verified compatible; the developer Hiran is also behind Digital Storage (see below).
 
-> **Note:** xStarbound does not and will not support StarExtensions' «body dynamics» and text-to-speech features, nor will it support OpenStarbound v0.1.15+'s scriptable humanoid animation system. Details:
+> **StarExtensions and OpenStarbound features:** xStarbound does not and will not support StarExtensions' «body dynamics» and text-to-speech features, nor will it support OpenStarbound v0.1.15+'s scriptable humanoid animation system. Details:
 >
 > - Armour, clothing and race mods with included SE «body dynamics» support are compatible, but the «non-jiggle» sprites will be displayed.
 > - Mods intended to patch in «body dynamics» support for other mods simply will not work at all.
 > - Race mods that support StarExtensions' text-to-speech feature will work just fine, but the text-to-speech functionality won't work.
 > - Race mods that use the scriptable humanoid animation system in OpenStarbound v0.1.15+ will not have correct humanoid rendering on xStarbound and may even throw a fatal error on startup due to missing expected parameters.
+
+> **Container QoL mods:** The «quick stack» features of [Enhanced Storage](https://steamcommunity.com/sharedfiles/filedetails/?id=731220462) and [Improved Containers](https://steamcommunity.com/sharedfiles/filedetails/?id=729427606) are _not_ aware of xStarbound's world claim system. If you have those mods installed on an xStarbound server or host with world claims enabled, check your server configuration and have claim owners ensure that guests either can't open containers _or_ can _both_ open and modify them, as these mods do not check if containers are modifiable before potentially «quick-stacking» items into the void (and losing them). Server owners may want to modify their copy of xServerHelper to prevent «one but not the other» situations with container permissions if a mod that allows «quick-stacking» is installed on the server or recommended to players.
 
 ### ⚠️ Partially compatible
 
