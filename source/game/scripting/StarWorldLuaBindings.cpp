@@ -1190,6 +1190,7 @@ namespace LuaBindings {
     try {
       for (auto const& treasureItem : treasureDatabase->createTreasure(pool, level, seed.value(Random::randu64()))) {
         ItemDropPtr entity = ItemDrop::createRandomizedDrop(treasureItem, position);
+        if (!entity) continue;
         entities.append(entity->entityId());
         world->addEntity(entity);
       }
