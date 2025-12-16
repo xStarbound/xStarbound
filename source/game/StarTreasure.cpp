@@ -154,12 +154,14 @@ List<ItemPtr> TreasureDatabase::createTreasure(String const& treasurePool, float
     if (fillEntry.is<String>()) {
       auto poolContents = createTreasure(fillEntry.get<String>(), level, seed + ++mix, visitedPools);
       for (auto item : poolContents) {
+        if (!item) continue;
         if (itemPool.allowDuplication || previousDescriptors.add(item->descriptor().singular()))
           treasureItems.append(item);
       }
     } else {
       float itemLevel = level + itemPool.levelVariance[0] + staticRandomFloat(seed, ++mix, "FillLevelVariance") * (itemPool.levelVariance[1] - itemPool.levelVariance[0]);
       auto fillItem = itemDatabase->item(fillEntry.get<ItemDescriptor>(), itemLevel, seed + ++mix);
+      if (!fillItem) continue;
       if (itemPool.allowDuplication || previousDescriptors.add(fillItem->descriptor().singular()))
         treasureItems.append(fillItem);
     }
@@ -174,12 +176,14 @@ List<ItemPtr> TreasureDatabase::createTreasure(String const& treasurePool, float
       if (poolEntry.is<String>()) {
         auto poolContents = createTreasure(poolEntry.get<String>(), level, staticRandomU64(seed, i, "TreasureSeedRecursion"), visitedPools);
         for (auto item : poolContents) {
+          if (!item) continue;
           if (itemPool.allowDuplication || previousDescriptors.add(item->descriptor().singular()))
             treasureItems.append(item);
         }
       } else {
         float itemLevel = level + itemPool.levelVariance[0] + staticRandomFloat(staticRandomU64(seed, i, "TreasureLevelSeedMixer"), "PoolLevelVariance") * (itemPool.levelVariance[1] - itemPool.levelVariance[0]);
         auto roundItem = poolEntry.get<ItemDescriptor>();
+        if (!roundItem) continue;
         if (itemPool.allowDuplication || previousDescriptors.add(roundItem.singular()))
           treasureItems.append(itemDatabase->item(roundItem, itemLevel, seed + ++mix));
       }
