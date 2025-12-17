@@ -14,6 +14,9 @@ local logInfo = |modName| -> sb.logInfo($"[xSBCompat] Detected and applied compa
 local logError = |modName, error| -> sb.logError($"[xSBCompat] Error while applying compatibility patch for {modName}: {error}")
 local modName
 
+local ownedByMod = |assetPath, modName| -> type(modName) == "string" and assets.sourceMetadata(assets.origin(assetPath) or "xSBCompat")?.name == modName
+local modAssetsByExtension = |owningMod, extension| -> (table.filter(assets.byExtension(extension), |v| -> ownedByMod(v, owningMod)) |> table.reorder)
+
 if xSBCompatVersion then
     sb.logInfo($"[xSBCompat] Loaded xSBCompat v{xSBCompatVersion} - post-load stage.")
 else
@@ -656,33 +659,190 @@ pluto_catch e then
 end
 ::skipBetaboundPatch::
 
---- Compatibility Patch for Captain Salt's Warp Doors ---
--- Needed to fix a `chat.parseArguments` call in the mod's command script, as xStarbound's version returns an array
--- containing the arguments instead of a variadic return value containing the same.
+--- Compatibility patches for Futara's Dragon Race and Futara's Dragon Engine ---
+-- This compatibility patch makes it possible to have these mods *installed* on an xStarbound, but
+-- does *not* make dragons playable on xClient, allow the Skill Menu item to be usable,
+-- or enable the additional FDR features for Arcana's Grand Cross Zȧnä.
 
-if not "warpdoors" in loadedMods then goto skipWarpDoorsPatch end
-modName = "Captain Salt's Warp Doors"
+if not "Futara's Dragon Engine" in loadedMods then goto skipFDEPatch end
+modName = "Futara's Dragon Engine"
 
 pluto_try
-    local warpDoorsPath = "/warpcommands.lua"
-    local warpDoorsScript = assets.bytes(warpDoorsPath)
-
-    local warpDoorsPatch = [==[
-    ---<< END OF ORIGINAL WARP DOORS SCRIPT >>---
-
-    local warp_doors_init = init
+    -- Need to make all smuggling-dependent item scripts show a compatibility warning on xStarbound.
+    local replacementScriptPath = "/scripts/xsb/disabled_futara_item.lua"
+    local replacementScript = [==[
     function init()
-        _ENV.base_chat_parseArguments = chat.parseArguments
-        chat.parseArguments = function(argStr)
-            return table.unpack(_ENV.base_chat_parseArguments(argStr))
-        end
-        return warp_doors_init()
+        local interactData = {
+            title = "Incompatible Item",
+            message = "^orange;This item is incompatible with xClient!^reset;\n"
+                .. "Switch to a different client to use this item. ^yellow;OpenStarbound^reset; is recommended.",
+            sound = "/sfx/interface/nav_insufficient_fuel.ogg"
+        }
+        player.interact("ShowPopup", interactData)
     end
     ]==]
-    assets.add(warpDoorsScript .. warpDoorsPatch)
+
+    assets.add(replacementScriptPath, replacementScript)
+
+    for modAssetsByExtension("Futara's Dragon Engine", "activeitem") as itemPath do
+        local itemConfig = assets.json(itemPath)
+        itemConfig.scripts = jarray{replacementScriptPath}
+        assets.add(itemPath, itemConfig)
+    end
+
+    local smugglingScriptsToDisable = {
+        "/stats/player_primary_customskill.lua",
+        "/stats/player_primary_custombinary.lua",
+        "/stats/player_primary_syncskill.lua",
+        "/scripts/customrender/customrender.lua",
+        "/stats/player_primary_camskill.lua",
+        "/scripts/customskill/futaradragon_networkmanager.lua",
+        "/interface/statusbars/customskillstatusbar.lua",
+        "/interface/skill/customskillmessage/customskillmessage.lua",
+        "/player/playergeneraldataruntime.lua",
+        "/player/playertracercontroller.lua",
+        "/player/playercharactercontroller.lua",
+        "/stats/effects/playerskillui/playerskillui.lua",
+        "/stats/effects/customskillexpreceiveui/customskillexpreceiveui.lua",
+        "/projectiles/localprojectilesystem.lua",
+        "/sfx/dynamicsoundeffectmanager.lua",
+        "/music/dynamicmusicmanager.lua",
+        "/player/playerdatabase.lua"
+    }
+    local emptyScript = ""
+
+    for smugglingScriptsToDisable as scriptPath do
+        assets.add(scriptPath, emptyScript)
+    end
 
     logInfo(modName)
 pluto_catch e then
     logError(modName, e)
 end
-::skipWarpDoorsPatch::
+::skipFDEPatch::
+
+if not "Futara's Dragon Race" in loadedMods then goto skipFDRPatch end
+modName = "Futara's Dragon Race"
+
+pluto_try
+    local replacementScriptPath = "/scripts/xsb/disabled_futara_item.lua"
+    if not "Futara's Dragon Engine" in loadedMods then
+        sb.logWarn("[xSBCompat] Futara's Dragon Race is missing its Futara's Dragon Engine dependency; install the dependency to disable this warning.")
+    
+        -- Add the replacement script if it hasn't already been added.
+        local replacementScript = [==[
+        function init()
+            local interactData = {
+                title = "Incompatible Item",
+                message = "^orange;This item is incompatible with xClient!^reset;\n"
+                    .. "Switch to a different client to use this item. ^yellow;OpenStarbound^reset; is recommended.",
+                sound = "/sfx/interface/nav_insufficient_fuel.ogg"
+            }
+            player.interact("ShowPopup", interactData)
+        end
+        ]==]
+
+        assets.add(replacementScriptPath, replacementScript)
+    end
+
+    local smugglingScriptsToDisable = {
+        "/stats/effects/FutaraDragonWarpIn/FutaraDragonWarpIn.lua"
+    }
+    local emptyScript = ""
+
+    for smugglingScriptsToDisable as scriptPath do
+        assets.add(scriptPath, emptyScript)
+    end
+
+    local dragonCheckScriptPath = "/stats/player_primary_customskill.lua"
+    local dragonCheckScript = [==[
+    local shownWarningForThisPlayer = false
+    local showCompatibilityWarning = function(isThisPlayer)
+        if shownWarningForThisPlayer and isThisPlayer then return end
+        shownWarningForThisPlayer = true
+        local interactData = {
+            title = "Incompatible Character",
+            message = isThisPlayer
+                and ("^orange;This character is incompatible with xClient!^reset;\n\n"
+                    .. "Swap to a non-Futara-Dragon character on this client or switch to a different client to play a Futara Dragon. ^yellow;OpenStarbound^reset; is recommended.")
+                or ("^orange;A character you just added is incompatible with xClient!^reset; The character has been removed from play.\n\n"
+                    .. "Switch to a different client to play a Futara Dragon. ^yellow;OpenStarbound^reset; is recommended."),
+            sound = "/sfx/interface/nav_insufficient_fuel.ogg"
+        }
+        player.interact("ShowPopup", interactData)
+    end
+
+    local checkDragonsOnXClient = function()
+        if entity.id() == world.mainPlayer() then
+            if player.species() == "FutaraDragon" then
+                showCompatibilityWarning(true)
+            else
+                for world.ownPlayers() as playerId do
+                    if world.entitySpecies(playerId) == "FutaraDragon" then
+                        showCompatibilityWarning(false)
+                        local success = world.removePlayer(world.entityUniqueId(playerId))
+                        if not success then
+                            sb.logError("[xSBCompat] Error occurred while unloading a Futara Dragon character. See above.")
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    function init()
+        checkDragonsOnXClient()
+    end
+    
+    function update(dt)
+        checkDragonsOnXClient()
+    end
+    ]==]
+
+    assets.erase(dragonCheckScriptPath)
+    assets.add(dragonCheckScriptPath, dragonCheckScript)
+
+    -- Remove Futara Dragons from the character creator/editor on xClient. This is to prevent accidentally creating a borked dragon character.
+    local charCreationPatchScript = [==[
+    function patch(config)
+        config.speciesOrdering = jarray(table.filter(config.speciesOrdering, |v| -> v ~= "futaradragon")) |> table.reorder
+        return config
+    end
+    ]==]
+    assets.add("/interface/windowconfig/charcreation.xsbcompat.patch.pluto", charCreationPatchScript)
+    assets.patch("/interface/windowconfig/charcreation.config", "/interface/windowconfig/charcreation.xsbcompat.patch.pluto")
+
+    for modAssetsByExtension("Futara's Dragon Race", "activeitem") as itemPath do
+        local itemConfig = assets.json(itemPath)
+        itemConfig.scripts = jarray{replacementScriptPath}
+        assets.add(itemPath, itemConfig)
+    end
+
+    logInfo(modName)
+pluto_catch e then
+    logError(modName, e)
+end
+::skipFDRPatch::
+
+if not ("Futara's Dragon Race" in loadedMods and "Arcana" in loadedMods) then goto skipFutaraZanaPatch end
+modName = "Futara's Dragon Race and Sva's Arcana"
+
+pluto_try
+    -- Disables the Lua-smuggling-dependent code used by Arcana's Grand Cross Zȧnä when Futara's Dragon Race is installed.
+    local zanaScriptPath = "/items/active/unsorted/GrandCrossZana/GrandCrossZana.lua"
+    local zanaScript = assets.bytes(zanaScriptPath)
+
+    local zanaScriptPatch = [==[
+    ---<< END OF ORIGINAL ZȦNÄ SCRIPT >>---
+
+    InitExtendedCode = function() end
+    ]==]
+
+    assets.add(zanaScriptPath, zanaScript .. zanaScriptPatch)
+
+    logInfo(modName)
+pluto_catch e then
+    logError(modName, e)
+end
+
+::skipFutaraZanaPatch::
