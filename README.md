@@ -113,12 +113,13 @@ The following mods have special functionality that requires or is supported by x
 
 - [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — fully supported by xStarbound.
 - [Alternate UI Sounds [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3360332852) — should be supported by xStarbound; report any issues.
-- [Animis](https://github.com/Lonaasan/Animis) — requires xStarbound v3.7.3+ or OpenStarbound v0.1.12+. An xStarbound compatibility patch may be required for future versions of this mod due to potential Lua context smuggling issues.
+- [Animis](https://github.com/Lonaasan/Animis) — requires xStarbound or OpenStarbound.
 - [Armor Augment Slot](https://steamcommunity.com/sharedfiles/filedetails/?id=3448934708) — requires xStarbound or Openstarbound.
-- [Auto DoubleTap Bind for Modded Techs](https://steamcommunity.com/sharedfiles/filedetails/?id=3502260176) — Requires xStarbound, OpenStarbound or StarExtensions.
+- [Auto DoubleTap Bind for Modded Techs](https://steamcommunity.com/sharedfiles/filedetails/?id=3502260176) — requires xStarbound, OpenStarbound or StarExtensions.
 - [Back Weapon II](https://steamcommunity.com/sharedfiles/filedetails/?id=3405399202) — fully supported by xStarbound.
 - [Back Weapon II SChinese patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3581572023) — requires xStarbound or OpenStarbound for some of the translation patches to work properly.
 - [Chaos](https://steamcommunity.com/sharedfiles/filedetails/?id=3590904263) — requires xStarbound or OpenStarbound to actually scramble treasure pools. Fun for randomiser playthroughs.
+- [Chroma Colour Utils](https://steamcommunity.com/sharedfiles/filedetails/?id=3632274480) — requires xStarbound or OpenStarbound.
 - [Clicky Keyboard UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3476945792) — should be supported by xStarbound; report any issues.
 - [Drop pixels on death](https://steamcommunity.com/sharedfiles/filedetails/?id=3350355857) ([GitHub](https://github.com/bongus-jive/drop-money-on-death)) — fully supported by xStarbound.
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
@@ -200,7 +201,7 @@ Additionally, xSBCompat now provides _server-side-only_ compatibility fixes for 
 
 Feel free to ask @FezzedOne about adding support for mods that are partially or totally incompatible with xStarbound to this patch, or contribute your own PR!
 
-> **Note:** xSBCompat support for Stardust Core and Quickbar Mini is _not_ planned due to those mods' heavy reliance on engine exploits that are no longer supported by xStarbound and unfortunately require extensive, painful workarounds to patch out. Additionally, the authors of many of the mods listed above will _not_ respond (or will respond in stupid ways) to xStarbound-related support requests for stupid reasons, so don't expect «first-party» support for mods covered by this patch.
+> **Note:** xSBCompat support for Stardust Core and Classic Quickbar is _not_ planned due to those mods' heavy reliance on engine exploits that are no longer supported by xStarbound and unfortunately require extensive, painful workarounds to patch out. Additionally, the authors of many of the mods listed above will _not_ respond (or will respond in stupid ways) to xStarbound-related support requests for stupid reasons, so don't expect «first-party» support for mods covered by this patch.
 
 ### ✅ Compatible
 
