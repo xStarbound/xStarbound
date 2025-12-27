@@ -1383,7 +1383,7 @@ Sets the dungeon ID of all tiles within the specified area.
 
 ---
 
-### `Maybe<bool>` world.hasBuildPermission(`ClientId` clientId, [`String` containerPermission])
+#### `Maybe<bool>` world.hasBuildPermission(`ClientId` clientId, [`String` containerPermission])
 
 Returns `true` if the specified connected client is allowed to place or remove tiles, tile mods or objects, or spawn server-side entities other than item drops, or `false` if the client is not allowed to do so or is not connected.
 
