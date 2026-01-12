@@ -1565,7 +1565,7 @@ Sets the overriding breathability for the specified dungeon ID, or returns it to
 
 ---
 
-#### `StringList` world.weatherTypes()
+#### `StringList` world.weatherList()
 
 > **Available only on xServer (and server-side on xClient).**
 
