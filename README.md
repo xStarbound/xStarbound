@@ -219,6 +219,10 @@ Any mod not listed as «partially compatible», «not compatible» or «requires
 - [Updated Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=2641776549) — use this instead of the incompatible Classic Quickbar (see below).
 - [WTM (WTM Teleporter Mod)](https://steamcommunity.com/sharedfiles/filedetails/?id=1268222595) — verified compatible; the developer Hiran is also behind Digital Storage (see below).
 
+The following «[oSB]»- or «[OpenStarbound]»-tagged mods do not actually require OpenStarbound (or xStarbound) for any part of their intended functionality:
+
+- [GM Vehicles](https://steamcommunity.com/sharedfiles/filedetails/?id=3644577479) — has no OpenStarbound requirement despite the mod's description.
+
 > **StarExtensions and OpenStarbound features:** xStarbound does not and will not support StarExtensions' «body dynamics» and text-to-speech features, nor will it support OpenStarbound v0.1.15+'s scriptable humanoid animation system. Details:
 >
 > - Armour, clothing and race mods with included SE «body dynamics» support are compatible, but the «non-jiggle» sprites will be displayed.
