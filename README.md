@@ -24,7 +24,6 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
     - Mid-air tile placement with placeable material items.
     - Removal of all other tile placement restrictions.
 - As of v4.0+, xServer (the xStarbound server) supports scriptable functionality previously confined to wrappers like [StarryPy3k](https://github.com/StarryPy/StarryPy3k) (by @fezzedone), including:
-
   - Permission-based build protection for worlds and systems, complete with optional container modification/viewing protection and automatic shipworld protection and claims. Includes protection against spawning or removing entities not controlled by the player's own client (except item drops, which cannot run scripts).
   - Dedicated guest accounts and the ability to detect and handle anonymous connections in server-side scripts.
   - Scriptable connection handling, allowing mods to run, e.g., IP address checks on connecting players.
@@ -46,12 +45,10 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
   - **Note:** This causes some mod compatibility issues; see below for affected mods.
 - Full, up-to-date Lua API documentation. (Aside from a lot of engine calls into Lua scripts.)
 - Support for underlaying and overlaying cosmetic items, by @fezzedone. Now includes OpenStarbound v0.1.11+ cosmetic overlay compatibility (by @novaenia and @fezzedone)! Two types of layering are supported:
-
   - _Underlays:_ You can right-click an item in any armour or inventory slot to _underlay_ it below any item in the associated cosmetic slot. Underlaid items have a red border by default. For instance, you can layer a wig under a hat by putting the hat in the cosmetic slot, the wig in the armour slot and right-clicking the wig. Underlaid armour grants its usual effects; note that particle effects associated with an underlaid item as `"effectSources"` won't spawn, even if the underlaid item is visible. Underlaid items are indicated with a red border.
   - _Overlays:_ You can right-click while holding **<kbd>Shift</kbd>** with an armour or clothing item in your swap slot to stack and overlay it onto another armour or clothing item of the same slot type in your armour slots or inventory — you can stack as many items as you want! To remove or «pop» the topmost item from an overlay stack, **<kbd>Shift</kbd> + Right Click** with an _empty_ swap slot — you'll see the «popped» item in your swap slot. Items are layered in the order they are stacked, with the lowest-layered item (aside from underlays) being the base item shown in the tooltip. Stacked cosmetic items have a red stack count indicator, and their tooltip preview shows what the entire stack looks like on your player. Overlaid cosmetic items do _not_ give players any additional game effects or spawn particles — they are purely cosmetic.
 
   Underlaid items can have overlays. This client feature is compatible with vanilla multiplayer, but other players must have xClient or OpenStarbound v0.1.11+ to see your underlays and overlays; OpenStarbound users can only see up to 12 xStarbound overlays on items in armour slots not «covered» by cosmetic slot items (regardless of underlay status), or in cosmetic slots. xStarbound users can see all OpenStarbound cosmetic overlays.
-
   - _Network compatibility note:_ This cross-client cosmetics compatibility does not work in the OpenStarbound-to-xStarbound direction (but does the other way around!) for OpenStarbound v0.1.11+ clients connected to OpenStarbound v0.1.11+ servers, unless the OpenStarbound clients are connected in legacy mode.
 
 - Support for OpenStarbound v0.1.10/v0.1.11 cosmetic features (left-facing «flipped» clothing directives for custom items, humanoid config overrides, custom armour hiding, middle-clicking to hide armour) by @novaenia. Tweaked for xStarbound by @fezzedone, including support for `"flipDirectives"` in `/render` and overridden movement parameters in humanoid config overrides; movement parameter override support was also added in OpenStarbound v0.1.11.1 by @novaenia.
@@ -159,7 +156,6 @@ The following mods have special functionality that requires or is supported by x
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xStarbound.
 - [The Hungercry Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3594407068) — requires xStarbound, OpenStarbound or StarExtensions for a `player` callback, despite not being tagged as such.
 - [Time Control Command](https://steamcommunity.com/sharedfiles/filedetails/?id=3256623666) ([GitHub](https://github.com/bongus-jive/TimeControlCommand)) — fully supported by xStarbound.
-- [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — fully supported by xStarbound as of xSB v3.4.2.
 - [Universal Keybind Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3466851780) ([GitHub](https://github.com/FezzedOne/Starbound-Universal-Keybind-Compatibility)) — requires xStarbound or OpenStarbound. Install this mod if you have issues with getting mod keybinds, like RPG Growth's tech keybinds, to work on xStarbound or OpenStarbound.
 - [Universal Printable Objects Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3603139264) — requires xStarbound or OpenStarbound to do anything.
 - [Universal Upgradeable Weapons Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3595603580) — requires xStarbound or OpenStarbound to do anything.
@@ -190,9 +186,10 @@ xStarbound now has a «universal mod compatibiliser» called xSBCompat! xSBCompa
 - [NPC Mechs](https://steamcommunity.com/sharedfiles/filedetails/?id=1788644520) — ditto.
 - [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — fully supported with xSBCompat. Use `/resetinventoryposition` if your inventory ends up off-screen after installation.
 - [Ship Pet Swapper](https://steamcommunity.com/sharedfiles/filedetails/?id=3474107812) — needs xSBCompat to remove yet another unnecessary OpenStarbound check.
-- [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — fully supported once patched.
+- [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — requires a patch because xStarbound has `root.assetSources` instead of OpenStarbound's `root.assetSourcePaths`, and OpenStarbound adds a boolean parameter that needs emulation.
 - [Universal Instant Crafting for All Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3251274439) — requires xSBCompat to bypass unnecessary OpenStarbound checks.
-- [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276) — Ditto.
+- [Universal BYOS Patcher](https://steamcommunity.com/sharedfiles/filedetails/?id=3648814036) — same compatibility issue as Unde Venis, just with `assets.sources` (xStarbound) and `assets.sourcePaths` (OpenStarbound), the equivalent asset preprocessor callback.
+- [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276) — requires xSBCompat to bypass unnecessary OpenStarbound checks.
 - [ZB SAIL: Standalone](https://steamcommunity.com/sharedfiles/filedetails/?id=3336389472) — Ditto.
 
 Additionally, xSBCompat now provides _server-side-only_ compatibility fixes for certain mods, allowing them to be hosted on xServer without compatibility-related errors. On the client's end, _a non-xStarbound client is still required to play these mods_; the [latest stable version of OpenStarbound](https://github.com/OpenStarbound/OpenStarbound/releases) is recommended. The following mods have a server-side patch:

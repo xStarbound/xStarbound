@@ -6,12 +6,13 @@ The `root` table contains functions that reference the game's currently loaded a
 
 Below is a detailed explanation of how paths work on xStarbound (and stock Starbound).
 
-### File paths
+### Filesystem paths
 
-_File paths_ are paths within the OS's filesystem. These use your OS's conventions for filesystem paths. Note that relative file paths are relative to the directory containing the running xStarbound (or stock) executable. Some notes for Linux and Windows:
+_Filesystem paths_ (also called _file paths_ in this document) are paths within the OS's filesystem. These use your OS's conventions for filesystem paths. Note that relative file paths are relative to the directory containing the running xStarbound (or stock) executable. Some notes for Linux and Windows:
 
-- On Linux, file and directory names are case-sensitive by default, only forward slashes (`/`) are parsed as path separators, the special names `.` and `..` are disallowed (but may still be used with their usual special meaning in paths), and on most Linux filesystems, any character other than a null byte (`\0`) or forward slash is allowed in file and directory names.
-- On Windows, file and directory names are case-insensitive by default, both backward (`\`) and forward (`/`) slashes are parsed as path separators, drive letters may need to be specified, several characters are not allowed in file and directory names, and multiple other caveats apply. See [this link](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file) for details.
+- On Linux, file and directory names are case-sensitive by default, only forward slashes (`/`) are parsed as path separators, the special names `.` and `..` are disallowed but may still be used with their usual special meaning in paths (`.` for "this directory" and `..` for "go up a directory in the tree if not already at `/`"), symlinks and hard links are resolved (_after_ resolution of `.` and `..`, so `..` intuitively goes up through a link if the path earlier went down through it), the maximum file/directory name length is 255 bytes, the maximum filesystem path length (_before_ resolution of links, `.` and `..`) is 4096 bytes, and any character other than a null byte (`\0`) or forward slash is allowed in file/directory names. (Yes, these are _all_ the applicable rules for Linux filesystem paths as far as Starbound is concerned.)
+  - _Note:_ Case insensitivity applies on case-insensitive filesystems (e.g., NTFS, FAT32, APFS, ext4 directories or filesystems with the case-insensitive attribute, etc.), and additional character restrictions for non-Linux filesystems also apply.
+- On Windows, file and directory names are case-insensitive by default (but whether ‹i› and ‹I› are considered the same character depends on the system locale!), the default path separator is a backslash (`\`) which must be escaped in Lua and JSON (as `\\`), both backward (`\`, escaped as `\\`) and forward (`/`) slashes are parsed as path separators, drive letters (e.g., `C:\`) or full NT path specifications (e.g., `\Device\HarddiskVolume1\`) may need to be specified (but nobody really uses NT paths anyway!), several characters (including `\`, `/` and `:`) are not allowed in file and directory names, symlinks, hard links and globs are resolved (but resolution rules vary depending on specifics), and a _lot_ of other caveats and idiosyncrasies apply. See [Microsoft's Win32 documentation](https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file), [James Foreshaw's blog post](https://projectzero.google/2016/02/the-definitive-guide-on-win32-to-nt.html) and [WaterBucket's Medium article](https://medium.com/@WaterBucket/understanding-path-resolution-in-windows-70054c446b3b) for the (very gnarly) details.
 
 ### Asset paths
 
@@ -119,21 +120,40 @@ Returns the assets digest, a hash of all the loaded assets. This hash is used by
 
 #### `List<FilePath>` root.assetSources()
 
-> **Only available on xStarbound. The equivalent on StarExtensions and OpenStarbound is `root.assetSourcePaths`.**
+> **Only available on xStarbound. The equivalent on StarExtensions and OpenStarbound is `root.assetSourcePaths` (not to be confused with the _functionally different_ xStarbound callback below!), which has an optional boolean parameter (that returns a metadata map) ignored by xStarbound.**
 
-Returns a list of file paths for all loaded asset sources. If the game loads any assets created by preprocessor scripts, file paths to any asset sources that contained those scripts, with `::onLoad` (for any assets created by on-load scripts) or `::postLoad` (for any assets created by post-load scripts), will be added to this list.
+Returns a list of _filesystem paths_ for all loaded asset sources. If the game loads any assets created by preprocessor scripts, file paths to any asset sources that contained those scripts, with `::onLoad` (for any assets created by on-load scripts) or `::postLoad` (for any assets created by post-load scripts), will be added to this list.
 
 Analogous to `assets.sources`; see `$docs/lua/assets.md` for more details.
 
-**Note:** `root.assetSourcePaths` on StarExtensions and OpenStarbound has an optional boolean parameter which if `true`, returns a `JsonObject<Json>` where each key is the file path and each value is the metadata. To get metadata for a given asset source in xStarbound, use `root.assetSourceMetadata`.
+**Note:** `root.assetSourcePaths` on StarExtensions and OpenStarbound has an optional boolean parameter which if `true`, returns a `JsonObject<Json>` where each key is the file path and each value is the metadata. To get metadata for a given asset source in xStarbound, use `root.assetSourceMetadata`. To emulate OpenStarbound's `root.assetSourcePaths` callback, add the following code to the beginning of any script expecting that callback or to a `require`'d script used by any such scripts:
+
+```lua
+function assetSourcePaths(withMetadata)
+    if xsb then
+        if withMetadata then
+            local assetSources = root.assetSources()
+            local returnValue = jobject{}
+            for _, source in ipairs(assetSources) do
+                returnValue[source] = root.assetSourceMetadata(source)
+            end
+            return returnValue
+        else
+            return root.assetSources()
+        end
+    else
+        return root.assetSourcePaths(withMetadata)
+    end
+end
+```
 
 ---
 
 #### `List<AssetPath<>>` root.assetSourcePaths(`FilePath` sourcePath)
 
-> **This functionality is only available on xStarbound. On OpenStarbound and StarExtensions, the callback of the same name functions like `root.assetSources`, above.**
+> **This functionality is only available on xStarbound. However, there is an identically named OpenStarbound/StarExtensions callback that is actually equivalent to xStarbound's `root.assetSources` above; consider an `if xsb then` check to prevent unexpected behaviour on OpenStarbound/StarExtensions.**
 
-Returns a list of paths for all asset files in the specified asset source. Ignores the metadata file.
+Returns a list of _asset paths_ for all asset files in the specified asset source. Ignores the metadata file.
 
 Analogous to `assets.sourcePaths`; see `$docs/lua/assets.md` for more details.
 
@@ -155,7 +175,7 @@ Analogous to `assets.byExtension`; see `$docs/lua/assets.md` for more details.
 
 > **`root.assetSource` is only available on xStarbound. `root.assetOrigin` is available on xStarbound, OpenStarbound and StarExtensions.**
 
-Returns the file path to the asset source containing the loaded version of the asset at the specified asset path, or `nil` if no asset exists at that path; passing a path containing a subpath or directives will result in a `nil` return.
+Returns the filesystem path to the asset source containing the loaded version of the asset at the specified asset path, or `nil` if no asset exists at that path; passing a path containing a subpath or directives will result in a `nil` return.
 
 If the loaded version of the asset was created by an asset preprocessor script, the path will be followed by `::onLoad` for an asset created by an on-load script or `::postLoad` for an asset created by a post-load script.
 

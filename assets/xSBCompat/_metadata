@@ -11,5 +11,5 @@
     "onLoad": ["/xSB-mod-compat.onload.pluto"],
     "postLoad": ["/xSB-mod-compat.postload.pluto"]
   },
-  "version" : "4.2"
+  "version" : "4.2r1"
 }

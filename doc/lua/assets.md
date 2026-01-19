@@ -59,7 +59,9 @@ If only `beginOrEnd` is specified, returns a list of all loaded assets whose ass
 
 #### `List<AssetPath<>>` assets.sourcePaths(`FilePath` sourcePath)
 
-Returns a list of paths for all asset files in the specified asset source. Ignores the metadata file.
+> **This callback is xStarbound-only. However, there is an identically named OpenStarbound callback that is actually equivalent to xStarbound's `assets.sources` below; consider an `if xsb then` check to prevent unexpected behaviour on OpenStarbound.**
+
+Returns a list of _asset paths_ for all asset files in the specified asset source. Ignores the metadata file.
 
 If invoked in a preprocessor script from a given asset source, files added or removed by that script will _not_ be listed since the new memory asset source isn't yet finalised.
 
@@ -69,11 +71,34 @@ Analogous to `root.assetSourcePaths`; see `$docs/lua/root.md` for more details.
 
 #### `List<FilePath>` assets.sources()
 
-> **`assets.sources` is only available on xStarbound. `assets.sourcePaths` is available on xStarbound and OpenStarbound v0.1.9+. The OpenStarbound version has an optional boolean parameter (that returns a metadata map) ignored by xStarbound.**
+> **`assets.sources` is only available on xStarbound. The OpenStarbound equivalent is `assets.sourcePaths` (not to be confused with the _functionally different_ xStarbound callback above!), which has an optional boolean parameter (that returns a metadata map) ignored by xStarbound.**
 
-Returns a list of all asset sources detected by the game, regardless of whether they're loaded. Does not include memory asset sources.
+Returns a list of _filesystem paths_ to all asset sources detected by the game, regardless of whether they're loaded. Does not include memory asset sources.
 
 Analogous to `root.assetSources` on xStarbound and `root.assetSourcePaths` on OpenStarbound and StarExtensions; see `$docs/lua/root.md` for more details.
+
+**Notes:** To emulate OpenStarbound's `assets.sourcePaths` callback on xStarbound while retaining OpenStarbound compatibility, add the following code at the beginning of any preprocessor scripts that use this callback (since `require` is not available in the preprocessor on OpenStarbound):
+
+```lua
+function sourcePaths(withMetadata)
+    if xsb then
+        if withMetadata then
+            local assetSources = assets.sources()
+            local returnValue = jobject{}
+            for _, source in ipairs(assetSources) do
+                returnValue[source] = assets.sourceMetadata(source)
+            end
+            return returnValue
+        else
+            return assets.sources()
+        end
+    else
+        return assets.sourcePaths(withMetadata)
+    end
+end
+```
+
+... and replace all `assets.sourcePaths` calls in those scripts with `sourcePaths`.
 
 ---
 
@@ -83,7 +108,7 @@ Analogous to `root.assetSources` on xStarbound and `root.assetSourcePaths` on Op
 
 > **`assets.source` is only available on xStarbound. `assets.origin` is available on xStarbound and OpenStarbound v0.1.9+.**
 
-Returns the file path to the asset source for a _loaded_ asset.
+Returns the filesystem path to the asset source for a _loaded_ asset.
 
 If the loaded version of the asset was created by an asset preprocessor script, the path will be followed by `::onLoad` for an asset created by an on-load script or `::postLoad` for an asset created by a post-load script.
 

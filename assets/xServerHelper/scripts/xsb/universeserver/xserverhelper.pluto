@@ -738,7 +738,7 @@ function commands.claim(cid, args)
                                             .. (serverDisallowed ? " ^gray;[Build permission revoked from server-side entities and weather events.]" : "")
                                     end
                                 elseif args[2] ~= "add" and args[2] ~= "remove" and args[2] ~= "list" then
-                                    return "Invalid ^orange;/claim builder^reset; subcommand. Valid subcommands are ^orange;add^reset; and ^orange;remove^reset;. Use ^orange;/claim^reset; with no arguments to see help."
+                                    return "Invalid ^orange;/claim builder^reset; subcommand. Valid subcommands are ^orange;list^reset;, ^orange;add^reset; and ^orange;remove^reset;. Use ^orange;/claim^reset; with no arguments to see help."
                                 end
                                 local isAdding = args[2] == "add"
                                 local builder = builderTags[args[3]] ?? args[3]
@@ -833,11 +833,14 @@ function commands.claim(cid, args)
                         .. "^orange;/claim remove^reset;: Unclaim the world you're on.\n"
                         .. "^orange;/claim setowner <account>^reset;: Transfer claim ownership of this world to another account.\n"
                         .. ( getBuildConfig().disallowServerGriefingWhenOwned == true
-                            ? "^orange;/claim builder add <account/@server/@all/@everyone>^reset;: Give build permissions for this claimed world to specified accounts, the server or everyone. (Server build permission is required for objects and weather events to modify tiles on claimed worlds.)\n"
+                            ? "^orange;/claim builder add <account/@server/@all/@everyone>^reset;: Give build permissions for this claimed world to specified accounts, the server or everyone. (Server build permission is required for objects and weather events to modify tiles, aside from liquids in some cases, on claimed worlds.)\n"
                             : "^orange;/claim builder add <account/@all/@everyone>^reset;: Give build permissions for this claimed world to specified accounts or everyone.\n"
                         ) .. ( getBuildConfig().disallowServerGriefingWhenOwned == true
-                            ? "^orange;/claim builder remove <account/@server/@all/@everyone>^reset;: Revoke build permissions for this claimed world from specified accounts, the server or everyone. (Server build permission is required for objects and weather events to modify tiles on claimed worlds.)\n"
+                            ? "^orange;/claim builder remove <account/@server/@all/@everyone>^reset;: Revoke build permissions for this claimed world from specified accounts, the server or everyone. (Server build permission is required for objects and weather events to modify tiles, aside from liquids in some cases, on claimed worlds.)\n"
                             : "^orange;/claim builder remove <account/@all/@everyone>^reset;: Revoke build permissions for this claimed world from specified accounts or everyone.\n"
+                        ) .. ( getBuildConfig().disallowServerGriefingWhenOwned == true
+                            ? "^orange;/claim builder list^reset;: List all accounts that have build permission on this claimed world and shows whether server-side entities have been denied build permission.\n"
+                            : "^orange;/claim builder list^reset;: List all accounts that have build permission on this claimed world.\n"
                         ) .. ( getBuildConfig().containerModificationProtection == true
                             ? "^orange;/claim containers modify [on/off]^reset;: Toggle whether non-builders can modify the contents of containers and mannequins on this claimed world. Omit the ^orange;on^reset;/^orange;off^reset; argument to view the world's current setting.\n"
                             : ""

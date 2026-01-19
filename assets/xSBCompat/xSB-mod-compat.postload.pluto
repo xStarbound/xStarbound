@@ -532,6 +532,44 @@ pluto_catch e then
 end
 ::skipLimitedLivesPatch::
 
+--- Compatibility patch for SomethingRetarded's Universal BYOS Patcher ---
+
+if not "sr_oSB_UBYOS" in loadedMods then goto skipUniversalByosPatch end
+modName = "SomethingRetarded's Universal BYOS Patcher"
+
+pluto_try
+    local universalByosScriptPath = "/sr_ubyos.lua"
+    local universalByosScript = assets.bytes(universalByosScriptPath)
+
+    local universalByosScriptPatch = [==[
+        -- FezzedOne: Need to emulate OpenStarbound's `assets.sourcePaths` here.
+
+        assets.sourcePaths = function(addMetadata)
+            if addMetadata then
+                local assetSources = assets.sources()
+                local returnValue = jobject{}
+                for assetSources as source do
+                    returnValue[source] = assets.sourceMetadata(source)
+                        |> |x| -> type(x.name) == "string" ? x : rawset(x, "name", sb.printJson(x.name))
+                        |> |x| -> type(x.friendlyName) == "string" ? x : rawset(x, "friendlyName", sb.printJson(x.friendlyName))
+                end
+                return returnValue
+            else
+                return assets.sources()
+            end
+        end
+
+        ---<< BEGINNING OF ORIGINAL UNIVERSAL BYOS PATCHER SCRIPT >>---  
+    ]==] .. "\n"
+
+    assets.add(universalByosScriptPath .. ".frontload", universalByosScriptPatch .. universalByosScript)
+
+    logInfo(modName)
+pluto_catch e then
+    logError(modName, e)
+end
+::skipUniversalByosPatch::
+
 --- Compatibility patch for RingSpokes' Unde Venis ---
 
 if not "UndeVenis" in loadedMods then goto skipUndeVenisPatch end
