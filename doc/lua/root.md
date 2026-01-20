@@ -440,9 +440,9 @@ Returns a representation of the JSON configuration for the given projectile.
 
 ---
 
-#### `Json` root.itemDescriptorsMatch(`ItemDescriptor` descriptor1, `ItemDescriptor` descriptor2, [`bool` exactMatch])
+#### `bool` root.itemDescriptorsMatch(`ItemDescriptor` descriptor1, `ItemDescriptor` descriptor2, [`bool` exactMatch])
 
-Returns `true` if the given item descriptors match. If exactMatch is `true` then both names and parameters will be compared, otherwise only names.
+Returns `true` if the given item descriptors match or `false` otherwise. If exactMatch is `true` then both names and parameters will be compared, otherwise only names.
 
 ---
 
