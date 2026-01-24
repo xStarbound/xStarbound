@@ -595,10 +595,16 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
     } else if (auto disconnectWires = as<DisconnectAllWiresPacket>(packet)) {
       if (!clientHasBuildPermission(clientId)) continue;
       for (auto wireEntity : atTile<WireEntity>(disconnectWires->entityPosition)) {
+        // FezzedOne: Prevents client kicks over out-of-range node disconnections.
+        if (disconnectWires->wireNode.nodeIndex >= wireEntity->nodeCount(disconnectWires->wireNode.direction))
+          continue;
         for (auto connection : wireEntity->connectionsForNode(disconnectWires->wireNode)) {
           wireEntity->removeNodeConnection(disconnectWires->wireNode, connection);
-          for (auto connectedEntity : atTile<WireEntity>(connection.entityLocation))
-            connectedEntity->removeNodeConnection({otherWireDirection(disconnectWires->wireNode.direction), connection.nodeIndex}, WireConnection{disconnectWires->entityPosition, disconnectWires->wireNode.nodeIndex});
+          for (auto connectedEntity : atTile<WireEntity>(connection.entityLocation)) {
+            auto otherDirection = otherWireDirection(disconnectWires->wireNode.direction);
+            if (connection.nodeIndex >= connectedEntity->nodeCount(otherDirection)) continue;
+            connectedEntity->removeNodeConnection({otherDirection, connection.nodeIndex}, WireConnection{disconnectWires->entityPosition, disconnectWires->wireNode.nodeIndex});
+          }
         }
       }
 
@@ -606,6 +612,9 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       if (!clientHasBuildPermission(clientId)) continue;
       for (auto source : atTile<WireEntity>(connectWire->inputConnection.entityLocation)) {
         for (auto target : atTile<WireEntity>(connectWire->outputConnection.entityLocation)) {
+          // FezzedOne: Prevents client kicks over out-of-range node connections.
+          if (connectWire->inputConnection.nodeIndex >= source->nodeCount(WireDirection::Input) || connectWire->outputConnection.nodeIndex >= target->nodeCount(WireDirection::Output))
+            continue;
           source->addNodeConnection(WireNode{WireDirection::Input, connectWire->inputConnection.nodeIndex}, connectWire->outputConnection);
           target->addNodeConnection(WireNode{WireDirection::Output, connectWire->outputConnection.nodeIndex}, connectWire->inputConnection);
         }

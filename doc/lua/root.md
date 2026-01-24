@@ -608,13 +608,21 @@ Returns the configured health value for the specified material.
 
 #### `Json` root.materialConfig(`String` materialName)
 
-Returns a JSON object containing the `path` and base `config` for the specified material if it is a real material, or `nil` if it is a metamaterial or invalid.
+#### `Json` root.materialConfig(`MaterialId` materialId)
+
+> **The `MaterialId` variant of this callback is available only on xStarbound v4.2.0.6+ and OpenStarbound v0.1.15+.**
+
+Returns a JSON object containing the `path` and base `config` for the specified material if it is a real material, or `nil` if it is a metamaterial or invalid. A `MaterialId` is an integer material ID as specified in the material's config file or in the metamaterial config file.
 
 ---
 
 #### `Json` root.modConfig(`String` modName)
 
-Returns a JSON object containing the `path` and base `config` for the specified mod if it is a real mod, or `nil` if it is a metamod or invalid.
+#### `Json` root.modConfig(`ModId` modId)
+
+> **The `ModId` variant of this callback is available only on xStarbound v4.2.0.6+ and OpenStarbound v0.1.15+.**
+
+Returns a JSON object containing the `path` and base `config` for the specified mod if it is a real mod, or `nil` if it is a metamod or invalid. A `ModId` is an integer material mod ID as specified in the material mod's config file or in the metamaterial config file.
 
 ---
 
