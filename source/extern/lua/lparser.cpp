@@ -5086,7 +5086,11 @@ static void fornum (LexState *ls, TString *varname, tdn_t *nprop, TypeHint *prop
   int base = fs->freereg;
   new_localvarliteral(ls, "(for state)");
   new_localvarliteral(ls, "(for state)");
+#ifdef LUA_COMPAT_LOOP_LOCALS
+  new_varkind(ls, varname, VDKREG); /* FezzedOne: For 5.4- compatibility. */
+#else
   new_varkind(ls, varname, RDKCONST);  /* control variable */
+#endif
   checknext(ls, '=');
   exp1(ls);  /* initial value */
   checknext(ls, ',');
@@ -5113,7 +5117,11 @@ static void forlist (LexState *ls, TString *indexname, tdn_t *nprop, TypeHint *p
   new_localvarliteral(ls, "(for state)");  /* iterator function */
   new_localvarliteral(ls, "(for state)");  /* state */
   new_localvarliteral(ls, "(for state)");  /* closing var. (after swap) */
+#ifdef LUA_COMPAT_LOOP_LOCALS
+  new_varkind(ls, indexname, VDKREG); /* FezzedOne: For 5.4- compatibility. */
+#else
   new_varkind(ls, indexname, RDKCONST);  /* control variable */
+#endif
   while (testnext(ls, ',')) {
     new_localvar(ls, str_checkname(ls));
     nvars++;

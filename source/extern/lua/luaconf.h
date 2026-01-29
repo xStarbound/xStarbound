@@ -366,6 +366,13 @@
 */
 
 /*
+@@ LUA_COMPAT_LOOP_LOCALS avoids loop control variables (actually 
+** shadowed copies) being made `<const>`. Added to Pluto and enabled
+** to avoid mod compatibility issues. (@fezzedone)
+*/
+#define LUA_COMPAT_LOOP_LOCALS
+
+/*
 @@ LUA_COMPAT_GLOBAL avoids 'global' being a reserved word
 */
 #define LUA_COMPAT_GLOBAL
