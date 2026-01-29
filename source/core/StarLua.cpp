@@ -643,7 +643,10 @@ void LuaEngine::setAutoGarbageCollection(bool autoGarbageCollection) {
 }
 
 void LuaEngine::tuneAutoGarbageCollection(float pause, float stepMultiplier) {
-  lua_gc(m_state, LUA_GCINC, round(pause * 100), round(stepMultiplier * 100), 0);
+  // lua_gc(m_state, LUA_GCINC, round(pause * 100), round(stepMultiplier * 100), 0);
+  // FezzedOne: Updated for Pluto v0.13.0 / Lua v5.5.
+  lua_gc(m_state, LUA_GCPARAM, LUA_GCPSTEPMUL, round(stepMultiplier * 100));
+  lua_gc(m_state, LUA_GCPARAM, LUA_GCPPAUSE, round(pause * 10));
   // lua_gc(m_state, LUA_GCSETPAUSE, round(pause * 100));
   // lua_gc(m_state, LUA_GCSETSTEPMUL, round(stepMultiplier * 100));
 }
