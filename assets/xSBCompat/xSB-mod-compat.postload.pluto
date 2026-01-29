@@ -144,7 +144,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 
 ::skipFUPatch::
 
@@ -171,7 +171,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 ::skipMyEnterniaPatch::
 
 --- Compatibility patch for lophatkao's NPC Mechs ---
@@ -194,7 +194,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 ::skipNpcMechsPatch::
 
 --- Compatibility patch for me's Nodachi ---
@@ -223,7 +223,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 ::skipNodachiPatch::
 
 --- Compatibility patch for Patman's Infiniter Inventory ---
@@ -399,7 +399,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 ::skipInfiniterInventoryPatch::
 
 --- Compatibility patch for Patman's Save Inventory Position ---
@@ -489,7 +489,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 ::skipInventoryResetPatch::
 
 --- Compatibility patch for keybinds in Patman's Ruler ---
@@ -509,7 +509,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 ::skipRulerPatch::
 
 --- Compatibility patch for Emmaker's Limited Lives ---
@@ -529,7 +529,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 ::skipLimitedLivesPatch::
 
 --- Compatibility patch for SomethingRetarded's Universal BYOS Patcher ---
@@ -567,7 +567,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 ::skipUniversalByosPatch::
 
 --- Compatibility patch for RingSpokes' Unde Venis ---
@@ -607,7 +607,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 ::skipUndeVenisPatch::
 
 --- Compatibility patch for James' Wardrobe Cumulative Patch ---
@@ -640,7 +640,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 ::skipWardrobeCumulativePatch::
 
 --- Compatibility patch for Silver Sokolova's Betabound ---
@@ -694,7 +694,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 ::skipBetaboundPatch::
 
 --- Compatibility patches for Futara's Dragon Race and Futara's Dragon Engine ---
@@ -756,7 +756,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 ::skipFDEPatch::
 
 if not "Futara's Dragon Race" in loadedMods then goto skipFDRPatch end
@@ -859,7 +859,7 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 ::skipFDRPatch::
 
 if not ("Futara's Dragon Race" in loadedMods and "Arcana" in loadedMods) then goto skipFutaraZanaPatch end
@@ -881,6 +881,6 @@ xpcall(|| -> do
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
-end) end
+end)
 
 ::skipFutaraZanaPatch::

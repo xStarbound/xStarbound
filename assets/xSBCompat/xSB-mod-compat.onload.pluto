@@ -38,4 +38,4 @@ xpcall(|| -> do
     sb.logInfo($"[xSBCompat] Applied universal compatibility patch")
 end, |e| -> do
     sb.logError($"[xSBCompat] Error while applying universal compatibility patch: {e}")
-end) end
+end)
