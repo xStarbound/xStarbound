@@ -443,14 +443,14 @@ end
 local function listOwnedWorlds(account)
     local useServerData = getBuildConfig().storeClaimsInServerData == true
     local getData = useServerData ? universe.getServerDataPath : root.getConfigurationPath
-    pluto_try 
+    local s, e = pcall(|| -> do 
         local worldClaims = getData("claimData.ownedWorldsByAccount")
         return (type(worldClaims) == "table" ? worldClaims : jobject{})
             |> table.filter| function(v) return type(v) == "table" end |
             |> table.filter| function(k, _) return not beginsWith("ClientShipWorld:", k) end, true |
             |> table.filter| function(v) return v.owner == account end |
             |> table.keys
-    pluto_catch e then
+    end) if not s then
         logError("Error while getting world claim data: %s", e)
         return {}
     end
@@ -465,12 +465,12 @@ local function getWorldClaimData(world)
         getData("claimData", jobject{})
     end
     local claimData = nil
-    pluto_try 
+    local s, e = pcall(|| -> do 
         local worldClaims = getData("claimData.ownedWorldsByAccount")
         worldClaims = type(worldClaims) == "table" ? worldClaims : jobject{}
         foundClaim = not not worldClaims[world]
         claimData = worldClaims[world] or newWorldClaim(world)
-    pluto_catch e then
+    end) if not s then
         logError("Error while getting world claim data: %s", e)
         return jobject{}
     end
@@ -494,9 +494,9 @@ local function setWorldClaimData(world, claim)
         if type(claim) == "table" and beginsWith(world, "ClientShipWorld:") then
             claim.owner = "@ship"
         end
-        pluto_try
+        local s, e = pcall(|| -> do
             setData(prefix .. "." .. world, claim ? jobject(claim) : claim)
-        pluto_catch e then
+        end) if not s then
             logError("Error while setting world claim data for world '%s': %s", tostring(world), e)
             return false
         end
@@ -560,7 +560,7 @@ function newClaimData(owner)
 end
 
 function commands.claim(cid, args)
-    pluto_try
+    local s, e = pcall(|| -> do
         local buildConfig = getBuildConfig()
         local validSubCommands = { "add", "remove", "setowner", "builder", "containers", "list" }
         local validBuilderSubCommands = { "add", "remove", "list" }
@@ -869,7 +869,7 @@ function commands.claim(cid, args)
         else
             return "Player world claims are not enabled on this server."
         end
-    pluto_catch e then
+    end) if not s then
         logError("Error while handling /claim command: %s", e)
         return "^red;Error occurred while handling command; check server log"
     end
@@ -882,13 +882,13 @@ function commands.getconfig(cid, args)
         local path = table.unpack(args)
         if path ~= "" then
             local configToReturn
-            pluto_try
+            local s, e = pcall(|| -> do
                 if beginsWith(path, "title") then
                     error("Not permitted to access the \"title\" key, as this may contain sensitive client login info.")
                 else
                     configToReturn = root.getConfigurationPath(path)
                 end
-            pluto_catch e then
+            end) if not s then
                 logError("Error while getting server configuration: %s", e)
                 return "^red;Error while getting server configuration; check server log."
             end
@@ -907,7 +907,7 @@ function commands.setconfig(cid, args)
         local path, value = table.unpack(args)
         if path ~= "" and value and value ~= "" then
             local parsedValue, valueToPrint
-            pluto_try
+            local s, e = pcall(|| -> do
                 if beginsWith(path, "safeScripts") then
                     error("Not permitted to modify the \"safeScripts\" key.")
                 else
@@ -915,7 +915,7 @@ function commands.setconfig(cid, args)
                     root.setConfigurationPath(path, parsedValue)
                     valueToPrint = sb.printJson(parsedValue)
                 end
-            pluto_catch e then
+            end) if not s then
                 logError("Error while setting server configuration: %s", e)
                 return "^red;Error while setting server configuration; check server log and ensure value is valid JSON."
             end
@@ -936,9 +936,9 @@ function commands.getserverdata(cid, args)
         local path = table.unpack(args)
         if path ~= "" then
             local configToReturn
-            pluto_try
+            local s, e = pcall(|| -> do
                 configToReturn = universe.getServerDataPath(path)
-            pluto_catch e then
+            end) if not s then
                 logError("Error while getting server data: %s", e)
                 return "^red;Error while getting server data; check server log."
             end
@@ -957,11 +957,11 @@ function commands.setserverdata(cid, args)
         local path, value = table.unpack(args)
         if path ~= "" and value and value ~= "" then
             local parsedValue, valueToPrint
-            pluto_try
+            local s, e = pcall(|| -> do
                 parsedValue = sb.jsonParse(value)
                 universe.setServerDataPath(path, parsedValue)
                 valueToPrint = sb.printJson(parsedValue)
-            pluto_catch e then
+            end) if not s then
                 logError("Error while setting server data: %s", e)
                 return "^red;Error while setting server data; check server log and ensure value is valid JSON."
             end

@@ -18,7 +18,7 @@ end
 
 --- Universal compatibility patch ---
 
-pluto_try
+xpcall(|| -> do
     -- Works around various unnecessary OpenStarbound "compatibility" checks that exclude xStarbound for various stupid, non-technical reasons.
     assets.add("/opensb/coconut.png", assets.newImage({0, 0})) -- Yes, this has been used for unneeded "compatibility" checks.
     assets.add("/scripts/xsb/dummy.lua", "--- Dummy script asset. ---")
@@ -36,6 +36,6 @@ pluto_try
     assets.add("/player.config", playerConfig)
 
     sb.logInfo($"[xSBCompat] Applied universal compatibility patch")
-pluto_catch e then
+end, |e| -> do
     sb.logError($"[xSBCompat] Error while applying universal compatibility patch: {e}")
-end
+end) end

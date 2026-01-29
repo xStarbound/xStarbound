@@ -45,7 +45,7 @@ assets.patch("/interface/cockpit/cockpit.config", "/interface/cockpit/cockpit.co
 if not "FrackinUniverse" in loadedMods then goto skipFUPatch end
 modName = "Sayter's Frackin' Universe"
 
-pluto_try
+xpcall(|| -> do
     local needsPatch = "/scripts/fupower.lua"
     local needsPatch2 = "/objects/crafting/clonelab/clonelab.lua"
 
@@ -142,9 +142,9 @@ pluto_try
     end
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 
 ::skipFUPatch::
 
@@ -153,7 +153,7 @@ end
 if not "My Enternia" in loadedMods then goto skipMyEnterniaPatch end
 modName = "Ceterai's My Enternia"
 
-pluto_try
+xpcall(|| -> do
     local scriptPath = "/items/buildscripts/alta/object.lua"
     if assets.exists(scriptPath) then
         local objectScript = assets.bytes(scriptPath)
@@ -169,9 +169,9 @@ pluto_try
     end
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 ::skipMyEnterniaPatch::
 
 --- Compatibility patch for lophatkao's NPC Mechs ---
@@ -179,7 +179,7 @@ end
 if not "xs_crumex" in loadedMods then goto skipNpcMechsPatch end
 modName = "lophatkao's NPC Mechs"
 
-pluto_try
+xpcall(|| -> do
     -- This patch fixes a typo in one of NPC Mechs' scripts that causes a compatibility issue with xStarbound.
     local modularMechNpc2ScriptPath = "/vehicles/modularmech/modularmechnpc2.lua"
 
@@ -192,9 +192,9 @@ pluto_try
     end
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 ::skipNpcMechsPatch::
 
 --- Compatibility patch for me's Nodachi ---
@@ -202,7 +202,7 @@ end
 if not "[ex] Nodachi" in loadedMods then goto skipNodachiPatch end
 modName = "me's Nodachi"
 
-pluto_try
+xpcall(|| -> do
     -- The same exact type of typo as NPC Mechs also exists in this mod.
     local nodachiScriptPath = "/nScripts/nOdachi.lua"
 
@@ -221,9 +221,9 @@ pluto_try
     end
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 ::skipNodachiPatch::
 
 --- Compatibility patch for Patman's Infiniter Inventory ---
@@ -236,7 +236,7 @@ end
 if not "pat_infinv" in loadedMods then goto skipInfiniterInventoryPatch end
 modName = "Patman's Infiniter Inventory"
 
-pluto_try
+xpcall(|| -> do
     local infiniterInventoryPlayerScriptPath = "/pat/infinv/binds/player.lua"
     local infiniterInventoryPlayerScript = assets.bytes(infiniterInventoryPlayerScriptPath)
     local infiniterInventoryPlayerScriptPatch = [==[
@@ -397,9 +397,9 @@ pluto_try
     assets.add(paneConfigPath, paneConfig)
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 ::skipInfiniterInventoryPatch::
 
 --- Compatibility patch for Patman's Save Inventory Position ---
@@ -407,7 +407,7 @@ end
 if not "pat_saveInventoryPosition" in loadedMods then goto skipInventoryResetPatch end
 modName = "Patman's Save Inventory Position"
 
-pluto_try
+xpcall(|| -> do
     local saveInventoryPositionScriptPath = "/pat_saveInventoryPosition.lua"
     local inventoryResetCommandScriptPath = "/scripts/patmanInventoryResetCommandHandler.lua"
 
@@ -487,9 +487,9 @@ pluto_try
     assets.add(inventoryResetCommandScriptPath, inventoryResetCommandScript)
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 ::skipInventoryResetPatch::
 
 --- Compatibility patch for keybinds in Patman's Ruler ---
@@ -497,7 +497,7 @@ end
 if not "pat_ruler" in loadedMods then goto skipRulerPatch end
 modName = "Patman's Ruler"
 
-pluto_try
+xpcall(|| -> do
     local rulerScriptPath = "/pat/ruler/ruler.lua"
 
     local rulerScript = assets.bytes(rulerScriptPath)
@@ -507,9 +507,9 @@ pluto_try
     assets.add(rulerScriptPath, rulerScriptPatch .. rulerScript)
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 ::skipRulerPatch::
 
 --- Compatibility patch for Emmaker's Limited Lives ---
@@ -517,7 +517,7 @@ end
 if not "LimitedLives" in loadedMods then goto skipLimitedLivesPatch end
 modName = "Emmaker's Limited Lives"
 
-pluto_try
+xpcall(|| -> do
     local limitedLivesScriptPath = "/scripts/player/limitedLives.lua"
 
     local limitedLivesScript = assets.bytes(limitedLivesScriptPath)
@@ -527,9 +527,9 @@ pluto_try
     assets.add(limitedLivesScriptPath, limitedLivesScriptPatch .. limitedLivesScript)
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 ::skipLimitedLivesPatch::
 
 --- Compatibility patch for SomethingRetarded's Universal BYOS Patcher ---
@@ -537,7 +537,7 @@ end
 if not "sr_oSB_UBYOS" in loadedMods then goto skipUniversalByosPatch end
 modName = "SomethingRetarded's Universal BYOS Patcher"
 
-pluto_try
+xpcall(|| -> do
     local universalByosScriptPath = "/sr_ubyos.lua"
     local universalByosScript = assets.bytes(universalByosScriptPath)
 
@@ -565,9 +565,9 @@ pluto_try
     assets.add(universalByosScriptPath .. ".frontload", universalByosScriptPatch .. universalByosScript)
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 ::skipUniversalByosPatch::
 
 --- Compatibility patch for RingSpokes' Unde Venis ---
@@ -575,7 +575,7 @@ end
 if not "UndeVenis" in loadedMods then goto skipUndeVenisPatch end
 modName = "RingSpokes' Unde Venis"
 
-pluto_try
+xpcall(|| -> do
     local undeVenisScriptPath = "/interface/undevenis/undevenis.lua"
     local undeVenisScript = assets.bytes(undeVenisScriptPath)
 
@@ -605,9 +605,9 @@ pluto_try
     assets.add(undeVenisScriptPath, undeVenisScript .. undeVenisScriptPatch)
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 ::skipUndeVenisPatch::
 
 --- Compatibility patch for James' Wardrobe Cumulative Patch ---
@@ -615,7 +615,7 @@ end
 if not "[oSB] Wardrobe Cumulative Patch" in loadedMods then goto skipWardrobeCumulativePatch end
 modName = "James' Wardrobe Cumulative Patch"
 
-pluto_try
+xpcall(|| -> do
     local wardrobeScriptPath = "/wardrobe_postload.lua"
     local wardrobeScript = assets.bytes(wardrobeScriptPath)
 
@@ -638,9 +638,9 @@ pluto_try
     assets.add(wardrobeScriptPath .. ".frontload", wardrobeScriptPatch .. wardrobeScript)
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 ::skipWardrobeCumulativePatch::
 
 --- Compatibility patch for Silver Sokolova's Betabound ---
@@ -649,7 +649,7 @@ end
 if not "XRC_BETA_STARBOUND" in loadedMods then goto skipBetaboundPatch end
 modName = "Silver Sokolova's Betabound"
 
-pluto_try
+xpcall(|| -> do
     local betaboundStatusControllerScriptPath = "/stats/sb_player_primary.lua"
     local betaboundStatusControllerScript = assets.bytes(betaboundStatusControllerScriptPath)
 
@@ -692,9 +692,9 @@ pluto_try
     assets.add(betaboundMissingAssetScriptPath, betaboundMissingAssetScript .. betaboundMissingAssetScriptPatch)
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 ::skipBetaboundPatch::
 
 --- Compatibility patches for Futara's Dragon Race and Futara's Dragon Engine ---
@@ -705,7 +705,7 @@ end
 if not "Futara's Dragon Engine" in loadedMods then goto skipFDEPatch end
 modName = "Futara's Dragon Engine"
 
-pluto_try
+xpcall(|| -> do
     -- Need to make all smuggling-dependent item scripts show a compatibility warning on xStarbound.
     local replacementScriptPath = "/scripts/xsb/disabled_futara_item.lua"
     local replacementScript = [==[
@@ -754,15 +754,15 @@ pluto_try
     end
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 ::skipFDEPatch::
 
 if not "Futara's Dragon Race" in loadedMods then goto skipFDRPatch end
 modName = "Futara's Dragon Race"
 
-pluto_try
+xpcall(|| -> do
     local replacementScriptPath = "/scripts/xsb/disabled_futara_item.lua"
     if not "Futara's Dragon Engine" in loadedMods then
         sb.logWarn("[xSBCompat] Futara's Dragon Race is missing its Futara's Dragon Engine dependency; install the dependency to disable this warning.")
@@ -857,15 +857,15 @@ pluto_try
     end
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 ::skipFDRPatch::
 
 if not ("Futara's Dragon Race" in loadedMods and "Arcana" in loadedMods) then goto skipFutaraZanaPatch end
 modName = "Futara's Dragon Race and Sva's Arcana"
 
-pluto_try
+xpcall(|| -> do
     -- Disables the Lua-smuggling-dependent code used by Arcana's Grand Cross Zȧnä when Futara's Dragon Race is installed.
     local zanaScriptPath = "/items/active/unsorted/GrandCrossZana/GrandCrossZana.lua"
     local zanaScript = assets.bytes(zanaScriptPath)
@@ -879,8 +879,8 @@ pluto_try
     assets.add(zanaScriptPath, zanaScript .. zanaScriptPatch)
 
     logInfo(modName)
-pluto_catch e then
+end, |e| -> do
     logError(modName, e)
-end
+end) end
 
 ::skipFutaraZanaPatch::

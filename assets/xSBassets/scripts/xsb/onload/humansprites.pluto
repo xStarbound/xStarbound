@@ -1,6 +1,6 @@
 -- Script used to handle human sprites in xStarbound.
 
-pluto_try
+local s, e = pcall(|| -> do
     -- Copies all human sprites and framesheet configs into the `nudehuman` and `undyhuman` directories.
     for assets.scan("/humanoid/human/", ".png") as asset do
         local subPath = asset:sub(17, -1)
@@ -33,6 +33,7 @@ pluto_try
     end
 
     sb.logInfo($"[xSB] Added human sprite sets")
-pluto_catch e then
+)
+if not s then
     sb.logError($"[xSB] Error while adding human sprite sets: {e}")
 end
