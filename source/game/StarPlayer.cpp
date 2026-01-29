@@ -3205,7 +3205,7 @@ void Player::setOverrideState(Maybe<Humanoid::State> overrideState) {
       TechController::ParentState::Sit,
       TechController::ParentState::Lay};
   m_overrideState = overrideState;
-  m_techController->setParentState(overrideState ? humanoidToTechStateMap[(uint8_t)(*overrideState)] : Maybe<TechController::ParentState>{});
+  m_techController->setParentState(overrideState ? humanoidToTechStateMap[(uint8_t)(*overrideState) % 10] : Maybe<TechController::ParentState>{});
 }
 
 Maybe<pair<Json, RpcPromiseKeeper<Json>>> Player::pullPendingConfirmation() {
