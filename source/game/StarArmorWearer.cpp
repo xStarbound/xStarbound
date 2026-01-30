@@ -329,7 +329,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     // the second to set the armour sprites and update emulated oSB slots. The second pass is
     // required because any found gender override needs to be applied to armour item framesets.
 
-    constexpr bool secondPass = secondPassTag.value;
+    constexpr bool secondPass = secondPassType.value;
 
     List<HeadArmorPtr> headItems;
 
@@ -982,8 +982,8 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
   };
 
-  resolveCosmeticVisuals(std::false_type);
-  resolveCosmeticVisuals(std::true_type);
+  resolveCosmeticVisuals(std::false_type());
+  resolveCosmeticVisuals(std::true_type());
 
   if (anyNeedsSync) {
     humanoid.setHeadArmorStack(headArmorStack);
