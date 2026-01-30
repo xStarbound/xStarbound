@@ -206,7 +206,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   };
 
   // FezzedOne: Fixed «lag» in applying humanoid gender overrides.
-  Gender newGender = humanoid.visualIdentity().gender;
+  Gender newGender = humanoid.identity().gender;
 
   auto mergeHumanoidConfig = [&](auto armourItem) {
     Json configToMerge = armourItem->instanceValue("humanoidConfig", Json());
@@ -214,12 +214,6 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       if (Json identityToMerge = configToMerge.opt("identity").value(Json()); identityToMerge.isType(Json::Type::Object)) {
         Json jBaseIdentity = humanoidOverrides.opt("identity").value(Json());
         Json baseIdentity = jBaseIdentity.isType(Json::Type::Object) ? jBaseIdentity : JsonObject{};
-        Json jNewGender = jBaseIdentity.opt("gender").value();
-        if (jNewGender.isType(Json::Type::String)) {
-          String newGenderStr = jNewGender.toString();
-          if (newGenderStr.toLower() == "male" or newGenderStr.toLower() == "female")
-            newGender = newGenderStr == "male" ? Gender::Male : Gender::Female;
-        }
         mergeDirectives(baseIdentity, "bodyDirectives", identityToMerge);
         mergeDirectives(baseIdentity, "hairDirectives", identityToMerge);
         mergeDirectives(baseIdentity, "emoteDirectives", identityToMerge);
@@ -228,6 +222,12 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         baseIdentity = jsonMerge(baseIdentity, identityToMerge);
         humanoidOverrides = jsonMerge(humanoidOverrides, configToMerge);
         humanoidOverrides = humanoidOverrides.set("identity", baseIdentity);
+        Json jNewGender = baseIdentity.opt("gender").value();
+        if (jNewGender.isType(Json::Type::String)) {
+          String newGenderStr = jNewGender.toString();
+          if (newGenderStr.toLower() == "male" or newGenderStr.toLower() == "female")
+            newGender = newGenderStr == "male" ? Gender::Male : Gender::Female;
+        }
       } else {
         humanoidOverrides = jsonMerge(humanoidOverrides, configToMerge);
       }
