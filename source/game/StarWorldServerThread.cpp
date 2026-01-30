@@ -194,8 +194,47 @@ void WorldServerThread::setUpdateAction(WorldServerAction updateAction) {
 }
 
 void WorldServerThread::passMessages(List<Message>&& messages) {
-  RecursiveMutexLocker locker(m_messageMutex);
-  m_messages.appendAll(std::move(messages));
+  {
+    RecursiveMutexLocker locker(m_messageMutex);
+    m_messages.appendAll(std::move(messages));
+  }
+
+  // FezzedOne: Ensure the mail *always* gets delivered.
+  if (!Thread::isRunning() || Thread::isJoined()) {
+    ZoneScopedN("WorldServerThread::passMessages");
+#ifdef TRACY_ENABLE
+    const char* worldName = printWorldId(m_worldId).utf8().c_str();
+    ZoneTextF("%s", worldName);
+#endif
+    try {
+      List<Message> messages;
+      {
+        ZoneScopedN("Message mutex");
+        RecursiveMutexLocker locker(m_messageMutex);
+        messages = std::move(m_messages);
+      }
+
+      {
+        ZoneScopedN("World message handling");
+        for (auto& message : messages) {
+          if (this->serverErrorOccurred())
+            message.promise.fail("World server error prevented message handling");
+          Maybe<Json> response;
+          {
+            RecursiveMutexLocker locker(m_mutex);
+            response = m_worldServer->receiveMessage(ServerConnectionId, message.message, message.args);
+          }
+          if (response)
+            message.promise.fulfill(*response);
+          else
+            message.promise.fail("Message not handled by world");
+        }
+      }
+    } catch (std::exception const& e) {
+      Logger::error("WorldServer: Error occurred while handling world messages: {}", outputException(e, true));
+      m_errorOccurred = true;
+    }
+  }
 }
 
 WorldChunks WorldServerThread::readChunks() {

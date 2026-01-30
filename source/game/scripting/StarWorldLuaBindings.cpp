@@ -662,6 +662,7 @@ namespace LuaBindings {
       });
 
       callbacks.registerCallback("setExpiryTime", [serverWorld](float expiryTime) { serverWorld->setExpiryTime(expiryTime); });
+      callbacks.registerCallback("expiryTime", [serverWorld]() -> float { return serverWorld->expiryTime(); });
 
       callbacks.registerCallback("flyingType", [serverWorld]() -> String { return FlyingTypeNames.getRight(serverWorld->sky()->flyingType()); });
       callbacks.registerCallback("warpPhase", [serverWorld]() -> String { return WarpPhaseNames.getRight(serverWorld->sky()->warpPhase()); });
