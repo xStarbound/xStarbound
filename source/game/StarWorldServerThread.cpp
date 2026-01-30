@@ -6,13 +6,6 @@
 #include "StarRoot.hpp"
 #include "StarTickRateMonitor.hpp"
 
-#if defined TRACY_ENABLE
-#include "tracy/Tracy.hpp"
-#else
-#define ZoneScoped
-#define ZoneScopedN(name)
-#endif
-
 namespace Star {
 
 WorldServerThread::WorldServerThread(WorldServerPtr server, WorldId worldId)
@@ -194,13 +187,15 @@ void WorldServerThread::setUpdateAction(WorldServerAction updateAction) {
 }
 
 void WorldServerThread::passMessages(List<Message>&& messages) {
+  bool handleMessagesNow = false;
   {
     RecursiveMutexLocker locker(m_messageMutex);
-    m_messages.appendAll(std::move(messages));
+    if (!messages.empty()) m_messages.appendAll(std::move(messages));
+    handleMessagesNow = messages.empty() && !m_messages.empty();
+    if (m_messages.empty()) return;
   }
 
-  // FezzedOne: Ensure the mail *always* gets delivered.
-  if (!Thread::isRunning() || Thread::isJoined()) {
+  if (handleMessagesNow || !Thread::isRunning() || Thread::isJoined()) {
     ZoneScopedN("WorldServerThread::passMessages");
 #ifdef TRACY_ENABLE
     const char* worldName = printWorldId(m_worldId).utf8().c_str();
@@ -217,8 +212,10 @@ void WorldServerThread::passMessages(List<Message>&& messages) {
       {
         ZoneScopedN("World message handling");
         for (auto& message : messages) {
-          if (this->serverErrorOccurred())
+          if (this->serverErrorOccurred()) {
             message.promise.fail("World server error prevented message handling");
+            continue;
+          }
           Maybe<Json> response;
           {
             RecursiveMutexLocker locker(m_mutex);
@@ -268,12 +265,6 @@ void WorldServerThread::run() {
     WorldServerFidelity automaticFidelity = WorldServerFidelity::Medium;
 
     while (!m_stop && !m_errorOccurred) {
-      ZoneScopedN("WORLD SERVER TICK");
-#ifdef TRACY_ENABLE
-      const char* worldName = printWorldId(m_worldId).utf8().c_str();
-      ZoneTextF("%s", worldName);
-#endif
-
       auto fidelity = lockedFidelity.value(automaticFidelity);
       LogMap::set(strf("server_{}_fidelity", m_worldId), WorldServerFidelityNames.getRight(fidelity));
       LogMap::set(strf("server_{}_update", m_worldId), strf("{:4.2f}Hz", tickApproacher.rate()));
@@ -309,27 +300,26 @@ void WorldServerThread::run() {
     Logger::error("WorldServerThread exception caught: {}", outputException(e, true));
     m_errorOccurred = true;
   }
+
+  // FezzedOne: Again, ensure the mail *always* gets through, even if the world thread shuts down before it can ever handle any pending messages during an update tick.
+  this->passMessages(List<Message>{});
 }
 
 void WorldServerThread::update(WorldServerFidelity fidelity) {
-  ZoneScoped;
   RecursiveMutexLocker locker(m_mutex);
   auto unerroredClientIds = m_worldServer->clientIds();
-  {
-    ZoneScopedN("Inbound packet handling");
-    for (auto clientId : unerroredClientIds) {
+  for (auto clientId : unerroredClientIds) {
+    RecursiveMutexLocker queueLocker(m_queueMutex);
+    auto incomingPackets = take(m_incomingPacketQueue[clientId]);
+    queueLocker.unlock();
+    try {
+      m_worldServer->handleIncomingPackets(clientId, std::move(incomingPackets));
+    } catch (std::exception const& e) {
+      Logger::error("WorldServerThread exception caught handling incoming packets for client {}: {}",
+          clientId, outputException(e, true));
       RecursiveMutexLocker queueLocker(m_queueMutex);
-      auto incomingPackets = take(m_incomingPacketQueue[clientId]);
-      queueLocker.unlock();
-      try {
-        m_worldServer->handleIncomingPackets(clientId, std::move(incomingPackets));
-      } catch (std::exception const& e) {
-        Logger::error("WorldServerThread exception caught handling incoming packets for client {}: {}",
-            clientId, outputException(e, true));
-        RecursiveMutexLocker queueLocker(m_queueMutex);
-        m_outgoingPacketQueue[clientId].appendAll(m_worldServer->removeClient(clientId));
-        unerroredClientIds.remove(clientId);
-      }
+      m_outgoingPacketQueue[clientId].appendAll(m_worldServer->removeClient(clientId));
+      unerroredClientIds.remove(clientId);
     }
   }
 
@@ -340,36 +330,26 @@ void WorldServerThread::update(WorldServerFidelity fidelity) {
 
   List<Message> messages;
   {
-    ZoneScopedN("Message mutex");
     RecursiveMutexLocker locker(m_messageMutex);
     messages = std::move(m_messages);
   }
-
-  {
-    ZoneScopedN("World message handling");
-    for (auto& message : messages) {
-      if (auto resp = m_worldServer->receiveMessage(ServerConnectionId, message.message, message.args))
-        message.promise.fulfill(*resp);
-      else
-        message.promise.fail("Message not handled by world");
-    }
+  for (auto& message : messages) {
+    if (auto resp = m_worldServer->receiveMessage(ServerConnectionId, message.message, message.args))
+      message.promise.fulfill(*resp);
+    else
+      message.promise.fail("Message not handled by world");
   }
 
-  {
-    ZoneScopedN("Outbound packet handling");
-    for (auto& clientId : unerroredClientIds) {
-      auto outgoingPackets = m_worldServer->getOutgoingPackets(clientId);
-      RecursiveMutexLocker queueLocker(m_queueMutex);
-      m_outgoingPacketQueue[clientId].appendAll(std::move(outgoingPackets));
-    }
+  for (auto& clientId : unerroredClientIds) {
+    auto outgoingPackets = m_worldServer->getOutgoingPackets(clientId);
+    RecursiveMutexLocker queueLocker(m_queueMutex);
+    m_outgoingPacketQueue[clientId].appendAll(std::move(outgoingPackets));
   }
 
   m_shouldExpire = m_worldServer->shouldExpire();
 
-  if (m_updateAction) {
-    ZoneScopedN("Other update action");
+  if (m_updateAction)
     m_updateAction(this, m_worldServer.get());
-  }
 }
 
 void WorldServerThread::sync() {

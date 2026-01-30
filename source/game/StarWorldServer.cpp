@@ -2,6 +2,7 @@
 #include "StarBiome.hpp"
 #include "StarBiomeDatabase.hpp"
 #include "StarContainerEntity.hpp"
+#include "StarContainerObject.hpp"
 #include "StarDataStreamExtra.hpp"
 #include "StarEntityFactory.hpp"
 #include "StarFallingBlocksAgent.hpp"
@@ -28,18 +29,11 @@
 #include "StarWorldGeneration.hpp"
 #include "StarWorldImpl.hpp"
 
-#if defined TRACY_ENABLE
-#include "tracy/Tracy.hpp"
-#else
-#define ZoneScoped
-#define ZoneScopedN(name)
-#endif
+namespace Star {
 
 #define TILE_PROTECTION 0
 #define CONTAINER_OPEN 1
 #define CONTAINER_MODIFY 2
-
-namespace Star {
 
 EnumMap<WorldServerFidelity> const WorldServerFidelityNames{
     {WorldServerFidelity::Minimum, "minimum"},
@@ -87,8 +81,6 @@ WorldServer::WorldServer(WorldChunks const& chunks) : m_preUninitialized(false) 
 }
 
 WorldServer::~WorldServer() {
-  ZoneScoped;
-
   if (!m_preUninitialized) {
     for (auto& p : m_scriptContexts)
       p.second->uninit();
@@ -113,8 +105,6 @@ WorldServer::~WorldServer() {
 
 // FezzedOne: Needed to ensure that any changes set in `uninit` on scripts run on shipworlds are actually saved.
 void WorldServer::preUninit() {
-  ZoneScoped;
-
   for (auto& p : m_scriptContexts)
     p.second->uninit();
 
@@ -398,11 +388,10 @@ List<EntityId> WorldServer::players() const {
 }
 
 void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> const& packets) {
-  ZoneScoped;
-
   auto const& clientInfo = m_clientInfo.get(clientId);
   if (!clientInfo)
     Logger::warn("WorldServer: Client info not found for cID {} on world '{}'; ignoring packets", clientId, Text::stripEscapeCodes(worldId()));
+
   auto& root = Root::singleton();
   auto entityFactory = root.entityFactory();
   auto itemDatabase = root.itemDatabase();
@@ -768,7 +757,6 @@ float WorldServer::expiryTime() const {
 }
 
 void WorldServer::update(float dt) {
-  ZoneScopedN("WorldServer::update");
   ++m_currentStep;
 
   constexpr double conversionFactor = 60.0;
@@ -776,24 +764,18 @@ void WorldServer::update(float dt) {
     // FezzedOne: The interpolation tracker is updated in seconds, not steps. So to fix that, convert seconds to (standardised) steps.
     pair.second->interpolationTracker.update(Time::monotonicTime() * conversionFactor);
 
-  {
-    ZoneScopedN("Triggered world actions");
-    List<WorldAction> triggeredActions;
-    eraseWhere(m_timers, [&triggeredActions](pair<int, WorldAction>& timer) {
-      if (--timer.first <= 0) {
-        triggeredActions.append(timer.second);
-        return true;
-      }
-      return false;
-    });
-    for (auto const& action : triggeredActions)
-      action(this);
-  }
+  List<WorldAction> triggeredActions;
+  eraseWhere(m_timers, [&triggeredActions](pair<int, WorldAction>& timer) {
+    if (--timer.first <= 0) {
+      triggeredActions.append(timer.second);
+      return true;
+    }
+    return false;
+  });
+  for (auto const& action : triggeredActions)
+    action(this);
 
-  {
-    ZoneScopedN("World spawner update");
-    m_spawner.update(dt);
-  }
+  m_spawner.update(dt);
 
   bool doBreakChecks = m_tileEntityBreakCheckTimer.wrapTick(m_currentStep) && m_needsGlobalBreakCheck;
   if (doBreakChecks)
@@ -801,12 +783,6 @@ void WorldServer::update(float dt) {
 
   List<EntityId> toRemove;
   m_entityMap->updateAllEntities([&](EntityPtr const& entity) {
-      ZoneScopedN("Server entity update");
-#ifdef TRACY_ENABLE
-      const EntityId entityId = entity->entityId();
-      const char* const entityTypeStr = EntityTypeNames.getRight(entity->entityType()).utf8().c_str();
-      ZoneTextF("%s entity %i", entityTypeStr, entityId);
-#endif
       entity->update(dt, m_currentStep);
 
       if (auto tileEntity = as<TileEntity>(entity)) {
@@ -821,20 +797,14 @@ void WorldServer::update(float dt) {
       if (entity->shouldDestroy() && entity->entityMode() == EntityMode::Master)
         toRemove.append(entity->entityId()); }, [](EntityPtr const& a, EntityPtr const& b) { return a->entityType() < b->entityType(); });
 
-  {
-    ZoneScopedN("World scripts");
-    for (auto& pair : m_scriptContexts)
-      pair.second->update(pair.second->updateDt(dt));
-  }
+  for (auto& pair : m_scriptContexts)
+    pair.second->update(pair.second->updateDt(dt));
 
   updateDamage(dt);
   if (shouldRunThisStep("wiringUpdate"))
     m_wireProcessor->process();
 
-  {
-    ZoneScopedN("Sky update");
-    m_sky->update(dt);
-  }
+  m_sky->update(dt);
 
   List<RectI> clientWindows;
   List<RectI> clientMonitoringRegions;
@@ -844,38 +814,27 @@ void WorldServer::update(float dt) {
       clientMonitoringRegions.appendAll(m_geometry.splitRect(region));
   }
 
-  {
-    ZoneScopedN("Weather update");
-    m_weather.setClientVisibleRegions(clientWindows);
-    m_weather.update(dt);
-    for (auto projectile : m_weather.pullNewProjectiles())
-      addEntity(std::move(projectile));
-  }
+  m_weather.setClientVisibleRegions(clientWindows);
+  m_weather.update(dt);
+  for (auto projectile : m_weather.pullNewProjectiles())
+    addEntity(std::move(projectile));
 
   if (shouldRunThisStep("liquidUpdate")) {
-    ZoneScopedN("Liquid update");
     m_liquidEngine->setProcessingLimit(m_fidelityConfig.optUInt("liquidEngineBackgroundProcessingLimit"));
     m_liquidEngine->setNoProcessingLimitRegions(clientMonitoringRegions);
     m_liquidEngine->update();
   }
 
-  if (shouldRunThisStep("fallingBlocksUpdate")) {
-    ZoneScopedN("Falling tile update");
+  if (shouldRunThisStep("fallingBlocksUpdate"))
     m_fallingBlocksAgent->update();
-  }
 
-  if (auto delta = shouldRunThisStep("blockDamageUpdate")) {
-    ZoneScopedN("Tile damage update");
+  if (auto delta = shouldRunThisStep("blockDamageUpdate"))
     updateDamagedBlocks(*delta * GlobalTimestep);
-  }
 
-  if (auto delta = shouldRunThisStep("worldStorageTick")) {
-    ZoneScopedN("World storage tick");
+  if (auto delta = shouldRunThisStep("worldStorageTick"))
     m_worldStorage->tick(*delta * GlobalTimestep);
-  }
 
   if (auto delta = shouldRunThisStep("worldStorageGenerate")) {
-    ZoneScopedN("World generation tick");
     m_worldStorage->generateQueue(m_fidelityConfig.optUInt("worldStorageGenerationLevelLimit"), [this](WorldStorage::Sector a, WorldStorage::Sector b) {
       auto distanceToClosestPlayer = [this](WorldStorage::Sector sector) {
         Vec2F sectorCenter = RectF(*m_worldStorage->regionForSector(sector)).center();
@@ -891,29 +850,18 @@ void WorldServer::update(float dt) {
     });
   }
 
-  {
-    ZoneScopedN("Entity removals");
-    for (EntityId entityId : toRemove)
-      removeEntity(entityId, true);
+  for (EntityId entityId : toRemove)
+    removeEntity(entityId, true);
+
+  for (auto const& pair : m_clientInfo) {
+    for (auto const& monitoredRegion : pair.second->monitoringRegions(m_entityMap))
+      signalRegion(monitoredRegion.padded(jsonToVec2I(m_serverConfig.get("playerActiveRegionPad"))));
+    queueUpdatePackets(pair.first);
   }
+  m_netStateCache.clear();
 
-  {
-    ZoneScopedN("Queue for world update packets");
-    for (auto const& pair : m_clientInfo) {
-      ZoneScopedN("Client update");
-#ifdef TRACY_ENABLE
-      ZoneTextF("For client %i", (unsigned short)pair.first);
-#endif
-      for (auto const& monitoredRegion : pair.second->monitoringRegions(m_entityMap))
-        signalRegion(monitoredRegion.padded(jsonToVec2I(m_serverConfig.get("playerActiveRegionPad"))));
-      queueUpdatePackets(pair.first);
-    }
-    m_netStateCache.clear();
-
-
-    for (auto& pair : m_clientInfo)
-      pair.second->pendingForward = false;
-  }
+  for (auto& pair : m_clientInfo)
+    pair.second->pendingForward = false;
 
   m_expiryTimer.tick(dt);
 
@@ -1685,8 +1633,6 @@ bool WorldServer::isFloatingDungeonWorld() const {
 }
 
 void WorldServer::init(bool firstTime) {
-  ZoneScoped;
-
   auto& root = Root::singleton();
   auto assets = root.assets();
   auto liquidsDatabase = root.liquidsDatabase();
@@ -2525,8 +2471,6 @@ void WorldServer::freshenCollision(RectI const& region) {
 }
 
 void WorldServer::removeEntity(EntityId entityId, bool andDie) {
-  ZoneScoped;
-
   auto entity = m_entityMap->entity(entityId);
   if (!entity)
     return;
