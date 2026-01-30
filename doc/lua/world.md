@@ -537,7 +537,6 @@ Queries for entities in a specified area of the world and returns a list of thei
 
 - **withoutEntityId** - Specifies an `EntityId` that will be excluded from the returned results
 - **includedTypes** - Specifies a list of one or more `String` entity types that the query will return. The valid entity type names are:
-
   - `"plant"`
   - `"object"`
   - `"vehicle"`
@@ -1499,9 +1498,19 @@ Sets the current time for the world's sky to the specified value. If `math.huge`
 
 > **Available only on xStarbound and OpenStarbound.**
 
-Sets the amount of time remaining on the world expiration timer. This timer starts ticking down when there are no longer any players on the world, and using this callback regularly to reset the expiry timer allows a world to persist indefinitely. To immediately cause a world to be unloaded while players aren't present, pass a value of `0` to this callback.
+Sets the amount of time remaining on the world's expiration/unloading timer in seconds. This timer starts ticking down when there are no longer any players on the world. To immediately cause this world to be unloaded while players aren't present, pass a value of `0` to this callback.
 
-**Note:** If a negative float value is passed to the callback, the world will never expire. At least not until this callback is invoked again with a positive or zero value.
+If a negative timer value is passed to the callback, the world will never be unloaded, barring a server shutdown, another change to this timer by a script, or a fatal world error.
+
+---
+
+#### `void` world.setExpiryTime(`float` expiryTime)
+
+> **Available only on xStarbound v4.3+, and may be introduced in a future OpenStarbound update or nightly build.**
+
+Returns the amount of time remaining on the world's expiration/unloading timer, when there are no players on it, in seconds. The timer does not tick and is continually reset back to the last initial value set via `world.setExpiryTime` while any players remain on the world. If a player warps to this world while the world's expiry time is still ticking down to zero, the timer is immediately reset to its last initial value (and the world is obviously kept loaded due to the player's presence).
+
+If a negative timer value is set via `world.setExpiryTime` on this world, this callback returns whatever negative value was set _minus_ the number of seconds since the last player left the world, or just the set negative value if any players are present. In any case, a negative value means the world will never be unloaded, barring a server shutdown, another change to this timer by a script, or a fatal world error.
 
 ---
 
