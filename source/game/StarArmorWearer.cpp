@@ -324,10 +324,12 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     return !forceNude || armour->bypassNudity();
   };
 
-  auto resolveCosmeticVisuals = [&](const bool secondPass) { // FezzedOne: The main armour updating code.
+  auto resolveCosmeticVisuals = [&](auto secondPassType) { // FezzedOne: The main armour updating code.
     // This does two passes now. The first to update humanoid parameters, including gender, and
     // the second to set the armour sprites and update emulated oSB slots. The second pass is
     // required because any found gender override needs to be applied to armour item framesets.
+
+    constexpr bool secondPass = secondPassTag.value;
 
     List<HeadArmorPtr> headItems;
 
@@ -980,8 +982,8 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
   };
 
-  resolveCosmeticVisuals(false);
-  resolveCosmeticVisuals(true);
+  resolveCosmeticVisuals(std::false_type);
+  resolveCosmeticVisuals(std::true_type);
 
   if (anyNeedsSync) {
     humanoid.setHeadArmorStack(headArmorStack);
