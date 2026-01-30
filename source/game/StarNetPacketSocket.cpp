@@ -1,12 +1,12 @@
 #include "StarNetPacketSocket.hpp"
-#include "StarIterator.hpp"
 #include "StarCompression.hpp"
+#include "StarIterator.hpp"
 #include "StarLogging.hpp"
 
 namespace Star {
 
 PacketStatCollector::PacketStatCollector(float calculationWindow)
-  : m_calculationWindow(calculationWindow), m_stats(), m_lastMixTime(0) {}
+    : m_calculationWindow(calculationWindow), m_stats(), m_lastMixTime(0) {}
 
 void PacketStatCollector::mix(PacketType type, size_t size) {
   calculate();
@@ -63,9 +63,8 @@ pair<LocalPacketSocketUPtr, LocalPacketSocketUPtr> LocalPacketSocket::openPair()
   auto rhsIncomingPipe = make_shared<Pipe>();
 
   return {
-    LocalPacketSocketUPtr(new LocalPacketSocket(lhsIncomingPipe, weak_ptr<Pipe>(rhsIncomingPipe))),
-    LocalPacketSocketUPtr(new LocalPacketSocket(rhsIncomingPipe, weak_ptr<Pipe>(lhsIncomingPipe)))
-  };
+      LocalPacketSocketUPtr(new LocalPacketSocket(lhsIncomingPipe, weak_ptr<Pipe>(rhsIncomingPipe))),
+      LocalPacketSocketUPtr(new LocalPacketSocket(rhsIncomingPipe, weak_ptr<Pipe>(lhsIncomingPipe)))};
 }
 
 bool LocalPacketSocket::isOpen() const {
@@ -120,7 +119,7 @@ bool LocalPacketSocket::readData() {
 }
 
 LocalPacketSocket::LocalPacketSocket(shared_ptr<Pipe> incomingPipe, weak_ptr<Pipe> outgoingPipe)
-  : m_incomingPipe(std::move(incomingPipe)), m_outgoingPipe(std::move(outgoingPipe)) {}
+    : m_incomingPipe(std::move(incomingPipe)), m_outgoingPipe(std::move(outgoingPipe)) {}
 
 TcpPacketSocketUPtr TcpPacketSocket::open(TcpSocketPtr socket) {
   socket->setNoDelay(true);
@@ -144,9 +143,7 @@ void TcpPacketSocket::sendPackets(List<PacketPtr> packets) {
     PacketCompressionMode currentCompressionMode = it.peekNext()->compressionMode();
 
     DataStreamBuffer packetBuffer;
-    while (it.hasNext()
-      && it.peekNext()->type() == currentType
-      && it.peekNext()->compressionMode() == currentCompressionMode) {
+    while (it.hasNext() && it.peekNext()->type() == currentType && it.peekNext()->compressionMode() == currentCompressionMode) {
       if (legacy())
         it.next()->writeLegacy(packetBuffer);
       else
@@ -180,7 +177,7 @@ void TcpPacketSocket::sendPackets(List<PacketPtr> packets) {
 }
 
 List<PacketPtr> TcpPacketSocket::receivePackets() {
-  uint64_t const PacketSizeLimit = 64<<20;
+  uint64_t const PacketSizeLimit = 64 << 20;
   List<PacketPtr> packets;
   try {
     while (!m_inputBuffer.empty()) {
@@ -296,7 +293,7 @@ Maybe<PacketStats> TcpPacketSocket::outgoingStats() const {
 }
 
 TcpPacketSocket::TcpPacketSocket(TcpSocketPtr socket)
-  : m_socket(std::move(socket)) {}
+    : m_socket(std::move(socket)) {}
 
 P2PPacketSocketUPtr P2PPacketSocket::open(P2PSocketUPtr socket) {
   return P2PPacketSocketUPtr(new P2PPacketSocket(std::move(socket)));
@@ -318,9 +315,7 @@ void P2PPacketSocket::sendPackets(List<PacketPtr> packets) {
     PacketCompressionMode currentCompressionMode = it.peekNext()->compressionMode();
 
     DataStreamBuffer packetBuffer;
-    while (it.hasNext()
-      && it.peekNext()->type() == currentType
-      && it.peekNext()->compressionMode() == currentCompressionMode) {
+    while (it.hasNext() && it.peekNext()->type() == currentType && it.peekNext()->compressionMode() == currentCompressionMode) {
       if (legacy())
         it.next()->writeLegacy(packetBuffer);
       else
@@ -381,7 +376,7 @@ List<PacketPtr> P2PPacketSocket::receivePackets() {
       } while (!packetStream.atEnd());
     }
   } catch (IOException const& e) {
-    Logger::warn("I/O error in P2PPacketSocket::readPackets, closing: {}", outputException(e, false));
+    Logger::warn("P2P: I/O error in P2PPacketSocket::readPackets, closing: {}", outputException(e, false));
     m_socket.reset();
   }
   return packets;
@@ -394,15 +389,21 @@ bool P2PPacketSocket::sentPacketsPending() const {
 bool P2PPacketSocket::writeData() {
   bool workDone = false;
 
-  if (m_socket) {
-    while (!m_outputMessages.empty()) {
-      if (m_socket->sendMessage(m_outputMessages.first())) {
-        m_outputMessages.removeFirst();
-        workDone = true;
-      } else {
-        break;
+  // Downstreamed @Novaenia's fix for a potential host-client-side crash caused by packet handling errors.
+  try {
+    if (m_socket) {
+      while (!m_outputMessages.empty()) {
+        if (m_socket->sendMessage(m_outputMessages.first())) {
+          m_outputMessages.removeFirst();
+          workDone = true;
+        } else {
+          break;
+        }
       }
     }
+  } catch (std::exception const& e) {
+    Logger::error("[xSB] P2P: Exception occurred while sending packets to clients as P2P host, closing P2P connection: {}", outputException(e, true));
+    m_socket.reset();
   }
 
   return workDone;
@@ -411,11 +412,17 @@ bool P2PPacketSocket::writeData() {
 bool P2PPacketSocket::readData() {
   bool workDone = false;
 
-  if (m_socket) {
-    while (auto message = m_socket->receiveMessage()) {
-      m_inputMessages.append(message.take());
-      workDone = true;
+  // Downstreamed @Novaenia's fix for a potential host-client-side crash caused by packet handling errors.
+  try {
+    if (m_socket) {
+      while (auto message = m_socket->receiveMessage()) {
+        m_inputMessages.append(message.take());
+        workDone = true;
+      }
     }
+  } catch (std::exception const& e) {
+    Logger::error("[xSB] P2P: Exception occurred while receiving packets from clients as P2P host, closing P2P connection: {}", outputException(e, true));
+    m_socket.reset();
   }
 
   return workDone;
@@ -430,6 +437,6 @@ Maybe<PacketStats> P2PPacketSocket::outgoingStats() const {
 }
 
 P2PPacketSocket::P2PPacketSocket(P2PSocketPtr socket)
-  : m_socket(std::move(socket)) {}
+    : m_socket(std::move(socket)) {}
 
-}
+} // namespace Star

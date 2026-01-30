@@ -1,6 +1,6 @@
 # Lua on xStarbound
 
-The following callbacks and deviations from standard Lua 5.3 are shared across all Lua scripts on xStarbound.
+The following callbacks and deviations from standard Lua 5.5 are shared across all Lua scripts on xStarbound.
 
 ## Function specifications and basic Lua types
 
@@ -80,13 +80,21 @@ There are several type annotations with special meanings:
 
 ## About Pluto
 
-For documentation regarding Pluto, see the [Pluto documentation site](https://pluto-lang.org/docs/Introduction).
+For documentation regarding Pluto, see the [Pluto documentation site](https://pluto-lang.org/docs/Introduction). Note that xStarbound's Pluto (as of v0.13.0) entirely deprecates and removes the `try`, `catch`, `pluto_try` and `pluto_catch` keywords, so it is safe to use these as variable or function names on xStarbound again.
 
 Note that compatibility mode, where all the new Pluto operators are prefixed with `pluto_`, is enabled by default — for script compatibility reasons, obviously!
 
-## Deviations from standard Lua 5.4 / Pluto
+## Deviations from standard Lua 5.5 / Pluto
 
-The following base Lua callbacks and global variables differ from the standard Lua 5.4 / Pluto equivalents on xStarbound and stock Starbound:
+The following base Lua library functions, syntax rules, and global variables differ from the standard Lua 5.5 / Pluto equivalents on xStarbound and stock Starbound:
+
+#### `global`
+
+This Lua 5.5 keyword is currently disabled on xStarbound for mod compatibility reasons.
+
+#### Loop control variables
+
+Lua 5.5 makes loop control variables — e.g., the `k` in `for k, v in pairs(table)` and the `i` in `for i = 1, 10, 1`, but _not_ the `v` in Pluto's `for table as v` — read-only (equivalent to a `<const>` declaration). This change is reverted on xStarbound to restore the Lua 5.1-5.4 behaviour (which adds an implicit `local k = k` or `local i = i`, respectively, before the first assignment or modification) for mod compatibility reasons.
 
 #### Pluto libraries
 
