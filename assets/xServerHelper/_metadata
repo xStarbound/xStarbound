@@ -1,6 +1,6 @@
 
 {
-  "version" : "v4.1.2.3r3",
+  "version" : "v4.1.2.3r4.1",
   "author" : "FezzedOne",
   "description" : "Build protection commands and QoL for server admins. Server-side mod. Requires the specified 'x' version of xServer or newer.",
   "name" : "xServerHelper",
