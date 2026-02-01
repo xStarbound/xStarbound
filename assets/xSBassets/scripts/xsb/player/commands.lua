@@ -33,7 +33,7 @@ local function executeLuaSource(src)
         else
             local success, result = pcall(result)
             if not success then
-                return "^#f00;Error: " .. result
+                return "^#f00;Error: " .. tostring(result)
             else
                 local success, printed = pcall(sb.printJson, result)
                 if not success then
