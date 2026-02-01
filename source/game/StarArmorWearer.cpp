@@ -227,7 +227,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         Json jNewGender = baseIdentity.opt("gender").value();
         if (jNewGender.isType(Json::Type::String)) {
           String newGenderStr = jNewGender.toString();
-          if (newGenderStr.toLower() == "male" or newGenderStr.toLower() == "female")
+          if (newGenderStr.toLower() == "male" || newGenderStr.toLower() == "female")
             newGender = newGenderStr == "male" ? Gender::Male : Gender::Female;
         }
       } else {
