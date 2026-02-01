@@ -931,6 +931,9 @@ LuaInt LuaEngine::tableLength(bool raw, int handleIndex) {
 }
 
 void LuaEngine::tableIterate(int handleIndex, function<bool(LuaValue key, LuaValue value)> iterator) {
+  // FezzedOne: Prevents infinite recursion situations involving `sb.printJson`, `sb.print`, etc.
+  this->incrementRecursionLevel();
+
   lua_checkstack(m_state, 4);
 
   pushHandle(m_state, handleIndex);
@@ -953,6 +956,8 @@ void LuaEngine::tableIterate(int handleIndex, function<bool(LuaValue key, LuaVal
   }
 
   lua_pop(m_state, 1);
+
+  this->decrementRecursionLevel();
 }
 
 Maybe<LuaTable> LuaEngine::tableGetMetatable(int handleIndex) {
