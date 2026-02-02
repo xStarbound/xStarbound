@@ -33,7 +33,7 @@ local s, e = pcall(|| -> do
     end
 
     sb.logInfo($"[xSB] Added human sprite sets")
-)
+end)
 if not s then
     sb.logError($"[xSB] Error while adding human sprite sets: {e}")
 end
