@@ -368,6 +368,8 @@ The basic process for building on other OSes:
 4. If you're using Git, run `git clone https://github.com/xStarbound/xStarbound.git` in a terminal or command prompt, or use a graphical Git utility to download the repo.
 5. In the xStarbound directory, run `cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/`. On some OSes, you may need to add the full path to your CMake executable to the beginning of the command. If necessary, add `-DCMAKE_C_COMPILER=<path to C++ compiler> -DCMAKE_CXX_COMPILER=<path to C++ compiler>`. Note that a CMake build preset already exists for modern macOS; consider using that if you have build issues.
 
+> **Note:** If you're targeting an old OS or a niche/outdated compiler, or you're getting linker or compiler errors related to function mismatches or unrecognised options, you should remove `-flto` (GCC and Clang compiler flag), `/GL` (MSVC compiler flag) and `/LTCG` (MSVC linker flag) from the compiler flags in `$xsb/CMakeLists.txt`.
+
 ### Packaging and installing xSB assets
 
 The build system can automatically take care of packaging the additional xSB assets and install the resulting .pak file automatically. To enable asset packing, pass `-DPACKAGE_XSB_ASSETS=ON` to the CMake command, e.g. after the `--preset` argument. This will create a directory `xsb-assets` in the project's main dir, and package the resources in `assets/xSBassets` into a `packed.pak` file.
