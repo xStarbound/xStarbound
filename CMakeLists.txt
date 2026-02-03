@@ -521,6 +521,7 @@ elseif(STAR_COMPILER_MSVC)
 
     set(CMAKE_C_FLAGS_RELEASE "/Ox /GL /fp:fast /GA /GS- /Gy /DNDEBUG")
     set(CMAKE_CXX_FLAGS_RELEASE "/Ox /GL /fp:fast /GA /GS- /Gy /DNDEBUG")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG")
 
     if(STAR_ARCHITECTURE_I386)
         # Assume all 32 bit target cpus support MMX, SSE, and SSE2
