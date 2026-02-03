@@ -374,7 +374,7 @@ if(STAR_COMPILER_GNU)
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -fno-fast-math -fassociative-math -freciprocal-math")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -fno-fast-math -fassociative-math -freciprocal-math")
 
-    if(STAR_SYSTEM_FAMILY_WINDOWS OR (NOT STAR_USE_MIMALLOC))
+    if(STAR_SYSTEM_FAMILY_WINDOWS)
       set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -fno-fast-math -fassociative-math -freciprocal-math")
       set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -fno-fast-math -fassociative-math -freciprocal-math")
     else()
@@ -449,7 +449,7 @@ elseif(STAR_COMPILER_CLANG)
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
 
-    if(STAR_SYSTEM_FAMILY_WINDOWS OR (NOT STAR_USE_MIMALLOC))
+    if(STAR_SYSTEM_FAMILY_WINDOWS)
       set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
       set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
     else()
