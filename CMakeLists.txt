@@ -375,11 +375,11 @@ if(STAR_COMPILER_GNU)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -fno-fast-math -fassociative-math -freciprocal-math")
 
     if(STAR_SYSTEM_FAMILY_WINDOWS)
-      set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -flto -fno-fast-math -fassociative-math -freciprocal-math")
-      set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -flto -fno-fast-math -fassociative-math -freciprocal-math")
-    else()
       set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -fno-fast-math -fassociative-math -freciprocal-math")
       set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -fno-fast-math -fassociative-math -freciprocal-math")
+    else()
+      set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -flto -fno-fast-math -fassociative-math -freciprocal-math")
+      set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -flto -fno-fast-math -fassociative-math -freciprocal-math")
     endif()
 
     if(STAR_MEMORY_SANITIZER)
@@ -449,8 +449,13 @@ elseif(STAR_COMPILER_CLANG)
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
 
-    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
-    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
+    if(STAR_SYSTEM_FAMILY_WINDOWS)
+      set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
+      set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
+    else()
+      set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -flto -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
+      set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -flto -ffast-math") # -DFLOAT_APPROX -O3 -ffast-math
+    endif()
 
     if(STAR_MEMORY_SANITIZER)
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
