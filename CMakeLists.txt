@@ -374,8 +374,13 @@ if(STAR_COMPILER_GNU)
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -fno-fast-math -fassociative-math -freciprocal-math")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -DNDEBUG -DFLOAT_APPROX -O3 -fno-fast-math -fassociative-math -freciprocal-math")
 
-    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -fno-fast-math -fassociative-math -freciprocal-math")
-    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -fno-fast-math -fassociative-math -freciprocal-math")
+    if(STAR_SYSTEM_FAMILY_WINDOWS)
+      set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -flto -fno-fast-math -fassociative-math -freciprocal-math")
+      set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -flto -fno-fast-math -fassociative-math -freciprocal-math")
+    else()
+      set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -fno-fast-math -fassociative-math -freciprocal-math")
+      set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -DFLOAT_APPROX -O3 -fno-fast-math -fassociative-math -freciprocal-math")
+    endif()
 
     if(STAR_MEMORY_SANITIZER)
         set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
@@ -485,6 +490,8 @@ elseif(STAR_COMPILER_MSVC)
     # /wd4250                  - Silence "XX inherits YY via dominance"
     # /wd4624                  - Silence implicitly deleted destructor warnings that show up when
     #                            using unions in interesting ways.
+    # /LTCG:STATUS             - FezzedOne: Enables link-time optimisation and displays linking
+    #                            progress (because a lot of code isn't compiled until link time).
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:c11 /experimental:c11atomics /MP /EHsc /bigobj /wd4996 /wd4351 /wd4800 /wd4244 /wd4305 /wd4267 /wd4456 /wd4503 /wd4250 /wd4624")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /MP /EHsc /bigobj /wd4996 /wd4351 /wd4800 /wd4244 /wd4305 /wd4267 /wd4456 /wd4503 /wd4250 /wd4624 /Zc:__cplusplus")
@@ -508,8 +515,8 @@ elseif(STAR_COMPILER_MSVC)
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "/Ox /fp:fast /GA /GS- /Zi /Gy /DNDEBUG")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/Ox /fp:fast /GA /GS- /Zi /Gy /DNDEBUG")
 
-    set(CMAKE_C_FLAGS_RELEASE "/Ox /fp:fast /GA /GS- /Gy /DNDEBUG")
-    set(CMAKE_CXX_FLAGS_RELEASE "/Ox /fp:fast /GA /GS- /Gy /DNDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE "/Ox /LTCG:STATUS /fp:fast /GA /GS- /Gy /DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELEASE "/Ox /LTCG:STATUS /fp:fast /GA /GS- /Gy /DNDEBUG")
 
     if(STAR_ARCHITECTURE_I386)
         # Assume all 32 bit target cpus support MMX, SSE, and SSE2
