@@ -495,8 +495,7 @@ elseif(STAR_COMPILER_MSVC)
     # /wd4250                  - Silence "XX inherits YY via dominance"
     # /wd4624                  - Silence implicitly deleted destructor warnings that show up when
     #                            using unions in interesting ways.
-    # /LTCG:STATUS             - FezzedOne: Enables link-time optimisation and displays linking
-    #                            progress (because a lot of code isn't compiled until link time).
+    # /GL                      - FezzedOne: Enables MSVC's link-time code generation.
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:c11 /experimental:c11atomics /MP /EHsc /bigobj /wd4996 /wd4351 /wd4800 /wd4244 /wd4305 /wd4267 /wd4456 /wd4503 /wd4250 /wd4624")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /MP /EHsc /bigobj /wd4996 /wd4351 /wd4800 /wd4244 /wd4305 /wd4267 /wd4456 /wd4503 /wd4250 /wd4624 /Zc:__cplusplus")
@@ -520,8 +519,8 @@ elseif(STAR_COMPILER_MSVC)
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "/Ox /fp:fast /GA /GS- /Zi /Gy /DNDEBUG")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/Ox /fp:fast /GA /GS- /Zi /Gy /DNDEBUG")
 
-    set(CMAKE_C_FLAGS_RELEASE "/Ox /LTCG:STATUS /fp:fast /GA /GS- /Gy /DNDEBUG")
-    set(CMAKE_CXX_FLAGS_RELEASE "/Ox /LTCG:STATUS /fp:fast /GA /GS- /Gy /DNDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE "/Ox /GL /fp:fast /GA /GS- /Gy /DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELEASE "/Ox /GL /fp:fast /GA /GS- /Gy /DNDEBUG")
 
     if(STAR_ARCHITECTURE_I386)
         # Assume all 32 bit target cpus support MMX, SSE, and SSE2
