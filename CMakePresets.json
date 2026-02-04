@@ -148,7 +148,8 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "OFF",
-        "STAR_USE_RPMALLOC": "ON",
+        "STAR_USE_RPMALLOC": "OFF",
+        "STAR_USE_JEMALLOC": "ON",
         "BUILD_TESTING": "ON",
         "BUILD_INNOSETUP": "ON"
       },
@@ -176,7 +177,8 @@
         "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "OFF",
-        "STAR_USE_RPMALLOC": "ON",
+        "STAR_USE_RPMALLOC": "OFF",
+        "STAR_USE_JEMALLOC": "ON",
         "BUILD_TESTING": "ON",
         "BUILD_INNOSETUP": "ON"
       },
@@ -194,10 +196,7 @@
     {
       "name": "linux-system-x86_64",
       "displayName": "Linux System 64-bit x86",
-      "inherits": [
-        "generator-ninja",
-        "os-linux-x86_64"
-      ],
+      "inherits": ["generator-ninja", "os-linux-x86_64"],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
@@ -220,10 +219,7 @@
     {
       "name": "linux-system-i386",
       "displayName": "Linux System 32-bit x86",
-      "inherits": [
-        "generator-ninja",
-        "os-linux-i386"
-      ],
+      "inherits": ["generator-ninja", "os-linux-i386"],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
@@ -246,10 +242,7 @@
     {
       "name": "linux-system-aarch64",
       "displayName": "Linux System 64-bit ARM",
-      "inherits": [
-        "generator-ninja",
-        "os-linux-aarch64"
-      ],
+      "inherits": ["generator-ninja", "os-linux-aarch64"],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
@@ -271,11 +264,7 @@
     {
       "name": "linux-vcpkg-x86_64",
       "displayName": "Linux vcpkg 64-bit x86",
-      "inherits": [
-        "generator-ninja",
-        "vcpkg-environment",
-        "os-linux-x86_64"
-      ],
+      "inherits": ["generator-ninja", "vcpkg-environment", "os-linux-x86_64"],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
@@ -300,11 +289,7 @@
     {
       "name": "linux-vcpkg-i386",
       "displayName": "Linux vcpkg 32-bit x86",
-      "inherits": [
-        "generator-ninja",
-        "vcpkg-environment",
-        "os-linux-i386"
-      ],
+      "inherits": ["generator-ninja", "vcpkg-environment", "os-linux-i386"],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
@@ -327,11 +312,7 @@
     {
       "name": "linux-vcpkg-aarch64",
       "displayName": "Linux vcpkg 64-bit ARM",
-      "inherits": [
-        "generator-ninja",
-        "vcpkg-environment",
-        "os-linux-aarch64"
-      ],
+      "inherits": ["generator-ninja", "vcpkg-environment", "os-linux-aarch64"],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
@@ -354,10 +335,7 @@
     {
       "name": "linux-serveronly-system-x86_64",
       "displayName": "Linux Server 64-bit x86",
-      "inherits": [
-        "generator-ninja",
-        "os-linux-x86_64"
-      ],
+      "inherits": ["generator-ninja", "os-linux-x86_64"],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
@@ -379,10 +357,7 @@
     {
       "name": "linux-serveronly-system-i386",
       "displayName": "Linux Server 64-bit x86",
-      "inherits": [
-        "generator-ninja",
-        "os-linux-i386"
-      ],
+      "inherits": ["generator-ninja", "os-linux-i386"],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
@@ -404,10 +379,7 @@
     {
       "name": "linux-serveronly-system-aarch64",
       "displayName": "Linux Server 64-bit ARM",
-      "inherits": [
-        "generator-ninja",
-        "os-linux-aarch64"
-      ],
+      "inherits": ["generator-ninja", "os-linux-aarch64"],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
@@ -429,11 +401,7 @@
     {
       "name": "macos-x86_64",
       "displayName": "macOS 64-bit x86",
-      "inherits": [
-        "generator-xcode",
-        "vcpkg-environment",
-        "os-macos-x86_64"
-      ],
+      "inherits": ["generator-xcode", "vcpkg-environment", "os-macos-x86_64"],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
         "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
@@ -456,11 +424,7 @@
     {
       "name": "macos-arm64",
       "displayName": "macOS 64-bit ARM",
-      "inherits": [
-        "generator-xcode",
-        "vcpkg-environment",
-        "os-macos-arm64"
-      ],
+      "inherits": ["generator-xcode", "vcpkg-environment", "os-macos-arm64"],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "ON",
         "STAR_ENABLE_DISCORD_INTEGRATION": "ON",
@@ -482,11 +446,7 @@
     {
       "name": "macos-server-x86_64",
       "displayName": "macOS Server 64-bit x86",
-      "inherits": [
-        "generator-xcode",
-        "vcpkg-environment",
-        "os-macos-x86_64"
-      ],
+      "inherits": ["generator-xcode", "vcpkg-environment", "os-macos-x86_64"],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
@@ -508,11 +468,7 @@
     {
       "name": "macos-server-arm64",
       "displayName": "macOS Server 64-bit ARM",
-      "inherits": [
-        "generator-xcode",
-        "vcpkg-environment",
-        "os-macos-arm64"
-      ],
+      "inherits": ["generator-xcode", "vcpkg-environment", "os-macos-arm64"],
       "cacheVariables": {
         "STAR_ENABLE_STEAM_INTEGRATION": "OFF",
         "STAR_ENABLE_DISCORD_INTEGRATION": "OFF",
@@ -955,3 +911,4 @@
     }
   ]
 }
+
