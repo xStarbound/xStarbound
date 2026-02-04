@@ -363,8 +363,8 @@ if(STAR_COMPILER_GNU)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRACY_ENABLE")
     endif()
 
-    set(CMAKE_C_FLAGS_DEBUG "-g -Og")
-    set(CMAKE_CXX_FLAGS_DEBUG "-g -Og")
+    set(CMAKE_C_FLAGS_DEBUG "-g -Og -DXXH_NO_INLINE_HINTS")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -Og -DXXH_NO_INLINE_HINTS")
 
     # FezzedOne: Need to define `FLOAT_APPROX` for Opus whenever `-O3 -fno-fast-math -fassociative-math -freciprocal-math` is used.
 
@@ -438,8 +438,8 @@ elseif(STAR_COMPILER_CLANG)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRACY_ENABLE")
     endif()
 
-    set(CMAKE_C_FLAGS_DEBUG "-g")
-    set(CMAKE_CXX_FLAGS_DEBUG "-g")
+    set(CMAKE_C_FLAGS_DEBUG "-g -DXXH_NO_INLINE_HINTS")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -DXXH_NO_INLINE_HINTS")
 
     # FezzedOne: Need to define `FLOAT_APPROX` for Opus whenever `-O3 -ffast-math` is used.
 
@@ -551,8 +551,8 @@ else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pthread -D_REENTRANT")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -pthread -D_REENTRANT")
 
-    set(CMAKE_C_FLAGS_DEBUG "-g")
-    set(CMAKE_CXX_FLAGS_DEBUG "-g")
+    set(CMAKE_C_FLAGS_DEBUG "-g -DXXH_NO_INLINE_HINTS")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g -DXXH_NO_INLINE_HINTS")
 
     set(CMAKE_C_FLAGS_RELWITHASSERTS "-g -O2")
     set(CMAKE_CXX_FLAGS_RELWITHASSERTS "-g -O2")
