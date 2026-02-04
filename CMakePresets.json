@@ -149,7 +149,7 @@
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "OFF",
         "STAR_USE_RPMALLOC": "OFF",
-        "STAR_USE_JEMALLOC": "ON",
+        "STAR_USE_JEMALLOC": "OFF",
         "BUILD_TESTING": "ON",
         "BUILD_INNOSETUP": "ON"
       },
@@ -178,7 +178,7 @@
         "STAR_BUILD_GUI": "ON",
         "STAR_BUILD_QT_TOOLS": "OFF",
         "STAR_USE_RPMALLOC": "OFF",
-        "STAR_USE_JEMALLOC": "ON",
+        "STAR_USE_JEMALLOC": "OFF",
         "BUILD_TESTING": "ON",
         "BUILD_INNOSETUP": "ON"
       },
@@ -911,4 +911,3 @@
     }
   ]
 }
-
