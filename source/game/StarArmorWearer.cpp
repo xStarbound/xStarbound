@@ -156,6 +156,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     m_lastNude = forceNude;
   } else { // It's being used as an 'is master' variable.
     m_isPlayer = forceNude;
+    m_lastNude = false;
   }
 
   uint8_t currentDirection = facingDirection ? (uint8_t)(*facingDirection) : (uint8_t)humanoid.facingDirection();
@@ -373,7 +374,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   uint8_t openSbLayerCount = 0;
 
   auto shouldShowArmour = [&](auto const& armour) -> bool {
-    return !forceNude || armour->bypassNudity();
+    return (bool)m_npc || !forceNude || armour->bypassNudity();
   };
 
   mergeHumanoidConfig(ArmorItemPtr(nullptr), false);
