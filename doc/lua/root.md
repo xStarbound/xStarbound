@@ -764,6 +764,20 @@ Returns the configuration for the given unique status effect. If the status effe
 
 ---
 
+#### `Json` root.monsterConfig(`String` monsterType)
+
+> **Only available on xStarbound v4.3.1+ and OpenStarbound v0.1.15+.**
+
+Returns the configuration for the given monster type, or `nil` if that monster type does not exist. The returned object has the following template:
+
+```json
+{}
+```
+
+> **OpenStarbound note:** On OpenStarbound, this callback throws an error instead of returning `nil` if the specified status effect doesn't exist. Use `pcall` for cross-mod compatibility.
+
+---
+
 #### `Json` root.getConfiguration(`String` key)
 
 > **Only available on xStarbound, OpenStarbound and StarExtensions.**

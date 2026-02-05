@@ -318,6 +318,11 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
       return Json();
   });
 
+  // Also downstreamed from WasabiRaptor/OpenStarbound.
+  callbacks.registerCallback("monsterConfig", [root](String const& typeName) -> Json {
+    return root->monsterDatabase()->monsterConfig(typeName);
+  });
+
   callbacks.registerCallback("getConfiguration", [root](String const& key) -> Json {
     if (key == "") return Json();
     if (key == "title") {

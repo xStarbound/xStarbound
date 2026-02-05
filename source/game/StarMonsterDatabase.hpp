@@ -1,13 +1,13 @@
 #ifndef STAR_MONSTER_DATABASE_HPP
 #define STAR_MONSTER_DATABASE_HPP
 
-#include "StarNetworkedAnimator.hpp"
 #include "StarActorMovementController.hpp"
-#include "StarTtlCache.hpp"
 #include "StarDamageTypes.hpp"
-#include "StarStatusTypes.hpp"
-#include "StarImageProcessing.hpp"
 #include "StarEntityRenderingTypes.hpp"
+#include "StarImageProcessing.hpp"
+#include "StarNetworkedAnimator.hpp"
+#include "StarStatusTypes.hpp"
+#include "StarTtlCache.hpp"
 
 namespace Star {
 
@@ -116,6 +116,8 @@ public:
 
   ColorReplaceMap5 colorSwap(String const& setName, uint64_t seed) const;
 
+  Json monsterConfig(String const& typeName) const;
+
 private:
   struct MonsterType {
     String typeName;
@@ -140,6 +142,8 @@ private:
     // Description of all part parameters, and how they are combined and with
     // what defaults.
     Json partParameterDescription;
+
+    Json toJson() const;
   };
 
   struct MonsterPart {
@@ -196,6 +200,6 @@ private:
   mutable HashTtlCache<tuple<String, uint64_t, Json>, MonsterVariant> m_monsterCache;
 };
 
-}
+} // namespace Star
 
 #endif

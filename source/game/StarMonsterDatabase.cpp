@@ -1,10 +1,10 @@
 #include "StarMonsterDatabase.hpp"
-#include "StarMonster.hpp"
 #include "StarAssets.hpp"
-#include "StarRoot.hpp"
 #include "StarJsonExtra.hpp"
-#include "StarRandom.hpp"
 #include "StarLexicalCast.hpp"
+#include "StarMonster.hpp"
+#include "StarRandom.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -161,15 +161,15 @@ MonsterVariant MonsterDatabase::randomMonster(String const& typeName, Json const
   } else {
     seed = Random::randu64();
   }
-  
+
   return monsterVariant(typeName, seed, uniqueParameters);
 }
 
 MonsterVariant MonsterDatabase::monsterVariant(String const& typeName, uint64_t seed, Json const& uniqueParameters) const {
   MutexLocker locker(m_cacheMutex);
   return m_monsterCache.get(make_tuple(typeName, seed, uniqueParameters), [this](tuple<String, uint64_t, Json> const& key) {
-      return produceMonster(get<0>(key), get<1>(key), get<2>(key));
-    });
+    return produceMonster(get<0>(key), get<1>(key), get<2>(key));
+  });
 }
 
 ByteArray MonsterDatabase::writeMonsterVariant(MonsterVariant const& variant) const {
@@ -262,6 +262,12 @@ ColorReplaceMap5 MonsterDatabase::colorSwap(String const& setName, uint64_t seed
   }
 }
 
+Json MonsterDatabase::monsterConfig(String const& typeName) const {
+  if (Maybe<MonsterType> monsterConfig = m_monsterTypes.maybe(typeName))
+    return monsterConfig->toJson();
+  return Json();
+}
+
 Json MonsterDatabase::mergePartParameters(Json const& partParameterDescription, JsonArray const& parameters) {
   JsonObject mergedParameters;
 
@@ -317,8 +323,7 @@ Json MonsterDatabase::mergeFinalParameters(JsonArray const& parameters) {
       Json value = mergedParameters.value(pair.first);
 
       // Hard-coded merge for scripts and skills parameters, otherwise merge.
-      if (pair.first == "scripts" || pair.first == "skills" || pair.first == "specialSkills"
-          || pair.first == "baseSkills") {
+      if (pair.first == "scripts" || pair.first == "skills" || pair.first == "specialSkills" || pair.first == "baseSkills") {
         auto array = value.optArray().value();
         array.appendAll(pair.second.optArray().value());
         value = std::move(array);
@@ -375,14 +380,14 @@ void MonsterDatabase::readCommonParameters(MonsterVariant& variant) {
   variant.nametagColor = jsonToVec3B(variant.parameters.get("nametagColor", JsonArray{255, 255, 255}));
 
   variant.colorSwap = variant.parameters.optObject("colorSwap").apply([](JsonObject const& json) -> ColorReplaceMap5 {
-      ColorReplaceMap5 swaps;
-      for (auto pair : json) {
-        Vec4B originalColour = Color::fromHex(pair.first).toRgba();
-        Vec5B swapColour = Vec5B(originalColour[0], originalColour[1], originalColour[2], originalColour[3], 0);
-        swaps.insert(swapColour, Color::fromHex(pair.second.toString()).toRgba());
-      }
-      return swaps;
-    });
+    ColorReplaceMap5 swaps;
+    for (auto pair : json) {
+      Vec4B originalColour = Color::fromHex(pair.first).toRgba();
+      Vec5B swapColour = Vec5B(originalColour[0], originalColour[1], originalColour[2], originalColour[3], 0);
+      swaps.insert(swapColour, Color::fromHex(pair.second.toString()).toRgba());
+    }
+    return swaps;
+  });
 }
 
 MonsterVariant MonsterDatabase::produceMonster(String const& typeName, uint64_t seed, Json const& uniqueParameters) const {
@@ -503,4 +508,19 @@ pair<Json, Json> MonsterDatabase::chooseSkills(
   }
 }
 
+Json MonsterDatabase::MonsterType::toJson() const {
+  return JsonObject{
+      {"type", typeName},
+      {"shortdescription", shortDescription.value()},
+      {"description", description.value()},
+      {"categories", jsonFromStringList(categories)},
+      {"parts", jsonFromStringList(partTypes)},
+      {"animation", animationConfigPath},
+      {"colors", colors},
+      {"reversed", reversed},
+      {"dropPools", dropPools},
+      {"baseParameters", baseParameters},
+      {"partParameters", partParameterOverrides},
+      {"partParameterDescription", partParameterDescription}};
 }
+} // namespace Star
