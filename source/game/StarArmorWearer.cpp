@@ -137,7 +137,7 @@ ArmorWearer::ArmorWearer() : m_lastNude(true), m_lastFacingDirection(255) {
 }
 
 ArmorWearer::ArmorWearer(bool isPlayer) : ArmorWearer() {
-  m_isPlayer = isPlayer; // Using this as an "is mastered NPC" variable.
+  m_isPlayer = isPlayer;
 }
 
 ArmorWearer::ArmorWearer(Player* player) : ArmorWearer(false) {
@@ -154,8 +154,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   if (m_player) {
     nudeChanged = m_lastNude != forceNude;
     m_lastNude = forceNude;
-  } else { // It's being used as an 'is master' variable.
-    m_isPlayer = forceNude;
+  } else {
     m_lastNude = false;
   }
 
@@ -1285,7 +1284,7 @@ ItemDescriptor ArmorWearer::backCosmeticItemDescriptor() const {
 }
 
 void ArmorWearer::netElementsNeedLoad(bool) {
-  if (m_isPlayer || (m_player && m_player->isMaster())) return; // FezzedOne: Required sanity check. Mastered entities should not have enslaved armour wearers. `m_isPlayer` is actually a «is mastered» check here.
+  if ((m_npc && m_npc->isMaster()) || (m_player && m_player->isMaster())) return; // FezzedOne: Required sanity check. Mastered entities should not have enslaved armour wearers. `m_isPlayer` is actually a «is mastered» check here.
 
   auto itemDatabase = Root::singleton().itemDatabase();
 

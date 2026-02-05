@@ -83,7 +83,7 @@ Npc::Npc(NpcVariant const& npcVariant)
 
   m_blinkCooldownTimer = GameTimer();
 
-  m_armor = make_shared<ArmorWearer>(isMaster());
+  m_armor = make_shared<ArmorWearer>(this);
   m_tools = make_shared<ToolUser>();
 
   m_aggressive.set(false);
