@@ -34,10 +34,10 @@ ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& i
     bool facingLeft = facingDirection == Direction::Left;
 
     auto shouldUseOverrides = armourItem->instanceValue("directivesUseOverrides");
-    auto tagsToUse = shouldUseOverrides.isType(Json::Type::Bool) ? (shouldUseOverrides.toBool() ? visualIdentityTags : identityTags) : netIdentityTags;
+    StringMap<String> const& tagsToUse = shouldUseOverrides.isType(Json::Type::Bool) ? (shouldUseOverrides.toBool() ? visualIdentityTags : identityTags) : netIdentityTags;
 
-    String const& species = tagsToUse.get("imagePath"); // FezzedOne: These two tags are now expected if the identity tags map isn't empty.
-    String const& gender = tagsToUse.get("gender");
+    String const& species = tagsToUse.maybe("imagePath").value("human");
+    String const& gender = tagsToUse.maybe("gender").value("male");
     auto jSpeciesDirectives = armourItem->instanceValue(species + "Directives"),
          jGenderDirectives = armourItem->instanceValue(gender + "Directives"),
          jFlippedSpeciesDirectives = armourItem->instanceValue(species + "FlipDirectives"),
@@ -270,13 +270,13 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     // auto remotePlayer = m_player && m_player->isSlave();
     // if (!remotePlayer) {
     auto shouldUseOverrides = armourItem->instanceValue("directivesUseOverrides");
-    auto tagsToUse = shouldUseOverrides.isType(Json::Type::Bool) ? (shouldUseOverrides.toBool() ? visualIdentityTags : identityTags) : netIdentityTags;
+    StringMap<String> const& tagsToUse = shouldUseOverrides.isType(Json::Type::Bool) ? (shouldUseOverrides.toBool() ? visualIdentityTags : identityTags) : netIdentityTags;
 
     bool facingLeft = currentDirection == (uint8_t)Direction::Left;
     Maybe<String> directives = facingLeft ? armourItem->xSBflippedDirectives() : armourItem->xSBdirectives();
     if (directives) {
-      String const& species = tagsToUse.get("imagePath"); // FezzedOne: These two tags are now expected if the identity tags map isn't empty.
-      String const& gender = tagsToUse.get("gender");
+      String const& species = tagsToUse.maybe("imagePath").value("human");
+      String const& gender = tagsToUse.maybe("gender").value("male");
       auto jSpeciesDirectives = armourItem->instanceValue(species + "Directives"),
            jGenderDirectives = armourItem->instanceValue(gender + "Directives"),
            jFlippedSpeciesDirectives = armourItem->instanceValue(species + "FlipDirectives"),
