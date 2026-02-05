@@ -63,7 +63,7 @@ ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& i
     processedDirectives["xSBflipDirectives"] = Json();
   };
 
-  auto handleDirectiveTags = [&](StringMap<String> const& identityTags, ArmorItemPtr const& armourItem) -> ItemDescriptor {
+  auto handleDirectiveTags = [&](ArmorItemPtr const& armourItem) -> ItemDescriptor {
     if (!armourItem) return ItemDescriptor();
     auto armourItemDesc = itemSafeDescriptor(as<Item>(armourItem));
     auto params = armourItemDesc.parameters();
@@ -105,7 +105,7 @@ ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& i
   if (armourItem && !armourItem->hideInStockSlots()) {
     ItemDescriptor desc;
     if (!identityTags.empty())
-      desc = handleDirectiveTags(identityTags, armourItem);
+      desc = handleDirectiveTags(armourItem);
     else
       desc = itemSafeDescriptor(as<Item>(armourItem));
     return desc;
@@ -240,27 +240,31 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
 
   auto mergeHumanoidConfig = [&](auto armourItem, bool const skip) {
     if (skip) return;
-    Json configToMerge = armourItem ? armourItem->instanceValue("humanoidConfig", Json()) : m_scriptedHumanoidConfig;
-    if (configToMerge.isType(Json::Type::Object)) {
-      if (Json identityToMerge = configToMerge.opt("identity").value(Json()); identityToMerge.isType(Json::Type::Object)) {
-        Json jBaseIdentity = humanoidOverrides.opt("identity").value(Json());
-        Json baseIdentity = jBaseIdentity.isType(Json::Type::Object) ? jBaseIdentity : JsonObject{};
-        mergeDirectives(baseIdentity, "bodyDirectives", identityToMerge);
-        mergeDirectives(baseIdentity, "hairDirectives", identityToMerge);
-        mergeDirectives(baseIdentity, "emoteDirectives", identityToMerge);
-        mergeDirectives(baseIdentity, "facialHairDirectives", identityToMerge);
-        mergeDirectives(baseIdentity, "facialMaskDirectives", identityToMerge);
-        baseIdentity = jsonMerge(baseIdentity, identityToMerge);
-        humanoidOverrides = jsonMerge(humanoidOverrides, configToMerge);
-        humanoidOverrides = humanoidOverrides.set("identity", baseIdentity);
-        Json jNewGender = baseIdentity.opt("gender").value();
-        if (jNewGender.isType(Json::Type::String)) {
-          String newGenderStr = jNewGender.toString();
-          if (newGenderStr.toLower() == "male" || newGenderStr.toLower() == "female")
-            newGender = newGenderStr == "male" ? Gender::Male : Gender::Female;
+    String gender = newGender == Gender::Male ? "male" : "female";
+    Json configsToMerge[3] = {
+        armourItem ? armourItem->instanceValue("humanoidConfig", Json()) : m_scriptedHumanoidConfig,
+        armourItem ? armourItem->instanceValue(gender + "HumanoidConfig", Json()) : Json(),
+        armourItem ? armourItem->instanceValue(humanoid.identity().species + "HumanoidConfig", Json()) : Json()};
+    for (int i = 0; i < 3; i++) {
+      if (configsToMerge[i].isType(Json::Type::Object)) {
+        if (Json identityToMerge = configsToMerge[i].opt("identity").value(Json()); identityToMerge.isType(Json::Type::Object)) {
+          Json jBaseIdentity = humanoidOverrides.opt("identity").value(Json());
+          Json baseIdentity = jBaseIdentity.isType(Json::Type::Object) ? jBaseIdentity : JsonObject{};
+          mergeDirectives(baseIdentity, "bodyDirectives", identityToMerge);
+          mergeDirectives(baseIdentity, "hairDirectives", identityToMerge);
+          mergeDirectives(baseIdentity, "emoteDirectives", identityToMerge);
+          mergeDirectives(baseIdentity, "facialHairDirectives", identityToMerge);
+          mergeDirectives(baseIdentity, "facialMaskDirectives", identityToMerge);
+          baseIdentity = jsonMerge(baseIdentity, identityToMerge);
+          humanoidOverrides = jsonMerge(humanoidOverrides, configsToMerge[i]);
+          humanoidOverrides = humanoidOverrides.set("identity", baseIdentity);
+          Json jNewGender = baseIdentity.opt("gender").value();
+          if (jNewGender.isType(Json::Type::String)) {
+            String newGenderStr = jNewGender.toString();
+            if (newGenderStr.toLower() == "male" || newGenderStr.toLower() == "female")
+              newGender = newGenderStr == "male" ? Gender::Male : Gender::Female;
+          }
         }
-      } else {
-        humanoidOverrides = jsonMerge(humanoidOverrides, configToMerge);
       }
     }
   };
@@ -290,7 +294,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           {"speciesDirectives", flippedSpeciesDirectives},
           {"genderDirectives", flippedGenderDirectives}};
 
-      return Directives(directives->replaceTags(directiveTags, false).replaceTags(identityTags, false));
+      return Directives(directives->replaceTags(directiveTags, false).replaceTags(tagsToUse, false));
     } else {
       return facingLeft ? armourItem->flippedDirectives() : armourItem->directives();
     }
