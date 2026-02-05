@@ -1,60 +1,59 @@
 #include "StarItemDatabase.hpp"
-#include "StarCodexDatabase.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarRoot.hpp"
+#include "StarActiveItem.hpp"
+#include "StarArmors.hpp"
 #include "StarAssets.hpp"
-#include "StarCasting.hpp"
-#include "StarCurrency.hpp"
-#include "StarConsumableItem.hpp"
+#include "StarAugmentItem.hpp"
 #include "StarBlueprintItem.hpp"
+#include "StarCasting.hpp"
+#include "StarCodexDatabase.hpp"
 #include "StarCodexItem.hpp"
-#include "StarLiquidItem.hpp"
-#include "StarMaterialItem.hpp"
-#include "StarObjectItem.hpp"
-#include "StarItemDrop.hpp"
+#include "StarConfigLuaBindings.hpp"
+#include "StarConsumableItem.hpp"
+#include "StarCurrency.hpp"
 #include "StarInspectionTool.hpp"
 #include "StarInstrumentItem.hpp"
-#include "StarThrownItem.hpp"
-#include "StarUnlockItem.hpp"
-#include "StarActiveItem.hpp"
-#include "StarAugmentItem.hpp"
-#include "StarTools.hpp"
-#include "StarArmors.hpp"
-#include "StarObjectDatabase.hpp"
-#include "StarRootLuaBindings.hpp"
+#include "StarItemDrop.hpp"
 #include "StarItemLuaBindings.hpp"
-#include "StarConfigLuaBindings.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLiquidItem.hpp"
+#include "StarMaterialItem.hpp"
+#include "StarObjectDatabase.hpp"
+#include "StarObjectItem.hpp"
+#include "StarRoot.hpp"
+#include "StarRootLuaBindings.hpp"
+#include "StarThrownItem.hpp"
+#include "StarTools.hpp"
+#include "StarUnlockItem.hpp"
 #include "StarUtilityLuaBindings.hpp"
 
 namespace Star {
 
 EnumMap<ItemType> ItemTypeNames{
-  {ItemType::Generic, "generic"},
-  {ItemType::LiquidItem, "liquid"},
-  {ItemType::MaterialItem, "material"},
-  {ItemType::ObjectItem, "object"},
-  {ItemType::CurrencyItem, "currency"},
-  {ItemType::MiningTool, "miningtool"},
-  {ItemType::Flashlight, "flashlight"},
-  {ItemType::WireTool, "wiretool"},
-  {ItemType::BeamMiningTool, "beamminingtool"},
-  {ItemType::HarvestingTool, "harvestingtool"},
-  {ItemType::TillingTool, "tillingtool"},
-  {ItemType::PaintingBeamTool, "paintingbeamtool"},
-  {ItemType::HeadArmor, "headarmor"},
-  {ItemType::ChestArmor, "chestarmor"},
-  {ItemType::LegsArmor, "legsarmor"},
-  {ItemType::BackArmor, "backarmor"},
-  {ItemType::Consumable, "consumable"},
-  {ItemType::Blueprint, "blueprint"},
-  {ItemType::Codex, "codex"},
-  {ItemType::InspectionTool, "inspectiontool"},
-  {ItemType::InstrumentItem, "instrument"},
-  {ItemType::ThrownItem, "thrownitem"},
-  {ItemType::UnlockItem, "unlockitem"},
-  {ItemType::ActiveItem, "activeitem"},
-  {ItemType::AugmentItem, "augmentitem"}
-};
+    {ItemType::Generic, "generic"},
+    {ItemType::LiquidItem, "liquid"},
+    {ItemType::MaterialItem, "material"},
+    {ItemType::ObjectItem, "object"},
+    {ItemType::CurrencyItem, "currency"},
+    {ItemType::MiningTool, "miningtool"},
+    {ItemType::Flashlight, "flashlight"},
+    {ItemType::WireTool, "wiretool"},
+    {ItemType::BeamMiningTool, "beamminingtool"},
+    {ItemType::HarvestingTool, "harvestingtool"},
+    {ItemType::TillingTool, "tillingtool"},
+    {ItemType::PaintingBeamTool, "paintingbeamtool"},
+    {ItemType::HeadArmor, "headarmor"},
+    {ItemType::ChestArmor, "chestarmor"},
+    {ItemType::LegsArmor, "legsarmor"},
+    {ItemType::BackArmor, "backarmor"},
+    {ItemType::Consumable, "consumable"},
+    {ItemType::Blueprint, "blueprint"},
+    {ItemType::Codex, "codex"},
+    {ItemType::InspectionTool, "inspectiontool"},
+    {ItemType::InstrumentItem, "instrument"},
+    {ItemType::ThrownItem, "thrownitem"},
+    {ItemType::UnlockItem, "unlockitem"},
+    {ItemType::ActiveItem, "activeitem"},
+    {ItemType::AugmentItem, "augmentitem"}};
 
 uint64_t ItemDatabase::getCountOfItem(List<ItemPtr> const& bag, ItemDescriptor const& item, bool exactMatch) {
   auto normalizedBag = normalizeBag(bag);
@@ -132,10 +131,10 @@ bool ItemDatabase::canMakeRecipe(ItemRecipe const& recipe, HashMap<ItemDescripto
 }
 
 ItemDatabase::ItemDatabase()
-  : m_luaRoot(make_shared<LuaRoot>()) {
-  auto config = Root::singleton().configuration();
-  m_luaRoot->tuneAutoGarbageCollection(config->get("assetLuaGcPause").optFloat().value(1.2f),
-    config->get("assetLuaGcStepMultiplier").optFloat().value(1.2f));
+    : m_luaRoot(make_shared<LuaRoot>()) {
+  auto config = Root::singleton().assets()->json("/items/defaultParameters.config");
+  m_luaRoot->tuneAutoGarbageCollection(config.optFloat("luaGcPause").value(1.2f),
+      config.optFloat("luaGcStepMultiplier").value(1.2f));
   scanItems();
   addObjectItems();
   addCodexes();
@@ -224,7 +223,7 @@ ItemPtr ItemDatabase::itemShared(ItemDescriptor descriptor, Maybe<float> level, 
   if (!descriptor)
     return {};
 
-  ItemCacheEntry entry{ descriptor, level, seed };
+  ItemCacheEntry entry{descriptor, level, seed};
   MutexLocker locker(m_cacheMutex);
   if (ItemPtr* cached = m_itemCache.ptr(entry))
     return *cached;
@@ -397,18 +396,22 @@ HashSet<ItemRecipe> ItemDatabase::allRecipes(StringSet const& types) const {
 
 ItemPtr ItemDatabase::applyAugment(ItemPtr const item, AugmentItem* augment) const {
   if (item) {
-    RecursiveMutexLocker locker(m_luaMutex);
+    // RecursiveMutexLocker locker(m_luaMutex); // FezzedOne: No longer needed.
     LuaBaseComponent script;
-    script.setLuaRoot(m_luaRoot);
+    // FezzedOne: Needs its own Lua state because of the raw item pointer being passed around.
+    script.setLuaRoot(make_shared<LuaRoot>());
+    auto config = Root::singleton().assets()->json("/items/defaultParameters.config");
+    m_luaRoot->tuneAutoGarbageCollection(config.optFloat("luaGcPause").value(1.2f),
+        config.optFloat("luaGcStepMultiplier").value(1.2f));
     script.setScripts(augment->augmentScripts());
-    // FezzedOne: Added apparently missing `root`, `xsb` and `sb` callbacks.
+    script.addCallbacks("root", LuaBindings::makeRootCallbacks());
     script.addCallbacks("item", LuaBindings::makeItemCallbacks(augment));
     script.addCallbacks("config", LuaBindings::makeConfigCallbacks(bind(&Item::instanceValue, augment, _1, _2)));
     script.init();
     auto luaResult = script.invoke<LuaTupleReturn<Json, Maybe<uint64_t>>>("apply", item->descriptor().toJson());
     script.uninit();
     // m_luaRoot->collectGarbage();
-    locker.unlock();
+    // locker.unlock();
 
     if (luaResult) {
       if (!get<0>(*luaResult).isNull()) {
@@ -431,15 +434,18 @@ bool ItemDatabase::ageItem(ItemPtr& item, double aging) const {
 
   ItemDescriptor original = item->descriptor();
 
-  RecursiveMutexLocker locker(m_luaMutex);
+  // RecursiveMutexLocker locker(m_luaMutex); // Fezzedone: No longer needed.
   LuaBaseComponent script;
-  script.setLuaRoot(m_luaRoot);
+  script.setLuaRoot(make_shared<LuaRoot>());
+  auto config = Root::singleton().assets()->json("/items/defaultParameters.config");
+  m_luaRoot->tuneAutoGarbageCollection(config.optFloat("luaGcPause").value(1.2f),
+      config.optFloat("luaGcStepMultiplier").value(1.2f));
   script.setScripts(itemData.agingScripts);
   script.init();
   auto aged = script.invoke<Json>("ageItem", original.toJson(), aging).apply(construct<ItemDescriptor>());
   script.uninit();
   // m_luaRoot->collectGarbage();
-  locker.unlock();
+  // locker.unlock();
 
   if (aged && *aged != original) {
     item = ItemDatabase::item(*aged);
@@ -527,19 +533,14 @@ ItemPtr ItemDatabase::tryCreateItem(ItemDescriptor const& descriptor, Maybe<floa
       name = storage.getString("name");
       parameters = storage.get("parameters");
     }
-	  result = createItem(m_items.get(name).type, itemConfig(name, parameters, level, seed));
-  }
-  catch (std::exception const& e) {
+    result = createItem(m_items.get(name).type, itemConfig(name, parameters, level, seed));
+  } catch (std::exception const& e) {
     if (descriptor.name() == "perfectlygenericitem") {
       Logger::error("Could not re-instantiate item '{}'. {}", descriptor, outputException(e, false));
-		  result = createItem(m_items.get("perfectlygenericitem").type, itemConfig("perfectlygenericitem", descriptor.parameters(), level, seed));
+      result = createItem(m_items.get("perfectlygenericitem").type, itemConfig("perfectlygenericitem", descriptor.parameters(), level, seed));
     } else if (ignoreInvalid) {
       Logger::error("Could not instantiate item '{}'. {}", descriptor, outputException(e, false));
-      result = createItem(m_items.get("perfectlygenericitem").type, itemConfig("perfectlygenericitem", JsonObject({
-        {"genericItemStorage", descriptor.toJson()},
-        {"shortdescription", descriptor.name()},
-        {"description", "Reinstall the parent mod to return this item to normal!\n^red;(To retain data, do not place as an object or craft with it!)"}
-      }), {}, {}));
+      result = createItem(m_items.get("perfectlygenericitem").type, itemConfig("perfectlygenericitem", JsonObject({{"genericItemStorage", descriptor.toJson()}, {"shortdescription", descriptor.name()}, {"description", "Reinstall the parent mod to return this item to normal!\n^red;(To retain data, do not place as an object or craft with it!)"}}), {}, {}));
     } else {
       // FezzedOne: Rethrowing this exception stops the game and prevents certain mods from loading when they would have loaded in vanilla.
       // So we're not doing that anymore.
@@ -784,4 +785,4 @@ void ItemDatabase::addCodexes() {
   }
 }
 
-}
+} // namespace Star
