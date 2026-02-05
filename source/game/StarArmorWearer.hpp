@@ -21,6 +21,7 @@ STAR_CLASS(ToolUserEntity);
 STAR_CLASS(Item);
 STAR_CLASS(World);
 STAR_CLASS(Player);
+STAR_CLASS(Npc);
 
 STAR_CLASS(ArmorWearer);
 
@@ -29,6 +30,7 @@ public:
   ArmorWearer();
   ArmorWearer(bool isPlayer);
   ArmorWearer(Player* player);
+  ArmorWearer(Npc* npc);
 
   void setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude, bool forceSync = false, Maybe<Direction> facingDirection = {});
   void effects(EffectEmitter& effectEmitter);
@@ -66,7 +68,11 @@ public:
   ItemDescriptor backItemDescriptor() const;
   ItemDescriptor backCosmeticItemDescriptor() const;
 
-  static ItemDescriptor setUpArmourItemNetworking(StringMap<String> const& identityTags, ArmorItemPtr const& armourItem, Direction direction);
+  static ItemDescriptor setUpArmourItemNetworking(StringMap<String> const& identityTags, StringMap<String> const& visualIdentityTags,
+      StringMap<String> const& netIdentityTags, ArmorItemPtr const& armourItem, Direction direction);
+
+  void setScriptedHumanoidConfig(Json const& newConfig);
+  Json scriptedHumanoidConfig() const;
 
 private:
   void netElementsNeedLoad(bool full) override;
@@ -101,8 +107,11 @@ private:
   bool m_isOpenSb;
   bool m_warned;
   Player* m_player = nullptr;
+  Npc* m_npc = nullptr;
 
   uint8_t m_lastFacingDirection;
+
+  Json m_scriptedHumanoidConfig;
 
   StringMap<Json> m_openSbOverrides;
 };

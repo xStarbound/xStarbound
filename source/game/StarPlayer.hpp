@@ -350,6 +350,9 @@ public:
   // FezzedOne: Need to overload this function to accept `Json` to avoid an unnecessary conversion, of course.
   void setIdentity(Json const& newIdentity);
 
+  Json humanoidOverrides() const;
+  void setHumanoidOverrides(Json const& newOverrides);
+
   void setAdmin(bool isAdmin);
   bool isAdmin() const override;
 
@@ -547,7 +550,7 @@ public:
   void overrideCameraPosition(Maybe<Vec2F> newPosition);
 
   // From OpenStarbound: Get and set networked cosmetic items in the oSB cosmetic slots.
-  void setNetArmorSecret(uint8_t cosmeticSlot, ArmorItemPtr const& armour);
+  void setNetArmorSecret(StringMap<String> const& identityTags, StringMap<String> const& visualIdentityTags, StringMap<String> const& netIdentityTags, uint8_t cosmeticSlot, ArmorItemPtr const& armour);
   Array<ArmorItemPtr, 12> const& getNetArmorSecrets();
   bool pulledCosmeticUpdate();
 

@@ -8,6 +8,7 @@
 #include "StarItemDatabase.hpp"
 #include "StarLiquidItem.hpp"
 #include "StarMaterialItem.hpp"
+#include "StarNpc.hpp"
 #include "StarObject.hpp"
 #include "StarObjectDatabase.hpp"
 #include "StarObjectItem.hpp"
@@ -26,8 +27,42 @@
 
 namespace Star {
 
-ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& identityTags, ArmorItemPtr const& armourItem, Direction facingDirection) {
+ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& identityTags, StringMap<String> const& visualIdentityTags, StringMap<String> const& netIdentityTags,
+    ArmorItemPtr const& armourItem, Direction facingDirection) {
   ZoneScoped;
+  auto processDirectives = [&](ArmorItemPtr const& armourItem, JsonObject& processedDirectives, Maybe<String> const& directives, Maybe<String> const& flipDirectives) {
+    bool facingLeft = facingDirection == Direction::Left;
+
+    auto shouldUseOverrides = armourItem->instanceValue("directivesUseOverrides");
+    auto tagsToUse = shouldUseOverrides.isType(Json::Type::Bool) ? (shouldUseOverrides.toBool() ? visualIdentityTags : identityTags) : netIdentityTags;
+
+    String const& species = tagsToUse.get("imagePath"); // FezzedOne: These two tags are now expected if the identity tags map isn't empty.
+    String const& gender = tagsToUse.get("gender");
+    auto jSpeciesDirectives = armourItem->instanceValue(species + "Directives"),
+         jGenderDirectives = armourItem->instanceValue(gender + "Directives"),
+         jFlippedSpeciesDirectives = armourItem->instanceValue(species + "FlipDirectives"),
+         jFlippedGenderDirectives = armourItem->instanceValue(gender + "FlipDirectives");
+    auto speciesDirectives = jSpeciesDirectives.isType(Json::Type::String) ? jSpeciesDirectives.toString() : "",
+         genderDirectives = jGenderDirectives.isType(Json::Type::String) ? jGenderDirectives.toString() : "";
+    auto flippedSpeciesDirectives = facingLeft && jFlippedSpeciesDirectives.isType(Json::Type::String) ? jFlippedSpeciesDirectives.toString() : speciesDirectives,
+         flippedGenderDirectives = facingLeft && jFlippedGenderDirectives.isType(Json::Type::String) ? jFlippedGenderDirectives.toString() : genderDirectives;
+
+    const StringMap<String> directiveTags{
+        {"speciesDirectives", flippedSpeciesDirectives},
+        {"genderDirectives", flippedGenderDirectives}};
+
+
+    // FezzedOne: Network flip directives as normal directives, allowing stock clients to see flipping.
+    if (facingLeft && flipDirectives) {
+      processedDirectives["directives"] = flipDirectives->replaceTags(directiveTags, false).replaceTags(tagsToUse, false);
+    } else if (directives) {
+      processedDirectives["directives"] = directives->replaceTags(directiveTags, false).replaceTags(tagsToUse, false);
+    }
+    processedDirectives["flipDirectives"] = Json();
+    processedDirectives["xSBdirectives"] = Json();
+    processedDirectives["xSBflipDirectives"] = Json();
+  };
+
   auto handleDirectiveTags = [&](StringMap<String> const& identityTags, ArmorItemPtr const& armourItem) -> ItemDescriptor {
     if (!armourItem) return ItemDescriptor();
     auto armourItemDesc = itemSafeDescriptor(as<Item>(armourItem));
@@ -37,18 +72,9 @@ ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& i
     auto directives = armourItem->xSBdirectives();
     auto flipDirectives = armourItem->xSBflippedDirectives();
 
-    // FezzedOne: Network flip directives as normal directives, allowing stock clients to see flipping.
-    if (facingDirection == Direction::Left && flipDirectives) {
-      processedDirectives["directives"] = flipDirectives->replaceTags(identityTags, false);
-      processedDirectives["flipDirectives"] = Json();
-    } else if (directives) {
-      processedDirectives["directives"] = directives->replaceTags(identityTags, false);
-    }
-    processedDirectives["xSBdirectives"] = Json();
-    processedDirectives["xSBflipDirectives"] = Json();
+    processDirectives(armourItem, processedDirectives, directives, flipDirectives);
 
     armourItemDesc = armourItemDesc.applyParameters(processedDirectives);
-
     auto overlays = armourItem->getStackedCosmetics();
 
     if (!overlays.empty()) {
@@ -62,15 +88,9 @@ ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& i
             auto directives = armourOverlay->xSBdirectives();
             auto flipDirectives = armourOverlay->xSBflippedDirectives();
 
+            processDirectives(armourOverlay, processedDirectives, directives, flipDirectives);
+
             // FezzedOne: Network flip directives as normal directives, allowing stock clients to see flipping.
-            if (facingDirection == Direction::Left && flipDirectives) {
-              processedDirectives["directives"] = flipDirectives->replaceTags(identityTags, false);
-              processedDirectives["flipDirectives"] = Json();
-            } else if (directives) {
-              processedDirectives["directives"] = directives->replaceTags(identityTags, false);
-            }
-            processedDirectives["xSBdirectives"] = Json();
-            processedDirectives["xSBflipDirectives"] = Json();
             newItem = newItem.applyParameters(processedDirectives);
           }
           jOverlays.emplaceAppend(newItem.diskStore());
@@ -124,6 +144,10 @@ ArmorWearer::ArmorWearer(Player* player) : ArmorWearer(false) {
   m_player = player;
 }
 
+ArmorWearer::ArmorWearer(Npc* npc) : ArmorWearer(false) {
+  m_npc = npc;
+}
+
 void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceNude, bool forceSync, Maybe<Direction> facingDirection) {
   ZoneScoped;
   bool nudeChanged = false;
@@ -162,32 +186,38 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     return jValue.isType(Json::Type::String);
   };
 
-  auto const& playerIdentity = humanoid.identity();
-  // FezzedOne: Substitution tags that can be used in both armour directives and overridden identity directives.
-  // Directive tag substitutions are done internally by xClient and the post-substitution directives «replicated» to other clients in a vanilla-compatible manner,
-  // so *any* client can see the automatically substituted directives.
-  const StringMap<String> identityTags{
-      {"species", playerIdentity.species},
-      {"imagePath", playerIdentity.imagePath ? *playerIdentity.imagePath : playerIdentity.species},
-      {"gender", playerIdentity.gender == Gender::Male ? "male" : "female"},
-      {"bodyDirectives", playerIdentity.bodyDirectives.string()},
-      {"emoteDirectives", playerIdentity.emoteDirectives.string()},
-      {"hairGroup", playerIdentity.hairGroup},
-      {"hairType", playerIdentity.hairType},
-      {"hairDirectives", playerIdentity.hairDirectives.string()},
-      {"facialHairGroup", playerIdentity.facialHairGroup},
-      {"facialHairType", playerIdentity.facialHairType},
-      {"facialHairDirectives", playerIdentity.facialHairDirectives.string()},
-      {"facialMaskGroup", playerIdentity.facialMaskGroup},
-      {"facialMaskType", playerIdentity.facialMaskType},
-      {"facialMaskDirectives", playerIdentity.facialMaskDirectives.string()},
-      {"personalityIdle", playerIdentity.personality.idle},
-      {"personalityArmIdle", playerIdentity.personality.armIdle},
-      {"headOffsetX", strf("{}", playerIdentity.personality.headOffset[0])},
-      {"headOffsetY", strf("{}", playerIdentity.personality.headOffset[1])},
-      {"armOffsetX", strf("{}", playerIdentity.personality.armOffset[0])},
-      {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
-      {"color", Color::rgba(playerIdentity.color).toHex()}};
+  auto generateIdentityTags = [](HumanoidIdentity const& identity) -> StringMap<String> const {
+    // FezzedOne: Substitution tags that can be used in both armour directives and overridden identity directives.
+    // Directive tag substitutions are done internally by xClient and the post-substitution directives «replicated» to other clients in a vanilla-compatible manner,
+    // so *any* client can see the automatically substituted directives.
+    return StringMap<String>{
+        {"species", identity.species},
+        {"imagePath", identity.imagePath ? *identity.imagePath : identity.species},
+        {"gender", identity.gender == Gender::Male ? "male" : "female"},
+        {"bodyDirectives", identity.bodyDirectives.string()},
+        {"emoteDirectives", identity.emoteDirectives.string()},
+        {"hairGroup", identity.hairGroup},
+        {"hairType", identity.hairType},
+        {"hairDirectives", identity.hairDirectives.string()},
+        {"facialHairGroup", identity.facialHairGroup},
+        {"facialHairType", identity.facialHairType},
+        {"facialHairDirectives", identity.facialHairDirectives.string()},
+        {"facialMaskGroup", identity.facialMaskGroup},
+        {"facialMaskType", identity.facialMaskType},
+        {"facialMaskDirectives", identity.facialMaskDirectives.string()},
+        {"personalityIdle", identity.personality.idle},
+        {"personalityArmIdle", identity.personality.armIdle},
+        {"headOffsetX", strf("{}", identity.personality.headOffset[0])},
+        {"headOffsetY", strf("{}", identity.personality.headOffset[1])},
+        {"armOffsetX", strf("{}", identity.personality.armOffset[0])},
+        {"armOffsetY", strf("{}", identity.personality.armOffset[1])},
+        {"color", Color::rgba(identity.color).toHex()}};
+  };
+
+  // FezzedOne: The base identity tags are generated before any cosmetics passes because items can't alter the base identity anyway.
+  StringMap<String> const identityTags = generateIdentityTags(humanoid.identity());
+  StringMap<String> visualIdentityTags = {};
+  StringMap<String> netIdentityTags = {};
 
   auto replaceBaseTag = [&](String const& merger, String const& base) -> String {
     return merger.replaceTags(StringMap<String>{{"base", base}}, false);
@@ -205,13 +235,12 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
   };
 
-  // FezzedOne: Fixed «lag» in applying humanoid gender overrides. Requires running much of the code *twice* to make sure the variable below has the correct value
-  // before it applies to armour or cosmetics.
+  // FezzedOne: Fixed «lag» in applying humanoid gender overrides. Requires multi-pass cosmetic processing.
   Gender newGender = humanoid.identity().gender;
 
   auto mergeHumanoidConfig = [&](auto armourItem, bool const skip) {
     if (skip) return;
-    Json configToMerge = armourItem->instanceValue("humanoidConfig", Json());
+    Json configToMerge = armourItem ? armourItem->instanceValue("humanoidConfig", Json()) : m_scriptedHumanoidConfig;
     if (configToMerge.isType(Json::Type::Object)) {
       if (Json identityToMerge = configToMerge.opt("identity").value(Json()); identityToMerge.isType(Json::Type::Object)) {
         Json jBaseIdentity = humanoidOverrides.opt("identity").value(Json());
@@ -240,12 +269,31 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     // Check to ensure this isn't a remotely controlled player to avoid an unnecessary (and useless) tag replacement on items whose tags were already replaced by the other player's xClient client.
     // auto remotePlayer = m_player && m_player->isSlave();
     // if (!remotePlayer) {
-    auto const& playerIdentity = humanoid.identity();
-    Maybe<String> directives = currentDirection == (uint8_t)Direction::Left ? armourItem->xSBflippedDirectives() : armourItem->xSBdirectives();
-    if (directives)
-      return Directives(directives->replaceTags(identityTags, false));
-    else
-      return currentDirection == (uint8_t)Direction::Left ? armourItem->flippedDirectives() : armourItem->directives();
+    auto shouldUseOverrides = armourItem->instanceValue("directivesUseOverrides");
+    auto tagsToUse = shouldUseOverrides.isType(Json::Type::Bool) ? (shouldUseOverrides.toBool() ? visualIdentityTags : identityTags) : netIdentityTags;
+
+    bool facingLeft = currentDirection == (uint8_t)Direction::Left;
+    Maybe<String> directives = facingLeft ? armourItem->xSBflippedDirectives() : armourItem->xSBdirectives();
+    if (directives) {
+      String const& species = tagsToUse.get("imagePath"); // FezzedOne: These two tags are now expected if the identity tags map isn't empty.
+      String const& gender = tagsToUse.get("gender");
+      auto jSpeciesDirectives = armourItem->instanceValue(species + "Directives"),
+           jGenderDirectives = armourItem->instanceValue(gender + "Directives"),
+           jFlippedSpeciesDirectives = armourItem->instanceValue(species + "FlipDirectives"),
+           jFlippedGenderDirectives = armourItem->instanceValue(gender + "FlipDirectives");
+      auto speciesDirectives = jSpeciesDirectives.isType(Json::Type::String) ? jSpeciesDirectives.toString() : "",
+           genderDirectives = jGenderDirectives.isType(Json::Type::String) ? jGenderDirectives.toString() : "";
+      auto flippedSpeciesDirectives = facingLeft && jFlippedSpeciesDirectives.isType(Json::Type::String) ? jFlippedSpeciesDirectives.toString() : speciesDirectives,
+           flippedGenderDirectives = facingLeft && jFlippedGenderDirectives.isType(Json::Type::String) ? jFlippedGenderDirectives.toString() : genderDirectives;
+
+      const StringMap<String> directiveTags{
+          {"speciesDirectives", flippedSpeciesDirectives},
+          {"genderDirectives", flippedGenderDirectives}};
+
+      return Directives(directives->replaceTags(directiveTags, false).replaceTags(identityTags, false));
+    } else {
+      return facingLeft ? armourItem->flippedDirectives() : armourItem->directives();
+    }
     // } else {
     //   return currentDirection == (uint8_t)Direction::Left ? armourItem->flippedDirectives() : armourItem->directives();
     // }
@@ -324,10 +372,13 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     return !forceNude || armour->bypassNudity();
   };
 
+  mergeHumanoidConfig(ArmorItemPtr(nullptr), false);
+
   auto resolveCosmeticVisuals = [&](auto secondPassType) { // FezzedOne: The main armour updating code.
-    // This does two passes now. The first to update humanoid parameters, including gender, and
-    // the second to set the armour sprites and update emulated oSB slots. The second pass is
-    // required because any found gender override needs to be applied to armour item framesets.
+    // This does two passes now.
+    // 1. Update humanoid overrides.
+    // 2. Set up all armour/cosmetic framesets and directives, and network items to oSB clients.
+    // The second pass is needed because cosmetic appearances can depend on the gender and species from humanoid overrides applied by the same or other cosmetics.
 
     constexpr bool secondPass = secondPassType.value;
 
@@ -760,12 +811,12 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           for (size_t i = 0; i < largerCount; i++) {
             if (i < legsItems.size()) {
               if (m_player && openSbLayerCount < 12 && m_player->isMaster())
-                m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(legsItems[i]));
+                m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, as<ArmorItem>(legsItems[i]));
             }
             if (openSbLayerCount >= 12) break;
             if (i < chestItems.size()) {
               if (m_player && openSbLayerCount < 12 && m_player->isMaster())
-                m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(chestItems[i]));
+                m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, as<ArmorItem>(chestItems[i]));
             }
             if (openSbLayerCount >= 12) break;
           }
@@ -787,7 +838,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
               if (auto armourItem = as<BackArmor>(item)) {
                 bool hidden = armourItem->hideInStockSlots();
                 if (secondPass && m_player && openSbLayerCount < 12 && m_player->isMaster())
-                  m_player->setNetArmorSecret(openSbLayerCount++, hidden ? nullptr : as<ArmorItem>(item));
+                  m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, hidden ? nullptr : as<ArmorItem>(item));
                 append(backArmorStack, Humanoid::BackEntry{
                                            armourItem->frameset(newGender),
                                            hidden ? Directives("?scale=0") : getDirectives(armourItem),
@@ -866,7 +917,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             if (auto armourItem = as<BackArmor>(item)) {
               bool hidden = armourItem->hideInStockSlots();
               if (secondPass && m_player && openSbLayerCount < 12 && m_player->isMaster())
-                m_player->setNetArmorSecret(openSbLayerCount++, hidden ? nullptr : as<ArmorItem>(item));
+                m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, hidden ? nullptr : as<ArmorItem>(item));
               append(backArmorStack, Humanoid::BackEntry{
                                          armourItem->frameset(newGender),
                                          hidden ? Directives("?scale=0") : getDirectives(armourItem),
@@ -904,7 +955,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     if (secondPass && headItemCount != 0) {
       for (size_t j = 0; j < headItemCount; j++) {
         if (m_player && openSbLayerCount < 12 && m_player->isMaster())
-          m_player->setNetArmorSecret(openSbLayerCount++, as<ArmorItem>(headItems[j]));
+          m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, as<ArmorItem>(headItems[j]));
       }
     }
 
@@ -970,15 +1021,19 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         } catch (std::exception const& e) {
           if (!m_warned) {
             Logger::warn("ArmorWearer: Exception caught while handling humanoid overrides; attempted to restore base humanoid config for player's species. "
-                         "Check the \"humanoidConfig\" on your cosmetic items.\n  Exception: {}",
+                         "Check the \"humanoidConfig\" on your cosmetic items and any scripted humanoid overrides in scripts.\n  Exception: {}",
                 outputException(e, false));
             m_warned = true;
           }
-          humanoid.updateHumanoidConfigOverrides(JsonObject{}, forceSync);
+          humanoid.updateHumanoidConfigOverrides(JsonObject{}, true);
         }
       }
 
       humanoid.setBodyHidden(bodyHidden);
+
+      // FezzedOne: These tags aren't generated until the end of the first pass because they need to take identity overrides into account.
+      visualIdentityTags = generateIdentityTags(humanoid.visualIdentity());
+      netIdentityTags = generateIdentityTags(humanoid.netIdentity());
     }
   };
 
@@ -995,7 +1050,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     // FezzedOne: Clear any emulated OpenStarbound cosmetic slots after the last xStarbound overlay, if any cosmetic slots are left unfilled.
     if (m_player && m_player->isMaster() && openSbLayerCount < 12) {
       for (uint8_t i = openSbLayerCount; i != 12; i++) {
-        m_player->setNetArmorSecret(i, nullptr);
+        m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, i, nullptr);
       }
     }
   }
@@ -1251,56 +1306,71 @@ void ArmorWearer::netElementsNeedLoad(bool) {
 void ArmorWearer::netElementsNeedStore() {
   auto itemDatabase = Root::singleton().itemDatabase();
 
+  auto generateIdentityTags = [](HumanoidIdentity const& identity) -> StringMap<String> const {
+    return StringMap<String>{
+        {"species", identity.species},
+        {"imagePath", identity.imagePath ? *identity.imagePath : identity.species},
+        {"gender", identity.gender == Gender::Male ? "male" : "female"},
+        {"bodyDirectives", identity.bodyDirectives.string()},
+        {"emoteDirectives", identity.emoteDirectives.string()},
+        {"hairGroup", identity.hairGroup},
+        {"hairType", identity.hairType},
+        {"hairDirectives", identity.hairDirectives.string()},
+        {"facialHairGroup", identity.facialHairGroup},
+        {"facialHairType", identity.facialHairType},
+        {"facialHairDirectives", identity.facialHairDirectives.string()},
+        {"facialMaskGroup", identity.facialMaskGroup},
+        {"facialMaskType", identity.facialMaskType},
+        {"facialMaskDirectives", identity.facialMaskDirectives.string()},
+        {"personalityIdle", identity.personality.idle},
+        {"personalityArmIdle", identity.personality.armIdle},
+        {"headOffsetX", strf("{}", identity.personality.headOffset[0])},
+        {"headOffsetY", strf("{}", identity.personality.headOffset[1])},
+        {"armOffsetX", strf("{}", identity.personality.armOffset[0])},
+        {"armOffsetY", strf("{}", identity.personality.armOffset[1])},
+        {"color", Color::rgba(identity.color).toHex()}};
+  };
+
   if (m_player) {
-    auto const& playerIdentity = m_player->identity();
+    auto const identityTags = generateIdentityTags(m_player->humanoid()->identity());
+    auto const visualIdentityTags = generateIdentityTags(m_player->humanoid()->visualIdentity());
+    auto const netIdentityTags = generateIdentityTags(m_player->humanoid()->netIdentity());
     // FezzedOne: Substitution tags that can be used in both armour directives and overridden identity directives.
     // Directive tag substitutions are done internally by xClient and the post-substitution directives «replicated» to other clients in a vanilla-compatible manner,
     // so *any* client can see the automatically substituted directives.
-    const StringMap<String> identityTags{
-        {"species", playerIdentity.species},
-        {"imagePath", playerIdentity.imagePath ? *playerIdentity.imagePath : playerIdentity.species},
-        {"gender", playerIdentity.gender == Gender::Male ? "male" : "female"},
-        {"bodyDirectives", playerIdentity.bodyDirectives.string()},
-        {"emoteDirectives", playerIdentity.emoteDirectives.string()},
-        {"hairGroup", playerIdentity.hairGroup},
-        {"hairType", playerIdentity.hairType},
-        {"hairDirectives", playerIdentity.hairDirectives.string()},
-        {"facialHairGroup", playerIdentity.facialHairGroup},
-        {"facialHairType", playerIdentity.facialHairType},
-        {"facialHairDirectives", playerIdentity.facialHairDirectives.string()},
-        {"facialMaskGroup", playerIdentity.facialMaskGroup},
-        {"facialMaskType", playerIdentity.facialMaskType},
-        {"facialMaskDirectives", playerIdentity.facialMaskDirectives.string()},
-        {"personalityIdle", playerIdentity.personality.idle},
-        {"personalityArmIdle", playerIdentity.personality.armIdle},
-        {"headOffsetX", strf("{}", playerIdentity.personality.headOffset[0])},
-        {"headOffsetY", strf("{}", playerIdentity.personality.headOffset[1])},
-        {"armOffsetX", strf("{}", playerIdentity.personality.armOffset[0])},
-        {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
-        {"color", Color::rgba(playerIdentity.color).toHex()}};
 
-    m_headItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headItem), (Direction)m_lastFacingDirection));
-    m_chestItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestItem), (Direction)m_lastFacingDirection));
-    m_legsItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsItem), (Direction)m_lastFacingDirection));
-    m_backItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backItem), (Direction)m_lastFacingDirection));
+    m_headItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_headItem), (Direction)m_lastFacingDirection));
+    m_chestItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_chestItem), (Direction)m_lastFacingDirection));
+    m_legsItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_legsItem), (Direction)m_lastFacingDirection));
+    m_backItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_backItem), (Direction)m_lastFacingDirection));
 
-    m_headCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headCosmeticItem), (Direction)m_lastFacingDirection));
-    m_chestCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestCosmeticItem), (Direction)m_lastFacingDirection));
-    m_legsCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsCosmeticItem), (Direction)m_lastFacingDirection));
-    m_backCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backCosmeticItem), (Direction)m_lastFacingDirection));
-  } else {
-    const StringMap<String> identityTags{};
+    m_headCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_headCosmeticItem), (Direction)m_lastFacingDirection));
+    m_chestCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_chestCosmeticItem), (Direction)m_lastFacingDirection));
+    m_legsCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_legsCosmeticItem), (Direction)m_lastFacingDirection));
+    m_backCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_backCosmeticItem), (Direction)m_lastFacingDirection));
+  } else if (m_npc) {
+    auto const identityTags = generateIdentityTags(m_npc->humanoid().identity());
+    auto const visualIdentityTags = generateIdentityTags(m_npc->humanoid().visualIdentity());
+    auto const netIdentityTags = generateIdentityTags(m_npc->humanoid().netIdentity());
 
-    m_headItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headItem), (Direction)m_lastFacingDirection));
-    m_chestItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestItem), (Direction)m_lastFacingDirection));
-    m_legsItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsItem), (Direction)m_lastFacingDirection));
-    m_backItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backItem), (Direction)m_lastFacingDirection));
+    m_headItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_headItem), (Direction)m_lastFacingDirection));
+    m_chestItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_chestItem), (Direction)m_lastFacingDirection));
+    m_legsItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_legsItem), (Direction)m_lastFacingDirection));
+    m_backItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_backItem), (Direction)m_lastFacingDirection));
 
-    m_headCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_headCosmeticItem), (Direction)m_lastFacingDirection));
-    m_chestCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_chestCosmeticItem), (Direction)m_lastFacingDirection));
-    m_legsCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_legsCosmeticItem), (Direction)m_lastFacingDirection));
-    m_backCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, as<ArmorItem>(m_backCosmeticItem), (Direction)m_lastFacingDirection));
+    m_headCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_headCosmeticItem), (Direction)m_lastFacingDirection));
+    m_chestCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_chestCosmeticItem), (Direction)m_lastFacingDirection));
+    m_legsCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_legsCosmeticItem), (Direction)m_lastFacingDirection));
+    m_backCosmeticItemDataNetState.set(setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, as<ArmorItem>(m_backCosmeticItem), (Direction)m_lastFacingDirection));
   }
+}
+
+void ArmorWearer::setScriptedHumanoidConfig(Json const& newConfig) {
+  m_scriptedHumanoidConfig = newConfig;
+}
+
+Json ArmorWearer::scriptedHumanoidConfig() const {
+  return m_scriptedHumanoidConfig;
 }
 
 } // namespace Star

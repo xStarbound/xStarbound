@@ -1243,4 +1243,8 @@ void Npc::setIdentity(Json const& newIdentity) {
   }
 }
 
+Humanoid& Npc::humanoid() {
+  return m_humanoid;
+}
+
 } // namespace Star

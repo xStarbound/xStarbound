@@ -180,6 +180,9 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player, bool removeChatCal
   callbacks.registerCallback("getIdentity", [player]() -> Json { return player->getIdentity(); }); // Exists for mod compatibility reasons.
   callbacks.registerCallback("setIdentity", [player](Json const& newIdentity) { player->setIdentity(newIdentity); });
 
+  callbacks.registerCallback("humanoidOverrides", [player]() -> Json { return player->humanoidOverrides(); });
+  callbacks.registerCallback("setHumanoidOverrides", [player](Json const& newOverrides) { player->setHumanoidOverrides(newOverrides); });
+
   callbacks.registerCallback("interactRadius", [player]() { return player->interactRadius(); });
   callbacks.registerCallback("setInteractRadius", [player](float radius) { player->setInteractRadius(radius); });
 

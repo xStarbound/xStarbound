@@ -1,28 +1,28 @@
 #ifndef STAR_NPC_HPP
 #define STAR_NPC_HPP
 
-#include "StarNpcDatabase.hpp"
-#include "StarEntity.hpp"
-#include "StarNetElementSystem.hpp"
 #include "StarActorMovementController.hpp"
-#include "StarHumanoid.hpp"
-#include "StarEffectEmitter.hpp"
-#include "StarEntitySplash.hpp"
+#include "StarArmorWearer.hpp"
+#include "StarChattyEntity.hpp"
 #include "StarDamageBarEntity.hpp"
+#include "StarEffectEmitter.hpp"
+#include "StarEmoteEntity.hpp"
+#include "StarEntity.hpp"
+#include "StarEntitySplash.hpp"
+#include "StarHumanoid.hpp"
+#include "StarInteractiveEntity.hpp"
+#include "StarItemBag.hpp"
+#include "StarLoungingEntities.hpp"
+#include "StarLuaActorMovementComponent.hpp"
+#include "StarLuaComponents.hpp"
 #include "StarNametagEntity.hpp"
+#include "StarNetElementSystem.hpp"
+#include "StarNpcDatabase.hpp"
+#include "StarPhysicsEntity.hpp"
 #include "StarPortraitEntity.hpp"
 #include "StarScriptedEntity.hpp"
-#include "StarChattyEntity.hpp"
-#include "StarEmoteEntity.hpp"
-#include "StarInteractiveEntity.hpp"
-#include "StarLoungingEntities.hpp"
-#include "StarToolUserEntity.hpp"
-#include "StarLuaComponents.hpp"
-#include "StarLuaActorMovementComponent.hpp"
-#include "StarItemBag.hpp"
-#include "StarArmorWearer.hpp"
 #include "StarToolUser.hpp"
-#include "StarPhysicsEntity.hpp"
+#include "StarToolUserEntity.hpp"
 
 namespace Star {
 
@@ -32,16 +32,16 @@ STAR_CLASS(Npc);
 STAR_CLASS(StatusController);
 
 class Npc
-  : public virtual DamageBarEntity,
-    public virtual PortraitEntity,
-    public virtual NametagEntity,
-    public virtual ScriptedEntity,
-    public virtual ChattyEntity,
-    public virtual InteractiveEntity,
-    public virtual LoungingEntity,
-    public virtual ToolUserEntity,
-    public virtual PhysicsEntity,
-    public virtual EmoteEntity {
+    : public virtual DamageBarEntity,
+      public virtual PortraitEntity,
+      public virtual NametagEntity,
+      public virtual ScriptedEntity,
+      public virtual ChattyEntity,
+      public virtual InteractiveEntity,
+      public virtual LoungingEntity,
+      public virtual ToolUserEntity,
+      public virtual PhysicsEntity,
+      public virtual EmoteEntity {
 public:
   Npc(NpcVariant const& npcVariant);
   Npc(NpcVariant const& npcVariant, Json const& initialState);
@@ -178,8 +178,10 @@ public:
 
   using Entity::setUniqueId;
 
-  bool checkSpecies(String const &species, Maybe<String> const &maybeCallbackName);
-  void setIdentity(Json const &newIdentity);
+  bool checkSpecies(String const& species, Maybe<String> const& maybeCallbackName);
+  void setIdentity(Json const& newIdentity);
+
+  Humanoid& humanoid();
 
 private:
   Vec2F getAbsolutePosition(Vec2F relativePosition) const;
@@ -266,6 +268,6 @@ private:
   int m_hitDamageNotificationLimit;
 };
 
-}
+} // namespace Star
 
 #endif

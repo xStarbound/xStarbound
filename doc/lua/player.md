@@ -713,6 +713,28 @@ The following humanoid identity setters are available:
 
 ---
 
+#### `Json` player.humanoidOverrides()
+
+**Available only on xStarbound v4.3.1+.**
+
+Returns the current scripted humanoid overrides in use, if any. Does _not_ include overrides from cosmetic items.
+
+See `$docs/cosmetics.md` for more on humanoid overrides.
+
+---
+
+#### `void` player.setHumanoidOverrides(`Json` newOverrides)
+
+**Available only on xStarbound v4.3.1+.**
+
+Sets the current scripted humanoid overrides in use, or clears them if no overrides are specified. Any overrides from cosmetic items are applied _after_ those set with this callback. Any errors from scripted overrides will be logged on the tick after this callback is used (and any tick afterward where any cosmetic/armour item is swapped out, has its visibility changed, or is otherwise modified, or the player changes facing direction, until the bad scripted overrides are removed or changed), but this callback itself will only throw an error if the new overrides aren't valid JSON.
+
+If not cleared or changed, overrides set with this callback last until the player is _fully_ unloaded by its master client (by returning to the main menu, getting disconnected, or quitting the game).
+
+This callback can be used to set visual identity overrides that don't show up when the identity getters are used or that use identity replacement tags. See `$docs/cosmetics.md` for more on humanoid overrides.
+
+---
+
 ## xStarbound callbacks
 
 The following `player` callbacks are available on xStarbound but _not_ on stock Starbound. Many of these are available with StarExtensions or OpenStarbound.

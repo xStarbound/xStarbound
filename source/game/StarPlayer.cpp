@@ -2594,6 +2594,15 @@ void Player::setIdentity(Json const& newIdentity) {
   }
 }
 
+Json Player::humanoidOverrides() const {
+  return m_armor->scriptedHumanoidConfig();
+}
+
+void Player::setHumanoidOverrides(Json const& newConfig) {
+  m_armor->setScriptedHumanoidConfig(newConfig);
+  refreshArmor(true);
+}
+
 List<String> Player::pullQueuedMessages() {
   return take(m_queuedMessages);
 }
@@ -3331,41 +3340,16 @@ void Player::setSecretProperty(String const& name, Json const& value) {
     m_effectsAnimator->removeGlobalTag(secretProprefix + name);
 }
 
-void Player::setNetArmorSecret(uint8_t cosmeticSlot, ArmorItemPtr const& armor) { // FezzedOne: Called in the ArmorWearer whenever armour is updated.
-  String const& slotName = strf("cosmetic{}", ((cosmeticSlot + 4) % 12) + 1);     // FezzedOne: Hacky workaround for OpenStarbound's weird legs/chest layering
+void Player::setNetArmorSecret(StringMap<String> const& identityTags, StringMap<String> const& visualIdentityTags, StringMap<String> const& netIdentityTags, uint8_t cosmeticSlot, ArmorItemPtr const& armor) { // FezzedOne: Called in the ArmorWearer whenever armour is updated.
+  String const& slotName = strf("cosmetic{}", ((cosmeticSlot + 4) % 12) + 1);                                                                                                                                   // FezzedOne: Hacky workaround for OpenStarbound's weird legs/chest layering
   // that should make it less likely for overlays to be covered up by an item in the stock chest slot on OpenStarbound.
-
-  auto const& playerIdentity = m_identity;
-
-  const StringMap<String> identityTags{
-      {"species", playerIdentity.species},
-      {"imagePath", playerIdentity.imagePath ? *playerIdentity.imagePath : playerIdentity.species},
-      {"gender", playerIdentity.gender == Gender::Male ? "male" : "female"},
-      {"bodyDirectives", playerIdentity.bodyDirectives.string()},
-      {"emoteDirectives", playerIdentity.emoteDirectives.string()},
-      {"hairGroup", playerIdentity.hairGroup},
-      {"hairType", playerIdentity.hairType},
-      {"hairDirectives", playerIdentity.hairDirectives.string()},
-      {"facialHairGroup", playerIdentity.facialHairGroup},
-      {"facialHairType", playerIdentity.facialHairType},
-      {"facialHairDirectives", playerIdentity.facialHairDirectives.string()},
-      {"facialMaskGroup", playerIdentity.facialMaskGroup},
-      {"facialMaskType", playerIdentity.facialMaskType},
-      {"facialMaskDirectives", playerIdentity.facialMaskDirectives.string()},
-      {"personalityIdle", playerIdentity.personality.idle},
-      {"personalityArmIdle", playerIdentity.personality.armIdle},
-      {"headOffsetX", strf("{}", playerIdentity.personality.headOffset[0])},
-      {"headOffsetY", strf("{}", playerIdentity.personality.headOffset[1])},
-      {"armOffsetX", strf("{}", playerIdentity.personality.armOffset[0])},
-      {"armOffsetY", strf("{}", playerIdentity.personality.armOffset[1])},
-      {"color", Color::rgba(playerIdentity.color).toHex()}};
 
   if (!m_startedNetworkingCosmetics) {
     setSecretProperty("armorWearer.isXStarbound", true);
   }
 
   if (armor) {
-    auto armourItem = ArmorWearer::setUpArmourItemNetworking(identityTags, armor, m_movementController->facingDirection());
+    auto armourItem = ArmorWearer::setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, armor, m_movementController->facingDirection());
     setSecretProperty(strf("armorWearer.{}.data", slotName), armourItem.diskStore());
   } else {
     setSecretProperty(strf("armorWearer.{}.data", slotName), Json());
