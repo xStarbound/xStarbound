@@ -771,7 +771,29 @@ Returns the configuration for the given unique status effect. If the status effe
 Returns the configuration for the given monster type, or `nil` if that monster type does not exist. The returned object has the following template:
 
 ```json
-{}
+{
+  "description": "It's made from a springy substance.", // The monster's description.
+  "shortdescription": "Gleap", // The monster's display name.
+  "parts": ["body"], // The monster type's parts, used for random generation.
+  "partParameters": null, // Parameters for the monster type's randomly generated parts, if any.
+  "baseParameters": {
+    // Base monster type parameters. Includes the monster type's behaviour config, default movement parameters
+    // and settings, default status controller settings, touch damage config, script paths, scale multiplier, etc.
+  },
+  "partParameterDescription": {}, // Further parameters for the monster type's randomly generated parts.
+  "animation": "/monsters/walkers/gleap/gleap.animation", // The monster's animation config.
+  "categories": ["gleap"], // The part categories used by this monster type for random generation.
+  "type": "gleap", // The monster type name. Same as the provided `monsterType` parameter.
+  "reversed": false, // Whether the monster faces left for portrait purposes.
+  "colors": "default", // The monster's colour category, used for random generation.
+  "dropPools": [
+    // The monster's item drop pools.
+    {
+      "bow": "gleapHunting",
+      "default": "gleapTreasure"
+    }
+  ]
+}
 ```
 
 > **OpenStarbound note:** On OpenStarbound, this callback throws an error instead of returning `nil` if the specified status effect doesn't exist. Use `pcall` for cross-mod compatibility.
