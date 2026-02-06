@@ -264,6 +264,8 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             if (newGenderStr.toLower() == "male" || newGenderStr.toLower() == "female")
               newGender = newGenderStr == "male" ? Gender::Male : Gender::Female;
           }
+        } else {
+          humanoidOverrides = jsonMerge(humanoidOverrides, configsToMerge[i]);
         }
       }
     }
