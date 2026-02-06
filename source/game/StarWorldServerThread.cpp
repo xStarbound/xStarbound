@@ -374,8 +374,8 @@ void WorldServerThread::update(WorldServerFidelity fidelity) {
   m_shouldExpire = m_worldServer->shouldExpire();
 
   if (m_updateAction) {
-    ZoneScopedN("Other update action")
-        m_updateAction(this, m_worldServer.get());
+    ZoneScopedN("Other update action");
+    m_updateAction(this, m_worldServer.get());
   }
 }
 
