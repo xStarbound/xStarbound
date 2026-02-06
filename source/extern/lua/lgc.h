@@ -1,12 +1,9 @@
+#pragma once
 /*
 ** $Id: lgc.h $
 ** Garbage Collector
 ** See Copyright Notice in lua.h
 */
-
-#ifndef lgc_h
-#define lgc_h
-
 
 #include <stddef.h>
 
@@ -23,9 +20,8 @@
 ** never point to a white one. Moreover, any gray object must be in a
 ** "gray list" (gray, grayagain, weak, allweak, ephemeron) so that it
 ** can be visited again before finishing the collection cycle. (Open
-** upvalues are an exception to this rule, as they are attached to
-** a corresponding thread.)  These lists have no meaning when the
-** invariant is not being enforced (e.g., sweep phase).
+** upvalues are an exception to this rule.)  These lists have no meaning
+** when the invariant is not being enforced (e.g., sweep phase).
 */
 
 
@@ -49,10 +45,10 @@
 
 /*
 ** macro to tell when main invariant (white objects cannot point to black
-** ones) must be kept. During a collection, the sweep phase may break
-** the invariant, as objects turned white may point to still-black
-** objects. The invariant is restored when sweep ends and all objects
-** are white again.
+** ones) must be kept. During a collection, the sweep
+** phase may break the invariant, as objects turned white may point to
+** still-black objects. The invariant is restored when sweep ends and
+** all objects are white again.
 */
 
 #define keepinvariant(g)	((g)->gcstate <= GCSatomic)
@@ -160,52 +156,42 @@
 */
 
 
-/*
-** {======================================================
-** Default Values for GC parameters
-** =======================================================
-*/
+/* Default Values for GC parameters */
 
 /*
 ** Minor collections will shift to major ones after LUAI_MINORMAJOR%
-** bytes become old.
+** objects become old.
 */
-#define LUAI_MINORMAJOR         70
+#define LUAI_MINORMAJOR         100
 
 /*
 ** Major collections will shift to minor ones after a collection
-** collects at least LUAI_MAJORMINOR% of the new bytes.
+** collects at least LUAI_MAJORMINOR% of the new objects.
 */
 #define LUAI_MAJORMINOR         50
 
 /*
 ** A young (minor) collection will run after creating LUAI_GENMINORMUL%
-** new bytes.
+** new objects.
 */
-#define LUAI_GENMINORMUL         20
+#define LUAI_GENMINORMUL         25
 
 
 /* incremental */
 
-/* Number of bytes must be LUAI_GCPAUSE% before starting new cycle */
-#define LUAI_GCPAUSE    250
+/* Number of objects must be LUAI_GCPAUSE% before starting new cycle */
+#define LUAI_GCPAUSE    200
 
-/*
-** Step multiplier: The collector handles LUAI_GCMUL% work units for
-** each new allocated word. (Each "work unit" corresponds roughly to
-** sweeping one object or traversing one slot.)
-*/
+/* Step multiplier. (Roughly, the collector handles LUAI_GCMUL% objects
+   for each new allocated object.) */
 #define LUAI_GCMUL      200
 
-/* How many bytes to allocate before next GC step */
-#define LUAI_GCSTEPSIZE	(200 * sizeof(Table))
+/* How many objects to allocate before next GC step */
+#define LUAI_GCSTEPSIZE	250
 
 
 #define setgcparam(g,p,v)  (g->gcparams[LUA_GCP##p] = luaO_codeparam(v))
 #define applygcparam(g,p,x)  luaO_applyparam(g->gcparams[LUA_GCP##p], x)
-
-/* }====================================================== */
-
 
 /*
 ** Control when GC is running:
@@ -222,17 +208,9 @@
 ** 'condchangemem' is used only for heavy tests (forcing a full
 ** GC cycle on every opportunity)
 */
-
-#if !defined(HARDMEMTESTS)
-#define condchangemem(L,pre,pos,emg)	((void)0)
-#else
-#define condchangemem(L,pre,pos,emg)  \
-	{ if (gcrunning(G(L))) { pre; luaC_fullgc(L, emg); pos; } }
-#endif
-
 #define luaC_condGC(L,pre,pos) \
 	{ if (G(L)->GCdebt <= 0) { pre; luaC_step(L); pos;}; \
-	  condchangemem(L,pre,pos,0); }
+	  condchangemem(L,pre,pos); }
 
 /* more often than not, 'pre'/'pos' are empty */
 #define luaC_checkGC(L)		luaC_condGC(L,(void)0,(void)0)
@@ -256,13 +234,10 @@ LUAI_FUNC void luaC_freeallobjects (lua_State *L);
 LUAI_FUNC void luaC_step (lua_State *L);
 LUAI_FUNC void luaC_runtilstate (lua_State *L, int state, int fast);
 LUAI_FUNC void luaC_fullgc (lua_State *L, int isemergency);
-LUAI_FUNC GCObject *luaC_newobj (lua_State *L, lu_byte tt, size_t sz);
-LUAI_FUNC GCObject *luaC_newobjdt (lua_State *L, lu_byte tt, size_t sz,
+LUAI_FUNC GCObject *luaC_newobj (lua_State *L, int tt, size_t sz);
+LUAI_FUNC GCObject *luaC_newobjdt (lua_State *L, int tt, size_t sz,
                                                  size_t offset);
 LUAI_FUNC void luaC_barrier_ (lua_State *L, GCObject *o, GCObject *v);
 LUAI_FUNC void luaC_barrierback_ (lua_State *L, GCObject *o);
 LUAI_FUNC void luaC_checkfinalizer (lua_State *L, GCObject *o, Table *mt);
 LUAI_FUNC void luaC_changemode (lua_State *L, int newmode);
-
-
-#endif

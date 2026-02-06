@@ -29,23 +29,22 @@ NAMESPACE_SOUP
 	{
 		static constexpr uint32_t REPLACEMENT_CHAR = 0xFFFD;
 
-		[[nodiscard]] static char32_t utf8_to_utf32_char(const char*& it, const char* end) noexcept;
 		[[nodiscard]] static char32_t utf8_to_utf32_char(std::string::const_iterator& it, const std::string::const_iterator end) noexcept;
 #if SOUP_CPP20
-		[[nodiscard]] static std::u32string utf8_to_utf32(const char8_t* utf8) SOUP_EXCAL;
+		[[nodiscard]] static std::u32string utf8_to_utf32(const char8_t* utf8) noexcept;
 #endif
-		[[nodiscard]] static std::u32string utf8_to_utf32(const std::string& utf8) SOUP_EXCAL;
+		[[nodiscard]] static std::u32string utf8_to_utf32(const std::string& utf8) noexcept;
 #if SOUP_CPP20
-		[[nodiscard]] static UTF16_STRING_TYPE utf8_to_utf16(const char8_t* utf8) SOUP_EXCAL;
+		[[nodiscard]] static UTF16_STRING_TYPE utf8_to_utf16(const char8_t* utf8) noexcept;
 #endif
-		[[nodiscard]] static UTF16_STRING_TYPE utf8_to_utf16(const std::string& utf8) SOUP_EXCAL;
+		[[nodiscard]] static UTF16_STRING_TYPE utf8_to_utf16(const std::string& utf8) noexcept;
 #if SOUP_WINDOWS
-		[[nodiscard]] static UTF16_STRING_TYPE acp_to_utf16(const std::string& acp) SOUP_EXCAL;
+		[[nodiscard]] static UTF16_STRING_TYPE acp_to_utf16(const std::string& acp) noexcept;
 #endif
-		[[nodiscard]] static UTF16_STRING_TYPE utf32_to_utf16(const std::u32string& utf32) SOUP_EXCAL;
-		static void utf32_to_utf16_char(UTF16_STRING_TYPE& utf16, char32_t c) SOUP_EXCAL;
-		[[nodiscard]] static std::string utf32_to_utf8(char32_t utf32) SOUP_EXCAL;
-		[[nodiscard]] static std::string utf32_to_utf8(const std::u32string& utf32) SOUP_EXCAL;
+		[[nodiscard]] static UTF16_STRING_TYPE utf32_to_utf16(const std::u32string& utf32) noexcept;
+		static void utf32_to_utf16_char(UTF16_STRING_TYPE& utf16, char32_t c) noexcept;
+		[[nodiscard]] static std::string utf32_to_utf8(char32_t utf32) noexcept;
+		[[nodiscard]] static std::string utf32_to_utf8(const std::u32string& utf32) noexcept;
 
 		template <typename Str = std::u16string>
 		[[nodiscard]] static char32_t utf16_to_utf32(typename Str::const_iterator& it, const typename Str::const_iterator end) noexcept
@@ -71,7 +70,7 @@ NAMESPACE_SOUP
 		}
 
 		template <typename Str>
-		[[nodiscard]] static std::u32string utf16_to_utf32(const Str& utf16) SOUP_EXCAL
+		[[nodiscard]] static std::u32string utf16_to_utf32(const Str& utf16)
 		{
 			std::u32string utf32{};
 			auto it = utf16.cbegin();
@@ -92,7 +91,7 @@ NAMESPACE_SOUP
 		}
 
 		template <typename Str = UTF16_STRING_TYPE>
-		[[nodiscard]] static std::string utf16_to_utf8(const Str& utf16) SOUP_EXCAL
+		[[nodiscard]] static std::string utf16_to_utf8(const Str& utf16)
 		{
 #if SOUP_WINDOWS
 			std::string res;
@@ -112,7 +111,7 @@ NAMESPACE_SOUP
 		[[nodiscard]] static size_t utf16_char_len(const UTF16_STRING_TYPE& str) noexcept;
 
 		template <typename Iterator>
-		static void utf8_add(Iterator& it, Iterator end) noexcept
+		static void utf8_add(Iterator& it, Iterator end)
 		{
 			if (UTF8_HAS_CONTINUATION(*it))
 			{
@@ -128,7 +127,7 @@ NAMESPACE_SOUP
 		}
 
 		template <typename Iterator>
-		static void utf8_sub(Iterator& it, Iterator begin) noexcept
+		static void utf8_sub(Iterator& it, Iterator begin)
 		{
 			--it;
 			while (UTF8_IS_CONTINUATION(*it) && it != begin)
@@ -137,8 +136,6 @@ NAMESPACE_SOUP
 			}
 		}
 
-		static void utf8_sanitise(std::string& str) SOUP_EXCAL;
-		static bool utf8_validate(const char* it, const char* const end) noexcept;
-		static bool utf8_validate(const std::string& str) noexcept { return utf8_validate(str.data(), str.data() + str.size()); }
+		static void utf8_sanitise(std::string& str);
 	};
 }

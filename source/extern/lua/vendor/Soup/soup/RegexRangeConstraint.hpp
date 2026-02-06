@@ -33,7 +33,7 @@ NAMESPACE_SOUP
 			char range_begin = 0;
 			while (++it != end && *it != ']')
 			{
-				if (*it == '-' && it + 1 != end && it[1] != ']')
+				if (*it == '-')
 				{
 					SOUP_IF_UNLIKELY (++it == end)
 					{

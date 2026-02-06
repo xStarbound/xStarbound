@@ -1,13 +1,9 @@
+#pragma once
 /*
 ** $Id: lauxlib.h $
 ** Auxiliary functions for building Lua libraries
 ** See Copyright Notice in lua.h
 */
-
-
-#ifndef lauxlib_h
-#define lauxlib_h
-
 
 #include <stddef.h>
 #include <stdio.h>
@@ -72,7 +68,7 @@ namespace Pluto {
 
 LUALIB_API void (luaL_checkversion_) (lua_State *L, lua_Number ver, size_t sz);
 #define luaL_checkversion(L)  \
-	  luaL_checkversion_(L, LUA_VERSION_NUM, LUAL_NUMSIZES)
+      luaL_checkversion_(L, LUA_VERSION_NUM, LUAL_NUMSIZES)
 
 LUALIB_API int (luaL_getmetafield) (lua_State *L, int obj, const char *e);
 LUALIB_API int (luaL_callmeta) (lua_State *L, int obj, const char *e);
@@ -112,9 +108,6 @@ LUALIB_API int (luaL_checkoption) (lua_State *L, int arg, const char *def,
 LUALIB_API int (luaL_fileresult) (lua_State *L, int stat, const char *fname);
 LUALIB_API int (luaL_execresult) (lua_State *L, int stat);
 
-LUALIB_API void *(luaL_alloc) (void *ud, void *ptr, size_t osize,
-                                                    size_t nsize);
-
 
 /* predefined references */
 #define LUA_NOREF       (-2)
@@ -142,7 +135,7 @@ LUALIB_API int (luaL_loadstring) (lua_State *L, const char *s);
 
 LUALIB_API lua_State *(luaL_newstate) (void);
 
-LUALIB_API unsigned (luaL_makeseed) (lua_State *L);
+LUALIB_API unsigned luaL_makeseed (lua_State *L);
 
 LUALIB_API lua_Integer (luaL_len) (lua_State *L, int idx);
 
@@ -170,7 +163,7 @@ inline void* pluto_setupgcmt(lua_State* L, void* ret, const char* tname, lua_CFu
   lua_setmetatable(L, -2);
   return ret;
 }
-#define pluto_newclassinst(L, T, ...) (T*)pluto_setupgcmt(L, new (lua_newuserdata(L, sizeof(T))) T(__VA_ARGS__), #T, [](lua_State *L2) { std::destroy_at<>((T*)luaL_checkudata(L2, 1, #T)); return 0; })
+#define pluto_newclassinst(L, T, ...) (T*)pluto_setupgcmt(L, new (lua_newuserdata(L, sizeof(T))) T(__VA_ARGS__), #T, [](lua_State *L2) { std::destroy_at<>((T*)luaL_checkudata(L2, 1, #T)); return 0; });
 
 /*
 ** ===============================================================
@@ -185,11 +178,9 @@ inline void* pluto_setupgcmt(lua_State* L, void* ret, const char* tname, lua_CFu
 #define luaL_newlib(L,l)  \
   (luaL_checkversion(L), luaL_newlibtable(L,l), luaL_setfuncs(L,l,0))
 
-#define luaL_argcheck(L, cond,arg,extramsg)	\
-	((void)(luai_likely(cond) || luaL_argerror(L, (arg), (extramsg))))
+#define luaL_argcheck(L, cond,arg,extramsg)	if (luai_unlikely(!(cond))) { luaL_argerror(L, (arg), (extramsg)); }
 
-#define luaL_argexpected(L,cond,arg,tname)	\
-	((void)(luai_likely(cond) || luaL_typeerror(L, (arg), (tname))))
+#define luaL_argexpected(L,cond,arg,tname) if (luai_unlikely(!(cond))) { luaL_typeerror(L, (arg), (tname)); }
 
 #define luaL_checkstring(L,n)	(luaL_checklstring(L, (n), NULL))
 #define luaL_optstring(L,n,d)	(luaL_optlstring(L, (n), (d), NULL))
@@ -197,10 +188,10 @@ inline void* pluto_setupgcmt(lua_State* L, void* ret, const char* tname, lua_CFu
 #define luaL_typename(L,i)	lua_typename(L, lua_type(L,(i)))
 
 #define luaL_dofile(L, fn) \
-	(luaL_loadfile(L, fn) || lua_pcall(L, 0, LUA_MULTRET, 0))
+    (luaL_loadfile(L, fn) || lua_pcall(L, 0, LUA_MULTRET, 0))
 
 #define luaL_dostring(L, s) \
-	(luaL_loadstring(L, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
+    (luaL_loadstring(L, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
 
 #define luaL_getmetatable(L,n)	(lua_getfield(L, LUA_REGISTRYINDEX, (n)))
 
@@ -208,7 +199,6 @@ inline void* pluto_setupgcmt(lua_State* L, void* ret, const char* tname, lua_CFu
 
 #define luaL_loadbuffer(L,s,sz,n)	luaL_loadbufferx(L,s,sz,n,NULL)
 
-// [Pluto]
 #define luaL_check(L, cond, msg) if (l_unlikely(cond)) { luaL_error(L, msg); }
 
 /*
@@ -216,14 +206,25 @@ inline void* pluto_setupgcmt(lua_State* L, void* ret, const char* tname, lua_CFu
 ** semantics, as the Lua core does.
 */
 #define luaL_intop(op,v1,v2)  \
-	((lua_Integer)((lua_Unsigned)(v1) op (lua_Unsigned)(v2)))
+    ((lua_Integer)((lua_Unsigned)(v1) op (lua_Unsigned)(v2)))
 
 
 /* push the value used to represent failure/error */
-#if defined(LUA_FAILISFALSE)
-#define luaL_pushfail(L)	lua_pushboolean(L, 0)
-#else
 #define luaL_pushfail(L)	lua_pushnil(L)
+
+
+/*
+** Internal assertions for in-house debugging
+*/
+#if !defined(lua_assert)
+
+#if defined LUAI_ASSERT
+  #include <assert.h>
+  #define lua_assert(c)		assert(c)
+#else
+  #define lua_assert(c)		((void)0)
+#endif
+
 #endif
 
 
@@ -295,6 +296,30 @@ typedef struct luaL_Stream {
 
 /* }====================================================== */
 
+/*
+** {==================================================================
+** "Abstraction Layer" for basic report of messages and errors
+** ===================================================================
+*/
+
+/* print a string */
+#if !defined(lua_writestring)
+#define lua_writestring(s,l)   fwrite((s), sizeof(char), (l), stdout)
+#endif
+
+/* print a newline and flush the output */
+#if !defined(lua_writeline)
+#define lua_writeline()        (lua_writestring("\n", 1), fflush(stdout))
+#endif
+
+/* print an error message */
+#if !defined(lua_writestringerror)
+#define lua_writestringerror(s,p) \
+        (fprintf(stderr, (s), (p)), fflush(stderr))
+#endif
+
+/* }================================================================== */
+
 
 /*
 ** {============================================================
@@ -305,7 +330,7 @@ typedef struct luaL_Stream {
 
 #define luaL_checkunsigned(L,a)	((lua_Unsigned)luaL_checkinteger(L,a))
 #define luaL_optunsigned(L,a,d)	\
-	((lua_Unsigned)luaL_optinteger(L,a,(lua_Integer)(d)))
+    ((lua_Unsigned)luaL_optinteger(L,a,(lua_Integer)(d)))
 
 #define luaL_checkint(L,n)	((int)luaL_checkinteger(L, (n)))
 #define luaL_optint(L,n,d)	((int)luaL_optinteger(L, (n), (d)))
@@ -315,9 +340,3 @@ typedef struct luaL_Stream {
 
 #endif
 /* }============================================================ */
-
-
-
-#endif
-
-

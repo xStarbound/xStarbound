@@ -6,8 +6,6 @@
 
 #if SOUP_WASM
 #include "dnsHttpResolver.hpp"
-#elif SOUP_WINDOWS || SOUP_LINUX
-#include "dnsOsResolver.hpp"
 #else
 #include "dnsSmartResolver.hpp"
 #endif
@@ -67,18 +65,10 @@ NAMESPACE_SOUP
 	{
 #if SOUP_WASM
 		return soup::make_shared<dnsHttpResolver>();
-#elif SOUP_WINDOWS || SOUP_LINUX
-		// Pros:
-		// - Fast responses (thanks to caching and using UDP in most cases)
-		// - Works as expected in Docker in regards to talking to other containers by name (respects /etc/hosts and such)
-		// Cons:
-		// - Many ISPs provide disingenuous DNS servers, even blocking sites like pastebin.com
-		return soup::make_shared<dnsOsResolver>();
 #else
-		// Pros:
-		// - Works on any platform with sockets
-		// Cons:
-		// - Might not work for Chinese users (https://github.com/net4people/bbs/issues/295#issuecomment-2700908050)
+		// Reasons for not defaulting to dnsOsResolver:
+		// - Android doesn't have libresolv
+		// - Many ISPs provide disingenuous DNS servers, even blocking sites like pastebin.com
 		return soup::make_shared<dnsSmartResolver>();
 #endif
 	}

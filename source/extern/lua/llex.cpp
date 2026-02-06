@@ -63,27 +63,26 @@ static const char *getS (lua_State *L, void *ud, size_t *size) {
 #define next(ls)	(ls->current = zgetc(ls->z))
 
 
-/* minimum size for string buffer */
-#if !defined(LUA_MINBUFFER)
-#define LUA_MINBUFFER   32
-#endif
+#define check_condition(ls,c,msg)	{ if (!(c)) luaX_syntaxerror(ls, msg); }
 
 
 #define currIsNewline(ls)	(ls->current == '\n' || ls->current == '\r')
 
+
 /* ORDER RESERVED */
 static const char *const luaX_tokens [] = {
     "and", "break", "do", "else", "elseif",
-    "end", "false", "for", "function", "global", "goto", "if",
-    "in", "local", "nil", "not", "or",
+    "end", "false", "for", "function", "goto", "if",
+    "in", "local", "nil", "not", "or", "repeat",
     "case", "default", "as", "begin", "extends", "instanceof",
     "pluto_use",
-    "pluto_switch", "pluto_continue", "pluto_enum", "pluto_new", "pluto_class", "pluto_parent", "pluto_export",
-          "switch",       "continue",       "enum",       "new",       "class",       "parent",       "export",
+    "pluto_switch", "pluto_continue", "pluto_enum", "pluto_new", "pluto_class", "pluto_parent", "pluto_export", "pluto_try", "pluto_catch",
+          "switch",       "continue",       "enum",       "new",       "class",       "parent",       "export",       "try",       "catch",
+    "global",
 #ifdef PLUTO_PARSER_SUGGESTIONS
     "pluto_suggest_0", "pluto_suggest_1",
 #endif
-    "repeat", "return", "then", "true", "until", "while",
+    "return", "then", "true", "until", "while",
     "//", "..", "...", "==", ">=", "<=", "~=", "!=", "<=>",
     "<<", ">>", "::", "<eof>",
     "<number>", "<integer>", "<name>", "<string>",
@@ -110,10 +109,10 @@ void LexState::popContext(ParserContext ctx) {
 static void save (LexState *ls, int c) {
   Mbuffer *b = ls->buff;
   if (luaZ_bufflen(b) + 1 > luaZ_sizebuffer(b)) {
-    size_t newsize = luaZ_sizebuffer(b);  /* get old size */;
-    if (newsize >= (MAX_SIZE/3 * 2))  /* larger than MAX_SIZE/1.5 ? */
+    size_t newsize;
+    if (luaZ_sizebuffer(b) >= MAX_SIZE/2)
       lexerror(ls, "lexical element too long", 0);
-    newsize += (newsize >> 1);  /* new size is 1.5 times the old one */
+    newsize = luaZ_sizebuffer(b) * 2;
     luaZ_resizebuffer(ls->L, b, newsize);
   }
   b->buffer[luaZ_bufflen(b)++] = cast_char(c);
@@ -222,39 +221,35 @@ l_noret luaX_syntaxerror (LexState *ls, const char *msg) {
 
 
 /*
-** Anchors a string in scanner's table so that it will not be collected
-** until the end of the compilation; by that time it should be anchored
-** somewhere. It also internalizes long strings, ensuring there is only
-** one copy of each unique string.
+** Creates a new string and anchors it in scanner's table so that it
+** will not be collected until the end of the compilation; by that time
+** it should be anchored somewhere. It also internalizes long strings,
+** ensuring there is only one copy of each unique string.  The table
+** here is used as a set: the string enters as the key, while its value
+** is irrelevant. We use the string itself as the value only because it
+** is a TValue readily available. Later, the code generation can change
+** this value.
 */
-static TString *anchorstr (LexState *ls, TString *ts) {
+TString *luaX_newstring (LexState *ls, const char *str, size_t l) {
   lua_State *L = ls->L;
-  TValue oldts;
-  int tag = luaH_getstr(ls->h, ts, &oldts);
-  if (!tagisempty(tag))  /* string already present? */
-    return tsvalue(&oldts);  /* use stored value */
+  TString *ts = luaS_newlstr(L, str, l);  /* create new string */
+  TString *oldts = luaH_getstrkey(ls->h, ts);
+  if (oldts != NULL)  /* string already present? */
+    return oldts;  /* use it */
   else {  /* create a new entry */
     TValue *stv = s2v(L->top.p++);  /* reserve stack space for string */
-    setsvalue(L, stv, ts);  /* push (anchor) the string on the stack */
+    setsvalue(L, stv, ts);  /* temporarily anchor the string */
     luaH_set(L, ls->h, stv, stv);  /* t[string] = string */
     /* table is not a metatable, so it does not need to invalidate cache */
     luaC_checkGC(L);
     L->top.p--;  /* remove string from stack */
-    return ts;
   }
+  return ts;
 }
 
 
 LUAI_FUNC TString* luaX_newstring (LexState *ls, const char *str) {
   return luaX_newstring(ls, str, strlen(str));
-}
-
-
-/*
-** Creates a new string and anchors it in scanner's table.
-*/
-TString *luaX_newstring (LexState *ls, const char *str, size_t l) {
-  return anchorstr(ls, luaS_newlstr(ls->L, str, l));
 }
 
 
@@ -282,12 +277,7 @@ void luaX_setinput (lua_State *L, LexState *ls, ZIO *z, TString *source,
   ls->z = z;
   ls->fs = NULL;
   ls->source = source;
-  ls->envn = luaS_newliteral(L, LUA_ENV);  /* get env string */
-#if defined(LUA_COMPAT_GLOBAL)
-  /* compatibility mode: "global" is not a reserved word */
-  ls->glbn = luaS_newliteral(L, "global");  /* get "global" string */
-  ls->glbn->extra = 0;  /* mark it as not reserved */
-#endif
+  ls->envn = luaS_newliteral(L, LUA_ENV);  /* get env name */
   luaZ_resizebuffer(ls->L, ls->buff, LUA_MINBUFFER);  /* initialize buffer */
 
   while (true) {  /* perform lexer pass */
@@ -354,45 +344,44 @@ void luaX_setinput (lua_State *L, LexState *ls, ZIO *z, TString *source,
           ls->tidx = std::distance(ls->tokens.begin(), i);
           luaX_syntaxerror(ls, "expected string after $include");
         }
-        const char *fname = getstr(i->seminfo.ts);
-#if defined PLUTO_NO_FILESYSTEM || 1
         ls->tidx = std::distance(ls->tokens.begin(), i);
-        luaX_syntaxerror(ls, "disallowed by content moderation policy");
-#endif
-#ifdef PLUTO_LOADFILE_HOOK
-        if (!PLUTO_LOADFILE_HOOK(ls->L, fname)) {
-          ls->tidx = std::distance(ls->tokens.begin(), i);
-          luaX_syntaxerror(ls, "disallowed by content moderation policy");
-        }
-#endif
-        std::ifstream file(fname, std::ios::binary);
-        if (l_unlikely(!file.is_open())) {
-          ls->tidx = std::distance(ls->tokens.begin(), i);
-          luaX_syntaxerror(ls, "cannot open file for $include");
-        }
-        std::string code((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        LoadS lsdata{code.c_str(), code.size()};
-        ZIO z2;
-        luaZ_init(ls->L, &z2, getS, &lsdata);
-        int firstchar = zgetc(&z2);
-        Mbuffer buff2;
-        luaZ_initbuffer(ls->L, &buff2);
-        LexState ls2;
-        ls2.buff = &buff2;
-        ls2.h = ls->h;
-        ls2.dyd = ls->dyd;
-        luaX_setinput(ls->L, &ls2, &z2, luaX_newstring(ls, fname), firstchar);
-        luaZ_freebuffer(ls->L, &buff2);
-        size_t count = ls2.tokens.size();
-        if (count > 0 && ls2.tokens.back().token == TK_EOS)
-          --count;
-        i = ls->tokens.erase(directive_begin, i + 1);  /* remove directive */
-        auto insert_pos = ls->tokens.insert(i, ls2.tokens.begin(), ls2.tokens.begin() + count);
-        for (auto pos = insert_pos; pos != insert_pos + count; ++pos)
-          pos->line = Token::LINE_INJECTED;
-        i = insert_pos + count;
-        for (auto &m : ls2.macros)
-          ls->macros.insert(m);
+        luaX_syntaxerror(ls, "$include is disallowed on xStarbound");
+        /* FezzedOne: Disabled the code for `$include` to prevent sandbox bypasses. */
+//         const char *fname = getstr(i->seminfo.ts);
+// #ifdef PLUTO_LOADFILE_HOOK
+//         if (!PLUTO_LOADFILE_HOOK(ls->L, fname)) {
+//           ls->tidx = std::distance(ls->tokens.begin(), i);
+//           luaX_syntaxerror(ls, "disallowed by content moderation policy");
+//         }
+// #endif
+//         std::ifstream file(fname, std::ios::binary);
+//         if (l_unlikely(!file.is_open())) {
+//           ls->tidx = std::distance(ls->tokens.begin(), i);
+//           luaX_syntaxerror(ls, "cannot open file for $include");
+//         }
+//         std::string code((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+//         LoadS lsdata{code.c_str(), code.size()};
+//         ZIO z2;
+//         luaZ_init(ls->L, &z2, getS, &lsdata);
+//         int firstchar = zgetc(&z2);
+//         Mbuffer buff2;
+//         luaZ_initbuffer(ls->L, &buff2);
+//         LexState ls2;
+//         ls2.buff = &buff2;
+//         ls2.h = ls->h;
+//         ls2.dyd = ls->dyd;
+//         luaX_setinput(ls->L, &ls2, &z2, luaX_newstring(ls, fname), firstchar);
+//         luaZ_freebuffer(ls->L, &buff2);
+//         size_t count = ls2.tokens.size();
+//         if (count > 0 && ls2.tokens.back().token == TK_EOS)
+//           --count;
+//         i = ls->tokens.erase(directive_begin, i + 1);  /* remove directive */
+//         auto insert_pos = ls->tokens.insert(i, ls2.tokens.begin(), ls2.tokens.begin() + count);
+//         for (auto pos = insert_pos; pos != insert_pos + count; ++pos)
+//           pos->line = Token::LINE_INJECTED;
+//         i = insert_pos + count;
+//         for (auto &m : ls2.macros)
+//           ls->macros.insert(m);
         continue;
       }
     }
@@ -542,7 +531,7 @@ static int read_numeral (LexState *ls, SemInfo *seminfo) {
   for (;;) {
     if (check_next2(ls, expo))  /* exponent mark? */
       check_next2(ls, "-+");  /* optional exponent sign */
-    else if (lisxdigit(ls->current) || ls->current == '.' || ls->current == 'o')  /* '%x|%.' */
+    else if (lisxdigit(ls->current) || ls->current == '.' || ls->current == 'o') /* '%x|%.' */
       save_and_next(ls);
     else if (ls->current == '_')
       next(ls);
@@ -649,17 +638,12 @@ static int readhexaesc (LexState *ls) {
 }
 
 
-/*
-** When reading a UTF-8 escape sequence, save everything to the buffer
-** for error reporting in case of errors; 'i' counts the number of
-** saved characters, so that they can be removed if case of success.
-*/
-static l_uint32 readutf8esc (LexState *ls) {
-  l_uint32 r;
-  int i = 4;  /* number of chars to be removed: start with #"\u{X" */
+static unsigned long readutf8esc (LexState *ls) {
+  unsigned long r;
+  int i = 4;  /* chars to be removed: '\', 'u', '{', and first digit */
   save_and_next(ls);  /* skip 'u' */
   esccheck(ls, ls->current == '{', "missing '{'");
-  r = cast_uint(gethexa(ls));  /* must have at least one digit */
+  r = gethexa(ls);  /* must have at least one digit */
   while (cast_void(save_and_next(ls)), lisxdigit(ls->current)) {
     i++;
     esccheck(ls, r <= (0x7FFFFFFFu >> 4), "UTF-8 value too large");
@@ -765,7 +749,7 @@ static int llex (LexState *ls, SemInfo *seminfo, int *column) {
   luaZ_resetbuffer(ls->buff);
   for (;;) {
     switch (ls->current) {
-      case '\n': case '\r': {  /* line breaks */
+      case '\n': case '\r': {  /* Line breaks. */
         if (column)
           *column = 0;
         inclinenumber(ls);
@@ -1129,14 +1113,13 @@ static int llex (LexState *ls, SemInfo *seminfo, int *column) {
           do {
             save_and_next(ls);
           } while (lislalnum(ls->current));
-          /* find or create string */
-          ts = luaS_newlstr(ls->L, luaZ_buffer(ls->buff),
-                                   luaZ_bufflen(ls->buff));
+          ts = luaX_newstring(ls, luaZ_buffer(ls->buff),
+                                  luaZ_bufflen(ls->buff));
+          seminfo->ts = ts;
           ls->appendLineBuff(getstr(ts));
-          if (isreserved(ts))   /* reserved word? */
+          if (isreserved(ts))
             return ts->extra - 1 + FIRST_RESERVED;
           else {
-            seminfo->ts = anchorstr(ls, ts);
             return TK_NAME;
           }
         } else {  /* needed to emulate default check because _ is fairly multi-purpose. */

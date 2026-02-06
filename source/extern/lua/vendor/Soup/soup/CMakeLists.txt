@@ -31,8 +31,6 @@ add_library(soup STATIC
   CidrSubnet4.hpp
   CidrSubnet6.hpp
   CidrSupernet.hpp
-  CompiletimePatternBase.hpp
-  CompiletimePatternWithOptBytesBase.hpp
   console.hpp
   ConstString.hpp
   CpuInfo.hpp
@@ -101,7 +99,6 @@ add_library(soup STATIC
   logStdSink.hpp
   macros.hpp
   math.hpp
-  md5.hpp
   memory.hpp
   memAllocating.hpp
   memCAllocator.hpp
@@ -141,7 +138,6 @@ add_library(soup STATIC
   rand.hpp
   Range.hpp
   RasterFont.hpp
-  Rc4State.hpp
   Reader.hpp
   RecursiveMutex.hpp
   RegexAlternative.hpp
@@ -264,7 +260,6 @@ add_library(soup STATIC
   base64.cpp
   base.cpp
   Bigint.cpp
-  bitutil.cpp
   Canvas.cpp
   Capture.cpp
   cat.cpp
@@ -304,7 +299,6 @@ add_library(soup STATIC
   LangDesc.cpp
   LexemeParser.cpp
   log.cpp
-  md5.cpp
   memGuard.cpp
   MimeMessage.cpp
   Mixed.cpp
@@ -315,7 +309,6 @@ add_library(soup STATIC
   os.cpp
   ParserState.cpp
   parse_tree.cpp
-  Pattern.cpp
   pem.cpp
   Process.cpp
   ProcessHandle.cpp
@@ -324,7 +317,6 @@ add_library(soup STATIC
   rand.cpp
   Range.cpp
   RasterFont.cpp
-  Rc4State.cpp
   Reader.cpp
   Regex.cpp
   RegexGroup.cpp

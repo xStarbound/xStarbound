@@ -53,7 +53,6 @@ NAMESPACE_SOUP
 		bool msgpackEncode(Writer& w) const final;
 
 		[[nodiscard]] JsonNode& at(size_t i) const;
-		[[nodiscard]] bool empty() const noexcept { return children.empty(); }
 		void clear() noexcept;
 		[[nodiscard]] JsonArrayIterator begin() const noexcept;
 		[[nodiscard]] JsonArrayIterator end() const noexcept;
@@ -62,7 +61,5 @@ NAMESPACE_SOUP
 		{
 			return children.size();
 		}
-
-		[[nodiscard]] JsonNode* query(const char* q) noexcept;
 	};
 }

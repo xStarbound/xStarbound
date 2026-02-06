@@ -7,9 +7,6 @@
 #define lbaselib_c
 #define LUA_LIB
 
-#include "lprefix.h"
-
-
 #include <ctype.h>
 #include <locale.h>
 #include <math.h> // HUGE_VAL
@@ -21,10 +18,9 @@
 #include <unordered_set>
 
 #include "lua.h"
-
+#include "lprefix.h"
 #include "lauxlib.h"
 #include "lualib.h"
-#include "llimits.h"
 #include "lobject.h"
 #include "lstate.h"
 
@@ -104,22 +100,21 @@ static int luaB_wcall (lua_State *L) {
 
 #define SPACECHARS	" \f\n\r\t\v"
 
-static const char *b_str2int (const char *s, unsigned base, lua_Integer *pn) {
+static const char *b_str2int (const char *s, int base, lua_Integer *pn) {
   lua_Unsigned n = 0;
   int neg = 0;
   s += strspn(s, SPACECHARS);  /* skip initial spaces */
   if (*s == '-') { s++; neg = 1; }  /* handle sign */
   else if (*s == '+') s++;
-  if (!isalnum(cast_uchar(*s)))  /* no digit? */
+  if (!isalnum((unsigned char)*s))  /* no digit? */
     return NULL;
   do {
-    unsigned digit = cast_uint(isdigit(cast_uchar(*s))
-                               ? *s - '0'
-                               : (toupper(cast_uchar(*s)) - 'A') + 10);
+    int digit = (isdigit((unsigned char)*s)) ? *s - '0'
+                   : (toupper((unsigned char)*s) - 'A') + 10;
     if (digit >= base) return NULL;  /* invalid numeral */
     n = n * base + digit;
     s++;
-  } while (isalnum(cast_uchar(*s)));
+  } while (isalnum((unsigned char)*s));
   s += strspn(s, SPACECHARS);  /* skip trailing spaces */
   *pn = (lua_Integer)((neg) ? (0u - n) : n);
   return s;
@@ -149,7 +144,7 @@ int luaB_tonumber (lua_State *L) {
     luaL_checktype(L, 1, LUA_TSTRING);  /* no numbers as strings */
     s = lua_tolstring(L, 1, &l);
     luaL_argcheck(L, 2 <= base && base <= 36, 2, "base out of range");
-    if (b_str2int(s, cast_uint(base), &n) == s + l) {
+    if (b_str2int(s, (int)base, &n) == s + l) {
       lua_pushinteger(L, n);
       return 1;
     }  /* else not a number */
@@ -172,7 +167,7 @@ int luaB_utonumber(lua_State *L) {
     lua_pushvalue(L, 1);
     lua_concat(L, 2);
   }
-  return lua_error(L);
+  lua_error(L);
 }
 
 
@@ -192,7 +187,7 @@ static int luaB_setmetatable (lua_State *L) {
   luaL_checktype(L, 1, LUA_TTABLE);
   luaL_argexpected(L, t == LUA_TNIL || t == LUA_TTABLE, 2, "nil or table");
   if (l_unlikely(luaL_getmetafield(L, 1, "__metatable") != LUA_TNIL))
-    return luaL_error(L, "cannot change a protected metatable");
+    luaL_error(L, "cannot change a protected metatable");
   lua_settop(L, 2);
   lua_setmetatable(L, 1);
   return 1;
@@ -211,7 +206,7 @@ static int luaB_rawlen (lua_State *L) {
   int t = lua_type(L, 1);
   luaL_argexpected(L, t == LUA_TTABLE || t == LUA_TSTRING, 1,
                       "table or string");
-  lua_pushinteger(L, l_castU2S(lua_rawlen(L, 1)));
+  lua_pushinteger(L, lua_rawlen(L, 1));
   return 1;
 }
 
@@ -270,7 +265,7 @@ static int luaB_collectgarbage (lua_State *L) {
     }
     case LUA_GCSTEP: {
       lua_Integer n = luaL_optinteger(L, 2, 0);
-      int res = lua_gc(L, o, cast_sizet(n));
+      int res = lua_gc(L, o, (int)n);
       checkvalres(res);
       lua_pushboolean(L, res);
       return 1;
@@ -333,22 +328,21 @@ int luaB_next (lua_State *L) {
 
 static int pairscont (lua_State *L, int status, lua_KContext k) {
   (void)L; (void)status; (void)k;  /* unused */
-  return 4;  /* __pairs did all the work, just return its results */
+  return 3;
 }
 
 static int luaB_pairs (lua_State *L) {
   luaL_checkany(L, 1);
   if (luaL_getmetafield(L, 1, "__pairs") == LUA_TNIL) {  /* no metamethod? */
-    lua_pushcfunction(L, luaB_next);  /* will return generator and */
-    lua_pushvalue(L, 1);  /* state */
-    lua_pushnil(L);  /* initial value */
-    lua_pushnil(L);  /* to-be-closed object */
+    lua_pushcfunction(L, luaB_next);  /* will return generator, */
+    lua_pushvalue(L, 1);  /* state, */
+    lua_pushnil(L);  /* and initial value */
   }
   else {
     lua_pushvalue(L, 1);  /* argument 'self' to metamethod */
-    lua_callk(L, 1, 4, 0, pairscont);  /* get 4 values from metamethod */
+    lua_callk(L, 1, 3, 0, pairscont);  /* get 3 values from metamethod */
   }
-  return 4;
+  return 3;
 }
 
 
@@ -496,7 +490,7 @@ static int luaB_dofile (lua_State *L) {
   const char *fname = luaL_optstring(L, 1, NULL);
   lua_settop(L, 1);
   if (l_unlikely(luaL_loadfile(L, fname) != LUA_OK))
-    return lua_error(L);
+    lua_error(L);
   lua_callk(L, 0, LUA_MULTRET, 0, dofilecont);
   return dofilecont(L, 0, 0);
 }
@@ -510,7 +504,7 @@ int luaB_assert (lua_State *L) {
     lua_remove(L, 1);  /* remove it */
     lua_pushliteral(L, "assertion failed!");  /* default message */
     lua_settop(L, 1);  /* leave only message (default if no other one) */
-    return luaB_error(L);  /* call 'error' */
+    luaB_error(L);  /* call 'error' */
   }
 }
 
@@ -600,11 +594,16 @@ TValue *index2value (lua_State *L, int idx);
 void addquoted (luaL_Buffer *b, const char *s, size_t len, bool must_be_valid_utf8);
 
 struct FuncDumpWriter {
-  std::string& buf;
+  int init;
+  luaL_Buffer B;
 
   static int write (lua_State *L, const void *b, size_t size, void *ud) {
     auto state = (FuncDumpWriter*)ud;
-    state->buf.append((const char*)b, size);
+    if (!state->init) {
+      state->init = 1;
+      luaL_buffinit(L, &state->B);
+    }
+    luaL_addlstring(&state->B, (const char *)b, size);
     return 0;
   }
 };
@@ -661,36 +660,33 @@ static void luaB_dumpvar_impl (lua_State *L, std::string& dump, int indents, con
     }
 
     case LUA_TFUNCTION: {
-      lua_checkstack(L, 3);
-      /* stack: function */
-      FuncDumpWriter state{ *pluto_newclassinst(L, std::string) };
-      /* stack: function, std::string */
-      lua_pushvalue(L, -2);
-      /* stack: function, std::string, function */
-      if (!lua_iscfunction(L, -1) && lua_dump(L, FuncDumpWriter::write, &state, 0) == 0) {
-        /* stack: function, std::string, function */
+      /* collect function dump */
+      FuncDumpWriter state;
+      state.init = 0;
+      if (l_likely(lua_dump(L, FuncDumpWriter::write, &state, 0) == 0)) {
+        luaL_pushresult(&state.B);
+        size_t l;
+        const char *s = lua_tolstring(L, -1, &l);
+        lua_pop(L, 1);
+        /* we have it as a single string now */
         luaL_Buffer b;
         luaL_buffinit(L, &b);
-        /* stack: function, std::string, function, buffer */
         if (!is_export) {
           luaL_addstring(&b, "function ");
         }
         else {
           luaL_addstring(&b, "load");
         }
-        addquoted(&b, state.buf.data(), state.buf.size(), true);
+        addquoted(&b, s, l, true);
         luaL_pushresult(&b);
-        /* stack: function, std::string, function, string */
         dump.append(lua_tostring(L, -1));
-        lua_pop(L, 3);
+        lua_pop(L, 1);
         return;
       }
       else if (is_export)
         luaL_error(L, "Can't export C function");
-      /* stack: function, std::string, function */
       dump.append(luaL_tolstring(L, -1, NULL));
-      /* stack: function, std::string, function, string */
-      lua_pop(L, 3);
+      lua_pop(L, 1);
       return;
     }
 

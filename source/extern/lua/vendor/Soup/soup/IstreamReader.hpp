@@ -49,12 +49,12 @@ NAMESPACE_SOUP
 			return is.operator bool();
 		}
 
-		[[nodiscard]] std::streamoff getPosition() final
+		[[nodiscard]] size_t getPosition() final
 		{
 			return static_cast<size_t>(is.tellg());
 		}
 
-		void seek(std::streamoff pos) final
+		void seek(size_t pos) final
 		{
 			is.seekg(pos);
 			is.clear();
