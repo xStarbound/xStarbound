@@ -6,6 +6,13 @@
 #include "StarRoot.hpp"
 #include "StarTickRateMonitor.hpp"
 
+#if defined TRACY_ENABLE
+#include "tracy/Tracy.hpp"
+#else
+#define ZoneScoped
+#define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 WorldServerThread::WorldServerThread(WorldServerPtr server, WorldId worldId)
@@ -189,6 +196,7 @@ void WorldServerThread::setUpdateAction(WorldServerAction updateAction) {
 void WorldServerThread::passMessages(List<Message>&& messages) {
   bool handleMessagesNow = false;
   {
+    ZoneScopedN("Message mutex");
     RecursiveMutexLocker locker(m_messageMutex);
     if (!messages.empty()) m_messages.appendAll(std::move(messages));
     handleMessagesNow = messages.empty() && !m_messages.empty();
@@ -265,6 +273,11 @@ void WorldServerThread::run() {
     WorldServerFidelity automaticFidelity = WorldServerFidelity::Medium;
 
     while (!m_stop && !m_errorOccurred) {
+      ZoneScopedN("WORLD SERVER TICK");
+#ifdef TRACY_ENABLE
+      const char* worldName = printWorldId(m_worldId).utf8().c_str();
+      ZoneTextF("%s", worldName);
+#endif
       auto fidelity = lockedFidelity.value(automaticFidelity);
       LogMap::set(strf("server_{}_fidelity", m_worldId), WorldServerFidelityNames.getRight(fidelity));
       LogMap::set(strf("server_{}_update", m_worldId), strf("{:4.2f}Hz", tickApproacher.rate()));
@@ -306,20 +319,24 @@ void WorldServerThread::run() {
 }
 
 void WorldServerThread::update(WorldServerFidelity fidelity) {
+  ZoneScoped;
   RecursiveMutexLocker locker(m_mutex);
   auto unerroredClientIds = m_worldServer->clientIds();
-  for (auto clientId : unerroredClientIds) {
-    RecursiveMutexLocker queueLocker(m_queueMutex);
-    auto incomingPackets = take(m_incomingPacketQueue[clientId]);
-    queueLocker.unlock();
-    try {
-      m_worldServer->handleIncomingPackets(clientId, std::move(incomingPackets));
-    } catch (std::exception const& e) {
-      Logger::error("WorldServerThread exception caught handling incoming packets for client {}: {}",
-          clientId, outputException(e, true));
+  {
+    ZoneScopedN("Inbound packet handling");
+    for (auto clientId : unerroredClientIds) {
       RecursiveMutexLocker queueLocker(m_queueMutex);
-      m_outgoingPacketQueue[clientId].appendAll(m_worldServer->removeClient(clientId));
-      unerroredClientIds.remove(clientId);
+      auto incomingPackets = take(m_incomingPacketQueue[clientId]);
+      queueLocker.unlock();
+      try {
+        m_worldServer->handleIncomingPackets(clientId, std::move(incomingPackets));
+      } catch (std::exception const& e) {
+        Logger::error("WorldServerThread exception caught handling incoming packets for client {}: {}",
+            clientId, outputException(e, true));
+        RecursiveMutexLocker queueLocker(m_queueMutex);
+        m_outgoingPacketQueue[clientId].appendAll(m_worldServer->removeClient(clientId));
+        unerroredClientIds.remove(clientId);
+      }
     }
   }
 
@@ -330,26 +347,36 @@ void WorldServerThread::update(WorldServerFidelity fidelity) {
 
   List<Message> messages;
   {
+    ZoneScopedN("Message mutex");
     RecursiveMutexLocker locker(m_messageMutex);
     messages = std::move(m_messages);
   }
-  for (auto& message : messages) {
-    if (auto resp = m_worldServer->receiveMessage(ServerConnectionId, message.message, message.args))
-      message.promise.fulfill(*resp);
-    else
-      message.promise.fail("Message not handled by world");
+
+  {
+    ZoneScopedN("World message handling");
+    for (auto& message : messages) {
+      if (auto resp = m_worldServer->receiveMessage(ServerConnectionId, message.message, message.args))
+        message.promise.fulfill(*resp);
+      else
+        message.promise.fail("Message not handled by world");
+    }
   }
 
-  for (auto& clientId : unerroredClientIds) {
-    auto outgoingPackets = m_worldServer->getOutgoingPackets(clientId);
-    RecursiveMutexLocker queueLocker(m_queueMutex);
-    m_outgoingPacketQueue[clientId].appendAll(std::move(outgoingPackets));
+  {
+    ZoneScopedN("Outbound packet handling");
+    for (auto& clientId : unerroredClientIds) {
+      auto outgoingPackets = m_worldServer->getOutgoingPackets(clientId);
+      RecursiveMutexLocker queueLocker(m_queueMutex);
+      m_outgoingPacketQueue[clientId].appendAll(std::move(outgoingPackets));
+    }
   }
 
   m_shouldExpire = m_worldServer->shouldExpire();
 
-  if (m_updateAction)
-    m_updateAction(this, m_worldServer.get());
+  if (m_updateAction) {
+    ZoneScopedN("Other update action")
+        m_updateAction(this, m_worldServer.get());
+  }
 }
 
 void WorldServerThread::sync() {
