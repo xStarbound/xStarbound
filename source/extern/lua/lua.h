@@ -1,10 +1,13 @@
-#pragma once
 /*
 ** $Id: lua.h $
 ** Lua - A Scripting Language
 ** Lua.org, PUC-Rio, Brazil (http://www.lua.org)
 ** See Copyright Notice at the end of this file
 */
+
+
+#ifndef lua_h
+#define lua_h
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -24,7 +27,7 @@
 #define LUA_VERSION_NUM  (LUA_VERSION_MAJOR_N * 100 + LUA_VERSION_MINOR_N)
 #define LUA_VERSION_RELEASE_NUM  (LUA_VERSION_NUM * 100 + LUA_VERSION_RELEASE_N)
 
-#define PLUTO_VERSION "Pluto 0.12.1"
+#define PLUTO_VERSION "Pluto 0.12.2"
 #define PLUTO_COPYRIGHT_NO_BASED PLUTO_VERSION ", Copyright (C) 2022-2025 PlutoLang.org, PlutoLang (https://github.com/PlutoLang)"
 #define PLUTO_COPYRIGHT PLUTO_COPYRIGHT_NO_BASED "\r\nBased on " LUA_COPYRIGHT
 
@@ -198,7 +201,7 @@ LUA_API int             (lua_isnumber) (lua_State *L, int idx);
 LUA_API int             (lua_isstring) (lua_State *L, int idx);
 LUA_API int             (lua_iscfunction) (lua_State *L, int idx);
 LUA_API int             (lua_isinteger) (lua_State *L, int idx);
-LUA_API int             (lua_istrue) (lua_State *L, int idx) noexcept;
+LUA_API int             (lua_istrue) (lua_State *L, int idx); // [Pluto]
 LUA_API int             (lua_isuserdata) (lua_State *L, int idx);
 LUA_API int             (lua_type) (lua_State *L, int idx);
 LUA_API const char     *(lua_typename) (lua_State *L, int tp);
@@ -572,3 +575,6 @@ struct lua_Debug {
 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ******************************************************************************/
+
+
+#endif
