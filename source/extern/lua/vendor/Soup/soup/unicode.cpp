@@ -217,8 +217,12 @@ NAMESPACE_SOUP
 			const auto uni = utf8_to_utf32_char(it, str.cend());
 			SOUP_IF_UNLIKELY (uni == REPLACEMENT_CHAR)
 			{
-				const auto off = char_begin - str.cbegin();
-				str.erase(char_begin, it);
+        const auto off = char_begin - str.cbegin();
+        const auto endOff = it - str.cbegin();
+        const auto len = endOff - off;
+        // FezzedOne: Workaround for missing const version of `std::string::erase`. Seriously, what?
+        str.erase(off, len);
+        // str.erase(char_begin, it);
 				str.insert(off, "\xEF\xBF\xBD");
 				it = str.cbegin() + off + 3;
 			}
