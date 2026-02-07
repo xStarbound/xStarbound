@@ -1,23 +1,23 @@
+#include "StarEncode.hpp"
 #include "StarFile.hpp"
 #include "StarFormat.hpp"
 #include "StarRandom.hpp"
-#include "StarEncode.hpp"
 
+#include <dirent.h>
 #include <errno.h>
-#include <string.h>
+#include <fcntl.h>
+#include <libgen.h>
 #include <limits.h>
 #include <stdlib.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <libgen.h>
-#include <fcntl.h>
+#include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #ifdef STAR_SYSTEM_MACOSX
 #include <mach-o/dyld.h>
 #elif defined STAR_SYSTEM_FREEBSD
-#include <sys/types.h>
 #include <sys/sysctl.h>
+#include <sys/types.h>
 #endif
 
 namespace Star {
@@ -30,7 +30,7 @@ namespace {
   void* handleFromFd(int handle) {
     return (void*)(intptr_t)handle;
   }
-}
+} // namespace
 
 String File::convertDirSeparators(String const& path) {
   return path.replace("\\", "/");
@@ -212,7 +212,8 @@ void* File::fopen(char const* filename, IOMode mode) {
 
 void File::fseek(void* f, StreamOffset offset, IOSeek seekMode) {
   auto fd = fdFromHandle(f);
-  int retCode;
+  // Thanks to @firobe for discovering this one.
+  ssize_t retCode;
   if (seekMode == IOSeek::Relative)
     retCode = lseek(fd, offset, SEEK_CUR);
   else if (seekMode == IOSeek::Absolute)
@@ -292,4 +293,4 @@ void File::resize(void* f, StreamOffset size) {
     throw IOException::format("resize error: {}", strerror(errno));
 }
 
-}
+} // namespace Star
