@@ -967,7 +967,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
 
     if (m_player && m_player->isSlave() && anyNeedsSync) { // FezzedOne: Reads OpenStarbound cosmetic layers into xSB overlays.
       for (uint8_t j = 0; j != 12; j++) {
-        auto& item = openSbCosmeticStack[secondPass];
+        auto& item = openSbCosmeticStack[j];
         if (!item) continue;
         if (auto armourItem = as<HeadArmor>(item)) {
           if (!shouldShowArmour(armourItem)) continue;
