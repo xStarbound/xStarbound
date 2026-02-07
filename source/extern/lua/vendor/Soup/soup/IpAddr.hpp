@@ -174,13 +174,8 @@ NAMESPACE_SOUP
 			memset(&data, 0, sizeof(data));
 		}
 
-		// Checks for [::] and 0.0.0.0
-		[[nodiscard]] bool isZero() const noexcept
+		[[nodiscard]] constexpr bool isZero() const noexcept
 		{
-			if (isV4())
-			{
-				return getV4() == 0;
-			}
 			for (const auto& s : shorts)
 			{
 				if (s != 0)
@@ -231,18 +226,6 @@ NAMESPACE_SOUP
 				return toString4();
 			}
 			return toString6();
-		}
-
-		[[nodiscard]] std::string toStringForAddr() const noexcept
-		{
-			if (isV4())
-			{
-				return toString4();
-			}
-			std::string str(1, '[');
-			str.append(toString6());
-			str.push_back(']');
-			return str;
 		}
 
 		[[nodiscard]] std::string toString4() const noexcept

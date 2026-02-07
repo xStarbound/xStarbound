@@ -41,7 +41,7 @@ NAMESPACE_SOUP
 		return fromDer(r);
 	}
 
-	Asn1Sequence Asn1Sequence::fromDer(const char* data, size_t size) SOUP_EXCAL
+	Asn1Sequence Asn1Sequence::fromDer(const char* data, size_t size)
 	{
 		MemoryRefReader r(data, size);
 		return fromDer(r);
@@ -390,7 +390,7 @@ NAMESPACE_SOUP
 		ret.type = (first & 0b11111);
 		if (ret.type > 30)
 		{
-			r.omb<uint32_t>(ret.type);
+			r.om<uint32_t>(ret.type);
 		}
 		return ret;
 	}

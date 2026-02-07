@@ -130,12 +130,7 @@ NAMESPACE_SOUP
 
 		appendByte(0x80);
 
-		while (buffer_counter != 112)
-		{
-			appendByte(0);
-		}
-
-		for (int i = 7; i >= 0; i--)
+		while (buffer_counter != 120)
 		{
 			appendByte(0);
 		}

@@ -1,11 +1,9 @@
+#pragma once
 /*
 ** $Id: lopnames.h $
 ** Opcode names
 ** See Copyright Notice in lua.h
 */
-
-#if !defined(lopnames_h)
-#define lopnames_h
 
 #include <stddef.h>
 
@@ -45,8 +43,8 @@ static const char *const opnames[] = {
   "BANDK",
   "BORK",
   "BXORK",
-  "SHLI",
   "SHRI",
+  "SHLI",
   "ADD",
   "SUB",
   "MUL",
@@ -94,8 +92,6 @@ static const char *const opnames[] = {
   "SETLIST",
   "CLOSURE",
   "VARARG",
-  "GETVARG",
-  "ERRNNIL",
   "VARARGPREP",
   "EXTRAARG",
   // end of lua opcodes
@@ -103,6 +99,3 @@ static const char *const opnames[] = {
   // end of pluto opcodes
   NULL
 };
-
-#endif
-

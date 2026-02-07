@@ -50,10 +50,5 @@ NAMESPACE_SOUP
 		{
 			return node->data;
 		}
-
-		Data* operator ->()
-		{
-			return &node->data;
-		}
 	};
 }

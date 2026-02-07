@@ -29,7 +29,7 @@ NAMESPACE_SOUP
 			return true;
 		}
 
-		[[nodiscard]] std::streamoff getPosition() final
+		[[nodiscard]] size_t getPosition() final
 		{
 			return os.tellp();
 		}

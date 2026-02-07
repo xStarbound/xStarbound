@@ -1,6 +1,5 @@
 #define LUA_LIB
 #include "lualib.h"
-#include "llimits.h" // l_unlikely
 
 #include "vendor/Soup/soup/Canvas.hpp"
 #include "vendor/Soup/soup/MemoryRefReader.hpp"

@@ -1,11 +1,9 @@
+#pragma once
 /*
 ** $Id: llex.h $
 ** Lexical Analyzer
 ** See Copyright Notice in lua.h
 */
-
-#ifndef llex_h
-#define llex_h
 
 #include <limits.h>
 
@@ -42,15 +40,16 @@ enum RESERVED {
   /* terminal symbols denoted by reserved words */
   TK_AND = FIRST_RESERVED, TK_BREAK,
   TK_DO, TK_ELSE, TK_ELSEIF, TK_END, TK_FALSE, TK_FOR, TK_FUNCTION,
-  TK_GLOBAL, TK_GOTO, TK_IF, TK_IN, TK_LOCAL, TK_NIL, TK_NOT, TK_OR,
+  TK_GOTO, TK_IF, TK_IN, TK_LOCAL, TK_NIL, TK_NOT, TK_OR, TK_REPEAT,
   TK_CASE, TK_DEFAULT, TK_AS, TK_BEGIN, TK_EXTENDS, TK_INSTANCEOF, // New narrow keywords.
   TK_PUSE, // New compatibility keywords.
-  TK_PSWITCH, TK_PCONTINUE, TK_PENUM, TK_PNEW, TK_PCLASS, TK_PPARENT, TK_PEXPORT,
-  TK_SWITCH, TK_CONTINUE, TK_ENUM, TK_NEW, TK_CLASS, TK_PARENT, TK_EXPORT, // New non-compatible keywords.
+  TK_PSWITCH, TK_PCONTINUE, TK_PENUM, TK_PNEW, TK_PCLASS, TK_PPARENT, TK_PEXPORT, TK_PTRY, TK_PCATCH,
+  TK_SWITCH, TK_CONTINUE, TK_ENUM, TK_NEW, TK_CLASS, TK_PARENT, TK_EXPORT, TK_TRY, TK_CATCH, // New non-compatible keywords.
+  TK_GLOBAL, // New optional keywords.
 #ifdef PLUTO_PARSER_SUGGESTIONS
   TK_SUGGEST_0, TK_SUGGEST_1, // New special keywords.
 #endif
-  TK_REPEAT, TK_RETURN, TK_THEN, TK_TRUE, TK_UNTIL, TK_WHILE,
+  TK_RETURN, TK_THEN, TK_TRUE, TK_UNTIL, TK_WHILE,
   /* other terminal symbols */
   TK_IDIV, TK_CONCAT, TK_DOTS,
   TK_EQ, TK_GE, TK_LE, TK_NE, TK_NE2, TK_SPACESHIP,
@@ -68,19 +67,21 @@ enum RESERVED {
 
 #define FIRST_COMPAT TK_PUSE
 #define FIRST_NON_COMPAT TK_SWITCH
+#define FIRST_OPTIONAL TK_GLOBAL
 #define FIRST_SPECIAL TK_SUGGEST_0
 #define LAST_RESERVED TK_WHILE
 
 static_assert(TK_PNEW + (FIRST_NON_COMPAT - FIRST_COMPAT - 1) == TK_NEW);
-static_assert(TK_PEXPORT + (FIRST_NON_COMPAT - FIRST_COMPAT - 1) == TK_EXPORT);
+static_assert(TK_PCATCH + (FIRST_NON_COMPAT - FIRST_COMPAT - 1) == TK_CATCH);
 static_assert(TK_PSWITCH + (FIRST_NON_COMPAT - FIRST_COMPAT - 1) == TK_SWITCH);
 
 #define END_COMPAT FIRST_NON_COMPAT
+#define END_NON_COMPAT FIRST_OPTIONAL
 #ifdef PLUTO_PARSER_SUGGESTIONS
-#define END_NON_COMPAT FIRST_SPECIAL
-#define END_SPECIAL TK_REPEAT
+#define END_OPTIONAL FIRST_SPECIAL
+#define END_SPECIAL TK_RETURN
 #else
-#define END_NON_COMPAT TK_REPEAT
+#define END_OPTIONAL TK_RETURN
 #endif
 
 /* number of reserved words */
@@ -152,6 +153,10 @@ struct Token {
 
   [[nodiscard]] bool IsNonCompatible() const noexcept {
       return (token >= FIRST_NON_COMPAT && token < END_NON_COMPAT);
+  }
+
+  [[nodiscard]] bool IsOptional() const noexcept {
+      return (token >= FIRST_OPTIONAL && token < END_OPTIONAL);
   }
 
 #ifdef PLUTO_PARSER_SUGGESTIONS
@@ -243,6 +248,7 @@ enum WarningState : lu_byte {
   WS_OFF,
   WS_ON,
   WS_ERROR,
+  WS_UNSPECIFIED,
 };
 
 
@@ -267,9 +273,6 @@ private:
 #endif
 #ifndef PLUTO_WARN_NON_PORTABLE_NAME
     case WT_NON_PORTABLE_NAME:
-#endif
-#ifndef PLUTO_WARN_IMPLICIT_GLOBAL
-    case WT_IMPLICIT_GLOBAL:
 #endif
     /* on by default */
 #ifdef PLUTO_NO_WARN_VAR_SHADOW
@@ -307,6 +310,8 @@ private:
 #endif
     case NUM_WARNING_TYPES:  /* dummy case so compiler doesn't cry when all macros are set */
       return WS_OFF;
+    case WT_IMPLICIT_GLOBAL:
+      return WS_UNSPECIFIED;
     default:
       return WS_ON;
     }
@@ -373,7 +378,7 @@ public:
 
 
 /*
-** State of the scanner plus state of the parser when shared by all functions.
+** State of the lexer plus state of the parser when shared by all functions.
 ** Suppression of C26495 (uninitalized member), because it's initialized elsewhere. 
 */
 #if defined(_MSC_VER) && _MSC_VER && !__INTEL_COMPILER
@@ -490,7 +495,6 @@ struct LexState {
   struct Dyndata *dyd;  /* dynamic structures used by the parser */
   TString *source;  /* current source name */
   TString *envn;  /* environment variable name */
-  TString *glbn;  /* "global" name (when not a reserved word) */
 
   bool uses_new = false;
   bool uses_extends = false;
@@ -513,9 +517,10 @@ struct LexState {
   std::unordered_set<TString*> explicit_globals{};
   std::unordered_map<const TString*, void*> global_props{};
   std::unordered_map<const TString*, void*> named_types{};
-  KeywordState keyword_states[END_NON_COMPAT - FIRST_NON_COMPAT];
+  KeywordState keyword_states[END_OPTIONAL - FIRST_NON_COMPAT];
   bool nodiscard = false;
   bool used_walrus = false;
+  bool used_try = false;
   std::unordered_map<int, int> uninformed_reserved{}; // When a reserved word is intelligently disabled for compatibility, it is added to this map. (token, line)
   std::unordered_map<const TString*, Macro> macros{};  /* used during preprocessor pass */
   std::unordered_map<const TString*, std::vector<Token>> macro_args{};  /* used during preprocessor pass */
@@ -526,6 +531,9 @@ struct LexState {
     parser_context_stck.push(PARCTX_NONE);  /* ensure there is at least 1 item on the parser context stack */
     for (int i = FIRST_NON_COMPAT; i != END_NON_COMPAT; ++i) {
       setKeywordState(i, KS_ENABLED_BY_PLUTO_UNINFORMED);
+    }
+    for (int i = FIRST_OPTIONAL; i != END_OPTIONAL; ++i) {
+      setKeywordState(i, KS_DISABLED_BY_ENV);  /* optional keywords are not applicable for auto-detection */
     }
   }
 
@@ -656,29 +664,12 @@ struct LexState {
   }
 
   [[nodiscard]] KeywordState getKeywordState(int t) const noexcept {
-    return t >= FIRST_NON_COMPAT && t < END_NON_COMPAT ? keyword_states[t - FIRST_NON_COMPAT] : KS_INVALID;
+    return t >= FIRST_NON_COMPAT && t < END_OPTIONAL ? keyword_states[t - FIRST_NON_COMPAT] : KS_INVALID;
   }
 
   void setKeywordState(int t, KeywordState ks) noexcept {
-    lua_assert(t >= FIRST_NON_COMPAT && t < END_NON_COMPAT);
+    lua_assert(t >= FIRST_NON_COMPAT && t < END_OPTIONAL);
     keyword_states[t - FIRST_NON_COMPAT] = ks;
-  }
-
-  [[nodiscard]] void* parAlloc(size_t size) {
-    return parse_time_allocations.emplace_back(malloc(size));
-  }
-
-  [[nodiscard]] void* parRealloc(void* oldaddr, size_t newsize) {
-    void* newaddr = realloc(oldaddr, newsize);
-    if (newaddr != oldaddr && oldaddr != nullptr) {
-      for (auto i = parse_time_allocations.rbegin(); i != parse_time_allocations.rend(); ++i) {
-        if (*i == oldaddr) {
-          *i = newaddr;
-          break;
-        }
-      }
-    }
-    return newaddr;
   }
 };
 
@@ -702,6 +693,3 @@ LUAI_FUNC l_noret luaX_syntaxerror (LexState *ls, const char *s);
 LUAI_FUNC const char *luaX_token2str (LexState *ls, const Token& t);
 LUAI_FUNC const char *luaX_token2str_noq (LexState *ls, const Token& t);
 LUAI_FUNC const char *luaX_reserved2str (int token);
-
-
-#endif

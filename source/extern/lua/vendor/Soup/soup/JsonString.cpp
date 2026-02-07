@@ -24,7 +24,7 @@ NAMESPACE_SOUP
 		return 0;
 	}
 
-	void JsonString::decodeValue(std::string& value, const char*& c, size_t& s) SOUP_EXCAL
+	void JsonString::decodeValue(std::string& value, const char*& c, size_t& s)
 	{
 		for (bool escaped = false; s != 0; ++c, --s)
 		{
@@ -119,14 +119,14 @@ NAMESPACE_SOUP
 			;
 	}
 
-	void JsonString::encodeAndAppendTo(std::string& str) const SOUP_EXCAL
+	void JsonString::encodeAndAppendTo(std::string& str) const
 	{
 		encodeValue(str, this->value.data(), this->value.size());
 	}
 
 	void JsonString::encodeValue(std::string& str, const char* data, size_t size) SOUP_EXCAL
 	{
-#if !SOUP_LINUX // reserving is an optimisation on Windows but a pessimisation on Linux
+#if !SOUP_LINUX // std::string::reserve is seemingly misimplemented (relative instead of absolute)
 		str.reserve(str.size() + size + 2);
 #endif
 		str.push_back('"');

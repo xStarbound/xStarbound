@@ -18,7 +18,6 @@
 #include "vendor/Soup/soup/Curve25519.hpp"
 #include "vendor/Soup/soup/deflate.hpp"
 #include "vendor/Soup/soup/HardwareRng.hpp"
-#include "vendor/Soup/soup/md5.hpp"
 #include "vendor/Soup/soup/ripemd160.hpp"
 #include "vendor/Soup/soup/rsa.hpp"
 #include "vendor/Soup/soup/sha1.hpp"
@@ -228,6 +227,27 @@ static int sdbm(lua_State *L)
     hash = c + (hash << 6) + (hash << 16) - hash;
 
   lua_pushinteger(L, hash);
+  return 1;
+}
+
+
+static int md5(lua_State *L)
+{
+  size_t len;
+  const auto str = luaL_checklstring(L, 1, &len);
+  const bool binary = lua_istrue(L, 2);
+
+  unsigned char buffer[16];
+  md5_fn((unsigned char*)str, (int)len, buffer);
+
+  if (binary) {
+    lua_pushlstring(L, (const char*)buffer, sizeof(buffer));
+  }
+  else {
+    char hexbuff[32];
+    soup::string::bin2hexAt(hexbuff, (const char*)buffer, sizeof(buffer), soup::string::charset_hex_lower);
+    lua_pushlstring(L, hexbuff, sizeof(hexbuff));
+  }
   return 1;
 }
 
@@ -654,7 +674,7 @@ static int l_encrypt (lua_State *L) {
           rsa_priv_encrypt_raw(data, p, q);
         }
       }
-      catch (const std::exception&) {  /* Either "Assertion failed" or "Modular multiplicative inverse does not exist as the numbers are not coprime" */
+      catch (std::exception&) {  /* Either "Assertion failed" or "Modular multiplicative inverse does not exist as the numbers are not coprime" */
         data.clear(); data.shrink_to_fit();
         fail = true;
       }
@@ -867,7 +887,7 @@ static int l_decrypt (lua_State *L) {
           rsa_priv_decrypt_raw(data, p, q);
         }
       }
-      catch (const std::exception&) {  /* Either "Assertion failed" or "Modular multiplicative inverse does not exist as the numbers are not coprime" */
+      catch (std::exception&) {  /* Either "Assertion failed" or "Modular multiplicative inverse does not exist as the numbers are not coprime" */
         data.clear(); data.shrink_to_fit();
         invalidkey = true;
       }
@@ -932,7 +952,7 @@ static int l_sign (lua_State *L) {
           data = soup::RsaPrivateKey::fromPrimes(*p, *q).sign<soup::sha256>(data).toBinary();
         }
       }
-      catch (const std::exception&) {  /* Either "Assertion failed" or "Modular multiplicative inverse does not exist as the numbers are not coprime" */
+      catch (std::exception&) {  /* Either "Assertion failed" or "Modular multiplicative inverse does not exist as the numbers are not coprime" */
         data.clear(); data.shrink_to_fit();
         fail = true;
       }
@@ -1068,7 +1088,7 @@ static const luaL_Reg funcs_crypto[] = {
   {"crc32", crc32},
   {"crc32c", crc32c},
   {"lookup3", lookup3},
-  {"md5", l_hashwithdigest<soup::md5>},
+  {"md5", md5},
   {"sdbm", sdbm},
   {"djb2", djb2},
   {"superfasthash", superfasthash},

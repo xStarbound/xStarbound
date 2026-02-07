@@ -9,7 +9,7 @@ NAMESPACE_SOUP
 	public:
 		std::string& str;
 
-		StringRefWriter(std::string& str) noexcept
+		StringRefWriter(std::string& str)
 			: Writer(), str(str)
 		{
 		}
@@ -29,7 +29,7 @@ NAMESPACE_SOUP
 			return true;
 		}
 
-		[[nodiscard]] std::streamoff getPosition() final
+		[[nodiscard]] size_t getPosition() final
 		{
 			return str.size();
 		}

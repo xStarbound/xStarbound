@@ -2,7 +2,6 @@
 
 #if !SOUP_WASM
 
-#include "md5.hpp"
 #include "ObfusString.hpp"
 #include "sha256.hpp"
 #include "sha384.hpp"
@@ -68,14 +67,10 @@ NAMESPACE_SOUP
 
 	void SocketTlsHandshaker::getKeys(SocketTlsEncrypter& client_write, SocketTlsEncrypter& server_write) SOUP_EXCAL
 	{
-		size_t mac_key_length = 20; // MD5 = 16, SHA1 = 20, SHA256 = 32
+		size_t mac_key_length = 20; // SHA1 = 20, SHA256 = 32
 		size_t fixed_iv_length = 0;
 		switch (cipher_suite)
 		{
-		case TLS_RSA_WITH_RC4_128_MD5:
-			mac_key_length = 16;
-			break;
-
 		case TLS_RSA_WITH_AES_128_CBC_SHA256:
 		case TLS_RSA_WITH_AES_256_CBC_SHA256:
 		case TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256:
@@ -92,7 +87,7 @@ NAMESPACE_SOUP
 			break;
 		}
 
-		size_t enc_key_length = 16; // RC4 = 16, AES128 = 16, AES256 = 32
+		size_t enc_key_length = 16; // AES128 = 16, AES256 = 32
 		switch (cipher_suite)
 		{
 		case TLS_RSA_WITH_AES_256_CBC_SHA:

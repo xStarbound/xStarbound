@@ -55,7 +55,6 @@ add_library(pluto
   linit.cpp
   liolib.cpp
   ljson.cpp
-  ljumptabportable.h
   llex.cpp
   lmathlib.cpp
   lmem.cpp

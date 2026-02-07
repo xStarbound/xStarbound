@@ -80,25 +80,39 @@ There are several type annotations with special meanings:
 
 ## About Pluto
 
-For documentation regarding Pluto, see the [Pluto documentation site](https://pluto-lang.org/docs/Introduction). Note that on non-Windows builds, xStarbound's Pluto (as of v0.13.0) entirely deprecates and removes the `try`, `catch`, `pluto_try` and `pluto_catch` keywords, so it is safe to use these as variable or function names on xStarbound again.
+For documentation regarding Pluto, see the [Pluto documentation site](https://pluto-lang.org/docs/Introduction).
 
-On Windows builds of xStarbound, which use Pluto 0.12.2 / Lua 5.4 because Lua 5.5's garbage collector has serious performance issues on Windows, `try`, `catch`, `pluto_try` and `plutr_catch` are still present as keywords, although deprecated.
+Note that compatibility mode, where all the new Pluto operators (except the removed ones above) are prefixed with `pluto_`, is enabled by default — for script compatibility reasons, obviously!
 
-Note that compatibility mode, where all the new Pluto operators are prefixed with `pluto_`, is enabled by default — for script compatibility reasons, obviously!
+## Deviations from standard Lua 5.4 / Pluto
 
-## Deviations from standard Lua 5.5 / 5.4 / Pluto
+The following base Lua library functions, syntax rules, and global variables differ from the standard Lua 5.4 / Pluto equivalents on xStarbound and stock Starbound:
 
-The following base Lua library functions, syntax rules, and global variables differ from the standard Lua 5.5 / Pluto equivalents on xStarbound and stock Starbound:
+#### `try`, `catch`, `pluto_try`, `pluto_catch`
 
-#### `global`
+These keywords, deprecated in Pluto 0.12.2 in preparation for their complete removal in the upcoming Pluto 0.13.0 due to underlying changes in the new Lua 5.5's error handling mechanisms, have been completely removed from xStarbound's version of Pluto 0.12.2. They cannot be re-enabled in scripts with `pluto_use`. Scripters should replace all usage of these keywords as shown in the following examples:
 
-On non-Windows builds, this Lua 5.5 keyword is currently disabled on xStarbound for mod compatibility reasons. The keyword does not exist in Lua 5.4 and below, and so isn't available on Windows builds either.
+```pluto
+-- With `try`/`pluto_try` and `catch`/`pluto-catch`.
+try -- Or: pluto_try
+  doSomething()
+catch e do -- Or: pluto_catch e do
+  handleError(e)
+end
+```
 
-#### Loop control variables
+```lua
+-- Vanill-Lua-compatible replacement code using `xpcall`, with the equivalent Pluto syntax in comments.
+local success = xpcall(function() -- Or: local success = xpcall(|| -> do
+  doSomething()
+end, function(e) -- Or: end, |e| -> do
+  handleError(e)
+end)
+```
 
-Lua 5.5 makes loop control variables — e.g., the `k` in `for k, v in pairs(table)` and the `i` in `for i = 1, 10, 1`, but _not_ the `v` in Pluto's `for table as v` — read-only (equivalent to a `<const>` declaration). This change is reverted on non-Windows builds of xStarbound to restore the Lua 5.1-5.4 behaviour (which adds an implicit `local k = k` or `local i = i`, respectively, before the first assignment or modification) for mod compatibility reasons.
+Note how `return`'ed values in try-catch blocks must be curried out through `xpcall`'s return values (a success boolean and then whatever values the wrapped code returns, if any), and variadic return values require judicious use of Lua's `table.pack` and `table.unpack` as well as an extra `if` block with a `return` outside of the `xpcall` call contingent on its success.
 
-Obviously, this 5.5 change to loop control variables doesn't apply to Windows builds of xStarbound either, as their Pluto intepreter is based on Lua 5.4.
+On the other hand, it is now safe to use `pluto_try`, `pluto_catch`, `try` and `catch` as variable names or table keys again in all contexts.
 
 #### Pluto libraries
 
@@ -119,10 +133,6 @@ Since `require` is modified, all Pluto libraries except `exception` are preloade
 - `xml` - [XML library](https://pluto-lang.org/docs/Runtime%20Environment/XML).
 
 Note that Pluto's assertion library is loaded as `pluto_assert` instead of `assert` to avoid overwriting the standard Lua `assert` function and causing incompatibilities there.
-
-Also note that there are minor differences between the standard libraries of Pluto 0.13.0 (on non-Windows builds) and 0.12.2 (on Windows builds) — a few library functions present in xStarbound's Pluto 0.13.0 are not present in Pluto 0.12.2, and not all new Pluto 0.13.0 library functions are present on the current xStarbound version of 0.13.0.
-
-In particular, xStarbound's version of Pluto 0.13.0 lacks some `regex` functions, the `lzf` library, the `$math` library (i.e., `math` but for Pluto constant expressions), a few `crypto` functions, among a few other bits and bobs (subject to change!).
 
 #### `LuaValue` exception
 

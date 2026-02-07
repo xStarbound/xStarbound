@@ -22,7 +22,6 @@
 #include "netConfig.hpp"
 #include "ObfusString.hpp"
 #include "rand.hpp"
-#include "Rc4State.hpp"
 #include "sha1.hpp"
 #include "sha256.hpp"
 #include "SocketTlsHandshaker.hpp"
@@ -287,25 +286,6 @@ NAMESPACE_SOUP
 	using socklen_t = int;
 #endif
 
-	SocketAddr Socket::getBoundAddress() const noexcept
-	{
-		SocketAddr addr;
-		sockaddr_in6 sa{};
-		socklen_t addrlen = sizeof(sa);
-		::getsockname(fd, (sockaddr*)&sa, &addrlen);
-		if (sa.sin6_family == AF_INET6)
-		{
-			memcpy(&addr.ip.data, &sa.sin6_addr, sizeof(in6_addr));
-			addr.port = sa.sin6_port;
-		}
-		else if (sa.sin6_family == AF_INET)
-		{
-			addr.ip = network_u32_t(reinterpret_cast<sockaddr_in*>(&sa)->sin_addr.s_addr);
-			addr.port = reinterpret_cast<sockaddr_in*>(&sa)->sin_port;
-		}
-		return addr;
-	}
-
 	Socket Socket::accept6() noexcept
 	{
 		Socket res{};
@@ -411,7 +391,7 @@ NAMESPACE_SOUP
 		bool sha256;
 	};
 
-	void Socket::enableCryptoClient(std::string server_name, void(*callback)(Socket&, Capture&&, std::string&& alpn_protocol), Capture&& cap, std::string&& initial_application_data, certchain_validator_t certchain_validator, std::vector<std::string>&& alpn_protocols)
+	void Socket::enableCryptoClient(std::string server_name, void(*callback)(Socket&, Capture&&, std::string&& alpn_protocol) SOUP_EXCAL, Capture&& cap, std::string&& initial_application_data, certchain_validator_t certchain_validator, std::vector<std::string>&& alpn_protocols) SOUP_EXCAL
 	{
 		UniquePtr<SocketTlsHandshaker> handshaker = soup::make_unique<SocketTlsHandshakerClient>(
 			callback,
@@ -772,9 +752,9 @@ NAMESPACE_SOUP
 		}
 	}
 
-	void Socket::enableCryptoClientRecvServerHelloDone(UniquePtr<SocketTlsHandshaker>&& handshaker)
+	void Socket::enableCryptoClientRecvServerHelloDone(UniquePtr<SocketTlsHandshaker>&& handshaker) SOUP_EXCAL
 	{
-		tls_recvHandshake(std::move(handshaker), [](Socket& s, UniquePtr<SocketTlsHandshaker>&& handshaker, TlsHandshakeType_t handshake_type, std::string&& data)
+		tls_recvHandshake(std::move(handshaker), [](Socket& s, UniquePtr<SocketTlsHandshaker>&& handshaker, TlsHandshakeType_t handshake_type, std::string&& data) SOUP_EXCAL
 		{
 			if (handshake_type == TlsHandshake::server_hello_done)
 			{
@@ -804,7 +784,7 @@ NAMESPACE_SOUP
 		});
 	}
 
-	void Socket::enableCryptoClientProcessServerHelloDone(UniquePtr<SocketTlsHandshaker>&& handshaker)
+	void Socket::enableCryptoClientProcessServerHelloDone(UniquePtr<SocketTlsHandshaker>&& handshaker) SOUP_EXCAL
 	{
 		std::string cke{};
 		SOUP_TRY
@@ -940,7 +920,6 @@ NAMESPACE_SOUP
 	{
 		switch (cs)
 		{
-		case TLS_RSA_WITH_RC4_128_MD5:
 		case TLS_RSA_WITH_AES_128_CBC_SHA:
 		case TLS_RSA_WITH_AES_256_CBC_SHA:
 		case TLS_RSA_WITH_AES_128_CBC_SHA256:
@@ -1733,60 +1712,49 @@ NAMESPACE_SOUP
 				auto& cap = _cap.get<CaptureSocketTlsRecvRecord2>();
 				if (s.tls_encrypter_recv.isActive())
 				{
-					constexpr auto cipher_bytes = 16; // AES = 16, RC4 = 1
-					constexpr auto record_iv_length = 16; // AES = 16, RC4 = 0
-					const auto mac_length = s.tls_encrypter_recv.mac_key_len;
+					constexpr auto cipher_bytes = 16;
 
 					if (!s.tls_encrypter_recv.isAead())
 					{
-						uint8_t pad_len = 0;
-						bool pad_mismatch = false;
+						constexpr auto record_iv_length = 16;
+						const auto mac_length = s.tls_encrypter_recv.mac_key_len;
 
-						SOUP_IF_UNLIKELY (s.tls_encrypter_recv.isRc4())
+						if ((data.size() % cipher_bytes) != 0
+							|| data.size() < (cipher_bytes + mac_length)
+							)
 						{
-							if (!s.tls_encrypter_recv.state)
-							{
-								s.tls_encrypter_recv.state = new Rc4State(s.tls_encrypter_recv.cipher_key, s.tls_encrypter_recv.cipher_key_len);
-							}
-							reinterpret_cast<Rc4State*>(s.tls_encrypter_recv.state)->transform(reinterpret_cast<uint8_t*>(data.data()), data.size());
+							s.tls_close(TlsAlertDescription::bad_record_mac);
+							return;
 						}
-						else // AES-CBC
-						{
-							if ((data.size() % cipher_bytes) != 0
-								|| data.size() < (cipher_bytes + mac_length)
-								)
-							{
-								s.tls_close(TlsAlertDescription::bad_record_mac);
-								return;
-							}
 
-							auto iv = data.substr(0, record_iv_length);
-							data.erase(0, record_iv_length);
-							aes::cbcDecrypt(
-								reinterpret_cast<uint8_t*>(data.data()), data.size(),
-								s.tls_encrypter_recv.cipher_key, s.tls_encrypter_recv.cipher_key_len,
-								reinterpret_cast<const uint8_t*>(iv.data())
-							);
-
-							pad_len = data.back();
-							for (auto it = (data.end() - (pad_len + 1)); it != (data.end() - 1); ++it)
-							{
-								if (*it != pad_len)
-								{
-									pad_mismatch = true;
-								}
-							}
-							if (data.size() >= pad_len)
-							{
-								data.erase(data.size() - (pad_len + 1));
-							}
-						}
+						auto iv = data.substr(0, record_iv_length);
+						data.erase(0, record_iv_length);
+						aes::cbcDecrypt(
+							reinterpret_cast<uint8_t*>(data.data()), data.size(),
+							s.tls_encrypter_recv.cipher_key, s.tls_encrypter_recv.cipher_key_len,
+							reinterpret_cast<const uint8_t*>(iv.data())
+						);
 
 						std::string mac{};
-						if (data.size() > mac_length)
+
+						bool pad_mismatch = false;
+						uint8_t pad_len = data.back();
+						for (auto it = (data.end() - (pad_len + 1)); it != (data.end() - 1); ++it)
 						{
-							mac = data.substr(data.size() - mac_length);
-							data.erase(data.size() - mac_length);
+							if (*it != pad_len)
+							{
+								pad_mismatch = true;
+							}
+						}
+						if (data.size() >= pad_len)
+						{
+							data.erase(data.size() - (pad_len + 1));
+
+							if (data.size() > mac_length)
+							{
+								mac = data.substr(data.size() - mac_length);
+								data.erase(data.size() - mac_length);
+							}
 						}
 
 						if (s.tls_encrypter_recv.calculateMac(cap.content_type, data) != mac
@@ -1797,7 +1765,7 @@ NAMESPACE_SOUP
 							return;
 						}
 					}
-					else // AES-GCM
+					else
 					{
 						constexpr auto implicit_iv_len = 4;
 						constexpr auto explicit_iv_len = 8;
