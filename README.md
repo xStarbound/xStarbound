@@ -389,7 +389,9 @@ Windows users can download a prebuilt Tracy profiler [here](https://github.com/w
 
 `tracy` callbacks are now available in all script contexts on Tracy-instrumented builds of xStarbound, allowing modders to instrument and profile their scripts. See section 3.12 of [Tracy's manual](tracy.pdf) for more information. (Don't forget to use an `if tracy` clause to check if you're on a Tracy-instrumented build first!)
 
-## Discord
+## Discord (currently being migrated)
+
+> **We are currently migrating to Stoat (and GitHub issues) for technical support and discussion related to xStarbound.**
 
 For support, suggestions or just plain old chit-chat, check out the [xStarbound Discord server](https://discord.gg/GJ5RTkyFCX).
 
