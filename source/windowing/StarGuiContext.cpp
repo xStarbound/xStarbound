@@ -1,9 +1,9 @@
 #include "StarGuiContext.hpp"
-#include "StarRoot.hpp"
-#include "StarConfiguration.hpp"
-#include "StarMixer.hpp"
 #include "StarAssets.hpp"
+#include "StarConfiguration.hpp"
 #include "StarImageMetadataDatabase.hpp"
+#include "StarMixer.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -151,20 +151,26 @@ void GuiContext::drawQuad(RectF const& screenCoords, Vec4B const& color) {
 }
 
 void GuiContext::drawQuad(AssetPath const& texName, RectF const& screenCoords, Vec4B const& color) {
-  renderer()->immediatePrimitives().emplace_back(std::in_place_type_t<RenderQuad>(), assetTextureGroup()->loadTexture(texName), screenCoords, color, 0.0f);
+  auto texture = assetTextureGroup()->loadTexture(texName);
+  if (!texture) return;
+  renderer()->immediatePrimitives().emplace_back(std::in_place_type_t<RenderQuad>(), texture, screenCoords, color, 0.0f);
 }
 
 void GuiContext::drawQuad(AssetPath const& texName, Vec2F const& screenPos, float pixelRatio, Vec4B const& color) {
-  renderer()->immediatePrimitives().emplace_back(std::in_place_type_t<RenderQuad>(), assetTextureGroup()->loadTexture(texName), screenPos, pixelRatio, color, 0.0f);
+  auto texture = assetTextureGroup()->loadTexture(texName);
+  if (!texture) return;
+  renderer()->immediatePrimitives().emplace_back(std::in_place_type_t<RenderQuad>(), texture, screenPos, pixelRatio, color, 0.0f);
 }
 
 void GuiContext::drawQuad(AssetPath const& texName, RectF const& texCoords, RectF const& screenCoords, Vec4B const& color) {
-  renderer()->immediatePrimitives().emplace_back(std::in_place_type_t<RenderQuad>(), assetTextureGroup()->loadTexture(texName),
+  auto texture = assetTextureGroup()->loadTexture(texName);
+  if (!texture) return;
+  renderer()->immediatePrimitives().emplace_back(std::in_place_type_t<RenderQuad>(), texture,
       screenCoords.min(), texCoords.min(),
       Vec2F(screenCoords.xMax(), screenCoords.yMin()), Vec2F(texCoords.xMax(), texCoords.yMin()),
       screenCoords.max(), texCoords.max(),
       Vec2F(screenCoords.xMin(), screenCoords.yMax()), Vec2F(texCoords.xMin(), texCoords.yMax()),
-    color, 0.0f);
+      color, 0.0f);
 }
 
 void GuiContext::drawDrawable(Drawable drawable, Vec2F const& screenPos, float pixelRatio, Vec4B const& color) {
@@ -180,11 +186,11 @@ void GuiContext::drawDrawable(Drawable drawable, Vec2F const& screenPos, float p
 void GuiContext::drawLine(Vec2F const& begin, Vec2F const end, Vec4B const& color, float lineWidth) {
   Vec2F left = vnorm(Vec2F(end) - Vec2F(begin)).rot90() * lineWidth / 2.0f;
   renderer()->immediatePrimitives().emplace_back(std::in_place_type_t<RenderQuad>(),
-    begin + left,
-    begin - left,
-    end - left,
-    end + left,
-    color, 0.0f);
+      begin + left,
+      begin - left,
+      end - left,
+      end + left,
+      color, 0.0f);
 }
 
 void GuiContext::drawPolyLines(PolyF const& poly, Vec4B const& color, float lineWidth) {
@@ -195,7 +201,7 @@ void GuiContext::drawPolyLines(PolyF const& poly, Vec4B const& color, float line
 void GuiContext::drawTriangles(List<tuple<Vec2F, Vec2F, Vec2F>> const& triangles, Vec4B const& color) {
   for (auto& poly : triangles) {
     renderer()->immediatePrimitives().emplace_back(std::in_place_type_t<RenderTriangle>(),
-      get<0>(poly), get<1>(poly), get<2>(poly), color, 0.0f);
+        get<0>(poly), get<1>(poly), get<2>(poly), color, 0.0f);
   }
 }
 
@@ -231,7 +237,8 @@ void GuiContext::drawInterfaceQuad(AssetPath const& texName, RectF const& texCoo
 void GuiContext::drawInterfaceTriangles(List<tuple<Vec2F, Vec2F, Vec2F>> const& triangles, Vec4B const& color) {
   drawTriangles(triangles.transformed([this](tuple<Vec2F, Vec2F, Vec2F> const& poly) {
     return tuple<Vec2F, Vec2F, Vec2F>(get<0>(poly) * interfaceScale(), get<1>(poly) * interfaceScale(), get<2>(poly) * interfaceScale());
-  }), color);
+  }),
+      color);
 }
 
 void GuiContext::drawImageStretchSet(ImageStretchSet const& imageSet, RectF const& screenPos, GuiDirection direction, Vec4B const& color) {
@@ -331,13 +338,11 @@ RectF GuiContext::renderInterfaceText(String const& s, TextPositioning const& po
   auto scaleMultiply = [](int wrapWidth, float floatInterfaceScale) -> int {
     return (int)((float)wrapWidth * floatInterfaceScale);
   };
-  auto res = renderText(s, {
-      position.pos * interfaceScale(),
-      position.hAnchor,
-      position.vAnchor,
-      position.wrapWidth.apply(bind(scaleMultiply, _1, interfaceScale())),
-      position.charLimit
-    });
+  auto res = renderText(s, {position.pos * interfaceScale(),
+                               position.hAnchor,
+                               position.vAnchor,
+                               position.wrapWidth.apply(bind(scaleMultiply, _1, interfaceScale())),
+                               position.charLimit});
   return RectF(res).scaled(1.0f / interfaceScale());
 }
 
@@ -349,12 +354,10 @@ RectF GuiContext::determineInterfaceTextSize(String const& s, TextPositioning co
   auto scaleMultiply = [](int wrapWidth, float floatInterfaceScale) -> int {
     return (int)((float)wrapWidth * floatInterfaceScale);
   };
-  auto res = determineTextSize(s, {
-      positioning.pos * interfaceScale(),
-      positioning.hAnchor,
-      positioning.vAnchor,
-      positioning.wrapWidth.apply(bind(scaleMultiply, _1, interfaceScale()))
-    });
+  auto res = determineTextSize(s, {positioning.pos * interfaceScale(),
+                                      positioning.hAnchor,
+                                      positioning.vAnchor,
+                                      positioning.wrapWidth.apply(bind(scaleMultiply, _1, interfaceScale()))});
   return RectF(res).scaled(1.0f / interfaceScale());
 }
 
@@ -450,7 +453,8 @@ Maybe<String> GuiContext::maybeGetClipboard() const {
 
 bool GuiContext::clipboardHasText() {
   if (m_applicationController->getClipboard()) return true;
-  else return false;
+  else
+    return false;
 }
 
 void GuiContext::setClipboard(String text) {
@@ -469,4 +473,4 @@ void GuiContext::cleanup() {
     m_textPainter->cleanup(textureTimeout);
 }
 
-}
+} // namespace Star

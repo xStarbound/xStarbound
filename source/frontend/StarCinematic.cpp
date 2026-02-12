@@ -1,16 +1,16 @@
 #include "StarCinematic.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarRoot.hpp"
-#include "StarWorldClient.hpp"
 #include "StarAssets.hpp"
 #include "StarGuiContext.hpp"
+#include "StarJsonExtra.hpp"
 #include "StarPlayer.hpp"
+#include "StarRoot.hpp"
+#include "StarWorldClient.hpp"
 
 #if defined TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
+#include "tracy/Tracy.hpp"
 #else
-  #define ZoneScoped
-  #define ZoneScopedN(name)
+#define ZoneScoped
+#define ZoneScopedN(name)
 #endif
 
 namespace Star {
@@ -39,8 +39,8 @@ void Cinematic::load(Json const& definition) {
     m_timeSkips.append(timeSkip);
   }
   sort(m_timeSkips, [](TimeSkip const& a, TimeSkip const& b) -> bool {
-      return a.availableTime < b.availableTime;
-    });
+    return a.availableTime < b.availableTime;
+  });
 
   for (auto cameraDefinition : definition.getArray("camera", JsonArray())) {
     CameraKeyFrame keyFrame;
@@ -267,6 +267,7 @@ void Cinematic::drawDrawable(Drawable const& drawable, float drawableScale, Vec2
   if (drawable.isImage()) {
     auto const& imagePart = drawable.imagePart();
     auto texture = textureGroup->loadTexture(imagePart.image);
+    if (!texture) return;
     auto size = Vec2F(texture->size());
 
     RectF imageRect(Vec2F(), size);
@@ -274,25 +275,21 @@ void Cinematic::drawDrawable(Drawable const& drawable, float drawableScale, Vec2
     Vec2F screenTranslation = drawable.position * drawableScale + drawableTranslation;
 
     Vec2F lowerLeft =
-        imagePart.transformation.transformVec2(Vec2F(imageRect.xMin(), imageRect.yMin())) * drawableScale
-        + screenTranslation;
+        imagePart.transformation.transformVec2(Vec2F(imageRect.xMin(), imageRect.yMin())) * drawableScale + screenTranslation;
     Vec2F lowerRight =
-        imagePart.transformation.transformVec2(Vec2F(imageRect.xMax(), imageRect.yMin())) * drawableScale
-        + screenTranslation;
+        imagePart.transformation.transformVec2(Vec2F(imageRect.xMax(), imageRect.yMin())) * drawableScale + screenTranslation;
     Vec2F upperRight =
-        imagePart.transformation.transformVec2(Vec2F(imageRect.xMax(), imageRect.yMax())) * drawableScale
-        + screenTranslation;
+        imagePart.transformation.transformVec2(Vec2F(imageRect.xMax(), imageRect.yMax())) * drawableScale + screenTranslation;
     Vec2F upperLeft =
-        imagePart.transformation.transformVec2(Vec2F(imageRect.xMin(), imageRect.yMax())) * drawableScale
-        + screenTranslation;
+        imagePart.transformation.transformVec2(Vec2F(imageRect.xMin(), imageRect.yMax())) * drawableScale + screenTranslation;
 
     Vec4B drawableColor = drawable.color.toRgba();
 
     primitives.emplace_back(std::in_place_type_t<RenderQuad>(), std::move(texture),
-        lowerLeft,  Vec2F{0, 0},
+        lowerLeft, Vec2F{0, 0},
         lowerRight, Vec2F{size[0], 0},
         upperRight, Vec2F{size[0], size[1]},
-        upperLeft,  Vec2F{0, size[1]},
+        upperLeft, Vec2F{0, size[1]},
         drawableColor, 0.0f);
   } else {
     starAssert(drawable.part.empty());
@@ -576,4 +573,4 @@ bool Cinematic::muteMusic() const {
   return m_muteMusic && !completed();
 }
 
-}
+} // namespace Star

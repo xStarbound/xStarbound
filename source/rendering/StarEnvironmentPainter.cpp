@@ -1,10 +1,10 @@
 #include "StarEnvironmentPainter.hpp"
-#include "StarLexicalCast.hpp"
-#include "StarTime.hpp"
-#include "StarXXHash.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarLexicalCast.hpp"
 #include "StarLogging.hpp"
 #include "StarMathCommon.hpp"
+#include "StarTime.hpp"
+#include "StarXXHash.hpp"
 
 namespace Star {
 
@@ -14,8 +14,8 @@ float const EnvironmentPainter::SunFadeRate = 0.07f;
 float const EnvironmentPainter::MaxFade = 0.3f;
 float const EnvironmentPainter::RayPerlinFrequency = 0.005f; // Arbitrary, part of using the Perlin as a PRNG
 float const EnvironmentPainter::RayPerlinAmplitude = 2;
-int   const EnvironmentPainter::RayCount = 60;
-float const EnvironmentPainter::RayMinWidth = 0.8f; // % of its sector
+int const EnvironmentPainter::RayCount = 60;
+float const EnvironmentPainter::RayMinWidth = 0.8f;         // % of its sector
 float const EnvironmentPainter::RayWidthVariance = 5.0265f; // % of its sector
 float const EnvironmentPainter::RayAngleVariance = 6.2832f; // Radians
 float const EnvironmentPainter::SunRadius = 50;
@@ -72,10 +72,10 @@ void EnvironmentPainter::renderStars(float pixelRatio, Vec2F const& screenSize, 
   size_t starTypesSize = sky.starTypes().size();
 
   auto stars = m_starGenerator->generate(field, [&](RandomSource& rand) {
-      size_t starType = rand.randu32() % starTypesSize;
-      float frameOffset = rand.randu32() % sky.starFrames + rand.randf(starTwinkleMin, starTwinkleMax);
-      return pair<size_t, float>(starType, frameOffset);
-    });
+    size_t starType = rand.randu32() % starTypesSize;
+    float frameOffset = rand.randu32() % sky.starFrames + rand.randf(starTwinkleMin, starTwinkleMax);
+    return pair<size_t, float>(starType, frameOffset);
+  });
 
   RectF viewRect = RectF::withSize(Vec2F(), viewSize).padded(screenBuffer);
 
@@ -86,6 +86,7 @@ void EnvironmentPainter::renderStars(float pixelRatio, Vec2F const& screenSize, 
     if (viewRect.contains(screenPos)) {
       size_t starFrame = (size_t)(sky.epochTime + star.second.second) % sky.starFrames;
       auto const& texture = m_starTextures[star.second.first * sky.starFrames + starFrame];
+      if (!texture) continue;
       primitives.emplace_back(std::in_place_type_t<RenderQuad>(), texture, screenPos * pixelRatio - Vec2F(texture->size()) / 2, 1.0, color, 0.0f);
     }
   }
@@ -119,6 +120,7 @@ void EnvironmentPainter::renderDebrisFields(float pixelRatio, Vec2F const& scree
       Vec2U biggest = Vec2U();
       for (Json const& json : imageOptions) {
         TexturePtr texture = m_textureGroup->loadTexture(*json.stringPtr());
+        if (!texture) continue;
         biggest = biggest.piecewiseMax(texture->size());
       }
 
@@ -175,8 +177,10 @@ void EnvironmentPainter::renderPlanetHorizon(float pixelRatio, Vec2F const& scre
 
   for (auto const& layer : planetHorizon.layers) {
     TexturePtr leftTexture = m_textureGroup->loadTexture(layer.first);
+    if (!leftTexture) continue;
     Vec2F leftTextureSize(leftTexture->size());
     TexturePtr rightTexture = m_textureGroup->loadTexture(layer.second);
+    if (!rightTexture) continue;
     Vec2F rightTextureSize(rightTexture->size());
 
     Vec2F leftLayer = center;
@@ -251,7 +255,9 @@ void EnvironmentPainter::renderParallaxLayers(
 
     AssetPath first = layer.textures.first();
     first.directives += layer.directives;
-    Vec2F parallaxSize = Vec2F(m_textureGroup->loadTexture(first)->size());
+    auto texture = m_textureGroup->loadTexture(first);
+    if (!texture) continue;
+    Vec2F parallaxSize = Vec2F(texture->size());
     Vec2F parallaxPixels = parallaxSize * camera.pixelRatio();
 
     // texture offset in *screen pixel space*
@@ -385,15 +391,13 @@ void EnvironmentPainter::drawRay(float pixelRatio,
       RenderVertex{start + Vec2F(std::cos(angle + width), std::sin(angle + width)) * SunRadius * pixelRatio,
           {},
           Vec4B(RayColor,
-              (int)(RayMinUnscaledAlpha + std::abs(m_rayPerlin.get(angle * 896 + time * 30) * RayUnscaledAlphaVariance))
-                  * sum
-                  * alpha), 0.0f},
+              (int)(RayMinUnscaledAlpha + std::abs(m_rayPerlin.get(angle * 896 + time * 30) * RayUnscaledAlphaVariance)) * sum * alpha),
+          0.0f},
       RenderVertex{start + Vec2F(std::cos(angle), std::sin(angle)) * SunRadius * pixelRatio,
           {},
           Vec4B(RayColor,
-              (int)(RayMinUnscaledAlpha + std::abs(m_rayPerlin.get(angle * 626 + time * 30) * RayUnscaledAlphaVariance))
-                  * sum
-                  * alpha), 0.0f},
+              (int)(RayMinUnscaledAlpha + std::abs(m_rayPerlin.get(angle * 626 + time * 30) * RayUnscaledAlphaVariance)) * sum * alpha),
+          0.0f},
       RenderVertex{start + Vec2F(std::cos(angle), std::sin(angle)) * length, {}, Vec4B(RayColor, 0), 0.0f});
 }
 
@@ -406,12 +410,11 @@ void EnvironmentPainter::drawOrbiter(float pixelRatio, Vec2F const& screenSize, 
   // That origin point is then multiplied by the zoom level.
   // This does not intuitively scale with higher-resolution monitors, so lets fix that.
   if (orbiter.type == SkyOrbiterType::Moon) {
-    const Vec2F correctionOrigin = { 320, 180 }; 
+    const Vec2F correctionOrigin = {320, 180};
     // correctionOrigin is 1920x1080 / default zoom level / 2, the most likely dev setup at the time.
     Vec2F offset = orbiter.position - correctionOrigin;
     position = (screenSize / 2) + offset * pixelRatio;
-  }
-  else
+  } else
     position = orbiter.position * pixelRatio;
 
   if (orbiter.type == SkyOrbiterType::Sun) {
@@ -420,6 +423,7 @@ void EnvironmentPainter::drawOrbiter(float pixelRatio, Vec2F const& screenSize, 
   }
 
   TexturePtr texture = m_textureGroup->loadTexture(orbiter.image);
+  if (!texture) return;
   Vec2F texSize = Vec2F(texture->size());
 
   Mat3F renderMatrix = Mat3F::rotation(orbiter.angle, position);
@@ -431,7 +435,7 @@ void EnvironmentPainter::drawOrbiter(float pixelRatio, Vec2F const& screenSize, 
       renderMatrix.transformVec2(Vec2F{renderRect.xMax(), renderRect.yMin()}), Vec2F(texSize[0], 0),
       renderMatrix.transformVec2(renderRect.max()), Vec2F(texSize[0], texSize[1]),
       renderMatrix.transformVec2(Vec2F{renderRect.xMin(), renderRect.yMax()}), Vec2F(0, texSize[1]),
-    renderColor, 0.0f);
+      renderColor, 0.0f);
 }
 
 uint64_t EnvironmentPainter::starsHash(SkyRenderData const& sky, Vec2F const& viewSize) const {
@@ -473,4 +477,4 @@ void EnvironmentPainter::setupStars(SkyRenderData const& sky) {
   }
 }
 
-}
+} // namespace Star
