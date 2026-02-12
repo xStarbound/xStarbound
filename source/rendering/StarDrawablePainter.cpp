@@ -15,14 +15,14 @@ void DrawablePainter::drawDrawable(Drawable const& drawable) {
     auto line = linePart->line;
     line.translate(drawable.position);
     Vec2F left = Vec2F(vnorm(line.diff())).rot90() * linePart->width / 2.0f;
-    
+
     float fullbright = drawable.fullbright ? 0.0f : 1.0f;
     auto& primitive = primitives.emplace_back(std::in_place_type_t<RenderQuad>(),
-      line.min() + left,
-      line.min() - left,
-      line.max() - left,
-      line.max() + left,
-      color, fullbright);
+        line.min() + left,
+        line.min() - left,
+        line.max() - left,
+        line.max() + left,
+        color, fullbright);
     if (auto* endColor = linePart->endColor.ptr()) {
       RenderQuad& quad = primitive.get<RenderQuad>();
       quad.c.color = quad.d.color = endColor->toRgba();
@@ -35,6 +35,7 @@ void DrawablePainter::drawDrawable(Drawable const& drawable) {
 
   } else if (auto imagePart = drawable.part.ptr<Drawable::ImagePart>()) {
     TexturePtr texture = m_textureGroup->loadTexture(imagePart->image);
+    if (!texture) return;
 
     Vec2F textureSize(texture->size());
     RectF imageRect(Vec2F(), textureSize);
@@ -49,11 +50,11 @@ void DrawablePainter::drawDrawable(Drawable const& drawable) {
     float param1 = drawable.fullbright ? 0.0f : 1.0f;
 
     primitives.emplace_back(std::in_place_type_t<RenderQuad>(), std::move(texture),
-        lowerLeft,  Vec2F{0, 0},
+        lowerLeft, Vec2F{0, 0},
         lowerRight, Vec2F{textureSize[0], 0},
         upperRight, Vec2F{textureSize[0], textureSize[1]},
-        upperLeft,  Vec2F{0, textureSize[1]},
-      color, param1);
+        upperLeft, Vec2F{0, textureSize[1]},
+        color, param1);
   }
 }
 
@@ -61,4 +62,4 @@ void DrawablePainter::cleanup(int64_t textureTimeout) {
   m_textureGroup->cleanup(textureTimeout);
 }
 
-}
+} // namespace Star
