@@ -470,8 +470,14 @@ void WorldPainter::drawDrawable(Drawable drawable, Directives const& renderDirec
   // pre-load is not done on every tick because it's expensive to look up images with long paths
   if (RectF::withSize(Vec2F(), Vec2F(m_camera.screenSize())).intersects(drawable.boundBox(false)))
     m_drawablePainter->drawDrawable(drawable);
-  else if (drawable.isImage() && Random::randf() < m_preloadTextureChance)
-    m_assets->tryImage(drawable.imagePart().image);
+  else if (drawable.isImage() && Random::randf() < m_preloadTextureChance) {
+    // FezzedOne: Exception handling required here.
+    try {
+      m_assets->tryImage(drawable.imagePart().image);
+    } catch (AssetException const& e) {
+      // FezzedOne: Do nothing. This image has an invalid asset path, so just skip loading it.
+    }
+  }
 }
 
 void WorldPainter::drawDrawableSet(List<Drawable>& drawables, Directives const& renderDirectives) {

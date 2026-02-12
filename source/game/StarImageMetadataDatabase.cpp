@@ -1,15 +1,15 @@
 #include "StarImageMetadataDatabase.hpp"
 
-#include <cstddef>
+#include "StarAssets.hpp"
+#include "StarEncode.hpp"
 #include "StarFile.hpp"
+#include "StarGameTypes.hpp"
 #include "StarImage.hpp"
 #include "StarImageProcessing.hpp"
 #include "StarLogging.hpp"
-#include "StarEncode.hpp"
-#include "StarGameTypes.hpp"
 #include "StarRoot.hpp"
-#include "StarAssets.hpp"
 #include "StarTime.hpp"
+#include <cstddef>
 
 namespace Star {
 
@@ -27,7 +27,14 @@ Vec2U ImageMetadataDatabase::imageSize(AssetPath const& path) const {
   }
 
   locker.unlock();
-  Vec2U size = calculateImageSize(path);
+  Vec2U size;
+  try {
+    size = calculateImageSize(path);
+  } catch (AssetException const& e) {
+    size = Vec2U();
+  } catch (IOException const& e) {
+    size = Vec2U();
+  }
 
   locker.lock();
   m_sizeCache[path] = {Time::monotonicMilliseconds(), size};
@@ -58,7 +65,15 @@ List<Vec2I> ImageMetadataDatabase::imageSpaces(AssetPath const& path, Vec2F posi
 
   locker.unlock();
 
-  auto image = Root::singleton().assets()->image(filteredPath);
+  ImageConstPtr image;
+  try {
+    image = Root::singleton().assets()->image(filteredPath);
+  } catch (AssetException const& e) {
+    return List<Vec2I>{};
+  } catch (IOException const& e) {
+    return List<Vec2I>{};
+  }
+  if (!image) return List<Vec2I>{};
   int imageWidth = image->width();
   int imageHeight = image->height();
 
@@ -119,7 +134,15 @@ RectU ImageMetadataDatabase::nonEmptyRegion(AssetPath const& path) const {
   }
 
   locker.unlock();
-  auto image = Root::singleton().assets()->image(filteredPath);
+  ImageConstPtr image;
+  try {
+    image = Root::singleton().assets()->image(filteredPath);
+  } catch (AssetException const& e) {
+    return RectU::null();
+  } catch (IOException const& e) {
+    return RectU::null();
+  }
+  if (!image) return RectU::null();
   RectU region = RectU::null();
   image->forEachPixel([&region](unsigned x, unsigned y, Vec4B const& pixel) {
     if (pixel[3] > 0)
@@ -143,9 +166,9 @@ void ImageMetadataDatabase::cleanup(bool triggered) {
   } else {
     int64_t currentTime = Time::monotonicMilliseconds();
     constexpr int64_t expiryTime = 5UL * 60UL * 1000UL; // FezzedOne: An expiry time of 5 minutes.
-    # define cleanStale(cache) eraseWhere(cache, [&](auto const& pair) { \
-        return currentTime - pair.second.first >= expiryTime;            \
-      })
+#define cleanStale(cache) eraseWhere(cache, [&](auto const& pair) { \
+  return currentTime - pair.second.first >= expiryTime;             \
+})
     cleanStale(m_regionCache);
     cleanStale(m_spacesCache);
     cleanStale(m_sizeCache);
@@ -153,23 +176,23 @@ void ImageMetadataDatabase::cleanup(bool triggered) {
 }
 
 AssetPath ImageMetadataDatabase::filterProcessing(AssetPath const& path) {
-  AssetPath newPath = { path.basePath, path.subPath, {} };
+  AssetPath newPath = {path.basePath, path.subPath, {}};
 
   String filtered;
   for (auto& directives : path.directives.list())
     directives.loadOperations();
   path.directives.forEach([&](auto const& entry, Directives const& directives) {
     ImageOperation const& operation = entry.operation;
-    if (!(operation.is<HueShiftImageOperation>()           ||
-          operation.is<SaturationShiftImageOperation>()    ||
-          operation.is<BrightnessMultiplyImageOperation>() ||
-          operation.is<FadeToColorImageOperation>()        ||
-          operation.is<ScanLinesImageOperation>()          ||
-          operation.is<SetColorImageOperation>())) {
+    if (!(operation.is<HueShiftImageOperation>() ||
+            operation.is<SaturationShiftImageOperation>() ||
+            operation.is<BrightnessMultiplyImageOperation>() ||
+            operation.is<FadeToColorImageOperation>() ||
+            operation.is<ScanLinesImageOperation>() ||
+            operation.is<SetColorImageOperation>())) {
       filtered += "?";
       filtered += entry.string(*directives.shared);
     }
-    });
+  });
 
   newPath.directives = std::move(filtered);
   return newPath;
@@ -209,17 +232,17 @@ Vec2U ImageMetadataDatabase::calculateImageSize(AssetPath const& path) const {
       imageSize = (*size).second;
     } else {
       locker.unlock();
-      // FezzedOne: Fixed exception getting thrown when a memory asset's size is requested.
-      #ifdef STAR_SYSTEM_WINDOWS
+// FezzedOne: Fixed exception getting thrown when a memory asset's size is requested.
+#ifdef STAR_SYSTEM_WINDOWS
       // Because Windows is a buggy piece of shit that fucks up file reads if you read a file header beforehand.
       imageSize = fallback();
-      #else
+#else
       auto imageDevice = assets->openFile(path.basePath);
       if (Image::isPngImage(imageDevice))
         imageSize = get<0>(Image::readPngMetadata(imageDevice));
       else
         imageSize = fallback();
-      #endif
+#endif
       locker.lock();
       m_sizeCache[path.basePath] = {Time::monotonicMilliseconds(), imageSize};
     }
@@ -307,4 +330,4 @@ Vec2U ImageMetadataDatabase::calculateImageSize(AssetPath const& path) const {
   return imageSize;
 }
 
-}
+} // namespace Star

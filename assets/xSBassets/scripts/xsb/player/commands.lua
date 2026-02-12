@@ -289,8 +289,12 @@ Set your species: ^cyan;/identity set species [newSpecies]^reset;
                             return "Missing argument. Syntax is ^cyan;/identity set gender [male/female]^reset;."
                         elseif key == "name" then
                             return "Missing argument. Syntax is ^cyan;/identity set name [name]^reset;. The new name may contain spaces; quotes will show up in the name."
+                        else
+                            player.setIdentity({
+                                [key] = "",
+                            })
+                            return "Set ^cyan;" .. key .. "^reset; to ^cyan;''^reset; (empty string)."
                         end
-                        return "Missing argument. Syntax is ^cyan;/identity set " .. key .. " [string]^reset;."
                     end
                 end
             end
