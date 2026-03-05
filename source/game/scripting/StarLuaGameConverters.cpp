@@ -31,14 +31,14 @@ Maybe<CollisionSet> LuaConverter<CollisionSet>::to(LuaEngine& engine, LuaValue c
   CollisionSet result;
   bool failed = false;
   table->iterate([&result, &failed, &engine](LuaValue, LuaValue value) {
-      if (auto k = engine.luaMaybeTo<CollisionKind>(std::move(value))) {
-        result.insert(*k);
-        return true;
-      } else {
-        failed = true;
-        return false;
-      }
-    });
+    if (auto k = engine.luaMaybeTo<CollisionKind>(std::move(value))) {
+      result.insert(*k);
+      return true;
+    } else {
+      failed = true;
+      return false;
+    }
+  });
 
   if (failed)
     return {};
@@ -318,7 +318,8 @@ Maybe<EphemeralStatusEffect> LuaConverter<EphemeralStatusEffect>::to(LuaEngine& 
     return EphemeralStatusEffect{UniqueStatusEffect(s->ptr()), {}};
   } else if (auto table = v.ptr<LuaTable>()) {
     auto effect = engine.luaMaybeTo<String>(table->get("effect"));
-    auto duration = engine.luaMaybeTo<Maybe<float>>(table->get("duratino"));
+    // Thanks for catching this typo, Kae.
+    auto duration = engine.luaMaybeTo<Maybe<float>>(table->get("duration"));
     if (effect && duration)
       return EphemeralStatusEffect{effect.take(), duration.take()};
   }
@@ -507,10 +508,10 @@ Maybe<Collectable> LuaConverter<Collectable>::to(LuaEngine& engine, LuaValue con
     auto name = engine.luaMaybeTo<String>(table->get("name"));
     if (name) {
       return Collectable(*name,
-        engine.luaMaybeTo<int>(table->get("order")).value(0),
-        engine.luaMaybeTo<String>(table->get("title")).value(""),
-        engine.luaMaybeTo<String>(table->get("description")).value(""),
-        engine.luaMaybeTo<String>(table->get("icon")).value(""));
+          engine.luaMaybeTo<int>(table->get("order")).value(0),
+          engine.luaMaybeTo<String>(table->get("title")).value(""),
+          engine.luaMaybeTo<String>(table->get("description")).value(""),
+          engine.luaMaybeTo<String>(table->get("icon")).value(""));
     }
   }
 
@@ -520,26 +521,26 @@ Maybe<Collectable> LuaConverter<Collectable>::to(LuaEngine& engine, LuaValue con
 LuaMethods<BehaviorStateWeakPtr> LuaUserDataMethods<BehaviorStateWeakPtr>::make() {
   LuaMethods<BehaviorStateWeakPtr> methods;
   methods.registerMethodWithSignature<NodeStatus, BehaviorStateWeakPtr, float>(
-    "run", [](BehaviorStateWeakPtr const& behavior, float dt) -> NodeStatus {
-      if (behavior.expired())
-        throw StarException("Use of expired blackboard");
+      "run", [](BehaviorStateWeakPtr const& behavior, float dt) -> NodeStatus {
+        if (behavior.expired())
+          throw StarException("Use of expired blackboard");
 
-      return behavior.lock()->run(dt);
-    });
+        return behavior.lock()->run(dt);
+      });
   methods.registerMethodWithSignature<void, BehaviorStateWeakPtr>(
-    "clear", [](BehaviorStateWeakPtr const& behavior) {
-      if (behavior.expired())
-        throw StarException("Use of expired blackboard");
+      "clear", [](BehaviorStateWeakPtr const& behavior) {
+        if (behavior.expired())
+          throw StarException("Use of expired blackboard");
 
-      behavior.lock()->clear();
-    });
+        behavior.lock()->clear();
+      });
   methods.registerMethodWithSignature<BlackboardWeakPtr, BehaviorStateWeakPtr>(
-    "blackboard", [](BehaviorStateWeakPtr const& behavior) -> BlackboardWeakPtr {
-      if (behavior.expired())
-        throw StarException("Use of expired blackboard");
+      "blackboard", [](BehaviorStateWeakPtr const& behavior) -> BlackboardWeakPtr {
+        if (behavior.expired())
+          throw StarException("Use of expired blackboard");
 
-      return behavior.lock()->blackboardPtr();
-    });
+        return behavior.lock()->blackboardPtr();
+      });
   return methods;
 }
 
@@ -562,7 +563,7 @@ NodeStatus LuaConverter<NodeStatus>::to(LuaEngine&, LuaValue const& v) {
 LuaMethods<BlackboardWeakPtr> LuaUserDataMethods<BlackboardWeakPtr>::make() {
   LuaMethods<BlackboardWeakPtr> methods;
 
-  auto get =[](BlackboardWeakPtr const& board, NodeParameterType const& type, String const& key) -> LuaValue {
+  auto get = [](BlackboardWeakPtr const& board, NodeParameterType const& type, String const& key) -> LuaValue {
     if (board.expired())
       throw StarException("Use of expired blackboard");
 
@@ -576,81 +577,81 @@ LuaMethods<BlackboardWeakPtr> LuaUserDataMethods<BlackboardWeakPtr>::make() {
   };
 
   methods.registerMethodWithSignature<LuaValue, BlackboardWeakPtr, String, String>("get",
-    [&](BlackboardWeakPtr const& board, String const& type, String const& key) -> LuaValue {
-      return get(board, NodeParameterTypeNames.getLeft(type), key);
-    });
+      [&](BlackboardWeakPtr const& board, String const& type, String const& key) -> LuaValue {
+        return get(board, NodeParameterTypeNames.getLeft(type), key);
+      });
   methods.registerMethodWithSignature<void, BlackboardWeakPtr, String, String, LuaValue>("set",
-    [&](BlackboardWeakPtr const& board, String const& type, String const& key, LuaValue const& value) {
-      set(board, NodeParameterTypeNames.getLeft(type), key, value);
-    });
+      [&](BlackboardWeakPtr const& board, String const& type, String const& key, LuaValue const& value) {
+        set(board, NodeParameterTypeNames.getLeft(type), key, value);
+      });
 
   methods.registerMethodWithSignature<LuaValue, BlackboardWeakPtr, String>(
-    "getEntity", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
-      return get(board, NodeParameterType::Entity, key);
-    });
+      "getEntity", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
+        return get(board, NodeParameterType::Entity, key);
+      });
   methods.registerMethodWithSignature<LuaValue, BlackboardWeakPtr, String>(
-    "getPosition", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
-      return get(board, NodeParameterType::Position, key);
-    });
+      "getPosition", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
+        return get(board, NodeParameterType::Position, key);
+      });
   methods.registerMethodWithSignature<LuaValue, BlackboardWeakPtr, String>(
-    "getVec2", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
-      return get(board, NodeParameterType::Vec2, key);
-    });
+      "getVec2", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
+        return get(board, NodeParameterType::Vec2, key);
+      });
   methods.registerMethodWithSignature<LuaValue, BlackboardWeakPtr, String>(
-    "getNumber", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
-      return get(board, NodeParameterType::Number, key);
-    });
+      "getNumber", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
+        return get(board, NodeParameterType::Number, key);
+      });
   methods.registerMethodWithSignature<LuaValue, BlackboardWeakPtr, String>(
-    "getBool", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
-      return get(board, NodeParameterType::Bool, key);
-    });
+      "getBool", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
+        return get(board, NodeParameterType::Bool, key);
+      });
   methods.registerMethodWithSignature<LuaValue, BlackboardWeakPtr, String>(
-    "getList", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
-      return get(board, NodeParameterType::List, key);
-    });
+      "getList", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
+        return get(board, NodeParameterType::List, key);
+      });
   methods.registerMethodWithSignature<LuaValue, BlackboardWeakPtr, String>(
-    "getTable", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
-      return get(board, NodeParameterType::Table, key);
-    });
+      "getTable", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
+        return get(board, NodeParameterType::Table, key);
+      });
   methods.registerMethodWithSignature<LuaValue, BlackboardWeakPtr, String>(
-    "getString", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
-      return get(board, NodeParameterType::String, key);
-    });
+      "getString", [&](BlackboardWeakPtr const& board, String const& key) -> LuaValue {
+        return get(board, NodeParameterType::String, key);
+      });
 
 
   methods.registerMethodWithSignature<void, BlackboardWeakPtr, String, LuaValue>(
-    "setEntity", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
-      set(board, NodeParameterType::Entity, key, value);
-    });
+      "setEntity", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
+        set(board, NodeParameterType::Entity, key, value);
+      });
   methods.registerMethodWithSignature<void, BlackboardWeakPtr, String, LuaValue>(
-    "setPosition", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
-      set(board, NodeParameterType::Position, key, value);
-    });
+      "setPosition", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
+        set(board, NodeParameterType::Position, key, value);
+      });
   methods.registerMethodWithSignature<void, BlackboardWeakPtr, String, LuaValue>(
-    "setVec2", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
-      set(board, NodeParameterType::Vec2, key, value);
-    });
+      "setVec2", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
+        set(board, NodeParameterType::Vec2, key, value);
+      });
   methods.registerMethodWithSignature<void, BlackboardWeakPtr, String, LuaValue>(
-    "setNumber", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
-      set(board, NodeParameterType::Number, key, value);
-    });
+      "setNumber", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
+        set(board, NodeParameterType::Number, key, value);
+      });
   methods.registerMethodWithSignature<void, BlackboardWeakPtr, String, LuaValue>(
-    "setBool", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
-      set(board, NodeParameterType::Bool, key, value);
-    });
+      "setBool", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
+        set(board, NodeParameterType::Bool, key, value);
+      });
   methods.registerMethodWithSignature<void, BlackboardWeakPtr, String, LuaValue>(
-    "setList", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
-      set(board, NodeParameterType::List, key, value);
-    });
+      "setList", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
+        set(board, NodeParameterType::List, key, value);
+      });
   methods.registerMethodWithSignature<void, BlackboardWeakPtr, String, LuaValue>(
-    "setTable", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
-      set(board, NodeParameterType::Table, key, value);
-    });
+      "setTable", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
+        set(board, NodeParameterType::Table, key, value);
+      });
   methods.registerMethodWithSignature<void, BlackboardWeakPtr, String, LuaValue>(
-    "setString", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
-      set(board, NodeParameterType::String, key, value);
-    });
+      "setString", [&](BlackboardWeakPtr const& board, String const& key, LuaValue const& value) {
+        set(board, NodeParameterType::String, key, value);
+      });
   return methods;
 }
 
-}
+} // namespace Star
