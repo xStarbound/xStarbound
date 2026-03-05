@@ -217,7 +217,12 @@ uint64_t ItemBag::available(ItemDescriptor const& descriptor, bool exactMatch) c
       count += items->count();
   }
 
-  return count / descriptor.count();
+  // FezzedOne: Fixed potentially exploitable server-side crash that could occur when the passed descriptor has a count of 0.
+  auto descCount = descriptor.count();
+  if (descCount == 0)
+    return count;
+  else
+    return count / descCount;
 }
 
 uint64_t ItemBag::itemsCanFit(ItemConstPtr const& items) const {
