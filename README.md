@@ -93,6 +93,7 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
   - You can also resize the placement area of tiles on the fly.
 - Client- and server-side support for placing foreground tiles with a custom collision type (rewrite by @novaenia from StarExtensions; requires xServer or xClient on the host). Compatible with the overground placement feature of StarExtensions and OpenStarbound clients. [xWEdit](https://github.com/fezzedone/xWEdit), a fork of WEdit with support for these features, is available; xWEdit requires xClient for full client-side functionality, but partially works with OpenStarbound clients (not StarExtensions!).
   - Additionally, objects can be placed under non-solid foreground tiles (@novaenia).
+- Ability to place platforms as background tiles (based on the same feature by @SilverSokolova in OpenStarbound).
 - Support for placing tiles in mid-air, not connected to existing ones, via an extra argument to `world.placeMaterial()` (requires _both_ xClient and, in multiplayer, xServer/xClient on the host). By @fezzedone.
 - Some polish to UI (@fezzedone and @novaenia).
 - A multiplayer server list that lets you save your server IPs and accounts (@KrashV).
