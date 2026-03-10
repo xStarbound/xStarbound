@@ -585,7 +585,7 @@ String LuaBindings::RootCallbacks::generateName(Root* root, String const& rulesA
 }
 
 Json LuaBindings::RootCallbacks::questConfig(Root* root, String const& templateId) {
-  // Downstreamed OpenStarbound bugfix from @Novaenia. Seriously, why was this pointer not checked?!
+  // Downstreamed OpenStarbound bugfix from @emmyposs. Seriously, why was this pointer not checked?!
   if (auto questTemplate = root->questTemplateDatabase()->questTemplate(templateId))
     return questTemplate->config;
   return Json();
