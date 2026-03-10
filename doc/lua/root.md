@@ -558,7 +558,9 @@ Returns a randomly generated name using the specified name gen config and seed.
 
 #### `Json` root.questConfig(`String` questTemplateId)
 
-Returns the JSON configuration of the specified quest template.
+Returns the JSON configuration of the specified quest template, or nil if the specified quest template does not exist.
+
+> **Note:** Specifying a non-existent quest config causes an immediate crash on retail Starbound (due to a bug) and throws an error on OpenStarbound instead of returning nil.
 
 ---
 

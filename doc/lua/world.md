@@ -876,6 +876,10 @@ Similar to `world.containerConsume`, but only considers the specified slot withi
 
 Returns the total count (sum of all stack counts) of the specified item that is currently available to consume in the specified container, `0` if no matching items are found, or `nil` if the entity is not a container. Both the item name and parameters must match in order for a given item stack to be counted.
 
+If the specified descriptor's count is not 0 or 1, the returned total stack count is divided by the count size specified in the descriptor and then rounded down. This allows querying how many "full stacks of X" of a given item are present in the container.
+
+> **Note:** Specifying a count of 0 causes an immediate crash on retail Starbound due to the lack of a division-by-zero check.
+
 ---
 
 #### `JsonArray` world.containerTakeAll(`EntityId` entityId)
@@ -1614,7 +1618,7 @@ The following `world` bindings are available only in client-side scripts.
 
 ---
 
-#### `RectI` world.clientWindow
+#### `RectI` world.clientWindow()
 
 Returns the bounds of what is visible in the client window in world tiles.
 

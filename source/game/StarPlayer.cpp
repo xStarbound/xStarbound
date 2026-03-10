@@ -231,6 +231,9 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
   // FezzedOne: Variable to make sure the inventory overflow check doesn't run more than once in `update`.
   m_overflowCheckDone = false;
 
+  // Downstreamed from @emmypos's PR to OpenStarbound.
+  m_interruptRadioMessage = false;
+
   m_startedNetworkingCosmetics = false;
   m_pulledCosmeticUpdate = false;
   m_armorSecretNetVersions = Array<uint64_t, 12>::filled(0);
