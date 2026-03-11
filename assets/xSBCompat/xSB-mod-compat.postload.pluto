@@ -49,7 +49,7 @@ xpcall(|| -> do
     local needsPatch = "/scripts/fupower.lua"
     local needsNullPatch = {
         "/objects/crafting/clonelab/clonelab.lua",
-        "/interface/scripted/statWindow/statWindows.lua"
+        "/interface/scripted/statWindow/statWindow.lua"
     }
 
     local patchCode = [==[
