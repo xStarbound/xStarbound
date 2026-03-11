@@ -47,7 +47,10 @@ modName = "Sayter's Frackin' Universe"
 
 xpcall(|| -> do
     local needsPatch = "/scripts/fupower.lua"
-    local needsPatch2 = "/objects/crafting/clonelab/clonelab.lua"
+    local needsNullPatch = {
+        "/objects/crafting/clonelab/clonelab.lua",
+        "/interface/scripted/statWindow/statWindows.lua"
+    }
 
     local patchCode = [==[
     function power.onNodeConnectionChange(arg,iterations)
@@ -128,17 +131,19 @@ xpcall(|| -> do
     ]==]
 
     local patchCode2 = [==[
-    null = nil -- The script in question expects `null` to be exactly the same as `nil` to avoid a nil dereference error.
-    -- This conflicts with xStarbound's special `null` value. Fix your shit, Sayter!
+    null = nil -- The script in question expects `null` to be exactly the same as `nil` to avoid a nil dereference error or improperly cleared table entry.
+    -- This conflicts with xStarbound's special `null` value. Stop using `null` when you mean `nil`, FU devs!
     ]==]
 
     if assets.exists(needsPatch) then
         local patchedScript = assets.bytes(needsPatch) .. patchCode
         assets.add(needsPatch, patchedScript)
     end
-    if assets.exists(needsPatch2) then
-        local patchedScript2 = assets.bytes(needsPatch2) .. patchCode2
-        assets.add(needsPatch2, patchedScript2)
+    for needsNullPatch as needsPatch do
+        if assets.exists(needsPatch) then
+            local patchedScript = assets.bytes(needsPatch) .. patchCode2
+            assets.add(needsPatch, patchedScript)
+        end
     end
 
     logInfo(modName)
