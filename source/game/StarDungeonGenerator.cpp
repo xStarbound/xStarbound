@@ -1,15 +1,15 @@
 #include "StarDungeonGenerator.hpp"
-#include "StarCasting.hpp"
-#include "StarRandom.hpp"
-#include "StarLogging.hpp"
 #include "StarAssets.hpp"
-#include "StarLexicalCast.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarMaterialDatabase.hpp"
-#include "StarRoot.hpp"
-#include "StarLiquidsDatabase.hpp"
+#include "StarCasting.hpp"
 #include "StarDungeonImagePart.hpp"
 #include "StarDungeonTMXPart.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLexicalCast.hpp"
+#include "StarLiquidsDatabase.hpp"
+#include "StarLogging.hpp"
+#include "StarMaterialDatabase.hpp"
+#include "StarRandom.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -479,7 +479,7 @@ namespace Dungeon {
   }
 
   LiquidBrush::LiquidBrush(String const& liquidName, float quantity, bool source)
-    : m_liquid(liquidName), m_quantity(quantity), m_source(source) {}
+      : m_liquid(liquidName), m_quantity(quantity), m_source(source) {}
 
   void LiquidBrush::paint(Vec2I position, Phase phase, DungeonGeneratorWriter* writer) const {
     auto liquidsDatabase = Root::singleton().liquidsDatabase();
@@ -515,15 +515,18 @@ namespace Dungeon {
       return false;
     else if (position[1] < 0)
       return false;
-    for (size_t i = 0; i < rules.size(); i++)
+    for (size_t i = 0; i < rules.size(); i++) {
+      if (!rules[i]) continue;
       if (!rules[i]->checkTileCanPlace(position, writer))
         return false;
+    }
     return true;
   }
 
   void Tile::place(Vec2I position, Phase phase, DungeonGeneratorWriter* writer) const {
     for (size_t i = 0; i < brushes.size(); i++) {
-      brushes[i]->paint(position, phase, writer);
+      if (brushes[i])
+        brushes[i]->paint(position, phase, writer);
     }
   }
 
@@ -911,17 +914,17 @@ namespace Dungeon {
   bool WorldGenMustContainAirRule::checkTileCanPlace(Vec2I position, DungeonGeneratorWriter* writer) const {
     return writer->checkOpen(position, layer);
   }
-  
-  bool WorldGenMustContainLiquidRule::checkTileCanPlace(Vec2I position, DungeonGeneratorWriter * writer) const {
+
+  bool WorldGenMustContainLiquidRule::checkTileCanPlace(Vec2I position, DungeonGeneratorWriter* writer) const {
     return writer->checkLiquid(position);
   }
 
-  bool WorldGenMustNotContainLiquidRule::checkTileCanPlace(Vec2I position, DungeonGeneratorWriter * writer) const {
+  bool WorldGenMustNotContainLiquidRule::checkTileCanPlace(Vec2I position, DungeonGeneratorWriter* writer) const {
     return !writer->checkLiquid(position);
   }
 
   Connector::Connector(Part* part, String value, bool forwardOnly, Direction direction, Vec2I offset)
-    : m_value(value), m_forwardOnly(forwardOnly), m_direction(direction), m_offset(offset), m_part(part) {}
+      : m_value(value), m_forwardOnly(forwardOnly), m_direction(direction), m_offset(offset), m_part(part) {}
 
   bool Connector::connectsTo(ConnectorConstPtr connector) const {
     if (m_forwardOnly)
@@ -961,7 +964,7 @@ namespace Dungeon {
   }
 
   DungeonGeneratorWriter::DungeonGeneratorWriter(DungeonGeneratorWorldFacadePtr facade, Maybe<int> terrainMarkingSurfaceLevel, Maybe<int> terrainSurfaceSpaceExtends)
-    : m_facade(facade), m_terrainMarkingSurfaceLevel(terrainMarkingSurfaceLevel), m_terrainSurfaceSpaceExtends(terrainSurfaceSpaceExtends) {
+      : m_facade(facade), m_terrainMarkingSurfaceLevel(terrainMarkingSurfaceLevel), m_terrainSurfaceSpaceExtends(terrainSurfaceSpaceExtends) {
     m_currentBounds.setMin(Vec2I{std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max()});
     m_currentBounds.setMax(Vec2I{std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::min()});
   }
@@ -1305,7 +1308,7 @@ namespace Dungeon {
     m_openLocalWires.clear();
     m_boundingBoxes.clear();
   }
-}
+} // namespace Dungeon
 
 DungeonDefinitions::DungeonDefinitions() : m_paths(), m_cacheMutex(), m_definitionCache(DefinitionsCacheSize) {
   auto assets = Root::singleton().assets();
@@ -1357,8 +1360,8 @@ DungeonDefinition::DungeonDefinition(JsonObject const& definition, String const&
   m_anchors = jsonToStringList(m_metadata.get("anchor"));
 
   auto tileset = definition.maybe("tiles").apply([](Json const& tileset) {
-      return make_shared<const Dungeon::ImageTileset>(tileset);
-    });
+    return make_shared<const Dungeon::ImageTileset>(tileset);
+  });
 
   for (auto const& partsDefMap : definition.get("parts").iterateArray()) {
     Dungeon::PartConstPtr part = parsePart(this, partsDefMap, tileset);
@@ -1427,7 +1430,7 @@ int DungeonDefinition::extendSurfaceFreeSpace() const {
 }
 
 DungeonGenerator::DungeonGenerator(String const& dungeonName, uint64_t seed, float threatLevel, Maybe<DungeonId> dungeonId)
-  : m_rand(seed), m_threatLevel(threatLevel), m_dungeonId(dungeonId) {
+    : m_rand(seed), m_threatLevel(threatLevel), m_dungeonId(dungeonId) {
   m_def = Root::singleton().dungeonDefinitions()->get(dungeonName);
 }
 
@@ -1468,38 +1471,38 @@ pair<List<RectI>, Set<Vec2I>> DungeonGenerator::buildDungeon(Dungeon::PartConstP
   Logger::debug("Placing dungeon entrance at {}", basePos);
 
   auto placePart = [&](Dungeon::Part const* part, Vec2I const& placePos) {
-      Set<Vec2I> clearTileEntityPositions;
-      part->forEachTile([&](Vec2I tilePos, Dungeon::Tile const& tile) -> bool {
-          if (tile.modifiesPlaces())
-            clearTileEntityPositions.insert(writer->wrapPosition(placePos + tilePos));
-          return false;
-        });
-      auto partBounds = RectI::withSize(placePos, Vec2I(part->size()));
-      writer->clearTileEntities(partBounds, clearTileEntityPositions, part->clearAnchoredObjects());
+    Set<Vec2I> clearTileEntityPositions;
+    part->forEachTile([&](Vec2I tilePos, Dungeon::Tile const& tile) -> bool {
+      if (tile.modifiesPlaces())
+        clearTileEntityPositions.insert(writer->wrapPosition(placePos + tilePos));
+      return false;
+    });
+    auto partBounds = RectI::withSize(placePos, Vec2I(part->size()));
+    writer->clearTileEntities(partBounds, clearTileEntityPositions, part->clearAnchoredObjects());
 
-      if (part->markDungeonId())
-        writer->setMarkDungeonId(m_dungeonId);
-      else
-        writer->setMarkDungeonId();
+    if (part->markDungeonId())
+      writer->setMarkDungeonId(m_dungeonId);
+    else
+      writer->setMarkDungeonId();
 
-      part->place(placePos, preserveTiles, writer);
-      writer->finishPart();
+    part->place(placePos, preserveTiles, writer);
+    writer->finishPart();
 
-      part->forEachTile([&](Vec2I tilePos, Dungeon::Tile const& tile) -> bool {
-          if (tile.usesPlaces())
-            preserveTiles.insert(placePos + tilePos);
-          if (tile.modifiesPlaces())
-            modifiedTiles.insert(placePos + tilePos);
-          return false;
-        });
+    part->forEachTile([&](Vec2I tilePos, Dungeon::Tile const& tile) -> bool {
+      if (tile.usesPlaces())
+        preserveTiles.insert(placePos + tilePos);
+      if (tile.modifiesPlaces())
+        modifiedTiles.insert(placePos + tilePos);
+      return false;
+    });
 
-      openSet.append({part, placePos});
+    openSet.append({part, placePos});
 
-      placementCounter[part->name()]++;
-      piecesPlaced++;
+    placementCounter[part->name()]++;
+    piecesPlaced++;
 
-      Logger::debug("placed {}", part->name());
-    };
+    Logger::debug("placed {}", part->name());
+  };
 
   placePart(anchor.get(), basePos);
 
@@ -1573,8 +1576,7 @@ pair<List<RectI>, Set<Vec2I>> DungeonGenerator::buildDungeon(Dungeon::PartConstP
 Dungeon::PartConstPtr DungeonGenerator::pickAnchor() {
   auto validAnchors = m_def->anchors().filtered([this](String const& anchorName) {
     auto anchorPart = m_def->parts().get(anchorName);
-    return (!anchorPart->minimumThreatLevel() || m_threatLevel >= *anchorPart->minimumThreatLevel())
-        && (!anchorPart->maximumThreatLevel() || m_threatLevel <= *anchorPart->maximumThreatLevel());
+    return (!anchorPart->minimumThreatLevel() || m_threatLevel >= *anchorPart->minimumThreatLevel()) && (!anchorPart->maximumThreatLevel() || m_threatLevel <= *anchorPart->maximumThreatLevel());
   });
 
   if (validAnchors.empty())
@@ -1600,4 +1602,4 @@ DungeonDefinitionConstPtr DungeonGenerator::definition() const {
   return m_def;
 }
 
-}
+} // namespace Star

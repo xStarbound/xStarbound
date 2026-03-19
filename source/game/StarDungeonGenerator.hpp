@@ -1,14 +1,14 @@
 #ifndef STAR_DUNGEON_GENERATOR_HPP
 #define STAR_DUNGEON_GENERATOR_HPP
 
+#include "StarGameTypes.hpp"
 #include "StarImage.hpp"
 #include "StarItemDescriptor.hpp"
-#include "StarWorldGeometry.hpp"
-#include "StarGameTypes.hpp"
+#include "StarLruCache.hpp"
 #include "StarRandom.hpp"
 #include "StarSet.hpp"
 #include "StarThread.hpp"
-#include "StarLruCache.hpp"
+#include "StarWorldGeometry.hpp"
 
 namespace Star {
 
@@ -123,7 +123,7 @@ namespace Dungeon {
     struct ObjectSettings {
       ObjectSettings() : direction() {}
       ObjectSettings(String const& objectName, Direction direction, Json const& parameters)
-        : objectName(objectName), direction(direction), parameters(parameters) {}
+          : objectName(objectName), direction(direction), parameters(parameters) {}
 
       String objectName;
       Direction direction;
@@ -216,7 +216,7 @@ namespace Dungeon {
     WorldGenMustContainLiquidRule() {}
 
     virtual bool checkTileCanPlace(Vec2I position, DungeonGeneratorWriter* writer) const override;
-    
+
     virtual bool requiresLiquid() const override {
       return true;
     }
@@ -631,7 +631,7 @@ namespace Dungeon {
     List<RuleConstPtr> rules;
     Maybe<TileConnector> connector;
   };
-}
+} // namespace Dungeon
 
 class DungeonDefinition {
 public:
@@ -709,6 +709,6 @@ private:
   Maybe<DungeonId> m_dungeonId;
 };
 
-}
+} // namespace Star
 
 #endif
