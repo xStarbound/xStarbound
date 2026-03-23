@@ -1,8 +1,8 @@
 #include "StarWidget.hpp"
 #include "StarPane.hpp"
 
-#include "StarLabelWidget.hpp"
 #include "StarFlowLayout.hpp"
+#include "StarLabelWidget.hpp"
 
 namespace Star {
 
@@ -283,6 +283,7 @@ Pane const* Widget::window() const {
 }
 
 void Widget::addChild(String const& name, WidgetPtr member) {
+  if (!member) return;
   member->setName(name);
   m_members.push_back(member);
   m_memberHash[member->name()] = member;
@@ -290,6 +291,7 @@ void Widget::addChild(String const& name, WidgetPtr member) {
 }
 
 void Widget::addChildAt(String const& name, WidgetPtr member, size_t at) {
+  if (!member) return;
   if (at > m_members.size())
     throw GuiException("Attempted to insert item after the end of the list.");
 
@@ -475,4 +477,4 @@ std::ostream& operator<<(std::ostream& os, Widget const& widget) {
   return os;
 }
 
-}
+} // namespace Star
