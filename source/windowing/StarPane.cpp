@@ -1,11 +1,11 @@
 #include "StarPane.hpp"
-#include "StarRoot.hpp"
-#include "StarJsonExtra.hpp"
 #include "StarAssets.hpp"
-#include "StarWidgetLuaBindings.hpp"
-#include "StarLuaConverters.hpp"
-#include "StarImageWidget.hpp"
 #include "StarGuiReader.hpp"
+#include "StarImageWidget.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLuaConverters.hpp"
+#include "StarRoot.hpp"
+#include "StarWidgetLuaBindings.hpp"
 
 namespace Star {
 
@@ -72,8 +72,7 @@ bool Pane::isDisplayed() const {
 
 bool Pane::sendEvent(InputEvent const& event) {
   if (m_visible) {
-    if (event.is<MouseButtonDownEvent>() || event.is<MouseButtonUpEvent>() || event.is<MouseMoveEvent>()
-        || event.is<MouseWheelEvent>()) {
+    if (event.is<MouseButtonDownEvent>() || event.is<MouseButtonUpEvent>() || event.is<MouseMoveEvent>() || event.is<MouseWheelEvent>()) {
       Vec2I mousePos = *m_context->mousePosition(event);
       // First, handle preliminary mouse out / click up events
       if (m_mouseOver) {
@@ -97,9 +96,7 @@ bool Pane::sendEvent(InputEvent const& event) {
           WidgetPtr topWidget = widget;
           WidgetPtr child = getChildAt(mousePos);
           if (child->active() && child->interactive()) {
-            if (event.is<MouseButtonDownEvent>()
-                && (event.get<MouseButtonDownEvent>().mouseButton == MouseButton::Left
-                       || event.get<MouseButtonDownEvent>().mouseButton == MouseButton::Right)) {
+            if (event.is<MouseButtonDownEvent>() && (event.get<MouseButtonDownEvent>().mouseButton == MouseButton::Left || event.get<MouseButtonDownEvent>().mouseButton == MouseButton::Right)) {
               if (!newClickDown)
                 newClickDown = child;
 
@@ -233,8 +230,7 @@ bool Pane::inWindow(Vec2I const& position) const {
 }
 
 bool Pane::inDragArea(Vec2I const& position) const {
-  return inWindow(position) && (position[1] < (this->position()[1] + m_footerSize[1])
-                                   || position[1] > (this->position()[1] + (m_footerSize[1] + m_bodySize[1])));
+  return inWindow(position) && (position[1] < (this->position()[1] + m_footerSize[1]) || position[1] > (this->position()[1] + (m_footerSize[1] + m_bodySize[1])));
 }
 
 Vec2I Pane::cursorRelativeToPane(Vec2I const& position) const {
@@ -364,58 +360,59 @@ LuaCallbacks Pane::makePaneCallbacks() {
   callbacks.registerCallback("hasFocus", [this]() -> bool { return hasFocus(); });
 
   callbacks.registerCallback("playSound",
-    [this](String const& audio, Maybe<int> loops, Maybe<float> volume) {
-      auto assets = Root::singleton().assets();
-      auto config = Root::singleton().configuration();
-      auto audioInstance = make_shared<AudioInstance>(*assets->audio(audio));
-      audioInstance->setVolume(volume.value(1.0));
-      audioInstance->setLoops(loops.value(0));
-      auto& guiContext = GuiContext::singleton();
-      guiContext.playAudio(audioInstance);
-      m_playingSounds.append({audio, std::move(audioInstance)});
-    });
+      [this](String const& audio, Maybe<int> loops, Maybe<float> volume) {
+        auto assets = Root::singleton().assets();
+        auto config = Root::singleton().configuration();
+        auto audioInstance = make_shared<AudioInstance>(*assets->audio(audio));
+        audioInstance->setVolume(volume.value(1.0));
+        audioInstance->setLoops(loops.value(0));
+        auto& guiContext = GuiContext::singleton();
+        guiContext.playAudio(audioInstance);
+        m_playingSounds.append({audio, std::move(audioInstance)});
+      });
 
   callbacks.registerCallback("stopAllSounds", [this](Maybe<String> const& audio) {
-      m_playingSounds.filter([audio](pair<String, AudioInstancePtr> const& p) {
-        if (!audio || p.first == *audio) {
-          p.second->stop();
-          return false;
-        }
-        return true;
-      });
+    m_playingSounds.filter([audio](pair<String, AudioInstancePtr> const& p) {
+      if (!audio || p.first == *audio) {
+        p.second->stop();
+        return false;
+      }
+      return true;
     });
+  });
 
   callbacks.registerCallback("setTitle", [this](String const& title, String const& subTitle) {
-      setTitleString(title, subTitle);
-    });
+    setTitleString(title, subTitle);
+  });
 
   callbacks.registerCallback("setTitleIcon", [this](String const& image) {
-      if (auto icon = as<ImageWidget>(titleIcon()))
-        icon->setImage(image);
-    });
+    if (auto icon = as<ImageWidget>(titleIcon()))
+      icon->setImage(image);
+  });
 
-  callbacks.registerCallback("getPosition", [this]() -> Vec2I          { return relativePosition(); });
-  callbacks.registerCallback("setPosition", [this](Vec2I const& position) { setPosition(position);  });
-  callbacks.registerCallback("getSize", [this]() -> Vec2I         {  return size();  });
-  callbacks.registerCallback("setSize", [this](Vec2I const& size) { setSize(size);   });
+  callbacks.registerCallback("getPosition", [this]() -> Vec2I { return relativePosition(); });
+  callbacks.registerCallback("setPosition", [this](Vec2I const& position) { setPosition(position); });
+  callbacks.registerCallback("getSize", [this]() -> Vec2I { return size(); });
+  callbacks.registerCallback("setSize", [this](Vec2I const& size) { setSize(size); });
 
   callbacks.registerCallback("addWidget", [this](Json const& newWidgetConfig, Maybe<String> const& newWidgetName) {
-      String name = newWidgetName.value(toString(Random::randu64()));
-      WidgetPtr newWidget = reader()->makeSingle(name, newWidgetConfig);
+    String name = newWidgetName.value(toString(Random::randu64()));
+    // @emmypos: Crash fix for `widget.addChild`.
+    if (WidgetPtr newWidget = reader()->makeSingle(name, newWidgetConfig))
       this->addChild(name, newWidget);
-    });
+  });
 
   callbacks.registerCallback("removeWidget", [this](String const& widgetName) -> bool {
-      return this->removeChild(widgetName);
-    });
+    return this->removeChild(widgetName);
+  });
 
   callbacks.registerCallback("scale", []() -> float {
-      return GuiContext::singleton().interfaceScale();
-    });
+    return GuiContext::singleton().interfaceScale();
+  });
 
   callbacks.registerCallback("isDisplayed", [this]() -> bool {
-      return !m_dismissed;
-    });
+    return !m_dismissed;
+  });
 
   return callbacks;
 }
@@ -457,4 +454,4 @@ void Pane::renderImpl() {
   }
 }
 
-}
+} // namespace Star
