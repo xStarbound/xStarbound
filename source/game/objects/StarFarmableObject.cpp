@@ -1,17 +1,17 @@
 #include "StarFarmableObject.hpp"
-#include "StarLexicalCast.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
-#include "StarRandom.hpp"
-#include "StarPlantDatabase.hpp"
-#include "StarPlant.hpp"
-#include "StarWorldServer.hpp"
-#include "StarTreasure.hpp"
 #include "StarItemDrop.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLexicalCast.hpp"
 #include "StarLogging.hpp"
-#include "StarObjectDatabase.hpp"
 #include "StarMaterialDatabase.hpp"
+#include "StarObjectDatabase.hpp"
+#include "StarPlant.hpp"
+#include "StarPlantDatabase.hpp"
+#include "StarRandom.hpp"
+#include "StarRoot.hpp"
+#include "StarTreasure.hpp"
+#include "StarWorldServer.hpp"
 
 namespace Star {
 
@@ -43,9 +43,14 @@ void FarmableObject::update(float dt, uint64_t currentStep) {
     }
 
     // Kae's fix for a potential server thread hang caused by poorly coded farmables.
+    // FezzedOne: Another hang fix. Hooray.
+    size_t stageAttempts = 0;
+    constexpr size_t maxStageAttempts = 8;
     while (!m_finalStage && world()->epochTime() >= m_nextStageTime) {
+      stageAttempts++;
       int lastStage = m_stage;
       enterStage(m_stage + 1);
+      if (stageAttempts > maxStageAttempts) break;
       if (m_stage == lastStage) break;
     }
 
@@ -180,12 +185,10 @@ void FarmableObject::readStoredData(Json const& diskStore) {
 }
 
 Json FarmableObject::writeStoredData() const {
-  return Object::writeStoredData().setAll({
-      {"stage", m_stage},
+  return Object::writeStoredData().setAll({{"stage", m_stage},
       {"stageAlt", m_stageAlt},
       {"stageEnterTime", m_stageEnterTime},
-      {"nextStageTime", m_nextStageTime}
-    });
+      {"nextStageTime", m_nextStageTime}});
 }
 
-}
+} // namespace Star
