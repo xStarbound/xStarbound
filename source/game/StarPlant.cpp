@@ -239,8 +239,15 @@ Plant::Plant(TreeVariant const& config, uint64_t seed) : Plant() {
       xOffset += attachmentSettings.get("x").toDouble() / TilePixels;
       yOffset += attachmentSettings.get("y").toDouble() / TilePixels;
 
+      // FezzedOne: Should fix an infinite loop in tree generation when a tree is placed in mid-air.
+      constexpr size_t maxBranches = 1024;
+      size_t branchCount = 0;
+
       // branch
       while (hasBranches && (yOffset >= branchYOffset) && ((middleHeight - i) > 0)) {
+        branchCount++;
+        if (branchCount >= maxBranches) break;
+
         String branchKey = branches.keys()[rnd.randInt(branches.size() - 1)];
         JsonObject branchSettings = branches[branchKey].toObject();
         JsonObject attachmentSettings = branchSettings["attachment"].toObject();
