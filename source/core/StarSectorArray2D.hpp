@@ -122,7 +122,7 @@ private:
 
 template <typename ElementT, size_t SectorSize>
 SectorArray2D<ElementT, SectorSize>::Array::Array()
-  : elements() {}
+    : elements() {}
 
 template <typename ElementT, size_t SectorSize>
 SectorArray2D<ElementT, SectorSize>::Array::Array(Element const& def) {
@@ -180,9 +180,8 @@ auto SectorArray2D<ElementT, SectorSize>::sectorFor(size_t x, size_t y) const ->
 template <typename ElementT, size_t SectorSize>
 auto SectorArray2D<ElementT, SectorSize>::sectorRange(size_t minX, size_t minY, size_t width, size_t height) const -> SectorRange {
   return {
-    {minX / SectorSize, minY / SectorSize},
-    {(minX + width + SectorSize - 1) / SectorSize, (minY + height + SectorSize - 1) / SectorSize}
-  };
+      {minX / SectorSize, minY / SectorSize},
+      {(minX + width + SectorSize - 1) / SectorSize, (minY + height + SectorSize - 1) / SectorSize}};
 }
 
 template <typename ElementT, size_t SectorSize>
@@ -212,12 +211,12 @@ bool SectorArray2D<ElementT, SectorSize>::sectorLoaded(Sector const& id) const {
 }
 
 template <typename ElementT, size_t SectorSize>
-auto SectorArray2D<ElementT, SectorSize>::sector(Sector const& id) -> Array * {
+auto SectorArray2D<ElementT, SectorSize>::sector(Sector const& id) -> Array* {
   return m_sectors(id[0], id[1]).get();
 }
 
 template <typename ElementT, size_t SectorSize>
-auto SectorArray2D<ElementT, SectorSize>::sector(Sector const& id) const -> Array const * {
+auto SectorArray2D<ElementT, SectorSize>::sector(Sector const& id) const -> Array const* {
   return m_sectors(id[0], id[1]).get();
 }
 
@@ -323,11 +322,7 @@ template <typename ElementT, size_t SectorSize>
 template <typename Function>
 bool SectorArray2D<ElementT, SectorSize>::evalPriv(
     size_t minX, size_t minY, size_t width, size_t height, Function&& function, bool evalEmpty) {
-  return evalColumnsPriv(minX,
-      minY,
-      width,
-      height,
-      [&function](size_t x, size_t y, Element* column, size_t columnSize) {
+  return evalColumnsPriv(minX, minY, width, height, [&function](size_t x, size_t y, Element* column, size_t columnSize) {
         for (size_t i = 0; i < columnSize; ++i) {
           if (column) {
             if (!function(x, y + i, column + i))
@@ -337,9 +332,7 @@ bool SectorArray2D<ElementT, SectorSize>::evalPriv(
               return false;
           }
         }
-        return true;
-      },
-      evalEmpty);
+        return true; }, evalEmpty);
 }
 
 template <typename ElementT, size_t SectorSize>
@@ -436,7 +429,7 @@ bool SectorArray2D<ElementT, SectorSize>::evalColumnsPrivPar(
 
     size_t x_ = xSector * SectorSize;
 
-    futures.push_back(workerPool.addWork([=, &function]() {
+    futures.push_back(workerPool.addWork([=]() { // FezzedOne: Removed function capture by reference due to thread safety issue on GCC.
       for (size_t ySector = minYSector; ySector <= maxYSector; ++ySector) {
         Array* array = m_sectors(xSector, ySector).get();
 
@@ -465,7 +458,7 @@ bool SectorArray2D<ElementT, SectorSize>::evalColumnsPrivPar(
           }
         }
       }
-      }));
+    }));
   }
   for (const auto& f : futures) {
     f.finish();
@@ -480,6 +473,6 @@ WorkerPool& SectorArray2D<ElementT, SectorSize>::getWorkerPool() const {
   return pool;
 }
 
-}
+} // namespace Star
 
 #endif
