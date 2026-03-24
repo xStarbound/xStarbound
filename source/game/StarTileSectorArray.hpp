@@ -259,7 +259,7 @@ size_t TileSectorArray<Tile, SectorSize>::loadedSectorCount() const {
 }
 
 template <typename Tile, unsigned SectorSize>
-auto TileSectorArray<Tile, SectorSize>::sectorArray(Sector sector) const -> Array const * {
+auto TileSectorArray<Tile, SectorSize>::sectorArray(Sector sector) const -> Array const* {
   if (sectorValid(sector))
     return m_tileSectors.sector(sector);
   else
@@ -267,7 +267,7 @@ auto TileSectorArray<Tile, SectorSize>::sectorArray(Sector sector) const -> Arra
 }
 
 template <typename Tile, unsigned SectorSize>
-auto TileSectorArray<Tile, SectorSize>::sectorArray(Sector sector) -> Array * {
+auto TileSectorArray<Tile, SectorSize>::sectorArray(Sector sector) -> Array* {
   if (sectorValid(sector))
     return m_tileSectors.sector(sector);
   else
@@ -344,7 +344,12 @@ void TileSectorArray<Tile, SectorSize>::tileEachTo(MultiArray& results, RectI co
   for (auto const& split : splitRect(region)) {
     auto clampedRect = yClampRect(split.rect);
     if (!clampedRect.isEmpty()) {
-      m_tileSectors.evalColumnsParallel(clampedRect.xMin(), clampedRect.yMin(), clampedRect.width(), clampedRect.height(), [&, function](size_t x, size_t y, Tile const* column, size_t columnSize) {
+#if defined STAR_COMPILER_CLANG || defined STAR_COMPILER_MSVC
+      m_tileSectors.evalColumnsParallel
+#else
+      m_tileSectors.evalColumns
+#endif
+          (clampedRect.xMin(), clampedRect.yMin(), clampedRect.width(), clampedRect.height(), [&, function](size_t x, size_t y, Tile const* column, size_t columnSize) {
           size_t arrayColumnIndex = (x + split.xOffset + xArrayOffset) * results.size(1) + y + yArrayOffset;
           if (column) {
             for (size_t i = 0; i < columnSize; ++i)
@@ -353,8 +358,7 @@ void TileSectorArray<Tile, SectorSize>::tileEachTo(MultiArray& results, RectI co
             for (size_t i = 0; i < columnSize; ++i)
               function(results.atIndex(arrayColumnIndex + i), Vec2I((int)x + split.xOffset, y + i), m_default);
             }
-          return true;
-        }, true);
+          return true; }, true);
     }
 
     // Call with default tile for tiles outside of the y-range (to ensure that
@@ -478,7 +482,7 @@ auto TileSectorArray<Tile, SectorSize>::splitRect(RectI rect) const -> StaticLis
 
   // any rect at least the width of the world is equivalent to a rect that spans the width of the world exactly
   if (rect.width() >= (int)m_worldSize[0])
-    return{SplitRect{RectI(0, rect.yMin(), m_worldSize[0], rect.yMax()), 0}};
+    return {SplitRect{RectI(0, rect.yMin(), m_worldSize[0], rect.yMax()), 0}};
 
   if (rect.isEmpty())
     return {};
@@ -491,9 +495,8 @@ auto TileSectorArray<Tile, SectorSize>::splitRect(RectI rect) const -> StaticLis
 
   if (rect.xMin() < (int)m_worldSize[0] && rect.xMax() > (int)m_worldSize[0]) {
     return {
-      SplitRect{RectI(rect.xMin(), rect.yMin(), m_worldSize[0], rect.yMax()), xOffset},
-      SplitRect{RectI(0, rect.yMin(), rect.xMax() - m_worldSize[0], rect.yMax()), xOffset + (int)m_worldSize[0]}
-    };
+        SplitRect{RectI(rect.xMin(), rect.yMin(), m_worldSize[0], rect.yMax()), xOffset},
+        SplitRect{RectI(0, rect.yMin(), rect.xMax() - m_worldSize[0], rect.yMax()), xOffset + (int)m_worldSize[0]}};
   } else {
     return {SplitRect{rect, xOffset}};
   }
@@ -504,13 +507,12 @@ RectI TileSectorArray<Tile, SectorSize>::yClampRect(RectI const& r) const {
   // FezzedOne: Clamped the max X value to prevent out-of-bounds accesses in certain niche situations.
   // Starbound can handle tile wrapping, but can't handle showing one tile twice in the same view.
   return RectI(
-    r.xMin(), 
-    clamp<int>(r.yMin(), 0, m_worldSize[1]), 
-    clamp<int>(r.xMax(), r.xMin(), r.xMin() + m_worldSize[0]), 
-    clamp<int>(r.yMax(), 0, m_worldSize[1])
-  );
+      r.xMin(),
+      clamp<int>(r.yMin(), 0, m_worldSize[1]),
+      clamp<int>(r.xMax(), r.xMin(), r.xMin() + m_worldSize[0]),
+      clamp<int>(r.yMax(), 0, m_worldSize[1]));
 }
 
-}
+} // namespace Star
 
 #endif

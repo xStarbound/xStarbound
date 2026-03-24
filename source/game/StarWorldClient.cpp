@@ -1894,27 +1894,32 @@ void WorldClient::lightingTileGather() {
 
   // Each column in tileEvalColumns is guaranteed to be no larger than the sector size.
 
-  m_tileArray->tileEvalColumnsParallel(m_lightingCalculator.calculationRegion(), [&](Vec2I const& pos, ClientTile const* column, size_t ySize) {
-    // if (!m_lightingCalculator.validIndex(pos)) return;
-    size_t baseIndex = m_lightingCalculator.baseIndexFor(pos);
-    for (size_t y = 0; y < ySize; ++y) {
-      auto& tile = column[y];
+#if defined STAR_COMPILER_CLANG || defined STAR_COMPILER_MSVC
+  m_tileArray->tileEvalColumnsParallel
+#else
+  m_tileArray->tileEvalColumns
+#endif
+      (m_lightingCalculator.calculationRegion(), [&](Vec2I const& pos, ClientTile const* column, size_t ySize) {
+        // if (!m_lightingCalculator.validIndex(pos)) return;
+        size_t baseIndex = m_lightingCalculator.baseIndexFor(pos);
+        for (size_t y = 0; y < ySize; ++y) {
+          auto& tile = column[y];
 
-      Vec3F light;
-      if (tile.foreground != EmptyMaterialId || tile.foregroundMod != NoModId)
-        light += materialDatabase->radiantLight(tile.foreground, tile.foregroundMod);
+          Vec3F light;
+          if (tile.foreground != EmptyMaterialId || tile.foregroundMod != NoModId)
+            light += materialDatabase->radiantLight(tile.foreground, tile.foregroundMod);
 
-      if (tile.liquid.liquid != EmptyLiquidId && tile.liquid.level != 0.0f)
-        light += liquidsDatabase->radiantLight(tile.liquid);
-      if (tile.foregroundLightTransparent) {
-        if (tile.background != EmptyMaterialId || tile.backgroundMod != NoModId)
-          light += materialDatabase->radiantLight(tile.background, tile.backgroundMod);
-        if (tile.backgroundLightTransparent && pos[1] + y > undergroundLevel)
-          light += environmentLight;
-      }
-      m_lightingCalculator.setCellIndex(baseIndex + y, std::move(light), !tile.foregroundLightTransparent);
-    }
-  });
+          if (tile.liquid.liquid != EmptyLiquidId && tile.liquid.level != 0.0f)
+            light += liquidsDatabase->radiantLight(tile.liquid);
+          if (tile.foregroundLightTransparent) {
+            if (tile.background != EmptyMaterialId || tile.backgroundMod != NoModId)
+              light += materialDatabase->radiantLight(tile.background, tile.backgroundMod);
+            if (tile.backgroundLightTransparent && pos[1] + y > undergroundLevel)
+              light += environmentLight;
+          }
+          m_lightingCalculator.setCellIndex(baseIndex + y, std::move(light), !tile.foregroundLightTransparent);
+        }
+      });
 }
 
 void WorldClient::lightingMain() {
