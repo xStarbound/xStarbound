@@ -872,6 +872,8 @@ function commands.claim(cid, args)
     end) if not s then
         logError("Error while handling /claim command: %s", e)
         return "^red;Error occurred while handling command; check server log"
+    else
+        return e
     end
 end
 
