@@ -453,8 +453,9 @@ local function listOwnedWorlds(account)
     end) if not s then
         logError("Error while getting world claim data: %s", e)
         return {}
+    else
+        return e
     end
-    return {}
 end
 
 local function getWorldClaimData(world)
@@ -472,7 +473,7 @@ local function getWorldClaimData(world)
         claimData = worldClaims[world] or newWorldClaim(world)
     end) if not s then
         logError("Error while getting world claim data: %s", e)
-        return jobject{}
+        return jobject{}, false
     end
     return claimData or jobject{}, foundClaim
 end
