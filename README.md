@@ -113,7 +113,7 @@ The following mods have special functionality that requires or is supported by x
 - [Alternate UI Sounds [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3360332852) — should be supported by xStarbound; report any issues.
 - [Animis](https://github.com/Lonaasan/Animis) — requires xStarbound or OpenStarbound.
 - [Armor Augment Slot](https://steamcommunity.com/sharedfiles/filedetails/?id=3448934708) — requires xStarbound or Openstarbound.
-- [asset scrambler](https://steamcommunity.com/sharedfiles/filedetails/?id=3703414215) — requires xStarbound or OpenStarbound.
+- [asset scrambler](https://steamcommunity.com/sharedfiles/filedetails/?id=3703414215) — requires xStarbound or OpenStarbound. Ensure you have plenty of RAM when loading Starbound with this mod, especially on a large modpack.
 - [Auto DoubleTap Bind for Modded Techs](https://steamcommunity.com/sharedfiles/filedetails/?id=3502260176) — requires xStarbound, OpenStarbound or StarExtensions.
 - [Back Weapon II](https://steamcommunity.com/sharedfiles/filedetails/?id=3405399202) — fully supported by xStarbound.
 - [Back Weapon II SChinese patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3581572023) — requires xStarbound or OpenStarbound for some of the translation patches to work properly.
@@ -148,6 +148,7 @@ The following mods have special functionality that requires or is supported by x
 - [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — fully supported by xStarbound, including keybinds, as of v3.1.6. (Bravo for getting rid of the sandbox-breaking code, Patman!)
 - [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — fully supported by xStarbound. Use `/resetinventoryposition` if your inventory ends up off-screen after installation.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xStarbound as of xSB v2.3.7.
+- [scorchedcityfridge.png](https://steamcommunity.com/sharedfiles/filedetails/?id=3702246480) — requires xStarbound or OpenStarbound.
 - [Searchable Colony Tags](https://steamcommunity.com/sharedfiles/filedetails/?id=3496192756) — requires xStarbound or OpenStarbound.
 - [Shut up about raceeffects](https://steamcommunity.com/sharedfiles/filedetails/?id=3549581457) — requires xStarbound or OpenStarbound. Recommended if you have [Frackin' Races](https://steamcommunity.com/sharedfiles/filedetails/?id=763259329) installed.
 - [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111), [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) and other mods based on the framework — xStarbound supports «nice» non-pixelated scaling as of v2.4.1.1.
