@@ -1092,7 +1092,7 @@ function init()
             local duration = ""
             local timeout = buildConfig.teamInvitationTimeout
             if type(timeout) == "nil" then
-                duration = "600 seconds (assumed default)"
+                duration = "600 seconds (assumed default)."
             elseif type(timeout) == "number" then
                 if math.isnan(timeout) or timeout == math.huge then
                     duration = "never expire."
