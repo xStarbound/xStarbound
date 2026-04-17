@@ -429,7 +429,7 @@ bool SectorArray2D<ElementT, SectorSize>::evalColumnsPrivPar(
 
     size_t x_ = xSector * SectorSize;
 
-    futures.push_back(workerPool.addWork([=]() { // FezzedOne: Removed function capture by reference due to thread safety issue on GCC.
+    futures.push_back(workerPool.addWork([=]() {
       for (size_t ySector = minYSector; ySector <= maxYSector; ++ySector) {
         Array* array = m_sectors(xSector, ySector).get();
 
@@ -457,6 +457,8 @@ bool SectorArray2D<ElementT, SectorSize>::evalColumnsPrivPar(
               return false;
           }
         }
+
+        return true; // FezzedOne: Added missing return.
       }
     }));
   }

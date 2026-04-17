@@ -344,7 +344,7 @@ void TileSectorArray<Tile, SectorSize>::tileEachTo(MultiArray& results, RectI co
   for (auto const& split : splitRect(region)) {
     auto clampedRect = yClampRect(split.rect);
     if (!clampedRect.isEmpty()) {
-#if defined STAR_COMPILER_CLANG || defined STAR_COMPILER_MSVC
+#if true
       m_tileSectors.evalColumnsParallel
 #else
       m_tileSectors.evalColumns
