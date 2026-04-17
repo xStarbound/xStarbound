@@ -457,9 +457,9 @@ bool SectorArray2D<ElementT, SectorSize>::evalColumnsPrivPar(
               return false;
           }
         }
-
-        return true; // FezzedOne: Added missing return.
       }
+
+      return true; // FezzedOne: Added missing return.
     }));
   }
   for (const auto& f : futures) {
