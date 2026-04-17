@@ -1079,6 +1079,38 @@ function init()
                 logInfo("Server configured to use the server configuration file for world claim data.")
             end
         end
+        if buildConfig.secureWarps ~= true then
+            logInfo("This server is not currently configured to prevent player/shipworld warp requests from non-admins to non-team-members. "
+                .. "If you want to enable this feature, set \"secureWarps\" to true.")
+        else
+            logInfo("Server configured to validate player/shipworld warp requests from non-admins to non-team-members.")
+        end
+        if buildConfig.secureTeams ~= true then
+            logInfo("This server is not currently configured to prevent team RPC exploits. "
+                .. "If you want to enable this feature, set \"secureTeams\" to true.")
+        else
+            local duration = ""
+            local timeout = buildConfig.teamInvitationTimeout
+            if type(timeout) == "nil" then
+                duration = "600 seconds (assumed default)"
+            elseif type(timeout) == "number" then
+                if math.isnan(timeout) or timeout == math.huge then
+                    duration = "never expire."
+                elseif timeout <= 0.0 then
+                    duration = "none. Team invites disabled!"
+                else
+                    duration = tostring(timeout) .. (timeout <= 1.0 ? "second." : "seconds.")
+                    if duration < 15.0 then
+                        duration ..= " Players may not be able to reliably accept team invites! Consider increasing the \"teamInvitationTimeout\" to 15 seconds or longer."
+                    elseif duration > 1800.0 then
+                        duration ..= " Hackers may be able to abuse lingering invites. Consider decreasing the \"teamInvitationTimeout\" to 1800 seconds (30 minutes) or shorter."
+                    end
+                end
+            else
+            end
+            logInfo("Server configured to prevent team RPC exploits. Team invite lifespan for validity checks set to "
+                .. duration)
+        end
     else
         logInfo("Running xServer::Helper on xClient.")
     end

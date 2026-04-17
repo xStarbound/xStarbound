@@ -36,6 +36,8 @@ public:
   UniverseServer(String const& storageDir);
   ~UniverseServer();
 
+  void updateSecuritySettings();
+
   // If enabled, will listen on the configured server port for incoming
   // connections.
   void setListeningTcp(bool listenTcp);
@@ -198,6 +200,7 @@ private:
 
   // Main lock and clients read lock must be held when calling
   WarpToWorld resolveWarpAction(WarpAction warpAction, ConnectionId clientId, bool deploy) const;
+  bool canWarpToPlayer(ConnectionId clientId, Uuid const& targetUuid, bool toShip) const;
 
   // Main lock and clients write lock must be held when calling
   void doDisconnection(ConnectionId clientId, String const& reason);
@@ -263,6 +266,7 @@ private:
   IdMap<ConnectionId, ServerClientContextPtr> m_clients;
 
   shared_ptr<atomic<bool>> m_pause;
+  bool m_secureWarps;
   Map<WorldId, Maybe<WorkerPoolPromise<WorldServerThreadPtr>>> m_worlds;
   Map<InstanceWorldId, pair<int64_t, int64_t>> m_tempWorldIndex;
   Map<Vec3I, SystemWorldServerThreadPtr> m_systemWorlds;

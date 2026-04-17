@@ -15,11 +15,14 @@ The basic configuration is defined under `"buildPermissionSettings"` in the serv
   "disallowServerGriefingWhenOwned" : false,
   "containerModificationProtection" : false,
   "containerOpenProtection" : false,
-  "storeClaimsInServerData" : false
+  "storeClaimsInServerData" : false,
+  "secureWarps" : false,
+  "secureTeams" : false,
+  "teamInvitationTimeout" : 600.0
 }
 ```
 
-> **Note:** The `"buildPermissionSettings"` object is not required to be present in a server's config, so it is safe to copy your vanilla server config. Obviously, you'll need to set up your server's build permission settings and command scripts if you wish to use xServer's build protection system.
+> **Note:** The `"buildPermissionSettings"` object is not required to be present in a server's config, so it is safe to copy your vanilla server config. Obviously, you'll need to set up your server's build permission settings and command scripts if you wish to use xServer's build protection system. Invalid values of the wrong type are ignored, with the default shown above used.
 
 A description of each of the settings:
 
@@ -32,6 +35,11 @@ A description of each of the settings:
 - **`"containerOpenProtection"`:** Whether containers on claimed worlds are protected from being opened and viewed by clients who do not have build access to claimed worlds. If enabled, this also implicitly enables `"containerModificationProtection"`, regardless of its explicit status in the configuration. This setting, if enabled, can be overridden on a per-world-claim basis if `"allowGuestContainerOpening": true` or `"allowGuestContainerModification": true` is present in the claim's settings.
   - _Caveats:_ Client-side mods may allow clients to view and copy the contents of containers without interacting with them. xServer does not stop this from happening, but _does_ stop clients from changing the contents of protected containers. If you're worried about stealthy item duping for any reason, consider telling players to be careful of who they invite to their ships, or banning or restricting client-side mods.
 - **`"storeClaimsInServerData"`:** Whether the server should check `$storage/universe/server.dat` for its `"claimData"`. If `false`, the server expects to find its `"claimData"` in `xserver.config` or the host's `xclient.config`.
+- **`"secureWarps"`:** Whether the server should validate `Player:` and `ClientShipWorld:` warps from non-admin players. If validation is enabled, `Player:` warps from non-admin players are rejected if they don't point to at least one of the originating player, any member of the originating player's team, or any world where the originating player or shared team members are present, and `ClientShipWorld:` warps from non-admin players are rejected if the target shipworld is not the player's own shipworld, a shipworld owned by a shared team member of the player or a shipworld where the player or any shared team members are present. Also logs warp request packets with invalid warp types if enabled (otherwise they're silently ignored). _Does not require the build permission system to be enabled._
+  - _Note:_ This setting helps protect private worlds from «drive-by» griefing even if players forget to use `/claim add` for build protection.
+- **`"secureTeams"`:** Whether the server should validate team invites, acceptance requests and other team RPC requests to ensure they're valid and unexpired (see `"teamInvitationTimeout"` below), preventing exploits where hackers can force themselves into teams without showing an invite acceptance dialogue or probe teams they are not currently members of. _Does not require the build permission system to be enabled._
+  - _Note:_ This setting helps protect private worlds from more sophisticated «drive-by» griefing even if players forget to use `/claim add` for build protection.
+- **`"teamInvitationTimeout"`:** The maximum length of time in seconds over which the server should allow an invite sent by a player to remain valid. Defaults to 600 seconds (10 minutes) if unset. This invite expiry check is active only if `"secureTeams"` is enabled. _Does not require the build permission system to be enabled._
 
 **Admin accounts and xClient hosts:** Admin accounts and hosting clients — i.e., Steam and Discord hosts — always bypass claim protections. This prevents hosting clients from getting «locked out» of building in their own local, single-player universe save. To test protection on a dedicated xServer server, consider making a non-admin account for testing!
 

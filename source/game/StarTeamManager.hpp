@@ -1,22 +1,29 @@
 #ifndef STAR_TEAMMANAGER_HPP
 #define STAR_TEAMMANAGER_HPP
 
-#include "StarDrawable.hpp"
-#include "StarUuid.hpp"
-#include "StarJsonRpc.hpp"
-#include "StarWarping.hpp"
-#include "StarThread.hpp"
 #include "StarDamageTypes.hpp"
+#include "StarDrawable.hpp"
+#include "StarJsonRpc.hpp"
+#include "StarThread.hpp"
+#include "StarUuid.hpp"
+#include "StarWarping.hpp"
 
 namespace Star {
 
 STAR_CLASS(TeamManager);
 
+// @Lonaasan: Added security for team invites.
+// @FezzedOne: Team invite security settings moved under `"buildPermissionSettings"` and default to `false`. xServerHelper now has a warning for these disabled security settings.
+
 class TeamManager {
 public:
   TeamManager();
 
+  void updateSecuritySettings();
+
   JsonRpcHandlers rpcHandlers();
+
+  JsonRpcHandlers authenticatedRpcHandlers(Uuid const& callerUuid);
 
   void setConnectedPlayers(StringMap<List<Uuid>> const& connectedPlayers);
   void playerDisconnected(Uuid const& playerUuid);
@@ -50,8 +57,14 @@ private:
     String inviterName;
   };
 
+  struct PolledInvitation {
+    Uuid inviterUuid;
+    double polledAt;
+  };
+
   void purgeInvitationsFor(Uuid const& playerUuid);
   void purgeInvitationsFrom(Uuid const& playerUuid);
+  void expirePolledInvitations();
 
   bool playerWithUuidExists(Uuid const& playerUuid) const;
 
@@ -63,8 +76,11 @@ private:
   Map<Uuid, Team> m_teams;
   StringMap<List<Uuid>> m_connectedPlayers;
   Map<Uuid, Invitation> m_invitations;
+  Map<Uuid, PolledInvitation> m_polledInvitations;
 
   unsigned m_maxTeamSize;
+  double m_polledInvitationTimeout;
+  bool m_secureTeams;
 
   TeamNumber m_pvpTeamCounter;
 
@@ -77,6 +93,6 @@ private:
   Json makeLeader(Json const& args);
 };
 
-}
+} // namespace Star
 
 #endif

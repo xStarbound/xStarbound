@@ -1,26 +1,46 @@
 #include "StarTeamManager.hpp"
-#include "StarRandom.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLogging.hpp"
+#include "StarRandom.hpp"
+#include "StarRoot.hpp"
+#include "StarText.hpp"
 
 namespace Star {
 
 TeamManager::TeamManager() {
   m_pvpTeamCounter = 1;
   m_maxTeamSize = Root::singleton().configuration()->get("maxTeamSize").toUInt();
+  // this->updateSecuritySettings();
+}
+
+void TeamManager::updateSecuritySettings() {
+  RecursiveMutexLocker lock(m_mutex);
+
+  Json jBuildPermissionSettings = Root::singleton().configuration()->get("buildPermissionSettings");
+  m_polledInvitationTimeout = 600.0;
+  m_secureTeams = false;
+  if (jBuildPermissionSettings.isType(Json::Type::Object)) {
+    Json jPolledInvitationTimeout = jBuildPermissionSettings.get("teamInvitationTimeout");
+    if (jPolledInvitationTimeout.isType(Json::Type::Float))
+      m_polledInvitationTimeout = jPolledInvitationTimeout.toFloat();
+    else if (jPolledInvitationTimeout.isType(Json::Type::Int))
+      m_polledInvitationTimeout = (double)jPolledInvitationTimeout.toInt();
+    Json jSecureTeams = jBuildPermissionSettings.get("secureTeams");
+    if (jSecureTeams.isType(Json::Type::Bool))
+      m_secureTeams = jSecureTeams.toBool();
+  }
 }
 
 JsonRpcHandlers TeamManager::rpcHandlers() {
   return JsonRpcHandlers{
-    {"team.fetchTeamStatus", bind(&TeamManager::fetchTeamStatus, this, _1)},
-    {"team.updateStatus", bind(&TeamManager::updateStatus, this, _1)},
-    {"team.invite", bind(&TeamManager::invite, this, _1)},
-    {"team.pollInvitation", bind(&TeamManager::pollInvitation, this, _1)},
-    {"team.acceptInvitation", bind(&TeamManager::acceptInvitation, this, _1)},
-    {"team.makeLeader", bind(&TeamManager::makeLeader, this, _1)},
-    {"team.removeFromTeam", [&](Json request) -> Json { return removeFromTeam(request); }}
-  };
+      {"team.fetchTeamStatus", bind(&TeamManager::fetchTeamStatus, this, _1)},
+      {"team.updateStatus", bind(&TeamManager::updateStatus, this, _1)},
+      {"team.invite", bind(&TeamManager::invite, this, _1)},
+      {"team.pollInvitation", bind(&TeamManager::pollInvitation, this, _1)},
+      {"team.acceptInvitation", bind(&TeamManager::acceptInvitation, this, _1)},
+      {"team.makeLeader", bind(&TeamManager::makeLeader, this, _1)},
+      {"team.removeFromTeam", [&](Json request) -> Json { return removeFromTeam(request); }}};
 }
 
 void TeamManager::setConnectedPlayers(StringMap<List<Uuid>> const& connectedPlayers) {
@@ -68,13 +88,42 @@ Maybe<Uuid> TeamManager::getTeam(Uuid const& playerUuid) const {
 
 void TeamManager::purgeInvitationsFor(Uuid const& playerUuid) {
   m_invitations.remove(playerUuid);
+  m_polledInvitations.remove(playerUuid);
 }
 
 void TeamManager::purgeInvitationsFrom(Uuid const& playerUuid) {
   eraseWhere(m_invitations, [playerUuid](auto const& invitation) {
-      return invitation.second.inviterUuid == playerUuid;
-    });
+    return invitation.second.inviterUuid == playerUuid;
+  });
+  eraseWhere(m_polledInvitations, [playerUuid](auto const& polled) {
+    return polled.second.inviterUuid == playerUuid;
+  });
 }
+
+void TeamManager::expirePolledInvitations() {
+  double now = Time::monotonicTime();
+  eraseWhere(m_polledInvitations, [&](auto const& entry) {
+    return (now - entry.second.polledAt) >= m_polledInvitationTimeout;
+  });
+}
+
+JsonRpcHandlers TeamManager::authenticatedRpcHandlers(Uuid const& callerUuid) {
+  auto wrap = [&](String const& name, JsonRpcRemoteFunction fn) -> pair<String, JsonRpcRemoteFunction> {
+    return {name, [callerUuid, fn = std::move(fn)](Json const& args) -> Json {
+              return fn(args.set("_callerUuid", callerUuid.hex()));
+            }};
+  };
+
+  return JsonRpcHandlers{
+      wrap("team.fetchTeamStatus", bind(&TeamManager::fetchTeamStatus, this, _1)),
+      wrap("team.updateStatus", bind(&TeamManager::updateStatus, this, _1)),
+      wrap("team.invite", bind(&TeamManager::invite, this, _1)),
+      wrap("team.pollInvitation", bind(&TeamManager::pollInvitation, this, _1)),
+      wrap("team.acceptInvitation", bind(&TeamManager::acceptInvitation, this, _1)),
+      wrap("team.makeLeader", bind(&TeamManager::makeLeader, this, _1)),
+      wrap("team.removeFromTeam", [this](Json const& request) -> Json { return removeFromTeam(request); })};
+}
+
 
 bool TeamManager::playerWithUuidExists(Uuid const& playerUuid) const {
   for (auto const& p : m_connectedPlayers) {
@@ -134,7 +183,7 @@ bool TeamManager::addToTeam(Uuid const& playerUuid, Uuid const& teamUuid) {
   purgeInvitationsFor(playerUuid);
 
   // FezzedOne: Make a copy to avoid potential UB caused by `removeFromTeam`.
-  auto teamsCopy = Map<Uuid, Team>(m_teams); 
+  auto teamsCopy = Map<Uuid, Team>(m_teams);
   for (auto otherTeam : teamsCopy) {
     List<Uuid> alreadyMemberOf;
     if (otherTeam.second.members.contains(playerUuid))
@@ -173,6 +222,14 @@ bool TeamManager::removeFromTeam(Uuid const& playerUuid, Uuid const& teamUuid) {
 Json TeamManager::fetchTeamStatus(Json const& arguments) {
   RecursiveMutexLocker lock(m_mutex);
   auto playerUuid = Uuid(arguments.getString("playerUuid"));
+
+  if (auto callerHex = arguments.optString("_callerUuid")) {
+    if (m_secureTeams && Uuid(*callerHex) != playerUuid) {
+      Logger::warn("[xSB] TeamManager: Rejected 'fetchTeamStatus' from UUID {} for UUID {}", *callerHex, playerUuid.hex());
+      return {};
+    }
+  }
+
   JsonObject result;
   if (auto teamUuid = getTeam(playerUuid)) {
     auto& team = m_teams.get(*teamUuid);
@@ -204,6 +261,14 @@ Json TeamManager::fetchTeamStatus(Json const& arguments) {
 Json TeamManager::updateStatus(Json const& arguments) {
   RecursiveMutexLocker lock(m_mutex);
   auto playerUuid = Uuid(arguments.getString("playerUuid"));
+
+  if (auto callerHex = arguments.optString("_callerUuid")) {
+    if (m_secureTeams && Uuid(*callerHex) != playerUuid) {
+      Logger::warn("[xSB] TeamManager: Rejected 'updateStatus' from UUID {} spoofing UUID {}", *callerHex, playerUuid.hex());
+      return "unauthorized";
+    }
+  }
+
   if (auto teamUuid = getTeam(playerUuid)) {
     auto& team = m_teams.get(*teamUuid);
     auto& entry = team.members.get(playerUuid);
@@ -227,32 +292,59 @@ Json TeamManager::updateStatus(Json const& arguments) {
 }
 
 Json TeamManager::invite(Json const& arguments) {
+  // Included @Novaenia's fuzzy invite name handling.
   RecursiveMutexLocker lock(m_mutex);
-  auto inviteeName = arguments.getString("inviteeName").toLower();
+  auto inviteeName = Text::stripEscapeCodes(arguments.getString("inviteeName"));
 
-  if (!m_connectedPlayers.contains(inviteeName))
+  if (inviteeName.empty())
     return "inviteeNotFound";
 
   auto inviterUuid = Uuid(arguments.getString("inviterUuid"));
 
-  for (auto inviteeUuid : m_connectedPlayers[inviteeName]) {
-    if (inviteeUuid == inviterUuid)
-      continue;
-
-    Invitation invitation;
-    invitation.inviterUuid = inviterUuid;
-    invitation.inviterName = arguments.getString("inviterName");
-    m_invitations[inviteeUuid] = invitation;
+  if (auto callerHex = arguments.optString("_callerUuid")) {
+    if (m_secureTeams && Uuid(*callerHex) != inviterUuid) {
+      Logger::warn("[xSB] TeamManager: Rejected 'invite' from UUID {} spoofing inviter UUID {}", *callerHex, inviterUuid.hex());
+      return "unauthorized";
+    }
   }
 
-  return {};
+  JsonArray invited;
+  for (auto& entry : m_connectedPlayers) {
+    if (!Text::stripEscapeCodes(entry.first).beginsWith(inviteeName, String::CaseInsensitive))
+      continue;
+
+    for (auto& inviteeUuid : entry.second) {
+      Invitation invitation;
+      invitation.inviterUuid = inviterUuid;
+      invitation.inviterName = arguments.getString("inviterName");
+      m_invitations[inviteeUuid] = invitation;
+      m_polledInvitations.remove(inviteeUuid);
+      invited.append(JsonArray{entry.first, inviteeUuid.hex()});
+    }
+  }
+
+  if (!invited.empty())
+    return invited;
+  else
+    return "inviteeNotFound";
 }
 
 Json TeamManager::pollInvitation(Json const& arguments) {
   RecursiveMutexLocker lock(m_mutex);
   auto playerUuid = Uuid(arguments.getString("playerUuid"));
+
+  if (auto callerHex = arguments.optString("_callerUuid")) {
+    if (m_secureTeams && Uuid(*callerHex) != playerUuid) {
+      Logger::warn("[xSB] TeamManager: Rejected 'pollInvitation' from UUID {} for UUID {}", *callerHex, playerUuid.hex());
+      return {};
+    }
+  }
+
+  expirePolledInvitations();
+
   if (m_invitations.contains(playerUuid)) {
     auto invite = m_invitations.take(playerUuid);
+    m_polledInvitations[playerUuid] = PolledInvitation{invite.inviterUuid, Time::monotonicTime()};
     JsonObject result;
     result["inviterUuid"] = invite.inviterUuid.hex();
     result["inviterName"] = invite.inviterName;
@@ -266,8 +358,25 @@ Json TeamManager::acceptInvitation(Json const& arguments) {
   auto inviterUuid = Uuid(arguments.getString("inviterUuid"));
   auto inviteeUuid = Uuid(arguments.getString("inviteeUuid"));
 
+  if (auto callerHex = arguments.optString("_callerUuid")) {
+    if (m_secureTeams && Uuid(*callerHex) != inviteeUuid) {
+      Logger::warn("[xSB] TeamManager: Rejected 'acceptInvitation' from UUID {} spoofing invitee UUID {}", *callerHex, inviteeUuid.hex());
+      return "unauthorized";
+    }
+  }
+
   if (!playerWithUuidExists(inviterUuid) || !playerWithUuidExists(inviteeUuid))
     return "acceptInvitationFailed";
+
+  expirePolledInvitations();
+
+  auto polledIt = m_polledInvitations.find(inviteeUuid);
+  if (polledIt == m_polledInvitations.end() || polledIt->second.inviterUuid != inviterUuid) {
+    Logger::warn("[xSB] TeamManager: Rejected 'acceptInvitation' not associated with valid polled invitation from UUID {} to UUID {}", inviterUuid.hex(), inviteeUuid.hex());
+    return "noInvitationPending";
+  }
+
+  m_polledInvitations.remove(inviteeUuid);
 
   purgeInvitationsFrom(inviteeUuid);
 
@@ -282,8 +391,19 @@ Json TeamManager::acceptInvitation(Json const& arguments) {
 }
 
 Json TeamManager::removeFromTeam(Json const& arguments) {
+  RecursiveMutexLocker lock(m_mutex);
   auto playerUuid = Uuid(arguments.getString("playerUuid"));
   auto teamUuid = Uuid(arguments.getString("teamUuid"));
+
+  if (auto callerHex = arguments.optString("_callerUuid")) {
+    Uuid callerUuid(*callerHex);
+    if (m_secureTeams && callerUuid != playerUuid) {
+      if (!m_teams.contains(teamUuid) || m_teams.get(teamUuid).leaderUuid != callerUuid) {
+        Logger::warn("[xSB] TeamManager: Rejected 'removeFromTeam' by non-leader UUID {} targeting UUID {}", callerUuid.hex(), playerUuid.hex());
+        return "unauthorized";
+      }
+    }
+  }
 
   auto success = removeFromTeam(playerUuid, teamUuid);
   return success ? Json() : "removeFromTeamFailed";
@@ -299,6 +419,13 @@ Json TeamManager::makeLeader(Json const& arguments) {
 
   auto& team = m_teams.get(teamUuid);
 
+  if (auto callerHex = arguments.optString("_callerUuid")) {
+    if (m_secureTeams && Uuid(*callerHex) != team.leaderUuid) {
+      Logger::warn("[xSB] TeamManager: Rejected 'makeLeader' by non-leader UUID {} in team UUID {}", *callerHex, teamUuid.hex());
+      return "unauthorized";
+    }
+  }
+
   if (!team.members.contains(playerUuid))
     return "notAMemberOfTeam";
 
@@ -307,4 +434,4 @@ Json TeamManager::makeLeader(Json const& arguments) {
   return {};
 }
 
-}
+} // namespace Star

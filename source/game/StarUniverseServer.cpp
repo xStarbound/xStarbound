@@ -193,6 +193,8 @@ UniverseServer::UniverseServer(String const& storageDir)
   m_connectionServer = make_shared<UniverseConnectionServer>(bind(&UniverseServer::packetsReceived, this, _1, _2, _3));
 
   m_pause = make_shared<atomic<bool>>(false);
+
+  this->updateSecuritySettings();
 }
 
 UniverseServer::~UniverseServer() {
@@ -210,6 +212,21 @@ UniverseServer::~UniverseServer() {
   // are shutdown before other member destruction.
   m_clients.clear();
   m_worlds.clear();
+}
+
+void UniverseServer::updateSecuritySettings() {
+  ZoneScoped;
+  {
+    RecursiveMutexLocker locker(m_mainLock);
+    Json jBuildPermissionSettings = Root::singleton().configuration()->get("buildPermissionSettings");
+    m_secureWarps = false;
+    if (jBuildPermissionSettings.isType(Json::Type::Object)) {
+      Json jSecureWarps = jBuildPermissionSettings.get("secureWarps");
+      if (jSecureWarps.isType(Json::Type::Bool))
+        m_secureWarps = jSecureWarps.toBool();
+    }
+  }
+  m_teamManager->updateSecuritySettings();
 }
 
 void UniverseServer::setListeningTcp(bool listenTcp) {
@@ -669,6 +686,7 @@ void UniverseServer::run() {
       shutdownInactiveWorlds();
       doTriggeredStorage();
       updateCommandScript((float)(Time::monotonicTime() - m_lastScriptUpdate));
+      updateSecuritySettings();
       m_lastScriptUpdate = Time::monotonicTime();
     } catch (std::exception const& e) {
       Logger::error("UniverseServer: exception caught: {}", outputException(e, true));
@@ -894,11 +912,11 @@ void UniverseServer::reapConnections() {
   for (auto clientId : m_clients.keys()) {
     auto clientContext = m_clients.value(clientId);
     if (!m_connectionServer->connectionIsOpen(clientId)) {
-      Logger::info("UniverseServer: Client {} connection lost", clientContext->descriptiveName());
+      Logger::info("UniverseServer: Client '{}' connection lost", clientContext->descriptiveName());
       doDisconnection(clientId, String("You were disconnected due to a bad connection"));
     } else {
       if (clientContext->remoteAddress() && startTime - m_connectionServer->lastActivityTime(clientId) > timeout) {
-        Logger::info("UniverseServer: Kicking client {} due to inactivity", clientContext->descriptiveName());
+        Logger::info("UniverseServer: Kicking client '{}' due to inactivity", clientContext->descriptiveName());
         doDisconnection(clientId, String("You were disconnected due to inactivity"));
       }
     }
@@ -999,6 +1017,37 @@ void UniverseServer::warpPlayers() {
     auto clientContext = m_clients.value(clientId);
     if (!clientContext)
       continue;
+
+    if (auto toPlayerUuid = warpAction.ptr<WarpToPlayer>()) {
+      bool authorized = clientContext->isAdmin() || !m_secureWarps;
+      if (!authorized) {
+        // auto requesterTeam = m_teamManager->getTeam(clientContext->playerUuid());
+        // auto targetTeam = m_teamManager->getTeam(*toPlayerUuid);
+        // if (requesterTeam && targetTeam && *requesterTeam == *targetTeam)
+        //   authorized = true;
+        authorized = canWarpToPlayer(clientId, *toPlayerUuid, false);
+      }
+      if (!authorized) {
+        // String targetName = "<n/a>";
+        // ConnectionId targetClientId = ServerConnectionId;
+        // for (auto const& potentialTargetClient : m_clients) {
+        //   if (!potentialTargetClient.second) continue;
+        //   if (potentialTargetClient.second->playerUuid() == *toPlayerUuid) {
+        //     targetClientId = potentialTargetClient.first;
+        //     targetName = potentialTargetClient.second->descriptiveName();
+        //   }
+        // }
+        // if (targetClientId)
+        //   Logger::warn("[xSB] UniverseServer: Rejected player ('Player:) warp from client {} (UUID {}, name '{}') to client {} (UUID {}, name '{}')",
+        //       clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName(), targetClientId, toPlayerUuid->hex(), targetName);
+        // else
+        //   Logger::warn("[xSB] UniverseServer: Rejected player ('Player:) warp from client {} (UUID {}, name '{}') to connection UUID {} (not connected)",
+        //       clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName(), toPlayerUuid->hex());
+        m_connectionServer->sendPackets(clientId, {make_shared<PlayerWarpResultPacket>(false, warpAction, true)});
+        m_pendingPlayerWarps.remove(clientId);
+      }
+      continue;
+    }
 
     WarpToWorld warpToWorld = resolveWarpAction(warpAction, clientId, deploy);
 
@@ -1786,7 +1835,30 @@ void UniverseServer::packetsReceived(UniverseConnectionServer*, ConnectionId cli
     clientsLocker.unlock();
 
     for (auto& packet : packets) {
+      auto packetType = packet->type();
+
       if (auto warpAction = as<PlayerWarpPacket>(packet)) {
+        auto const& action = warpAction->action;
+        bool blocked = m_secureWarps;
+
+        if (action.is<WarpAlias>() || action.is<WarpToPlayer>()) {
+          blocked = false;
+        } else if (auto warpToWorld = action.ptr<WarpToWorld>()) {
+          if (warpToWorld->world.empty() ||
+              warpToWorld->world.is<ClientShipWorldId>() ||
+              warpToWorld->world.is<CelestialWorldId>() ||
+              warpToWorld->world.is<InstanceWorldId>()) {
+            blocked = false;
+          }
+        }
+
+        if (blocked) {
+          Logger::warn("[xSB] UniverseServer: Blocked invalid warp action from client {} with UUID {}, name '{}')",
+              clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName());
+          m_connectionServer->sendPackets(clientId, {make_shared<PlayerWarpResultPacket>(false, action, true)});
+          continue;
+        }
+
         clientWarpPlayer(clientId, warpAction->action, warpAction->deploy);
 
       } else if (auto flyShip = as<FlyShipPacket>(packet)) {
@@ -1920,7 +1992,7 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
     }
 
     if (!m_speciesShips.contains(clientConnect->playerSpecies)) {
-      connectionFail("Unknown player species. Ensure your mods are compatible with this server.");
+      connectionFail(strf("Unknown player species '{}'. Ensure your mods are compatible with this server.", clientConnect->playerSpecies));
       Logger::warn("UniverseServer: Unknown species name is '{}'", clientConnect->playerSpecies);
       return;
     }
@@ -2012,7 +2084,8 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   m_clients.add(clientId, clientContext);
   clientsLocker.unlock();
 
-  clientContext->registerRpcHandlers(m_teamManager->rpcHandlers());
+  // @Lonaasan: Registers securable RPC handlers for invites.
+  clientContext->registerRpcHandlers(m_teamManager->authenticatedRpcHandlers(clientContext->playerUuid()));
 
   String clientContextFile = File::relativeTo(m_storageDirectory, strf("{}.clientcontext", clientConnect->playerUuid.hex()));
   if (File::isFile(clientContextFile)) {
@@ -2117,6 +2190,7 @@ WarpToWorld UniverseServer::resolveWarpAction(WarpAction warpAction, ConnectionI
       toWorldId = toWorld->world;
     spawnTarget = toWorld->target;
   } else if (auto toPlayerUuid = warpAction.ptr<WarpToPlayer>()) {
+    // if (m_secureWarps && !canWarpToPlayer(clientId, *toPlayerUuid, false)) return {};
     if (auto toClientId = getClientForUuid(*toPlayerUuid)) {
       if (auto toClientWorld = m_clients.get(*toClientId)->playerWorld()) {
         if (auto toClientPosition = toClientWorld->playerRevivePosition(*toClientId)) {
@@ -2146,7 +2220,97 @@ WarpToWorld UniverseServer::resolveWarpAction(WarpAction warpAction, ConnectionI
     }
   }
 
+  // @Lonaasan: Check if the player is allowed to warp to this other player's ship.
+  if (auto shipWorldId = toWorldId.ptr<ClientShipWorldId>()) {
+    if (m_secureWarps && !canWarpToPlayer(clientId, *shipWorldId, true))
+      return {};
+  }
+
   return WarpToWorld(toWorldId, spawnTarget);
+}
+
+// @Lonaasan: Verifies if a player can warp to another player's ship via a `ClientShipWorld:` warp.
+// @FezzedOne: *Or* to the other player via a `Player:` warp.
+bool UniverseServer::canWarpToPlayer(ConnectionId clientId, Uuid const& targetUuid, bool toShip) const {
+  auto clientContext = m_clients.value(clientId);
+  if (!clientContext)
+    return false;
+
+  Uuid callerUuid = clientContext->playerUuid();
+
+  if (targetUuid == callerUuid || clientContext->isAdmin())
+    return true;
+
+  String callerName = clientContext->descriptiveName();
+
+  // @FezzedOne: This checks whether the target world is the same as the originator's current world. If so, lets it through because there
+  // are other ways to do this anyway on worlds to which the player has build permission.
+  for (auto const& potentialTargetClient : m_clients) {
+    if (!potentialTargetClient.second) continue;
+    if (potentialTargetClient.first == clientId) return true;
+    if (potentialTargetClient.second->playerUuid() == targetUuid && (clientContext->playerWorldId() == potentialTargetClient.second->playerWorldId()))
+      return true;
+  }
+
+  auto callerTeam = m_teamManager->getTeam(callerUuid);
+  if (callerTeam) { // FezzedOne: Tweaked to ensure the warning is shown in the log for players not in teams.
+    if (auto ownerTeam = m_teamManager->getTeam(targetUuid)) {
+      if (*ownerTeam == *callerTeam)
+        return true;
+    }
+
+    for (auto const& otherClient : m_clients) {
+      if (!otherClient.second) continue;
+      if (otherClient.first == clientId)
+        continue;
+      auto otherTeam = m_teamManager->getTeam(otherClient.second->playerUuid());
+      if (!otherTeam) continue;
+      if (*otherTeam != *callerTeam) continue;
+      WorldId otherWorldId = otherClient.second->playerWorldId();
+      if (toShip) {
+        if (auto otherShipWorld = otherWorldId.ptr<ClientShipWorldId>()) {
+          if (*otherShipWorld == targetUuid)
+            return true;
+        }
+      } else {
+        for (auto const& potentialTargetClient : m_clients) {
+          if (!potentialTargetClient.second) continue;
+          if (potentialTargetClient.first == clientId) return true;
+          if (potentialTargetClient.second->playerUuid() == targetUuid && (otherWorldId == potentialTargetClient.second->playerWorldId()))
+            return true;
+        }
+      }
+    }
+  }
+
+  String targetName = "<n/a>";
+  ConnectionId targetClientId = ServerConnectionId;
+  for (auto const& potentialTargetClient : m_clients) {
+    if (!potentialTargetClient.second) continue;
+    if (potentialTargetClient.second->playerUuid() == targetUuid) {
+      targetClientId = potentialTargetClient.first;
+      targetName = potentialTargetClient.second->descriptiveName();
+    }
+  }
+  // FezzedOne: Added detailed client names and UUIDs wherever possible to aid in tracking down offending players.
+  if (targetClientId) {
+    if (toShip) {
+      Logger::warn("[xSB] UniverseServer: Rejected ship ('ClientShipWorld:') warp from connection {} (UUID {}, name '{}') to ship owned by connection {} (UUID {}, name '{}'), as target player is not in shared team and no teammates are present",
+          clientId, callerUuid.hex(), callerName, targetClientId, targetUuid.hex(), targetName);
+    } else {
+      Logger::warn("[xSB] UniverseServer: Rejected player ('Player:') warp from connection {} (UUID {}, name '{}'} to ship owned by connection {} (UUID {}, name '{}'), as target player is not in shared team and no teammates are present",
+          clientId, callerUuid.hex(), callerName, targetClientId, targetUuid.hex(), targetName);
+    }
+  } else {
+    if (toShip) {
+      Logger::warn("[xSB] UniverseServer: Rejected ship ('ClientShipWorld:') warp from connection {} (UUID {}, name '{}') to ship owned by player UUID {}, as target player is not in shared team and no teammates are present",
+          clientId, callerUuid.hex(), callerName, targetUuid.hex());
+    } else {
+      Logger::warn("[xSB] UniverseServer: Rejected player ('Player:') warp from connection {} (UUID {}, name '{}') to player UUID {}, as target player is not in shared team and no teammates are present",
+          clientId, callerUuid.hex(), callerName, targetUuid.hex());
+    }
+  }
+  return false;
 }
 
 void UniverseServer::doDisconnection(ConnectionId clientId, String const& reason) {
