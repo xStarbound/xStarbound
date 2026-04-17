@@ -1883,6 +1883,67 @@ void UniverseServer::packetsReceived(UniverseConnectionServer*, ConnectionId cli
           if (clientHasBuildPermission(clientContext, currentSystem, {}))
             currentSystem->pushIncomingPacket(clientId, std::move(packet));
         }
+
+      } else if (auto entityMessage = as<EntityMessagePacket>(packet)) {
+        entityMessage->fromConnection = clientId;
+
+        if (entityMessage->message == "warp") {
+          bool blocked = false;
+
+          WarpAction warpActionToCheck;
+
+          if (entityMessage->args.size() < 1 || !entityMessage->args.get(0).canConvert(Json::Type::String)) {
+            Logger::warn("[xSB] UniverseServer: Blocked warp entity message with invalid arguments from client {} (UUID {}, name '{}')",
+                clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName());
+            blocked = true;
+          } else {
+            try {
+              warpActionToCheck = parseWarpAction(entityMessage->args.get(0).toString());
+            } catch (StarException const&) {
+              Logger::warn("[xSB] UniverseServer: Blocked warp entity message with unparseable warp action from client {} (UUID {}, name '{}')",
+                  clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName());
+              blocked = true;
+            }
+          }
+
+          if (m_secureWarps && !blocked) {
+            if (auto targetEntityId = entityMessage->entityId.ptr<EntityId>()) {
+              auto targetConnection = connectionForEntity(*targetEntityId);
+              bool shouldBlock = false;
+              if (auto warpToWorld = warpActionToCheck.ptr<WarpToWorld>()) {
+                if (auto clientShipWorldWarp = warpToWorld->world.ptr<ClientShipWorldId>())
+                  shouldBlock = !canWarpToPlayer(clientId, *clientShipWorldWarp, true);
+              } else if (auto warpToPlayer = warpActionToCheck.ptr<WarpToPlayer>()) {
+                shouldBlock = !canWarpToPlayer(clientId, *warpToPlayer, false);
+              }
+              bool attemptToWarpUnownedEntity = targetConnection != clientId;
+              if (attemptToWarpUnownedEntity || shouldBlock) {
+                clientsLocker.lock();
+                bool isAdmin = clientContext->isAdmin();
+                clientsLocker.unlock();
+                if (!isAdmin) {
+                  if (attemptToWarpUnownedEntity) {
+                    if (auto targetClient = m_clients.value(targetConnection))
+                      Logger::warn("[xSB] UniverseServer: Blocked warp entity message from non-admin client {} (UUID {}, name '{}') targeting entity owned by connection {} (UUID {}, name '{}')",
+                          clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName(), targetConnection, targetClient->playerUuid().hex(), targetClient->descriptiveName());
+                    else
+                      Logger::warn("[xSB] UniverseServer: Blocked warp entity message from non-admin client {} (UUID {}, name '{}') targeting entity owned by connection {} (not online)",
+                          clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName(), targetConnection);
+                  }
+                  blocked = true;
+                }
+              }
+            }
+          }
+
+          if (blocked) {
+            m_connectionServer->sendPackets(clientId, {make_shared<EntityMessageResponsePacket>(makeLeft(String("Warp entity message blocked by server")), entityMessage->uuid)});
+            continue;
+          }
+        }
+
+        if (auto currentWorld = clientContext->playerWorld())
+          currentWorld->pushIncomingPackets(clientId, {std::move(packet)});
       } else {
         if (auto currentWorld = clientContext->playerWorld())
           currentWorld->pushIncomingPackets(clientId, {std::move(packet)});
