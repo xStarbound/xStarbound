@@ -21,12 +21,12 @@ void TeamManager::updateSecuritySettings() {
   m_polledInvitationTimeout = 600.0;
   m_secureTeams = false;
   if (jBuildPermissionSettings.isType(Json::Type::Object)) {
-    Json jPolledInvitationTimeout = jBuildPermissionSettings.get("teamInvitationTimeout");
+    Json jPolledInvitationTimeout = jBuildPermissionSettings.opt("teamInvitationTimeout").value();
     if (jPolledInvitationTimeout.isType(Json::Type::Float))
       m_polledInvitationTimeout = jPolledInvitationTimeout.toFloat();
     else if (jPolledInvitationTimeout.isType(Json::Type::Int))
       m_polledInvitationTimeout = (double)jPolledInvitationTimeout.toInt();
-    Json jSecureTeams = jBuildPermissionSettings.get("secureTeams");
+    Json jSecureTeams = jBuildPermissionSettings.opt("secureTeams").value();
     if (jSecureTeams.isType(Json::Type::Bool))
       m_secureTeams = jSecureTeams.toBool();
   }

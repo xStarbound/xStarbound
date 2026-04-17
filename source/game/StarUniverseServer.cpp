@@ -221,7 +221,7 @@ void UniverseServer::updateSecuritySettings() {
     Json jBuildPermissionSettings = Root::singleton().configuration()->get("buildPermissionSettings");
     m_secureWarps = false;
     if (jBuildPermissionSettings.isType(Json::Type::Object)) {
-      Json jSecureWarps = jBuildPermissionSettings.get("secureWarps");
+      Json jSecureWarps = jBuildPermissionSettings.opt("secureWarps").value();
       if (jSecureWarps.isType(Json::Type::Bool))
         m_secureWarps = jSecureWarps.toBool();
     }
