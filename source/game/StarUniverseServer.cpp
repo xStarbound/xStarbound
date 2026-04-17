@@ -1038,10 +1038,10 @@ void UniverseServer::warpPlayers() {
         //   }
         // }
         // if (targetClientId)
-        //   Logger::warn("[xSB] UniverseServer: Rejected player ('Player:) warp from client {} (UUID {}, name '{}') to client {} (UUID {}, name '{}')",
+        //   Logger::warn("[xServer] UniverseServer: Rejected player ('Player:) warp from client {} (UUID {}, name '{}') to client {} (UUID {}, name '{}')",
         //       clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName(), targetClientId, toPlayerUuid->hex(), targetName);
         // else
-        //   Logger::warn("[xSB] UniverseServer: Rejected player ('Player:) warp from client {} (UUID {}, name '{}') to connection UUID {} (not connected)",
+        //   Logger::warn("[xServer] UniverseServer: Rejected player ('Player:) warp from client {} (UUID {}, name '{}') to connection UUID {} (not connected)",
         //       clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName(), toPlayerUuid->hex());
         m_connectionServer->sendPackets(clientId, {make_shared<PlayerWarpResultPacket>(false, warpAction, true)});
         m_pendingPlayerWarps.remove(clientId);
@@ -1469,7 +1469,7 @@ void UniverseServer::saveSettings() {
       auto versionedServerData = versioningDatabase->makeCurrentVersionedJson("ServerData", m_serverData);
       VersionedJson::writeFile(versionedServerData, File::relativeTo(m_storageDirectory, "server.dat"));
     } else {
-      Logger::warn("[xSB] UniverseServer: Server data not yet loaded");
+      Logger::warn("[xServer] UniverseServer: Server data not yet loaded");
     }
   }
 }
@@ -1515,7 +1515,7 @@ void UniverseServer::loadSettings() {
       try {
         m_serverData = versioningDatabase->loadVersionedJson(VersionedJson::readFile(serverDataFile), "ServerData");
       } catch (std::exception const& e) {
-        Logger::error("[xSB] UniverseServer: Could not load server data file, loading blank file: {}", outputException(e, false));
+        Logger::error("[xServer] UniverseServer: Could not load server data file, loading blank file: {}", outputException(e, false));
         File::rename(serverDataFile, strf("{}.{}.fail", serverDataFile, Time::millisecondsSinceEpoch()));
         loadBlankServerData();
       }
@@ -1853,7 +1853,7 @@ void UniverseServer::packetsReceived(UniverseConnectionServer*, ConnectionId cli
         }
 
         if (blocked) {
-          Logger::warn("[xSB] UniverseServer: Blocked invalid warp action from client {} with UUID {}, name '{}')",
+          Logger::warn("[xServer] UniverseServer: Blocked invalid warp action from client {} (UUID {}, name '{}')",
               clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName());
           m_connectionServer->sendPackets(clientId, {make_shared<PlayerWarpResultPacket>(false, action, true)});
           continue;
@@ -1893,14 +1893,14 @@ void UniverseServer::packetsReceived(UniverseConnectionServer*, ConnectionId cli
           WarpAction warpActionToCheck;
 
           if (entityMessage->args.size() < 1 || !entityMessage->args.get(0).canConvert(Json::Type::String)) {
-            Logger::warn("[xSB] UniverseServer: Blocked warp entity message with invalid arguments from client {} (UUID {}, name '{}')",
+            Logger::warn("[xServer] UniverseServer: Blocked warp entity message with invalid arguments from client {} (UUID {}, name '{}')",
                 clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName());
             blocked = true;
           } else {
             try {
               warpActionToCheck = parseWarpAction(entityMessage->args.get(0).toString());
             } catch (StarException const&) {
-              Logger::warn("[xSB] UniverseServer: Blocked warp entity message with unparseable warp action from client {} (UUID {}, name '{}')",
+              Logger::warn("[xServer] UniverseServer: Blocked warp entity message with unparseable warp action from client {} (UUID {}, name '{}')",
                   clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName());
               blocked = true;
             }
@@ -1924,10 +1924,13 @@ void UniverseServer::packetsReceived(UniverseConnectionServer*, ConnectionId cli
                 if (!isAdmin) {
                   if (attemptToWarpUnownedEntity) {
                     if (auto targetClient = m_clients.value(targetConnection))
-                      Logger::warn("[xSB] UniverseServer: Blocked warp entity message from non-admin client {} (UUID {}, name '{}') targeting entity owned by connection {} (UUID {}, name '{}')",
+                      Logger::warn("[xServer] UniverseServer: Blocked warp entity message from non-admin client {} (UUID {}, name '{}') targeting entity owned by connection {} (UUID {}, name '{}')",
                           clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName(), targetConnection, targetClient->playerUuid().hex(), targetClient->descriptiveName());
+                    else if (targetConnection == ServerConnectionId)
+                      Logger::warn("[xServer] UniverseServer: Blocked warp entity message from non-admin client {} (UUID {}, name '{}') targeting server-mastered entity",
+                          clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName(), targetConnection);
                     else
-                      Logger::warn("[xSB] UniverseServer: Blocked warp entity message from non-admin client {} (UUID {}, name '{}') targeting entity owned by connection {} (not online)",
+                      Logger::warn("[xServer] UniverseServer: Blocked warp entity message from non-admin client {} (UUID {}, name '{}') targeting entity owned by connection {} (not online)",
                           clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName(), targetConnection);
                   }
                   blocked = true;
@@ -2356,18 +2359,18 @@ bool UniverseServer::canWarpToPlayer(ConnectionId clientId, Uuid const& targetUu
   // FezzedOne: Added detailed client names and UUIDs wherever possible to aid in tracking down offending players.
   if (targetClientId) {
     if (toShip) {
-      Logger::warn("[xSB] UniverseServer: Rejected ship ('ClientShipWorld:') warp from connection {} (UUID {}, name '{}') to ship owned by connection {} (UUID {}, name '{}'), as target player is not in shared team and no teammates are present",
+      Logger::warn("[xServer] UniverseServer: Rejected ship ('ClientShipWorld:') warp from connection {} (UUID {}, name '{}') to ship owned by connection {} (UUID {}, name '{}'), as target player is not in shared team and no teammates are present",
           clientId, callerUuid.hex(), callerName, targetClientId, targetUuid.hex(), targetName);
     } else {
-      Logger::warn("[xSB] UniverseServer: Rejected player ('Player:') warp from connection {} (UUID {}, name '{}'} to ship owned by connection {} (UUID {}, name '{}'), as target player is not in shared team and no teammates are present",
+      Logger::warn("[xServer] UniverseServer: Rejected player ('Player:') warp from connection {} (UUID {}, name '{}'} to ship owned by connection {} (UUID {}, name '{}'), as target player is not in shared team and no teammates are present",
           clientId, callerUuid.hex(), callerName, targetClientId, targetUuid.hex(), targetName);
     }
   } else {
     if (toShip) {
-      Logger::warn("[xSB] UniverseServer: Rejected ship ('ClientShipWorld:') warp from connection {} (UUID {}, name '{}') to ship owned by player UUID {}, as target player is not in shared team and no teammates are present",
+      Logger::warn("[xServer] UniverseServer: Rejected ship ('ClientShipWorld:') warp from connection {} (UUID {}, name '{}') to ship owned by player UUID {}, as target player is not in shared team and no teammates are present",
           clientId, callerUuid.hex(), callerName, targetUuid.hex());
     } else {
-      Logger::warn("[xSB] UniverseServer: Rejected player ('Player:') warp from connection {} (UUID {}, name '{}') to player UUID {}, as target player is not in shared team and no teammates are present",
+      Logger::warn("[xServer] UniverseServer: Rejected player ('Player:') warp from connection {} (UUID {}, name '{}') to player UUID {}, as target player is not in shared team and no teammates are present",
           clientId, callerUuid.hex(), callerName, targetUuid.hex());
     }
   }
