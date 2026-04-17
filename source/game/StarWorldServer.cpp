@@ -513,8 +513,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
             }
           }
         }
-        // [OLD] FezzedOne: For modded client compatibility, we need to specifically allow interactions with players, despite them not being considered interactive entities.
-        // [v4.4] FezzedOne: Nope, nixed that, at least for clients on legacy connections, because they may be retail clients that crash when their mastered player entity is interacted with.
+        // FezzedOne: For modded client compatibility, we need to specifically allow interactions with players, despite them not being considered interactive entities.
         else {
           if (targetEntityConnection == ServerConnectionId) {
             Logger::info("[xServer] WorldServer: Attempted interaction from entity {} (owned by cID {}) with non-interactive server-side entity {} on world '{}'", sourceId, clientId, targetId, Text::stripEscapeCodes(worldId()));
@@ -522,21 +521,21 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
             clientInfo->outgoingPackets.append(make_shared<EntityInteractResultPacket>(interactResult.take(), entityInteract->requestId, sourceId));
           } else {
             if (m_clientInfo.contains(targetEntityConnection)) {
-              if (auto targetPlayer = as<Player>(targetEntity)) {
-                if (auto sourceEntity = as<PortraitEntity>(m_entityMap->entity(sourceId)))
-                  Logger::warn("[xServer] WorldServer: Blocked attempted interaction from from entity {} (name '{}', owned by cID {}) with player entity {} (name '{}', owned by cID {}) on world '{}'",
-                      sourceId, sourceEntity->name(), clientId, targetId, targetPlayer->name(), targetEntityConnection, Text::stripEscapeCodes(worldId()));
-                else
-                  Logger::warn("[xServer] WorldServer: Blocked attempted interaction from entity {} (owned by cID {}) with player entity {} (name '{}', owned by cID {}) on world '{}'",
-                      sourceId, clientId, targetId, targetPlayer->name(), targetEntityConnection, Text::stripEscapeCodes(worldId()));
-              } else {
-                auto const& forwardClientInfo = m_clientInfo.get(targetEntityConnection);
-                if (forwardClientInfo)
-                  forwardClientInfo->outgoingPackets.append(entityInteract);
-                else
-                  Logger::warn("[xServer] WorldServer: Attempted interaction from entity {} (owned by cID {}) with entity {} (owned by cID {} with missing client info) on world '{}'",
-                      sourceId, clientId, targetId, targetEntityConnection, Text::stripEscapeCodes(worldId()));
-              }
+              // if (auto targetPlayer = as<Player>(targetEntity)) {
+              //   if (auto sourceEntity = as<PortraitEntity>(m_entityMap->entity(sourceId)))
+              //     Logger::warn("[xServer] WorldServer: Blocked attempted interaction from from entity {} (name '{}', owned by cID {}) with player entity {} (name '{}', owned by cID {}) on world '{}'",
+              //         sourceId, sourceEntity->name(), clientId, targetId, targetPlayer->name(), targetEntityConnection, Text::stripEscapeCodes(worldId()));
+              //   else
+              //     Logger::warn("[xServer] WorldServer: Blocked attempted interaction from entity {} (owned by cID {}) with player entity {} (name '{}', owned by cID {}) on world '{}'",
+              //         sourceId, clientId, targetId, targetPlayer->name(), targetEntityConnection, Text::stripEscapeCodes(worldId()));
+              // } else {
+              auto const& forwardClientInfo = m_clientInfo.get(targetEntityConnection);
+              if (forwardClientInfo)
+                forwardClientInfo->outgoingPackets.append(entityInteract);
+              else
+                Logger::warn("[xServer] WorldServer: Attempted interaction from entity {} (owned by cID {}) with entity {} (owned by cID {} with missing client info) on world '{}'",
+                    sourceId, clientId, targetId, targetEntityConnection, Text::stripEscapeCodes(worldId()));
+              // }
             } else {
               Logger::warn("[xServer] WorldServer: Attempted interaction from entity {} (owned by cID {}) with entity {} (owned by non-connected cID {}) on world '{}'",
                   sourceId, clientId, targetId, targetEntityConnection, Text::stripEscapeCodes(worldId()));
