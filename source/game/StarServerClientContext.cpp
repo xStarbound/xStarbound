@@ -1,62 +1,62 @@
 #include "StarServerClientContext.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarDataStreamExtra.hpp"
-#include "StarWorldServerThread.hpp"
-#include "StarScriptedEntity.hpp"
 #include "StarContainerEntity.hpp"
+#include "StarDataStreamExtra.hpp"
 #include "StarItemDatabase.hpp"
+#include "StarJsonExtra.hpp"
 #include "StarRoot.hpp"
+#include "StarScriptedEntity.hpp"
 #include "StarUniverseSettings.hpp"
+#include "StarWorldServerThread.hpp"
 
 namespace Star {
 
 ServerClientContext::ServerClientContext(ConnectionId clientId, Maybe<HostAddress> remoteAddress, Uuid playerUuid,
     String playerName, String playerSpecies, bool canBecomeAdmin, WorldChunks initialShipChunks, bool isGuestAccount, Maybe<String> playerAccount)
-  : m_clientId(clientId),
-    m_remoteAddress(remoteAddress),
-    m_playerUuid(playerUuid),
-    m_playerName(playerName),
-    m_playerSpecies(playerSpecies),
-    m_canBecomeAdmin(canBecomeAdmin),
-    m_isGuestAccount(isGuestAccount),
-    m_playerAccount(playerAccount),
-    m_shipChunks(std::move(initialShipChunks)) {
+    : m_clientId(clientId),
+      m_remoteAddress(remoteAddress),
+      m_playerUuid(playerUuid),
+      m_playerName(playerName),
+      m_playerSpecies(playerSpecies),
+      m_canBecomeAdmin(canBecomeAdmin),
+      m_isGuestAccount(isGuestAccount),
+      m_playerAccount(playerAccount),
+      m_shipChunks(std::move(initialShipChunks)) {
   m_rpc.registerHandler("ship.applyShipUpgrades", [this](Json const& args) -> Json {
-      RecursiveMutexLocker locker(m_mutex);
-      setShipUpgrades(shipUpgrades().apply(args));
-      return true;
-    });
+    RecursiveMutexLocker locker(m_mutex);
+    setShipUpgrades(shipUpgrades().apply(args));
+    return true;
+  });
 
   m_rpc.registerHandler("world.containerPutItems", [this](Json const& args) -> Json {
-      List<ItemDescriptor> overflow = args.getArray("items").transformed(construct<ItemDescriptor>());
-      RecursiveMutexLocker locker(m_mutex);
-      if (m_worldThread) {
-        m_worldThread->executeAction([args, &overflow](WorldServerThread*, WorldServer* server) {
-          EntityId entityId = args.getInt("entityId");
-          Json items = args.get("items");
-          auto itemDatabase = Root::singleton().itemDatabase();
-          if (auto containerEntity = as<ContainerEntity>(server->entity(entityId))) {
-            overflow.clear();
-            for (auto const& itemDescriptor : items.iterateArray()) {
-              if (auto left = containerEntity->addItems(itemDatabase->item(ItemDescriptor(itemDescriptor))).result().value())
-                overflow.append(left->descriptor());
-            }
+    List<ItemDescriptor> overflow = args.getArray("items").transformed(construct<ItemDescriptor>());
+    RecursiveMutexLocker locker(m_mutex);
+    if (m_worldThread) {
+      m_worldThread->executeAction([args, &overflow](WorldServerThread*, WorldServer* server) {
+        EntityId entityId = args.getInt("entityId");
+        Json items = args.get("items");
+        auto itemDatabase = Root::singleton().itemDatabase();
+        if (auto containerEntity = as<ContainerEntity>(server->entity(entityId))) {
+          overflow.clear();
+          for (auto const& itemDescriptor : items.iterateArray()) {
+            if (auto left = containerEntity->addItems(itemDatabase->item(ItemDescriptor(itemDescriptor))).result().value())
+              overflow.append(left->descriptor());
           }
-        });
-      }
-      return overflow.transformed(mem_fn(&ItemDescriptor::toJson));
-    });
+        }
+      });
+    }
+    return overflow.transformed(mem_fn(&ItemDescriptor::toJson));
+  });
 
   m_rpc.registerHandler("universe.setFlag", [this](Json const& args) -> Json {
-      auto flagName = args.toString();
-      RecursiveMutexLocker locker(m_mutex);
-      if (m_worldThread) {
-        m_worldThread->executeAction([flagName](WorldServerThread*, WorldServer* server) {
-          server->universeSettings()->setFlag(flagName);
-        });
-      }
-      return Json();
-    });
+    auto flagName = args.toString();
+    RecursiveMutexLocker locker(m_mutex);
+    if (m_worldThread) {
+      m_worldThread->executeAction([flagName](WorldServerThread*, WorldServer* server) {
+        server->universeSettings()->setFlag(flagName);
+      });
+    }
+    return Json();
+  });
 
   m_netGroup.addNetElement(&m_orbitWarpActionNetState);
   m_netGroup.addNetElement(&m_playerWorldIdNetState);
@@ -284,14 +284,13 @@ void ServerClientContext::loadServerData(Json const& store) {
 Json ServerClientContext::storeServerData() {
   RecursiveMutexLocker locker(m_mutex);
   auto store = JsonObject{
-    {"shipCoordinate", m_shipCoordinate.get().toJson()},
-    {"systemLocation", jsonFromSystemLocation(m_shipSystemLocation)},
-    {"isAdmin", m_isAdminNetState.get()},
-    {"team", team().toJson()},
-    {"reviveWarp", m_reviveWarp.toJson()},
-    {"returnWarp", m_returnWarp.toJson()}
-  };
+      {"shipCoordinate", m_shipCoordinate.get().toJson()},
+      {"systemLocation", jsonFromSystemLocation(m_shipSystemLocation)},
+      {"isAdmin", m_isAdminNetState.get()},
+      {"team", team().toJson()},
+      {"reviveWarp", m_reviveWarp.toJson()},
+      {"returnWarp", m_returnWarp.toJson()}};
   return store;
 }
 
-}
+} // namespace Star

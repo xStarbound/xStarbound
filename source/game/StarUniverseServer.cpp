@@ -2219,8 +2219,14 @@ WarpToWorld UniverseServer::resolveWarpAction(WarpAction warpAction, ConnectionI
   if (auto toWorld = warpAction.ptr<WarpToWorld>()) {
     if (!toWorld->world)
       toWorldId = clientContext->playerWorldId();
-    else
+    else {
+      // @Lonaasan: Check if the player is allowed to warp to this other player's ship.
+      if (auto shipWorldId = toWorldId.ptr<ClientShipWorldId>()) {
+        if (!canWarpToPlayer(clientId, *shipWorldId, true))
+          return {};
+      }
       toWorldId = toWorld->world;
+    }
     spawnTarget = toWorld->target;
   } else if (auto toPlayerUuid = warpAction.ptr<WarpToPlayer>()) {
     if (!canWarpToPlayer(clientId, *toPlayerUuid, false)) return {};
@@ -2238,6 +2244,11 @@ WarpToWorld UniverseServer::resolveWarpAction(WarpAction warpAction, ConnectionI
   } else if (auto shortcut = warpAction.ptr<WarpAlias>()) {
     if (*shortcut == WarpAlias::Return) {
       if (auto returnWarp = clientContext->playerReturnWarp()) {
+        // FezzedOne: Don't forget to check return warps too!
+        if (auto shipWorldId = returnWarp.world.ptr<ClientShipWorldId>()) {
+          if (!canWarpToPlayer(clientId, *shipWorldId, true))
+            return {};
+        }
         toWorldId = returnWarp.world;
         spawnTarget = returnWarp.target;
       }
@@ -2251,12 +2262,6 @@ WarpToWorld UniverseServer::resolveWarpAction(WarpAction warpAction, ConnectionI
     } else if (*shortcut == WarpAlias::OwnShip) {
       toWorldId = ClientShipWorldId(clientContext->playerUuid());
     }
-  }
-
-  // @Lonaasan: Check if the player is allowed to warp to this other player's ship.
-  if (auto shipWorldId = toWorldId.ptr<ClientShipWorldId>()) {
-    if (!canWarpToPlayer(clientId, *shipWorldId, true))
-      return {};
   }
 
   return WarpToWorld(toWorldId, spawnTarget);
@@ -2329,10 +2334,10 @@ bool UniverseServer::canWarpToPlayer(ConnectionId clientId, Uuid const& targetUu
   // FezzedOne: Added detailed client names and UUIDs wherever possible to aid in tracking down offending players.
   if (targetClientId) {
     if (toShip) {
-      Logger::warn("[xServer] UniverseServer: Rejected ship ('ClientShipWorld:') warp from connection {} (UUID {}, name '{}') to ship owned by connection {} (UUID {}, name '{}'), as target player is not in shared team and no teammates are present",
+      Logger::warn("[xServer] UniverseServer: Rejected ship ('ClientShipWorld:') warp from connection {} (UUID {}, name '{}') to ship owned by cID {} (UUID {}, name '{}'), as target player is not in shared team and no teammates are present",
           clientId, callerUuid.hex(), callerName, targetClientId, targetUuid.hex(), targetName);
     } else {
-      Logger::warn("[xServer] UniverseServer: Rejected player ('Player:') warp from connection {} (UUID {}, name '{}'} to ship owned by connection {} (UUID {}, name '{}'), as target player is not in shared team and no teammates are present",
+      Logger::warn("[xServer] UniverseServer: Rejected player ('Player:') warp from connection {} (UUID {}, name '{}') to player with cID {} (UUID {}, name '{}'), as target player is not in shared team and no teammates are present",
           clientId, callerUuid.hex(), callerName, targetClientId, targetUuid.hex(), targetName);
     }
   } else {
