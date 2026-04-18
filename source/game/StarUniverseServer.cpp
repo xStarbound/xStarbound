@@ -2282,7 +2282,6 @@ bool UniverseServer::canWarpToPlayer(ConnectionId clientId, Uuid const& targetUu
   // are other ways to do this anyway on worlds to which the player has build permission.
   for (auto const& potentialTargetClient : m_clients) {
     if (!potentialTargetClient.second) continue;
-    if (potentialTargetClient.first == clientId) return true;
     if (potentialTargetClient.second->playerUuid() == targetUuid && (clientContext->playerWorldId() == potentialTargetClient.second->playerWorldId()))
       return true;
   }
@@ -2310,7 +2309,6 @@ bool UniverseServer::canWarpToPlayer(ConnectionId clientId, Uuid const& targetUu
       } else {
         for (auto const& potentialTargetClient : m_clients) {
           if (!potentialTargetClient.second) continue;
-          if (potentialTargetClient.first == clientId) return true;
           if (potentialTargetClient.second->playerUuid() == targetUuid && (otherWorldId == potentialTargetClient.second->playerWorldId()))
             return true;
         }
