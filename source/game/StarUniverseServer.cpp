@@ -1018,37 +1018,6 @@ void UniverseServer::warpPlayers() {
     if (!clientContext)
       continue;
 
-    if (auto toPlayerUuid = warpAction.ptr<WarpToPlayer>()) {
-      bool authorized = clientContext->isAdmin() || !m_secureWarps;
-      if (!authorized) {
-        // auto requesterTeam = m_teamManager->getTeam(clientContext->playerUuid());
-        // auto targetTeam = m_teamManager->getTeam(*toPlayerUuid);
-        // if (requesterTeam && targetTeam && *requesterTeam == *targetTeam)
-        //   authorized = true;
-        authorized = canWarpToPlayer(clientId, *toPlayerUuid, false);
-      }
-      if (!authorized) {
-        // String targetName = "<n/a>";
-        // ConnectionId targetClientId = ServerConnectionId;
-        // for (auto const& potentialTargetClient : m_clients) {
-        //   if (!potentialTargetClient.second) continue;
-        //   if (potentialTargetClient.second->playerUuid() == *toPlayerUuid) {
-        //     targetClientId = potentialTargetClient.first;
-        //     targetName = potentialTargetClient.second->descriptiveName();
-        //   }
-        // }
-        // if (targetClientId)
-        //   Logger::warn("[xServer] UniverseServer: Rejected player ('Player:) warp from client {} (UUID {}, name '{}') to client {} (UUID {}, name '{}')",
-        //       clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName(), targetClientId, toPlayerUuid->hex(), targetName);
-        // else
-        //   Logger::warn("[xServer] UniverseServer: Rejected player ('Player:) warp from client {} (UUID {}, name '{}') to connection UUID {} (not connected)",
-        //       clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName(), toPlayerUuid->hex());
-        m_connectionServer->sendPackets(clientId, {make_shared<PlayerWarpResultPacket>(false, warpAction, true)});
-        m_pendingPlayerWarps.remove(clientId);
-      }
-      continue;
-    }
-
     WarpToWorld warpToWorld = resolveWarpAction(warpAction, clientId, deploy);
 
     if (auto maybeToWorld = triggerWorldCreation(warpToWorld.world)) {
@@ -2254,7 +2223,7 @@ WarpToWorld UniverseServer::resolveWarpAction(WarpAction warpAction, ConnectionI
       toWorldId = toWorld->world;
     spawnTarget = toWorld->target;
   } else if (auto toPlayerUuid = warpAction.ptr<WarpToPlayer>()) {
-    // if (m_secureWarps && !canWarpToPlayer(clientId, *toPlayerUuid, false)) return {};
+    if (!canWarpToPlayer(clientId, *toPlayerUuid, false)) return {};
     if (auto toClientId = getClientForUuid(*toPlayerUuid)) {
       if (auto toClientWorld = m_clients.get(*toClientId)->playerWorld()) {
         if (auto toClientPosition = toClientWorld->playerRevivePosition(*toClientId)) {
@@ -2286,7 +2255,7 @@ WarpToWorld UniverseServer::resolveWarpAction(WarpAction warpAction, ConnectionI
 
   // @Lonaasan: Check if the player is allowed to warp to this other player's ship.
   if (auto shipWorldId = toWorldId.ptr<ClientShipWorldId>()) {
-    if (m_secureWarps && !canWarpToPlayer(clientId, *shipWorldId, true))
+    if (!canWarpToPlayer(clientId, *shipWorldId, true))
       return {};
   }
 
@@ -2299,6 +2268,8 @@ bool UniverseServer::canWarpToPlayer(ConnectionId clientId, Uuid const& targetUu
   auto clientContext = m_clients.value(clientId);
   if (!clientContext)
     return false;
+
+  if (!m_secureWarps) return true;
 
   Uuid callerUuid = clientContext->playerUuid();
 
@@ -2354,6 +2325,7 @@ bool UniverseServer::canWarpToPlayer(ConnectionId clientId, Uuid const& targetUu
     if (potentialTargetClient.second->playerUuid() == targetUuid) {
       targetClientId = potentialTargetClient.first;
       targetName = potentialTargetClient.second->descriptiveName();
+      break;
     }
   }
   // FezzedOne: Added detailed client names and UUIDs wherever possible to aid in tracking down offending players.
