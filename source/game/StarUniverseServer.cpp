@@ -2222,7 +2222,7 @@ WarpToWorld UniverseServer::resolveWarpAction(WarpAction warpAction, ConnectionI
       toWorldId = clientContext->playerWorldId();
     else {
       // @Lonaasan: Checks if a player is allowed to warp to another player's ship.
-      if (auto shipWorldId = toWorldId.ptr<ClientShipWorldId>()) {
+      if (auto shipWorldId = toWorld->world.ptr<ClientShipWorldId>()) {
         if (!canWarpToPlayer(clientId, *shipWorldId, true))
           return {};
       }
