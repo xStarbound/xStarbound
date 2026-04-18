@@ -1067,7 +1067,8 @@ void UniverseServer::warpPlayers() {
           m_pendingPlayerWarps.remove(clientId);
         }
       } else {
-        Logger::info("UniverseServer: Warping player {} failed, invalid world '{}' or world failed to load", clientId, printWorldId(warpToWorld.world));
+        if (!warpToWorld.world.empty()) // FezzedOne: Treat 'Nowhere' warps as valid and don't log a spurious «invalid world» error.
+          Logger::info("UniverseServer: Warping player {} failed, invalid world '{}' or world failed to load", clientId, printWorldId(warpToWorld.world));
         m_connectionServer->sendPackets(clientId, {make_shared<PlayerWarpResultPacket>(false, warpAction, false)});
         m_pendingPlayerWarps.remove(clientId);
       }
@@ -2220,7 +2221,7 @@ WarpToWorld UniverseServer::resolveWarpAction(WarpAction warpAction, ConnectionI
     if (!toWorld->world)
       toWorldId = clientContext->playerWorldId();
     else {
-      // @Lonaasan: Check if the player is allowed to warp to this other player's ship.
+      // @Lonaasan: Checks if a player is allowed to warp to another player's ship.
       if (auto shipWorldId = toWorldId.ptr<ClientShipWorldId>()) {
         if (!canWarpToPlayer(clientId, *shipWorldId, true))
           return {};
@@ -2282,13 +2283,18 @@ bool UniverseServer::canWarpToPlayer(ConnectionId clientId, Uuid const& targetUu
     return true;
 
   String callerName = clientContext->descriptiveName();
+  WorldId callerWorldId = clientContext->playerWorldId();
 
   // @FezzedOne: This checks whether the target world is the same as the originator's current world. If so, lets it through because there
   // are other ways to do this anyway on worlds to which the player has build permission.
-  for (auto const& potentialTargetClient : m_clients) {
-    if (!potentialTargetClient.second) continue;
-    if (potentialTargetClient.second->playerUuid() == targetUuid && (clientContext->playerWorldId() == potentialTargetClient.second->playerWorldId()))
-      return true;
+  if (toShip && callerWorldId == ClientShipWorldId(targetUuid)) return true;
+
+  if (!toShip) {
+    for (auto const& potentialTargetClient : m_clients) {
+      if (!potentialTargetClient.second) continue;
+      if (potentialTargetClient.second->playerUuid() == targetUuid && (callerWorldId == potentialTargetClient.second->playerWorldId()))
+        return true;
+    }
   }
 
   auto callerTeam = m_teamManager->getTeam(callerUuid);
