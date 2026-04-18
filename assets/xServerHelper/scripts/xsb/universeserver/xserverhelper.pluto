@@ -1099,7 +1099,7 @@ function init()
                 elseif timeout <= 0.0 then
                     duration = "none. Team invites disabled!"
                 else
-                    duration = tostring(timeout) .. (timeout <= 1.0 ? "second." : "seconds.")
+                    duration = tostring(timeout) .. (timeout <= 1.0 ? " second." : " seconds.")
                     if timeout < 15.0 then
                         duration ..= " Players may not be able to reliably accept team invites! Consider increasing the \"teamInvitationTimeout\" to 15 seconds or longer."
                     elseif timeout > 1800.0 then
