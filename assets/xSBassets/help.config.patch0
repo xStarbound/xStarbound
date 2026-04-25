@@ -12,8 +12,14 @@
         "op": "remove",
         "path": "/debugCommands/eval"
     },
-    {
-        "op": "remove",
-        "path": "/debugCommands/togglelayer"
-    }
+    [
+        {
+            "op": "test",
+            "path": "/debugCommands/togglelayer"
+        },
+        {
+            "op": "remove",
+            "path": "/debugCommands/togglelayer"
+        }
+    ]
 ]
