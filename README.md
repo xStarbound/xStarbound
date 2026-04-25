@@ -149,7 +149,7 @@ The following mods have special functionality that requires or is supported by x
 - [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — fully supported by xStarbound, including keybinds, as of v3.1.6. (Bravo for getting rid of the sandbox-breaking code, Patman!)
 - [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — fully supported by xStarbound. Use `/resetinventoryposition` if your inventory ends up off-screen after installation.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xStarbound as of xSB v2.3.7.
-- [scorchedcityfridge.png](https://steamcommunity.com/sharedfiles/filedetails/?id=3702246480) — requires xStarbound or OpenStarbound.
+- [scorchedcityfridge.png](https://steamcommunity.com/sharedfiles/filedetails/?id=3702246480) — requires xStarbound or OpenStarbound. Ensure you have plenty of RAM when loading Starbound with this mod, especially on a large modpack.
 - [Searchable Colony Tags](https://steamcommunity.com/sharedfiles/filedetails/?id=3496192756) — requires xStarbound or OpenStarbound.
 - [Shut up about raceeffects](https://steamcommunity.com/sharedfiles/filedetails/?id=3549581457) — requires xStarbound or OpenStarbound. Recommended if you have [Frackin' Races](https://steamcommunity.com/sharedfiles/filedetails/?id=763259329) installed.
 - [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111), [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) and other mods based on the framework — xStarbound supports «nice» non-pixelated scaling as of v2.4.1.1.
@@ -169,6 +169,7 @@ The following mods have special functionality that requires or is supported by x
 - [xDPC](https://github.com/FezzedOne/xDPC) — requires xStarbound for full support, but also works on OpenStarbound and StarExtensions, albeit with a few missing features.
 - [xSIP](https://github.com/fezzedone/xSIP) — xSIP's universal mod support requires xStarbound v2.5+ or OpenStarbound.
 - [xWEdit](https://github.com/fezzedone/xWEdit) — this WEdit fork requires xStarbound for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
+- [Ztarbound S.A.I.L. All-In-One Race Support](https://steamcommunity.com/sharedfiles/filedetails/?id=3506162421) — requires xStarbound or OpenStarbound.
 - Mods that change the size or number of bags in the inventory or hotbar — as of xSB v2.4, xStarbound gives these mods full compatibility with vanilla multiplayer and existing characters «out of the box».
 
 ### Requires xSBCompat
@@ -182,6 +183,7 @@ xStarbound now has a «universal mod compatibiliser» called xSBCompat! xSBCompa
 - [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — xSBCompat required to render an OpenStarbound check toothless.
 - [Dynamic Proximity Chat](https://steamcommunity.com/sharedfiles/filedetails/?id=3450266347) ([GitHub](https://github.com/cptsalt/Dynamic-Proximity-Chat)) — may have minor compatibility issues even with xSBCompat. xStarbound users should use FezzedOne's fork [xDPC](https://github.com/FezzedOne/xDPC), which does not require xSBcompat, instead, unless the «mainline» Dynamic Proximity Chat is required for a server. Note that xDPC doesn't interact at all with «mainline» Dynamic Proximity Chat and acts as an entirely separate plugin now.
 - [Frackin' Universe](https://steamcommunity.com/sharedfiles/filedetails/?id=729480149) ([GitHub](https://github.com/sayterdarkwynd/FrackinUniverse)) — xSBCompat fixes an xStarbound sandbox compatibility issue in FU's power script that prevents power from being transferred in some object configurations.
+- [Frackin' Universe - Modular Mech Double-Tap Hotkey](https://steamcommunity.com/sharedfiles/filedetails/?id=3711559427) — listed here only because its Frackin' Universe dependency requires xSBCompat.
 - [Hunger Fighting Chairs](https://steamcommunity.com/sharedfiles/filedetails/?id=3546473893) — requires xSBCompat to defang an unnecessary OpenStarbound check.
 - [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — xSBCompat adds support for the keybind.
 - [Infiniter Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3514830972) ([GitHub](https://github.com/bongus-jive/infiniter-inventory)) — all features supported.
