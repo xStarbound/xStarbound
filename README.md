@@ -177,6 +177,7 @@ The following mods have special functionality that requires or is supported by x
 xStarbound now has a «universal mod compatibiliser» called xSBCompat! xSBCompat is available as a separate download on the xStarbound downloads page, and _requires_ xStarbound, so it should be installed in your `xsb-assets/` directory. The following mods require xSBCompat to resolve compatibility issues:
 
 - [All Items are Stackable!](https://steamcommunity.com/sharedfiles/filedetails/?id=3370469697) — needs xSBCompat to remove an unnecessary OpenStarbound check.
+- [All Reward Items Faster & Stackable](https://steamcommunity.com/sharedfiles/filedetails/?id=3714760211) — ditto.
 - [Automatically Scan Objects!](https://steamcommunity.com/sharedfiles/filedetails/?id=3545869822) — ditto.
 - [Betabound!](https://steamcommunity.com/workshop/filedetails/?id=2010607826) — xSBCompat fixes compatibility issues, but doesn't enable a few OpenStarbound-specific bits and bobs.
 - [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — no comment.
