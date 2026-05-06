@@ -889,3 +889,35 @@ end, |e| -> do
 end)
 
 ::skipFutaraZanaPatch::
+
+if not ("bookstore" in loadedMods) then goto skipBookstorePatch end
+modName = "GonDragon's The Bookstore"
+
+xpcall(|| -> do
+    -- Fixes a script error caused by a non-integer number (likely the result of os.clock) being passed to math.randomseed, which no longer accepts floating point values in Lua 5.4.
+    local bookstoreScriptPath = "/objects/newsstand/newsstand.lua"
+    local bookstoreScript = assets.bytes(bookstoreScriptPath)
+
+    local bookstoreScriptPatch = [==[
+    local old_math_randomseed = math.randomseed
+    math.randomseed = function(seed)
+        local fixedSeed = 0
+        if type(seed) == "number" then
+            fixedSeed = math.tointeger(seed) ? seed : math.floor((seed + 0.5) * 1000)
+            -- FezzedOne: Just to cover edge cases.
+            fixedSeed = math.tointeger(fixedSeed) or 0
+        end
+        return old_math_randomseed(fixedSeed)
+    end
+
+    ---<< BEGINNING OF ORIGINAL BOOKSTORE SCRIPT >>---
+    ]==]
+
+    assets.add(bookstoreScriptPath, bookstoreScriptPatch .. bookstoreScript)
+
+    logInfo(modName)
+end, |e| -> do
+    logError(modName, e)
+end)
+
+::skipBookstorePatch::
