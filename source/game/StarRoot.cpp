@@ -427,6 +427,7 @@ AssetsConstPtr Root::assets() {
     assetDirectories.appendAll(m_modDirectories);
 
     auto assets = make_shared<Assets>(m_settings.assetsSettings, scanForAssetSources(assetDirectories));
+    GameObjectRegistry::cleanUpRegistry();
     Logger::info("Assets digest is {}", hexEncode(assets->digest()));
     return assets;
   });

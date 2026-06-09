@@ -149,8 +149,8 @@ UniverseServer::UniverseServer(String const& storageDir)
     m_assetsDigest = assets->digest();
   }
 
-  m_commandProcessor = make_shared<CommandProcessor>(this);
-  m_chatProcessor = make_shared<ChatProcessor>();
+  m_commandProcessor = makeObject<CommandProcessor>(this);
+  m_chatProcessor = makeObject<ChatProcessor>();
   m_chatProcessor->setCommandHandler(bind(&CommandProcessor::userCommand, m_commandProcessor.get(), _1, _2, _3));
 
   Logger::info("UniverseServer: Acquiring universe lock file");
@@ -167,7 +167,7 @@ UniverseServer::UniverseServer(String const& storageDir)
     }
   }
 
-  m_celestialDatabase = make_shared<CelestialMasterDatabase>(File::relativeTo(m_storageDirectory, "universe.chunks"));
+  m_celestialDatabase = makeObject<CelestialMasterDatabase>(File::relativeTo(m_storageDirectory, "universe.chunks"));
 
   Logger::info("UniverseServer: Loading settings");
   loadSettings();
@@ -188,9 +188,9 @@ UniverseServer::UniverseServer(String const& storageDir)
   for (auto const& pair : assets->json("/universe_server.config:speciesShips").iterateObject())
     m_speciesShips[pair.first] = jsonToStringList(pair.second);
 
-  m_teamManager = make_shared<TeamManager>();
+  m_teamManager = makeObject<TeamManager>();
   m_workerPool.start(assets->json("/universe_server.config:workerPoolThreads").toUInt());
-  m_connectionServer = make_shared<UniverseConnectionServer>(bind(&UniverseServer::packetsReceived, this, _1, _2, _3));
+  m_connectionServer = makeObject<UniverseConnectionServer>(bind(&UniverseServer::packetsReceived, this, _1, _2, _3));
 
   m_pause = make_shared<atomic<bool>>(false);
 
@@ -687,6 +687,7 @@ void UniverseServer::run() {
       doTriggeredStorage();
       updateCommandScript((float)(Time::monotonicTime() - m_lastScriptUpdate));
       updateSecuritySettings();
+      GameObjectRegistry::cleanUpRegistry();
       m_lastScriptUpdate = Time::monotonicTime();
     } catch (std::exception const& e) {
       Logger::error("UniverseServer: exception caught: {}", outputException(e, true));

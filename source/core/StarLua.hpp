@@ -11,6 +11,13 @@
 #include "StarRefPtr.hpp"
 #include "StarString.hpp"
 
+#if defined TRACY_ENABLE
+#include "tracy/Tracy.hpp"
+#else
+#define ZoneScoped
+#define ZoneScopedN(name)
+#endif
+
 namespace Star {
 
 class LuaEngine;
@@ -162,7 +169,9 @@ public:
   }
 
   // FezzedOne: If an object is accidentally deregistered (from Lua bindings' view) with this function too early and later accessed via a `SmugglePtr` in a Lua script,
-  // it'll just throw and Lua/Pluto will catch it as an error. If there was nothing tied to that key, does nothing.
+  // it'll just throw and Lua/Pluto will catch it as an error. If there was nothing tied to that key, does nothing. The `rawPtr` argument should be the pointer to
+  // whatever the object's most derived class is (for polymorphic objects) and hence should be acquired with `resolveKey` before any destructors get called. In any case,
+  // direct calls to this method should be entirely unnecessary.
   template <typename ObjectType>
   static void deregisterGameObject(void* rawPtr) {
     gameObjectRegistry().erase(rawPtr);
@@ -198,6 +207,7 @@ public:
   }
 
   static void cleanUpRegistry() {
+    ZoneScopedN("Game object registry cleanup for thread");
     List<void*> pointersToRemove;
     for (auto& entry : gameObjectRegistry()) {
       if (entry.second.second.expired())

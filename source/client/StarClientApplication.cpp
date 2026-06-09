@@ -7,6 +7,7 @@
 #include "StarInput.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarLogging.hpp"
+#include "StarLua.hpp"
 #include "StarPlayer.hpp"
 #include "StarPlayerLog.hpp"
 #include "StarPlayerStorage.hpp"
@@ -440,6 +441,7 @@ void ClientApplication::update() {
   m_guiContext->cleanup();
   m_edgeKeyEvents.clear();
   m_input->reset();
+  GameObjectRegistry::cleanUpRegistry();
 }
 
 void ClientApplication::render() {
@@ -743,7 +745,8 @@ void ClientApplication::changeState(MainAppState newState) {
 
     m_titleScreen->stopMusic();
 
-    m_mainInterface = make_shared<MainInterface>(m_universeClient, m_worldPainter, m_cinematicOverlay);
+    // FezzedOne: Needs `makeObject` for legacy Lua smuggling because it's completely reset on player swaps.
+    m_mainInterface = makeObject<MainInterface>(m_universeClient, m_worldPainter, m_cinematicOverlay);
     m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), true), 1);
     m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), false), 2);
     // [OpenStarbound] Kae: Added camera callbacks.
