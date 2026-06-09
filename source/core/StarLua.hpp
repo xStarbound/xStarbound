@@ -117,12 +117,18 @@ public:
 // FezzedOne: Needed for dynamic casting of `SmugglePtr`'s.
 template <typename Type1, typename Type2>
 SmugglePtr<Type1> as(SmugglePtr<Type2> const& p) {
-  return SmugglePtr(dynamic_pointer_cast<Type1>(p.m_ptr.lock()), p.m_uniqueId);
+  if (auto lockedPtr = p.m_ptr.lock())
+    return SmugglePtr(dynamic_pointer_cast<Type1>(lockedPtr), p.m_uniqueId);
+  else
+    return SmugglePtr<Type1>();
 }
 
 template <typename Type1, typename Type2>
 SmugglePtr<Type1 const> as(SmugglePtr<Type2 const> const& p) {
-  return SmugglePtr(dynamic_pointer_cast<Type1 const>(p.m_ptr.lock()), p.m_uniqueId);
+  if (auto lockedPtr = p.m_ptr.lock())
+    return SmugglePtr(dynamic_pointer_cast<Type1 const>(lockedPtr), p.m_uniqueId);
+  else
+    return SmugglePtr<Type1>();
 }
 
 // FezzedOne: Per-thread Unreal-like object registry. Needed to make Lua smuggling actually memory-safe when the `"legacySmuggling"` setting is enabled for mod compatibility.
@@ -220,7 +226,7 @@ public:
 
 template <typename ObjectType, typename... Args>
 std::shared_ptr<ObjectType> makeObject(Args&&... args) {
-  std::shared_ptr<ObjectType> newGameObject = make_shared<ObjectType>(args...);
+  std::shared_ptr<ObjectType> newGameObject = make_shared<ObjectType>(std::forward<Args>(args)...);
   GameObjectRegistry::registerGameObject(newGameObject.get(), newGameObject);
   return newGameObject;
 }
