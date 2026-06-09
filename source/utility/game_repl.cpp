@@ -1,7 +1,6 @@
 #include "StarRootLoader.hpp"
 #include "StarRootLuaBindings.hpp"
 #include "StarUtilityLuaBindings.hpp"
-#include "StarRootLuaBindings.hpp"
 
 #ifdef STAR_USE_RPMALLOC
 #include "rpmalloc.h"
@@ -56,6 +55,8 @@ int main(int argc, char** argv) {
       coutf("Error: {}\n", outputException(e, false));
       continuation = false;
     }
+
+    GameObjectRegistry::cleanUpRegistry();
   }
 #ifdef STAR_USE_RPMALLOC
   ::rpmalloc_finalize();
