@@ -36,6 +36,197 @@ STAR_EXCEPTION(LuaRecursionLimitReached, LuaException);
 // different type.
 STAR_EXCEPTION(LuaConversionException, LuaException);
 
+// FezzedOne: Thrown when a smuggled Lua binding attempts to access a nonexistent object.
+STAR_EXCEPTION(LuaDereferenceException, LuaException);
+
+// FezzedOne: Wrapper class for pointers passed into Lua binding constructors.
+template <typename ObjectType>
+class SmugglePtr {
+public:
+  // FezzedOne: Internal weak reference to an object.
+  std::weak_ptr<ObjectType> m_ptr;
+  size_t m_uniqueId; // Currently unused because `weak_ptr`s are used to track lifetimes.
+
+  SmugglePtr(std::shared_ptr<ObjectType> objectPointer, size_t uniqueId) {
+    m_ptr = objectPointer;
+    m_uniqueId = uniqueId;
+  }
+
+  SmugglePtr(std::weak_ptr<ObjectType> objectPointer, size_t uniqueId) {
+    m_ptr = objectPointer;
+    m_uniqueId = uniqueId;
+  }
+
+  SmugglePtr() : SmugglePtr(std::weak_ptr<ObjectType>(), 0) {}
+
+  SmugglePtr(std::nullptr_t) : SmugglePtr(std::weak_ptr<ObjectType>(), 0) {}
+
+  SmugglePtr(SmugglePtr const& r) : SmugglePtr(r.m_ptr, r.m_uniqueId) {}
+
+  SmugglePtr(SmugglePtr&& r) {
+    m_ptr = r.m_ptr;
+    m_uniqueId = r.m_uniqueId;
+    r.m_ptr = nullptr;
+    r.m_uniqueId = 0;
+  }
+
+  SmugglePtr& operator=(SmugglePtr const& r) {
+    m_ptr = r.m_ptr;
+    m_uniqueId = r.m_uniqueId;
+    return *this;
+  }
+
+  SmugglePtr& operator=(SmugglePtr&& r) {
+    m_ptr = r.m_ptr;
+    m_uniqueId = r.m_uniqueId;
+    r.m_ptr = nullptr;
+    r.m_uniqueId = 0;
+    return *this;
+  }
+
+  operator bool() const {
+    return (bool)m_ptr.lock();
+  }
+
+  ObjectType& operator*() const {
+    if (auto lockedPtr = m_ptr.lock())
+      return *lockedPtr;
+    throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
+  }
+
+  ObjectType* operator->() const {
+    if (auto lockedPtr = m_ptr.lock())
+      return lockedPtr;
+    throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
+  }
+
+  ObjectType* get() const {
+    if (auto lockedPtr = m_ptr.lock())
+      return lockedPtr;
+    throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
+  }
+};
+
+// FezzedOne: Needed for dynamic casting of `SmugglePtr`'s.
+template <typename Type1, typename Type2>
+SmugglePtr<Type1> as(SmugglePtr<Type2> const& p) {
+  return SmugglePtr(dynamic_pointer_cast<Type1>(p.m_ptr.lock()), p.m_uniqueId);
+}
+
+template <typename Type1, typename Type2>
+SmugglePtr<Type1 const> as(SmugglePtr<Type2 const> const& p) {
+  return SmugglePtr(dynamic_pointer_cast<Type1 const>(p.m_ptr.lock()), p.m_uniqueId);
+}
+
+// FezzedOne: Per-thread Unreal-like object registry. Needed to make Lua smuggling actually memory-safe when the `"legacySmuggling"` setting is enabled for mod compatibility.
+// Only use statically! Register any objects referenced by Lua bindings in their constructors with `GameObjectRegistry::registerGameObject` and deregister any such objects with
+// `GameObjectRegistry::deregisterGameObject`.
+class GameObjectRegistry {
+private:
+  static HashMap<void*, std::pair<size_t, std::weak_ptr<void>>>& gameObjectRegistry() {
+    static thread_local HashMap<void*, std::pair<size_t, std::weak_ptr<void>>> s_gameObjectRegistry;
+    return s_gameObjectRegistry;
+  }
+
+  static size_t& getUniqueId() {
+    static thread_local size_t s_uniqueId = 0;
+    return s_uniqueId;
+  }
+
+  static void incrementUniqueId() {
+    getUniqueId()++;
+    if (getUniqueId() == 0)
+      getUniqueId()++;
+  }
+
+public:
+  template <typename ObjectType>
+  static void* resolveKey(ObjectType* pointerToResolve) {
+    if constexpr (std::is_polymorphic_v<ObjectType>)
+      return dynamic_cast<void*>(pointerToResolve);
+    else
+      return static_cast<void*>(pointerToResolve);
+  }
+
+  template <typename ObjectType>
+  static void registerGameObject(ObjectType* rawPtr, std::shared_ptr<ObjectType> owningPtr) {
+    if (rawPtr) {
+      auto newKey = resolveKey(rawPtr);
+      auto it = gameObjectRegistry().find(newKey);
+      if (it == gameObjectRegistry().end()) {
+        incrementUniqueId();
+        size_t uniqueId = getUniqueId();
+        gameObjectRegistry()[newKey] = {uniqueId, std::shared_ptr<void>(owningPtr, newKey)}; // Gets the most derived object pointer for polymorphic objects.
+      }
+    }
+  }
+
+  // FezzedOne: If an object is accidentally deregistered (from Lua bindings' view) with this function too early and later accessed via a `SmugglePtr` in a Lua script,
+  // it'll just throw and Lua/Pluto will catch it as an error. If there was nothing tied to that key, does nothing.
+  template <typename ObjectType>
+  static void deregisterGameObject(void* rawPtr) {
+    gameObjectRegistry().erase(rawPtr);
+  }
+
+  // FezzedOne: Must only be called on pointers known to be either valid or null at call time. Otherwise use `smuggleCheck` below.
+  // Must be used *outside* of C++ lambdas or references used in Lua binding construction (before script initialisation), when the pointer is known to be valid.
+  template <typename ObjectType>
+  static SmugglePtr<ObjectType> smuggleWrap(ObjectType* rawPtr) {
+    void* key = resolveKey(rawPtr);
+    auto it = gameObjectRegistry().find(key);
+    if (it != gameObjectRegistry().end()) {
+      if (auto returnedPtr = it->second.second.lock()) {
+        std::shared_ptr<ObjectType> resolvedPtr(returnedPtr, rawPtr);
+        return SmugglePtr<ObjectType>(resolvedPtr, it->second.first);
+      } else {
+        return SmugglePtr<ObjectType>(std::shared_ptr<ObjectType>(), 0);
+      }
+    } else {
+      return SmugglePtr<ObjectType>(std::shared_ptr<ObjectType>(), 0);
+    }
+  }
+
+  // FezzedOne: Used to check potentially invalid `SmugglePtr`s. Does not handle resolving down to base types from derived types.
+  // Use this inside Lua binding lambdas or referenced C++ functions called by bindings.
+  template <typename ObjectType>
+  static ObjectType* smuggleCheck(SmugglePtr<ObjectType> smuggledPtr) {
+    if (auto rawPtr = smuggledPtr.m_ptr.lock()) {
+      return rawPtr.get();
+    } else {
+      return nullptr;
+    }
+  }
+
+  static void cleanUpRegistry() {
+    List<void*> pointersToRemove;
+    for (auto& entry : gameObjectRegistry()) {
+      if (entry.second.second.expired())
+        pointersToRemove.append(entry.first);
+    }
+    for (auto& toRemove : pointersToRemove)
+      gameObjectRegistry().erase(toRemove);
+  }
+};
+
+template <typename ObjectType, typename... Args>
+std::shared_ptr<ObjectType> makeObject(Args&&... args) {
+  std::shared_ptr<ObjectType> newGameObject = make_shared<ObjectType>(args...);
+  GameObjectRegistry::registerGameObject(newGameObject.get(), newGameObject);
+  return newGameObject;
+}
+
+template <typename ObjectType>
+void resetObject(std::shared_ptr<ObjectType>& objectToReset, std::shared_ptr<ObjectType> newObject = nullptr) {
+  GameObjectRegistry::deregisterGameObject(GameObjectRegistry::resolveKey(objectToReset.get()));
+  if (newObject) {
+    objectToReset = std::move(newObject);
+    GameObjectRegistry::registerGameObject(objectToReset.get(), objectToReset);
+  } else {
+    objectToReset.reset();
+  }
+}
+
+
 typedef Empty LuaNilType;
 typedef bool LuaBoolean;
 typedef lua_Integer LuaInt;
