@@ -66,10 +66,10 @@ Json TechController::diskStore() {
       modules.append(JsonObject{{"module", moduleName}, {"scriptData", JsonObject()}});
     return JsonObject{{"techModules", modules}};
   } else {
-    return JsonObject{{"techModules", transform<JsonArray>(m_techModules, [](TechModule const& tm) {
+    return JsonObject{{"techModules", transform<JsonArray>(m_techModules, [](std::shared_ptr<TechModule> const& tm) {
                          return JsonObject{
-                             {"module", tm.config.name},
-                             {"scriptData", tm.scriptComponent.getScriptStorage()}};
+                             {"module", tm->config.name},
+                             {"scriptData", tm->scriptComponent.getScriptStorage()}};
                        })}};
   }
 }
@@ -118,7 +118,7 @@ void TechController::setLoadedTech(StringList const& techModules, bool forceLoad
 }
 
 StringList TechController::loadedTech() const {
-  return transform<StringList>(m_techModules, [](TechModule const& tm) { return tm.config.name; });
+  return transform<StringList>(m_techModules, [](std::shared_ptr<TechModule> const& tm) { return tm->config.name; });
 }
 
 void TechController::reloadTech() {
