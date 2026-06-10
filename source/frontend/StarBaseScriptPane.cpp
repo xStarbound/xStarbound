@@ -132,7 +132,7 @@ PanePtr BaseScriptPane::createTooltip(Vec2I const& screenPosition) {
     if (result->type() == Json::Type::String) {
       return SimpleTooltipBuilder::buildTooltip(result->toString());
     } else {
-      PanePtr tooltip = make_shared<Pane>();
+      PanePtr tooltip = makeObject<Pane>();
       m_reader->construct(*result, tooltip.get());
       return tooltip;
     }

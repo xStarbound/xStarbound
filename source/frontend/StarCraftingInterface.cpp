@@ -462,7 +462,7 @@ void CraftingPane::setupWidget(WidgetPtr const& widget, ItemRecipe const& recipe
 PanePtr CraftingPane::setupTooltip(ItemRecipe const& recipe) {
   auto& root = Root::singleton();
 
-  auto tooltip = make_shared<Pane>();
+  auto tooltip = makeObject<Pane>();
   GuiReader reader;
   reader.construct(root.assets()->json("/interface/craftingtooltip/craftingtooltip.config"), tooltip.get());
 

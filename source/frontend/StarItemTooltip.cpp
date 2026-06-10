@@ -24,7 +24,7 @@ PanePtr ItemTooltipBuilder::buildItemTooltip(ItemPtr const& item, PlayerPtr cons
   if (!item) {
     return {};
   } else {
-    PanePtr tooltip = make_shared<Pane>();
+    PanePtr tooltip = makeObject<Pane>();
     tooltip->removeAllChildren();
 
     String title;

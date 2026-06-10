@@ -216,8 +216,8 @@ void TitleScreen::setMultiPlayerPassword(String password) {
 }
 
 void TitleScreen::initMainMenu() {
-  m_mainMenu = make_shared<Pane>();
-  auto backMenu = make_shared<Pane>();
+  m_mainMenu = makeObject<Pane>();
+  auto backMenu = makeObject<Pane>();
 
   auto assets = Root::singleton().assets();
 
@@ -269,7 +269,7 @@ void TitleScreen::initMainMenu() {
 }
 
 void TitleScreen::initCharSelectionMenu() {
-  auto deleteDialog = make_shared<Pane>();
+  auto deleteDialog = makeObject<Pane>();
 
   GuiReader reader;
 
@@ -364,8 +364,8 @@ void TitleScreen::populateServerList(ListWidgetPtr list) {
 };
 
 void TitleScreen::initMultiPlayerMenu() {
-  m_multiPlayerMenu = make_shared<Pane>();
-  m_serverSelectPane = make_shared<Pane>();
+  m_multiPlayerMenu = makeObject<Pane>();
+  m_serverSelectPane = makeObject<Pane>();
 
   GuiReader readerConnect;
   GuiReader readerServer;

@@ -18,7 +18,7 @@ ErrorScreen::ErrorScreen() {
 
   m_guiContext = GuiContext::singletonPtr();
 
-  m_errorPane = make_shared<Pane>();
+  m_errorPane = makeObject<Pane>();
   GuiReader reader;
   reader.registerCallback("btnOk", [this](Widget*) {
       m_accepted = true;

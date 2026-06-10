@@ -91,9 +91,12 @@ LuaMethods<CanvasWidgetPtr> LuaUserDataMethods<CanvasWidgetPtr>::make() {
   return methods;
 }
 
-LuaCallbacks LuaBindings::makeWidgetCallbacks(Widget* parentWidget, GuiReaderPtr reader) {
-  if (!reader)
-    reader = make_shared<GuiReader>();
+LuaCallbacks LuaBindings::makeWidgetCallbacks(Widget* parentWidgetPtr, GuiReaderPtr readerPtr) {
+  if (!readerPtr)
+    readerPtr = makeObject<GuiReader>();
+
+  auto reader = GameObjectRegistry::smuggleWrap(readerPtr.get());
+  auto parentWidget = GameObjectRegistry::smuggleWrap(parentWidgetPtr);
 
   LuaCallbacks callbacks;
 

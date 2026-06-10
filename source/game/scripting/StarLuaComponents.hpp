@@ -210,7 +210,7 @@ public:
 
     auto parent = GameObjectRegistry::smuggleWrap(lifetimePtr);
 
-    scriptCallbacks.registerCallback("setHandler", [this](Variant<String, Json> message, Maybe<LuaFunction> handler) {
+    scriptCallbacks.registerCallback("setHandler", [this, parent](Variant<String, Json> message, Maybe<LuaFunction> handler) {
       parent.checkSmuggle();
 
       MessageHandler handlerInfo = {};

@@ -7,7 +7,7 @@
 namespace Star {
 
 PanePtr SimpleTooltipBuilder::buildTooltip(String const& text) {
-  PanePtr tooltip = make_shared<Pane>();
+  PanePtr tooltip = makeObject<Pane>();
   tooltip->removeAllChildren();
   GuiReader reader;
   reader.construct(Root::singleton().assets()->json("/interface/tooltips/simpletooltip.tooltip"), tooltip.get());

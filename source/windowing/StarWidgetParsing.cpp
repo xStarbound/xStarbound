@@ -1,35 +1,35 @@
 #include "StarWidgetParsing.hpp"
-#include "StarRoot.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarImageMetadataDatabase.hpp"
-#include "StarPane.hpp"
+#include "StarAssets.hpp"
 #include "StarButtonGroup.hpp"
 #include "StarButtonWidget.hpp"
 #include "StarCanvasWidget.hpp"
-#include "StarImageWidget.hpp"
-#include "StarImageStretchWidget.hpp"
-#include "StarPortraitWidget.hpp"
+#include "StarFlowLayout.hpp"
 #include "StarFuelWidget.hpp"
-#include "StarProgressWidget.hpp"
-#include "StarLargeCharPlateWidget.hpp"
-#include "StarTextBoxWidget.hpp"
-#include "StarItemSlotWidget.hpp"
+#include "StarImageMetadataDatabase.hpp"
+#include "StarImageStretchWidget.hpp"
+#include "StarImageWidget.hpp"
 #include "StarItemGridWidget.hpp"
+#include "StarItemSlotWidget.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLargeCharPlateWidget.hpp"
 #include "StarListWidget.hpp"
+#include "StarPane.hpp"
+#include "StarPortraitWidget.hpp"
+#include "StarProgressWidget.hpp"
+#include "StarRoot.hpp"
+#include "StarScrollArea.hpp"
 #include "StarSliderBar.hpp"
 #include "StarStackWidget.hpp"
-#include "StarScrollArea.hpp"
-#include "StarAssets.hpp"
-#include "StarFlowLayout.hpp"
-#include "StarVerticalLayout.hpp"
 #include "StarTabSet.hpp"
+#include "StarTextBoxWidget.hpp"
+#include "StarVerticalLayout.hpp"
 
 namespace Star {
 
 WidgetConstructResult::WidgetConstructResult() : zlevel() {}
 
 WidgetConstructResult::WidgetConstructResult(WidgetPtr obj, String const& name, float zlevel)
-  : obj(obj), name(name), zlevel(zlevel) {}
+    : obj(obj), name(name), zlevel(zlevel) {}
 
 WidgetParser::WidgetParser() {
   // only the non-interactive ones by default
@@ -42,7 +42,7 @@ WidgetParser::WidgetParser() {
   m_constructors["fuelGauge"] = [=](String const& name, Json const& config) { return fuelGaugeHandler(name, config); };
   m_constructors["progress"] = [=](String const& name, Json const& config) { return progressHandler(name, config); };
   m_constructors["largeCharPlate"] = [=](
-      String const& name, Json const& config) { return largeCharPlateHandler(name, config); };
+                                         String const& name, Json const& config) { return largeCharPlateHandler(name, config); };
   m_constructors["container"] = [=](String const& name, Json const& config) { return containerHandler(name, config); };
   m_constructors["layout"] = [=](String const& name, Json const& config) { return layoutHandler(name, config); };
 
@@ -147,7 +147,7 @@ WidgetConstructResult WidgetParser::buttonHandler(String const& name, Json const
     throw WidgetParserException::format("Failed to find callback named: {}", callback);
   WidgetCallbackFunc callbackFunc = m_callbacks.get(callback);
 
-  auto button = make_shared<ButtonWidget>(callbackFunc, baseImage, hoverImage, pressedImage, disabledImage);
+  auto button = makeObject<ButtonWidget>(callbackFunc, baseImage, hoverImage, pressedImage, disabledImage);
   button->setCheckedImages(baseImageChecked, hoverImageChecked, pressedImageChecked, disabledImageChecked);
   common(button, config);
 
@@ -202,14 +202,14 @@ WidgetConstructResult WidgetParser::buttonHandler(String const& name, Json const
 }
 
 WidgetConstructResult WidgetParser::imageHandler(String const& name, Json const& config) {
-  auto image = make_shared<ImageWidget>();
+  auto image = makeObject<ImageWidget>();
   common(image, config);
 
   if (config.contains("file"))
     image->setImage(config.getString("file"));
 
   if (config.contains("drawables"))
-    image->setDrawables(config.getArray("drawables").transformed([](Json const& d) { return Drawable(d); } ));
+    image->setDrawables(config.getArray("drawables").transformed([](Json const& d) { return Drawable(d); }));
 
   if (config.contains("scale"))
     image->setScale(config.getFloat("scale"));
@@ -241,14 +241,14 @@ WidgetConstructResult WidgetParser::imageStretchHandler(String const& name, Json
   ImageStretchSet stretchSet = parseImageStretchSet(config.get("stretchSet"));
   GuiDirection direction = GuiDirectionNames.getLeft(config.getString("direction", "horizontal"));
 
-  auto imageStretch = make_shared<ImageStretchWidget>(stretchSet, direction);
+  auto imageStretch = makeObject<ImageStretchWidget>(stretchSet, direction);
   common(imageStretch, config);
 
   return WidgetConstructResult(imageStretch, name, config.getFloat("zlevel", 0));
 }
 
 WidgetConstructResult WidgetParser::spinnerHandler(String const& name, Json const& config) {
-  auto container = make_shared<Widget>();
+  auto container = makeObject<Widget>();
   common(container, config);
 
   String callback = config.getString("callback", name);
@@ -274,9 +274,9 @@ WidgetConstructResult WidgetParser::spinnerHandler(String const& name, Json cons
 
   float upOffset = config.getFloat("upOffset", (float)imageSize[0] + padding);
 
-  auto down = make_shared<ButtonWidget>(
+  auto down = makeObject<ButtonWidget>(
       callbackDown, config.getString("leftBase", leftBase), config.getString("leftHover", leftHover));
-  auto up = make_shared<ButtonWidget>(
+  auto up = makeObject<ButtonWidget>(
       callbackUp, config.getString("rightBase", rightBase), config.getString("rightHover", rightHover));
   up->setPosition(up->position() + Vec2I(upOffset, 0));
 
@@ -290,7 +290,7 @@ WidgetConstructResult WidgetParser::spinnerHandler(String const& name, Json cons
 }
 
 WidgetConstructResult WidgetParser::radioGroupHandler(String const& name, Json const& config) {
-  auto buttonGroup = make_shared<ButtonGroupWidget>();
+  auto buttonGroup = makeObject<ButtonGroupWidget>();
   common(buttonGroup, config);
   buttonGroup->markAsContainer();
   buttonGroup->disableScissoring();
@@ -324,7 +324,7 @@ WidgetConstructResult WidgetParser::radioGroupHandler(String const& name, Json c
       auto overlayImage = btnConfig.getString("image", "");
       auto id = btnConfig.getInt("id", ButtonGroup::NoButton);
 
-      auto button = make_shared<ButtonWidget>();
+      auto button = makeObject<ButtonWidget>();
       button->setButtonGroup(buttonGroup, id);
 
       button->setImages(btnConfig.getString("baseImage", baseImage),
@@ -377,7 +377,7 @@ WidgetConstructResult WidgetParser::radioGroupHandler(String const& name, Json c
 }
 
 WidgetConstructResult WidgetParser::portraitHandler(String const& name, Json const& config) {
-  auto portrait = make_shared<PortraitWidget>();
+  auto portrait = makeObject<PortraitWidget>();
 
   if (config.contains("portraitMode"))
     portrait->setMode(PortraitModeNames.getLeft(config.getString("portraitMode")));
@@ -401,7 +401,7 @@ WidgetConstructResult WidgetParser::textboxHandler(String const& name, Json cons
 
   String initialText = config.getString("value", "");
   String hintText = config.getString("hint", "");
-  auto textbox = make_shared<TextBoxWidget>(initialText, hintText, callbackFunc);
+  auto textbox = makeObject<TextBoxWidget>(initialText, hintText, callbackFunc);
 
   if (config.contains("blur"))
     textbox->setOnBlurCallback(m_callbacks.get(config.getString("blur")));
@@ -454,7 +454,7 @@ WidgetConstructResult WidgetParser::labelHandler(String const& name, Json const&
   HorizontalAnchor hAnchor = HorizontalAnchorNames.getLeft(config.getString("hAnchor", "left"));
   VerticalAnchor vAnchor = VerticalAnchorNames.getLeft(config.getString("vAnchor", "bottom"));
 
-  auto label = make_shared<LabelWidget>(text, color, hAnchor, vAnchor);
+  auto label = makeObject<LabelWidget>(text, color, hAnchor, vAnchor);
   common(label, config);
   if (config.contains("fontSize"))
     label->setFontSize(config.getInt("fontSize"));
@@ -480,7 +480,7 @@ WidgetConstructResult WidgetParser::itemSlotHandler(String const& name, Json con
   String middleClickCallback = callback.equals("null") ? callback : callback + ".middle";
   middleClickCallback = config.getString("middleClickCallback", middleClickCallback);
 
-  auto itemSlot = make_shared<ItemSlotWidget>(ItemPtr(), backingImage);
+  auto itemSlot = makeObject<ItemSlotWidget>(ItemPtr(), backingImage);
 
   if (auto leftClickCallback = m_callbacks.ptr(callback))
     itemSlot->setCallback(*leftClickCallback);
@@ -522,7 +522,7 @@ WidgetConstructResult WidgetParser::itemGridHandler(String const& name, Json con
   } catch (MapException const& e) {
     throw WidgetParserException::format("Malformed gui json, missing a required value in the map. {}", outputException(e, false));
   }
-  
+
   String callback = config.getString("callback", name);
   String rightClickCallback = callback.equals("null") ? callback : callback + ".right";
   rightClickCallback = config.getString("rightClickCallback", rightClickCallback);
@@ -532,17 +532,17 @@ WidgetConstructResult WidgetParser::itemGridHandler(String const& name, Json con
   unsigned slotOffset = config.getInt("slotOffset", 0);
   String backingImage = config.getString("backingImage", "");
 
-  auto itemGrid = make_shared<ItemGridWidget>(ItemBagConstPtr(), dimensions, rowSpacing, columnSpacing, backingImage, slotOffset);
+  auto itemGrid = makeObject<ItemGridWidget>(ItemBagConstPtr(), dimensions, rowSpacing, columnSpacing, backingImage, slotOffset);
 
   itemGrid->setBackingImageAffinity(
-    config.getBool("showBackingImageWhenFull", false), config.getBool("showBackingImageWhenEmpty", true));
+      config.getBool("showBackingImageWhenFull", false), config.getBool("showBackingImageWhenEmpty", true));
   itemGrid->showDurability(config.getBool("showDurability", false));
 
   if (auto leftClickCallback = m_callbacks.ptr(callback))
     itemGrid->setCallback(*leftClickCallback);
   else
     throw WidgetParserException::format("Failed to find ItemGrid callback named: '{}'", callback);
-  
+
   if (auto callback = m_callbacks.ptr(rightClickCallback))
     itemGrid->setRightClickCallback(*callback);
   else
@@ -565,7 +565,7 @@ WidgetConstructResult WidgetParser::listHandler(String const& name, Json const& 
         strf("Malformed gui json, missing a required value in the map. {}", outputException(e, false)));
   }
 
-  auto list = make_shared<ListWidget>(schema);
+  auto list = makeObject<ListWidget>(schema);
   common(list, config);
 
   if (auto callback = m_callbacks.value(config.getString("callback", name)))
@@ -580,7 +580,7 @@ WidgetConstructResult WidgetParser::listHandler(String const& name, Json const& 
 WidgetConstructResult WidgetParser::sliderHandler(String const& name, Json const& config) {
   try {
     auto grid = config.getString("gridImage");
-    auto slider = make_shared<SliderBarWidget>(grid, config.getBool("showSpinner", true));
+    auto slider = makeObject<SliderBarWidget>(grid, config.getBool("showSpinner", true));
     common(slider, config);
 
     if (auto callback = m_callbacks.value(config.getString("callback", name)))
@@ -615,7 +615,7 @@ WidgetConstructResult WidgetParser::largeCharPlateHandler(String const& name, Js
   if (!m_callbacks.contains(callback))
     throw WidgetParserException::format("Failed to find callback named: '{}'", name);
 
-  auto charPlate = make_shared<LargeCharPlateWidget>(m_callbacks.get(callback));
+  auto charPlate = makeObject<LargeCharPlateWidget>(m_callbacks.get(callback));
   common(charPlate, config);
 
   return WidgetConstructResult(charPlate, name, config.getFloat("zlevel", 0));
@@ -640,12 +640,12 @@ WidgetConstructResult WidgetParser::tabSetHandler(String const& name, Json const
   tabSetConfig.tabButtonTextOffset = config.opt("tabButtonTextOffset").apply(jsonToVec2I).value();
   tabSetConfig.tabButtonSpacing = config.opt("tabButtonSpacing").apply(jsonToVec2I).value();
 
-  auto tabSet = make_shared<TabSetWidget>(tabSetConfig);
+  auto tabSet = makeObject<TabSetWidget>(tabSetConfig);
   common(tabSet, config);
 
   try {
     for (auto entry : config.get("tabs").iterateArray()) {
-      auto widget = make_shared<Widget>();
+      auto widget = makeObject<Widget>();
       constructImpl(entry.get("children"), widget.get());
       widget->determineSizeFromChildren();
       tabSet->addTab(entry.getString("tabName"), widget, entry.getString("tabTitle"));
@@ -658,7 +658,7 @@ WidgetConstructResult WidgetParser::tabSetHandler(String const& name, Json const
 }
 
 WidgetConstructResult WidgetParser::widgetHandler(String const& name, Json const& config) {
-  auto widget = make_shared<Widget>();
+  auto widget = makeObject<Widget>();
   common(widget, config);
 
   return WidgetConstructResult(widget, name, config.getFloat("zlevel", 0));
@@ -680,7 +680,7 @@ WidgetConstructResult WidgetParser::layoutHandler(String const& name, Json const
   }
   WidgetPtr widget;
   if (type == "flow") {
-    widget = make_shared<FlowLayout>();
+    widget = makeObject<FlowLayout>();
     auto flow = convert<FlowLayout>(widget);
     try {
       flow->setSpacing(jsonToVec2I(config.get("spacing")));
@@ -688,14 +688,14 @@ WidgetConstructResult WidgetParser::layoutHandler(String const& name, Json const
       throw WidgetParserException(strf("Parameter \"spacing\" in FlowLayout specification is invalid: {}.", outputException(e, false)));
     }
   } else if (type == "vertical") {
-    widget = make_shared<VerticalLayout>();
+    widget = makeObject<VerticalLayout>();
     auto vert = convert<VerticalLayout>(widget);
     vert->setHorizontalAnchor(HorizontalAnchorNames.getLeft(config.getString("hAnchor", "left")));
     vert->setVerticalAnchor(VerticalAnchorNames.getLeft(config.getString("vAnchor", "top")));
     vert->setVerticalSpacing(config.getInt("spacing", 0));
     vert->setFillDown(config.getBool("fillDown", false));
   } else if (type == "basic") {
-    widget = make_shared<Layout>();
+    widget = makeObject<Layout>();
   } else {
     throw WidgetParserException(strf("Invalid layout type \"{}\".  Options are \"basic\", \"flow\", \"vertical\".", type));
   }
@@ -708,7 +708,7 @@ WidgetConstructResult WidgetParser::layoutHandler(String const& name, Json const
 }
 
 WidgetConstructResult WidgetParser::canvasHandler(String const& name, Json const& config) {
-  auto canvas = make_shared<CanvasWidget>();
+  auto canvas = makeObject<CanvasWidget>();
   canvas->setCaptureKeyboardEvents(config.getBool("captureKeyboardEvents", false));
   canvas->setCaptureMouseEvents(config.getBool("captureMouseEvents", false));
   common(canvas, config);
@@ -717,7 +717,7 @@ WidgetConstructResult WidgetParser::canvasHandler(String const& name, Json const
 }
 
 WidgetConstructResult WidgetParser::fuelGaugeHandler(String const& name, Json const& config) {
-  auto fuelGauge = make_shared<FuelWidget>();
+  auto fuelGauge = makeObject<FuelWidget>();
   common(fuelGauge, config);
 
   return WidgetConstructResult(fuelGauge, name, config.getFloat("zlevel", 0));
@@ -732,7 +732,7 @@ WidgetConstructResult WidgetParser::progressHandler(String const& name, Json con
   progressSet = parseImageStretchSet(config.get("progressSet"));
   GuiDirection direction = GuiDirectionNames.getLeft(config.getString("direction", "horizontal"));
 
-  auto progress = make_shared<ProgressWidget>(background, overlay, progressSet, direction);
+  auto progress = makeObject<ProgressWidget>(background, overlay, progressSet, direction);
 
   common(progress, config);
 
@@ -749,12 +749,12 @@ WidgetConstructResult WidgetParser::progressHandler(String const& name, Json con
 }
 
 WidgetConstructResult WidgetParser::stackHandler(String const& name, Json const& config) {
-  auto stack = make_shared<StackWidget>();
+  auto stack = makeObject<StackWidget>();
 
   if (config.contains("stack")) {
     auto stackList = config.getArray("stack");
     for (auto widgetCfg : stackList) {
-      auto widget = make_shared<Widget>();
+      auto widget = makeObject<Widget>();
       constructImpl(widgetCfg, widget.get());
       widget->determineSizeFromChildren();
       stack->addChild(toString(stack->numChildren()), widget);
@@ -767,7 +767,7 @@ WidgetConstructResult WidgetParser::stackHandler(String const& name, Json const&
 }
 
 WidgetConstructResult WidgetParser::scrollAreaHandler(String const& name, Json const& config) {
-  auto scrollArea = make_shared<ScrollArea>();
+  auto scrollArea = makeObject<ScrollArea>();
 
   if (config.contains("buttons"))
     scrollArea->setButtonImages(config.get("buttons"));
@@ -834,4 +834,4 @@ ImageStretchSet WidgetParser::parseImageStretchSet(Json const& config) {
   return res;
 }
 
-}
+} // namespace Star

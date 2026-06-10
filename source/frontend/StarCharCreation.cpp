@@ -594,7 +594,7 @@ PanePtr CharCreationPane::createTooltip(Vec2I const& screenPosition) {
       Star::SpeciesDefinitionPtr speciesDefinition = Root::singleton().speciesDatabase()->species(speciesName);
 
       // make a tooltip from the config file
-      PanePtr tooltip = make_shared<Pane>();
+      PanePtr tooltip = makeObject<Pane>();
       tooltip->removeAllChildren();
       GuiReader reader;
       auto& root = Root::singleton();
