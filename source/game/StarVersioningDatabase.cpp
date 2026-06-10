@@ -83,8 +83,8 @@ DataStream& operator<<(DataStream& ds, VersionedJson const& versionedJson) {
 VersioningDatabase::VersioningDatabase() {
   auto assets = Root::singleton().assets();
   auto versioningConfig = assets->json("/versioning.config");
-  m_luaRoot.tuneAutoGarbageCollection(versioningConfig.optFloat("luaGcPause").value(1.2f),
-      versioningConfig.optFloat("luaGcStepMultiplier").value(1.2f));
+  // m_luaRoot.tuneAutoGarbageCollection(versioningConfig.optFloat("luaGcPause").value(1.2f),
+  //   versioningConfig.optFloat("luaGcStepMultiplier").value(1.2f));
 
   for (auto const& pair : versioningConfig.iterateObject()) {
     if (pair.first != "luaGcPause" && pair.first != "luaGcStepMultiplier")
@@ -168,7 +168,13 @@ VersionedJson VersioningDatabase::updateVersionedJson(VersionedJson const& versi
         break;
 
       if (updateScript.fromVersion == result.version) {
-        auto scriptContext = m_luaRoot.createContext();
+        auto assets = Root::singleton().assets();
+        auto versioningConfig = assets->json("/versioning.config");
+        // FezzedOne: Forgot that the `celestial` callbacks were exposed to potentially untracked reference smuggling. Nobody smuggles in versioning scripts anyway, so get rid of it.
+        LuaRoot luaRoot;
+        luaRoot.tuneAutoGarbageCollection(versioningConfig.optFloat("luaGcPause").value(1.2f),
+            versioningConfig.optFloat("luaGcStepMultiplier").value(1.2f));
+        auto scriptContext = luaRoot.createContext();
         scriptContext.load(*root.assets()->bytes(updateScript.script), updateScript.script);
         scriptContext.setCallbacks("root", LuaBindings::makeRootCallbacks());
         scriptContext.setCallbacks("xsb", LuaBindings::makeXsbCallbacks());

@@ -571,6 +571,7 @@ void Quest::initScript() {
   m_scriptComponent.setUpdateDelta(questTemplate->updateDelta);
 
   m_scriptComponent.initScriptBindings(this);
+  m_scriptComponent.initMessageBinding(this);
 
   m_scriptComponent.addCallbacks("quest", makeQuestCallbacks(m_player));
   m_scriptComponent.addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client));

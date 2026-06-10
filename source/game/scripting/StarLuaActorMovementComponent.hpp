@@ -196,27 +196,32 @@ void LuaActorMovementComponent<Base>::addActorMovementCallbacks(ActorMovementCon
       movementController->translate(translate);
     });
 
-    callbacks.registerCallback("setVelocity", [movementController](Vec2F const& vel) {
+    callbacks.registerCallback("setVelocity", [movementController, this](Vec2F const& vel) {
+      movementController.checkSmuggle();
       m_resetPathMove = true;
       movementController->setVelocity(vel);
     });
 
-    callbacks.registerCallback("setXVelocity", [movementController](float xVel) {
+    callbacks.registerCallback("setXVelocity", [movementController, this](float xVel) {
+      movementController.checkSmuggle();
       m_resetPathMove = true;
       movementController->setXVelocity(xVel);
     });
 
-    callbacks.registerCallback("setYVelocity", [movementController](float yVel) {
+    callbacks.registerCallback("setYVelocity", [movementController, this](float yVel) {
+      movementController.checkSmuggle();
       m_resetPathMove = true;
       movementController->setYVelocity(yVel);
     });
 
-    callbacks.registerCallback("addMomentum", [movementController](Vec2F const& momentum) {
+    callbacks.registerCallback("addMomentum", [movementController, this](Vec2F const& momentum) {
+      movementController.checkSmuggle();
       m_resetPathMove = true;
       movementController->addMomentum(momentum);
     });
 
-    callbacks.registerCallback("setRotation", [movementController](float rotation) {
+    callbacks.registerCallback("setRotation", [movementController, this](float rotation) {
+      movementController.checkSmuggle();
       m_resetPathMove = true;
       movementController->setRotation(rotation);
     });

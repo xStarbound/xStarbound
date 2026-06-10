@@ -184,6 +184,7 @@ void Vehicle::init(World* world, EntityId entityId, EntityMode mode) {
   auto thisVehicle = GameObjectRegistry::smuggleWrap(this);
   if (isMaster()) {
     m_scriptComponent.initScriptBindings(this);
+    m_scriptComponent.initMessageBinding(this);
     m_scriptComponent.addCallbacks("vehicle", makeVehicleCallbacks());
     m_scriptComponent.addCallbacks(
         "config", LuaBindings::makeConfigCallbacks(LUA_BIND(&Vehicle::configValue, thisVehicle, _1, _2)));

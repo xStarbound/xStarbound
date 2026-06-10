@@ -206,6 +206,9 @@ void Object::init(World* world, EntityId entityId, EntityMode mode) {
     m_scriptComponent.setScripts(m_config->scripts);
     m_scriptComponent.setUpdateDelta(configValue("scriptDelta", 5).toInt());
 
+    m_scriptComponent.initScriptBindings(this);
+    m_scriptComponent.initMessageBinding(this);
+
     m_scriptComponent.addCallbacks("object", makeObjectCallbacks());
     m_scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks(LUA_BIND(&Object::configValue, thisObject, _1, _2)));
     m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
@@ -215,6 +218,9 @@ void Object::init(World* world, EntityId entityId, EntityMode mode) {
 
   if (world->isClient()) {
     m_scriptedAnimator.setScripts(m_config->animationScripts);
+
+    m_scriptedAnimator.initScriptBindings(this);
+    m_scriptedAnimator.initAnimationBindings(this);
 
     m_scriptedAnimator.addCallbacks("animationConfig", LuaBindings::makeScriptedAnimatorCallbacks(m_networkedAnimator.get(), [this, thisObject](String const& name, Json const& defaultValue) -> Json {
       thisObject.checkSmuggle();

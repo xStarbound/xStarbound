@@ -39,6 +39,8 @@ void Stagehand::init(World* world, EntityId entityId, EntityMode mode) {
   auto thisStagehand = GameObjectRegistry::smuggleWrap(this);
 
   if (isMaster() && m_scripted) {
+    m_scriptComponent.initScriptBindings(this);
+    m_scriptComponent.initMessageBinding(this);
     m_scriptComponent.addCallbacks("stagehand", makeStagehandCallbacks());
     m_scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks([this, thisStagehand](String const& name, Json const& def) {
       thisStagehand.checkSmuggle();

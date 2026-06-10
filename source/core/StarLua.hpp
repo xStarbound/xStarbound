@@ -73,7 +73,7 @@ public:
   SmugglePtr(SmugglePtr&& r) {
     m_ptr = r.m_ptr;
     m_uniqueId = r.m_uniqueId;
-    r.m_ptr = nullptr;
+    r.m_ptr = std::weak_ptr<ObjectType>(nullptr);
     r.m_uniqueId = 0;
   }
 
@@ -86,7 +86,7 @@ public:
   SmugglePtr& operator=(SmugglePtr&& r) {
     m_ptr = r.m_ptr;
     m_uniqueId = r.m_uniqueId;
-    r.m_ptr = nullptr;
+    r.m_ptr = std::weak_ptr<ObjectType>(nullptr);
     r.m_uniqueId = 0;
     return *this;
   }
@@ -97,13 +97,13 @@ public:
 
   ObjectType& operator*() const {
     if (auto lockedPtr = m_ptr.lock())
-      return *lockedPtr;
+      return *(lockedPtr.get());
     throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
   }
 
   ObjectType* operator->() const {
     if (auto lockedPtr = m_ptr.lock())
-      return lockedPtr;
+      return lockedPtr.get();
     throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
   }
 

@@ -138,7 +138,8 @@ void Monster::init(World* world, EntityId entityId, EntityMode mode) {
     float healthMultiplier = m_monsterVariant.healthMultiplier * functionDatabase->function(m_monsterVariant.healthLevelFunction)->evaluate(*m_monsterLevel);
     m_statusController->setPersistentEffects("innate", {StatModifier(StatBaseMultiplier{"maxHealth", healthMultiplier})});
 
-
+    m_scriptComponent.initScriptBindings(this);
+    m_scriptComponent.initMessageBinding(this);
     m_scriptComponent.addCallbacks("monster", makeMonsterCallbacks());
     m_scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks([this, thisMonster](String const& name, Json const& def) {
       thisMonster.checkSmuggle();
