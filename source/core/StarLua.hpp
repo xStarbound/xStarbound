@@ -182,7 +182,7 @@ public:
       if (it == gameObjectRegistry().end()) {
         incrementUniqueId();
         size_t uniqueId = getUniqueId();
-        gameObjectRegistry()[newKey] = {uniqueId, std::shared_ptr<void>(owningPtr, newKey)}; // Gets the most derived object pointer for polymorphic objects.
+        gameObjectRegistry()[newKey] = {uniqueId, std::shared_ptr<void>(owningPtr, const_cast<void*>(newKey))}; // Gets the most derived object pointer for polymorphic objects.
       }
     }
   }
