@@ -1,18 +1,18 @@
 #include "StarVersioningDatabase.hpp"
-#include "StarDataStreamExtra.hpp"
-#include "StarFormat.hpp"
-#include "StarLexicalCast.hpp"
-#include "StarFile.hpp"
-#include "StarLogging.hpp"
-#include "StarWorldLuaBindings.hpp"
-#include "StarRootLuaBindings.hpp"
-#include "StarUtilityLuaBindings.hpp"
 #include "StarAssets.hpp"
-#include "StarStoredFunctions.hpp"
+#include "StarCelestialDatabase.hpp"
+#include "StarDataStreamExtra.hpp"
+#include "StarFile.hpp"
+#include "StarFormat.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLexicalCast.hpp"
+#include "StarLogging.hpp"
 #include "StarNpcDatabase.hpp"
 #include "StarRoot.hpp"
-#include "StarCelestialDatabase.hpp"
-#include "StarJsonExtra.hpp"
+#include "StarRootLuaBindings.hpp"
+#include "StarStoredFunctions.hpp"
+#include "StarUtilityLuaBindings.hpp"
+#include "StarWorldLuaBindings.hpp"
 
 namespace Star {
 
@@ -37,10 +37,9 @@ void VersionedJson::writeFile(VersionedJson const& versionedJson, String const& 
 
 Json VersionedJson::toJson() const {
   return JsonObject{
-    {"id", identifier},
-    {"version", version},
-    {"content", content}
-  };
+      {"id", identifier},
+      {"version", version},
+      {"content", content}};
 }
 
 VersionedJson VersionedJson::fromJson(Json const& source) {
@@ -84,8 +83,8 @@ DataStream& operator<<(DataStream& ds, VersionedJson const& versionedJson) {
 VersioningDatabase::VersioningDatabase() {
   auto assets = Root::singleton().assets();
   auto versioningConfig = assets->json("/versioning.config");
-  m_luaRoot.tuneAutoGarbageCollection(versioningConfig.optFloat("luaGcPause").value(1.2f),
-    versioningConfig.optFloat("luaGcStepMultiplier").value(1.2f));
+  // m_luaRoot.tuneAutoGarbageCollection(versioningConfig.optFloat("luaGcPause").value(1.2f),
+  //     versioningConfig.optFloat("luaGcStepMultiplier").value(1.2f));
 
   for (auto const& pair : versioningConfig.iterateObject()) {
     if (pair.first != "luaGcPause" && pair.first != "luaGcStepMultiplier")
@@ -160,8 +159,8 @@ VersionedJson VersioningDatabase::updateVersionedJson(VersionedJson const& versi
 
   LuaCallbacks celestialCallbacks;
   celestialCallbacks.registerCallback("parameters", [&celestialDatabase](Json const& coord) {
-      return celestialDatabase.parameters(CelestialCoordinate(coord))->diskStore();
-    });
+    return celestialDatabase.parameters(CelestialCoordinate(coord))->diskStore();
+  });
 
   try {
     for (auto const& updateScript : m_versionUpdateScripts.value(versionedJson.identifier.toLower())) {
@@ -169,7 +168,13 @@ VersionedJson VersioningDatabase::updateVersionedJson(VersionedJson const& versi
         break;
 
       if (updateScript.fromVersion == result.version) {
-        auto scriptContext = m_luaRoot.createContext();
+        auto assets = Root::singleton().assets();
+        auto versioningConfig = assets->json("/versioning.config");
+        // FezzedOne: Forgot that the `celestial` callbacks were exposed to potentially untracked reference smuggling. Nobody smuggles in versioning scripts anyway, so get rid of it.
+        LuaRoot luaRoot;
+        luaRoot.tuneAutoGarbageCollection(versioningConfig.optFloat("luaGcPause").value(1.2f),
+            versioningConfig.optFloat("luaGcStepMultiplier").value(1.2f));
+        auto scriptContext = luaRoot.createContext();
         scriptContext.load(*root.assets()->bytes(updateScript.script), updateScript.script);
         scriptContext.setCallbacks("root", LuaBindings::makeRootCallbacks());
         scriptContext.setCallbacks("xsb", LuaBindings::makeXsbCallbacks());
@@ -192,7 +197,8 @@ VersionedJson VersioningDatabase::updateVersionedJson(VersionedJson const& versi
   } catch (std::exception const& e) {
     // m_luaRoot.collectGarbage();
     throw VersioningDatabaseException(strf("Could not bring versionedJson with identifier '{}' and version {} forward to current version of {}",
-            versionedJson.identifier, result.version, targetVersion), e);
+                                          versionedJson.identifier, result.version, targetVersion),
+        e);
   }
 
   if (result.version > *targetVersion) {
@@ -221,23 +227,23 @@ LuaCallbacks VersioningDatabase::makeVersioningCallbacks() const {
   LuaCallbacks versioningCallbacks;
 
   versioningCallbacks.registerCallback("loadVersionedJson", [this](String const& storagePath) {
-      try {
-        auto& root = Root::singleton();
-        String filePath = File::fullPath(root.toStoragePath(storagePath));
-        String basePath = File::fullPath(root.toStoragePath("."));
-        if (!filePath.beginsWith(basePath))
-          throw VersioningDatabaseException::format(
-              "Cannot load external VersionedJson outside of the Root storage path");
-        auto loadedJson = VersionedJson::readFile(filePath);
-        return updateVersionedJson(loadedJson).content;
-      } catch (IOException const& e) {
-        Logger::debug(
-            "Unable to load versioned JSON file {} in versioning script: {}", storagePath, outputException(e, false));
-        return Json();
-      }
-    });
+    try {
+      auto& root = Root::singleton();
+      String filePath = File::fullPath(root.toStoragePath(storagePath));
+      String basePath = File::fullPath(root.toStoragePath("."));
+      if (!filePath.beginsWith(basePath))
+        throw VersioningDatabaseException::format(
+            "Cannot load external VersionedJson outside of the Root storage path");
+      auto loadedJson = VersionedJson::readFile(filePath);
+      return updateVersionedJson(loadedJson).content;
+    } catch (IOException const& e) {
+      Logger::debug(
+          "Unable to load versioned JSON file {} in versioning script: {}", storagePath, outputException(e, false));
+      return Json();
+    }
+  });
 
   return versioningCallbacks;
 }
 
-}
+} // namespace Star
