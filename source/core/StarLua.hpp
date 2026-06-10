@@ -277,18 +277,18 @@ auto luaBind(Func&& functionToWrap, SmugglePtr<ObjectType> const& pointerToCheck
 
 // FezzedOne: Lua binding wrapper for when the pointer needed for lifetime tracking *differs* from the pointer used by the callbacks
 // because the callback pointer is to a stack-allocated member object of an entity.
-template <typename ObjectType, typename Func>
-auto luaBindProxy(SmugglePtr<ObjectType> lifetimePtr, Func&& functionToWrap) {
-  return [func = std::forward<Func>(functionToWrap), ptr = lifetimePtr](auto&&... args) -> decltype(auto) {
+template <typename ObjectType, typename Func, typename PtrType>
+auto luaBindProxy(SmugglePtr<ObjectType> lifetimePtr, Func&& functionToWrap, PtrType* passedPointer) {
+  return [func = std::forward<Func>(functionToWrap), ptr = lifetimePtr, passedPtr = passedPointer](auto&&... args) -> decltype(auto) {
     if (std::shared_ptr<ObjectType> rawPtr = ptr.m_ptr.lock())
-      return std::invoke(func, std::forward<decltype(args)>(args)...);
+      return std::invoke(func, passedPtr, std::forward<decltype(args)>(args)...);
     throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
   };
 }
 
 // FezzedOne: Wrapper to "consume" unnecessary `_1, _2, ...` arguments and allow finding and replacing of `std::bind` calls in Lua binding
 // definitions. This one is for binds that need extra TLC for object lifetime tracking because of stack references.
-#define LUA_BIND_PROXY(lifetimePtr, func, ...) luaBindProxy(lifetimePtr, func)
+#define LUA_BIND_PROXY(lifetimePtr, func, passedPtr, ...) luaBindProxy(lifetimePtr, func, passedPtr)
 
 typedef Empty LuaNilType;
 typedef bool LuaBoolean;
