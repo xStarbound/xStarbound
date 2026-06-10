@@ -171,7 +171,7 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
   } else {
     m_script.addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(m_client->mainPlayer()).get()));
     m_script.addCallbacks("player", LuaBindings::makePlayerCallbacks(m_client->mainPlayer().get(), true));
-    m_script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_client->mainPlayer()->effectsAnimator().get()));
+    m_script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_client->mainPlayer()->effectsAnimator().get(), m_client->mainPlayer()->effectsAnimator().get()));
     m_script.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_client->mainPlayer()->statusController()));
     m_script.addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client.get()));
   }
