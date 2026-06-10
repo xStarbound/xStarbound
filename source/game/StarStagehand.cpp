@@ -1,29 +1,27 @@
 #include "StarStagehand.hpp"
-#include "StarDataStreamExtra.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarConfigLuaBindings.hpp"
-#include "StarEntityLuaBindings.hpp"
 #include "StarBehaviorLuaBindings.hpp"
+#include "StarConfigLuaBindings.hpp"
+#include "StarDataStreamExtra.hpp"
+#include "StarEntityLuaBindings.hpp"
+#include "StarJsonExtra.hpp"
 #include "StarLuaGameConverters.hpp"
 
 namespace Star {
 
 Stagehand::Stagehand(Json const& config)
-  : Stagehand() {
+    : Stagehand() {
   setUniqueId(config.optString("uniqueId"));
   readConfig(config);
 }
 
 Stagehand::Stagehand(ByteArray const& netStore)
-  : Stagehand() {
+    : Stagehand() {
   readConfig(DataStreamBuffer::deserialize<Json>(netStore));
 }
 
 Json Stagehand::diskStore() const {
-  auto saveData = m_config.setAll({
-      {"position", jsonFromVec2F({m_xPosition.get(), m_yPosition.get()})},
-      {"uniqueId", jsonFromMaybe(uniqueId())}
-    });
+  auto saveData = m_config.setAll({{"position", jsonFromVec2F({m_xPosition.get(), m_yPosition.get()})},
+      {"uniqueId", jsonFromMaybe(uniqueId())}});
 
   if (!m_scripted)
     return saveData;
@@ -38,13 +36,16 @@ ByteArray Stagehand::netStore() {
 void Stagehand::init(World* world, EntityId entityId, EntityMode mode) {
   Entity::init(world, entityId, mode);
 
+  auto thisStagehand = GameObjectRegistry::smuggleWrap(this);
+
   if (isMaster() && m_scripted) {
     m_scriptComponent.addCallbacks("stagehand", makeStagehandCallbacks());
-    m_scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def) {
-        return m_config.query(name, def);
-      }));
+    m_scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks([this, thisStagehand](String const& name, Json const& def) {
+      thisStagehand.checkSmuggle();
+      return m_config.query(name, def);
+    }));
     m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
-    m_scriptComponent.addCallbacks("behavior", LuaBindings::makeBehaviorLuaCallbacks(&m_behaviors));
+    m_scriptComponent.addCallbacks("behavior", LuaBindings::makeBehaviorLuaCallbacks(&m_behaviors, this));
     m_scriptComponent.init(world);
   }
 }
@@ -94,9 +95,9 @@ void Stagehand::update(float dt, uint64_t) {
 
   if (world()->isClient()) {
     auto boundBox = metaBoundBox().translated(position());
-    SpatialLogger::logPoly("world", PolyF(boundBox), { 0, 255, 255, 255 });
+    SpatialLogger::logPoly("world", PolyF(boundBox), {0, 255, 255, 255});
     SpatialLogger::logLine("world", boundBox.min(), boundBox.max(), {0, 255, 255, 255});
-    SpatialLogger::logLine("world", { boundBox.xMin(), boundBox.yMax() }, { boundBox.xMax(), boundBox.yMin() }, {0, 255, 255, 255});
+    SpatialLogger::logLine("world", {boundBox.xMin(), boundBox.yMax()}, {boundBox.xMax(), boundBox.yMin()}, {0, 255, 255, 255});
   }
 }
 
@@ -128,12 +129,12 @@ Stagehand::Stagehand() {
   m_netGroup.addNetElement(&m_uniqueIdNetState);
 
   m_netGroup.setNeedsLoadCallback([this](bool) {
-      setUniqueId(m_uniqueIdNetState.get());
-    });
+    setUniqueId(m_uniqueIdNetState.get());
+  });
 
   m_netGroup.setNeedsStoreCallback([this]() {
-      m_uniqueIdNetState.set(uniqueId());
-    });
+    m_uniqueIdNetState.set(uniqueId());
+  });
 }
 
 void Stagehand::readConfig(Json config) {
@@ -145,7 +146,7 @@ void Stagehand::readConfig(Json config) {
     m_xPosition.set(pos[0]);
     m_yPosition.set(pos[1]);
   }
-  
+
   Maybe<RectF> broadcastArea = jsonToMaybe<RectF>(config.opt("broadcastArea").value(Json()), jsonToRectF);
   if (broadcastArea && (broadcastArea->size()[0] < 0.0 || broadcastArea->size()[1] < 0.0))
     broadcastArea.reset();
@@ -165,29 +166,37 @@ void Stagehand::readConfig(Json config) {
 LuaCallbacks Stagehand::makeStagehandCallbacks() {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallback("id", [this]() {
-      return entityId();
-    });
+  auto thisStagehand = GameObjectRegistry::smuggleWrap(this);
 
-  callbacks.registerCallback("position", [this]() {
-      return position();
-    });
+  callbacks.registerCallback("id", [this, thisStagehand]() {
+    thisStagehand.checkSmuggle();
+    return entityId();
+  });
 
-  callbacks.registerCallback("setPosition", [this](Vec2F const& position) {
-      setPosition(position);
-    });
+  callbacks.registerCallback("position", [this, thisStagehand]() {
+    thisStagehand.checkSmuggle();
+    return position();
+  });
 
-  callbacks.registerCallback("die", [this]() {
-      m_dead = true;
-    });
+  callbacks.registerCallback("setPosition", [this, thisStagehand](Vec2F const& position) {
+    thisStagehand.checkSmuggle();
+    setPosition(position);
+  });
 
-  callbacks.registerCallback("typeName", [this]() {
-      return typeName();
-    });
+  callbacks.registerCallback("die", [this, thisStagehand]() {
+    thisStagehand.checkSmuggle();
+    m_dead = true;
+  });
 
-  callbacks.registerCallback("setUniqueId", [this](Maybe<String> const& uniqueId) {
-      setUniqueId(uniqueId);
-    });
+  callbacks.registerCallback("typeName", [this, thisStagehand]() {
+    thisStagehand.checkSmuggle();
+    return typeName();
+  });
+
+  callbacks.registerCallback("setUniqueId", [this, thisStagehand](Maybe<String> const& uniqueId) {
+    thisStagehand.checkSmuggle();
+    setUniqueId(uniqueId);
+  });
 
   return callbacks;
 }
@@ -200,4 +209,4 @@ Maybe<Json> Stagehand::receiveMessage(ConnectionId sendingConnection, String con
   return m_scriptComponent.handleMessage(message, sendingConnection == world()->connection(), args);
 }
 
-}
+} // namespace Star

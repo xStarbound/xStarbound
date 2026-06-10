@@ -1,18 +1,18 @@
 #include "StarStatusController.hpp"
-#include "StarDataStreamExtra.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarLuaGameConverters.hpp"
-#include "StarWorld.hpp"
-#include "StarWorldLuaBindings.hpp"
-#include "StarStatusControllerLuaBindings.hpp"
-#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarConfigLuaBindings.hpp"
+#include "StarDataStreamExtra.hpp"
 #include "StarEntityLuaBindings.hpp"
-#include "StarPlayerLuaBindings.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLiquidsDatabase.hpp"
+#include "StarLuaGameConverters.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarPlayer.hpp"
+#include "StarPlayerLuaBindings.hpp"
+#include "StarStatusControllerLuaBindings.hpp"
 #include "StarStatusEffectDatabase.hpp"
 #include "StarStatusEffectEntity.hpp"
-#include "StarLiquidsDatabase.hpp"
+#include "StarWorld.hpp"
+#include "StarWorldLuaBindings.hpp"
 
 namespace Star {
 
@@ -42,7 +42,7 @@ StatusController::StatusController(Json const& config) : m_statCollection(config
   m_netGroup.addNetElement(&m_effectAnimators);
 
   if (m_primaryAnimationConfig)
-    m_primaryAnimatorId = m_effectAnimators.addNetElement(make_shared<EffectAnimator>(*m_primaryAnimationConfig));
+    m_primaryAnimatorId = m_effectAnimators.addNetElement(makeObject<EffectAnimator>(*m_primaryAnimationConfig));
   else
     m_primaryAnimatorId = EffectAnimatorGroup::NullElementId;
 }
@@ -68,7 +68,7 @@ Json StatusController::diskStore() const {
     // Store ephemeral effects in the disk store based on remaining duration.
     // TODO: Need to store maximum duration as well in the store, otherwise the
     // effect will always appear "full" on reload (but just last less time)
-    auto metadata = m_uniqueEffectMetadata.getNetElement(pair.second.metadataId);
+    auto metadata = m_uniqueEffectMetadata.getNetElement(pair.second->metadataId);
     if (metadata->duration)
       ephemeralEffects.append(jsonFromEphemeralStatusEffect(EphemeralStatusEffect{pair.first, *metadata->duration}));
   }
@@ -271,7 +271,7 @@ void StatusController::addEphemeralEffects(
     List<EphemeralStatusEffect> const& effectList, Maybe<EntityId> sourceEntityId) {
   for (auto const& effect : effectList) {
     if (auto existingEffect = m_uniqueEffects.ptr(effect.uniqueEffect)) {
-      auto metadata = m_uniqueEffectMetadata.getNetElement(existingEffect->metadataId);
+      auto metadata = m_uniqueEffectMetadata.getNetElement(existingEffect->get()->metadataId);
 
       // If the effect exists and does not have a null duration, then refresh
       // the
@@ -294,7 +294,7 @@ void StatusController::addEphemeralEffects(
 
 bool StatusController::removeEphemeralEffect(UniqueStatusEffect const& effect) {
   if (auto uniqueEffect = m_uniqueEffects.ptr(effect)) {
-    auto metadata = m_uniqueEffectMetadata.getNetElement(uniqueEffect->metadataId);
+    auto metadata = m_uniqueEffectMetadata.getNetElement(uniqueEffect->get()->metadataId);
     if (metadata->duration) {
       removeUniqueEffect(effect);
       return true;
@@ -502,8 +502,8 @@ void StatusController::tickMaster(float dt) {
   // Segfault fix here.
   for (auto& p : m_uniqueEffects.keys()) {
     if (auto effect = m_uniqueEffects.ptr(p)) {
-      (*effect).script.update((*effect).script.updateDt(dt));
-      auto metadata = m_uniqueEffectMetadata.getNetElement((*effect).metadataId);
+      (*effect)->script.update((*effect)->script.updateDt(dt));
+      auto metadata = m_uniqueEffectMetadata.getNetElement((*effect)->metadataId);
       if (metadata->duration)
         *metadata->duration -= dt;
     }
@@ -511,17 +511,17 @@ void StatusController::tickMaster(float dt) {
 
   for (auto const& key : m_uniqueEffects.keys()) {
     auto& uniqueEffect = m_uniqueEffects[key];
-    auto metadata = m_uniqueEffectMetadata.getNetElement(uniqueEffect.metadataId);
+    auto metadata = m_uniqueEffectMetadata.getNetElement(uniqueEffect->metadataId);
     if (metadata->duration && *metadata->duration <= 0.0f)
       removeUniqueEffect(key);
-    else if ((metadata->duration && statPositive("statusImmunity")) || (uniqueEffect.effectConfig.blockingStat && statPositive(*uniqueEffect.effectConfig.blockingStat)))
+    else if ((metadata->duration && statPositive("statusImmunity")) || (uniqueEffect->effectConfig.blockingStat && statPositive(*uniqueEffect->effectConfig.blockingStat)))
       removeUniqueEffect(key);
   }
 
   DirectivesGroup parentDirectives;
   parentDirectives.append(m_primaryDirectives);
   for (auto const& pair : m_uniqueEffects)
-    parentDirectives.append(pair.second.parentDirectives);
+    parentDirectives.append(pair.second->parentDirectives);
 
   m_parentDirectives.set(std::move(parentDirectives));
 
@@ -574,7 +574,7 @@ List<Particle> StatusController::pullNewParticles() {
 Maybe<Json> StatusController::receiveMessage(String const& message, bool localMessage, JsonArray const& args) {
   Maybe<Json> result = m_primaryScript.handleMessage(message, localMessage, args);
   for (auto& p : m_uniqueEffects)
-    result = result.orMaybe(p.second.script.handleMessage(message, localMessage, args));
+    result = result.orMaybe(p.second->script.handleMessage(message, localMessage, args));
   return result;
 }
 
@@ -631,7 +631,7 @@ StatusController::UniqueEffectMetadata::UniqueEffectMetadata() {
 }
 
 StatusController::UniqueEffectMetadata::UniqueEffectMetadata(UniqueStatusEffect effect, Maybe<float> duration, Maybe<EntityId> sourceEntityId)
-  : UniqueEffectMetadata() {
+    : UniqueEffectMetadata() {
   this->effect = std::move(effect);
   this->duration = std::move(duration);
   this->maxDuration.set(this->duration.value());
@@ -659,8 +659,8 @@ void StatusController::updateAnimators(float dt) {
 
 void StatusController::updatePersistentUniqueEffects() {
   Set<UniqueStatusEffect> activePersistentUniqueEffects;
-  for (auto & categoryPair : m_persistentEffects) {
-    for (auto & uniqueEffectName : categoryPair.second.uniqueEffects) {
+  for (auto& categoryPair : m_persistentEffects) {
+    for (auto& uniqueEffectName : categoryPair.second.uniqueEffects) {
       // It is important to note here that if a unique effect exists, it *may*
       // not come from a persistent effect, it *may* be from an ephemeral effect.
       // Here, when a persistent effect overrides an ephemeral effect, it is
@@ -668,7 +668,7 @@ void StatusController::updatePersistentUniqueEffects() {
       // means that by applying a persistent effect and then clearing it, you can
       // remove an ephemeral effect.
       if (auto existingEffect = m_uniqueEffects.ptr(uniqueEffectName)) {
-        m_uniqueEffectMetadata.getNetElement(existingEffect->metadataId)->duration.reset();
+        m_uniqueEffectMetadata.getNetElement(existingEffect->get()->metadataId)->duration.reset();
         activePersistentUniqueEffects.add(uniqueEffectName);
       }
       // From a PR by WasabiRaptor: Make sure the effect being applied actually exists;
@@ -682,7 +682,7 @@ void StatusController::updatePersistentUniqueEffects() {
 
   // Again, here we are using "durationless" to mean "persistent"
   for (auto const& key : m_uniqueEffects.keys()) {
-    auto metadata = m_uniqueEffectMetadata.getNetElement(m_uniqueEffects[key].metadataId);
+    auto metadata = m_uniqueEffectMetadata.getNetElement(m_uniqueEffects[key]->metadataId);
     if (!metadata->duration && !activePersistentUniqueEffects.contains(key))
       removeUniqueEffect(key);
   }
@@ -700,18 +700,20 @@ bool StatusController::addUniqueEffect(
     if ((duration && statPositive("statusImmunity")) || (effectConfig.blockingStat && statPositive(*effectConfig.blockingStat)))
       return false;
 
-    auto& uniqueEffect = m_uniqueEffects[effect];
-    uniqueEffect.effectConfig = effectConfig;
-    uniqueEffect.script.setScripts(uniqueEffect.effectConfig.scripts);
-    uniqueEffect.script.setUpdateDelta(uniqueEffect.effectConfig.scriptDelta);
+    auto uniqueEffect = makeObject<UniqueEffectInstance>();
+    uniqueEffect->effectConfig = effectConfig;
+    uniqueEffect->script.setScripts(uniqueEffect->effectConfig.scripts);
+    uniqueEffect->script.setUpdateDelta(uniqueEffect->effectConfig.scriptDelta);
 
-    uniqueEffect.metadataId =
-        m_uniqueEffectMetadata.addNetElement(make_shared<UniqueEffectMetadata>(effect, duration, sourceEntityId));
+    uniqueEffect->metadataId =
+        m_uniqueEffectMetadata.addNetElement(makeObject<UniqueEffectMetadata>(effect, duration, sourceEntityId));
 
-    uniqueEffect.animatorId = UniqueEffectMetadataGroup::NullElementId;
-    if (uniqueEffect.effectConfig.animationConfig)
-      uniqueEffect.animatorId =
-          m_effectAnimators.addNetElement(make_shared<EffectAnimator>(uniqueEffect.effectConfig.animationConfig));
+    uniqueEffect->animatorId = UniqueEffectMetadataGroup::NullElementId;
+    if (uniqueEffect->effectConfig.animationConfig)
+      uniqueEffect->animatorId =
+          m_effectAnimators.addNetElement(makeObject<EffectAnimator>(uniqueEffect->effectConfig.animationConfig));
+
+    m_uniqueEffects[effect] = uniqueEffect;
 
     if (m_parentEntity)
       initUniqueEffectScript(uniqueEffect);
@@ -726,28 +728,30 @@ bool StatusController::addUniqueEffect(
 void StatusController::removeUniqueEffect(UniqueStatusEffect const& effect) {
   auto& uniqueEffect = m_uniqueEffects[effect];
 
-  uniqueEffect.script.invoke("onExpire");
+  uniqueEffect->script.invoke("onExpire");
 
   uninitUniqueEffectScript(uniqueEffect);
 
-  m_uniqueEffectMetadata.removeNetElement(uniqueEffect.metadataId);
+  m_uniqueEffectMetadata.removeNetElement(uniqueEffect->metadataId);
 
-  if (uniqueEffect.animatorId != EffectAnimatorGroup::NullElementId)
-    m_effectAnimators.removeNetElement(uniqueEffect.animatorId);
+  if (uniqueEffect->animatorId != EffectAnimatorGroup::NullElementId)
+    m_effectAnimators.removeNetElement(uniqueEffect->animatorId);
 
   m_uniqueEffects.remove(effect);
 }
 
 void StatusController::initPrimaryScript() {
+  m_primaryScript.initScriptBindings(this);
+  m_primaryScript.initMessageBinding(this);
   m_primaryScript.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(this));
   m_primaryScript.addCallbacks("entity", LuaBindings::makeEntityCallbacks(m_parentEntity));
   if (auto playerEntity = as<Player>(m_parentEntity)) { // FezzedOne: Add player callbacks if the entity is a player.
     m_primaryScript.addCallbacks("player", LuaBindings::makePlayerCallbacks(playerEntity));
-    m_primaryScript.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(playerEntity->effectsAnimator().get()));
+    m_primaryScript.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(playerEntity->effectsAnimator().get(), playerEntity));
   }
   if (m_primaryAnimatorId != EffectAnimatorGroup::NullElementId) {
     auto animator = m_effectAnimators.getNetElement(m_primaryAnimatorId);
-    m_primaryScript.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&animator->animator));
+    m_primaryScript.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&animator->animator, m_parentEntity));
   }
   m_primaryScript.addActorMovementCallbacks(m_movementController);
   m_primaryScript.init(m_parentEntity->world());
@@ -763,99 +767,104 @@ void StatusController::uninitPrimaryScript() {
   m_primaryScript.removeActorMovementCallbacks();
 }
 
-void StatusController::initUniqueEffectScript(UniqueEffectInstance& uniqueEffect) {
-  uniqueEffect.script.addCallbacks("effect", makeUniqueEffectCallbacks(uniqueEffect));
-  uniqueEffect.script.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(this));
-  uniqueEffect.script.addCallbacks("config", LuaBindings::makeConfigCallbacks([&uniqueEffect](String const& name, Json const& def) {
-      return uniqueEffect.effectConfig.effectConfig.query(name, def);
-    }));
-  uniqueEffect.script.addCallbacks("entity", LuaBindings::makeEntityCallbacks(m_parentEntity));
+void StatusController::initUniqueEffectScript(std::shared_ptr<UniqueEffectInstance> uniqueEffect) {
+  auto uniqueEffectSmugglePtr = GameObjectRegistry::smuggleWrap(uniqueEffect.get());
+  uniqueEffect->script.initScriptBindings(uniqueEffect.get());
+  uniqueEffect->script.initMessageBinding(uniqueEffect.get());
+  uniqueEffect->script.addCallbacks("effect", makeUniqueEffectCallbacks(uniqueEffect));
+  uniqueEffect->script.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(this));
+  uniqueEffect->script.addCallbacks("config", LuaBindings::makeConfigCallbacks([uniqueEffectSmugglePtr](String const& name, Json const& def) {
+    return uniqueEffectSmugglePtr->effectConfig.effectConfig.query(name, def);
+  }));
+  uniqueEffect->script.addCallbacks("entity", LuaBindings::makeEntityCallbacks(m_parentEntity));
   if (auto playerEntity = as<Player>(m_parentEntity)) { // FezzedOne: Add player callbacks if the entity is a player.
-    uniqueEffect.script.addCallbacks("player", LuaBindings::makePlayerCallbacks(playerEntity));
-    uniqueEffect.script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(playerEntity->effectsAnimator().get()));
+    uniqueEffect->script.addCallbacks("player", LuaBindings::makePlayerCallbacks(playerEntity));
+    uniqueEffect->script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(playerEntity->effectsAnimator().get(), playerEntity->effectsAnimator().get()));
   }
-  if (uniqueEffect.animatorId != EffectAnimatorGroup::NullElementId) {
-    auto animator = m_effectAnimators.getNetElement(uniqueEffect.animatorId);
-    uniqueEffect.script.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&animator->animator));
+  if (uniqueEffect->animatorId != EffectAnimatorGroup::NullElementId) {
+    auto animator = m_effectAnimators.getNetElement(uniqueEffect->animatorId);
+    uniqueEffect->script.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&animator->animator, uniqueEffect.get()));
   }
-  uniqueEffect.script.addActorMovementCallbacks(m_movementController);
-  uniqueEffect.script.init(m_parentEntity->world());
+  uniqueEffect->script.addActorMovementCallbacks(m_movementController);
+  uniqueEffect->script.init(m_parentEntity->world());
 }
 
-void StatusController::uninitUniqueEffectScript(UniqueEffectInstance& uniqueEffect) {
-  uniqueEffect.script.uninit();
-  uniqueEffect.script.removeCallbacks("effect");
-  uniqueEffect.script.removeCallbacks("status");
-  uniqueEffect.script.removeCallbacks("config");
-  uniqueEffect.script.removeCallbacks("entity");
-  uniqueEffect.script.removeCallbacks("player");
-  uniqueEffect.script.removeCallbacks("playerAnimator");
-  uniqueEffect.script.removeCallbacks("animator");
-  uniqueEffect.script.removeActorMovementCallbacks();
+void StatusController::uninitUniqueEffectScript(std::shared_ptr<UniqueEffectInstance> uniqueEffect) {
+  uniqueEffect->script.uninit();
+  uniqueEffect->script.removeCallbacks("effect");
+  uniqueEffect->script.removeCallbacks("status");
+  uniqueEffect->script.removeCallbacks("config");
+  uniqueEffect->script.removeCallbacks("entity");
+  uniqueEffect->script.removeCallbacks("player");
+  uniqueEffect->script.removeCallbacks("playerAnimator");
+  uniqueEffect->script.removeCallbacks("animator");
+  uniqueEffect->script.removeActorMovementCallbacks();
 
-  for (auto modifierGroup : uniqueEffect.modifierGroups)
+  for (auto modifierGroup : uniqueEffect->modifierGroups)
     m_statCollection.removeStatModifierGroup(modifierGroup);
-  uniqueEffect.modifierGroups.clear();
+  uniqueEffect->modifierGroups.clear();
 }
 
-LuaCallbacks StatusController::makeUniqueEffectCallbacks(UniqueEffectInstance& uniqueEffect) {
+LuaCallbacks StatusController::makeUniqueEffectCallbacks(std::shared_ptr<UniqueEffectInstance> uniqueEffect) {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallback("duration", [this, &uniqueEffect]() {
-      return m_uniqueEffectMetadata.getNetElement(uniqueEffect.metadataId)->duration;
-    });
-  callbacks.registerCallback("modifyDuration", [this, &uniqueEffect](float duration) {
-      auto metadata = m_uniqueEffectMetadata.getNetElement(uniqueEffect.metadataId);
-      if (metadata->duration)
-        *metadata->duration += duration;
-    });
-  callbacks.registerCallback("expire", [this, &uniqueEffect]() {
-      auto metadata = m_uniqueEffectMetadata.getNetElement(uniqueEffect.metadataId);
-      if (metadata->duration)
-        metadata->duration = 0.0f;
-    });
-  callbacks.registerCallback("sourceEntity", [this, &uniqueEffect]() -> Maybe<EntityId> {
-      auto metadata = m_uniqueEffectMetadata.getNetElement(uniqueEffect.metadataId);
-      auto sourceEntityId = metadata->sourceEntityId.get();
-      if (!sourceEntityId)
-        return m_parentEntity->entityId();
-      if (sourceEntityId == NullEntityId)
-        return {};
-      return sourceEntityId;
-    });
-  callbacks.registerCallback("setParentDirectives", [&uniqueEffect](Maybe<String> const& directives) {
-      // FezzedOne: Added this workaround because some mods forget to prepend a `?` to the first directive for some reason.
-      if (auto p = directives.ptr()) {
-        String const& directiveString = *p;
-        if (!directiveString.empty() && !directiveString.beginsWith('?'))
-          uniqueEffect.parentDirectives = Directives('?' + directiveString);
-        else
-          uniqueEffect.parentDirectives = Directives(std::move(directiveString));
-      } else {
-        uniqueEffect.parentDirectives = Directives();
-      }
-    });
-  callbacks.registerCallback("getParameter", [&uniqueEffect](String const& name, Json const& def) -> Json {
-      return uniqueEffect.effectConfig.effectConfig.query(name, def);
-    });
-  callbacks.registerCallback("addStatModifierGroup", [this, &uniqueEffect](List<StatModifier> const& modifiers) -> StatModifierGroupId {
-      auto newGroupId = m_statCollection.addStatModifierGroup(modifiers);
-      uniqueEffect.modifierGroups.add(newGroupId);
-      return newGroupId;
-    });
-  callbacks.registerCallback("setStatModifierGroup", [this, &uniqueEffect](StatModifierGroupId groupId, List<StatModifier> const& modifiers) {
-      if (!uniqueEffect.modifierGroups.contains(groupId))
-        throw StatusException("Cannot set stat modifier group that was not added from this effect");
-      m_statCollection.setStatModifierGroup(groupId, modifiers);
-    });
-  callbacks.registerCallback("removeStatModifierGroup", [this, &uniqueEffect](StatModifierGroupId groupId) {
-      if (!uniqueEffect.modifierGroups.contains(groupId))
-        throw StatusException("Cannot remove stat modifier group that was not added from this effect");
-      m_statCollection.removeStatModifierGroup(groupId);
-      uniqueEffect.modifierGroups.remove(groupId);
-    });
+  GameObjectRegistry::registerGameObject(uniqueEffect.get(), uniqueEffect);
+
+  callbacks.registerCallback("duration", [this, uniqueEffect]() {
+    return m_uniqueEffectMetadata.getNetElement(uniqueEffect->metadataId)->duration;
+  });
+  callbacks.registerCallback("modifyDuration", [this, uniqueEffect](float duration) {
+    auto metadata = m_uniqueEffectMetadata.getNetElement(uniqueEffect->metadataId);
+    if (metadata->duration)
+      *metadata->duration += duration;
+  });
+  callbacks.registerCallback("expire", [this, uniqueEffect]() {
+    auto metadata = m_uniqueEffectMetadata.getNetElement(uniqueEffect->metadataId);
+    if (metadata->duration)
+      metadata->duration = 0.0f;
+  });
+  callbacks.registerCallback("sourceEntity", [this, uniqueEffect]() -> Maybe<EntityId> {
+    auto metadata = m_uniqueEffectMetadata.getNetElement(uniqueEffect->metadataId);
+    auto sourceEntityId = metadata->sourceEntityId.get();
+    if (!sourceEntityId)
+      return m_parentEntity->entityId();
+    if (sourceEntityId == NullEntityId)
+      return {};
+    return sourceEntityId;
+  });
+  callbacks.registerCallback("setParentDirectives", [uniqueEffect](Maybe<String> const& directives) {
+    // FezzedOne: Added this workaround because some mods forget to prepend a `?` to the first directive for some reason.
+    if (auto p = directives.ptr()) {
+      String const& directiveString = *p;
+      if (!directiveString.empty() && !directiveString.beginsWith('?'))
+        uniqueEffect->parentDirectives = Directives('?' + directiveString);
+      else
+        uniqueEffect->parentDirectives = Directives(std::move(directiveString));
+    } else {
+      uniqueEffect->parentDirectives = Directives();
+    }
+  });
+  callbacks.registerCallback("getParameter", [uniqueEffect](String const& name, Json const& def) -> Json {
+    return uniqueEffect->effectConfig.effectConfig.query(name, def);
+  });
+  callbacks.registerCallback("addStatModifierGroup", [this, uniqueEffect](List<StatModifier> const& modifiers) -> StatModifierGroupId {
+    auto newGroupId = m_statCollection.addStatModifierGroup(modifiers);
+    uniqueEffect->modifierGroups.add(newGroupId);
+    return newGroupId;
+  });
+  callbacks.registerCallback("setStatModifierGroup", [this, uniqueEffect](StatModifierGroupId groupId, List<StatModifier> const& modifiers) {
+    if (!uniqueEffect->modifierGroups.contains(groupId))
+      throw StatusException("Cannot set stat modifier group that was not added from this effect");
+    m_statCollection.setStatModifierGroup(groupId, modifiers);
+  });
+  callbacks.registerCallback("removeStatModifierGroup", [this, uniqueEffect](StatModifierGroupId groupId) {
+    if (!uniqueEffect->modifierGroups.contains(groupId))
+      throw StatusException("Cannot remove stat modifier group that was not added from this effect");
+    m_statCollection.removeStatModifierGroup(groupId);
+    uniqueEffect->modifierGroups.remove(groupId);
+  });
 
   return callbacks;
 }
 
-}
+} // namespace Star

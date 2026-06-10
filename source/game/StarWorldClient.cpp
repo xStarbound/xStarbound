@@ -959,6 +959,7 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
 
       auto entity = entityFactory->netLoadEntity(entityCreate->entityType, entityCreate->storeData);
       entity->readNetState(std::move(entityCreate->firstNetState));
+      GameObjectRegistry::registerGameObject(entity.get(), entity);
       entity->init(this, entityCreate->entityId, EntityMode::Slave);
       m_entityMap->addEntity(entity);
 
@@ -1587,6 +1588,7 @@ void WorldClient::addEntity(EntityPtr const& entity, EntityId entityId) {
     return;
 
   if (entity->clientEntityMode() != ClientEntityMode::ClientSlaveOnly) {
+    GameObjectRegistry::registerGameObject(entity.get(), entity);
     entity->init(this, m_entityMap->reserveEntityId(entityId), EntityMode::Master);
     m_entityMap->addEntity(entity);
     notifyEntityCreate(entity);

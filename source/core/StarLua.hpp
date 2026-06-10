@@ -109,8 +109,13 @@ public:
 
   ObjectType* get() const {
     if (auto lockedPtr = m_ptr.lock())
-      return lockedPtr;
+      return lockedPtr.get();
     throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
+  }
+
+  void checkSmuggle() const {
+    if (m_ptr.expired())
+      throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
   }
 };
 
@@ -242,6 +247,35 @@ void resetObject(std::shared_ptr<ObjectType>& objectToReset, std::shared_ptr<Obj
   }
 }
 
+// FezzedOne: Replaces `std::bind` calls used for Lua binding registration to ensure bindings bound to invalid pointers smuggled out of the script's
+// context throw a more debuggable Lua error instead of causing a segfault and crashing the game.
+template <typename ObjectType, typename Func>
+auto luaBind(Func&& functionToWrap, SmugglePtr<ObjectType> const& pointerToCheck) {
+  return [func = std::forward<Func>(functionToWrap), ptr = pointerToCheck](auto&&... args) -> decltype(auto) {
+    if (std::shared_ptr<ObjectType> rawPtr = ptr.m_ptr.lock())
+      return std::invoke(func, rawPtr.get(), std::forward<decltype(args)>(args)...);
+    throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
+  };
+}
+
+// FezzedOne: Wrapper to "consume" unnecessary `_1, _2, ...` arguments and allow finding and replacing of `std::bind` calls in Lua binding
+// definitions.
+#define LUA_BIND(func, ptr, ...) luaBind(func, ptr)
+
+// FezzedOne: Lua binding wrapper for when the pointer needed for lifetime tracking *differs* from the pointer used by the callbacks
+// because the callback pointer is to a stack-allocated member object of an entity.
+template <typename ObjectType, typename Func>
+auto luaBindProxy(SmugglePtr<ObjectType> lifetimePtr, Func&& functionToWrap) {
+  return [func = std::forward<Func>(functionToWrap), ptr = lifetimePtr](auto&&... args) -> decltype(auto) {
+    if (std::shared_ptr<ObjectType> rawPtr = ptr.m_ptr.lock())
+      return std::invoke(func, std::forward<decltype(args)>(args)...);
+    throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
+  };
+}
+
+// FezzedOne: Wrapper to "consume" unnecessary `_1, _2, ...` arguments and allow finding and replacing of `std::bind` calls in Lua binding
+// definitions. This one is for binds that need extra TLC for object lifetime tracking because of stack references.
+#define LUA_BIND_PROXY(lifetimePtr, func, ...) luaBindProxy(lifetimePtr, func)
 
 typedef Empty LuaNilType;
 typedef bool LuaBoolean;

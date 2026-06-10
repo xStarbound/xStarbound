@@ -240,7 +240,7 @@ void TechController::tickMaster(float dt) {
         {"special2", m_moveSpecial2},
         {"special3", m_moveSpecial3}};
 
-    module.scriptComponent.update(JsonObject{{"moves", moves}, {"dt", dt}});
+    module->scriptComponent.update(JsonObject{{"moves", moves}, {"dt", dt}});
   }
 
   resetMoves();
@@ -345,7 +345,7 @@ List<Particle> TechController::pullNewParticles() {
 
 Maybe<Json> TechController::receiveMessage(String const& message, bool localMessage, JsonArray const& args) {
   for (auto& module : m_techModules) {
-    if (auto res = module.scriptComponent.handleMessage(message, localMessage, args))
+    if (auto res = module->scriptComponent.handleMessage(message, localMessage, args))
       return res;
   }
   return {};
@@ -418,55 +418,59 @@ void TechController::setupTechModules(List<tuple<String, JsonObject>> const& mod
 
   for (auto const& moduleInit : moduleInits) {
     if (techDatabase->contains(get<0>(moduleInit))) {
-      auto& module = m_techModules.emplaceAppend();
+      auto module = makeObject<TechModule>();
 
-      module.config = techDatabase->tech(get<0>(moduleInit));
+      module->config = techDatabase->tech(get<0>(moduleInit));
 
-      module.scriptComponent.setScripts(module.config.scripts);
-      module.scriptComponent.setScriptStorage(get<1>(moduleInit));
+      module->scriptComponent.setScripts(module->config.scripts);
+      module->scriptComponent.setScriptStorage(get<1>(moduleInit));
 
-      module.visible = module.config.parameters.getBool("visible", true);
+      module->visible = module->config.parameters.getBool("visible", true);
 
-      module.toolUsageSuppressed = false;
+      module->toolUsageSuppressed = false;
 
-      auto moduleAnimator = make_shared<TechAnimator>(module.config.animationConfig);
-      for (auto const& pair : module.config.parameters.get("animationParts", JsonObject()).iterateObject())
+      auto moduleAnimator = make_shared<TechAnimator>(module->config.animationConfig);
+      for (auto const& pair : module->config.parameters.get("animationParts", JsonObject()).iterateObject())
         moduleAnimator->animator.setPartTag(pair.first, "partImage", pair.second.toString());
-      module.animatorId = m_techAnimators.addNetElement(moduleAnimator);
+      module->animatorId = m_techAnimators.addNetElement(moduleAnimator);
+
+      m_techModules.emplaceAppend(module);
     } else {
       // Logger::warn("Tech module '{}' not found in tech database", get<0>(moduleInit)); /* Too spammy. */
     }
   }
 }
 
-void TechController::unloadModule(TechModule& techModule) {
-  techModule.scriptComponent.uninit();
-  techModule.scriptComponent.removeCallbacks("tech");
-  techModule.scriptComponent.removeCallbacks("config");
-  techModule.scriptComponent.removeCallbacks("entity");
-  techModule.scriptComponent.removeCallbacks("animator");
-  techModule.scriptComponent.removeCallbacks("status");
-  techModule.scriptComponent.removeCallbacks("player");
-  techModule.scriptComponent.removeCallbacks("playerAnimator");
-  techModule.scriptComponent.removeActorMovementCallbacks();
+void TechController::unloadModule(std::shared_ptr<TechModule> techModule) {
+  techModule->scriptComponent.uninit();
+  techModule->scriptComponent.removeCallbacks("tech");
+  techModule->scriptComponent.removeCallbacks("config");
+  techModule->scriptComponent.removeCallbacks("entity");
+  techModule->scriptComponent.removeCallbacks("animator");
+  techModule->scriptComponent.removeCallbacks("status");
+  techModule->scriptComponent.removeCallbacks("player");
+  techModule->scriptComponent.removeCallbacks("playerAnimator");
+  techModule->scriptComponent.removeActorMovementCallbacks();
 }
 
 void TechController::initializeModules() {
   for (auto& module : m_techModules) {
-    module.scriptComponent.addCallbacks("tech", makeTechCallbacks(module));
-    module.scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks([&module](String const& name, Json const& def) {
-      return module.config.parameters.query(name, def);
+    module->scriptComponent.initMessageBinding(module.get());
+    module->scriptComponent.initScriptBindings(module.get());
+    module->scriptComponent.addCallbacks("tech", makeTechCallbacks(module));
+    module->scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks([&module](String const& name, Json const& def) {
+      return module->config.parameters.query(name, def);
     }));
-    module.scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(m_parentEntity));
-    module.scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_techAnimators.getNetElement(module.animatorId)->animator));
-    module.scriptComponent.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_statusController));
+    module->scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(m_parentEntity));
+    module->scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_techAnimators.getNetElement(module->animatorId)->animator, module.get()));
+    module->scriptComponent.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_statusController));
     if (auto player = as<Player>(m_parentEntity)) {
-      module.scriptComponent.addCallbacks("player", LuaBindings::makePlayerCallbacks(player));
-      module.scriptComponent.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(player->effectsAnimator().get()));
+      module->scriptComponent.addCallbacks("player", LuaBindings::makePlayerCallbacks(player));
+      module->scriptComponent.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(player->effectsAnimator().get(), player->effectsAnimator().get()));
     }
-    module.scriptComponent.addActorMovementCallbacks(m_movementController);
+    module->scriptComponent.addActorMovementCallbacks(m_movementController);
 
-    module.scriptComponent.init(m_parentEntity->world());
+    module->scriptComponent.init(m_parentEntity->world());
   }
 }
 
@@ -484,7 +488,7 @@ void TechController::resetMoves() {
 
 void TechController::updateAnimators(float dt) {
   for (auto const& module : m_techModules)
-    m_techAnimators.getNetElement(module.animatorId)->setVisible(module.visible);
+    m_techAnimators.getNetElement(module->animatorId)->setVisible(module->visible);
 
   for (auto const& animator : m_techAnimators.netElements()) {
     if (m_parentEntity->world()->isServer() || !animator->isVisible()) {
@@ -500,70 +504,80 @@ void TechController::updateAnimators(float dt) {
 void TechController::setPlayerToolUsageSuppressed(bool suppressed) {
   bool anySuppressed = false;
   for (auto& module : m_techModules)
-    anySuppressed = anySuppressed || module.toolUsageSuppressed || suppressed;
+    anySuppressed = anySuppressed || module->toolUsageSuppressed || suppressed;
   anySuppressed = anySuppressed || suppressed;
   m_toolUsageSuppressed.set(anySuppressed);
 }
 
-LuaCallbacks TechController::makeTechCallbacks(TechModule& techModule) {
+LuaCallbacks TechController::makeTechCallbacks(std::shared_ptr<TechModule> techModulePtr) {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallback("aimPosition", [this]() {
+  auto techModule = GameObjectRegistry::smuggleWrap(techModulePtr.get());
+  auto techController = GameObjectRegistry::smuggleWrap(this);
+
+  callbacks.registerCallback("aimPosition", [this, techController]() {
+    techController.checkSmuggle();
     return m_aimPosition;
   });
 
-  callbacks.registerCallback("setVisible", [&techModule](bool visible) {
-    techModule.visible = visible;
+  callbacks.registerCallback("setVisible", [techModule](bool visible) {
+    techModule->visible = visible;
   });
 
-  callbacks.registerCallback("setParentState", [this](Maybe<String> const& state) {
+  callbacks.registerCallback("setParentState", [this, techController](Maybe<String> const& state) {
+    techController.checkSmuggle();
     if (state)
       m_parentState.set(ParentStateNames.getLeft(*state));
     else
       m_parentState.set({});
   });
 
-  callbacks.registerCallback("setParentDirectives", [this, &techModule](Maybe<String> const& directives) {
+  callbacks.registerCallback("setParentDirectives", [this, techModule, techController](Maybe<String> const& directives) {
+    techController.checkSmuggle();
     // FezzedOne: Added this workaround because some mods forget to prepend a `?` to the first directive for some reason.
     if (auto p = directives.ptr()) {
       String const& directiveString = *p;
       if (!directiveString.empty() && !directiveString.beginsWith('?'))
-        techModule.parentDirectives = Directives('?' + directiveString);
+        techModule->parentDirectives = Directives('?' + directiveString);
       else
-        techModule.parentDirectives = Directives(std::move(directiveString));
+        techModule->parentDirectives = Directives(std::move(directiveString));
     } else {
-      techModule.parentDirectives = Directives();
+      techModule->parentDirectives = Directives();
     }
 
     DirectivesGroup newParentDirectives;
     for (auto& module : m_techModules)
-      newParentDirectives.append(module.parentDirectives);
+      newParentDirectives.append(module->parentDirectives);
     m_parentDirectives.set(std::move(newParentDirectives));
   });
 
-  callbacks.registerCallback("setParentHidden", [this](bool hidden) {
+  callbacks.registerCallback("setParentHidden", [this, techController](bool hidden) {
+    techController.checkSmuggle();
     m_parentHidden.set(hidden);
   });
 
-  callbacks.registerCallback("setParentOffset", [this](Vec2F const& po) {
+  callbacks.registerCallback("setParentOffset", [this, techController](Vec2F const& po) {
+    techController.checkSmuggle();
     m_xParentOffset.set(po[0]);
     m_yParentOffset.set(po[1]);
   });
 
-  callbacks.registerCallback("parentLounging", [this]() {
+  callbacks.registerCallback("parentLounging", [this, techController]() {
+    techController.checkSmuggle();
     if (auto loungingEntity = as<LoungingEntity>(m_parentEntity))
       return loungingEntity->loungingIn().isValid();
     return false;
   });
 
-  callbacks.registerCallback("setToolUsageSuppressed", [this, &techModule](bool suppressed) {
-    techModule.toolUsageSuppressed = suppressed;
+  callbacks.registerCallback("setToolUsageSuppressed", [this, techModule, techController](bool suppressed) {
+    techController.checkSmuggle();
+    techModule->toolUsageSuppressed = suppressed;
     bool anySuppressed = false;
     bool playerToolUsageSuppressed = false;
     if (auto parentPlayer = as<Player>(m_parentEntity))
       playerToolUsageSuppressed = parentPlayer->toolUsageSuppressed();
     for (auto& module : m_techModules)
-      anySuppressed = anySuppressed || module.toolUsageSuppressed || playerToolUsageSuppressed;
+      anySuppressed = anySuppressed || module->toolUsageSuppressed || playerToolUsageSuppressed;
     m_toolUsageSuppressed.set(anySuppressed);
   });
 

@@ -1,13 +1,19 @@
 #include "StarBehaviorLuaBindings.hpp"
+#include "StarEntity.hpp"
 #include "StarLuaGameConverters.hpp"
 #include "StarRoot.hpp"
 
 namespace Star {
 
-LuaCallbacks LuaBindings::makeBehaviorLuaCallbacks(List<BehaviorStatePtr>* list) {
+LuaCallbacks LuaBindings::makeBehaviorLuaCallbacks(List<BehaviorStatePtr>* list, Entity* entityPtr) {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallback("behavior", [list](Json const& config, JsonObject const& parameters, LuaTable context, Maybe<LuaUserData> blackboard) -> BehaviorStateWeakPtr {
+  auto entity = GameObjectRegistry::smuggleWrap(entityPtr);
+
+  callbacks.registerCallback("behavior", [list, entity](Json const& config, JsonObject const& parameters, LuaTable context, Maybe<LuaUserData> blackboard) -> BehaviorStateWeakPtr {
+    // FezzedOne: Need to check the existence of the entity that is implicitly referenced in the passed behaviour state list pointer.
+    entity.checkSmuggle();
+
     auto behaviorDatabase = Root::singleton().behaviorDatabase();
     Maybe<BlackboardWeakPtr> board = {};
     if (blackboard && blackboard->is<BlackboardWeakPtr>())
@@ -34,4 +40,4 @@ LuaCallbacks LuaBindings::makeBehaviorLuaCallbacks(List<BehaviorStatePtr>* list)
   return callbacks;
 }
 
-}
+} // namespace Star

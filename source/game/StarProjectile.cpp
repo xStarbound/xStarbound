@@ -1,22 +1,22 @@
 #include "StarProjectile.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarWorld.hpp"
-#include "StarLogging.hpp"
-#include "StarRoot.hpp"
-#include "StarDataStreamExtra.hpp"
-#include "StarMaterialDatabase.hpp"
-#include "StarLiquidsDatabase.hpp"
-#include "StarMonster.hpp"
-#include "StarStoredFunctions.hpp"
-#include "StarDamageDatabase.hpp"
-#include "StarProjectileDatabase.hpp"
 #include "StarAssets.hpp"
+#include "StarConfigLuaBindings.hpp"
+#include "StarDamageDatabase.hpp"
+#include "StarDataStreamExtra.hpp"
+#include "StarEntityLuaBindings.hpp"
 #include "StarItemDrop.hpp"
 #include "StarIterator.hpp"
-#include "StarConfigLuaBindings.hpp"
-#include "StarEntityLuaBindings.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLiquidsDatabase.hpp"
+#include "StarLogging.hpp"
+#include "StarMaterialDatabase.hpp"
+#include "StarMonster.hpp"
 #include "StarMovementControllerLuaBindings.hpp"
 #include "StarParticleDatabase.hpp"
+#include "StarProjectileDatabase.hpp"
+#include "StarRoot.hpp"
+#include "StarStoredFunctions.hpp"
+#include "StarWorld.hpp"
 
 namespace Star {
 
@@ -92,15 +92,21 @@ void Projectile::init(World* world, EntityId entityId, EntityMode mode) {
 
   if (isMaster()) {
     if (!m_config->scripts.empty()) {
+      auto thisProjectile = GameObjectRegistry::smuggleWrap(this);
+
       m_scriptComponent.setScripts(m_config->scripts);
       m_scriptComponent.setUpdateDelta(m_parameters.getUInt("scriptDelta", m_config->config.getUInt("scriptDelta", 1)));
 
+      m_scriptComponent.initScriptBindings(this);
+      m_scriptComponent.initMessageBinding(this);
+
       m_scriptComponent.addCallbacks("projectile", makeProjectileCallbacks());
-      m_scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def) {
-           return m_parameters.query(name, m_config->config.query(name, def));
-         }));
+      m_scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks([this, thisProjectile](String const& name, Json const& def) {
+        thisProjectile.checkSmuggle();
+        return m_parameters.query(name, m_config->config.query(name, def));
+      }));
       m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
-      m_scriptComponent.addCallbacks("mcontroller", LuaBindings::makeMovementControllerCallbacks(m_movementController.get()));
+      m_scriptComponent.addCallbacks("mcontroller", LuaBindings::makeMovementControllerCallbacks(m_movementController.get(), this));
       m_scriptComponent.init(world);
     }
   }
@@ -194,8 +200,7 @@ List<DamageSource> Projectile::damageSources() const {
     return {};
 
   float time_per_frame = m_animationCycle / m_config->frameNumber;
-  if ((m_config->intangibleWindup && m_animationTimer < time_per_frame * m_config->windupFrames)
-      || (m_config->intangibleWinddown && m_timeToLive < time_per_frame * m_config->winddownFrames))
+  if ((m_config->intangibleWindup && m_animationTimer < time_per_frame * m_config->windupFrames) || (m_config->intangibleWinddown && m_timeToLive < time_per_frame * m_config->winddownFrames))
     return {};
 
   EntityDamageTeam sourceTeam = getTeam();
@@ -391,7 +396,7 @@ void Projectile::renderLightSources(RenderCallback* renderCallback) {
     if (renderable.is<LightSource>())
       renderCallback->addLightSource(renderable.get<LightSource>());
   }
-  renderCallback->addLightSource({ position(), m_config->lightColor, m_config->pointLight, 0.0f, 0.0f, 0.0f });
+  renderCallback->addLightSource({position(), m_config->lightColor, m_config->pointLight, 0.0f, 0.0f, 0.0f});
 }
 
 Maybe<Json> Projectile::receiveMessage(ConnectionId sendingConnection, String const& message, JsonArray const& args) {
@@ -545,8 +550,7 @@ int Projectile::getFrame() const {
     if (m_animationTimer < time_per_frame * m_config->windupFrames) {
       return floor(m_animationTimer / time_per_frame);
     } else if (m_timeToLive < time_per_frame * m_config->winddownFrames) {
-      return m_config->windupFrames + m_config->frameNumber
-          + clamp<int>((time_per_frame * m_config->winddownFrames - m_timeToLive) / time_per_frame, 0, m_config->winddownFrames - 1);
+      return m_config->windupFrames + m_config->frameNumber + clamp<int>((time_per_frame * m_config->winddownFrames - m_timeToLive) / time_per_frame, 0, m_config->winddownFrames - 1);
     } else {
       float time_within_cycle = std::fmod(m_animationTimer, m_animationCycle);
       return m_config->windupFrames + floor(time_within_cycle / time_per_frame);
@@ -730,7 +734,7 @@ void Projectile::processAction(Json const& action) {
     }
     projectile->setSourceEntity(m_sourceEntity, false);
     projectile->setPowerMultiplier(m_powerMultiplier);
-    
+
     // if the entity no longer exists and no explicit damage team is set, inherit damage team
     if (!projectile->m_damageTeam && !world()->entity(m_sourceEntity))
       projectile->setTeam(getTeam());
@@ -782,17 +786,17 @@ void Projectile::processAction(Json const& action) {
     Vec2F explosionPosition = position();
 
     doWithDelay(parameters.getUInt("delaySteps", 0), [=](World* world) {
-        world->damageTiles(tileAreaBrush(foregroundRadius, explosionPosition, false),
-            TileLayer::Foreground,
-            explosionPosition,
-            {damageType, explosiveDamageAmount, harvestLevel},
-            sourceEntity());
-        world->damageTiles(tileAreaBrush(backgroundRadius, explosionPosition, false),
-            TileLayer::Background,
-            explosionPosition,
-            {damageType, explosiveDamageAmount, harvestLevel},
-            sourceEntity());
-      });
+      world->damageTiles(tileAreaBrush(foregroundRadius, explosionPosition, false),
+          TileLayer::Foreground,
+          explosionPosition,
+          {damageType, explosiveDamageAmount, harvestLevel},
+          sourceEntity());
+      world->damageTiles(tileAreaBrush(backgroundRadius, explosionPosition, false),
+          TileLayer::Background,
+          explosionPosition,
+          {damageType, explosiveDamageAmount, harvestLevel},
+          sourceEntity());
+    });
 
   } else if (command == "spawnmonster") {
     if (isMaster()) {
@@ -848,8 +852,7 @@ void Projectile::processAction(Json const& action) {
         parameters.getBool("pointLight", true),
         0.0f,
         0.0f,
-        0.0f
-      });
+        0.0f});
 
   } else if (command == "option") {
     JsonArray options = parameters.getArray("options");
@@ -925,12 +928,10 @@ void Projectile::setup() {
     if (begin == NPos) {
       m_imageDirectives = "";
       m_imageSuffix = std::move(processing);
-    }
-    else if (begin == 0) {
+    } else if (begin == 0) {
       m_imageDirectives = std::move(processing);
       m_imageSuffix = "";
-    }
-    else {
+    } else {
       m_imageDirectives = (String)processing.utf8().substr(begin);
       m_imageSuffix = processing.utf8().substr(0, begin);
     }
@@ -1000,24 +1001,32 @@ void Projectile::setup() {
 
 LuaCallbacks Projectile::makeProjectileCallbacks() {
   LuaCallbacks callbacks;
-  callbacks.registerCallback("getParameter", [this](String const& name, Json const& def) {
-      return m_parameters.query(name, m_config->config.query(name, def));
-    });
-  callbacks.registerCallback("die", [this]() { m_timeToLive = 0.0f; });
-  callbacks.registerCallback("sourceEntity", [this]() -> Maybe<EntityId> {
-      if (m_sourceEntity == NullEntityId)
-        return {};
-      else
-        return m_sourceEntity;
-    });
-  callbacks.registerCallback("powerMultiplier", [this]() { return powerMultiplier(); });
-  callbacks.registerCallback("timeToLive", [this]() { return m_timeToLive; });
-  callbacks.registerCallback("setTimeToLive", [this](float const& timeToLive) { return m_timeToLive = timeToLive; });
-  callbacks.registerCallback("collision", [this]() { return m_collision; });
-  callbacks.registerCallback("processAction", [this](Json const& action) { processAction(action); });
-  callbacks.registerCallback("power", [this]() { return m_power; });
-  callbacks.registerCallback("setPower", [this](float const& power) { m_power = power; });
-  callbacks.registerCallback("setReferenceVelocity", [this](Maybe<Vec2F> const& referenceVelocity) { setReferenceVelocity(referenceVelocity); });
+
+  auto thisProjectile = GameObjectRegistry::smuggleWrap(this);
+
+  callbacks.registerCallback("getParameter", [this, thisProjectile](String const& name, Json const& def) {
+    thisProjectile.checkSmuggle();
+    return m_parameters.query(name, m_config->config.query(name, def));
+  });
+  callbacks.registerCallback("die", [this, thisProjectile]() {
+    thisProjectile.checkSmuggle();
+    m_timeToLive = 0.0f;
+  });
+  callbacks.registerCallback("sourceEntity", [this, thisProjectile]() -> Maybe<EntityId> {
+    thisProjectile.checkSmuggle();
+    if (m_sourceEntity == NullEntityId)
+      return {};
+    else
+      return m_sourceEntity;
+  });
+  callbacks.registerCallback("powerMultiplier", [this, thisProjectile]() { thisProjectile.checkSmuggle(); return powerMultiplier(); });
+  callbacks.registerCallback("timeToLive", [this, thisProjectile]() { thisProjectile.checkSmuggle(); return m_timeToLive; });
+  callbacks.registerCallback("setTimeToLive", [this, thisProjectile](float const& timeToLive) { thisProjectile.checkSmuggle(); return m_timeToLive = timeToLive; });
+  callbacks.registerCallback("collision", [this, thisProjectile]() { thisProjectile.checkSmuggle(); return m_collision; });
+  callbacks.registerCallback("processAction", [this, thisProjectile](Json const& action) { thisProjectile.checkSmuggle(); processAction(action); });
+  callbacks.registerCallback("power", [this, thisProjectile]() { thisProjectile.checkSmuggle(); return m_power; });
+  callbacks.registerCallback("setPower", [this, thisProjectile](float const& power) { thisProjectile.checkSmuggle(); m_power = power; });
+  callbacks.registerCallback("setReferenceVelocity", [this, thisProjectile](Maybe<Vec2F> const& referenceVelocity) { thisProjectile.checkSmuggle(); setReferenceVelocity(referenceVelocity); });
   return callbacks;
 }
 
@@ -1031,4 +1040,4 @@ void Projectile::renderPendingRenderables(RenderCallback* renderCallback) {
   m_pendingRenderables.clear();
 }
 
-}
+} // namespace Star

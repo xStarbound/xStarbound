@@ -1,13 +1,13 @@
 #include "StarQuestManager.hpp"
-#include "StarRoot.hpp"
+#include "StarAssets.hpp"
+#include "StarClientContext.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarJsonExtra.hpp"
 #include "StarPlayer.hpp"
 #include "StarPlayerInventory.hpp"
-#include "StarAssets.hpp"
-#include "StarItemDatabase.hpp"
 #include "StarRandom.hpp"
-#include "StarJsonExtra.hpp"
+#include "StarRoot.hpp"
 #include "StarTime.hpp"
-#include "StarClientContext.hpp"
 #include "StarUniverseClient.hpp"
 
 namespace Star {
@@ -27,12 +27,12 @@ StringMap<QuestPtr> readQuests(Json const& json) {
   auto questTemplateDatabase = Root::singleton().questTemplateDatabase();
 
   auto validateArc = [questTemplateDatabase](QuestArcDescriptor const& arc) {
-      for (auto quest : arc.quests) {
-        if (!questTemplateDatabase->questTemplate(quest.templateId))
-          return false;
-      }
-      return true;
-    };
+    for (auto quest : arc.quests) {
+      if (!questTemplateDatabase->questTemplate(quest.templateId))
+        return false;
+    }
+    return true;
+  };
 
   StringMap<QuestPtr> result;
   for (auto const& questPair : json.iterateObject()) {
@@ -40,15 +40,15 @@ StringMap<QuestPtr> readQuests(Json const& json) {
     Json diskStore = versioningDatabase->loadVersionedJson(VersionedJson::fromJson(questPair.second), "Quest");
     auto questArc = QuestArcDescriptor::diskLoad(diskStore.get("arc"));
     if (validateArc(questArc))
-      result[questPair.first] = make_shared<Quest>(questPair.second);
+      result[questPair.first] = makeObject<Quest>(questPair.second);
   }
   return result;
 }
 
-function<bool (QuestPtr const&)> questFilter(QuestState state) {
+function<bool(QuestPtr const&)> questFilter(QuestState state) {
   return [state](QuestPtr const& quest) {
-      return quest->state() == state;
-    };
+    return quest->state() == state;
+  };
 }
 
 void QuestManager::diskLoad(Json const& quests) {
@@ -63,8 +63,7 @@ Json QuestManager::diskStore() {
 
   return JsonObject{
       {"quests", jsonFromMapV<StringMap<QuestPtr>>(m_quests, questPtrToJson)},
-      {"currentQuest", jsonFromMaybe(m_trackedQuestId)}
-    };
+      {"currentQuest", jsonFromMaybe(m_trackedQuestId)}};
 }
 
 void QuestManager::setUniverseClient(UniverseClient* client) {
@@ -201,7 +200,7 @@ Maybe<QuestPtr> QuestManager::getFirstCompletableQuest() {
 
 Maybe<QuestPtr> QuestManager::getFirstFailableQuest() {
   for (auto& q : serverQuests()) {
-    if (q->state() == QuestState::Failed&& q->showDialog())
+    if (q->state() == QuestState::Failed && q->showDialog())
       return q;
   }
   return {};
@@ -230,8 +229,8 @@ void sortQuests(List<QuestPtr>& quests) {
 List<QuestPtr> QuestManager::listActiveQuests() const {
   List<QuestPtr> result = serverQuests();
   result.filter([&](QuestPtr quest) {
-      return quest->state() == QuestState::Active && quest->showInLog();
-    });
+    return quest->state() == QuestState::Active && quest->showInLog();
+  });
   sortQuests(result);
   return result;
 }
@@ -239,8 +238,8 @@ List<QuestPtr> QuestManager::listActiveQuests() const {
 List<QuestPtr> QuestManager::listCompletedQuests() const {
   List<QuestPtr> result = serverQuests();
   result.filter([](QuestPtr quest) {
-      return quest->state() == QuestState::Complete && quest->showInLog();
-    });
+    return quest->state() == QuestState::Complete && quest->showInLog();
+  });
   sortQuests(result);
   return result;
 }
@@ -248,8 +247,8 @@ List<QuestPtr> QuestManager::listCompletedQuests() const {
 List<QuestPtr> QuestManager::listFailedQuests() const {
   List<QuestPtr> result = serverQuests();
   result.filter([](QuestPtr quest) {
-      return quest->state() == QuestState::Failed && quest->showInLog();
-    });
+    return quest->state() == QuestState::Failed && quest->showInLog();
+  });
   sortQuests(result);
   return result;
 }
@@ -317,7 +316,7 @@ Maybe<QuestIndicator> QuestManager::getQuestIndicator(EntityPtr const& entity) c
       if (auto indicatorImage = pair.second->customIndicator(entity)) {
         if (questGiver)
           indicatorPos = questGiver->questIndicatorPosition();
-        return QuestIndicator{ *indicatorImage, indicatorPos };
+        return QuestIndicator{*indicatorImage, indicatorPos};
       }
     }
   }
@@ -338,7 +337,7 @@ Maybe<Json> QuestManager::receiveMessage(String const& message, bool localMessag
   starAssert(m_world);
   Maybe<Json> result;
   m_quests.values().exec([&result, message, localMessage, args](
-      QuestPtr const& quest) { result = result.orMaybe(quest->receiveMessage(message, localMessage, args)); });
+                             QuestPtr const& quest) { result = result.orMaybe(quest->receiveMessage(message, localMessage, args)); });
   return result;
 }
 
@@ -365,7 +364,7 @@ void QuestManager::update(float dt) {
       for (auto quest : listActiveQuests()) {
         if (auto questWorld = quest->worldId()) {
           if (playerWorldId == *questWorld)
-            m_onWorldQuestId = quest->questId();  
+            m_onWorldQuestId = quest->questId();
         }
       }
     }
@@ -386,10 +385,10 @@ void QuestManager::update(float dt) {
 
 List<QuestPtr> QuestManager::serverQuests() const {
   return m_quests.values().filtered([this](QuestPtr const& q) -> bool {
-      if (q->hideCrossServer() && q->serverUuid().isValid() && *q->serverUuid() != m_player->clientContext()->serverUuid())
-        return false;
-      return true;
-    });
+    if (q->hideCrossServer() && q->serverUuid().isValid() && *q->serverUuid() != m_player->clientContext()->serverUuid())
+      return false;
+    return true;
+  });
 }
 
 void QuestManager::startInitialQuests() {
@@ -398,7 +397,7 @@ void QuestManager::startInitialQuests() {
   for (auto const& questArcJson : startingQuests) {
     QuestArcDescriptor quest = QuestArcDescriptor::fromJson(questArcJson);
     if (canStart(quest))
-      offer(make_shared<Quest>(quest, 0, m_player));
+      offer(makeObject<Quest>(quest, 0, m_player));
   }
 }
 
@@ -408,4 +407,4 @@ void QuestManager::setMostRecentQuestCurrent() {
     setAsTracked(sortedActiveQuests.last()->questId());
 }
 
-}
+} // namespace Star

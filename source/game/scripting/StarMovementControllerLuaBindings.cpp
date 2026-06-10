@@ -1,84 +1,90 @@
 #include "StarMovementControllerLuaBindings.hpp"
+#include "StarEntity.hpp"
 #include "StarLuaGameConverters.hpp"
 #include "StarMovementController.hpp"
 
 namespace Star {
 
-LuaCallbacks LuaBindings::makeMovementControllerCallbacks(MovementController* movementController) {
+LuaCallbacks LuaBindings::makeMovementControllerCallbacks(MovementController* movementController, Entity* entityPtr) {
   LuaCallbacks callbacks;
 
+  auto entity = GameObjectRegistry::smuggleWrap(entityPtr);
+
   callbacks.registerCallback(
-      "parameters", [movementController]() { return movementController->parameters().toJson(); });
+      "parameters", [movementController, entity]() { 
+      entity.checkSmuggle();
+      return movementController->parameters().toJson(); });
   callbacks.registerCallbackWithSignature<void, Json>(
-      "applyParameters", bind(&MovementController::applyParameters, movementController, _1));
+      "applyParameters", LUA_BIND_PROXY(entity, &MovementController::applyParameters, movementController, _1));
   callbacks.registerCallbackWithSignature<void, Json>(
-      "resetParameters", bind(&MovementController::resetParameters, movementController, _1));
-  callbacks.registerCallbackWithSignature<float>("mass", bind(&MovementController::mass, movementController));
-  callbacks.registerCallback("boundBox", [movementController]() {
+      "resetParameters", LUA_BIND_PROXY(entity, &MovementController::resetParameters, movementController, _1));
+  callbacks.registerCallbackWithSignature<float>("mass", LUA_BIND_PROXY(entity, &MovementController::mass, movementController));
+  callbacks.registerCallback("boundBox", [movementController, entity]() {
+    entity.checkSmuggle();
     return movementController->collisionPoly().boundBox();
   });
   callbacks.registerCallbackWithSignature<PolyF>(
-      "collisionPoly", bind(&MovementController::collisionPoly, movementController));
-  callbacks.registerCallbackWithSignature<Vec2F>("position", bind(&MovementController::position, movementController));
-  callbacks.registerCallbackWithSignature<float>("xPosition", bind(&MovementController::xPosition, movementController));
-  callbacks.registerCallbackWithSignature<float>("yPosition", bind(&MovementController::yPosition, movementController));
-  callbacks.registerCallbackWithSignature<Vec2F>("velocity", bind(&MovementController::velocity, movementController));
-  callbacks.registerCallbackWithSignature<float>("xVelocity", bind(&MovementController::xVelocity, movementController));
-  callbacks.registerCallbackWithSignature<float>("yVelocity", bind(&MovementController::yVelocity, movementController));
-  callbacks.registerCallbackWithSignature<float>("rotation", bind(&MovementController::rotation, movementController));
+      "collisionPoly", LUA_BIND_PROXY(entity, &MovementController::collisionPoly, movementController));
+  callbacks.registerCallbackWithSignature<Vec2F>("position", LUA_BIND_PROXY(entity, &MovementController::position, movementController));
+  callbacks.registerCallbackWithSignature<float>("xPosition", LUA_BIND_PROXY(entity, &MovementController::xPosition, movementController));
+  callbacks.registerCallbackWithSignature<float>("yPosition", LUA_BIND_PROXY(entity, &MovementController::yPosition, movementController));
+  callbacks.registerCallbackWithSignature<Vec2F>("velocity", LUA_BIND_PROXY(entity, &MovementController::velocity, movementController));
+  callbacks.registerCallbackWithSignature<float>("xVelocity", LUA_BIND_PROXY(entity, &MovementController::xVelocity, movementController));
+  callbacks.registerCallbackWithSignature<float>("yVelocity", LUA_BIND_PROXY(entity, &MovementController::yVelocity, movementController));
+  callbacks.registerCallbackWithSignature<float>("rotation", LUA_BIND_PROXY(entity, &MovementController::rotation, movementController));
   callbacks.registerCallbackWithSignature<PolyF>(
-      "collisionBody", bind(&MovementController::collisionBody, movementController));
+      "collisionBody", LUA_BIND_PROXY(entity, &MovementController::collisionBody, movementController));
   callbacks.registerCallbackWithSignature<RectF>(
-      "collisionBoundBox", bind(&MovementController::collisionBoundBox, movementController));
+      "collisionBoundBox", LUA_BIND_PROXY(entity, &MovementController::collisionBoundBox, movementController));
   callbacks.registerCallbackWithSignature<RectF>(
-      "localBoundBox", bind(&MovementController::localBoundBox, movementController));
+      "localBoundBox", LUA_BIND_PROXY(entity, &MovementController::localBoundBox, movementController));
   callbacks.registerCallbackWithSignature<bool>(
-      "isColliding", bind(&MovementController::isColliding, movementController));
+      "isColliding", LUA_BIND_PROXY(entity, &MovementController::isColliding, movementController));
   callbacks.registerCallbackWithSignature<bool>(
-      "isNullColliding", bind(&MovementController::isNullColliding, movementController));
+      "isNullColliding", LUA_BIND_PROXY(entity, &MovementController::isNullColliding, movementController));
   callbacks.registerCallbackWithSignature<bool>(
-      "isCollisionStuck", bind(&MovementController::isCollisionStuck, movementController));
+      "isCollisionStuck", LUA_BIND_PROXY(entity, &MovementController::isCollisionStuck, movementController));
   callbacks.registerCallbackWithSignature<Maybe<float>>(
-      "stickingDirection", bind(&MovementController::stickingDirection, movementController));
+      "stickingDirection", LUA_BIND_PROXY(entity, &MovementController::stickingDirection, movementController));
   callbacks.registerCallbackWithSignature<float>(
-      "liquidPercentage", bind(&MovementController::liquidPercentage, movementController));
+      "liquidPercentage", LUA_BIND_PROXY(entity, &MovementController::liquidPercentage, movementController));
   callbacks.registerCallbackWithSignature<LiquidId>(
-      "liquidId", bind(&MovementController::liquidId, movementController));
-  callbacks.registerCallbackWithSignature<bool>("onGround", bind(&MovementController::onGround, movementController));
-  callbacks.registerCallbackWithSignature<bool>("zeroG", bind(&MovementController::zeroG, movementController));
-  callbacks.registerCallbackWithSignature<bool, bool>("atWorldLimit", bind(&MovementController::atWorldLimit, movementController, _1));
+      "liquidId", LUA_BIND_PROXY(entity, &MovementController::liquidId, movementController));
+  callbacks.registerCallbackWithSignature<bool>("onGround", LUA_BIND_PROXY(entity, &MovementController::onGround, movementController));
+  callbacks.registerCallbackWithSignature<bool>("zeroG", LUA_BIND_PROXY(entity, &MovementController::zeroG, movementController));
+  callbacks.registerCallbackWithSignature<bool, bool>("atWorldLimit", LUA_BIND_PROXY(entity, &MovementController::atWorldLimit, movementController, _1));
   callbacks.registerCallbackWithSignature<void, Vec2F>(
-      "setPosition", bind(&MovementController::setPosition, movementController, _1));
+      "setPosition", LUA_BIND_PROXY(entity, &MovementController::setPosition, movementController, _1));
   callbacks.registerCallbackWithSignature<void, float>(
-      "setXPosition", bind(&MovementController::setXPosition, movementController, _1));
+      "setXPosition", LUA_BIND_PROXY(entity, &MovementController::setXPosition, movementController, _1));
   callbacks.registerCallbackWithSignature<void, float>(
-      "setYPosition", bind(&MovementController::setYPosition, movementController, _1));
+      "setYPosition", LUA_BIND_PROXY(entity, &MovementController::setYPosition, movementController, _1));
   callbacks.registerCallbackWithSignature<void, Vec2F>(
-      "translate", bind(&MovementController::translate, movementController, _1));
+      "translate", LUA_BIND_PROXY(entity, &MovementController::translate, movementController, _1));
   callbacks.registerCallbackWithSignature<void, Vec2F>(
-      "setVelocity", bind(&MovementController::setVelocity, movementController, _1));
+      "setVelocity", LUA_BIND_PROXY(entity, &MovementController::setVelocity, movementController, _1));
   callbacks.registerCallbackWithSignature<void, float>(
-      "setXVelocity", bind(&MovementController::setXVelocity, movementController, _1));
+      "setXVelocity", LUA_BIND_PROXY(entity, &MovementController::setXVelocity, movementController, _1));
   callbacks.registerCallbackWithSignature<void, float>(
-      "setYVelocity", bind(&MovementController::setYVelocity, movementController, _1));
+      "setYVelocity", LUA_BIND_PROXY(entity, &MovementController::setYVelocity, movementController, _1));
   callbacks.registerCallbackWithSignature<void, Vec2F>(
-      "addMomentum", bind(&MovementController::addMomentum, movementController, _1));
+      "addMomentum", LUA_BIND_PROXY(entity, &MovementController::addMomentum, movementController, _1));
   callbacks.registerCallbackWithSignature<void, float>(
-      "setRotation", bind(&MovementController::setRotation, movementController, _1));
+      "setRotation", LUA_BIND_PROXY(entity, &MovementController::setRotation, movementController, _1));
   callbacks.registerCallbackWithSignature<void, float>(
-      "rotate", bind(&MovementController::rotate, movementController, _1));
+      "rotate", LUA_BIND_PROXY(entity, &MovementController::rotate, movementController, _1));
   callbacks.registerCallbackWithSignature<void, Vec2F>(
-      "accelerate", bind(&MovementController::accelerate, movementController, _1));
+      "accelerate", LUA_BIND_PROXY(entity, &MovementController::accelerate, movementController, _1));
   callbacks.registerCallbackWithSignature<void, Vec2F>(
-      "force", bind(&MovementController::force, movementController, _1));
+      "force", LUA_BIND_PROXY(entity, &MovementController::force, movementController, _1));
   callbacks.registerCallbackWithSignature<void, Vec2F, float>(
-      "approachVelocity", bind(&MovementController::approachVelocity, movementController, _1, _2));
+      "approachVelocity", LUA_BIND_PROXY(entity, &MovementController::approachVelocity, movementController, _1, _2));
   callbacks.registerCallbackWithSignature<void, float, float, float, bool>("approachVelocityAlongAngle",
-      bind(&MovementController::approachVelocityAlongAngle, movementController, _1, _2, _3, _4));
+      LUA_BIND_PROXY(entity, &MovementController::approachVelocityAlongAngle, movementController, _1, _2, _3, _4));
   callbacks.registerCallbackWithSignature<void, float, float>(
-      "approachXVelocity", bind(&MovementController::approachXVelocity, movementController, _1, _2));
+      "approachXVelocity", LUA_BIND_PROXY(entity, &MovementController::approachXVelocity, movementController, _1, _2));
   callbacks.registerCallbackWithSignature<void, float, float>(
-      "approachYVelocity", bind(&MovementController::approachYVelocity, movementController, _1, _2));
+      "approachYVelocity", LUA_BIND_PROXY(entity, &MovementController::approachYVelocity, movementController, _1, _2));
 
   return callbacks;
 }

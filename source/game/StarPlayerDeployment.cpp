@@ -1,12 +1,12 @@
 #include "StarPlayerDeployment.hpp"
 #include "StarConfigLuaBindings.hpp"
 #include "StarEntityLuaBindings.hpp"
+#include "StarEntityRendering.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarPlayer.hpp"
 #include "StarPlayerLuaBindings.hpp"
-#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarStatusControllerLuaBindings.hpp"
-#include "StarEntityRendering.hpp"
 
 namespace Star {
 
@@ -38,9 +38,13 @@ void PlayerDeployment::init(Entity* player, World* world) {
   m_scriptComponent.setScripts(jsonToStringList(m_config.getArray("scripts", JsonArray())));
   m_scriptComponent.setUpdateDelta(m_config.getInt("scriptDelta", 10));
 
+  m_scriptComponent.initScriptBindings(player);
+  m_scriptComponent.initAnimationBindings(player);
+  m_scriptComponent.initMessageBinding(player);
+
   m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(player));
   m_scriptComponent.addCallbacks("player", LuaBindings::makePlayerCallbacks(as<Player>(player)));
-  m_scriptComponent.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(as<Player>(player)->effectsAnimator().get()));
+  m_scriptComponent.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(as<Player>(player)->effectsAnimator().get(), as<Player>(player)->effectsAnimator().get()));
   m_scriptComponent.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(as<Player>(player)->statusController()));
   m_scriptComponent.addCallbacks("config",
       LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def) { return m_config.query(name, def); }));
@@ -103,4 +107,4 @@ void PlayerDeployment::renderLightSources(RenderCallback* renderCallback) {
   renderCallback->addLightSources(m_scriptComponent.lightSources());
 }
 
-}
+} // namespace Star

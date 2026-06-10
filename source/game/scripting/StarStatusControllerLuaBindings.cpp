@@ -1,88 +1,90 @@
 #include "StarStatusControllerLuaBindings.hpp"
-#include "StarStatusController.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarLuaGameConverters.hpp"
+#include "StarStatusController.hpp"
 
 namespace Star {
 
-LuaCallbacks LuaBindings::makeStatusControllerCallbacks(StatusController* statController) {
+LuaCallbacks LuaBindings::makeStatusControllerCallbacks(StatusController* statControllerPtr) {
   LuaCallbacks callbacks;
 
+  auto statController = GameObjectRegistry::smuggleWrap(statControllerPtr);
+
   callbacks.registerCallbackWithSignature<Json, String, Json>(
-      "statusProperty", bind(StatusControllerCallbacks::statusProperty, statController, _1, _2));
+      "statusProperty", LUA_BIND(StatusControllerCallbacks::statusProperty, statController, _1, _2));
   callbacks.registerCallbackWithSignature<void, String, Json>(
-      "setStatusProperty", bind(StatusControllerCallbacks::setStatusProperty, statController, _1, _2));
+      "setStatusProperty", LUA_BIND(StatusControllerCallbacks::setStatusProperty, statController, _1, _2));
   callbacks.registerCallbackWithSignature<float, String>(
-      "stat", bind(StatusControllerCallbacks::stat, statController, _1));
+      "stat", LUA_BIND(StatusControllerCallbacks::stat, statController, _1));
   callbacks.registerCallbackWithSignature<bool, String>(
-      "statPositive", bind(StatusControllerCallbacks::statPositive, statController, _1));
+      "statPositive", LUA_BIND(StatusControllerCallbacks::statPositive, statController, _1));
   callbacks.registerCallbackWithSignature<StringList>(
-      "resourceNames", bind(StatusControllerCallbacks::resourceNames, statController));
+      "resourceNames", LUA_BIND(StatusControllerCallbacks::resourceNames, statController));
   callbacks.registerCallbackWithSignature<bool, String>(
-      "isResource", bind(StatusControllerCallbacks::isResource, statController, _1));
+      "isResource", LUA_BIND(StatusControllerCallbacks::isResource, statController, _1));
   callbacks.registerCallbackWithSignature<float, String>(
-      "resource", bind(StatusControllerCallbacks::resource, statController, _1));
+      "resource", LUA_BIND(StatusControllerCallbacks::resource, statController, _1));
   callbacks.registerCallbackWithSignature<bool, String>(
-      "resourcePositive", bind(StatusControllerCallbacks::resourcePositive, statController, _1));
+      "resourcePositive", LUA_BIND(StatusControllerCallbacks::resourcePositive, statController, _1));
   callbacks.registerCallbackWithSignature<void, String, float>(
-      "setResource", bind(StatusControllerCallbacks::setResource, statController, _1, _2));
+      "setResource", LUA_BIND(StatusControllerCallbacks::setResource, statController, _1, _2));
   callbacks.registerCallbackWithSignature<void, String, float>(
-      "modifyResource", bind(StatusControllerCallbacks::modifyResource, statController, _1, _2));
+      "modifyResource", LUA_BIND(StatusControllerCallbacks::modifyResource, statController, _1, _2));
   callbacks.registerCallbackWithSignature<float, String, float>(
-      "giveResource", bind(StatusControllerCallbacks::giveResource, statController, _1, _2));
+      "giveResource", LUA_BIND(StatusControllerCallbacks::giveResource, statController, _1, _2));
   callbacks.registerCallbackWithSignature<bool, String, float>(
-      "consumeResource", bind(StatusControllerCallbacks::consumeResource, statController, _1, _2));
+      "consumeResource", LUA_BIND(StatusControllerCallbacks::consumeResource, statController, _1, _2));
   callbacks.registerCallbackWithSignature<bool, String, float>(
-      "overConsumeResource", bind(StatusControllerCallbacks::overConsumeResource, statController, _1, _2));
+      "overConsumeResource", LUA_BIND(StatusControllerCallbacks::overConsumeResource, statController, _1, _2));
   callbacks.registerCallbackWithSignature<bool, String>(
-      "resourceLocked", bind(StatusControllerCallbacks::resourceLocked, statController, _1));
+      "resourceLocked", LUA_BIND(StatusControllerCallbacks::resourceLocked, statController, _1));
   callbacks.registerCallbackWithSignature<void, String, bool>(
-      "setResourceLocked", bind(StatusControllerCallbacks::setResourceLocked, statController, _1, _2));
+      "setResourceLocked", LUA_BIND(StatusControllerCallbacks::setResourceLocked, statController, _1, _2));
   callbacks.registerCallbackWithSignature<void, String>(
-      "resetResource", bind(StatusControllerCallbacks::resetResource, statController, _1));
+      "resetResource", LUA_BIND(StatusControllerCallbacks::resetResource, statController, _1));
   callbacks.registerCallbackWithSignature<void>(
-      "resetAllResources", bind(StatusControllerCallbacks::resetAllResources, statController));
+      "resetAllResources", LUA_BIND(StatusControllerCallbacks::resetAllResources, statController));
   callbacks.registerCallbackWithSignature<Maybe<float>, String>(
-      "resourceMax", bind(StatusControllerCallbacks::resourceMax, statController, _1));
+      "resourceMax", LUA_BIND(StatusControllerCallbacks::resourceMax, statController, _1));
   callbacks.registerCallbackWithSignature<Maybe<float>, String>(
-      "resourcePercentage", bind(StatusControllerCallbacks::resourcePercentage, statController, _1));
+      "resourcePercentage", LUA_BIND(StatusControllerCallbacks::resourcePercentage, statController, _1));
   callbacks.registerCallbackWithSignature<float, String, float>(
-      "setResourcePercentage", bind(StatusControllerCallbacks::setResourcePercentage, statController, _1, _2));
+      "setResourcePercentage", LUA_BIND(StatusControllerCallbacks::setResourcePercentage, statController, _1, _2));
   callbacks.registerCallbackWithSignature<float, String, float>(
-      "modifyResourcePercentage", bind(StatusControllerCallbacks::modifyResourcePercentage, statController, _1, _2));
+      "modifyResourcePercentage", LUA_BIND(StatusControllerCallbacks::modifyResourcePercentage, statController, _1, _2));
   callbacks.registerCallbackWithSignature<JsonArray, String>(
-      "getPersistentEffects", bind(StatusControllerCallbacks::getPersistentEffects, statController, _1));
+      "getPersistentEffects", LUA_BIND(StatusControllerCallbacks::getPersistentEffects, statController, _1));
   callbacks.registerCallbackWithSignature<void, String, Json>(
-      "addPersistentEffect", bind(StatusControllerCallbacks::addPersistentEffect, statController, _1, _2));
+      "addPersistentEffect", LUA_BIND(StatusControllerCallbacks::addPersistentEffect, statController, _1, _2));
   callbacks.registerCallbackWithSignature<void, String, JsonArray>(
-      "addPersistentEffects", bind(StatusControllerCallbacks::addPersistentEffects, statController, _1, _2));
+      "addPersistentEffects", LUA_BIND(StatusControllerCallbacks::addPersistentEffects, statController, _1, _2));
   callbacks.registerCallbackWithSignature<void, String, JsonArray>(
-      "setPersistentEffects", bind(StatusControllerCallbacks::setPersistentEffects, statController, _1, _2));
+      "setPersistentEffects", LUA_BIND(StatusControllerCallbacks::setPersistentEffects, statController, _1, _2));
   callbacks.registerCallbackWithSignature<void, String>(
-      "clearPersistentEffects", bind(StatusControllerCallbacks::clearPersistentEffects, statController, _1));
+      "clearPersistentEffects", LUA_BIND(StatusControllerCallbacks::clearPersistentEffects, statController, _1));
   callbacks.registerCallbackWithSignature<void>(
-      "clearAllPersistentEffects", bind(StatusControllerCallbacks::clearAllPersistentEffects, statController));
+      "clearAllPersistentEffects", LUA_BIND(StatusControllerCallbacks::clearAllPersistentEffects, statController));
   callbacks.registerCallbackWithSignature<void, String, Maybe<float>, Maybe<EntityId>>(
-      "addEphemeralEffect", bind(StatusControllerCallbacks::addEphemeralEffect, statController, _1, _2, _3));
+      "addEphemeralEffect", LUA_BIND(StatusControllerCallbacks::addEphemeralEffect, statController, _1, _2, _3));
   callbacks.registerCallbackWithSignature<void, JsonArray, Maybe<EntityId>>(
-      "addEphemeralEffects", bind(StatusControllerCallbacks::addEphemeralEffects, statController, _1, _2));
+      "addEphemeralEffects", LUA_BIND(StatusControllerCallbacks::addEphemeralEffects, statController, _1, _2));
   callbacks.registerCallbackWithSignature<void, String>(
-      "removeEphemeralEffect", bind(StatusControllerCallbacks::removeEphemeralEffect, statController, _1));
+      "removeEphemeralEffect", LUA_BIND(StatusControllerCallbacks::removeEphemeralEffect, statController, _1));
   callbacks.registerCallbackWithSignature<void>(
-      "clearEphemeralEffects", bind(StatusControllerCallbacks::clearEphemeralEffects, statController));
+      "clearEphemeralEffects", LUA_BIND(StatusControllerCallbacks::clearEphemeralEffects, statController));
   callbacks.registerCallbackWithSignature<LuaTupleReturn<List<Json>, uint64_t>, Maybe<uint64_t>>(
-      "damageTakenSince", bind(StatusControllerCallbacks::damageTakenSince, statController, _1));
+      "damageTakenSince", LUA_BIND(StatusControllerCallbacks::damageTakenSince, statController, _1));
   callbacks.registerCallbackWithSignature<LuaTupleReturn<List<Json>, uint64_t>, Maybe<uint64_t>>(
-      "inflictedHitsSince", bind(StatusControllerCallbacks::inflictedHitsSince, statController, _1));
+      "inflictedHitsSince", LUA_BIND(StatusControllerCallbacks::inflictedHitsSince, statController, _1));
   callbacks.registerCallbackWithSignature<LuaTupleReturn<List<Json>, uint64_t>, Maybe<uint64_t>>(
-      "inflictedDamageSince", bind(StatusControllerCallbacks::inflictedDamageSince, statController, _1));
+      "inflictedDamageSince", LUA_BIND(StatusControllerCallbacks::inflictedDamageSince, statController, _1));
   callbacks.registerCallbackWithSignature<List<JsonArray>>("activeUniqueStatusEffectSummary",
-      bind(&StatusControllerCallbacks::activeUniqueStatusEffectSummary, statController));
+      LUA_BIND(&StatusControllerCallbacks::activeUniqueStatusEffectSummary, statController));
   callbacks.registerCallbackWithSignature<bool, String>("uniqueStatusEffectActive",
-      bind(&StatusControllerCallbacks::uniqueStatusEffectActive, statController, _1));
+      LUA_BIND(&StatusControllerCallbacks::uniqueStatusEffectActive, statController, _1));
 
   // FezzedOne: Downstreamed OpenStarbound bugfix for segfault caused by invocation of this callback.
-  callbacks.registerCallbackWithSignature<Directives>("primaryDirectives", bind(&StatusController::primaryDirectives, statController));
+  callbacks.registerCallbackWithSignature<Directives>("primaryDirectives", LUA_BIND(&StatusController::primaryDirectives, statController));
   callbacks.registerCallback("setPrimaryDirectives", [statController](Maybe<String> const& directives) {
     // FezzedOne: Added this workaround because some mods forget to prepend a `?` to the first directive for some reason.
     if (auto p = directives.ptr()) {
@@ -96,7 +98,7 @@ LuaCallbacks LuaBindings::makeStatusControllerCallbacks(StatusController* statCo
     }
   });
 
-  callbacks.registerCallbackWithSignature<void, DamageRequest>("applySelfDamageRequest", bind(&StatusController::applySelfDamageRequest, statController, _1));
+  callbacks.registerCallbackWithSignature<void, DamageRequest>("applySelfDamageRequest", LUA_BIND(&StatusController::applySelfDamageRequest, statController, _1));
 
   return callbacks;
 }
@@ -280,4 +282,4 @@ bool LuaBindings::StatusControllerCallbacks::uniqueStatusEffectActive(
   return statController->uniqueStatusEffectActive(effectName);
 }
 
-}
+} // namespace Star

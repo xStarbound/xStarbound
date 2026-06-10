@@ -164,6 +164,7 @@ void WorldServer::initLua(UniverseServer* universe) {
     auto scriptComponent = make_shared<ScriptComponent>();
     scriptComponent->setScripts(jsonToStringList(p.second.toArray()));
     scriptComponent->addCallbacks("universe", LuaBindings::makeUniverseServerCallbacks(universe));
+    scriptComponent->initScriptBindings(scriptComponent.get());
 
     m_scriptContexts.set(p.first, scriptComponent);
     scriptComponent->init(this);
@@ -172,6 +173,7 @@ void WorldServer::initLua(UniverseServer* universe) {
     auto scriptComponent = make_shared<ScriptComponent>();
     scriptComponent->setScripts(StringList{});
     scriptComponent->addCallbacks("universe", LuaBindings::makeUniverseServerCallbacks(universe));
+    scriptComponent->initScriptBindings(scriptComponent.get());
 
     m_scriptContexts.set("worldEval", scriptComponent);
     scriptComponent->init(this);
@@ -569,6 +571,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
 
         auto entity = entityFactory->netLoadEntity(entityCreate->entityType, entityCreate->storeData);
         entity->readNetState(entityCreate->firstNetState);
+        GameObjectRegistry::registerGameObject(entity.get(), entity);
         entity->init(this, entityCreate->entityId, EntityMode::Slave);
         m_entityMap->addEntity(entity);
 
@@ -968,6 +971,7 @@ void WorldServer::addEntity(EntityPtr const& entity, EntityId entityId) {
   if (!entity)
     return;
 
+  GameObjectRegistry::registerGameObject(entity.get(), entity);
   entity->init(this, m_entityMap->reserveEntityId(entityId), EntityMode::Master);
   m_entityMap->addEntity(entity);
 

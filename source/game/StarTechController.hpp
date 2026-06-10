@@ -131,17 +131,18 @@ private:
   // Name of module, any existing module script data.
   void setupTechModules(List<tuple<String, JsonObject>> const& moduleInits);
 
-  void unloadModule(TechModule& techModule);
+  void unloadModule(std::shared_ptr<TechModule> techModule);
 
   void initializeModules();
 
   void resetMoves();
   void updateAnimators(float dt);
 
-  LuaCallbacks makeTechCallbacks(TechModule& techModule);
+  LuaCallbacks makeTechCallbacks(std::shared_ptr<TechModule> techModule);
 
   Maybe<StringList> m_overriddenTech;
-  LinkedList<TechModule> m_techModules;
+  // FezzedOne: Needs to be turned into a pointer list because modules' lifetimes are exposed to Lua.
+  LinkedList<std::shared_ptr<TechModule>> m_techModules;
   TechAnimatorGroup m_techAnimators;
 
   Entity* m_parentEntity;

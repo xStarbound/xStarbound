@@ -70,289 +70,308 @@ void LuaActorMovementComponent<Base>::addActorMovementCallbacks(ActorMovementCon
   if (m_movementController) {
     LuaCallbacks callbacks;
 
+    auto movementController = GameObjectRegistry::smuggleWrap(m_movementController);
+
     // FezzedOne: Added missing actor movement controller callbacks.
     callbacks.registerCallback(
-        "parameters", [this]() { return m_movementController->parameters().toJson(); });
+        "parameters", [movementController]() { return movementController->parameters().toJson(); });
     callbacks.registerCallbackWithSignature<void, Json>(
-        "applyParameters", bind(&ActorMovementController::applyParameters, m_movementController, _1));
+        "applyParameters", LUA_BIND(&ActorMovementController::applyParameters, movementController, _1));
     callbacks.registerCallbackWithSignature<void, Json>(
-        "resetParameters", bind(&ActorMovementController::resetParameters, m_movementController, _1));
+        "resetParameters", LUA_BIND(&ActorMovementController::resetParameters, movementController, _1));
 
-    callbacks.registerCallback("mass", [this]() {
-      return m_movementController->mass();
+    callbacks.registerCallback("mass", [movementController]() {
+      return movementController->mass();
     });
 
-    callbacks.registerCallback("boundBox", [this]() {
-      return m_movementController->collisionPoly().boundBox();
+    callbacks.registerCallback("boundBox", [movementController]() {
+      return movementController->collisionPoly().boundBox();
     });
 
     callbacks.registerCallbackWithSignature<RectF>(
-        "collisionBoundBox", bind(&ActorMovementController::collisionBoundBox, m_movementController));
+        "collisionBoundBox", LUA_BIND(&ActorMovementController::collisionBoundBox, movementController));
 
     callbacks.registerCallbackWithSignature<RectF>(
-        "localBoundBox", bind(&ActorMovementController::localBoundBox, m_movementController));
+        "localBoundBox", LUA_BIND(&ActorMovementController::localBoundBox, movementController));
 
-    callbacks.registerCallback("collisionPoly", [this]() {
-      return m_movementController->collisionPoly();
+    callbacks.registerCallback("collisionPoly", [movementController]() {
+      return movementController->collisionPoly();
     });
 
-    callbacks.registerCallback("collisionBody", [this]() {
-      return m_movementController->collisionBody();
+    callbacks.registerCallback("collisionBody", [movementController]() {
+      return movementController->collisionBody();
     });
 
-    callbacks.registerCallback("position", [this]() {
-      return m_movementController->position();
+    callbacks.registerCallback("position", [movementController]() {
+      return movementController->position();
     });
 
-    callbacks.registerCallback("xPosition", [this]() {
-      return m_movementController->xPosition();
+    callbacks.registerCallback("xPosition", [movementController]() {
+      return movementController->xPosition();
     });
 
-    callbacks.registerCallback("yPosition", [this]() {
-      return m_movementController->yPosition();
+    callbacks.registerCallback("yPosition", [movementController]() {
+      return movementController->yPosition();
     });
 
-    callbacks.registerCallback("velocity", [this]() {
-      return m_movementController->velocity();
+    callbacks.registerCallback("velocity", [movementController]() {
+      return movementController->velocity();
     });
 
-    callbacks.registerCallback("xVelocity", [this]() {
-      return m_movementController->xVelocity();
+    callbacks.registerCallback("xVelocity", [movementController]() {
+      return movementController->xVelocity();
     });
 
-    callbacks.registerCallback("yVelocity", [this]() {
-      return m_movementController->yVelocity();
+    callbacks.registerCallback("yVelocity", [movementController]() {
+      return movementController->yVelocity();
     });
 
-    callbacks.registerCallback("rotation", [this]() {
-      return m_movementController->rotation();
+    callbacks.registerCallback("rotation", [movementController]() {
+      return movementController->rotation();
     });
 
-    callbacks.registerCallback("isColliding", [this]() {
-      return m_movementController->isColliding();
+    callbacks.registerCallback("isColliding", [movementController]() {
+      return movementController->isColliding();
     });
 
-    callbacks.registerCallback("isNullColliding", [this]() {
-      return m_movementController->isNullColliding();
+    callbacks.registerCallback("isNullColliding", [movementController]() {
+      return movementController->isNullColliding();
     });
 
-    callbacks.registerCallback("isCollisionStuck", [this]() {
-      return m_movementController->isCollisionStuck();
+    callbacks.registerCallback("isCollisionStuck", [movementController]() {
+      return movementController->isCollisionStuck();
     });
 
-    callbacks.registerCallback("stickingDirection", [this]() {
-      return m_movementController->stickingDirection();
+    callbacks.registerCallback("stickingDirection", [movementController]() {
+      return movementController->stickingDirection();
     });
 
-    callbacks.registerCallback("liquidPercentage", [this]() {
-      return m_movementController->liquidPercentage();
+    callbacks.registerCallback("liquidPercentage", [movementController]() {
+      return movementController->liquidPercentage();
     });
 
-    callbacks.registerCallback("liquidId", [this]() {
-      return m_movementController->liquidId();
+    callbacks.registerCallback("liquidId", [movementController]() {
+      return movementController->liquidId();
     });
 
-    callbacks.registerCallback("onGround", [this]() {
-      return m_movementController->onGround();
+    callbacks.registerCallback("onGround", [movementController]() {
+      return movementController->onGround();
     });
 
-    callbacks.registerCallback("zeroG", [this]() {
-      return m_movementController->zeroG();
+    callbacks.registerCallback("zeroG", [movementController]() {
+      return movementController->zeroG();
     });
 
-    callbacks.registerCallback("atWorldLimit", [this](bool bottomOnly) {
-      return m_movementController->atWorldLimit(bottomOnly);
+    callbacks.registerCallback("atWorldLimit", [movementController](bool bottomOnly) {
+      return movementController->atWorldLimit(bottomOnly);
     });
 
-    callbacks.registerCallback("setAnchorState", [this](EntityId anchorableEntity, size_t anchorPosition) {
-      m_movementController->setAnchorState({anchorableEntity, anchorPosition});
+    callbacks.registerCallback("setAnchorState", [movementController](EntityId anchorableEntity, size_t anchorPosition) {
+      movementController->setAnchorState({anchorableEntity, anchorPosition});
     });
 
-    callbacks.registerCallback("resetAnchorState", [this]() {
-      m_movementController->resetAnchorState();
+    callbacks.registerCallback("resetAnchorState", [movementController]() {
+      movementController->resetAnchorState();
     });
 
-    callbacks.registerCallback("anchorState", [this]() {
-      if (auto anchorState = m_movementController->anchorState())
+    callbacks.registerCallback("anchorState", [movementController]() {
+      if (auto anchorState = movementController->anchorState())
         return LuaVariadic<LuaValue>{LuaInt(anchorState->entityId), LuaInt(anchorState->positionIndex)};
       return LuaVariadic<LuaValue>();
     });
 
-    callbacks.registerCallback("setPosition", [this](Vec2F const& pos) {
-      m_movementController->setPosition(pos);
+    callbacks.registerCallback("setPosition", [movementController](Vec2F const& pos) {
+      movementController->setPosition(pos);
     });
 
-    callbacks.registerCallback("setXPosition", [this](float xPosition) {
-      m_movementController->setXPosition(xPosition);
+    callbacks.registerCallback("setXPosition", [movementController](float xPosition) {
+      movementController->setXPosition(xPosition);
     });
 
-    callbacks.registerCallback("setYPosition", [this](float yPosition) {
-      m_movementController->setYPosition(yPosition);
+    callbacks.registerCallback("setYPosition", [movementController](float yPosition) {
+      movementController->setYPosition(yPosition);
     });
 
-    callbacks.registerCallback("translate", [this](Vec2F const& translate) {
-      m_movementController->translate(translate);
+    callbacks.registerCallback("translate", [movementController](Vec2F const& translate) {
+      movementController->translate(translate);
     });
 
-    callbacks.registerCallback("setVelocity", [this](Vec2F const& vel) {
+    callbacks.registerCallback("setVelocity", [movementController](Vec2F const& vel) {
       m_resetPathMove = true;
-      m_movementController->setVelocity(vel);
+      movementController->setVelocity(vel);
     });
 
-    callbacks.registerCallback("setXVelocity", [this](float xVel) {
+    callbacks.registerCallback("setXVelocity", [movementController](float xVel) {
       m_resetPathMove = true;
-      m_movementController->setXVelocity(xVel);
+      movementController->setXVelocity(xVel);
     });
 
-    callbacks.registerCallback("setYVelocity", [this](float yVel) {
+    callbacks.registerCallback("setYVelocity", [movementController](float yVel) {
       m_resetPathMove = true;
-      m_movementController->setYVelocity(yVel);
+      movementController->setYVelocity(yVel);
     });
 
-    callbacks.registerCallback("addMomentum", [this](Vec2F const& momentum) {
+    callbacks.registerCallback("addMomentum", [movementController](Vec2F const& momentum) {
       m_resetPathMove = true;
-      m_movementController->addMomentum(momentum);
+      movementController->addMomentum(momentum);
     });
 
-    callbacks.registerCallback("setRotation", [this](float rotation) {
+    callbacks.registerCallback("setRotation", [movementController](float rotation) {
       m_resetPathMove = true;
-      m_movementController->setRotation(rotation);
+      movementController->setRotation(rotation);
     });
 
-    callbacks.registerCallback("baseParameters", [this]() {
-      return m_movementController->baseParameters();
+    callbacks.registerCallback("baseParameters", [movementController]() {
+      return movementController->baseParameters();
     });
 
-    callbacks.registerCallback("walking", [this]() {
-      return m_movementController->walking();
+    callbacks.registerCallback("walking", [movementController]() {
+      return movementController->walking();
     });
 
-    callbacks.registerCallback("running", [this]() {
-      return m_movementController->running();
+    callbacks.registerCallback("running", [movementController]() {
+      return movementController->running();
     });
 
-    callbacks.registerCallback("movingDirection", [this]() {
-      return numericalDirection(m_movementController->movingDirection());
+    callbacks.registerCallback("movingDirection", [movementController]() {
+      return numericalDirection(movementController->movingDirection());
     });
 
-    callbacks.registerCallback("facingDirection", [this]() {
-      return numericalDirection(m_movementController->facingDirection());
+    callbacks.registerCallback("facingDirection", [movementController]() {
+      return numericalDirection(movementController->facingDirection());
     });
 
-    callbacks.registerCallback("crouching", [this]() {
-      return m_movementController->crouching();
+    callbacks.registerCallback("crouching", [movementController]() {
+      return movementController->crouching();
     });
 
-    callbacks.registerCallback("flying", [this]() {
-      return m_movementController->flying();
+    callbacks.registerCallback("flying", [movementController]() {
+      return movementController->flying();
     });
 
-    callbacks.registerCallback("falling", [this]() {
-      return m_movementController->falling();
+    callbacks.registerCallback("falling", [movementController]() {
+      return movementController->falling();
     });
 
-    callbacks.registerCallback("canJump", [this]() {
-      return m_movementController->canJump();
+    callbacks.registerCallback("canJump", [movementController]() {
+      return movementController->canJump();
     });
 
-    callbacks.registerCallback("jumping", [this]() {
-      return m_movementController->jumping();
+    callbacks.registerCallback("jumping", [movementController]() {
+      return movementController->jumping();
     });
 
-    callbacks.registerCallback("groundMovement", [this]() {
-      return m_movementController->groundMovement();
+    callbacks.registerCallback("groundMovement", [movementController]() {
+      return movementController->groundMovement();
     });
 
-    callbacks.registerCallback("liquidMovement", [this]() {
-      return m_movementController->liquidMovement();
+    callbacks.registerCallback("liquidMovement", [movementController]() {
+      return movementController->liquidMovement();
     });
 
-    callbacks.registerCallback("controlRotation", [this](float rotation) {
+    callbacks.registerCallback("controlRotation", [this, movementController](float rotation) {
+      movementController.checkSmuggle();
       m_controlRotation += rotation;
     });
 
-    callbacks.registerCallback("controlAcceleration", [this](Vec2F const& accel) {
+    callbacks.registerCallback("controlAcceleration", [this, movementController](Vec2F const& accel) {
+      movementController.checkSmuggle();
       m_controlAcceleration += accel;
     });
 
-    callbacks.registerCallback("controlForce", [this](Vec2F const& force) {
+    callbacks.registerCallback("controlForce", [this, movementController](Vec2F const& force) {
+      movementController.checkSmuggle();
       m_controlForce += force;
     });
 
-    callbacks.registerCallback("controlApproachVelocity", [this](Vec2F const& arg1, float arg2) {
+    callbacks.registerCallback("controlApproachVelocity", [this, movementController](Vec2F const& arg1, float arg2) {
+      movementController.checkSmuggle();
       m_controlApproachVelocity.set(make_tuple(arg1, arg2));
     });
 
-    callbacks.registerCallback("controlApproachVelocityAlongAngle", [this](float angle, float targetVelocity, float maxControlForce, bool positiveOnly) {
+    callbacks.registerCallback("controlApproachVelocityAlongAngle", [this, movementController](float angle, float targetVelocity, float maxControlForce, bool positiveOnly) {
+      movementController.checkSmuggle();
       m_controlApproachVelocityAlongAngle.set(make_tuple(angle, targetVelocity, maxControlForce, positiveOnly));
     });
 
-    callbacks.registerCallback("controlApproachXVelocity", [this](float targetXVelocity, float maxControlForce) {
+    callbacks.registerCallback("controlApproachXVelocity", [this, movementController](float targetXVelocity, float maxControlForce) {
+      movementController.checkSmuggle();
       m_controlApproachVelocityAlongAngle.set(make_tuple(0.0f, targetXVelocity, maxControlForce, false));
     });
 
-    callbacks.registerCallback("controlApproachYVelocity", [this](float targetYVelocity, float maxControlForce) {
+    callbacks.registerCallback("controlApproachYVelocity", [this, movementController](float targetYVelocity, float maxControlForce) {
+      movementController.checkSmuggle();
       m_controlApproachVelocityAlongAngle.set(
           make_tuple(Constants::pi / 2.0f, targetYVelocity, maxControlForce, false));
     });
 
-    callbacks.registerCallback("controlParameters", [this](ActorMovementParameters const& arg1) {
+    callbacks.registerCallback("controlParameters", [this, movementController](ActorMovementParameters const& arg1) {
+      movementController.checkSmuggle();
       m_controlParameters = m_controlParameters.value().merge(arg1);
     });
 
-    callbacks.registerCallback("controlModifiers", [this](ActorMovementModifiers const& arg1) {
+    callbacks.registerCallback("controlModifiers", [this, movementController](ActorMovementModifiers const& arg1) {
+      movementController.checkSmuggle();
       m_controlModifiers = m_controlModifiers.value().combine(arg1);
     });
 
-    callbacks.registerCallback("controlMove", [this](Maybe<float> const& arg1, Maybe<bool> const& arg2) {
+    callbacks.registerCallback("controlMove", [this, movementController](Maybe<float> const& arg1, Maybe<bool> const& arg2) {
+      movementController.checkSmuggle();
       if (auto direction = directionOf(arg1.value()))
         m_controlMove.set(make_tuple(*direction, arg2.value(true)));
     });
 
-    callbacks.registerCallback("controlFace", [this](Maybe<float> const& arg1) {
+    callbacks.registerCallback("controlFace", [this, movementController](Maybe<float> const& arg1) {
+      movementController.checkSmuggle();
       if (auto direction = directionOf(arg1.value()))
         m_controlFace = *direction;
     });
 
-    callbacks.registerCallback("controlDown", [this]() {
+    callbacks.registerCallback("controlDown", [this, movementController]() {
+      movementController.checkSmuggle();
       m_controlDown = true;
     });
 
-    callbacks.registerCallback("controlCrouch", [this]() {
+    callbacks.registerCallback("controlCrouch", [this, movementController]() {
+      movementController.checkSmuggle();
       m_controlCrouch = true;
     });
 
-    callbacks.registerCallback("controlJump", [this](bool arg1) {
+    callbacks.registerCallback("controlJump", [this, movementController](bool arg1) {
+      movementController.checkSmuggle();
       m_controlJump = arg1;
     });
 
-    callbacks.registerCallback("controlHoldJump", [this]() {
+    callbacks.registerCallback("controlHoldJump", [this, movementController]() {
+      movementController.checkSmuggle();
       m_controlHoldJump = true;
     });
 
-    callbacks.registerCallback("controlFly", [this](Vec2F const& arg1) {
+    callbacks.registerCallback("controlFly", [this, movementController](Vec2F const& arg1) {
+      movementController.checkSmuggle();
       m_controlFly = arg1;
     });
 
-    callbacks.registerCallback("controlPathMove", [this](Vec2F const& position, Maybe<bool> run, Maybe<PlatformerAStar::Parameters> parameters) -> Maybe<bool> {
+    callbacks.registerCallback("controlPathMove", [this, movementController](Vec2F const& position, Maybe<bool> run, Maybe<PlatformerAStar::Parameters> parameters) -> Maybe<bool> {
+      movementController.checkSmuggle();
       if (m_pathMoveResult && m_pathMoveResult->first == position) {
         return take(m_pathMoveResult).apply([](pair<Vec2F, bool> const& p) { return p.second; });
       } else {
         m_pathMoveResult.reset();
-        auto result = m_movementController->pathMove(position, run.value(false), parameters);
+        auto result = movementController->pathMove(position, run.value(false), parameters);
         if (result.isNothing())
           m_controlPathMove = pair<Vec2F, bool>(position, run.value(false));
         return result.apply([](pair<Vec2F, bool> const& p) { return p.second; });
       }
     });
 
-    callbacks.registerCallback("pathfinding", [this]() -> bool {
-      return m_movementController->pathfinding();
+    callbacks.registerCallback("pathfinding", [movementController]() -> bool {
+      return movementController->pathfinding();
     });
 
-    callbacks.registerCallbackWithSignature<bool>("autoClearControls", bind(&LuaActorMovementComponent::autoClearControls, this));
-    callbacks.registerCallbackWithSignature<void, bool>("setAutoClearControls", bind(&LuaActorMovementComponent::setAutoClearControls, this, _1));
-    callbacks.registerCallbackWithSignature<void>("clearControls", bind(&LuaActorMovementComponent::clearControls, this));
+    callbacks.registerCallbackWithSignature<bool>("autoClearControls", LUA_BIND_PROXY(movementController, &LuaActorMovementComponent::autoClearControls, this));
+    callbacks.registerCallbackWithSignature<void, bool>("setAutoClearControls", LUA_BIND_PROXY(movementController, &LuaActorMovementComponent::setAutoClearControls, this, _1));
+    callbacks.registerCallbackWithSignature<void>("clearControls", LUA_BIND_PROXY(movementController, &LuaActorMovementComponent::clearControls, this));
 
     Base::addCallbacks("mcontroller", callbacks);
 

@@ -1,7 +1,7 @@
 #include "StarLoungeableObject.hpp"
 #include "StarJsonExtra.hpp"
-#include "StarRoot.hpp"
 #include "StarObjectDatabase.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -49,7 +49,7 @@ LoungeAnchorConstPtr LoungeableObject::loungeAnchor(size_t positionIndex) const 
   if (positionIndex >= m_sitPositions.size())
     return {};
 
-  auto loungeAnchor = make_shared<LoungeAnchor>();
+  auto loungeAnchor = makeObject<LoungeAnchor>();
 
   loungeAnchor->suppressTools = false;
   loungeAnchor->controllable = false;
@@ -105,4 +105,4 @@ void LoungeableObject::setOrientationIndex(size_t orientationIndex) {
   }
 }
 
-}
+} // namespace Star

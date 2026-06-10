@@ -1,24 +1,24 @@
 #include "StarMonster.hpp"
-#include "StarWorld.hpp"
-#include "StarLogging.hpp"
-#include "StarRoot.hpp"
-#include "StarDamageManager.hpp"
-#include "StarDamageDatabase.hpp"
-#include "StarTreasure.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarConfigLuaBindings.hpp"
-#include "StarEntityLuaBindings.hpp"
-#include "StarWorldLuaBindings.hpp"
-#include "StarNetworkedAnimatorLuaBindings.hpp"
-#include "StarStatusControllerLuaBindings.hpp"
-#include "StarScriptedAnimatorLuaBindings.hpp"
-#include "StarRootLuaBindings.hpp"
-#include "StarBehaviorLuaBindings.hpp"
-#include "StarStoredFunctions.hpp"
-#include "StarItemDrop.hpp"
 #include "StarAssets.hpp"
-#include "StarTime.hpp"
+#include "StarBehaviorLuaBindings.hpp"
+#include "StarConfigLuaBindings.hpp"
+#include "StarDamageDatabase.hpp"
+#include "StarDamageManager.hpp"
+#include "StarEntityLuaBindings.hpp"
+#include "StarItemDrop.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLogging.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
+#include "StarRoot.hpp"
+#include "StarRootLuaBindings.hpp"
+#include "StarScriptedAnimatorLuaBindings.hpp"
 #include "StarStatusController.hpp"
+#include "StarStatusControllerLuaBindings.hpp"
+#include "StarStoredFunctions.hpp"
+#include "StarTime.hpp"
+#include "StarTreasure.hpp"
+#include "StarWorld.hpp"
+#include "StarWorldLuaBindings.hpp"
 
 namespace Star {
 
@@ -47,7 +47,7 @@ Monster::Monster(MonsterVariant const& monsterVariant, Maybe<float> level) {
   if (!colorSwap.empty())
     m_networkedAnimator.setProcessingDirectives(imageOperationToString(ColorReplaceImageOperation{colorSwap}));
 
-  m_statusController = make_shared<StatusController>(m_monsterVariant.statusSettings);
+  m_statusController = makeObject<StatusController>(m_monsterVariant.statusSettings);
 
   m_scriptComponent.setScripts(m_monsterVariant.parameters.optArray("scripts").apply(jsonToStringList).value(m_monsterVariant.scripts));
   m_scriptComponent.setUpdateDelta(m_monsterVariant.initialScriptDelta);
@@ -64,7 +64,7 @@ Monster::Monster(MonsterVariant const& monsterVariant, Maybe<float> level) {
   *movementParameters.mass *= monsterVariant.weightMultiplier;
   if (!movementParameters.physicsEffectCategories)
     movementParameters.physicsEffectCategories = StringSet{"monster"};
-  m_movementController = make_shared<ActorMovementController>(movementParameters);
+  m_movementController = makeObject<ActorMovementController>(movementParameters);
 
   setPersistent(m_monsterVariant.persistent);
 
@@ -73,7 +73,7 @@ Monster::Monster(MonsterVariant const& monsterVariant, Maybe<float> level) {
 }
 
 Monster::Monster(Json const& diskStore)
-  : Monster(Root::singleton().monsterDatabase()->readMonsterVariantFromJson(diskStore.get("monsterVariant"))) {
+    : Monster(Root::singleton().monsterDatabase()->readMonsterVariantFromJson(diskStore.get("monsterVariant"))) {
   m_monsterLevel = diskStore.optFloat("monsterLevel");
   m_movementController->loadState(diskStore.get("movementState"));
   m_statusController->diskLoad(diskStore.get("statusController"));
@@ -93,21 +93,20 @@ Monster::Monster(Json const& diskStore)
 
 Json Monster::diskStore() const {
   return JsonObject{
-    {"monsterLevel", jsonFromMaybe(m_monsterLevel)},
-    {"movementState", m_movementController->storeState()},
-    {"statusController", m_statusController->diskStore()},
-    {"damageOnTouch", m_damageOnTouch},
-    {"aggressive", aggressive()},
-    {"deathParticleBurst", m_deathParticleBurst},
-    {"deathSound", m_deathSound},
-    {"activeSkillName", m_activeSkillName},
-    {"dropPool", m_dropPool},
-    {"effectEmitter", m_effectEmitter.toJson()},
-    {"monsterVariant", Root::singleton().monsterDatabase()->writeMonsterVariantToJson(m_monsterVariant)},
-    {"scriptStorage", m_scriptComponent.getScriptStorage()},
-    {"uniqueId", jsonFromMaybe(uniqueId())},
-    {"team", getTeam().toJson()}
-  };
+      {"monsterLevel", jsonFromMaybe(m_monsterLevel)},
+      {"movementState", m_movementController->storeState()},
+      {"statusController", m_statusController->diskStore()},
+      {"damageOnTouch", m_damageOnTouch},
+      {"aggressive", aggressive()},
+      {"deathParticleBurst", m_deathParticleBurst},
+      {"deathSound", m_deathSound},
+      {"activeSkillName", m_activeSkillName},
+      {"dropPool", m_dropPool},
+      {"effectEmitter", m_effectEmitter.toJson()},
+      {"monsterVariant", Root::singleton().monsterDatabase()->writeMonsterVariantToJson(m_monsterVariant)},
+      {"scriptStorage", m_scriptComponent.getScriptStorage()},
+      {"uniqueId", jsonFromMaybe(uniqueId())},
+      {"team", getTeam().toJson()}};
 }
 
 ByteArray Monster::netStore() {
@@ -132,19 +131,24 @@ void Monster::init(World* world, EntityId entityId, EntityMode mode) {
   if (!m_monsterLevel)
     m_monsterLevel = world->threatLevel();
 
+  auto thisMonster = GameObjectRegistry::smuggleWrap(this);
+
   if (isMaster()) {
     auto functionDatabase = Root::singleton().functionDatabase();
     float healthMultiplier = m_monsterVariant.healthMultiplier * functionDatabase->function(m_monsterVariant.healthLevelFunction)->evaluate(*m_monsterLevel);
     m_statusController->setPersistentEffects("innate", {StatModifier(StatBaseMultiplier{"maxHealth", healthMultiplier})});
 
+
     m_scriptComponent.addCallbacks("monster", makeMonsterCallbacks());
-    m_scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def) {
-        return m_monsterVariant.parameters.query(name, def);
-      }));
+    m_scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks([this, thisMonster](String const& name, Json const& def) {
+      thisMonster.checkSmuggle();
+      // Why did you have to implicitly use `this` this way, Chucklefish?
+      return m_monsterVariant.parameters.query(name, def);
+    }));
     m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
-    m_scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_networkedAnimator));
+    m_scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_networkedAnimator, this));
     m_scriptComponent.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_statusController.get()));
-    m_scriptComponent.addCallbacks("behavior", LuaBindings::makeBehaviorLuaCallbacks(&m_behaviors));
+    m_scriptComponent.addCallbacks("behavior", LuaBindings::makeBehaviorLuaCallbacks(&m_behaviors, this));
     m_scriptComponent.addActorMovementCallbacks(m_movementController.get());
     m_scriptComponent.init(world);
   }
@@ -152,13 +156,13 @@ void Monster::init(World* world, EntityId entityId, EntityMode mode) {
   if (world->isClient()) {
     m_scriptedAnimator.setScripts(m_monsterVariant.animationScripts);
 
-    m_scriptedAnimator.addCallbacks("animationConfig", LuaBindings::makeScriptedAnimatorCallbacks(&m_networkedAnimator,
-      [this](String const& name, Json const& defaultValue) -> Json {
-        return m_scriptedAnimationParameters.value(name, defaultValue);
-      }));
-    m_scriptedAnimator.addCallbacks("config", LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def) {
-        return m_monsterVariant.parameters.query(name, def);
-      }));
+    m_scriptedAnimator.addCallbacks("animationConfig", LuaBindings::makeScriptedAnimatorCallbacks(&m_networkedAnimator, [this, thisMonster](String const& name, Json const& defaultValue) -> Json {
+      thisMonster.checkSmuggle();
+      return m_scriptedAnimationParameters.value(name, defaultValue); }, this));
+    m_scriptedAnimator.addCallbacks("config", LuaBindings::makeConfigCallbacks([this, thisMonster](String const& name, Json const& def) {
+      thisMonster.checkSmuggle();
+      return m_monsterVariant.parameters.query(name, def);
+    }));
     m_scriptedAnimator.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
     m_scriptedAnimator.init(world);
   }
@@ -259,11 +263,10 @@ List<DamageNotification> Monster::applyDamage(DamageRequest const& damage) {
 
   if (totalDamage > 0.0f) {
     m_scriptComponent.invoke("damage", JsonObject{
-        {"sourceId", damage.sourceEntityId},
-        {"damage", totalDamage},
-        {"sourceDamage", damage.damage},
-        {"sourceKind", damage.damageSourceKind}
-      });
+                                           {"sourceId", damage.sourceEntityId},
+                                           {"damage", totalDamage},
+                                           {"sourceDamage", damage.damage},
+                                           {"sourceKind", damage.damageSourceKind}});
   }
 
   if (!m_statusController->resourcePositive("health"))
@@ -298,7 +301,7 @@ List<DamageSource> Monster::damageSources() const {
     String anchorPart = pair.second.getString("anchorPart");
     DamageSource ds = DamageSource(pair.second.get("damageSource"));
     ds.damage *= levelPowerMultiplier * m_statusController->stat("powerMultiplier");
-    ds.damageArea.call([this,&anchorPart](auto& poly) {
+    ds.damageArea.call([this, &anchorPart](auto& poly) {
       poly.transform(m_networkedAnimator.partTransformation(anchorPart));
       if (m_networkedAnimator.flipped())
         poly.flipHorizontal(m_networkedAnimator.flippedRelativeCenterLine());
@@ -482,7 +485,7 @@ void Monster::update(float dt, uint64_t) {
 
     m_scriptedAnimator.update();
 
-    SpatialLogger::logPoly("world", m_movementController->collisionBody(), { 255, 0, 0, 255 });
+    SpatialLogger::logPoly("world", m_movementController->collisionBody(), {255, 0, 0, 255});
   }
 }
 
@@ -555,124 +558,151 @@ void Monster::updateStatus(float dt) {
 
 LuaCallbacks Monster::makeMonsterCallbacks() {
   LuaCallbacks callbacks;
+  auto thisMonster = GameObjectRegistry::smuggleWrap(this);
+  auto worldPtr = GameObjectRegistry::smuggleWrap(world());
 
-  callbacks.registerCallback("type", [this]() {
-      return m_monsterVariant.type;
-    });
+  callbacks.registerCallback("type", [this, thisMonster]() {
+    thisMonster.checkSmuggle();
+    return m_monsterVariant.type;
+  });
 
-  callbacks.registerCallback("seed", [this]() {
-      return toString(m_monsterVariant.seed);
-    });
+  callbacks.registerCallback("seed", [this, thisMonster]() {
+    thisMonster.checkSmuggle();
+    return toString(m_monsterVariant.seed);
+  });
 
-  callbacks.registerCallback("uniqueParameters", [this]() {
-      return m_monsterVariant.uniqueParameters;
-    });
+  callbacks.registerCallback("uniqueParameters", [this, thisMonster]() {
+    thisMonster.checkSmuggle();
+    return m_monsterVariant.uniqueParameters;
+  });
 
-  callbacks.registerCallback("level", [this]() {
-      return *m_monsterLevel;
-    });
+  callbacks.registerCallback("level", [this, thisMonster]() {
+    thisMonster.checkSmuggle();
+    return *m_monsterLevel;
+  });
 
-  callbacks.registerCallback("setDamageOnTouch", [this](bool arg1) {
-      m_damageOnTouch = arg1;
-    });
+  callbacks.registerCallback("setDamageOnTouch", [this, thisMonster](bool arg1) {
+    thisMonster.checkSmuggle();
+    m_damageOnTouch = arg1;
+  });
 
-  callbacks.registerCallback("setDamageSources", [this](Maybe<JsonArray> const& damageSources) {
-      m_damageSources.set(damageSources.value().transformed(construct<DamageSource>()));
-    });
+  callbacks.registerCallback("setDamageSources", [this, thisMonster](Maybe<JsonArray> const& damageSources) {
+    thisMonster.checkSmuggle();
+    m_damageSources.set(damageSources.value().transformed(construct<DamageSource>()));
+  });
 
-  callbacks.registerCallback("setDamageParts", [this](StringSet const& parts) {
-      m_animationDamageParts.set(parts);
-    });
+  callbacks.registerCallback("setDamageParts", [this, thisMonster](StringSet const& parts) {
+    thisMonster.checkSmuggle();
+    m_animationDamageParts.set(parts);
+  });
 
-  callbacks.registerCallback("setAggressive", [this](bool arg1) {
-      m_aggressive = arg1;
-    });
+  callbacks.registerCallback("setAggressive", [this, thisMonster](bool arg1) {
+    thisMonster.checkSmuggle();
+    m_aggressive = arg1;
+  });
 
-  callbacks.registerCallback("setActiveSkillName", [this](Maybe<String> const& activeSkillName) {
-      m_activeSkillName = activeSkillName.value();
-    });
+  callbacks.registerCallback("setActiveSkillName", [this, thisMonster](Maybe<String> const& activeSkillName) {
+    thisMonster.checkSmuggle();
+    m_activeSkillName = activeSkillName.value();
+  });
 
-  callbacks.registerCallback("setDropPool", [this](Json dropPool) {
-      m_dropPool = std::move(dropPool);
-    });
+  callbacks.registerCallback("setDropPool", [this, thisMonster](Json dropPool) {
+    thisMonster.checkSmuggle();
+    m_dropPool = std::move(dropPool);
+  });
 
-  callbacks.registerCallback("toAbsolutePosition", [this](Vec2F const& p) {
-      return getAbsolutePosition(p);
-    });
+  callbacks.registerCallback("toAbsolutePosition", [this, thisMonster](Vec2F const& p) {
+    thisMonster.checkSmuggle();
+    return getAbsolutePosition(p);
+  });
 
-  callbacks.registerCallback("mouthPosition", [this]() {
-      return mouthPosition();
-    });
+  callbacks.registerCallback("mouthPosition", [this, thisMonster]() {
+    thisMonster.checkSmuggle();
+    return mouthPosition();
+  });
 
   // This callback is registered here rather than in
   // makeActorMovementControllerCallbacks
   // because it requires access to world
-  callbacks.registerCallback("flyTo", [this](Vec2F const& arg1) {
-      m_movementController->controlFly(world()->geometry().diff(arg1, position()));
-    });
+  callbacks.registerCallback("flyTo", [this, thisMonster, worldPtr](Vec2F const& arg1) {
+    thisMonster.checkSmuggle();
+    m_movementController->controlFly(worldPtr->geometry().diff(arg1, position()));
+  });
 
-  callbacks.registerCallback("setDeathParticleBurst", [this](Maybe<String> const& arg1) {
-      m_deathParticleBurst = arg1.value();
-    });
+  callbacks.registerCallback("setDeathParticleBurst", [this, thisMonster](Maybe<String> const& arg1) {
+    thisMonster.checkSmuggle();
+    m_deathParticleBurst = arg1.value();
+  });
 
-  callbacks.registerCallback("setDeathSound", [this](Maybe<String> const& arg1) {
-      m_deathSound = arg1.value();
-    });
+  callbacks.registerCallback("setDeathSound", [this, thisMonster](Maybe<String> const& arg1) {
+    thisMonster.checkSmuggle();
+    m_deathSound = arg1.value();
+  });
 
-  callbacks.registerCallback("setPhysicsForces", [this](JsonArray const& forces) {
-      m_physicsForces.set(forces.transformed(jsonToPhysicsForceRegion));
-    });
+  callbacks.registerCallback("setPhysicsForces", [this, thisMonster](JsonArray const& forces) {
+    thisMonster.checkSmuggle();
+    m_physicsForces.set(forces.transformed(jsonToPhysicsForceRegion));
+  });
 
-  callbacks.registerCallback("setName", [this](String const& name) {
-      m_name.set(name);
-    });
-  callbacks.registerCallback("setDisplayNametag", [this](bool display) {
-      m_displayNametag.set(display);
-    });
+  callbacks.registerCallback("setName", [this, thisMonster](String const& name) {
+    thisMonster.checkSmuggle();
+    m_name.set(name);
+  });
+  callbacks.registerCallback("setDisplayNametag", [this, thisMonster](bool display) {
+    thisMonster.checkSmuggle();
+    m_displayNametag.set(display);
+  });
 
-  callbacks.registerCallback("say", [this](String line, Maybe<StringMap<String>> const& tags) {
-      if (tags)
-        line = line.replaceTags(*tags, false);
+  callbacks.registerCallback("say", [this, thisMonster](String line, Maybe<StringMap<String>> const& tags) {
+    thisMonster.checkSmuggle();
+    if (tags)
+      line = line.replaceTags(*tags, false);
 
-      if (!line.empty()) {
-        addChatMessage(line);
-        return true;
-      }
+    if (!line.empty()) {
+      addChatMessage(line);
+      return true;
+    }
 
-      return false;
-    });
+    return false;
+  });
 
-  callbacks.registerCallback("sayPortrait", [this](String line, String portrait, Maybe<StringMap<String>> const& tags) {
-      if (tags)
-        line = line.replaceTags(*tags, false);
+  callbacks.registerCallback("sayPortrait", [this, thisMonster](String line, String portrait, Maybe<StringMap<String>> const& tags) {
+    thisMonster.checkSmuggle();
+    if (tags)
+      line = line.replaceTags(*tags, false);
 
-      if (!line.empty()) {
-        addChatMessage(line, portrait);
-        return true;
-      }
+    if (!line.empty()) {
+      addChatMessage(line, portrait);
+      return true;
+    }
 
-      return false;
-    });
+    return false;
+  });
 
-  callbacks.registerCallback("setDamageTeam", [this](Json const& team) {
-      setTeam(EntityDamageTeam(team));
-    });
+  callbacks.registerCallback("setDamageTeam", [this, thisMonster](Json const& team) {
+    thisMonster.checkSmuggle();
+    setTeam(EntityDamageTeam(team));
+  });
 
-  callbacks.registerCallback("setUniqueId", [this](Maybe<String> uniqueId) {
-      setUniqueId(uniqueId);
-    });
+  callbacks.registerCallback("setUniqueId", [this, thisMonster](Maybe<String> uniqueId) {
+    thisMonster.checkSmuggle();
+    setUniqueId(uniqueId);
+  });
 
-  callbacks.registerCallback("setDamageBar", [this](String const& damageBarType) {
-      m_damageBar.set(DamageBarTypeNames.getLeft(damageBarType));
-    });
+  callbacks.registerCallback("setDamageBar", [this, thisMonster](String const& damageBarType) {
+    thisMonster.checkSmuggle();
+    m_damageBar.set(DamageBarTypeNames.getLeft(damageBarType));
+  });
 
-  callbacks.registerCallback("setInteractive", [this](bool interactive) {
-      m_interactive.set(interactive);
-    });
+  callbacks.registerCallback("setInteractive", [this, thisMonster](bool interactive) {
+    thisMonster.checkSmuggle();
+    m_interactive.set(interactive);
+  });
 
-  callbacks.registerCallback("setAnimationParameter", [this](String name, Json value) {
-      m_scriptedAnimationParameters.set(std::move(name), std::move(value));
-    });
+  callbacks.registerCallback("setAnimationParameter", [this, thisMonster](String name, Json value) {
+    thisMonster.checkSmuggle();
+    m_scriptedAnimationParameters.set(std::move(name), std::move(value));
+  });
 
   return callbacks;
 }
@@ -715,7 +745,7 @@ void Monster::setupNetStates() {
   m_netGroup.addNetElement(&m_damageBar);
   m_netGroup.addNetElement(&m_interactive);
 
-    // don't interpolate scripted animation parameters or animationdamageparts
+  // don't interpolate scripted animation parameters or animationdamageparts
   m_netGroup.addNetElement(&m_animationDamageParts, false);
   m_netGroup.addNetElement(&m_scriptedAnimationParameters, false);
 
@@ -876,4 +906,4 @@ Vec2F Monster::questIndicatorPosition() const {
   return pos;
 }
 
-}
+} // namespace Star

@@ -1,22 +1,22 @@
 #include "StarActiveItem.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
 #include "StarConfigLuaBindings.hpp"
-#include "StarItemLuaBindings.hpp"
-#include "StarStatusControllerLuaBindings.hpp"
-#include "StarNetworkedAnimatorLuaBindings.hpp"
-#include "StarScriptedAnimatorLuaBindings.hpp"
-#include "StarPlayerLuaBindings.hpp"
-#include "StarEntityLuaBindings.hpp"
-#include "StarJsonExtra.hpp"
 #include "StarDataStreamExtra.hpp"
-#include "StarPlayer.hpp"
 #include "StarEmoteEntity.hpp"
+#include "StarEntityLuaBindings.hpp"
+#include "StarItemLuaBindings.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
+#include "StarPlayer.hpp"
+#include "StarPlayerLuaBindings.hpp"
+#include "StarRoot.hpp"
+#include "StarScriptedAnimatorLuaBindings.hpp"
+#include "StarStatusControllerLuaBindings.hpp"
 
 namespace Star {
 
 ActiveItem::ActiveItem(Json const& config, String const& directory, Json const& parameters)
-  : Item(config, directory, parameters) {
+    : Item(config, directory, parameters) {
   auto assets = Root::singleton().assets();
   auto animationConfig = assets->fetchJson(instanceValue("animation"), directory);
   if (auto customConfig = instanceValue("animationCustom"))
@@ -57,8 +57,10 @@ ItemPtr ActiveItem::clone() const {
 
 void ActiveItem::init(ToolUserEntity* owner, ToolHand hand) {
   ToolUserItem::init(owner, hand);
+  auto thisItem = GameObjectRegistry::smuggleWrap(as<Item>(this));
   if (entityMode() == EntityMode::Master) {
     m_script.setScripts(jsonToStringList(instanceValue("scripts")).transformed(bind(&AssetPath::relativeTo, directory(), _1)));
+    m_script.initScriptBindings(this);
     m_script.setUpdateDelta(instanceValue("scriptDelta", 1).toUInt());
     m_twoHandedGrip.set(twoHanded());
 
@@ -67,13 +69,13 @@ void ActiveItem::init(ToolUserEntity* owner, ToolHand hand) {
 
     m_script.addCallbacks("activeItem", makeActiveItemCallbacks());
     m_script.addCallbacks("item", LuaBindings::makeItemCallbacks(this));
-    m_script.addCallbacks("config", LuaBindings::makeConfigCallbacks(bind(&Item::instanceValue, as<Item>(this), _1, _2)));
-    m_script.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_itemAnimator));
+    m_script.addCallbacks("config", LuaBindings::makeConfigCallbacks(LUA_BIND(&Item::instanceValue, thisItem, _1, _2)));
+    m_script.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_itemAnimator, this));
     m_script.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(owner->statusController()));
     m_script.addActorMovementCallbacks(owner->movementController());
     if (auto player = as<Player>(owner)) {
       m_script.addCallbacks("player", LuaBindings::makePlayerCallbacks(player));
-      m_script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(player->effectsAnimator().get()));
+      m_script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(player->effectsAnimator().get(), player->effectsAnimator().get()));
     }
     m_script.addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(owner)));
     m_script.init(world());
@@ -84,12 +86,11 @@ void ActiveItem::init(ToolUserEntity* owner, ToolHand hand) {
       m_scriptedAnimator.setScripts(jsonToStringList(animationScripts).transformed(bind(&AssetPath::relativeTo, directory(), _1)));
       m_scriptedAnimator.setUpdateDelta(instanceValue("animationDelta", 1).toUInt());
 
-      m_scriptedAnimator.addCallbacks("animationConfig", LuaBindings::makeScriptedAnimatorCallbacks(&m_itemAnimator,
-        [this](String const& name, Json const& defaultValue) -> Json {
-          return m_scriptedAnimationParameters.value(name, defaultValue);
-        }));
+      m_scriptedAnimator.addCallbacks("animationConfig", LuaBindings::makeScriptedAnimatorCallbacks(&m_itemAnimator, [this, thisItem](String const& name, Json const& defaultValue) -> Json {
+                                                               thisItem.checkSmuggle();
+                                                               return m_scriptedAnimationParameters.value(name, defaultValue); }, this));
       m_scriptedAnimator.addCallbacks("activeItemAnimation", makeScriptedAnimationCallbacks());
-      m_scriptedAnimator.addCallbacks("config", LuaBindings::makeConfigCallbacks(bind(&Item::instanceValue, as<Item>(this), _1, _2)));
+      m_scriptedAnimator.addCallbacks("config", LuaBindings::makeConfigCallbacks(LUA_BIND(&Item::instanceValue, thisItem, _1, _2)));
       m_scriptedAnimator.init(world());
     }
   }
@@ -149,9 +150,9 @@ void ActiveItem::update(float dt, FireMode fireMode, bool shifting, HashSet<Move
   }
 
   eraseWhere(m_activeAudio, [this](pair<AudioInstancePtr const, Vec2F> const& a) {
-      a.first->setPosition(owner()->position() + handPosition(a.second));
-      return a.first->finished();
-    });
+    a.first->setPosition(owner()->position() + handPosition(a.second));
+    return a.first->finished();
+  });
 
   for (auto shieldPoly : shieldPolys()) {
     shieldPoly.translate(owner()->position());
@@ -162,9 +163,9 @@ void ActiveItem::update(float dt, FireMode fireMode, bool shifting, HashSet<Move
   if (isClient) {
     for (auto forceRegion : forceRegions()) {
       if (auto dfr = forceRegion.ptr<DirectionalForceRegion>())
-        SpatialLogger::logPoly("world", dfr->region, { 155, 0, 255, 255 });
+        SpatialLogger::logPoly("world", dfr->region, {155, 0, 255, 255});
       else if (auto rfr = forceRegion.ptr<RadialForceRegion>())
-        SpatialLogger::logPoint("world", rfr->center, { 155, 0, 255, 255 });
+        SpatialLogger::logPoint("world", rfr->center, {155, 0, 255, 255});
     }
   }
 }
@@ -347,130 +348,130 @@ Vec2F ActiveItem::handPosition(Vec2F const& offset) const {
 LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
   LuaCallbacks callbacks;
   callbacks.registerCallback("ownerEntityId", [this]() {
-      return owner()->entityId();
-    });
+    return owner()->entityId();
+  });
   callbacks.registerCallback("ownerTeam", [this]() {
-      return owner()->getTeam().toJson();
-    });
+    return owner()->getTeam().toJson();
+  });
   callbacks.registerCallback("ownerAimPosition", [this]() {
-      return owner()->aimPosition();
-    });
+    return owner()->aimPosition();
+  });
   callbacks.registerCallback("ownerPowerMultiplier", [this]() {
-      return owner()->powerMultiplier();
-    });
+    return owner()->powerMultiplier();
+  });
   callbacks.registerCallback("fireMode", [this]() {
-      return FireModeNames.getRight(m_currentFireMode);
-    });
+    return FireModeNames.getRight(m_currentFireMode);
+  });
   callbacks.registerCallback("hand", [this]() {
-      return ToolHandNames.getRight(hand());
-    });
+    return ToolHandNames.getRight(hand());
+  });
   callbacks.registerCallback("handPosition", [this](Maybe<Vec2F> offset) {
-      return handPosition(offset.value());
-    });
+    return handPosition(offset.value());
+  });
 
   // Gets the required aim angle to aim a "barrel" of the item that has the given
   // vertical offset from the hand at the given target.  The line that is aimed
   // at the target is the horizontal line going through the aimVerticalOffset.
   callbacks.registerCallback("aimAngleAndDirection", [this](float aimVerticalOffset, Vec2F targetPosition) {
-      // This was figured out using pencil and paper geometry from the hand
-      // rotation center, the target position, and the 90 deg vertical offset of
-      // the "barrel".
+    // This was figured out using pencil and paper geometry from the hand
+    // rotation center, the target position, and the 90 deg vertical offset of
+    // the "barrel".
 
-      Vec2F handRotationCenter = owner()->armPosition(hand(), owner()->facingDirection(), 0.0f, Vec2F());
-      Vec2F ownerPosition = owner()->position();
+    Vec2F handRotationCenter = owner()->armPosition(hand(), owner()->facingDirection(), 0.0f, Vec2F());
+    Vec2F ownerPosition = owner()->position();
 
-      // Vector in owner entity space from hand rotation center to target.
-      Vec2F toTarget = owner()->world()->geometry().diff(targetPosition, (ownerPosition + handRotationCenter));
-      float toTargetDist = toTarget.magnitude();
+    // Vector in owner entity space from hand rotation center to target.
+    Vec2F toTarget = owner()->world()->geometry().diff(targetPosition, (ownerPosition + handRotationCenter));
+    float toTargetDist = toTarget.magnitude();
 
-      // If the aim position is inside the circle formed by the barrel line as it
-      // goes around (aimVerticalOffset <= toTargetDist) absolutely no angle will
-      // give you an intersect, so we just bail out and assume the target is at the
-      // edge of the circle to retain continuity.
-      float angleAdjust = -std::asin(clamp(aimVerticalOffset / toTargetDist, -1.0f, 1.0f));
-      auto angleSide = getAngleSide(toTarget.angle());
-      return luaTupleReturn(angleSide.first + angleAdjust, numericalDirection(angleSide.second));
-    });
+    // If the aim position is inside the circle formed by the barrel line as it
+    // goes around (aimVerticalOffset <= toTargetDist) absolutely no angle will
+    // give you an intersect, so we just bail out and assume the target is at the
+    // edge of the circle to retain continuity.
+    float angleAdjust = -std::asin(clamp(aimVerticalOffset / toTargetDist, -1.0f, 1.0f));
+    auto angleSide = getAngleSide(toTarget.angle());
+    return luaTupleReturn(angleSide.first + angleAdjust, numericalDirection(angleSide.second));
+  });
 
   // Similar to aimAngleAndDirection, but only provides the offset-adjusted aimAngle for the current facing direction
   callbacks.registerCallback("aimAngle", [this](float aimVerticalOffset, Vec2F targetPosition) {
-      Vec2F handRotationCenter = owner()->armPosition(hand(), owner()->facingDirection(), 0.0f, Vec2F());
-      Vec2F ownerPosition = owner()->position();
-      Vec2F toTarget = owner()->world()->geometry().diff(targetPosition, (ownerPosition + handRotationCenter));
-      float toTargetDist = toTarget.magnitude();
-      float angleAdjust = -std::asin(clamp(aimVerticalOffset / toTargetDist, -1.0f, 1.0f));
-      return toTarget.angle() + angleAdjust;
-    });
+    Vec2F handRotationCenter = owner()->armPosition(hand(), owner()->facingDirection(), 0.0f, Vec2F());
+    Vec2F ownerPosition = owner()->position();
+    Vec2F toTarget = owner()->world()->geometry().diff(targetPosition, (ownerPosition + handRotationCenter));
+    float toTargetDist = toTarget.magnitude();
+    float angleAdjust = -std::asin(clamp(aimVerticalOffset / toTargetDist, -1.0f, 1.0f));
+    return toTarget.angle() + angleAdjust;
+  });
 
   callbacks.registerCallback("setHoldingItem", [this](bool holdingItem) {
-      m_holdingItem.set(holdingItem);
-    });
+    m_holdingItem.set(holdingItem);
+  });
 
   callbacks.registerCallback("setBackArmFrame", [this](Maybe<String> armFrame) {
-      m_backArmFrame.set(armFrame);
-    });
+    m_backArmFrame.set(armFrame);
+  });
 
   callbacks.registerCallback("setFrontArmFrame", [this](Maybe<String> armFrame) {
-      m_frontArmFrame.set(armFrame);
-    });
+    m_frontArmFrame.set(armFrame);
+  });
 
   callbacks.registerCallback("setTwoHandedGrip", [this](bool twoHandedGrip) {
-      m_twoHandedGrip.set(twoHandedGrip);
-    });
+    m_twoHandedGrip.set(twoHandedGrip);
+  });
 
   callbacks.registerCallback("setRecoil", [this](bool recoil) {
-      m_recoil.set(recoil);
-    });
+    m_recoil.set(recoil);
+  });
 
   callbacks.registerCallback("setOutsideOfHand", [this](bool outsideOfHand) {
-      m_outsideOfHand.set(outsideOfHand);
-    });
+    m_outsideOfHand.set(outsideOfHand);
+  });
 
   callbacks.registerCallback("setArmAngle", [this](float armAngle) {
-      m_armAngle.set(armAngle);
-    });
+    m_armAngle.set(armAngle);
+  });
 
   callbacks.registerCallback("setFacingDirection", [this](float direction) {
-      m_facingDirection.set(directionOf(direction));
-    });
+    m_facingDirection.set(directionOf(direction));
+  });
 
   callbacks.registerCallback("setDamageSources", [this](Maybe<JsonArray> const& damageSources) {
-      m_damageSources.set(damageSources.value().transformed(construct<DamageSource>()));
-    });
+    m_damageSources.set(damageSources.value().transformed(construct<DamageSource>()));
+  });
 
   callbacks.registerCallback("setItemDamageSources", [this](Maybe<JsonArray> const& damageSources) {
-      m_itemDamageSources.set(damageSources.value().transformed(construct<DamageSource>()));
-    });
+    m_itemDamageSources.set(damageSources.value().transformed(construct<DamageSource>()));
+  });
 
   callbacks.registerCallback("setShieldPolys", [this](Maybe<List<PolyF>> const& shieldPolys) {
-      m_shieldPolys.set(shieldPolys.value());
-    });
+    m_shieldPolys.set(shieldPolys.value());
+  });
 
   callbacks.registerCallback("setItemShieldPolys", [this](Maybe<List<PolyF>> const& shieldPolys) {
-      m_itemShieldPolys.set(shieldPolys.value());
-    });
+    m_itemShieldPolys.set(shieldPolys.value());
+  });
 
   callbacks.registerCallback("setForceRegions", [this](Maybe<JsonArray> const& forceRegions) {
-      if (forceRegions)
-        m_forceRegions.set(forceRegions->transformed(jsonToPhysicsForceRegion));
-      else
-        m_forceRegions.set({});
-    });
+    if (forceRegions)
+      m_forceRegions.set(forceRegions->transformed(jsonToPhysicsForceRegion));
+    else
+      m_forceRegions.set({});
+  });
 
   callbacks.registerCallback("setItemForceRegions", [this](Maybe<JsonArray> const& forceRegions) {
-      if (forceRegions)
-        m_itemForceRegions.set(forceRegions->transformed(jsonToPhysicsForceRegion));
-      else
-        m_itemForceRegions.set({});
-    });
+    if (forceRegions)
+      m_itemForceRegions.set(forceRegions->transformed(jsonToPhysicsForceRegion));
+    else
+      m_itemForceRegions.set({});
+  });
 
   callbacks.registerCallback("setCursor", [this](Maybe<String> cursor) {
-      m_cursor = std::move(cursor);
-    });
+    m_cursor = std::move(cursor);
+  });
 
   callbacks.registerCallback("setScriptedAnimationParameter", [this](String name, Json value) {
-      m_scriptedAnimationParameters.set(std::move(name), std::move(value));
-    });
+    m_scriptedAnimationParameters.set(std::move(name), std::move(value));
+  });
 
   // WasabiRaptor: setInventoryIcon can now take a drawable array, and items can now have secondary icons in the action bar. Downstreamed from OpenStarbound.
   callbacks.registerCallback("setInventoryIcon", [this](Json const& inventoryIcon) {
@@ -523,38 +524,38 @@ LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
   });
 
   callbacks.registerCallback("setInstanceValue", [this](String name, Json val) {
-      setInstanceValue(std::move(name), std::move(val));
-    });
+    setInstanceValue(std::move(name), std::move(val));
+  });
 
   callbacks.registerCallback("callOtherHandScript", [this](LuaEngine& engine, String const& func, LuaVariadic<LuaValue> const& args) -> LuaValue {
-      if (auto otherHandItem = owner()->handItem(hand() == ToolHand::Primary ? ToolHand::Alt : ToolHand::Primary)) {
-        if (auto otherActiveItem = as<ActiveItem>(otherHandItem)) {
-          // if (Root::singleton().configuration()->get("safeScripts").toBool()) {
-          auto jsonArgs = LuaVariadic<Json>{};
-          for (auto& arg : args) {
-            jsonArgs.emplaceAppend(engine.luaTo<Json>(arg));
-          }
-          return engine.luaFrom<Json>(otherActiveItem->m_script.invoke<Json>(func, jsonArgs).value());
-          // } else
-          //   return otherActiveItem->m_script.invoke<LuaValue>(func, args).value();
+    if (auto otherHandItem = owner()->handItem(hand() == ToolHand::Primary ? ToolHand::Alt : ToolHand::Primary)) {
+      if (auto otherActiveItem = as<ActiveItem>(otherHandItem)) {
+        // if (Root::singleton().configuration()->get("safeScripts").toBool()) {
+        auto jsonArgs = LuaVariadic<Json>{};
+        for (auto& arg : args) {
+          jsonArgs.emplaceAppend(engine.luaTo<Json>(arg));
         }
+        return engine.luaFrom<Json>(otherActiveItem->m_script.invoke<Json>(func, jsonArgs).value());
+        // } else
+        //   return otherActiveItem->m_script.invoke<LuaValue>(func, args).value();
       }
-      return LuaValue();
-    });
+    }
+    return LuaValue();
+  });
 
   callbacks.registerCallback("interact", [this](String const& type, Json const& configData, Maybe<EntityId> const& sourceEntityId) {
-      owner()->interact(InteractAction(type, sourceEntityId.value(NullEntityId), configData));
-    });
+    owner()->interact(InteractAction(type, sourceEntityId.value(NullEntityId), configData));
+  });
 
   callbacks.registerCallback("emote", [this](String const& emoteName) {
-      auto emote = HumanoidEmoteNames.getLeft(emoteName);
-      if (auto entity = as<EmoteEntity>(owner()))
-        entity->playEmote(emote);
-    });
+    auto emote = HumanoidEmoteNames.getLeft(emoteName);
+    if (auto entity = as<EmoteEntity>(owner()))
+      entity->playEmote(emote);
+  });
 
   callbacks.registerCallback("setCameraFocusEntity", [this](Maybe<EntityId> const& cameraFocusEntity) {
-      owner()->setCameraFocusEntity(cameraFocusEntity);
-    });
+    owner()->setCameraFocusEntity(cameraFocusEntity);
+  });
 
   return callbacks;
 }
@@ -562,21 +563,21 @@ LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
 LuaCallbacks ActiveItem::makeScriptedAnimationCallbacks() {
   LuaCallbacks callbacks;
   callbacks.registerCallback("ownerPosition", [this]() {
-      return owner()->position();
-    });
+    return owner()->position();
+  });
   callbacks.registerCallback("ownerAimPosition", [this]() {
-      return owner()->aimPosition();
-    });
+    return owner()->aimPosition();
+  });
   callbacks.registerCallback("ownerArmAngle", [this]() {
-      return m_armAngle.get();
-    });
+    return m_armAngle.get();
+  });
   callbacks.registerCallback("ownerFacingDirection", [this]() {
-      return numericalDirection(owner()->facingDirection());
-    });
+    return numericalDirection(owner()->facingDirection());
+  });
   callbacks.registerCallback("handPosition", [this](Maybe<Vec2F> offset) {
-      return handPosition(offset.value());
-    });
+    return handPosition(offset.value());
+  });
   return callbacks;
 }
 
-}
+} // namespace Star

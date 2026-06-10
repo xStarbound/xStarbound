@@ -1,17 +1,17 @@
 #ifndef STAR_LUA_ANIMATION_COMPONENT_HPP
 #define STAR_LUA_ANIMATION_COMPONENT_HPP
 
-#include "StarLuaComponents.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarLightSource.hpp"
+#include "StarAssets.hpp"
 #include "StarDrawable.hpp"
 #include "StarEntityRenderingTypes.hpp"
-#include "StarMixer.hpp"
-#include "StarParticleDatabase.hpp"
-#include "StarParticle.hpp"
-#include "StarRoot.hpp"
-#include "StarAssets.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLightSource.hpp"
+#include "StarLuaComponents.hpp"
 #include "StarLuaConverters.hpp"
+#include "StarMixer.hpp"
+#include "StarParticle.hpp"
+#include "StarParticleDatabase.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -30,38 +30,33 @@ public:
   List<Particle> pullNewParticles();
   List<AudioInstancePtr> pullNewAudios();
 
-protected:
-  // Clears looping audio on context shutdown
-  void contextShutdown() override;
+  // FezzedOne: Needs to have its lifetime specified before initialising any Lua bindings.
+  template <typename Parent>
+  void initAnimationBindings(Parent* lifetimePtr) {
+    LuaCallbacks animationCallbacks;
 
-private:
-  List<Particle> m_pendingParticles;
-  List<AudioInstancePtr> m_pendingAudios;
-  List<AudioInstancePtr> m_activeAudio;
+    auto parent = GameObjectRegistry::smuggleWrap(lifetimePtr);
 
-  List<pair<Drawable, Maybe<EntityRenderLayer>>> m_drawables;
-  List<LightSource> m_lightSources;
-};
-
-template <typename Base>
-LuaAnimationComponent<Base>::LuaAnimationComponent() {
-  LuaCallbacks animationCallbacks;
-  animationCallbacks.registerCallback("playAudio", [this](String const& sound, Maybe<int> loops, Maybe<float> volume) {
+    animationCallbacks.registerCallback("playAudio", [this, parent](String const& sound, Maybe<int> loops, Maybe<float> volume) {
+      parent.checkSmuggle();
       auto audio = make_shared<AudioInstance>(*Root::singleton().assets()->audio(sound));
       audio->setLoops(loops.value(0));
       audio->setVolume(volume.value(1.0f));
       m_pendingAudios.append(audio);
       m_activeAudio.append(audio);
     });
-  animationCallbacks.registerCallback("spawnParticle", [this](Json const& particleConfig, Maybe<Vec2F> const& position) {
+    animationCallbacks.registerCallback("spawnParticle", [this, parent](Json const& particleConfig, Maybe<Vec2F> const& position) {
+      parent.checkSmuggle();
       auto particle = Root::singleton().particleDatabase()->particle(particleConfig);
       particle.translate(position.value());
       m_pendingParticles.append(particle);
     });
-  animationCallbacks.registerCallback("clearDrawables", [this]() {
+    animationCallbacks.registerCallback("clearDrawables", [this, parent]() {
+      parent.checkSmuggle();
       m_drawables.clear();
     });
-  animationCallbacks.registerCallback("addDrawable", [this](Drawable drawable, Maybe<String> renderLayerName, Maybe<bool> dontScale) {
+    animationCallbacks.registerCallback("addDrawable", [this, parent](Drawable drawable, Maybe<String> renderLayerName, Maybe<bool> dontScale) {
+      parent.checkSmuggle();
       Maybe<EntityRenderLayer> renderLayer;
       if (renderLayerName)
         renderLayer = parseRenderLayer(*renderLayerName);
@@ -77,20 +72,37 @@ LuaAnimationComponent<Base>::LuaAnimationComponent() {
 
       m_drawables.append({std::move(drawable), renderLayer});
     });
-  animationCallbacks.registerCallback("clearLightSources", [this]() {
+    animationCallbacks.registerCallback("clearLightSources", [this, parent]() {
+      parent.checkSmuggle();
       m_lightSources.clear();
     });
-  animationCallbacks.registerCallback("addLightSource", [this](LuaTable const& lightSourceTable) {
-      m_lightSources.append({
-          lightSourceTable.get<Vec2F>("position"),
+    animationCallbacks.registerCallback("addLightSource", [this, parent](LuaTable const& lightSourceTable) {
+      parent.checkSmuggle();
+      m_lightSources.append({lightSourceTable.get<Vec2F>("position"),
           lightSourceTable.get<Color>("color").toRgb(),
           lightSourceTable.get<Maybe<bool>>("pointLight").value(),
           lightSourceTable.get<Maybe<float>>("pointBeam").value(),
           lightSourceTable.get<Maybe<float>>("beamAngle").value(),
-          lightSourceTable.get<Maybe<float>>("beamAmbience").value()
-        });
+          lightSourceTable.get<Maybe<float>>("beamAmbience").value()});
     });
-  Base::addCallbacks("localAnimator", std::move(animationCallbacks));
+    Base::addCallbacks("localAnimator", std::move(animationCallbacks));
+  }
+
+protected:
+  // Clears looping audio on context shutdown
+  void contextShutdown() override;
+
+private:
+  List<Particle> m_pendingParticles;
+  List<AudioInstancePtr> m_pendingAudios;
+  List<AudioInstancePtr> m_activeAudio;
+
+  List<pair<Drawable, Maybe<EntityRenderLayer>>> m_drawables;
+  List<LightSource> m_lightSources;
+};
+
+template <typename Base>
+LuaAnimationComponent<Base>::LuaAnimationComponent() {
 }
 
 template <typename Base>
@@ -111,8 +123,8 @@ List<Particle> LuaAnimationComponent<Base>::pullNewParticles() {
 template <typename Base>
 List<AudioInstancePtr> LuaAnimationComponent<Base>::pullNewAudios() {
   eraseWhere(m_activeAudio, [](AudioInstancePtr const& audio) {
-      return audio->finished();
-    });
+    return audio->finished();
+  });
   return take(m_pendingAudios);
 }
 
@@ -124,6 +136,6 @@ void LuaAnimationComponent<Base>::contextShutdown() {
   Base::contextShutdown();
 }
 
-}
+} // namespace Star
 
 #endif

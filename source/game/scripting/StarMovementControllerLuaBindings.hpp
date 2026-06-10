@@ -6,10 +6,12 @@
 namespace Star {
 
 STAR_CLASS(MovementController);
+STAR_CLASS(Entity);
 
 namespace LuaBindings {
-  LuaCallbacks makeMovementControllerCallbacks(MovementController* movementController);
-}
-}
+  // FezzedOne: The entity pointer is needed for smuggling checks because of the way movement controllers are handled on some entity types.
+  LuaCallbacks makeMovementControllerCallbacks(MovementController* movementController, Entity* entity);
+} // namespace LuaBindings
+} // namespace Star
 
 #endif

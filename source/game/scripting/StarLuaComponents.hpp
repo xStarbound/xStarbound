@@ -1,20 +1,20 @@
 #ifndef STAR_LUA_COMPONENT_HPP
 #define STAR_LUA_COMPONENT_HPP
 
-#include "StarPeriodic.hpp"
-#include "StarLogging.hpp"
-#include "StarListener.hpp"
-#include "StarWorld.hpp"
-#include "StarRoot.hpp"
 #include "StarConfiguration.hpp"
-#include "StarWorldLuaBindings.hpp"
 #include "StarInputLuaBindings.hpp"
+#include "StarListener.hpp"
+#include "StarLogging.hpp"
+#include "StarPeriodic.hpp"
+#include "StarRoot.hpp"
+#include "StarWorld.hpp"
+#include "StarWorldLuaBindings.hpp"
 
 #if defined TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
+#include "tracy/Tracy.hpp"
 #else
-  #define ZoneScoped
-  #define ZoneScopedN(name)
+#define ZoneScoped
+#define ZoneScopedN(name)
 #endif
 
 namespace Star {
@@ -148,6 +148,26 @@ public:
   float updateDt() const;
   void setUpdateDelta(unsigned updateDelta);
 
+  // FezzedOne: Due to potential smuggling, these bindings can't be safely instantiated
+  // until their lifetime is trackable.
+  template <typename Parent>
+  void initScriptBindings(Parent* lifetimePtr) {
+    LuaCallbacks scriptCallbacks;
+
+    auto parent = GameObjectRegistry::smuggleWrap(lifetimePtr);
+
+    scriptCallbacks.registerCallback("updateDt", [this, parent]() {
+      parent.checkSmuggle();
+      return updateDt();
+    });
+    scriptCallbacks.registerCallback("setUpdateDelta", [this, parent](unsigned d) {
+      parent.checkSmuggle();
+      setUpdateDelta(d);
+    });
+
+    Base::addCallbacks("script", std::move(scriptCallbacks));
+  }
+
   // Returns true if the next update will call the internal script update
   // method.
   bool updateReady() const;
@@ -171,9 +191,9 @@ public:
   void uninit();
 
 protected:
-  using Base::setLuaRoot;
   using Base::init;
   using Base::m_baseCallbacks;
+  using Base::setLuaRoot;
 };
 
 // Component for scripts which can be used as entity message handlers, provides
@@ -182,6 +202,38 @@ template <typename Base>
 class LuaMessageHandlingComponent : public Base {
 public:
   LuaMessageHandlingComponent();
+
+  // FezzedOne: Needs its lifetime specified before initialisation. Modders like to smuggle this binding, you know.
+  template <typename Parent>
+  void initMessageBinding(Parent* lifetimePtr) {
+    LuaCallbacks scriptCallbacks;
+
+    auto parent = GameObjectRegistry::smuggleWrap(lifetimePtr);
+
+    scriptCallbacks.registerCallback("setHandler", [this](Variant<String, Json> message, Maybe<LuaFunction> handler) {
+      parent.checkSmuggle();
+
+      MessageHandler handlerInfo = {};
+
+      if (Json* config = message.ptr<Json>()) {
+        handlerInfo.passName = config->getBool("passName", false);
+        handlerInfo.localOnly = config->getBool("localOnly", false);
+        handlerInfo.name = config->getString("name");
+      } else {
+        handlerInfo.passName = true;
+        handlerInfo.localOnly = false;
+        handlerInfo.name = message.get<String>();
+      }
+
+      if (handler) {
+        handlerInfo.function.emplace(handler.take());
+        m_messageHandlers.set(handlerInfo.name, handlerInfo);
+      } else
+        m_messageHandlers.remove(handlerInfo.name);
+    });
+
+    Base::addCallbacks("message", std::move(scriptCallbacks));
+  }
 
   Maybe<Json> handleMessage(String const& message, bool localMessage, JsonArray const& args = {});
 
@@ -266,16 +318,6 @@ void LuaStorableComponent<Base>::contextShutdown() {
 template <typename Base>
 LuaUpdatableComponent<Base>::LuaUpdatableComponent() {
   m_updatePeriodic.setStepCount(1);
-
-  LuaCallbacks scriptCallbacks;
-  scriptCallbacks.registerCallback("updateDt", [this]() {
-      return updateDt();
-    });
-  scriptCallbacks.registerCallback("setUpdateDelta", [this](unsigned d) {
-      setUpdateDelta(d);
-    });
-
-  Base::addCallbacks("script", std::move(scriptCallbacks));
 }
 
 template <typename Base>
@@ -338,7 +380,7 @@ void LuaWorldComponent<Base>::init(World* world) {
   if (Base::checkIfClient(world)) {
     for (auto const& p : m_baseCallbacks)
       Base::addCallbacks(p.first, p.second);
-    
+
     Json config = assets->json("/client.config");
     Base::luaRoot()->tuneAutoGarbageCollection(config.getFloat("luaGcPause"), config.getFloat("luaGcStepMultiplier"));
   } else {
@@ -358,29 +400,6 @@ void LuaWorldComponent<Base>::uninit() {
 
 template <typename Base>
 LuaMessageHandlingComponent<Base>::LuaMessageHandlingComponent() {
-  LuaCallbacks scriptCallbacks;
-  scriptCallbacks.registerCallback("setHandler", [this](Variant<String, Json> message, Maybe<LuaFunction> handler) {
-      MessageHandler handlerInfo = {};
-
-      if (Json* config = message.ptr<Json>()) {
-        handlerInfo.passName = config->getBool("passName", false);
-        handlerInfo.localOnly = config->getBool("localOnly", false);
-        handlerInfo.name = config->getString("name");
-      } else {
-        handlerInfo.passName = true;
-        handlerInfo.localOnly = false;
-        handlerInfo.name = message.get<String>();
-      }
-
-      if (handler) {
-        handlerInfo.function.emplace(handler.take());
-        m_messageHandlers.set(handlerInfo.name, handlerInfo);
-      }
-      else
-        m_messageHandlers.remove(handlerInfo.name);
-    });
-
-  Base::addCallbacks("message", std::move(scriptCallbacks));
 }
 
 template <typename Base>
@@ -398,8 +417,7 @@ Maybe<Json> LuaMessageHandlingComponent<Base>::handleMessage(
           return handler->function->template invoke<Json>(message, luaUnpack(args));
         else
           return handler->function->template invoke<Json>(luaUnpack(args));
-      }
-      else if (handler->passName)
+      } else if (handler->passName)
         return handler->function->template invoke<Json>(message, localMessage, luaUnpack(args));
       else
         return handler->function->template invoke<Json>(localMessage, luaUnpack(args));
@@ -417,6 +435,6 @@ void LuaMessageHandlingComponent<Base>::contextShutdown() {
   m_messageHandlers.clear();
   Base::contextShutdown();
 }
-}
+} // namespace Star
 
 #endif
