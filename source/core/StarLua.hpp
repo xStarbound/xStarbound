@@ -240,7 +240,7 @@ public:
 
   static void cleanUpRegistry() {
     ZoneScopedN("Game object registry cleanup for thread");
-    List<void*> pointersToRemove;
+    List<void const*> pointersToRemove;
     for (auto& entry : gameObjectRegistry()) {
       if (entry.second.second.expired())
         pointersToRemove.append(entry.first);
