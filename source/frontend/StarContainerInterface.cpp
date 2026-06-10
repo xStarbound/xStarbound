@@ -1,28 +1,28 @@
 #include "StarContainerInterface.hpp"
+#include "StarAugmentItem.hpp"
 #include "StarCasting.hpp"
-#include "StarContainerEntity.hpp"
-#include "StarWorldClient.hpp"
-#include "StarRoot.hpp"
-#include "StarItemTooltip.hpp"
-#include "StarItemGridWidget.hpp"
-#include "StarLabelWidget.hpp"
-#include "StarImageWidget.hpp"
-#include "StarPaneManager.hpp"
-#include "StarFuelWidget.hpp"
-#include "StarPlayer.hpp"
-#include "StarItemDatabase.hpp"
-#include "StarObject.hpp"
-#include "StarPlayerInventory.hpp"
 #include "StarConfigLuaBindings.hpp"
+#include "StarContainerEntity.hpp"
 #include "StarEntityLuaBindings.hpp"
-#include "StarPlayerLuaBindings.hpp"
+#include "StarFuelWidget.hpp"
+#include "StarImageWidget.hpp"
+#include "StarInput.hpp"
+#include "StarInputLuaBindings.hpp"
+#include "StarInterfaceLuaBindings.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarItemGridWidget.hpp"
+#include "StarItemTooltip.hpp"
+#include "StarLabelWidget.hpp"
 #include "StarNetworkedAnimatorLuaBindings.hpp"
+#include "StarObject.hpp"
+#include "StarPaneManager.hpp"
+#include "StarPlayer.hpp"
+#include "StarPlayerInventory.hpp"
+#include "StarPlayerLuaBindings.hpp"
+#include "StarRoot.hpp"
 #include "StarStatusControllerLuaBindings.hpp"
 #include "StarWidgetLuaBindings.hpp"
-#include "StarAugmentItem.hpp"
-#include "StarInput.hpp"
-#include "StarInterfaceLuaBindings.hpp"
-#include "StarInputLuaBindings.hpp"
+#include "StarWorldClient.hpp"
 #include "StarWorldPainter.hpp"
 
 namespace Star {
@@ -44,18 +44,18 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
       m_script->setScripts(*scripts);
     }
     m_script->addCallbacks("widget", LuaBindings::makeWidgetCallbacks(this));
-    m_script->addCallbacks("config", LuaBindings::makeConfigCallbacks( [guiConfig](String const& name, Json const& def) {
-        return guiConfig.query(name, def);
-      }));
+    m_script->addCallbacks("config", LuaBindings::makeConfigCallbacks([guiConfig](String const& name, Json const& def) {
+      return guiConfig.query(name, def);
+    }));
     m_script->addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(m_player).get()));
     m_script->addCallbacks("player", LuaBindings::makePlayerCallbacks(m_player.get()));
-    m_script->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_player->effectsAnimator().get()));
+    m_script->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_player->effectsAnimator().get(), m_player->effectsAnimator().get()));
     m_script->addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_player->statusController()));
 
     LuaCallbacks containerPaneCallbacks;
     containerPaneCallbacks.registerCallback("containerEntityId", [this]() -> Maybe<EntityId> {
-        return m_containerInteractor->openContainerId();
-      });
+      return m_containerInteractor->openContainerId();
+    });
     containerPaneCallbacks.registerCallback("playerEntityId", [this]() { return m_player->entityId(); });
     containerPaneCallbacks.registerCallback("dismiss", [this]() { dismiss(); });
     m_script->addCallbacks("pane", containerPaneCallbacks);
@@ -96,43 +96,43 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
 
   m_reader.registerCallback("close", [this](Widget*) { dismiss(); });
   m_reader.registerCallback("itemGrid", [=](Widget* paneObj) {
-      if (auto itemGrid = as<ItemGridWidget>(paneObj))
-        swapSlot(itemGrid);
-      else
-        throw GuiException("Invalid object type, expected ItemGridWidget.");
-    });
+    if (auto itemGrid = as<ItemGridWidget>(paneObj))
+      swapSlot(itemGrid);
+    else
+      throw GuiException("Invalid object type, expected ItemGridWidget.");
+  });
   m_reader.registerCallback("itemGrid.right", [=](Widget* paneObj) {
-      if (auto itemGrid = as<ItemGridWidget>(paneObj))
-        rightClickCallback(itemGrid->selectedIndex());
-      else
-        throw GuiException("Invalid object type, expected ItemGridWidget.");
-    });
+    if (auto itemGrid = as<ItemGridWidget>(paneObj))
+      rightClickCallback(itemGrid->selectedIndex());
+    else
+      throw GuiException("Invalid object type, expected ItemGridWidget.");
+  });
 
   m_reader.registerCallback("itemGrid2", [=](Widget* paneObj) {
-      if (auto itemGrid = as<ItemGridWidget>(paneObj))
-        swapSlot(itemGrid);
-      else
-        throw GuiException("Invalid object type, expected ItemGridWidget.");
-    });
+    if (auto itemGrid = as<ItemGridWidget>(paneObj))
+      swapSlot(itemGrid);
+    else
+      throw GuiException("Invalid object type, expected ItemGridWidget.");
+  });
   m_reader.registerCallback("itemGrid2.right", [=](Widget* paneObj) {
-      if (auto itemGrid = as<ItemGridWidget>(paneObj))
-        rightClickCallback(itemGrid->selectedIndex());
-      else
-        throw GuiException("Invalid object type, expected ItemGridWidget.");
-    });
+    if (auto itemGrid = as<ItemGridWidget>(paneObj))
+      rightClickCallback(itemGrid->selectedIndex());
+    else
+      throw GuiException("Invalid object type, expected ItemGridWidget.");
+  });
 
   m_reader.registerCallback("outputItemGrid", [=](Widget* paneObj) {
-      if (auto itemGrid = as<ItemGridWidget>(paneObj))
-        swapSlot(itemGrid);
-      else
-        throw GuiException("Invalid object type, expected ItemGridWidget.");
-    });
+    if (auto itemGrid = as<ItemGridWidget>(paneObj))
+      swapSlot(itemGrid);
+    else
+      throw GuiException("Invalid object type, expected ItemGridWidget.");
+  });
   m_reader.registerCallback("outputItemGrid.right", [=](Widget* paneObj) {
-      if (auto itemGrid = as<ItemGridWidget>(paneObj))
-        rightClickCallback(itemGrid->selectedIndex());
-      else
-        throw GuiException("Invalid object type, expected ItemGridWidget.");
-    });
+    if (auto itemGrid = as<ItemGridWidget>(paneObj))
+      rightClickCallback(itemGrid->selectedIndex());
+    else
+      throw GuiException("Invalid object type, expected ItemGridWidget.");
+  });
 
   m_reader.registerCallback("toggleCrafting", [=](Widget*) { toggleCrafting(); });
 
@@ -342,7 +342,7 @@ void ContainerPane::update(float dt) {
   }
 }
 
-Maybe<Json> ContainerPane::receivePaneMessages(const String &message, bool localMessage, const JsonArray &args) {
+Maybe<Json> ContainerPane::receivePaneMessages(const String& message, bool localMessage, const JsonArray& args) {
   Maybe<Json> result = {};
   bool isChatMessage = message == "chatMessage" || message == "newChatMessage";
   JsonArray results = JsonArray{};
@@ -363,4 +363,4 @@ Maybe<Json> ContainerPane::receivePaneMessages(const String &message, bool local
   return isChatMessage ? Json(results) : result;
 }
 
-}
+} // namespace Star
