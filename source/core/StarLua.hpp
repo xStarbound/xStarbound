@@ -73,7 +73,7 @@ public:
   SmugglePtr(SmugglePtr&& r) {
     m_ptr = r.m_ptr;
     m_uniqueId = r.m_uniqueId;
-    r.m_ptr = std::weak_ptr<ObjectType>(nullptr);
+    r.m_ptr = std::weak_ptr<ObjectType>();
     r.m_uniqueId = 0;
   }
 
@@ -86,7 +86,7 @@ public:
   SmugglePtr& operator=(SmugglePtr&& r) {
     m_ptr = r.m_ptr;
     m_uniqueId = r.m_uniqueId;
-    r.m_ptr = std::weak_ptr<ObjectType>(nullptr);
+    r.m_ptr = std::weak_ptr<ObjectType>();
     r.m_uniqueId = 0;
     return *this;
   }
