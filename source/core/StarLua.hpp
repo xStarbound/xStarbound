@@ -179,6 +179,19 @@ public:
     }
   }
 
+  template <typename ObjectType>
+  static void registerGameObject(ObjectType* rawPtr, std::weak_ptr<ObjectType> trackingPtr) {
+    if (rawPtr) {
+      auto newKey = resolveKey(rawPtr);
+      auto it = gameObjectRegistry().find(newKey);
+      if (it == gameObjectRegistry().end()) {
+        incrementUniqueId();
+        size_t uniqueId = getUniqueId();
+        gameObjectRegistry()[newKey] = {uniqueId, trackingPtr}; // Gets the most derived object pointer for polymorphic objects.
+      }
+    }
+  }
+
   // FezzedOne: If an object is accidentally deregistered (from Lua bindings' view) with this function too early and later accessed via a `SmugglePtr` in a Lua script,
   // it'll just throw and Lua/Pluto will catch it as an error. If there was nothing tied to that key, does nothing. The `rawPtr` argument should be the pointer to
   // whatever the object's most derived class is (for polymorphic objects) and hence should be acquired with `resolveKey` before any destructors get called. In any case,

@@ -1,14 +1,14 @@
+#include "StarConfiguration.hpp"
 #include "StarFile.hpp"
-#include "StarRandom.hpp"
 #include "StarLexicalCast.hpp"
 #include "StarLogging.hpp"
-#include "StarUniverseServer.hpp"
+#include "StarRandom.hpp"
 #include "StarRootLoader.hpp"
-#include "StarConfiguration.hpp"
-#include "StarVersion.hpp"
 #include "StarServerQueryThread.hpp"
 #include "StarServerRconThread.hpp"
 #include "StarSignalHandler.hpp"
+#include "StarUniverseServer.hpp"
+#include "StarVersion.hpp"
 
 #ifdef STAR_USE_RPMALLOC
 #include "rpmalloc.h"
@@ -114,8 +114,8 @@ int main(int argc, char** argv) {
     fatalException(e, true);
   }
 
-  #ifdef STAR_USE_RPMALLOC
-    ::rpmalloc_finalize();
-  #endif
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_finalize();
+#endif
   return 0;
 }

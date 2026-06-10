@@ -624,7 +624,7 @@ void UniverseServer::run() {
   while (!m_stop) {
     ZoneScopedN("UNIVERSE SERVER TICK");
     if (m_tcpState == TcpState::Yes && !tcpServer) {
-      ZoneScopedN("Server connection handling");
+      ZoneScopedN("TCP initialisation");
 
       auto& root = Root::singleton();
       auto configuration = root.configuration();
@@ -641,6 +641,7 @@ void UniverseServer::run() {
         // FezzedOne: Made the packet and connection acceptance timeouts configurable.
         tcpServer = make_shared<TcpServer>(bindAddress, packetTimeout);
         tcpServer->setAcceptCallback([this, maxPendingConnections](TcpSocketPtr socket) {
+          ZoneScopedN("Server connection handling");
           RecursiveMutexLocker locker(m_mainLock);
           if (m_connectionAcceptThreads.size() < maxPendingConnections) {
             Logger::info("UniverseServer: Connection received from: {}", socket->remoteAddress());
@@ -2522,7 +2523,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::shipWorldPromise(
     if (!shipChunks.empty()) {
       try {
         Logger::info("UniverseServer: Loading client ship world {}", clientShipWorldId);
-        shipWorld = make_shared<WorldServer>(shipChunks);
+        shipWorld = makeObject<WorldServer>(shipChunks);
       } catch (std::exception const& e) {
         Logger::error("UniverseServer: Could not load client ship {}, resetting ship to default state! {}",
             clientShipWorldId, outputException(e, false));
@@ -2531,7 +2532,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::shipWorldPromise(
 
     if (!shipWorld) {
       Logger::info("UniverseServer: Creating new client ship world {}", clientShipWorldId);
-      shipWorld = make_shared<WorldServer>(Vec2U(2048, 2048), File::ephemeralFile());
+      shipWorld = makeObject<WorldServer>(Vec2U(2048, 2048), File::ephemeralFile());
       auto shipStructure = WorldStructure(speciesShips.get(clientContext->playerSpecies()).first());
       shipStructure = shipWorld->setCentralStructure(shipStructure);
 
@@ -2597,7 +2598,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::celestialWorldPro
 
       try {
         Logger::info("UniverseServer: Loading celestial world {}", celestialWorldId);
-        worldServer = make_shared<WorldServer>(File::open(storageFile, IOMode::ReadWrite));
+        worldServer = makeObject<WorldServer>(File::open(storageFile, IOMode::ReadWrite));
       } catch (std::exception const& e) {
         Logger::error("UniverseServer: Could not load celestial world {}, removing! Cause: {}",
             celestialWorldId, outputException(e, false));
@@ -2608,7 +2609,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::celestialWorldPro
     if (!worldServer) {
       Logger::info("UniverseServer: Creating celestial world {}", celestialWorldId);
       auto worldTemplate = make_shared<WorldTemplate>(celestialWorldId, celestialDatabase);
-      worldServer = make_shared<WorldServer>(worldTemplate, File::open(storageFile, IOMode::ReadWrite | IOMode::Truncate));
+      worldServer = makeObject<WorldServer>(worldTemplate, File::open(storageFile, IOMode::ReadWrite | IOMode::Truncate));
     }
 
     worldServer->setUniverseSettings(m_universeSettings);
@@ -2675,7 +2676,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::instanceWorldProm
       if (File::isFile(storageFile)) {
         try {
           Logger::info("UniverseServer: Loading persistent unique instance world {}", instanceWorldId.instance);
-          worldServer = make_shared<WorldServer>(File::open(storageFile, IOMode::ReadWrite));
+          worldServer = makeObject<WorldServer>(File::open(storageFile, IOMode::ReadWrite));
           worldExisted = true;
         } catch (std::exception const& e) {
           Logger::error("UniverseServer: Could not load persistent unique instance world {}, removing! Cause: {}",
@@ -2686,7 +2687,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::instanceWorldProm
 
       if (!worldServer) {
         Logger::info("UniverseServer: Creating persistent unique instance world {}", instanceWorldId.instance);
-        worldServer = make_shared<WorldServer>(worldTemplate, File::open(storageFile, IOMode::ReadWrite | IOMode::Truncate));
+        worldServer = makeObject<WorldServer>(worldTemplate, File::open(storageFile, IOMode::ReadWrite | IOMode::Truncate));
       }
     } else {
       String storageFile = tempWorldFile(instanceWorldId);
@@ -2697,7 +2698,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::instanceWorldProm
           if (file->size() > 0) {
             Logger::info("UniverseServer: Loading temporary instance world {} from storage", instanceWorldId);
             try {
-              worldServer = make_shared<WorldServer>(file);
+              worldServer = makeObject<WorldServer>(file);
               worldExisted = true;
             } catch (std::exception const& e) {
               Logger::error("UniverseServer: Could not load temporary instance world '{}', re-creating cause: {}",
@@ -2712,7 +2713,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::instanceWorldProm
       if (!worldServer) {
         Logger::info("UniverseServer: Creating temporary instance world '{}' with expiry time {}", instanceWorldId, deleteTime);
 
-        worldServer = make_shared<WorldServer>(worldTemplate, File::open(storageFile, IOMode::ReadWrite));
+        worldServer = makeObject<WorldServer>(worldTemplate, File::open(storageFile, IOMode::ReadWrite));
         m_tempWorldIndex.set(instanceWorldId, pair<uint64_t, uint64_t>(m_universeClock->milliseconds(), deleteTime));
       }
     }

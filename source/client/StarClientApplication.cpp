@@ -729,7 +729,7 @@ void ClientApplication::changeState(MainAppState newState) {
     } else {
       if (!m_universeServer) {
         try {
-          m_universeServer = make_shared<UniverseServer>(m_root->toStoragePath("universe"));
+          m_universeServer = makeObject<UniverseServer>(m_root->toStoragePath("universe"));
           m_universeServer->start();
         } catch (StarException const& e) {
           setError("Unable to start local server", e);
