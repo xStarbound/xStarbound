@@ -213,7 +213,7 @@ public:
   // Must be used *outside* of C++ lambdas or references used in Lua binding construction (before script initialisation), when the pointer is known to be valid.
   template <typename ObjectType>
   static SmugglePtr<ObjectType> smuggleWrap(ObjectType* rawPtr) {
-    void* key = resolveKey(rawPtr);
+    void const* key = resolveKey(rawPtr);
     auto it = gameObjectRegistry().find(key);
     if (it != gameObjectRegistry().end()) {
       if (auto returnedPtr = it->second.second.lock()) {
