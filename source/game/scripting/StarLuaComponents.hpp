@@ -368,24 +368,26 @@ void LuaWorldComponent<Base>::init(World* world) {
     uninit();
 
   auto config = Root::singleton().configuration();
-  // if (config->get("safeScripts").toBool())
-  Base::setLuaRoot(make_shared<LuaRoot>());
-  // else
-  //   Base::setLuaRoot(world->luaRoot());
+  if (true /* Placeholder for `"legacySmuggling"` check */)
+    Base::setLuaRoot(world->luaRoot());
+  else
+    Base::setLuaRoot(make_shared<LuaRoot>());
 
   auto assets = Root::singleton().assets();
 
   // FezzedOne: The base callbacks are all client-side. Make sure they're only added client-side.
   // Also make sure to get the appropriate garbage collection settings.
-  if (Base::checkIfClient(world)) {
-    for (auto const& p : m_baseCallbacks)
-      Base::addCallbacks(p.first, p.second);
+  if (!true /* Placeholder for `"legacySmuggling"` check */) {
+    if (Base::checkIfClient(world)) {
+      for (auto const& p : m_baseCallbacks)
+        Base::addCallbacks(p.first, p.second);
 
-    Json config = assets->json("/client.config");
-    Base::luaRoot()->tuneAutoGarbageCollection(config.getFloat("luaGcPause"), config.getFloat("luaGcStepMultiplier"));
-  } else {
-    Json config = assets->json("/worldserver.config");
-    Base::luaRoot()->tuneAutoGarbageCollection(config.getFloat("luaGcPause"), config.getFloat("luaGcStepMultiplier"));
+      Json config = assets->json("/client.config");
+      Base::luaRoot()->tuneAutoGarbageCollection(config.getFloat("luaGcPause"), config.getFloat("luaGcStepMultiplier"));
+    } else {
+      Json config = assets->json("/worldserver.config");
+      Base::luaRoot()->tuneAutoGarbageCollection(config.getFloat("luaGcPause"), config.getFloat("luaGcStepMultiplier"));
+    }
   }
 
   Base::addCallbacks("world", LuaBindings::makeWorldCallbacks(world));
