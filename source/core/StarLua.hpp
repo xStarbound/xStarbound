@@ -141,8 +141,8 @@ SmugglePtr<Type1 const> as(SmugglePtr<Type2 const> const& p) {
 // `GameObjectRegistry::deregisterGameObject`.
 class GameObjectRegistry {
 private:
-  static HashMap<void*, std::pair<size_t, std::weak_ptr<void>>>& gameObjectRegistry() {
-    static thread_local HashMap<void*, std::pair<size_t, std::weak_ptr<void>>> s_gameObjectRegistry;
+  static HashMap<void const*, std::pair<size_t, std::weak_ptr<void>>>& gameObjectRegistry() {
+    static thread_local HashMap<void const*, std::pair<size_t, std::weak_ptr<void>>> s_gameObjectRegistry;
     return s_gameObjectRegistry;
   }
 
