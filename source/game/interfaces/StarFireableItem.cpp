@@ -1,36 +1,36 @@
 #include "StarFireableItem.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarWorldLuaBindings.hpp"
 #include "StarConfigLuaBindings.hpp"
-#include "StarItemLuaBindings.hpp"
-#include "StarFireableItemLuaBindings.hpp"
-#include "StarNetworkedAnimatorLuaBindings.hpp"
-#include "StarPlayerLuaBindings.hpp"
 #include "StarEntityLuaBindings.hpp"
+#include "StarFireableItemLuaBindings.hpp"
 #include "StarItem.hpp"
-#include "StarPlayer.hpp"
+#include "StarItemLuaBindings.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarNpc.hpp"
+#include "StarPlayer.hpp"
+#include "StarPlayerLuaBindings.hpp"
 #include "StarWorld.hpp"
+#include "StarWorldLuaBindings.hpp"
 
 namespace Star {
 
 FireableItem::FireableItem()
-  : m_fireTimer(0),
-    m_cooldownTime(10),
-    m_windupTime(0),
-    m_fireWhenReady(false),
-    m_startWhenReady(false),
-    m_cooldown(false),
-    m_alreadyInit(false),
-    m_requireEdgeTrigger(false),
-    m_attemptedFire(false),
-    m_fireOnRelease(false),
-    m_timeFiring(0.0f),
-    m_startTimingFire(false),
-    m_inUse(false),
-    m_walkWhileFiring(false),
-    m_stopWhileFiring(false),
-    m_mode(FireMode::None) {}
+    : m_fireTimer(0),
+      m_cooldownTime(10),
+      m_windupTime(0),
+      m_fireWhenReady(false),
+      m_startWhenReady(false),
+      m_cooldown(false),
+      m_alreadyInit(false),
+      m_requireEdgeTrigger(false),
+      m_attemptedFire(false),
+      m_fireOnRelease(false),
+      m_timeFiring(0.0f),
+      m_startTimingFire(false),
+      m_inUse(false),
+      m_walkWhileFiring(false),
+      m_stopWhileFiring(false),
+      m_mode(FireMode::None) {}
 
 FireableItem::FireableItem(Json const& params) : FireableItem() {
   setParams(params);
@@ -70,14 +70,17 @@ void FireableItem::init(ToolUserEntity* owner, ToolHand hand) {
       m_scriptComponent.emplace();
       m_scriptComponent->setScripts(*scripts);
     }
+
+    auto thisItem = GameObjectRegistry::smuggleWrap(as<Item>(this));
+
     m_scriptComponent->addCallbacks(
-        "config", LuaBindings::makeConfigCallbacks(bind(&Item::instanceValue, as<Item>(this), _1, _2)));
+        "config", LuaBindings::makeConfigCallbacks(LUA_BIND(&Item::instanceValue, thisItem, _1, _2)));
     m_scriptComponent->addCallbacks("fireableItem", LuaBindings::makeFireableItemCallbacks(this));
     m_scriptComponent->addCallbacks("item", LuaBindings::makeItemCallbacks(as<Item>(this)));
     // FezzedOne: Added missing `player` and `entity` callbacks.
     if (auto player = as<Player>(owner)) {
       m_scriptComponent->addCallbacks("player", LuaBindings::makePlayerCallbacks(player));
-      m_scriptComponent->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(player->effectsAnimator().get()));
+      m_scriptComponent->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(player->effectsAnimator().get(), player->effectsAnimator().get()));
     }
     m_scriptComponent->addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(owner)));
     m_scriptComponent->init(world());
@@ -311,4 +314,4 @@ List<PersistentStatusEffect> FireableItem::statusEffects() const {
   return {};
 }
 
-}
+} // namespace Star

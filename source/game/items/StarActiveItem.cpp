@@ -347,32 +347,43 @@ Vec2F ActiveItem::handPosition(Vec2F const& offset) const {
 
 LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
   LuaCallbacks callbacks;
-  callbacks.registerCallback("ownerEntityId", [this]() {
+
+  auto thisActiveItem = GameObjectRegistry::smuggleWrap(this);
+
+  callbacks.registerCallback("ownerEntityId", [this, thisActiveItem]() {
+    thisActiveItem.checkSmuggle();
     return owner()->entityId();
   });
-  callbacks.registerCallback("ownerTeam", [this]() {
+  callbacks.registerCallback("ownerTeam", [this, thisActiveItem]() {
+    thisActiveItem.checkSmuggle();
     return owner()->getTeam().toJson();
   });
-  callbacks.registerCallback("ownerAimPosition", [this]() {
+  callbacks.registerCallback("ownerAimPosition", [this, thisActiveItem]() {
+    thisActiveItem.checkSmuggle();
     return owner()->aimPosition();
   });
-  callbacks.registerCallback("ownerPowerMultiplier", [this]() {
+  callbacks.registerCallback("ownerPowerMultiplier", [this, thisActiveItem]() {
+    thisActiveItem.checkSmuggle();
     return owner()->powerMultiplier();
   });
-  callbacks.registerCallback("fireMode", [this]() {
+  callbacks.registerCallback("fireMode", [this, thisActiveItem]() {
+    thisActiveItem.checkSmuggle();
     return FireModeNames.getRight(m_currentFireMode);
   });
-  callbacks.registerCallback("hand", [this]() {
+  callbacks.registerCallback("hand", [this, thisActiveItem]() {
+    thisActiveItem.checkSmuggle();
     return ToolHandNames.getRight(hand());
   });
-  callbacks.registerCallback("handPosition", [this](Maybe<Vec2F> offset) {
+  callbacks.registerCallback("handPosition", [this, thisActiveItem](Maybe<Vec2F> offset) {
+    thisActiveItem.checkSmuggle();
     return handPosition(offset.value());
   });
 
   // Gets the required aim angle to aim a "barrel" of the item that has the given
   // vertical offset from the hand at the given target.  The line that is aimed
   // at the target is the horizontal line going through the aimVerticalOffset.
-  callbacks.registerCallback("aimAngleAndDirection", [this](float aimVerticalOffset, Vec2F targetPosition) {
+  callbacks.registerCallback("aimAngleAndDirection", [this, thisActiveItem](float aimVerticalOffset, Vec2F targetPosition) {
+    thisActiveItem.checkSmuggle();
     // This was figured out using pencil and paper geometry from the hand
     // rotation center, the target position, and the 90 deg vertical offset of
     // the "barrel".
@@ -394,7 +405,8 @@ LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
   });
 
   // Similar to aimAngleAndDirection, but only provides the offset-adjusted aimAngle for the current facing direction
-  callbacks.registerCallback("aimAngle", [this](float aimVerticalOffset, Vec2F targetPosition) {
+  callbacks.registerCallback("aimAngle", [this, thisActiveItem](float aimVerticalOffset, Vec2F targetPosition) {
+    thisActiveItem.checkSmuggle();
     Vec2F handRotationCenter = owner()->armPosition(hand(), owner()->facingDirection(), 0.0f, Vec2F());
     Vec2F ownerPosition = owner()->position();
     Vec2F toTarget = owner()->world()->geometry().diff(targetPosition, (ownerPosition + handRotationCenter));
@@ -403,78 +415,95 @@ LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
     return toTarget.angle() + angleAdjust;
   });
 
-  callbacks.registerCallback("setHoldingItem", [this](bool holdingItem) {
+  callbacks.registerCallback("setHoldingItem", [this, thisActiveItem](bool holdingItem) {
+    thisActiveItem.checkSmuggle();
     m_holdingItem.set(holdingItem);
   });
 
-  callbacks.registerCallback("setBackArmFrame", [this](Maybe<String> armFrame) {
+  callbacks.registerCallback("setBackArmFrame", [this, thisActiveItem](Maybe<String> armFrame) {
+    thisActiveItem.checkSmuggle();
     m_backArmFrame.set(armFrame);
   });
 
-  callbacks.registerCallback("setFrontArmFrame", [this](Maybe<String> armFrame) {
+  callbacks.registerCallback("setFrontArmFrame", [this, thisActiveItem](Maybe<String> armFrame) {
+    thisActiveItem.checkSmuggle();
     m_frontArmFrame.set(armFrame);
   });
 
-  callbacks.registerCallback("setTwoHandedGrip", [this](bool twoHandedGrip) {
+  callbacks.registerCallback("setTwoHandedGrip", [this, thisActiveItem](bool twoHandedGrip) {
+    thisActiveItem.checkSmuggle();
     m_twoHandedGrip.set(twoHandedGrip);
   });
 
-  callbacks.registerCallback("setRecoil", [this](bool recoil) {
+  callbacks.registerCallback("setRecoil", [this, thisActiveItem](bool recoil) {
+    thisActiveItem.checkSmuggle();
     m_recoil.set(recoil);
   });
 
-  callbacks.registerCallback("setOutsideOfHand", [this](bool outsideOfHand) {
+  callbacks.registerCallback("setOutsideOfHand", [this, thisActiveItem](bool outsideOfHand) {
+    thisActiveItem.checkSmuggle();
     m_outsideOfHand.set(outsideOfHand);
   });
 
-  callbacks.registerCallback("setArmAngle", [this](float armAngle) {
+  callbacks.registerCallback("setArmAngle", [this, thisActiveItem](float armAngle) {
+    thisActiveItem.checkSmuggle();
     m_armAngle.set(armAngle);
   });
 
-  callbacks.registerCallback("setFacingDirection", [this](float direction) {
+  callbacks.registerCallback("setFacingDirection", [this, thisActiveItem](float direction) {
+    thisActiveItem.checkSmuggle();
     m_facingDirection.set(directionOf(direction));
   });
 
-  callbacks.registerCallback("setDamageSources", [this](Maybe<JsonArray> const& damageSources) {
+  callbacks.registerCallback("setDamageSources", [this, thisActiveItem](Maybe<JsonArray> const& damageSources) {
+    thisActiveItem.checkSmuggle();
     m_damageSources.set(damageSources.value().transformed(construct<DamageSource>()));
   });
 
-  callbacks.registerCallback("setItemDamageSources", [this](Maybe<JsonArray> const& damageSources) {
+  callbacks.registerCallback("setItemDamageSources", [this, thisActiveItem](Maybe<JsonArray> const& damageSources) {
+    thisActiveItem.checkSmuggle();
     m_itemDamageSources.set(damageSources.value().transformed(construct<DamageSource>()));
   });
 
-  callbacks.registerCallback("setShieldPolys", [this](Maybe<List<PolyF>> const& shieldPolys) {
+  callbacks.registerCallback("setShieldPolys", [this, thisActiveItem](Maybe<List<PolyF>> const& shieldPolys) {
+    thisActiveItem.checkSmuggle();
     m_shieldPolys.set(shieldPolys.value());
   });
 
-  callbacks.registerCallback("setItemShieldPolys", [this](Maybe<List<PolyF>> const& shieldPolys) {
+  callbacks.registerCallback("setItemShieldPolys", [this, thisActiveItem](Maybe<List<PolyF>> const& shieldPolys) {
+    thisActiveItem.checkSmuggle();
     m_itemShieldPolys.set(shieldPolys.value());
   });
 
-  callbacks.registerCallback("setForceRegions", [this](Maybe<JsonArray> const& forceRegions) {
+  callbacks.registerCallback("setForceRegions", [this, thisActiveItem](Maybe<JsonArray> const& forceRegions) {
+    thisActiveItem.checkSmuggle();
     if (forceRegions)
       m_forceRegions.set(forceRegions->transformed(jsonToPhysicsForceRegion));
     else
       m_forceRegions.set({});
   });
 
-  callbacks.registerCallback("setItemForceRegions", [this](Maybe<JsonArray> const& forceRegions) {
+  callbacks.registerCallback("setItemForceRegions", [this, thisActiveItem](Maybe<JsonArray> const& forceRegions) {
+    thisActiveItem.checkSmuggle();
     if (forceRegions)
       m_itemForceRegions.set(forceRegions->transformed(jsonToPhysicsForceRegion));
     else
       m_itemForceRegions.set({});
   });
 
-  callbacks.registerCallback("setCursor", [this](Maybe<String> cursor) {
+  callbacks.registerCallback("setCursor", [this, thisActiveItem](Maybe<String> cursor) {
+    thisActiveItem.checkSmuggle();
     m_cursor = std::move(cursor);
   });
 
-  callbacks.registerCallback("setScriptedAnimationParameter", [this](String name, Json value) {
+  callbacks.registerCallback("setScriptedAnimationParameter", [this, thisActiveItem](String name, Json value) {
+    thisActiveItem.checkSmuggle();
     m_scriptedAnimationParameters.set(std::move(name), std::move(value));
   });
 
   // WasabiRaptor: setInventoryIcon can now take a drawable array, and items can now have secondary icons in the action bar. Downstreamed from OpenStarbound.
-  callbacks.registerCallback("setInventoryIcon", [this](Json const& inventoryIcon) {
+  callbacks.registerCallback("setInventoryIcon", [this, thisActiveItem](Json const& inventoryIcon) {
+    thisActiveItem.checkSmuggle();
     setInstanceValue("inventoryIcon", inventoryIcon);
 
     if (inventoryIcon.type() == Json::Type::Array) {
@@ -489,7 +518,8 @@ LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
     }
   });
 
-  callbacks.registerCallback("setSecondaryIcon", [this](Json const& secondaryIcon) {
+  callbacks.registerCallback("setSecondaryIcon", [this, thisActiveItem](Json const& secondaryIcon) {
+    thisActiveItem.checkSmuggle();
     setInstanceValue("secondaryIcon", secondaryIcon);
     if (secondaryIcon.type() == Json::Type::Array) {
       setSecondaryIconDrawables(secondaryIcon.toArray().transformed([&](Json const& config) -> Drawable {
@@ -505,29 +535,35 @@ LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
     }
   });
 
-  callbacks.registerCallback("setDescription", [this](String const& description) {
+  callbacks.registerCallback("setDescription", [this, thisActiveItem](String const& description) {
+    thisActiveItem.checkSmuggle();
     setInstanceValue("description", description);
     setDescription(description);
   });
 
-  callbacks.registerCallback("setShortDescription", [this](String const& description) {
+  callbacks.registerCallback("setShortDescription", [this, thisActiveItem](String const& description) {
+    thisActiveItem.checkSmuggle();
     setInstanceValue("shortdescription", description);
     setShortDescription(description);
   });
 
-  callbacks.registerCallback("setCountString", [this](Maybe<String> const& countString) {
+  callbacks.registerCallback("setCountString", [this, thisActiveItem](Maybe<String> const& countString) {
+    thisActiveItem.checkSmuggle();
     setCountString(countString);
   });
 
-  callbacks.registerCallback("setRarityBorderDirectives", [this](Maybe<String> const& borderDirectives) {
+  callbacks.registerCallback("setRarityBorderDirectives", [this, thisActiveItem](Maybe<String> const& borderDirectives) {
+    thisActiveItem.checkSmuggle();
     setBorderDirectives(borderDirectives);
   });
 
-  callbacks.registerCallback("setInstanceValue", [this](String name, Json val) {
+  callbacks.registerCallback("setInstanceValue", [this, thisActiveItem](String name, Json val) {
+    thisActiveItem.checkSmuggle();
     setInstanceValue(std::move(name), std::move(val));
   });
 
-  callbacks.registerCallback("callOtherHandScript", [this](LuaEngine& engine, String const& func, LuaVariadic<LuaValue> const& args) -> LuaValue {
+  callbacks.registerCallback("callOtherHandScript", [this, thisActiveItem](LuaEngine& engine, String const& func, LuaVariadic<LuaValue> const& args) -> LuaValue {
+    thisActiveItem.checkSmuggle();
     if (auto otherHandItem = owner()->handItem(hand() == ToolHand::Primary ? ToolHand::Alt : ToolHand::Primary)) {
       if (auto otherActiveItem = as<ActiveItem>(otherHandItem)) {
         // if (Root::singleton().configuration()->get("safeScripts").toBool()) {
@@ -543,17 +579,20 @@ LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
     return LuaValue();
   });
 
-  callbacks.registerCallback("interact", [this](String const& type, Json const& configData, Maybe<EntityId> const& sourceEntityId) {
+  callbacks.registerCallback("interact", [this, thisActiveItem](String const& type, Json const& configData, Maybe<EntityId> const& sourceEntityId) {
+    thisActiveItem.checkSmuggle();
     owner()->interact(InteractAction(type, sourceEntityId.value(NullEntityId), configData));
   });
 
-  callbacks.registerCallback("emote", [this](String const& emoteName) {
+  callbacks.registerCallback("emote", [this, thisActiveItem](String const& emoteName) {
+    thisActiveItem.checkSmuggle();
     auto emote = HumanoidEmoteNames.getLeft(emoteName);
     if (auto entity = as<EmoteEntity>(owner()))
       entity->playEmote(emote);
   });
 
-  callbacks.registerCallback("setCameraFocusEntity", [this](Maybe<EntityId> const& cameraFocusEntity) {
+  callbacks.registerCallback("setCameraFocusEntity", [this, thisActiveItem](Maybe<EntityId> const& cameraFocusEntity) {
+    thisActiveItem.checkSmuggle();
     owner()->setCameraFocusEntity(cameraFocusEntity);
   });
 
@@ -562,19 +601,27 @@ LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
 
 LuaCallbacks ActiveItem::makeScriptedAnimationCallbacks() {
   LuaCallbacks callbacks;
-  callbacks.registerCallback("ownerPosition", [this]() {
+
+  auto thisActiveItem = GameObjectRegistry::smuggleWrap(this);
+
+  callbacks.registerCallback("ownerPosition", [this, thisActiveItem]() {
+    thisActiveItem.checkSmuggle();
     return owner()->position();
   });
-  callbacks.registerCallback("ownerAimPosition", [this]() {
+  callbacks.registerCallback("ownerAimPosition", [this, thisActiveItem]() {
+    thisActiveItem.checkSmuggle();
     return owner()->aimPosition();
   });
-  callbacks.registerCallback("ownerArmAngle", [this]() {
+  callbacks.registerCallback("ownerArmAngle", [this, thisActiveItem]() {
+    thisActiveItem.checkSmuggle();
     return m_armAngle.get();
   });
-  callbacks.registerCallback("ownerFacingDirection", [this]() {
+  callbacks.registerCallback("ownerFacingDirection", [this, thisActiveItem]() {
+    thisActiveItem.checkSmuggle();
     return numericalDirection(owner()->facingDirection());
   });
-  callbacks.registerCallback("handPosition", [this](Maybe<Vec2F> offset) {
+  callbacks.registerCallback("handPosition", [this, thisActiveItem](Maybe<Vec2F> offset) {
+    thisActiveItem.checkSmuggle();
     return handPosition(offset.value());
   });
   return callbacks;

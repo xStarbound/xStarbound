@@ -53,11 +53,21 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
     m_script->addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_player->statusController()));
 
     LuaCallbacks containerPaneCallbacks;
-    containerPaneCallbacks.registerCallback("containerEntityId", [this]() -> Maybe<EntityId> {
+
+    auto thisContainerPane = GameObjectRegistry::smuggleWrap(this);
+
+    containerPaneCallbacks.registerCallback("containerEntityId", [this, thisContainerPane]() -> Maybe<EntityId> {
+      thisContainerPane.checkSmuggle();
       return m_containerInteractor->openContainerId();
     });
-    containerPaneCallbacks.registerCallback("playerEntityId", [this]() { return m_player->entityId(); });
-    containerPaneCallbacks.registerCallback("dismiss", [this]() { dismiss(); });
+    containerPaneCallbacks.registerCallback("playerEntityId", [this, thisContainerPane]() {
+      thisContainerPane.checkSmuggle();
+      return m_player->entityId();
+    });
+    containerPaneCallbacks.registerCallback("dismiss", [this, thisContainerPane]() {
+      thisContainerPane.checkSmuggle();
+      dismiss();
+    });
     m_script->addCallbacks("pane", containerPaneCallbacks);
     m_script->addCallbacks("input", LuaBindings::makeInputCallbacks());
     // FezzedOne: The clipboard callbacks don't actually use the main interface, so it's fine to put a null pointer there.
