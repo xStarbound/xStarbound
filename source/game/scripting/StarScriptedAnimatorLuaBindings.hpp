@@ -20,20 +20,20 @@ LuaCallbacks LuaBindings::makeScriptedAnimatorCallbacks(const NetworkedAnimator*
   auto parent = GameObjectRegistry::smuggleWrap(lifetimePtr);
 
   callbacks.registerCallback("animationParameter", getParameter);
-  callbacks.registerCallback("partPoint", [animator](String const& partName, String const& propertyName) {
+  callbacks.registerCallback("partPoint", [animator, parent](String const& partName, String const& propertyName) {
     parent.checkSmuggle();
     return animator->partPoint(partName, propertyName);
   });
-  callbacks.registerCallback("partPoly", [animator](String const& partName, String const& propertyName) {
+  callbacks.registerCallback("partPoly", [animator, parent](String const& partName, String const& propertyName) {
     parent.checkSmuggle();
     return animator->partPoly(partName, propertyName);
   });
 
-  callbacks.registerCallback("transformPoint", [animator](Vec2F point, String const& part) -> Vec2F {
+  callbacks.registerCallback("transformPoint", [animator, parent](Vec2F point, String const& part) -> Vec2F {
     parent.checkSmuggle();
     return animator->partTransformation(part).transformVec2(point);
   });
-  callbacks.registerCallback("transformPoly", [animator](PolyF poly, String const& part) -> PolyF {
+  callbacks.registerCallback("transformPoly", [animator, parent](PolyF poly, String const& part) -> PolyF {
     parent.checkSmuggle();
     poly.transform(animator->partTransformation(part));
     return poly;
