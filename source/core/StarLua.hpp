@@ -167,7 +167,15 @@ public:
   }
 
   template <typename ObjectType>
-  static void registerGameObject(ObjectType* rawPtr, std::shared_ptr<ObjectType> owningPtr) {
+  static void const* resolveKey(ObjectType const* pointerToResolve) {
+    if constexpr (std::is_polymorphic_v<ObjectType>)
+      return dynamic_cast<void const*>(pointerToResolve);
+    else
+      return static_cast<void const*>(pointerToResolve);
+  }
+
+  template <typename ObjectType>
+  static void registerGameObject(ObjectType const* rawPtr, std::shared_ptr<ObjectType> owningPtr) {
     if (rawPtr) {
       auto newKey = resolveKey(rawPtr);
       auto it = gameObjectRegistry().find(newKey);
@@ -180,7 +188,7 @@ public:
   }
 
   template <typename ObjectType>
-  static void registerGameObject(ObjectType* rawPtr, std::weak_ptr<ObjectType> trackingPtr) {
+  static void registerGameObject(ObjectType const* rawPtr, std::weak_ptr<ObjectType> trackingPtr) {
     if (rawPtr) {
       auto newKey = resolveKey(rawPtr);
       auto it = gameObjectRegistry().find(newKey);
