@@ -1,13 +1,14 @@
 #include "StarPlantDatabase.hpp"
-#include "StarPlant.hpp"
-#include "StarJsonExtra.hpp"
 #include "StarAssets.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLua.hpp"
+#include "StarPlant.hpp"
 #include "StarRoot.hpp"
 
 namespace Star {
 
 TreeVariant::TreeVariant()
-  : stemHueShift(), foliageHueShift(), ceiling(), ephemeral() {}
+    : stemHueShift(), foliageHueShift(), ceiling(), ephemeral() {}
 
 TreeVariant::TreeVariant(Json const& variant) {
   stemName = variant.getString("stemName");
@@ -76,8 +77,8 @@ BushVariant::BushVariant(Json const& variant) {
   modName = variant.getString("modName");
   directory = variant.getString("directory");
   shapes = variant.getArray("shapes").transformed([](Json const& v) {
-      return BushShape{v.getString(0), jsonToStringList(v.get(1))};
-    });
+    return BushShape{v.getString(0), jsonToStringList(v.get(1))};
+  });
   baseHueShift = variant.getFloat("baseHueShift");
   modHueShift = variant.getFloat("modHueShift");
   descriptions = variant.get("descriptions");
@@ -91,8 +92,8 @@ Json BushVariant::toJson() const {
       {"modName", modName},
       {"directory", directory},
       {"shapes", shapes.transformed([](BushShape const& shape) -> Json {
-          return JsonArray{shape.image, jsonFromStringList(shape.mods)};
-        })},
+         return JsonArray{shape.image, jsonFromStringList(shape.mods)};
+       })},
       {"baseHueShift", baseHueShift},
       {"modHueShift", modHueShift},
       {"descriptions", descriptions},
@@ -364,4 +365,4 @@ PlantPtr PlantDatabase::createPlant(BushVariant const& bushVariant, uint64_t see
   }
 }
 
-}
+} // namespace Star

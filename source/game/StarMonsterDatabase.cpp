@@ -2,6 +2,7 @@
 #include "StarAssets.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarLexicalCast.hpp"
+#include "StarLua.hpp"
 #include "StarMonster.hpp"
 #include "StarRandom.hpp"
 #include "StarRoot.hpp"

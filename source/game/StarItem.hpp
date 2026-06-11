@@ -1,11 +1,12 @@
 #ifndef STAR_ITEM_HPP
 #define STAR_ITEM_HPP
 
-#include "StarSet.hpp"
 #include "StarDrawable.hpp"
 #include "StarItemDescriptor.hpp"
-#include "StarSwingableItem.hpp"
+#include "StarLua.hpp"
 #include "StarQuests.hpp"
+#include "StarSet.hpp"
+#include "StarSwingableItem.hpp"
 
 namespace Star {
 
@@ -196,6 +197,6 @@ inline bool itemSafeOneHanded(ItemPtr const& item) {
 inline ItemDescriptor itemSafeDescriptor(ItemPtr const& item) {
   return item ? item->descriptor() : ItemDescriptor();
 }
-}
+} // namespace Star
 
 #endif

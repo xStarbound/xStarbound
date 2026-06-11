@@ -4,6 +4,7 @@
 #include "StarEncode.hpp"
 #include "StarItemDatabase.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarLua.hpp"
 #include "StarNameGenerator.hpp"
 #include "StarNpc.hpp"
 #include "StarRandom.hpp"
