@@ -583,7 +583,7 @@ void Quest::initScript() {
   }));
   m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(m_player));
   m_scriptComponent.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_player->statusController()));
-  m_scriptComponent.addActorMovementCallbacks(m_player->movementController());
+  m_scriptComponent.addActorMovementCallbacks(m_player->movementController(), this);
   m_inited = true;
 
   m_scriptComponent.init(m_world);

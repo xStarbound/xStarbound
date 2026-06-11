@@ -150,7 +150,7 @@ void Monster::init(World* world, EntityId entityId, EntityMode mode) {
     m_scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_networkedAnimator, this));
     m_scriptComponent.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_statusController.get()));
     m_scriptComponent.addCallbacks("behavior", LuaBindings::makeBehaviorLuaCallbacks(&m_behaviors, this));
-    m_scriptComponent.addActorMovementCallbacks(m_movementController.get());
+    m_scriptComponent.addActorMovementCallbacks(m_movementController.get(), this);
     m_scriptComponent.init(world);
   }
 

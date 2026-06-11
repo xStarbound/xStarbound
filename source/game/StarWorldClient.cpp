@@ -1277,8 +1277,10 @@ List<PacketPtr> WorldClient::getOutgoingPackets() {
 }
 
 void WorldClient::setLuaCallbacks(String const& groupName, LuaCallbacks const& callbacks) {
-  // m_luaRoot->addCallbacks(groupName, callbacks);
-  LuaBaseComponent::addBaseCallbacks(groupName, callbacks);
+  if (true)
+    m_luaRoot->addCallbacks(groupName, callbacks);
+  else
+    LuaBaseComponent::addBaseCallbacks(groupName, callbacks);
 }
 
 void WorldClient::update(float dt) {

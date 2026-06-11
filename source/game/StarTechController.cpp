@@ -429,7 +429,7 @@ void TechController::setupTechModules(List<tuple<String, JsonObject>> const& mod
 
       module->toolUsageSuppressed = false;
 
-      auto moduleAnimator = make_shared<TechAnimator>(module->config.animationConfig);
+      auto moduleAnimator = makeObject<TechAnimator>(module->config.animationConfig);
       for (auto const& pair : module->config.parameters.get("animationParts", JsonObject()).iterateObject())
         moduleAnimator->animator.setPartTag(pair.first, "partImage", pair.second.toString());
       module->animatorId = m_techAnimators.addNetElement(moduleAnimator);
@@ -462,13 +462,13 @@ void TechController::initializeModules() {
       return module->config.parameters.query(name, def);
     }));
     module->scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(m_parentEntity));
-    module->scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_techAnimators.getNetElement(module->animatorId)->animator, module.get()));
+    module->scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_techAnimators.getNetElement(module->animatorId)->animator, m_techAnimators.getNetElement(module->animatorId).get()));
     module->scriptComponent.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_statusController));
     if (auto player = as<Player>(m_parentEntity)) {
       module->scriptComponent.addCallbacks("player", LuaBindings::makePlayerCallbacks(player));
       module->scriptComponent.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(player->effectsAnimator().get(), player->effectsAnimator().get()));
     }
-    module->scriptComponent.addActorMovementCallbacks(m_movementController);
+    module->scriptComponent.addActorMovementCallbacks(m_movementController, module.get());
 
     module->scriptComponent.init(m_parentEntity->world());
   }

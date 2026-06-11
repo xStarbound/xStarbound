@@ -53,6 +53,8 @@ void ContainerPane::displayed() {
       m_script.emplace();
       m_script->setScripts(*scripts);
     }
+    m_script->initMessageBinding(this);
+    m_script->initScriptBindings(this);
     m_script->addCallbacks("widget", LuaBindings::makeWidgetCallbacks(this));
     m_script->addCallbacks("config", LuaBindings::makeConfigCallbacks([guiConfig](String const& name, Json const& def) {
       return guiConfig.query(name, def);

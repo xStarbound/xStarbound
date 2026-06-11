@@ -61,6 +61,7 @@ void ActiveItem::init(ToolUserEntity* owner, ToolHand hand) {
   if (entityMode() == EntityMode::Master) {
     m_script.setScripts(jsonToStringList(instanceValue("scripts")).transformed(bind(&AssetPath::relativeTo, directory(), _1)));
     m_script.initScriptBindings(this);
+    m_script.initMessageBinding(this);
     m_script.setUpdateDelta(instanceValue("scriptDelta", 1).toUInt());
     m_twoHandedGrip.set(twoHanded());
 
@@ -72,7 +73,7 @@ void ActiveItem::init(ToolUserEntity* owner, ToolHand hand) {
     m_script.addCallbacks("config", LuaBindings::makeConfigCallbacks(LUA_BIND(&Item::instanceValue, thisItem, _1, _2)));
     m_script.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_itemAnimator, this));
     m_script.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(owner->statusController()));
-    m_script.addActorMovementCallbacks(owner->movementController());
+    m_script.addActorMovementCallbacks(owner->movementController(), this);
     if (auto player = as<Player>(owner)) {
       m_script.addCallbacks("player", LuaBindings::makePlayerCallbacks(player));
       m_script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(player->effectsAnimator().get(), player->effectsAnimator().get()));

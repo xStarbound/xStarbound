@@ -751,9 +751,9 @@ void StatusController::initPrimaryScript() {
   }
   if (m_primaryAnimatorId != EffectAnimatorGroup::NullElementId) {
     auto animator = m_effectAnimators.getNetElement(m_primaryAnimatorId);
-    m_primaryScript.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&animator->animator, m_parentEntity));
+    m_primaryScript.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&animator->animator, animator.get()));
   }
-  m_primaryScript.addActorMovementCallbacks(m_movementController);
+  m_primaryScript.addActorMovementCallbacks(m_movementController, this);
   m_primaryScript.init(m_parentEntity->world());
 }
 
@@ -783,9 +783,9 @@ void StatusController::initUniqueEffectScript(std::shared_ptr<UniqueEffectInstan
   }
   if (uniqueEffect->animatorId != EffectAnimatorGroup::NullElementId) {
     auto animator = m_effectAnimators.getNetElement(uniqueEffect->animatorId);
-    uniqueEffect->script.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&animator->animator, uniqueEffect.get()));
+    uniqueEffect->script.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&animator->animator, animator.get()));
   }
-  uniqueEffect->script.addActorMovementCallbacks(m_movementController);
+  uniqueEffect->script.addActorMovementCallbacks(m_movementController, uniqueEffect.get());
   uniqueEffect->script.init(m_parentEntity->world());
 }
 

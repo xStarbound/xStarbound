@@ -86,6 +86,9 @@ void PlayerCompanions::init(Entity* player, World* world) {
   m_scriptComponent.setScripts(jsonToStringList(m_config.getArray("scripts", JsonArray())));
   m_scriptComponent.setUpdateDelta(m_config.getInt("scriptDelta", 10));
 
+  m_scriptComponent.initMessageBinding(this);
+  m_scriptComponent.initScriptBindings(this);
+
   m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(player));
   m_scriptComponent.addCallbacks("player", LuaBindings::makePlayerCallbacks(as<Player>(player)));
   m_scriptComponent.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(as<Player>(player)->effectsAnimator().get(), as<Player>(player)->effectsAnimator().get()));

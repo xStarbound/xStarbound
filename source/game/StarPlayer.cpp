@@ -420,7 +420,7 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
     for (auto& p : m_genericScriptContexts) {
       p.second->initScriptBindings(p.second.get());
       p.second->initMessageBinding(p.second.get());
-      p.second->addActorMovementCallbacks(m_movementController.get());
+      p.second->addActorMovementCallbacks(m_movementController.get(), p.second.get());
       // FezzedOne: Added missing `entity` callbacks.
       p.second->addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(this)));
       p.second->addCallbacks("player", LuaBindings::makePlayerCallbacks(this));

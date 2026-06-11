@@ -212,7 +212,7 @@ void Object::init(World* world, EntityId entityId, EntityMode mode) {
     m_scriptComponent.addCallbacks("object", makeObjectCallbacks());
     m_scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks(LUA_BIND(&Object::configValue, thisObject, _1, _2)));
     m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
-    m_scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(m_networkedAnimator.get(), this));
+    m_scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(m_networkedAnimator.get(), m_networkedAnimator.get()));
     m_scriptComponent.init(world);
   }
 
