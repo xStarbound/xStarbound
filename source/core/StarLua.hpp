@@ -184,7 +184,7 @@ public:
         incrementUniqueId();
         size_t uniqueId = getUniqueId();
         gameObjectRegistry()[newKey] = {uniqueId, std::shared_ptr<void>(owningPtr, const_cast<void*>(newKey))};
-        Logger::info("[xSB] GameObjectRegistry: Registered object of type {} in the thread's object registry.", typeid(ObjectType).name());
+        Logger::info("[xSB] GameObjectRegistry: Registered object of type {} (resolved key: {}) in the thread's object registry.", typeid(ObjectType).name(), newKey);
       }
     }
   }
@@ -198,7 +198,7 @@ public:
         incrementUniqueId();
         size_t uniqueId = getUniqueId();
         gameObjectRegistry()[newKey] = {uniqueId, trackingPtr};
-        Logger::info("[xSB] GameObjectRegistry: Registered object of type {} in the thread's object registry.", typeid(ObjectType).name());
+        Logger::info("[xSB] GameObjectRegistry: Registered object of type {} (resolved key: {}) in the thread's object registry.", typeid(ObjectType).name(), newKey);
       }
     }
   }
