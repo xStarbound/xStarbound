@@ -227,7 +227,7 @@ public:
         return SmugglePtr<ObjectType>(std::shared_ptr<ObjectType>(), 0);
       }
     } else {
-      Logger::warn("[xSB] GameObjectRegistry: Could not find object of type {} in registry while setting up related Lua bindings.", typeid(ObjectType).name());
+      Logger::warn("[xSB] GameObjectRegistry: Could not find object of type {} in registry (resolved key: {}) while setting up related Lua bindings.", typeid(ObjectType).name(), key);
       return SmugglePtr<ObjectType>(std::shared_ptr<ObjectType>(), 0);
     }
   }

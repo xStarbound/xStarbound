@@ -150,6 +150,7 @@ UniverseServer::UniverseServer(String const& storageDir)
   }
 
   m_commandProcessor = makeObject<CommandProcessor>(this);
+  m_commandProcessor->initLua();
   m_chatProcessor = makeObject<ChatProcessor>();
   m_chatProcessor->setCommandHandler(bind(&CommandProcessor::userCommand, m_commandProcessor.get(), _1, _2, _3));
 

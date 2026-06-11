@@ -26,6 +26,9 @@ namespace Star {
 
 CommandProcessor::CommandProcessor(UniverseServer* universe)
     : m_universe(universe) {
+}
+
+void CommandProcessor::initLua() {
   auto assets = Root::singleton().assets();
   m_scriptComponent.addCallbacks("universe", LuaBindings::makeUniverseServerCallbacks(m_universe));
   m_scriptComponent.addCallbacks("CommandProcessor", makeCommandCallbacks());
