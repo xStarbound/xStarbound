@@ -8,6 +8,7 @@
 #include "StarDirectives.hpp"
 #include "StarJson.hpp"
 #include "StarLexicalCast.hpp"
+#include "StarLogging.hpp"
 #include "StarRefPtr.hpp"
 #include "StarString.hpp"
 
@@ -182,7 +183,8 @@ public:
       if (it == gameObjectRegistry().end()) {
         incrementUniqueId();
         size_t uniqueId = getUniqueId();
-        gameObjectRegistry()[newKey] = {uniqueId, std::shared_ptr<void>(owningPtr, const_cast<void*>(newKey))}; // Gets the most derived object pointer for polymorphic objects.
+        gameObjectRegistry()[newKey] = {uniqueId, std::shared_ptr<void>(owningPtr, const_cast<void*>(newKey))};
+        Logger::info("[xSB] GameObjectRegistry: Registered object of type {} in the thread's object registry.", typeid(ObjectType).name());
       }
     }
   }
@@ -195,7 +197,8 @@ public:
       if (it == gameObjectRegistry().end()) {
         incrementUniqueId();
         size_t uniqueId = getUniqueId();
-        gameObjectRegistry()[newKey] = {uniqueId, trackingPtr}; // Gets the most derived object pointer for polymorphic objects.
+        gameObjectRegistry()[newKey] = {uniqueId, trackingPtr};
+        Logger::info("[xSB] GameObjectRegistry: Registered object of type {} in the thread's object registry.", typeid(ObjectType).name());
       }
     }
   }
@@ -220,9 +223,11 @@ public:
         std::shared_ptr<ObjectType> resolvedPtr(returnedPtr, rawPtr);
         return SmugglePtr<ObjectType>(resolvedPtr, it->second.first);
       } else {
+        Logger::warn("[xSB] GameObjectRegistry: Found expired object of type {} in registry while setting up related Lua bindings.", typeid(ObjectType).name());
         return SmugglePtr<ObjectType>(std::shared_ptr<ObjectType>(), 0);
       }
     } else {
+      Logger::warn("[xSB] GameObjectRegistry: Could not find object of type {} in registry while setting up related Lua bindings.", typeid(ObjectType).name());
       return SmugglePtr<ObjectType>(std::shared_ptr<ObjectType>(), 0);
     }
   }
