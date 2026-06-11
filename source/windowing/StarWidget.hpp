@@ -1,11 +1,12 @@
 #ifndef STAR_WIDGET_HPP
 #define STAR_WIDGET_HPP
 
-#include "StarVector.hpp"
 #include "StarCasting.hpp"
-#include "StarInputEvent.hpp"
 #include "StarGuiContext.hpp"
+#include "StarInputEvent.hpp"
+#include "StarLua.hpp"
 #include "StarText.hpp"
+#include "StarVector.hpp"
 
 namespace Star {
 
@@ -175,8 +176,9 @@ shared_ptr<WidgetType> Widget::findChild(String const& name) {
   return as<WidgetType>(findChild(name));
 }
 
-}
+} // namespace Star
 
-template <> struct fmt::formatter<Star::Widget> : ostream_formatter {};
+template <>
+struct fmt::formatter<Star::Widget> : ostream_formatter {};
 
 #endif
