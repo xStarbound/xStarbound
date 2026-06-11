@@ -68,9 +68,9 @@ Object::Object(ObjectConfigConstPtr config, Json const& parameters) {
     animationConfig = jsonMerge(m_config->animationConfig, *animationCustom.objectPtr());
 
   if (animationConfig)
-    m_networkedAnimator = make_shared<NetworkedAnimator>(animationConfig, m_config->path);
+    m_networkedAnimator = makeObject<NetworkedAnimator>(animationConfig, m_config->path);
   else
-    m_networkedAnimator = make_shared<NetworkedAnimator>();
+    m_networkedAnimator = makeObject<NetworkedAnimator>();
 
   if (m_config->damageTeam.type != TeamType::Null) {
     setTeam(m_config->damageTeam);
