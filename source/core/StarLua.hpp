@@ -124,7 +124,7 @@ public:
 template <typename Type1, typename Type2>
 SmugglePtr<Type1> as(SmugglePtr<Type2> const& p) {
   if (auto lockedPtr = p.m_ptr.lock())
-    return SmugglePtr(dynamic_pointer_cast<Type1>(lockedPtr), p.m_uniqueId);
+    return SmugglePtr(dynamic_pointer_cast<Type1>(lockedPtr));
   else
     return SmugglePtr<Type1>();
 }
@@ -132,7 +132,7 @@ SmugglePtr<Type1> as(SmugglePtr<Type2> const& p) {
 template <typename Type1, typename Type2>
 SmugglePtr<Type1 const> as(SmugglePtr<Type2 const> const& p) {
   if (auto lockedPtr = p.m_ptr.lock())
-    return SmugglePtr(dynamic_pointer_cast<Type1 const>(lockedPtr), p.m_uniqueId);
+    return SmugglePtr(dynamic_pointer_cast<Type1 const>(lockedPtr));
   else
     return SmugglePtr<Type1>();
 }
