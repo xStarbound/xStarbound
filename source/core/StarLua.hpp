@@ -53,42 +53,42 @@ class SmugglePtr {
 public:
   // FezzedOne: Internal weak reference to an object.
   std::weak_ptr<ObjectType> m_ptr;
-  size_t m_uniqueId; // Currently unused because `weak_ptr`s are used to track lifetimes.
+  // size_t m_uniqueId; // Currently unused because `weak_ptr`s are used to track lifetimes.
 
-  SmugglePtr(std::shared_ptr<ObjectType> objectPointer, size_t uniqueId) {
+  SmugglePtr(std::shared_ptr<ObjectType> objectPointer /*, size_t uniqueId */) {
     m_ptr = objectPointer;
-    m_uniqueId = uniqueId;
+    // m_uniqueId = uniqueId;
   }
 
-  SmugglePtr(std::weak_ptr<ObjectType> objectPointer, size_t uniqueId) {
+  SmugglePtr(std::weak_ptr<ObjectType> objectPointer /*, size_t uniqueId */) {
     m_ptr = objectPointer;
-    m_uniqueId = uniqueId;
+    // m_uniqueId = uniqueId;
   }
 
   SmugglePtr() : SmugglePtr(std::weak_ptr<ObjectType>(), 0) {}
 
   SmugglePtr(std::nullptr_t) : SmugglePtr(std::weak_ptr<ObjectType>(), 0) {}
 
-  SmugglePtr(SmugglePtr const& r) : SmugglePtr(r.m_ptr, r.m_uniqueId) {}
+  SmugglePtr(SmugglePtr const& r) : SmugglePtr(r.m_ptr /*, r.m_uniqueId */) {}
 
   SmugglePtr(SmugglePtr&& r) {
     m_ptr = r.m_ptr;
-    m_uniqueId = r.m_uniqueId;
+    // m_uniqueId = r.m_uniqueId;
     r.m_ptr = std::weak_ptr<ObjectType>();
-    r.m_uniqueId = 0;
+    // r.m_uniqueId = 0;
   }
 
   SmugglePtr& operator=(SmugglePtr const& r) {
     m_ptr = r.m_ptr;
-    m_uniqueId = r.m_uniqueId;
+    // m_uniqueId = r.m_uniqueId;
     return *this;
   }
 
   SmugglePtr& operator=(SmugglePtr&& r) {
     m_ptr = r.m_ptr;
-    m_uniqueId = r.m_uniqueId;
+    // m_uniqueId = r.m_uniqueId;
     r.m_ptr = std::weak_ptr<ObjectType>();
-    r.m_uniqueId = 0;
+    // r.m_uniqueId = 0;
     return *this;
   }
 
@@ -137,26 +137,49 @@ SmugglePtr<Type1 const> as(SmugglePtr<Type2 const> const& p) {
     return SmugglePtr<Type1>();
 }
 
-// FezzedOne: Per-thread Unreal-like object registry. Needed to make Lua smuggling actually memory-safe when the `"legacySmuggling"` setting is enabled for mod compatibility.
+// FezzedOne: Global Unreal-like object registry. Needed to make Lua smuggling actually memory-safe when the `"legacySmuggling"` setting is enabled for mod compatibility.
 // Only use statically! Register any objects referenced by Lua bindings in their constructors with `GameObjectRegistry::registerGameObject` and deregister any such objects with
 // `GameObjectRegistry::deregisterGameObject`.
 class GameObjectRegistry {
 private:
-  static HashMap<void const*, std::pair<size_t, std::weak_ptr<void>>>& gameObjectRegistry() {
-    static thread_local HashMap<void const*, std::pair<size_t, std::weak_ptr<void>>> s_gameObjectRegistry;
+  static Mutex& getRegistryMutex() {
+    static Mutex s_registryMutex;
+    return s_registryMutex;
+  }
+
+  // static HashMap<void const*, std::pair<size_t, std::weak_ptr<void>>>& gameObjectRegistry() {
+  //   static HashMap<void const*, std::pair<size_t, std::weak_ptr<void>>> s_gameObjectRegistry;
+  //   return s_gameObjectRegistry;
+  // }
+
+  static HashMap<void const*, std::weak_ptr<void>>& gameObjectRegistry() {
+    static HashMap<void const*, std::weak_ptr<void>> s_gameObjectRegistry;
     return s_gameObjectRegistry;
   }
 
-  static size_t& getUniqueId() {
-    static thread_local size_t s_uniqueId = 0;
-    return s_uniqueId;
+  // static size_t& getUniqueId() {
+  //   static size_t s_uniqueId = 0;
+  //   return s_uniqueId;
+  // }
+
+  static void initialiseRegistry() {
+    static bool s_initialised = false;
+    if (!s_initialised) {
+      MutexLocker lock(getRegistryMutex());
+      if (!s_initialised) {
+        gameObjectRegistry().reserve(1048576);
+        s_initialised = true;
+      }
+    }
   }
 
-  static void incrementUniqueId() {
-    getUniqueId()++;
-    if (getUniqueId() == 0)
-      getUniqueId()++;
-  }
+  // static size_t incrementUniqueId() {
+  //   auto& uniqueId = getUniqueId();
+  //   uniqueId++;
+  //   if (uniqueId == 0)
+  //     uniqueId++;
+  //   return uniqueId;
+  // }
 
 public:
   template <typename ObjectType>
@@ -177,29 +200,41 @@ public:
 
   template <typename ObjectType>
   static void registerGameObject(ObjectType const* rawPtr, std::shared_ptr<ObjectType> owningPtr) {
+    initialiseRegistry();
     if (rawPtr) {
+      bool needsRegistration = false;
       auto newKey = resolveKey(rawPtr);
-      auto it = gameObjectRegistry().find(newKey);
-      if (it == gameObjectRegistry().end()) {
-        incrementUniqueId();
-        size_t uniqueId = getUniqueId();
-        gameObjectRegistry()[newKey] = {uniqueId, std::shared_ptr<void>(owningPtr, const_cast<void*>(newKey))};
-        Logger::info("[xSB] GameObjectRegistry: Registered object of type {} (resolved key: {}) in the thread's object registry.", typeid(ObjectType).name(), newKey);
+      {
+        MutexLocker lock(getRegistryMutex());
+        auto it = gameObjectRegistry().find(newKey);
+        if (it == gameObjectRegistry().end())
+          needsRegistration = true;
       }
+      if (needsRegistration) {
+        MutexLocker lock(getRegistryMutex());
+        // size_t uniqueId = incrementUniqueId();
+        // gameObjectRegistry()[newKey] = {uniqueId, std::shared_ptr<void>(owningPtr, const_cast<void*>(newKey))};
+        gameObjectRegistry()[newKey] = std::shared_ptr<void>(owningPtr, const_cast<void*>(newKey));
+      }
+      Logger::info("[xSB] GameObjectRegistry: Registered object of type {} (resolved key: {}) in the thread's object registry.", typeid(ObjectType).name(), newKey);
     }
   }
 
   template <typename ObjectType>
   static void registerGameObject(ObjectType const* rawPtr, std::weak_ptr<ObjectType> trackingPtr) {
+    initialiseRegistry();
     if (rawPtr) {
       auto newKey = resolveKey(rawPtr);
-      auto it = gameObjectRegistry().find(newKey);
-      if (it == gameObjectRegistry().end()) {
-        incrementUniqueId();
-        size_t uniqueId = getUniqueId();
-        gameObjectRegistry()[newKey] = {uniqueId, trackingPtr};
-        Logger::info("[xSB] GameObjectRegistry: Registered object of type {} (resolved key: {}) in the thread's object registry.", typeid(ObjectType).name(), newKey);
+      {
+        MutexLocker lock(getRegistryMutex());
+        auto it = gameObjectRegistry().find(newKey);
+        if (it == gameObjectRegistry().end()) {
+          // size_t uniqueId = incrementUniqueId();
+          // gameObjectRegistry()[newKey] = {uniqueId, trackingPtr};
+          gameObjectRegistry()[newKey] = trackingPtr;
+        }
       }
+      Logger::info("[xSB] GameObjectRegistry: Registered object of type {} (resolved key: {}) in the global object registry.", typeid(ObjectType).name(), newKey);
     }
   }
 
@@ -209,6 +244,7 @@ public:
   // direct calls to this method should be entirely unnecessary.
   template <typename ObjectType>
   static void deregisterGameObject(void* rawPtr) {
+    MutexLocker lock(getRegistryMutex());
     gameObjectRegistry().erase(rawPtr);
   }
 
@@ -217,18 +253,22 @@ public:
   template <typename ObjectType>
   static SmugglePtr<ObjectType> smuggleWrap(ObjectType* rawPtr) {
     void const* key = resolveKey(rawPtr);
+    MutexLocker lock(getRegistryMutex());
     auto it = gameObjectRegistry().find(key);
     if (it != gameObjectRegistry().end()) {
-      if (auto returnedPtr = it->second.second.lock()) {
+      if (auto returnedPtr = it->second.lock()) {
+        lock.unlock();
         std::shared_ptr<ObjectType> resolvedPtr(returnedPtr, rawPtr);
-        return SmugglePtr<ObjectType>(resolvedPtr, it->second.first);
+        return SmugglePtr<ObjectType>(resolvedPtr);
       } else {
-        Logger::warn("[xSB] GameObjectRegistry: Found expired object of type {} in registry while setting up related Lua bindings.", typeid(ObjectType).name());
-        return SmugglePtr<ObjectType>(std::shared_ptr<ObjectType>(), 0);
+        lock.unlock();
+        Logger::warn("[xSB] GameObjectRegistry: Found expired object of type {} in the global registry while setting up related Lua bindings.", typeid(ObjectType).name());
+        return SmugglePtr<ObjectType>(std::shared_ptr<ObjectType>());
       }
     } else {
-      Logger::warn("[xSB] GameObjectRegistry: Could not find object of type {} in registry (resolved key: {}) while setting up related Lua bindings.", typeid(ObjectType).name(), key);
-      return SmugglePtr<ObjectType>(std::shared_ptr<ObjectType>(), 0);
+      lock.unlock();
+      Logger::warn("[xSB] GameObjectRegistry: Could not find object of type {} in the global registry (resolved key: {}) while setting up related Lua bindings.", typeid(ObjectType).name(), key);
+      return SmugglePtr<ObjectType>(std::shared_ptr<ObjectType>());
     }
   }
 
@@ -244,14 +284,18 @@ public:
   }
 
   static void cleanUpRegistry() {
-    ZoneScopedN("Game object registry cleanup for thread");
+    ZoneScopedN("Game object registry cleanup");
     List<void const*> pointersToRemove;
-    for (auto& entry : gameObjectRegistry()) {
-      if (entry.second.second.expired())
-        pointersToRemove.append(entry.first);
+    {
+      MutexLocker lock(getRegistryMutex());
+      pointersToRemove.reserve(gameObjectRegistry().size() / 4);
+      for (auto& entry : gameObjectRegistry()) {
+        if (entry.second.expired())
+          pointersToRemove.append(entry.first);
+      }
+      for (auto& toRemove : pointersToRemove)
+        gameObjectRegistry().erase(toRemove);
     }
-    for (auto& toRemove : pointersToRemove)
-      gameObjectRegistry().erase(toRemove);
   }
 };
 

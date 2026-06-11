@@ -57,7 +57,8 @@ WorldClient::WorldClient(PlayerPtr mainPlayer, UniverseClient* universeClient) {
   m_collisionDebug = false;
   m_inWorld = false;
 
-  // m_luaRoot = make_shared<LuaRoot>(); // FezzedOne: No longer necessary.
+  if (true) // Placeholder for `"legacySmuggling"` check.
+    m_luaRoot = make_shared<LuaRoot>();
   m_scriptGlobals = JsonObject{};
 
   m_mainPlayer = mainPlayer;
