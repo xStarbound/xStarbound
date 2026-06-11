@@ -379,8 +379,6 @@ void WorldServerThread::update(WorldServerFidelity fidelity) {
     ZoneScopedN("Other update action");
     m_updateAction(this, m_worldServer.get());
   }
-
-  GameObjectRegistry::cleanUpRegistry();
 }
 
 void WorldServerThread::sync() {

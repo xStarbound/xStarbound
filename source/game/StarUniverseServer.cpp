@@ -126,8 +126,9 @@ Maybe<bool> UniverseServer::clientHasBuildPermissionCallback(ConnectionId client
   return {};
 }
 
-UniverseServer::UniverseServer(String const& storageDir)
+UniverseServer::UniverseServer(String const& storageDir, bool isDedicatedServer)
     : Thread("UniverseServer"),
+      m_dedicated(isDedicatedServer),
       m_workerPool("UniverseServerWorkerPool"),
       m_clients(MinClientConnectionId, MaxClientConnectionId) {
   String const LockFile = "universe.lock";
@@ -689,7 +690,6 @@ void UniverseServer::run() {
       doTriggeredStorage();
       updateCommandScript((float)(Time::monotonicTime() - m_lastScriptUpdate));
       updateSecuritySettings();
-      GameObjectRegistry::cleanUpRegistry();
       m_lastScriptUpdate = Time::monotonicTime();
     } catch (std::exception const& e) {
       Logger::error("UniverseServer: exception caught: {}", outputException(e, true));

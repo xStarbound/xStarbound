@@ -195,7 +195,6 @@ VersionedJson VersioningDatabase::updateVersionedJson(VersionedJson const& versi
       }
     }
   } catch (std::exception const& e) {
-    GameObjectRegistry::cleanUpRegistry();
     // m_luaRoot.collectGarbage();
     throw VersioningDatabaseException(strf("Could not bring versionedJson with identifier '{}' and version {} forward to current version of {}",
                                           versionedJson.identifier, result.version, targetVersion),
@@ -203,20 +202,17 @@ VersionedJson VersioningDatabase::updateVersionedJson(VersionedJson const& versi
   }
 
   if (result.version > *targetVersion) {
-    GameObjectRegistry::cleanUpRegistry();
     throw VersioningDatabaseException::format(
         "VersionedJson with identifier '{}' and version {} is newer than current version of {}, cannot load",
         versionedJson.identifier, result.version, targetVersion);
   }
 
   if (result.version != *targetVersion) {
-    GameObjectRegistry::cleanUpRegistry();
     throw VersioningDatabaseException::format(
         "Could not bring VersionedJson with identifier '{}' and version {} forward to current version of {}, best version was {}",
         versionedJson.identifier, result.version, targetVersion, result.version);
   }
 
-  GameObjectRegistry::cleanUpRegistry();
   return result;
 }
 

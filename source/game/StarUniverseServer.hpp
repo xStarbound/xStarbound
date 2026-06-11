@@ -33,7 +33,7 @@ STAR_EXCEPTION(UniverseServerException, StarException);
 // and routes packets between them.
 class UniverseServer : public Thread {
 public:
-  UniverseServer(String const& storageDir);
+  UniverseServer(String const& storageDir, bool isDedicatedServer = false);
   ~UniverseServer();
 
   void updateSecuritySettings();
@@ -244,6 +244,8 @@ private:
   SkyParameters celestialSkyParameters(CelestialCoordinate const& coordinate) const;
 
   mutable RecursiveMutex m_mainLock;
+
+  bool m_dedicated;
 
   String m_storageDirectory;
   ByteArray m_assetsDigest;

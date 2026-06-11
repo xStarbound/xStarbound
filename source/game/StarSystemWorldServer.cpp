@@ -242,8 +242,6 @@ void SystemWorldServer::update(float dt) {
     m_ships.remove(shipUuid);
     m_triggerStorage = true;
   }
-
-  GameObjectRegistry::cleanUpRegistry();
 }
 
 List<SystemObjectPtr> SystemWorldServer::objects() const {

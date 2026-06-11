@@ -148,7 +148,6 @@ void ItemDatabase::cleanup() {
     m_itemCache.cleanup([](ItemCacheEntry const&, ItemPtr const& item) {
       return !item.unique();
     });
-    GameObjectRegistry::cleanUpRegistry();
   }
 }
 

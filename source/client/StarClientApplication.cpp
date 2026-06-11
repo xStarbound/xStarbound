@@ -441,7 +441,6 @@ void ClientApplication::update() {
   m_guiContext->cleanup();
   m_edgeKeyEvents.clear();
   m_input->reset();
-  GameObjectRegistry::cleanUpRegistry();
 }
 
 void ClientApplication::render() {

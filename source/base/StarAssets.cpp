@@ -584,7 +584,6 @@ void Assets::hotReload() {
   m_assetsCache.clear();
   m_queue.clear();
   m_framesSpecifications.clear();
-  GameObjectRegistry::cleanUpRegistry();
 }
 
 StringList Assets::assetSources() const {
@@ -924,8 +923,6 @@ void Assets::clearCache() {
     if (pair.second && !pair.second->shouldPersist() && !m_queue.contains(pair.first))
       it.remove();
   }
-
-  GameObjectRegistry::cleanUpRegistry();
 }
 
 void Assets::cleanup() {
@@ -948,8 +945,6 @@ void Assets::cleanup() {
       }
     }
   }
-
-  GameObjectRegistry::cleanUpRegistry();
 }
 
 bool Assets::AssetId::operator==(AssetId const& assetId) const {
@@ -1185,9 +1180,6 @@ void Assets::workerMain() {
       m_assetsDone.wait(m_assetsMutex);
       continue;
     }
-
-    // Clean up Lua smuggling handles in the asset worker thread.
-    GameObjectRegistry::cleanUpRegistry();
 
     // After processing an asset, unlock the main asset mutex and yield so we
     // don't starve other threads.
