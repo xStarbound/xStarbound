@@ -6,6 +6,8 @@
 
 namespace Star {
 
+STAR_CLASS(Player);
+
 // Wraps a LuaUpdatableComponent to handle the particularly tricky case of
 // maintaining ActorMovementController controls when we do not call the script
 // update every tick.
@@ -190,7 +192,7 @@ public:
         movementController->addMomentum(momentum);
       });
 
-      callbacks.registerCallback("setRotation", [movementController, this](float rotation) {
+      callbacks.registerCallback("setRotation", [movementController, lifetime, this](float rotation) {
         movementController.checkSmuggle();
         lifetime.checkSmuggle();
         m_resetPathMove = true;
@@ -395,7 +397,7 @@ LuaActorMovementComponent<Base>::LuaActorMovementComponent()
 
 template <typename Base>
 void LuaActorMovementComponent<Base>::removeActorMovementCallbacks() {
-  addActorMovementCallbacks(nullptr, nullptr);
+  addActorMovementCallbacks<Player>(nullptr, nullptr);
 }
 
 template <typename Base>
