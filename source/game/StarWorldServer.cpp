@@ -59,7 +59,7 @@ WorldServer::WorldServer(WorldTemplatePtr const& worldTemplate, IODevicePtr stor
   m_scriptGlobals = JsonObject{};
   m_universe = nullptr;
 
-  init(true);
+  // init(true);
   writeMetadata();
 }
 
@@ -73,7 +73,7 @@ WorldServer::WorldServer(IODevicePtr const& storage) : m_preUninitialized(false)
   m_worldId = "Nowhere";
 
   readMetadata();
-  init(false);
+  // init(false);
 }
 
 WorldServer::WorldServer(WorldChunks const& chunks) : m_preUninitialized(false) {
@@ -83,7 +83,7 @@ WorldServer::WorldServer(WorldChunks const& chunks) : m_preUninitialized(false) 
   m_worldId = "Nowhere";
 
   readMetadata();
-  init(false);
+  // init(false);
 }
 
 WorldServer::~WorldServer() {

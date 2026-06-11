@@ -1,11 +1,11 @@
 #ifndef STAR_CONTAINER_INTERFACE_HPP
 #define STAR_CONTAINER_INTERFACE_HPP
 
-#include "StarPane.hpp"
-#include "StarLuaComponents.hpp"
 #include "StarContainerInteractor.hpp"
-#include "StarMainInterface.hpp"
 #include "StarGuiReader.hpp"
+#include "StarLuaComponents.hpp"
+#include "StarMainInterface.hpp"
+#include "StarPane.hpp"
 #include "StarThread.hpp"
 
 namespace Star {
@@ -53,6 +53,7 @@ private:
   PlayerPtr m_player;
   ContainerInteractorPtr m_containerInteractor;
   ItemBagPtr m_itemBag;
+  MainInterface* m_mainInterface;
 
   ExpectingSwap m_expectingSwap;
 
@@ -63,6 +64,6 @@ private:
   static List<ContainerPane*> s_globalClientPaneRegistry;
 };
 
-}
+} // namespace Star
 
 #endif

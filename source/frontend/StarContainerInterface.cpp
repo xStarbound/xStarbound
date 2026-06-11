@@ -34,7 +34,17 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
   m_worldClient = worldClient;
   m_player = player;
   m_containerInteractor = std::move(containerInteractor);
+  m_mainInterface = mainInterface;
+}
 
+ContainerPane::~ContainerPane() {
+  {
+    MutexLocker locker(ContainerPane::s_globalContainerPaneMutex);
+    ContainerPane::s_globalClientPaneRegistry.remove(this);
+  }
+}
+
+void ContainerPane::displayed() {
   auto container = m_containerInteractor->openContainer();
   auto guiConfig = container->containerGuiConfig();
 
@@ -72,6 +82,7 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
     m_script->addCallbacks("input", LuaBindings::makeInputCallbacks());
     // FezzedOne: The clipboard callbacks don't actually use the main interface, so it's fine to put a null pointer there.
     m_script->addCallbacks("clipboard", LuaBindings::makeClipboardCallbacks(nullptr));
+    auto& mainInterface = m_mainInterface;
     if (mainInterface) {
       m_script->addCallbacks("interface", LuaBindings::makeInterfaceCallbacks(mainInterface, true));
       m_script->addCallbacks("camera", LuaBindings::makeCameraCallbacks(&mainInterface->worldPainter()->camera()));
@@ -189,16 +200,7 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
     MutexLocker locker(ContainerPane::s_globalContainerPaneMutex);
     ContainerPane::s_globalClientPaneRegistry.append(this);
   }
-}
 
-ContainerPane::~ContainerPane() {
-  {
-    MutexLocker locker(ContainerPane::s_globalContainerPaneMutex);
-    ContainerPane::s_globalClientPaneRegistry.remove(this);
-  }
-}
-
-void ContainerPane::displayed() {
   Pane::displayed();
 
   m_expectingSwap = ExpectingSwap::None;

@@ -58,6 +58,8 @@ void BaseScriptPane::show() {
 void BaseScriptPane::displayed() {
   Pane::displayed();
   if (!m_callbacksAdded) {
+    m_script.initMessageBinding(this);
+    m_script.initScriptBindings(this);
     m_script.addCallbacks("pane", makePaneCallbacks());
     m_script.addCallbacks("widget", LuaBindings::makeWidgetCallbacks(this, m_reader));
     m_script.addCallbacks("config", LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def) {

@@ -80,8 +80,6 @@ MainInterface::MainInterface(UniverseClientPtr client, WorldPainterPtr painter, 
   m_client = client;
   m_worldPainter = painter;
   m_cinematicOverlay = cinematicOverlay;
-
-  reset();
 }
 
 MainInterface::~MainInterface() {

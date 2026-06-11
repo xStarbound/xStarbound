@@ -747,6 +747,7 @@ void ClientApplication::changeState(MainAppState newState) {
 
     // FezzedOne: Needs `makeObject` for legacy Lua smuggling because it's completely reset on player swaps.
     m_mainInterface = makeObject<MainInterface>(m_universeClient, m_worldPainter, m_cinematicOverlay);
+    m_mainInterface->reset(); // Needs to be invoked separately to ensure the main interface is registered before any pane scripts are run.
     m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), true), 1);
     m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), true /* `"legacySmuggling"` placeholder. */ ? true : false), 2);
     // [OpenStarbound] Kae: Added camera callbacks.

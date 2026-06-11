@@ -216,7 +216,6 @@ public:
         // gameObjectRegistry()[newKey] = {uniqueId, std::shared_ptr<void>(owningPtr, const_cast<void*>(newKey))};
         gameObjectRegistry()[newKey] = std::shared_ptr<void>(owningPtr, const_cast<void*>(newKey));
       }
-      Logger::info("[xSB] GameObjectRegistry: Registered object of type {} (resolved key: {}) in the thread's object registry.", typeid(ObjectType).name(), newKey);
     }
   }
 
@@ -234,7 +233,6 @@ public:
           gameObjectRegistry()[newKey] = trackingPtr;
         }
       }
-      Logger::info("[xSB] GameObjectRegistry: Registered object of type {} (resolved key: {}) in the global object registry.", typeid(ObjectType).name(), newKey);
     }
   }
 

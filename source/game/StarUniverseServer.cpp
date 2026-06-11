@@ -2525,6 +2525,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::shipWorldPromise(
       try {
         Logger::info("UniverseServer: Loading client ship world {}", clientShipWorldId);
         shipWorld = makeObject<WorldServer>(shipChunks);
+        shipWorld->init(false);
       } catch (std::exception const& e) {
         Logger::error("UniverseServer: Could not load client ship {}, resetting ship to default state! {}",
             clientShipWorldId, outputException(e, false));
@@ -2534,6 +2535,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::shipWorldPromise(
     if (!shipWorld) {
       Logger::info("UniverseServer: Creating new client ship world {}", clientShipWorldId);
       shipWorld = makeObject<WorldServer>(Vec2U(2048, 2048), File::ephemeralFile());
+      shipWorld->init(true);
       auto shipStructure = WorldStructure(speciesShips.get(clientContext->playerSpecies()).first());
       shipStructure = shipWorld->setCentralStructure(shipStructure);
 
@@ -2600,6 +2602,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::celestialWorldPro
       try {
         Logger::info("UniverseServer: Loading celestial world {}", celestialWorldId);
         worldServer = makeObject<WorldServer>(File::open(storageFile, IOMode::ReadWrite));
+        worldServer->init(false);
       } catch (std::exception const& e) {
         Logger::error("UniverseServer: Could not load celestial world {}, removing! Cause: {}",
             celestialWorldId, outputException(e, false));
@@ -2611,6 +2614,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::celestialWorldPro
       Logger::info("UniverseServer: Creating celestial world {}", celestialWorldId);
       auto worldTemplate = make_shared<WorldTemplate>(celestialWorldId, celestialDatabase);
       worldServer = makeObject<WorldServer>(worldTemplate, File::open(storageFile, IOMode::ReadWrite | IOMode::Truncate));
+      worldServer->init(true);
     }
 
     worldServer->setUniverseSettings(m_universeSettings);
@@ -2678,6 +2682,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::instanceWorldProm
         try {
           Logger::info("UniverseServer: Loading persistent unique instance world {}", instanceWorldId.instance);
           worldServer = makeObject<WorldServer>(File::open(storageFile, IOMode::ReadWrite));
+          worldServer->init(false);
           worldExisted = true;
         } catch (std::exception const& e) {
           Logger::error("UniverseServer: Could not load persistent unique instance world {}, removing! Cause: {}",
@@ -2689,6 +2694,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::instanceWorldProm
       if (!worldServer) {
         Logger::info("UniverseServer: Creating persistent unique instance world {}", instanceWorldId.instance);
         worldServer = makeObject<WorldServer>(worldTemplate, File::open(storageFile, IOMode::ReadWrite | IOMode::Truncate));
+        worldServer->init(true);
       }
     } else {
       String storageFile = tempWorldFile(instanceWorldId);
@@ -2700,6 +2706,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::instanceWorldProm
             Logger::info("UniverseServer: Loading temporary instance world {} from storage", instanceWorldId);
             try {
               worldServer = makeObject<WorldServer>(file);
+              worldServer->init(false);
               worldExisted = true;
             } catch (std::exception const& e) {
               Logger::error("UniverseServer: Could not load temporary instance world '{}', re-creating cause: {}",
@@ -2715,6 +2722,7 @@ Maybe<WorkerPoolPromise<WorldServerThreadPtr>> UniverseServer::instanceWorldProm
         Logger::info("UniverseServer: Creating temporary instance world '{}' with expiry time {}", instanceWorldId, deleteTime);
 
         worldServer = makeObject<WorldServer>(worldTemplate, File::open(storageFile, IOMode::ReadWrite));
+        worldServer->init(true);
         m_tempWorldIndex.set(instanceWorldId, pair<uint64_t, uint64_t>(m_universeClock->milliseconds(), deleteTime));
       }
     }

@@ -64,6 +64,10 @@ public:
   // Load an existing world from an in-memory representation
   ~WorldServer();
 
+  // FezzedOne: Needs to run separately after world object registration because it loads a world
+  // chunk which may initialise scripted entities.
+  void init(bool firstTime);
+
   void preUninit();
 
   void setWorldId(String worldId);
@@ -331,8 +335,6 @@ private:
   };
 
   typedef function<ServerTile const&(Vec2I)> ServerTileGetter;
-
-  void init(bool firstTime);
 
   // Returns nothing if the processing defined by the given configuration entry
   // should not run this tick, if it should run this tick, returns the number
