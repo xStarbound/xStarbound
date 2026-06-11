@@ -6,8 +6,6 @@
 
 namespace Star {
 
-STAR_CLASS(Player);
-
 // Wraps a LuaUpdatableComponent to handle the particularly tricky case of
 // maintaining ActorMovementController controls when we do not call the script
 // update every tick.
@@ -397,7 +395,7 @@ LuaActorMovementComponent<Base>::LuaActorMovementComponent()
 
 template <typename Base>
 void LuaActorMovementComponent<Base>::removeActorMovementCallbacks() {
-  addActorMovementCallbacks<Player>(nullptr, nullptr);
+  Base::removeCallbacks("mcontroller");
 }
 
 template <typename Base>
