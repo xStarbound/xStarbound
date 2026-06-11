@@ -2,6 +2,7 @@
 #include "StarAssets.hpp"
 #include "StarConfiguration.hpp"
 #include "StarImageMetadataDatabase.hpp"
+#include "StarLua.hpp"
 #include "StarMixer.hpp"
 #include "StarRoot.hpp"
 
