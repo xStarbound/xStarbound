@@ -399,9 +399,10 @@ ItemPtr ItemDatabase::applyAugment(ItemPtr const item, AugmentItem* augment) con
     // RecursiveMutexLocker locker(m_luaMutex); // FezzedOne: No longer needed.
     LuaBaseComponent script;
     // FezzedOne: Needs its own Lua state because of the raw item pointer being passed around.
-    script.setLuaRoot(make_shared<LuaRoot>());
+    auto luaRoot = make_shared<LuaRoot>();
+    script.setLuaRoot(luaRoot);
     auto config = Root::singleton().assets()->json("/items/defaultParameters.config");
-    m_luaRoot->tuneAutoGarbageCollection(config.optFloat("luaGcPause").value(1.2f),
+    luaRoot->tuneAutoGarbageCollection(config.optFloat("luaGcPause").value(1.2f),
         config.optFloat("luaGcStepMultiplier").value(1.2f));
     auto thisAugment = GameObjectRegistry::smuggleWrap(augment);
     script.setScripts(augment->augmentScripts());

@@ -567,14 +567,15 @@ LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
     thisActiveItem.checkSmuggle();
     if (auto otherHandItem = owner()->handItem(hand() == ToolHand::Primary ? ToolHand::Alt : ToolHand::Primary)) {
       if (auto otherActiveItem = as<ActiveItem>(otherHandItem)) {
-        // if (Root::singleton().configuration()->get("safeScripts").toBool()) {
-        auto jsonArgs = LuaVariadic<Json>{};
-        for (auto& arg : args) {
-          jsonArgs.emplaceAppend(engine.luaTo<Json>(arg));
-        }
-        return engine.luaFrom<Json>(otherActiveItem->m_script.invoke<Json>(func, jsonArgs).value());
-        // } else
-        //   return otherActiveItem->m_script.invoke<LuaValue>(func, args).value();
+        // if (!Root::singleton().configuration()->get("legacySmuggling").toBool()) {
+        if (!true) {
+          auto jsonArgs = LuaVariadic<Json>{};
+          for (auto& arg : args) {
+            jsonArgs.emplaceAppend(engine.luaTo<Json>(arg));
+          }
+          return engine.luaFrom<Json>(otherActiveItem->m_script.invoke<Json>(func, jsonArgs).value());
+        } else
+          return otherActiveItem->m_script.invoke<LuaValue>(func, args).value();
       }
     }
     return LuaValue();
