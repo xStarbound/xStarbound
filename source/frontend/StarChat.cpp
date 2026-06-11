@@ -66,12 +66,12 @@ Chat::Chat(MainInterface* mainInterface, UniverseClientPtr client, Maybe<ChatSta
   m_colorCodes[MessageContext::World] = config.query("colors.world").toString();
 
   if (!m_scripted) {
-    m_reader->registerCallback("textBox", [=](Widget*) { startChat(); });
-    m_reader->registerCallback("upButton", [=](Widget*) { scrollUp(); });
-    m_reader->registerCallback("downButton", [=](Widget*) { scrollDown(); });
-    m_reader->registerCallback("bottomButton", [=](Widget*) { scrollBottom(); });
+    m_guiReader->registerCallback("textBox", [=](Widget*) { startChat(); });
+    m_guiReader->registerCallback("upButton", [=](Widget*) { scrollUp(); });
+    m_guiReader->registerCallback("downButton", [=](Widget*) { scrollDown(); });
+    m_guiReader->registerCallback("bottomButton", [=](Widget*) { scrollBottom(); });
 
-    m_reader->registerCallback("filterGroup", [=](Widget* widget) {
+    m_guiReader->registerCallback("filterGroup", [=](Widget* widget) {
       Json data = as<ButtonWidget>(widget)->data();
       auto filter = data.getArray("filter", {});
       int filterId = as<ButtonGroup>(widget->parent())->checkedId();

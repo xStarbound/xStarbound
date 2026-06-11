@@ -90,7 +90,7 @@ PanePtr ScriptPane::createTooltip(Vec2I const& screenPosition) {
       return SimpleTooltipBuilder::buildTooltip(result->toString());
     } else {
       PanePtr tooltip = makeObject<Pane>();
-      m_reader->construct(*result, tooltip.get());
+      m_guiReader->construct(*result, tooltip.get());
       return tooltip;
     }
   } else {

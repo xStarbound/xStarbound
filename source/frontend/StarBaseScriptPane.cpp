@@ -32,15 +32,15 @@ BaseScriptPane::BaseScriptPane(Json config, MainInterface* mainInterface, bool c
 
   m_dismissable = m_config.optBool("dismissable").value(true);
   m_interactive = m_config.getBool("interactive", true);
-  m_reader = make_shared<GuiReader>();
+  m_guiReader = makeObject<GuiReader>();
   if (m_dismissable) {
-    m_reader->registerCallback("close", [this](Widget*) {
+    m_guiReader->registerCallback("close", [this](Widget*) {
       dismiss();
     });
   }
 
   for (auto const& callbackName : jsonToStringList(m_config.get("scriptWidgetCallbacks", JsonArray{}))) {
-    m_reader->registerCallback(callbackName, [this, callbackName](Widget* widget) {
+    m_guiReader->registerCallback(callbackName, [this, callbackName](Widget* widget) {
       m_script.invoke(callbackName, widget->name(), widget->data());
     });
   }
@@ -61,7 +61,7 @@ void BaseScriptPane::displayed() {
     m_script.initMessageBinding(this);
     m_script.initScriptBindings(this);
     m_script.addCallbacks("pane", makePaneCallbacks());
-    m_script.addCallbacks("widget", LuaBindings::makeWidgetCallbacks(this, m_reader));
+    m_script.addCallbacks("widget", LuaBindings::makeWidgetCallbacks(this, m_guiReader));
     m_script.addCallbacks("config", LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def) {
       return m_config.query(name, def);
     }));
@@ -135,7 +135,7 @@ PanePtr BaseScriptPane::createTooltip(Vec2I const& screenPosition) {
       return SimpleTooltipBuilder::buildTooltip(result->toString());
     } else {
       PanePtr tooltip = makeObject<Pane>();
-      m_reader->construct(*result, tooltip.get());
+      m_guiReader->construct(*result, tooltip.get());
       return tooltip;
     }
   } else {
@@ -161,7 +161,7 @@ Maybe<String> BaseScriptPane::cursorOverride(Vec2I const& screenPosition) {
 }
 
 GuiReaderPtr BaseScriptPane::reader() {
-  return m_reader;
+  return m_guiReader;
 }
 
 // Patman: Inventory item shift-click callback for scripted panes.
@@ -183,7 +183,7 @@ Maybe<ItemPtr> BaseScriptPane::shiftItemFromInventory(ItemPtr const& input) cons
 
 void BaseScriptPane::construct(Json config) {
   auto assets = Root::singleton().assets();
-  m_reader->construct(assets->fetchJson(config.get("gui")), this);
+  m_guiReader->construct(assets->fetchJson(config.get("gui")), this);
 
   for (auto pair : config.getObject("canvasClickCallbacks", {}))
     m_canvasClickCallbacks.set(findChild<CanvasWidget>(pair.first), pair.second.toString());

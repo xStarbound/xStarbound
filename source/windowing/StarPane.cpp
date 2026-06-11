@@ -454,7 +454,9 @@ Maybe<ItemPtr> Pane::shiftItemFromInventory(ItemPtr const& input) const {
 }
 
 GuiReaderPtr Pane::reader() {
-  return makeObject<GuiReader>();
+  if (!m_guiReader)
+    m_guiReader = makeObject<GuiReader>();
+  return m_guiReader;
 }
 
 void Pane::renderImpl() {
