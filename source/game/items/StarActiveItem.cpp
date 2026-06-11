@@ -52,7 +52,7 @@ ActiveItem::ActiveItem(Json const& config, String const& directory, Json const& 
 ActiveItem::ActiveItem(ActiveItem const& rhs) : ActiveItem(rhs.config(), rhs.directory(), rhs.parameters()) {}
 
 ItemPtr ActiveItem::clone() const {
-  return make_shared<ActiveItem>(*this);
+  return makeObject<ActiveItem>(*this);
 }
 
 void ActiveItem::init(ToolUserEntity* owner, ToolHand hand) {

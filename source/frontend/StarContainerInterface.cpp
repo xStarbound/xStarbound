@@ -160,7 +160,7 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
   if (auto countWidget = fetchChild<LabelWidget>("count"))
     countWidget->setText(countWidget->text().replace("<slots>", toString(container->containerSize())));
 
-  m_itemBag = make_shared<ItemBag>(container->containerSize());
+  m_itemBag = makeObject<ItemBag>(container->containerSize());
   auto items = container->containerItems();
 
   fetchChild<ItemGridWidget>("itemGrid")->setItemBag(m_itemBag);
@@ -172,7 +172,7 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
   if (container->iconItem()) {
     auto itemDatabase = Root::singleton().itemDatabase();
     auto iconItem = itemDatabase->itemShared(container->iconItem());
-    auto icon = make_shared<ItemSlotWidget>(iconItem, "/interface/inventory/portrait.png");
+    auto icon = makeObject<ItemSlotWidget>(iconItem, "/interface/inventory/portrait.png");
     icon->showDurability(false);
     icon->showRarity(false);
     icon->setBackingImageAffinity(true, true);

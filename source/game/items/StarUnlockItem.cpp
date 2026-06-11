@@ -17,7 +17,7 @@ UnlockItem::UnlockItem(Json const& config, String const& directory, Json const& 
 }
 
 ItemPtr UnlockItem::clone() const {
-  return make_shared<UnlockItem>(*this);
+  return makeObject<UnlockItem>(*this);
 }
 
 List<Drawable> UnlockItem::drawables() const {

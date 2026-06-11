@@ -2759,7 +2759,7 @@ SystemWorldServerThreadPtr UniverseServer::createSystemWorld(Vec3I const& locati
         VersionedJson versionedStore = VersionedJson::readFile(storageFile);
         Json store = versioningDatabase->loadVersionedJson(versionedStore, "System");
 
-        systemWorld = make_shared<SystemWorldServer>(store, m_universeClock, m_celestialDatabase);
+        systemWorld = makeObject<SystemWorldServer>(store, m_universeClock, m_celestialDatabase);
         loadedFromStorage = true;
       } catch (std::exception const& e) {
         Logger::error("UniverseServer: Failed to load system {} from disk storage, re-creating. Cause: {}", location, outputException(e, false));
@@ -2770,7 +2770,7 @@ SystemWorldServerThreadPtr UniverseServer::createSystemWorld(Vec3I const& locati
 
     if (!loadedFromStorage) {
       Logger::info("UniverseServer: Creating new system world at location {}", location);
-      systemWorld = make_shared<SystemWorldServer>(location, m_universeClock, m_celestialDatabase);
+      systemWorld = makeObject<SystemWorldServer>(location, m_universeClock, m_celestialDatabase);
     }
 
     auto systemThread = make_shared<SystemWorldServerThread>(location, systemWorld, storageFile);

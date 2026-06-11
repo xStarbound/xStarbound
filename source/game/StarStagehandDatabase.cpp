@@ -29,7 +29,7 @@ StagehandDatabase::StagehandDatabase() {
 
 StagehandPtr StagehandDatabase::createStagehand(String const& stagehandType, Json const& extraConfig) const {
   auto finalConfig = jsonMerge(m_stagehandTypes.get(stagehandType), extraConfig);
-  return make_shared<Stagehand>(finalConfig);
+  return makeObject<Stagehand>(finalConfig);
 }
 
 }

@@ -28,7 +28,7 @@ LargeCharPlateWidget::LargeCharPlateWidget(WidgetCallbackFunc mainCallback, Play
   String switchText = assets->json("/interface.config:largeCharPlate.switchText").toString();
   String createText = assets->json("/interface.config:largeCharPlate.createText").toString();
 
-  m_portrait = make_shared<PortraitWidget>();
+  m_portrait = makeObject<PortraitWidget>();
   m_portrait->setScale(m_portraitScale);
   m_portrait->setPosition(m_portraitOffset);
   addChild("portrait", m_portrait);
@@ -40,12 +40,12 @@ LargeCharPlateWidget::LargeCharPlateWidget(WidgetCallbackFunc mainCallback, Play
   m_modeNameOffset = jsonToVec2I(assets->json("/interface.config:largeCharPlate.modeNameOffset"));
   m_modeOffset = jsonToVec2I(assets->json("/interface.config:largeCharPlate.modeOffset"));
 
-  m_modeName = make_shared<LabelWidget>(m_modeLabelText, Color::White, HorizontalAnchor::HMidAnchor);
+  m_modeName = makeObject<LabelWidget>(m_modeLabelText, Color::White, HorizontalAnchor::HMidAnchor);
   addChild("modeName", m_modeName);
   m_modeName->setPosition(m_modeNameOffset);
   m_modeName->setAnchor(HorizontalAnchor::HMidAnchor, VerticalAnchor::BottomAnchor);
 
-  m_mode = make_shared<LabelWidget>();
+  m_mode = makeObject<LabelWidget>();
   addChild("mode", m_mode);
   m_mode->setPosition(m_modeOffset);
   m_mode->setAnchor(HorizontalAnchor::LeftAnchor, VerticalAnchor::BottomAnchor);
@@ -54,7 +54,7 @@ LargeCharPlateWidget::LargeCharPlateWidget(WidgetCallbackFunc mainCallback, Play
   m_createCharTextColor = Color::rgb(jsonToVec3B(assets->json("/interface.config:largeCharPlate.noPlayerTextColor")));
   m_playerNameOffset = jsonToVec2I(assets->json("/interface.config:largeCharPlate.playerNameOffset"));
 
-  m_playerName = make_shared<LabelWidget>();
+  m_playerName = makeObject<LabelWidget>();
   m_playerName->setColor(m_createCharTextColor);
   m_playerName->setPosition(m_playerNameOffset);
   m_playerName->setAnchor(HorizontalAnchor::HMidAnchor, VerticalAnchor::BottomAnchor);
@@ -130,7 +130,7 @@ void LargeCharPlateWidget::enableDelete(WidgetCallbackFunc const& callback) {
   auto disabledImage = assets->json("/interface.config:largeCharPlate.trashButton.disabledImage").toString();
   auto offset = jsonToVec2I(assets->json("/interface.config:largeCharPlate.trashButton.offset"));
 
-  m_delete = make_shared<ButtonWidget>(callback, baseImage, hoverImage, pressedImage, disabledImage);
+  m_delete = makeObject<ButtonWidget>(callback, baseImage, hoverImage, pressedImage, disabledImage);
   addChild("trashButton", m_delete);
   m_delete->setPosition(offset);
   m_deleteOffset = offset;

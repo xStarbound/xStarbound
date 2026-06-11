@@ -161,19 +161,21 @@ void WorldServer::initLua(UniverseServer* universe) {
   m_universe = universe;
   auto assets = Root::singleton().assets();
   for (auto& p : assets->json("/worldserver.config:scriptContexts").toObject()) {
-    auto scriptComponent = make_shared<ScriptComponent>();
+    auto scriptComponent = makeObject<ScriptComponent>();
     scriptComponent->setScripts(jsonToStringList(p.second.toArray()));
     scriptComponent->addCallbacks("universe", LuaBindings::makeUniverseServerCallbacks(universe));
     scriptComponent->initScriptBindings(scriptComponent.get());
+    scriptComponent->initMessageBinding(scriptComponent.get());
 
     m_scriptContexts.set(p.first, scriptComponent);
     scriptComponent->init(this);
   }
   if (!m_scriptContexts.contains("worldEval")) { // FezzedOne: Added a special script context for `/worldeval`.
-    auto scriptComponent = make_shared<ScriptComponent>();
+    auto scriptComponent = makeObject<ScriptComponent>();
     scriptComponent->setScripts(StringList{});
     scriptComponent->addCallbacks("universe", LuaBindings::makeUniverseServerCallbacks(universe));
     scriptComponent->initScriptBindings(scriptComponent.get());
+    scriptComponent->initMessageBinding(scriptComponent.get());
 
     m_scriptContexts.set("worldEval", scriptComponent);
     scriptComponent->init(this);

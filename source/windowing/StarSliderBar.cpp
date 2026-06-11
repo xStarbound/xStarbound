@@ -7,7 +7,7 @@
 namespace Star {
 
 SliderBarWidget::SliderBarWidget(String const& grid, bool showSpinner)
-  : m_grid(make_shared<ImageWidget>(grid)),
+  : m_grid(makeObject<ImageWidget>(grid)),
     m_low(0),
     m_high(1),
     m_delta(1),
@@ -19,7 +19,7 @@ SliderBarWidget::SliderBarWidget(String const& grid, bool showSpinner)
   auto assets = Root::singleton().assets();
   auto imgMetadata = Root::singleton().imageMetadataDatabase();
 
-  m_jog = make_shared<ButtonWidget>();
+  m_jog = makeObject<ButtonWidget>();
   m_jog->setImages(assets->json("/interface.config:slider.jog").toString());
   m_jog->setPressedOffset({0, 0});
 

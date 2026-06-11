@@ -27,7 +27,7 @@ InstrumentItem::InstrumentItem(Json const& config, String const& directory, Json
 }
 
 ItemPtr InstrumentItem::clone() const {
-  return make_shared<InstrumentItem>(*this);
+  return makeObject<InstrumentItem>(*this);
 }
 
 List<PersistentStatusEffect> InstrumentItem::statusEffects() const {

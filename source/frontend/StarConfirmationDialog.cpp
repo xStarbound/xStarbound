@@ -1,11 +1,11 @@
 #include "StarConfirmationDialog.hpp"
-#include "StarGuiReader.hpp"
-#include "StarRoot.hpp"
-#include "StarLabelWidget.hpp"
-#include "StarButtonWidget.hpp"
-#include "StarImageWidget.hpp"
-#include "StarRandom.hpp"
 #include "StarAssets.hpp"
+#include "StarButtonWidget.hpp"
+#include "StarGuiReader.hpp"
+#include "StarImageWidget.hpp"
+#include "StarLabelWidget.hpp"
+#include "StarRandom.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -13,7 +13,7 @@ ConfirmationDialog::ConfirmationDialog() {}
 
 void ConfirmationDialog::displayConfirmation(Json const& dialogConfig, RpcPromiseKeeper<Json> resultPromise) {
   m_resultPromise = resultPromise;
-  displayConfirmation(dialogConfig, [this] (Widget*) { m_resultPromise->fulfill(true); }, [this] (Widget*) { m_resultPromise->fulfill(false); } );
+  displayConfirmation(dialogConfig, [this](Widget*) { m_resultPromise->fulfill(true); }, [this](Widget*) { m_resultPromise->fulfill(false); });
 }
 
 void ConfirmationDialog::displayConfirmation(Json const& dialogConfig, WidgetCallbackFunc okCallback, WidgetCallbackFunc cancelCallback) {
@@ -44,7 +44,7 @@ void ConfirmationDialog::displayConfirmation(Json const& dialogConfig, WidgetCal
 
   ImageWidgetPtr titleIcon = {};
   if (config.contains("icon"))
-    titleIcon = make_shared<ImageWidget>(config.getString("icon"));
+    titleIcon = makeObject<ImageWidget>(config.getString("icon"));
 
   setTitle(titleIcon, config.getString("title", ""), config.getString("subtitle", ""));
   fetchChild<LabelWidget>("message")->setText(config.getString("message"));
@@ -93,4 +93,4 @@ void ConfirmationDialog::ok() {
   dismiss();
 }
 
-}
+} // namespace Star

@@ -28,7 +28,7 @@ InspectionTool::InspectionTool(Json const& config, String const& directory, Json
 }
 
 ItemPtr InspectionTool::clone() const {
-  return make_shared<InspectionTool>(*this);
+  return makeObject<InspectionTool>(*this);
 }
 
 void InspectionTool::update(float dt, FireMode fireMode, bool, HashSet<MoveControlType> const&) {

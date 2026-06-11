@@ -18,7 +18,7 @@ ThrownItem::ThrownItem(Json const& config, String const& directory, Json const& 
 }
 
 ItemPtr ThrownItem::clone() const {
-  return make_shared<ThrownItem>(*this);
+  return makeObject<ThrownItem>(*this);
 }
 
 List<Drawable> ThrownItem::drawables() const {

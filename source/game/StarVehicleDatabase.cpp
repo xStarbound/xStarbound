@@ -29,7 +29,7 @@ VehiclePtr VehicleDatabase::create(String const& vehicleName, Json const& extraC
   auto configPair = m_vehicles.ptr(vehicleName);
   if (!configPair)
     throw VehicleDatabaseException::format("No such vehicle named '{}'", vehicleName);
-  return make_shared<Vehicle>(configPair->second, configPair->first, extraConfig);
+  return makeObject<Vehicle>(configPair->second, configPair->first, extraConfig);
 }
 
 ByteArray VehicleDatabase::netStore(VehiclePtr const& vehicle) const {

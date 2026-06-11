@@ -1,31 +1,31 @@
 #include "StarCraftingInterface.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarGuiReader.hpp"
-#include "StarLexicalCast.hpp"
-#include "StarRoot.hpp"
-#include "StarItemTooltip.hpp"
-#include "StarPlayer.hpp"
-#include "StarContainerEntity.hpp"
-#include "StarWorldClient.hpp"
-#include "StarPlayerBlueprints.hpp"
-#include "StarButtonWidget.hpp"
-#include "StarPaneManager.hpp"
-#include "StarInteractiveEntity.hpp"
-#include "StarPortraitWidget.hpp"
-#include "StarLabelWidget.hpp"
-#include "StarTextBoxWidget.hpp"
-#include "StarImageWidget.hpp"
-#include "StarListWidget.hpp"
-#include "StarImageStretchWidget.hpp"
-#include "StarItemSlotWidget.hpp"
-#include "StarConfiguration.hpp"
-#include "StarObjectItem.hpp"
 #include "StarAssets.hpp"
+#include "StarButtonWidget.hpp"
+#include "StarConfiguration.hpp"
+#include "StarContainerEntity.hpp"
+#include "StarGuiReader.hpp"
+#include "StarImageStretchWidget.hpp"
+#include "StarImageWidget.hpp"
+#include "StarInteractiveEntity.hpp"
 #include "StarItemDatabase.hpp"
+#include "StarItemSlotWidget.hpp"
+#include "StarItemTooltip.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLabelWidget.hpp"
+#include "StarLexicalCast.hpp"
+#include "StarListWidget.hpp"
+#include "StarMixer.hpp"
 #include "StarObjectDatabase.hpp"
+#include "StarObjectItem.hpp"
+#include "StarPaneManager.hpp"
+#include "StarPlayer.hpp"
+#include "StarPlayerBlueprints.hpp"
 #include "StarPlayerInventory.hpp"
 #include "StarPlayerLog.hpp"
-#include "StarMixer.hpp"
+#include "StarPortraitWidget.hpp"
+#include "StarRoot.hpp"
+#include "StarTextBoxWidget.hpp"
+#include "StarWorldClient.hpp"
 
 namespace Star {
 
@@ -42,29 +42,29 @@ CraftingPane::CraftingPane(WorldClientPtr worldClient, PlayerPtr player, Json co
   // FezzedOne: If the `settings` are somehow `null`, use the by-hand crafting config
   // and log a warning instead of throwing an exception and crashing to the menu.
   auto baseConfig = settings.type() == Json::Type::Object
-                  ? settings.get("config", "/interface/windowconfig/crafting.config")
-                  : "/interface/windowconfig/crafting.config";
-  m_settings = jsonMerge(assets->json("/interface/windowconfig/crafting.config:default"), 
-               jsonMerge(assets->fetchJson(baseConfig), settings));
+                        ? settings.get("config", "/interface/windowconfig/crafting.config")
+                        : "/interface/windowconfig/crafting.config";
+  m_settings = jsonMerge(assets->json("/interface/windowconfig/crafting.config:default"),
+      jsonMerge(assets->fetchJson(baseConfig), settings));
 
   m_filter = StringSet::from(jsonToStringList(m_settings.get("filter", JsonArray())));
 
   GuiReader reader;
   reader.registerCallback("spinCount.up", [=](Widget*) {
-      if (m_count < maxCraft())
-        m_count++;
-      else
-        m_count = 1;
-      countChanged();
-    });
+    if (m_count < maxCraft())
+      m_count++;
+    else
+      m_count = 1;
+    countChanged();
+  });
 
   reader.registerCallback("spinCount.down", [=](Widget*) {
-      if (m_count > 1)
-        m_count--;
-      else
-        m_count = std::max(maxCraft(), 1);
-      countChanged();
-    });
+    if (m_count > 1)
+      m_count--;
+    else
+      m_count = std::max(maxCraft(), 1);
+    countChanged();
+  });
 
   reader.registerCallback("tbSpinCount", [=](Widget*) { countTextChanged(); });
 
@@ -74,9 +74,9 @@ CraftingPane::CraftingPane(WorldClientPtr worldClient, PlayerPtr player, Json co
   reader.registerCallback("btnStopCraft", [=](Widget*) { toggleCraft(); });
 
   reader.registerCallback("btnFilterHaveMaterials", [=](Widget*) {
-      Root::singleton().configuration()->setPath("crafting.filterHaveMaterials", m_filterHaveMaterials->isChecked());
-      updateAvailableRecipes();
-    });
+    Root::singleton().configuration()->setPath("crafting.filterHaveMaterials", m_filterHaveMaterials->isChecked());
+    updateAvailableRecipes();
+  });
 
   reader.registerCallback("filter", [=](Widget*) { updateAvailableRecipes(); });
 
@@ -136,7 +136,7 @@ CraftingPane::CraftingPane(WorldClientPtr worldClient, PlayerPtr player, Json co
       if (container->iconItem()) {
         auto itemDatabase = Root::singleton().itemDatabase();
         auto iconItem = itemDatabase->itemShared(container->iconItem());
-        auto icon = make_shared<ItemSlotWidget>(iconItem, "/interface/inventory/portrait.png");
+        auto icon = makeObject<ItemSlotWidget>(iconItem, "/interface/inventory/portrait.png");
         String title = this->title();
         if (title.empty())
           title = container->containerDescription();
@@ -148,7 +148,7 @@ CraftingPane::CraftingPane(WorldClientPtr worldClient, PlayerPtr player, Json co
       }
     }
     if (auto portaitEntity = as<PortraitEntity>(entity)) {
-      auto portrait = make_shared<PortraitWidget>(portaitEntity, PortraitMode::Bust);
+      auto portrait = makeObject<PortraitWidget>(portaitEntity, PortraitMode::Bust);
       portrait->setIconMode();
       String title = this->title();
       if (title.empty())
@@ -474,17 +474,17 @@ PanePtr CraftingPane::setupTooltip(ItemRecipe const& recipe) {
   auto itemDb = root.itemDatabase();
 
   auto addIngredient = [guiList](ItemPtr const& item, size_t availableCount, size_t requiredCount) {
-      auto widget = guiList->addItem();
-      widget->fetchChild<LabelWidget>("itemName")->setText(item->friendlyName());
-      auto countWidget = widget->fetchChild<LabelWidget>("count");
-      countWidget->setText(strf("{}/{}", availableCount, requiredCount));
-      if (availableCount < requiredCount)
-        countWidget->setColor(Color::Red);
-      else
-        countWidget->setColor(Color::Green);
-      widget->fetchChild<ItemSlotWidget>("itemIcon")->setItem(item);
-      widget->show();
-    };
+    auto widget = guiList->addItem();
+    widget->fetchChild<LabelWidget>("itemName")->setText(item->friendlyName());
+    auto countWidget = widget->fetchChild<LabelWidget>("count");
+    countWidget->setText(strf("{}/{}", availableCount, requiredCount));
+    if (availableCount < requiredCount)
+      countWidget->setColor(Color::Red);
+    else
+      countWidget->setColor(Color::Green);
+    widget->fetchChild<ItemSlotWidget>("itemIcon")->setItem(item);
+    widget->show();
+  };
 
   auto currenciesConfig = root.assets()->json("/currencies.config");
   for (auto const& p : recipe.currencyInputs) {
@@ -671,12 +671,12 @@ List<ItemRecipe> CraftingPane::determineRecipes() {
       itemList = StringList::from(m_player->log()->scannedObjects());
 
     filter(itemList, [objectDatabase, itemDb](String const& itemName) {
-        if (objectDatabase->isObject(itemName)) {
-          if (auto objectConfig = objectDatabase->getConfig(itemName))
-            return objectConfig->printable && itemDb->hasItem(itemName);
-        }
-        return false;
-      });
+      if (objectDatabase->isObject(itemName)) {
+        if (auto objectConfig = objectDatabase->getConfig(itemName))
+          return objectConfig->printable && itemDb->hasItem(itemName);
+      }
+      return false;
+    });
 
     float printTime = m_settings.getFloat("printTime", 0);
     float printFactor = m_settings.getFloat("printCostFactor", 1.0);
@@ -756,8 +756,8 @@ List<ItemRecipe> CraftingPane::determineRecipes() {
   List<ItemRecipe> sortedRecipes = recipes.values();
   auto itemDatabase = Root::singleton().itemDatabase();
   sortByComputedValue(sortedRecipes, [itemDatabase](ItemRecipe const& recipe) {
-      return make_tuple(itemDatabase->itemFriendlyName(recipe.output.name()).trim().toLower(), recipe.output.name());
-    });
+    return make_tuple(itemDatabase->itemFriendlyName(recipe.output.name()).trim().toLower(), recipe.output.name());
+  });
 
   return sortedRecipes;
 }
@@ -784,4 +784,4 @@ ItemRecipe CraftingPane::recipeFromSelectedWidget() const {
   return ItemRecipe();
 }
 
-}
+} // namespace Star

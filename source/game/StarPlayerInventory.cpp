@@ -61,7 +61,7 @@ PlayerInventory::PlayerInventory(Player* player) : m_player(player) {
   });
   for (auto name : bagOrder) {
     size_t size = bags.get(name).getUInt("size");
-    m_bags[name] = make_shared<ItemBag>(size);
+    m_bags[name] = makeObject<ItemBag>(size);
   }
   auto networkedBags = config.get("networkedItemBags");
   auto networkedBagOrder = networkedBags.toObject().keys().sorted([&networkedBags](String const& a, String const& b) {
@@ -931,7 +931,7 @@ void PlayerInventory::load(Json const& store) {
       if (bag)
         *bag = std::move(newBag);
       else
-        bag = make_shared<ItemBag>(std::move(newBag));
+        bag = makeObject<ItemBag>(std::move(newBag));
       m_inventoryLoadOverflow.appendAll(bag.get()->resize(bags.get(bagType).getUInt("size")));
     } else { // If the bag *doesn't* exist in the config, take all items from it as overflow.
       m_inventoryLoadOverflow.appendAll(ItemBag(newBag).items());
@@ -945,7 +945,7 @@ void PlayerInventory::load(Json const& store) {
   for (auto name : bags.keys()) {
     size_t size = bags.get(name).getUInt("size");
     if (!m_bags.keys().contains(name)) {
-      m_bags[name] = make_shared<ItemBag>(size);
+      m_bags[name] = makeObject<ItemBag>(size);
       // m_bagsNetState[name].resize(size);
     }
   }

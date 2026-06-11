@@ -22,7 +22,7 @@ LiquidItem::LiquidItem(Json const& config, String const& directory, Json const& 
 }
 
 ItemPtr LiquidItem::clone() const {
-  return make_shared<LiquidItem>(*this);
+  return makeObject<LiquidItem>(*this);
 }
 
 void LiquidItem::init(ToolUserEntity* owner, ToolHand hand) {

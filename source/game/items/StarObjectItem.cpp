@@ -22,7 +22,7 @@ ObjectItem::ObjectItem(Json const& config, String const& directory, Json const& 
 }
 
 ItemPtr ObjectItem::clone() const {
-  return make_shared<ObjectItem>(*this);
+  return makeObject<ObjectItem>(*this);
 }
 
 void ObjectItem::init(ToolUserEntity* owner, ToolHand hand) {

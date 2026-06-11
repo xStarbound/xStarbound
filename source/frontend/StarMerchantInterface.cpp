@@ -36,7 +36,7 @@ MerchantPane::MerchantPane(
   m_buyFactor = m_settings.getFloat("buyFactor", assets->json("/merchant.config:defaultBuyFactor").toFloat());
   m_sellFactor = m_settings.getFloat("sellFactor", assets->json("/merchant.config:defaultSellFactor").toFloat());
 
-  m_itemBag = make_shared<ItemBag>(m_settings.getUInt("sellContainerSize"));
+  m_itemBag = makeObject<ItemBag>(m_settings.getUInt("sellContainerSize"));
 
   GuiReader reader;
   reader.registerCallback("spinCount.up", [=](Widget*) {

@@ -1,67 +1,67 @@
 #include "StarOptionsMenu.hpp"
-#include "StarRoot.hpp"
-#include "StarGuiReader.hpp"
-#include "StarLexicalCast.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarSliderBar.hpp"
-#include "StarLabelWidget.hpp"
 #include "StarAssets.hpp"
-#include "StarKeybindingsMenu.hpp"
-#include "StarVoiceSettingsMenu.hpp"
 #include "StarBindingsMenu.hpp"
 #include "StarGraphicsMenu.hpp"
+#include "StarGuiReader.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarKeybindingsMenu.hpp"
+#include "StarLabelWidget.hpp"
+#include "StarLexicalCast.hpp"
+#include "StarRoot.hpp"
+#include "StarSliderBar.hpp"
+#include "StarVoiceSettingsMenu.hpp"
 
 namespace Star {
 
 OptionsMenu::OptionsMenu(PaneManager* manager)
-  : m_sfxRange(0, 100), m_musicRange(0, 100), m_instrumentRange(0, 100), m_paneManager(manager) {
+    : m_sfxRange(0, 100), m_musicRange(0, 100), m_instrumentRange(0, 100), m_paneManager(manager) {
   auto root = Root::singletonPtr();
   auto assets = root->assets();
 
   GuiReader reader;
 
   reader.registerCallback("sfxSlider", [=](Widget*) {
-      updateSFXVol();
-    });
+    updateSFXVol();
+  });
   reader.registerCallback("musicSlider", [=](Widget*) {
-      updateMusicVol();
-    });
+    updateMusicVol();
+  });
   reader.registerCallback("instrumentSlider", [=](Widget*) {
-      updateInstrumentVol();
-    });
+    updateInstrumentVol();
+  });
   reader.registerCallback("acceptButton", [=](Widget*) {
-      for (auto k : ConfigKeys)
-        root->configuration()->set(k, m_localChanges.get(k));
+    for (auto k : ConfigKeys)
+      root->configuration()->set(k, m_localChanges.get(k));
 
-      dismiss();
-    });
+    dismiss();
+  });
   reader.registerCallback("tutorialMessagesCheckbox", [=](Widget*) {
-      updateTutorialMessages();
-    });
+    updateTutorialMessages();
+  });
   reader.registerCallback("clientIPJoinableCheckbox", [=](Widget*) {
-      updateClientIPJoinable();
-    });
+    updateClientIPJoinable();
+  });
   reader.registerCallback("clientP2PJoinableCheckbox", [=](Widget*) {
-      updateClientP2PJoinable();
-    });
+    updateClientP2PJoinable();
+  });
   reader.registerCallback("allowAssetsMismatchCheckbox", [=](Widget*) {
-      updateAllowAssetsMismatch();
-    });
+    updateAllowAssetsMismatch();
+  });
   reader.registerCallback("backButton", [=](Widget*) {
-      dismiss();
-    });
+    dismiss();
+  });
   reader.registerCallback("showKeybindings", [=](Widget*) {
-      displayControls();
-    });
+    displayControls();
+  });
   reader.registerCallback("showVoiceSettings", [=](Widget*) {
-      displayVoiceSettings();
-    });
+    displayVoiceSettings();
+  });
   reader.registerCallback("showModBindings", [=](Widget*) {
-      displayModBindings();
-    });
+    displayModBindings();
+  });
   reader.registerCallback("showGraphics", [=](Widget*) {
-      displayGraphics();
-    });
+    displayGraphics();
+  });
 
   Json config = assets->json("/interface/optionsmenu/optionsmenu.config");
 
@@ -85,12 +85,12 @@ OptionsMenu::OptionsMenu(PaneManager* manager)
   m_instrumentSlider->setRange(m_instrumentRange, assets->json("/interface/optionsmenu/optionsmenu.config:instrumentDelta").toInt());
 
   const String xSbVoiceChatPath = "/interface/xsb/voicechat/voicechat.config";
-  m_voiceSettingsMenu = make_shared<VoiceSettingsMenu>(assets->json(config.getString("voiceSettingsPanePath", xSbVoiceChatPath)));
+  m_voiceSettingsMenu = makeObject<VoiceSettingsMenu>(assets->json(config.getString("voiceSettingsPanePath", xSbVoiceChatPath)));
   const String xSbBindingsPath = "/interface/xsb/bindings/bindings.config";
-  m_modBindingsMenu = make_shared<BindingsMenu>(assets->json(config.getString("bindingsPanePath", xSbBindingsPath)));
+  m_modBindingsMenu = makeObject<BindingsMenu>(assets->json(config.getString("bindingsPanePath", xSbBindingsPath)));
 
-  m_keybindingsMenu = make_shared<KeybindingsMenu>();
-  m_graphicsMenu = make_shared<GraphicsMenu>();
+  m_keybindingsMenu = makeObject<KeybindingsMenu>();
+  m_graphicsMenu = makeObject<GraphicsMenu>();
 
   initConfig();
 }
@@ -109,14 +109,13 @@ void OptionsMenu::toggleFullscreen() {
 }
 
 StringList const OptionsMenu::ConfigKeys = {
-  "sfxVol",
-  "musicVol",
-  "instrumentVol",
-  "tutorialMessages",
-  "clientIPJoinable",
-  "clientP2PJoinable",
-  "allowAssetsMismatch"
-};
+    "sfxVol",
+    "musicVol",
+    "instrumentVol",
+    "tutorialMessages",
+    "clientIPJoinable",
+    "clientP2PJoinable",
+    "allowAssetsMismatch"};
 
 void OptionsMenu::initConfig() {
   auto configuration = Root::singleton().configuration();
@@ -209,4 +208,4 @@ void OptionsMenu::displayGraphics() {
   m_paneManager->displayPane(PaneLayer::ModalWindow, m_graphicsMenu);
 }
 
-}
+} // namespace Star

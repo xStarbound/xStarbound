@@ -181,7 +181,7 @@ SystemObjectPtr SystemWorldClient::netLoadObject(ByteArray netStore) {
   Vec2F position = ds.read<Vec2F>();
 
   JsonObject parameters = ds.read<JsonObject>();
-  return make_shared<SystemObject>(objectConfig, uuid, position, parameters);
+  return makeObject<SystemObject>(objectConfig, uuid, position, parameters);
 }
 
 SystemClientShipPtr SystemWorldClient::netLoadShip(ByteArray netStore)

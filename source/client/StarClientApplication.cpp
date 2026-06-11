@@ -284,7 +284,7 @@ void ClientApplication::renderInit(RendererPtr renderer) {
   m_guiContext->renderInit(renderer);
 
   m_cinematicOverlay = make_shared<Cinematic>();
-  m_errorScreen = make_shared<ErrorScreen>();
+  m_errorScreen = makeObject<ErrorScreen>();
 
   if (m_titleScreen)
     m_titleScreen->renderInit(renderer);
@@ -599,7 +599,7 @@ void ClientApplication::changeState(MainAppState newState) {
     m_universeClient->setLuaCallbacks("input", LuaBindings::makeInputCallbacks());
     m_universeClient->setLuaCallbacks("voice", LuaBindings::makeVoiceCallbacks());
 
-    // auto heldScriptPanes = make_shared<List<MainInterface::ScriptPaneInfo>>();
+    // auto heldScriptPanes = makeObject<List<MainInterface::ScriptPaneInfo>>();
 
     m_universeClient->playerReloadPreCallback() = [&](bool resetInterface) {
       if (!resetInterface)

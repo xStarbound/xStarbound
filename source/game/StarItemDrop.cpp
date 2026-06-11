@@ -1,14 +1,14 @@
 #include "StarItemDrop.hpp"
-#include "StarRandom.hpp"
 #include "StarAssets.hpp"
-#include "StarRoot.hpp"
+#include "StarDataStreamExtra.hpp"
+#include "StarEntityRendering.hpp"
 #include "StarItemDatabase.hpp"
 #include "StarJsonExtra.hpp"
-#include "StarEntityRendering.hpp"
-#include "StarWorld.hpp"
-#include "StarDataStreamExtra.hpp"
-#include "StarPlayer.hpp"
 #include "StarMaterialItem.hpp"
+#include "StarPlayer.hpp"
+#include "StarRandom.hpp"
+#include "StarRoot.hpp"
+#include "StarWorld.hpp"
 
 namespace Star {
 
@@ -18,7 +18,7 @@ ItemDropPtr ItemDrop::createRandomizedDrop(ItemPtr const& item, Vec2F const& pos
 
   auto idconfig = Root::singleton().assets()->json("/itemdrop.config");
 
-  ItemDropPtr itemDrop = make_shared<ItemDrop>(item);
+  ItemDropPtr itemDrop = makeObject<ItemDrop>(item);
   auto offset = Vec2F(idconfig.getFloat("randomizedDistance"), 0).rotate(Constants::pi * 2.0 * Random::randf());
   offset[1] = fabs(offset[1]);
   itemDrop->setPosition(position + offset / TilePixels);
@@ -45,7 +45,7 @@ ItemDropPtr ItemDrop::throwDrop(ItemPtr const& item, Vec2F const& position, Vec2
 
   auto idconfig = Root::singleton().assets()->json("/itemdrop.config");
 
-  ItemDropPtr itemDrop = make_shared<ItemDrop>(item);
+  ItemDropPtr itemDrop = makeObject<ItemDrop>(item);
   itemDrop->setPosition(position);
   if (direction != Vec2F())
     itemDrop->setVelocity(velocity + vnorm(direction) * idconfig.getFloat("throwSpeed"));
@@ -68,7 +68,7 @@ ItemDropPtr ItemDrop::throwDrop(ItemDescriptor const& itemDescriptor, Vec2F cons
 }
 
 ItemDrop::ItemDrop(ItemPtr item)
-  : ItemDrop() {
+    : ItemDrop() {
   m_item = std::move(item);
 
   updateCollisionPoly();
@@ -79,7 +79,7 @@ ItemDrop::ItemDrop(ItemPtr item)
 }
 
 ItemDrop::ItemDrop(Json const& diskStore)
-  : ItemDrop() {
+    : ItemDrop() {
   Root::singleton().itemDatabase()->diskLoad(diskStore.get("item"), m_item);
   m_movementController.setPosition(jsonToVec2F(diskStore.get("position")));
   m_mode.set(ModeNames.getLeft(diskStore.getString("mode")));
@@ -93,7 +93,7 @@ ItemDrop::ItemDrop(Json const& diskStore)
 }
 
 ItemDrop::ItemDrop(ByteArray store)
-  : ItemDrop() {
+    : ItemDrop() {
   DataStreamBuffer ds(std::move(store));
 
   Root::singleton().itemDatabase()->loadItem(ds.read<ItemDescriptor>(), m_item);
@@ -107,13 +107,12 @@ ItemDrop::ItemDrop(ByteArray store)
 Json ItemDrop::diskStore() const {
   auto itemDatabase = Root::singleton().itemDatabase();
   return JsonObject{
-    {"item", itemDatabase->diskStore(m_item)},
-    {"position", jsonFromVec2F(m_movementController.position())},
-    {"mode", ModeNames.getRight(m_mode.get())},
-    {"eternal", m_eternal},
-    {"dropAge", m_dropAge.toJson()},
-    {"ageItemsTimer", m_ageItemsTimer.toJson()}
-  };
+      {"item", itemDatabase->diskStore(m_item)},
+      {"position", jsonFromVec2F(m_movementController.position())},
+      {"mode", ModeNames.getRight(m_mode.get())},
+      {"eternal", m_eternal},
+      {"dropAge", m_dropAge.toJson()},
+      {"ageItemsTimer", m_ageItemsTimer.toJson()}};
 }
 
 ByteArray ItemDrop::netStore() const {
@@ -190,25 +189,23 @@ void ItemDrop::update(float dt, uint64_t) {
       // Rarely, check for other drops near us and combine with them if possible.
       if (canTake() && m_mode.get() == Mode::Available && Random::randf() < m_combineChance) {
         world()->findEntity(RectF::withCenter(position(), Vec2F::filled(m_combineRadius)), [&](EntityPtr const& entity) {
-            if (auto closeDrop = as<ItemDrop>(entity)) {
-              // Make sure not to try to merge with ourselves here.
-              if (closeDrop.get() != this && closeDrop->canTake()
-                  && vmag(position() - closeDrop->position()) < m_combineRadius) {
-                if (m_item->couldStack(closeDrop->item()) == closeDrop->item()->count()) {
-                  m_item->stackWith(closeDrop->take());
-                  m_dropAge.setElapsedTime(min(m_dropAge.elapsedTime(), closeDrop->m_dropAge.elapsedTime()));
+          if (auto closeDrop = as<ItemDrop>(entity)) {
+            // Make sure not to try to merge with ourselves here.
+            if (closeDrop.get() != this && closeDrop->canTake() && vmag(position() - closeDrop->position()) < m_combineRadius) {
+              if (m_item->couldStack(closeDrop->item()) == closeDrop->item()->count()) {
+                m_item->stackWith(closeDrop->take());
+                m_dropAge.setElapsedTime(min(m_dropAge.elapsedTime(), closeDrop->m_dropAge.elapsedTime()));
 
-                  // Average the position and velocity of the drop we merged
-                  // with
-                  m_movementController.setPosition(m_movementController.position()
-                      + world()->geometry().diff(closeDrop->position(), m_movementController.position()) / 2.0f);
-                  m_movementController.setVelocity((m_movementController.velocity() + closeDrop->velocity()) / 2.0f);
-                  return true;
-                }
+                // Average the position and velocity of the drop we merged
+                // with
+                m_movementController.setPosition(m_movementController.position() + world()->geometry().diff(closeDrop->position(), m_movementController.position()) / 2.0f);
+                m_movementController.setVelocity((m_movementController.velocity() + closeDrop->velocity()) / 2.0f);
+                return true;
               }
             }
-            return false;
-          });
+          }
+          return false;
+        });
       }
 
       MovementParameters parameters;
@@ -249,16 +246,15 @@ void ItemDrop::update(float dt, uint64_t) {
         updateTaken(false);
         m_movementController.tickMaster(dt);
       }
-    }
-    else {
+    } else {
       m_movementController.tickSlave(dt);
     }
   }
 
   if (world()->isClient()) {
     SpatialLogger::logPoly("world",
-      m_movementController.collisionBody(),
-      (canTake() ? Color::Green : Color::Red).toRgba());
+        m_movementController.collisionBody(),
+        (canTake() ? Color::Green : Color::Red).toRgba());
   }
 }
 
@@ -299,8 +295,7 @@ void ItemDrop::render(RenderCallback* renderCallback) {
     if (auto mat = as<MaterialItem>(m_item.get())) {
       m_drawables = mat->generatedPreview(Vec2I(position().floor()));
       m_overForeground = true;
-    }
-    else
+    } else
       m_drawables = m_item->dropDrawables();
 
     if (Directives dropDirectives = m_config.getString("directives", "")) {
@@ -417,7 +412,7 @@ ItemDrop::ItemDrop() {
 }
 
 void ItemDrop::updateCollisionPoly() {
-  RectF fallback = RectF{ -0.499, -0.499, 0.499, 0.499 };
+  RectF fallback = RectF{-0.499, -0.499, 0.499, 0.499};
   if (auto mat = as<MaterialItem>(m_item.get()))
     m_boundBox = fallback;
   else {
@@ -464,4 +459,4 @@ void ItemDrop::updateTaken(bool master) {
   m_movementController.applyParameters(parameters);
 }
 
-}
+} // namespace Star

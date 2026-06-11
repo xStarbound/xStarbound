@@ -1,15 +1,15 @@
 #include "StarEntityFactory.hpp"
-#include "StarPlayer.hpp"
-#include "StarPlayerFactory.hpp"
+#include "StarItemDrop.hpp"
 #include "StarMonster.hpp"
+#include "StarNpc.hpp"
 #include "StarObject.hpp"
 #include "StarObjectDatabase.hpp"
 #include "StarPlant.hpp"
 #include "StarPlantDrop.hpp"
+#include "StarPlayer.hpp"
+#include "StarPlayerFactory.hpp"
 #include "StarProjectile.hpp"
 #include "StarProjectileDatabase.hpp"
-#include "StarItemDrop.hpp"
-#include "StarNpc.hpp"
 #include "StarRoot.hpp"
 #include "StarStagehand.hpp"
 #include "StarVehicleDatabase.hpp"
@@ -17,17 +17,16 @@
 namespace Star {
 
 EnumMap<EntityType> const EntityFactory::EntityStorageIdentifiers{
-  {EntityType::Player, "PlayerEntity"},
-  {EntityType::Monster, "MonsterEntity"},
-  {EntityType::Object, "ObjectEntity"},
-  {EntityType::ItemDrop, "ItemDropEntity"},
-  {EntityType::Projectile, "ProjectileEntity"},
-  {EntityType::Plant, "PlantEntity"},
-  {EntityType::PlantDrop, "PlantDropEntity"},
-  {EntityType::Npc, "NpcEntity"},
-  {EntityType::Stagehand, "StagehandEntity"},
-  {EntityType::Vehicle, "VehicleEntity"}
-};
+    {EntityType::Player, "PlayerEntity"},
+    {EntityType::Monster, "MonsterEntity"},
+    {EntityType::Object, "ObjectEntity"},
+    {EntityType::ItemDrop, "ItemDropEntity"},
+    {EntityType::Projectile, "ProjectileEntity"},
+    {EntityType::Plant, "PlantEntity"},
+    {EntityType::PlantDrop, "PlantDropEntity"},
+    {EntityType::Npc, "NpcEntity"},
+    {EntityType::Stagehand, "StagehandEntity"},
+    {EntityType::Vehicle, "VehicleEntity"}};
 
 EntityFactory::EntityFactory() {
   auto& root = Root::singleton();
@@ -78,17 +77,17 @@ EntityPtr EntityFactory::netLoadEntity(EntityType type, ByteArray const& netStor
   } else if (type == EntityType::Object) {
     return m_objectDatabase->netLoadObject(netStore);
   } else if (type == EntityType::Plant) {
-    return make_shared<Plant>(netStore);
+    return makeObject<Plant>(netStore);
   } else if (type == EntityType::PlantDrop) {
-    return make_shared<PlantDrop>(netStore);
+    return makeObject<PlantDrop>(netStore);
   } else if (type == EntityType::Projectile) {
     return m_projectileDatabase->netLoadProjectile(netStore);
   } else if (type == EntityType::ItemDrop) {
-    return make_shared<ItemDrop>(netStore);
+    return makeObject<ItemDrop>(netStore);
   } else if (type == EntityType::Npc) {
     return m_npcDatabase->netLoadNpc(netStore);
   } else if (type == EntityType::Stagehand) {
-    return make_shared<Stagehand>(netStore);
+    return makeObject<Stagehand>(netStore);
   } else if (type == EntityType::Vehicle) {
     return m_vehicleDatabase->netLoad(netStore);
   } else {
@@ -130,13 +129,13 @@ EntityPtr EntityFactory::diskLoadEntity(EntityType type, Json const& diskStore) 
   } else if (type == EntityType::Object) {
     return m_objectDatabase->diskLoadObject(diskStore);
   } else if (type == EntityType::Plant) {
-    return make_shared<Plant>(diskStore);
+    return makeObject<Plant>(diskStore);
   } else if (type == EntityType::ItemDrop) {
-    return make_shared<ItemDrop>(diskStore);
+    return makeObject<ItemDrop>(diskStore);
   } else if (type == EntityType::Npc) {
     return m_npcDatabase->diskLoadNpc(diskStore);
   } else if (type == EntityType::Stagehand) {
-    return make_shared<Stagehand>(diskStore);
+    return makeObject<Stagehand>(diskStore);
   } else if (type == EntityType::Vehicle) {
     return m_vehicleDatabase->diskLoad(diskStore);
   } else {
@@ -170,4 +169,4 @@ VersionedJson EntityFactory::storeVersionedEntity(EntityPtr const& entityPtr) co
   return storeVersionedJson(entityPtr->entityType(), diskStoreEntity(entityPtr));
 }
 
-}
+} // namespace Star

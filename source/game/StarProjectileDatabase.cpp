@@ -41,7 +41,7 @@ Json ProjectileDatabase::projectileConfig(String const& type) const {
 ProjectilePtr ProjectileDatabase::createProjectile(String const& type, Json const& parameters) const {
   if (!m_configs.contains(type))
     throw ProjectileDatabaseException(strf("Unknown projectile with typeName {}.", type));
-  return make_shared<Projectile>(m_configs.get(type), parameters);
+  return makeObject<Projectile>(m_configs.get(type), parameters);
 }
 
 String ProjectileDatabase::damageKindImage(String const& type) const {
@@ -61,7 +61,7 @@ float ProjectileDatabase::gravityMultiplier(String const& type) const {
 ProjectilePtr ProjectileDatabase::netLoadProjectile(ByteArray const& netStore) const {
   DataStreamBuffer ds(netStore);
   String typeName = ds.read<String>();
-  return make_shared<Projectile>(m_configs.get(typeName), ds);
+  return makeObject<Projectile>(m_configs.get(typeName), ds);
 }
 
 ProjectileConfigPtr ProjectileDatabase::readConfig(String const& path) {
@@ -69,7 +69,7 @@ ProjectileConfigPtr ProjectileDatabase::readConfig(String const& path) {
 
   Json config = assets->json(path);
 
-  auto projectileConfig = make_shared<ProjectileConfig>();
+  auto projectileConfig = makeObject<ProjectileConfig>();
   projectileConfig->config = config;
   projectileConfig->typeName = config.getString("projectileName");
   projectileConfig->directory = AssetPath::directory(path);

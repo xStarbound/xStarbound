@@ -516,7 +516,7 @@ LuaCallbacks LuaBindings::makeWidgetCallbacks(Widget* parentWidgetPtr, GuiReader
   callbacks.registerCallback("addFlowImage", [parentWidget](String const& widgetName, String const& childName, String const& image) {
     if (parentWidget) {
       if (auto flow = parentWidget->fetchChild<FlowLayout>(widgetName)) {
-        WidgetPtr newChild = make_shared<ImageWidget>(image);
+        WidgetPtr newChild = makeObject<ImageWidget>(image);
         flow->addChild(childName, newChild);
       }
     }

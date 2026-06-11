@@ -1,22 +1,22 @@
 #include "StarItemTooltip.hpp"
+#include "StarAssets.hpp"
+#include "StarFireableItem.hpp"
 #include "StarGuiReader.hpp"
-#include "StarPane.hpp"
-#include "StarListWidget.hpp"
-#include "StarLabelWidget.hpp"
-#include "StarRoot.hpp"
-#include "StarStoredFunctions.hpp"
-#include "StarObjectItem.hpp"
 #include "StarImageWidget.hpp"
 #include "StarItemSlotWidget.hpp"
-#include "StarPreviewableItem.hpp"
-#include "StarFireableItem.hpp"
-#include "StarStatusEffectItem.hpp"
-#include "StarObject.hpp"
-#include "StarLogging.hpp"
-#include "StarAssets.hpp"
-#include "StarObjectDatabase.hpp"
-#include "StarStatusEffectDatabase.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarLabelWidget.hpp"
+#include "StarListWidget.hpp"
+#include "StarLogging.hpp"
+#include "StarObject.hpp"
+#include "StarObjectDatabase.hpp"
+#include "StarObjectItem.hpp"
+#include "StarPane.hpp"
+#include "StarPreviewableItem.hpp"
+#include "StarRoot.hpp"
+#include "StarStatusEffectDatabase.hpp"
+#include "StarStatusEffectItem.hpp"
+#include "StarStoredFunctions.hpp"
 
 namespace Star {
 
@@ -39,7 +39,7 @@ PanePtr ItemTooltipBuilder::buildItemTooltip(ItemPtr const& item, PlayerPtr cons
 
     buildItemDescriptionInner(tooltip, item, tooltipKind, title, subTitle, viewer);
 
-    auto titleIcon = make_shared<ItemSlotWidget>(item, "/interface/inventory/portrait.png");
+    auto titleIcon = makeObject<ItemSlotWidget>(item, "/interface/inventory/portrait.png");
     titleIcon->setBackingImageAffinity(true, true);
     titleIcon->showRarity(false);
     tooltip->setTitle(titleIcon, title, subTitle);
@@ -226,4 +226,4 @@ void ItemTooltipBuilder::describePersistentEffect(
   }
 }
 
-}
+} // namespace Star

@@ -43,9 +43,9 @@ GuiContext::~GuiContext() {
 void GuiContext::renderInit(RendererPtr renderer) {
   m_renderer = std::move(renderer);
   auto textureGroup = m_renderer->createTextureGroup();
-  m_textureCollection = make_shared<AssetTextureGroup>(textureGroup);
-  m_drawablePainter = make_shared<DrawablePainter>(m_renderer, m_textureCollection);
-  m_textPainter = make_shared<TextPainter>(m_renderer, textureGroup);
+  m_textureCollection = makeObject<AssetTextureGroup>(textureGroup);
+  m_drawablePainter = makeObject<DrawablePainter>(m_renderer, m_textureCollection);
+  m_textPainter = makeObject<TextPainter>(m_renderer, textureGroup);
 }
 
 MixerPtr const& GuiContext::mixer() const {
@@ -436,7 +436,7 @@ void GuiContext::playAudio(AudioInstancePtr audioInstance) {
 void GuiContext::playAudio(String const& audioAsset, int loops, float volume, float pitch) {
   auto assets = Root::singleton().assets();
   auto config = Root::singleton().configuration();
-  auto audioInstance = make_shared<AudioInstance>(*assets->audio(audioAsset));
+  auto audioInstance = makeObject<AudioInstance>(*assets->audio(audioAsset));
   audioInstance->setVolume(volume);
   audioInstance->setPitchMultiplier(pitch);
   audioInstance->setLoops(loops);

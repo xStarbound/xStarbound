@@ -211,15 +211,15 @@ MonsterPtr MonsterDatabase::createMonster(
     monsterVariant.parameters = jsonMerge(monsterVariant.parameters, monsterVariant.uniqueParameters);
     readCommonParameters(monsterVariant);
   }
-  return make_shared<Monster>(monsterVariant, level);
+  return makeObject<Monster>(monsterVariant, level);
 }
 
 MonsterPtr MonsterDatabase::diskLoadMonster(Json const& diskStore) const {
-  return make_shared<Monster>(diskStore);
+  return makeObject<Monster>(diskStore);
 }
 
 MonsterPtr MonsterDatabase::netLoadMonster(ByteArray const& netStore) const {
-  return make_shared<Monster>(readMonsterVariant(netStore));
+  return makeObject<Monster>(readMonsterVariant(netStore));
 }
 
 List<Drawable> MonsterDatabase::monsterPortrait(MonsterVariant const& variant) const {

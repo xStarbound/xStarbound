@@ -375,7 +375,7 @@ LuaCallbacks Pane::makePaneCallbacks() {
         thisPane.checkSmuggle();
         auto assets = Root::singleton().assets();
         auto config = Root::singleton().configuration();
-        auto audioInstance = make_shared<AudioInstance>(*assets->audio(audio));
+        auto audioInstance = makeObject<AudioInstance>(*assets->audio(audio));
         audioInstance->setVolume(volume.value(1.0));
         audioInstance->setLoops(loops.value(0));
         auto& guiContext = GuiContext::singleton();
@@ -454,7 +454,7 @@ Maybe<ItemPtr> Pane::shiftItemFromInventory(ItemPtr const& input) const {
 }
 
 GuiReaderPtr Pane::reader() {
-  return make_shared<GuiReader>();
+  return makeObject<GuiReader>();
 }
 
 void Pane::renderImpl() {

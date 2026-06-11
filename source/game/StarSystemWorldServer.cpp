@@ -25,7 +25,7 @@ SystemWorldServer::SystemWorldServer(Json const& diskStore, ClockConstPtr univer
   m_location = jsonToVec3I(diskStore.get("location"));
 
   for (auto objectStore : diskStore.getArray("objects")) {
-    auto object = make_shared<SystemObject>(this, objectStore);
+    auto object = makeObject<SystemObject>(this, objectStore);
     m_objects.set(object->uuid(), object);
   }
 
@@ -291,7 +291,7 @@ void SystemWorldServer::handleIncomingPacket(ConnectionId, PacketPtr packet) {
   if (auto objectSpawn = as<SystemObjectSpawnPacket>(packet)) {
     RandomSource rand = RandomSource();
     Vec2F position = objectSpawn->position.value(randomObjectSpawnPosition(rand));
-    auto object = make_shared<SystemObject>(systemObjectConfig(objectSpawn->typeName, objectSpawn->uuid), objectSpawn->uuid, position, time(), objectSpawn->parameters);
+    auto object = makeObject<SystemObject>(systemObjectConfig(objectSpawn->typeName, objectSpawn->uuid), objectSpawn->uuid, position, time(), objectSpawn->parameters);
     addObject(object, objectSpawn->position.isValid());
   }
 }
@@ -333,7 +333,7 @@ void SystemWorldServer::placeInitialObjects() {
       auto objectConfig = systemObjectConfig(objectPool.select(rand), uuid);
       Vec2F position = randomObjectSpawnPosition(rand);
 
-      auto object = make_shared<SystemObject>(objectConfig, uuid, position, time());
+      auto object = makeObject<SystemObject>(objectConfig, uuid, position, time());
       object->enterOrbit(CelestialCoordinate(m_location), {0.0, 0.0}, time()); // orbit center of system
       m_objects.set(uuid, object);
     }
@@ -367,14 +367,14 @@ void SystemWorldServer::spawnObjects() {
 
         Vec2F targetPosition = planetPosition(target);
         Vec2F relativeOrbit = (position - targetPosition).normalized() * (clusterSize(target) / 2.0 + objectConfig.orbitDistance);
-        object = make_shared<SystemObject>(objectConfig, uuid, targetPosition + relativeOrbit, m_lastSpawn);
+        object = makeObject<SystemObject>(objectConfig, uuid, targetPosition + relativeOrbit, m_lastSpawn);
 
         object->enterOrbit(target, planetPosition(target), m_lastSpawn);
       } else {
-        object = make_shared<SystemObject>(objectConfig, uuid, position, m_lastSpawn);
+        object = makeObject<SystemObject>(objectConfig, uuid, position, m_lastSpawn);
       }
     } else {
-      object = make_shared<SystemObject>(objectConfig, uuid, position, m_lastSpawn);
+      object = makeObject<SystemObject>(objectConfig, uuid, position, m_lastSpawn);
     }
     addObject(object);
   }
