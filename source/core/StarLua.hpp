@@ -65,9 +65,9 @@ public:
     // m_uniqueId = uniqueId;
   }
 
-  SmugglePtr() : SmugglePtr(std::weak_ptr<ObjectType>(), 0) {}
+  SmugglePtr() : SmugglePtr(std::weak_ptr<ObjectType>()) {}
 
-  SmugglePtr(std::nullptr_t) : SmugglePtr(std::weak_ptr<ObjectType>(), 0) {}
+  SmugglePtr(std::nullptr_t) : SmugglePtr(std::weak_ptr<ObjectType>()) {}
 
   SmugglePtr(SmugglePtr const& r) : SmugglePtr(r.m_ptr /*, r.m_uniqueId */) {}
 
