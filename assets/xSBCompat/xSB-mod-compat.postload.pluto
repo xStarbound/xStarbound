@@ -17,6 +17,8 @@ local modName
 local ownedByMod = |assetPath, modName| -> type(modName) == "string" and assets.sourceMetadata(assets.origin(assetPath) or "xSBCompat")?.name == modName
 local modAssetsByExtension = |owningMod, extension| -> (table.filter(assets.byExtension(extension), |v| -> ownedByMod(v, owningMod)) |> table.reorder)
 
+local legacySmuggling = assets.getConfiguration("legacySmuggling") == true
+
 if xSBCompatVersion then
     sb.logInfo($"[xSBCompat] Loaded xSBCompat v{xSBCompatVersion} - post-load stage.")
 else
@@ -44,7 +46,7 @@ assets.patch("/interface/cockpit/cockpit.config", "/interface/cockpit/cockpit.co
 -- This patch is not needed when `"legacySmuggling"` is enabled, as that disables xStarbound's
 -- JSON coercion for values sent via `world.callScriptedEntity`.
 
-if true then goto skipFUPatch end -- Placeholder for `"legacySmuggling"` check.
+if legacySmuggling then goto skipFUPatch end
 if not "FrackinUniverse" in loadedMods then goto skipFUPatch end
 modName = "Sayter's Frackin' Universe"
 
@@ -231,7 +233,7 @@ if not "pat_infinv" in loadedMods then goto skipInfiniterInventoryPatch end
 modName = "Patman's Infiniter Inventory"
 
 xpcall(|| -> do
-    if not true then-- Placeholder for `"legacySmuggling"` check.
+    if not legacySmuggling then
         local infiniterInventoryPlayerScriptPath = "/pat/infinv/binds/player.lua"
         local infiniterInventoryPlayerScript = assets.bytes(infiniterInventoryPlayerScriptPath)
         local infiniterInventoryPlayerScriptPatch = [==[
@@ -402,7 +404,7 @@ end)
 
 --- Compatibility patch for Patman's Save Inventory Position ---
 
-if true then goto skipInventoryResetPatch end -- Placeholder for `"legacySmuggling"` check.
+if legacySmuggling then goto skipInventoryResetPatch end
 if not "pat_saveInventoryPosition" in loadedMods then goto skipInventoryResetPatch end
 modName = "Patman's Save Inventory Position"
 
@@ -651,7 +653,7 @@ end)
 -- This patch ensures the mod works as if on a vanilla client, but doesn't enable anything locked behind OpenStarbound checks.
 -- Not needed when `"legacySmuggling"` is enabled.
 
-if true then goto skipBetaboundPatch end -- Placeholder for `"legacySmuggling"` check.
+if legacySmuggling then goto skipBetaboundPatch end
 if not "XRC_BETA_STARBOUND" in loadedMods then goto skipBetaboundPatch end
 modName = "Silver Sokolova's Betabound"
 
@@ -710,7 +712,7 @@ end)
 --  enable the additional FDR features for Arcana's Grand Cross Zȧnä without
 --  disabling `"legacySmuggling"`.
 
-if true then goto skipFDEPatch end -- Placeholder for `"legacySmuggling"` check.
+if legacySmuggling then goto skipFDEPatch end
 if not "Futara's Dragon Engine" in loadedMods then goto skipFDEPatch end
 modName = "Futara's Dragon Engine"
 
@@ -768,7 +770,7 @@ end, |e| -> do
 end)
 ::skipFDEPatch::
 
-if true then goto skipFDRPatch end -- Placeholder for `"legacySmuggling"` check.
+if legacySmuggling then goto skipFDRPatch end
 if not "Futara's Dragon Race" in loadedMods then goto skipFDRPatch end
 modName = "Futara's Dragon Race"
 
@@ -872,7 +874,7 @@ end, |e| -> do
 end)
 ::skipFDRPatch::
 
-if true then goto skipFutaraZanaPatch end -- Placeholder for `"legacySmuggling"` check.
+if legacySmuggling then goto skipFutaraZanaPatch end
 if not ("Futara's Dragon Race" in loadedMods and "Arcana" in loadedMods) then goto skipFutaraZanaPatch end
 modName = "Futara's Dragon Race and Sva's Arcana"
 
