@@ -319,7 +319,8 @@ public:
       }
     } else {
       lock.unlock();
-      Logger::warn("[xSB] GameObjectRegistry: Could not find object of type {} in the global registry (resolved key: {}) while setting up related Lua bindings.", typeid(ObjectType).name(), key);
+      if (key != nullptr)
+        Logger::warn("[xSB] GameObjectRegistry: Could not find object of type {} in the global registry (resolved key: {}) while setting up related Lua bindings.", typeid(ObjectType).name(), key);
       return SmugglePtr<ObjectType>(std::shared_ptr<ObjectType>());
     }
   }
