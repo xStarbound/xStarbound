@@ -390,9 +390,14 @@ void resetObject(std::shared_ptr<ObjectType>& objectToReset, std::shared_ptr<Obj
 template <typename ObjectType, typename Func>
 auto luaBind(Func&& functionToWrap, SmugglePtr<ObjectType> const& pointerToCheck) {
   return [func = std::forward<Func>(functionToWrap), ptr = pointerToCheck](auto&&... args) -> decltype(auto) {
-    if (std::shared_ptr<ObjectType> rawPtr = ptr.m_ptr.lock())
-      return std::invoke(func, rawPtr.get(), std::forward<decltype(args)>(args)...);
-    throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
+    if (std::weak_ptr<ObjectType> weakPtr = ptr.m_ptr.template get<std::weak_ptr<ObjectType>>()) {
+      if (std::shared_ptr<ObjectType> rawPtr = weakPtr->lock())
+        return std::invoke(func, rawPtr.get(), std::forward<decltype(args)>(args)...);
+      throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
+    } else {
+      auto rawPtr = *(ptr.m_ptr.template get<ObjectType*>());
+      return std::invoke(func, rawPtr, std::forward<decltype(args)>(args)...);
+    }
   };
 }
 
@@ -405,9 +410,13 @@ auto luaBind(Func&& functionToWrap, SmugglePtr<ObjectType> const& pointerToCheck
 template <typename ObjectType, typename Func, typename PtrType>
 auto luaBindProxy(SmugglePtr<ObjectType> lifetimePtr, Func&& functionToWrap, PtrType* passedPointer) {
   return [func = std::forward<Func>(functionToWrap), ptr = lifetimePtr, passedPtr = passedPointer](auto&&... args) -> decltype(auto) {
-    if (std::shared_ptr<ObjectType> rawPtr = ptr.m_ptr.lock())
+    if (std::weak_ptr<ObjectType> weakPtr = ptr.m_ptr.template get<std::weak_ptr<ObjectType>>()) {
+      if (std::shared_ptr<ObjectType> rawPtr = weakPtr->lock())
+        return std::invoke(func, passedPtr, std::forward<decltype(args)>(args)...);
+      throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
+    } else {
       return std::invoke(func, passedPtr, std::forward<decltype(args)>(args)...);
-    throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
+    }
   };
 }
 
