@@ -71,6 +71,19 @@ int main(int argc, char** argv) {
         Logger::info("[Init] Configured tickrate is {:4.2f}hz", updateRate);
       }
 
+      { /* FezzedOne: Check the smuggling setting *once* at startup after asset preprocessing. */
+        auto jLegacySmuggling = Root::singleton().configuration()->get("legacySmuggling");
+        LuaSmugglingSetting legacySmuggling = LuaSmugglingSetting::Disabled;
+        if (jLegacySmuggling.isType(Json::Type::Bool))
+          legacySmuggling = jLegacySmuggling.toBool() ? LuaSmugglingSetting::Enabled : LuaSmugglingSetting::Disabled;
+        auto unchecked = LuaSmugglingSetting::Unchecked;
+        GameObjectRegistry::setSmugglingSetting(legacySmuggling);
+        if (legacySmuggling == LuaSmugglingSetting::Enabled)
+          Logger::info("[xSB] Lua context isolation disabled. Running in \"Lua smuggling\" compatibility mode.");
+        else
+          Logger::info("[xSB] Lua context isolation enabled.");
+      }
+
       UniverseServerUPtr server = make_unique<UniverseServer>(root->toStoragePath("universe"));
       server->setListeningTcp(true);
       server->start();

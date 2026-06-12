@@ -210,7 +210,7 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
 
     // FezzedOne: I'll never know why the gods-damned world client couldn't access the universe client to begin with.
     m_worldClient = makeObject<WorldClient>(m_mainPlayer, this);
-    bool legacySmuggling = true; // root.configuration()->get("legacySmuggling").toBool();
+    bool legacySmuggling = GameObjectRegistry::smugglingEnabled();
     for (auto& pair : m_luaCallbacks) {
       if (pair.first != "interface" || legacySmuggling)
         m_worldClient->setLuaCallbacks(pair.first, pair.second);

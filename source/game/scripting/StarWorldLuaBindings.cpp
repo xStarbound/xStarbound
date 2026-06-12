@@ -85,8 +85,7 @@ namespace LuaBindings {
       });
     }
 
-    // bool legacySmuggling = config->get("legacySmuggling").toBool();
-    bool legacySmuggling = true;
+    bool legacySmuggling = GameObjectRegistry::smugglingEnabled();
 
     Maybe<String> callScript = options.get<Maybe<String>>("callScript");
     List<LuaValue> callScriptArgs = {};
@@ -1514,8 +1513,7 @@ namespace LuaBindings {
       Logger::warn("callScriptContext: Context '{}' does not exist", contextName);
       return {};
     }
-    // if (!Root::singleton().configuration()->get("legacySmuggling").toBool()) {
-    if (!true) {
+    if (!GameObjectRegistry::smugglingEnabled()) {
       auto jsonArgs = LuaVariadic<Json>{};
       for (auto& arg : args) {
         jsonArgs.emplaceAppend(engine.luaTo<Json>(arg));
@@ -2094,8 +2092,7 @@ namespace LuaBindings {
       // Logger::warn("callScriptedEntity: Entity {} does not exist or is not a local master scripted entity", entityId);
       return {};
     }
-    // if (!Root::singleton().configuration()->get("legacySmuggling").toBool()) {
-    if (!true) {
+    if (!GameObjectRegistry::smugglingEnabled()) {
       auto jsonArgs = LuaVariadic<Json>{};
       for (auto& arg : args) {
         jsonArgs.emplaceAppend(engine.luaTo<Json>(arg));

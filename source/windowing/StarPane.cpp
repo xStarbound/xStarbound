@@ -409,7 +409,7 @@ LuaCallbacks Pane::makePaneCallbacks() {
   callbacks.registerCallback("getSize", [thisPane]() -> Vec2I { return thisPane->size(); });
   callbacks.registerCallback("setSize", [thisPane](Vec2I const& size) { thisPane->setSize(size); });
 
-  if (true) { // Placeholder for config check for `"legacySmuggling"`.
+  if (GameObjectRegistry::smugglingEnabled()) {
     callbacks.registerCallback("addWidget", [this, thisPane, thisReader](Json const& newWidgetConfig, Maybe<String> const& newWidgetName) -> Maybe<LuaCallbacks> {
       thisPane.checkSmuggle();
       thisReader.checkSmuggle();

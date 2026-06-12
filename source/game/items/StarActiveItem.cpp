@@ -567,8 +567,7 @@ LuaCallbacks ActiveItem::makeActiveItemCallbacks() {
     thisActiveItem.checkSmuggle();
     if (auto otherHandItem = owner()->handItem(hand() == ToolHand::Primary ? ToolHand::Alt : ToolHand::Primary)) {
       if (auto otherActiveItem = as<ActiveItem>(otherHandItem)) {
-        // if (!Root::singleton().configuration()->get("legacySmuggling").toBool()) {
-        if (!true) {
+        if (!GameObjectRegistry::smugglingEnabled()) {
           auto jsonArgs = LuaVariadic<Json>{};
           for (auto& arg : args) {
             jsonArgs.emplaceAppend(engine.luaTo<Json>(arg));

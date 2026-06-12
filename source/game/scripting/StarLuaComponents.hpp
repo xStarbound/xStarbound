@@ -368,7 +368,7 @@ void LuaWorldComponent<Base>::init(World* world) {
     uninit();
 
   auto config = Root::singleton().configuration();
-  if (true /* Placeholder for `"legacySmuggling"` check */)
+  if (GameObjectRegistry::smugglingEnabled())
     Base::setLuaRoot(world->luaRoot());
   else
     Base::setLuaRoot(make_shared<LuaRoot>());
@@ -377,7 +377,7 @@ void LuaWorldComponent<Base>::init(World* world) {
 
   // FezzedOne: The base callbacks are all client-side. Make sure they're only added client-side.
   // Also make sure to get the appropriate garbage collection settings.
-  if (!true /* Placeholder for `"legacySmuggling"` check */) {
+  if (!GameObjectRegistry::smugglingEnabled()) {
     if (Base::checkIfClient(world)) {
       for (auto const& p : m_baseCallbacks)
         Base::addCallbacks(p.first, p.second);
