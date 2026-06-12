@@ -109,38 +109,38 @@ public:
   }
 
   operator bool() const {
-    if (auto ptr = m_ptr.template get<ObjectType*>())
+    if (auto ptr = m_ptr.template ptr<ObjectType*>())
       return (bool)*ptr;
-    return (bool)m_ptr.template get<std::weak_ptr<ObjectType>>()->lock();
+    return (bool)m_ptr.template ptr<std::weak_ptr<ObjectType>>()->lock();
   }
 
   ObjectType& operator*() const {
-    if (auto ptr = m_ptr.template get<ObjectType*>())
+    if (auto ptr = m_ptr.template ptr<ObjectType*>())
       return **ptr;
-    if (auto lockedPtr = m_ptr.template get<std::weak_ptr<ObjectType>>()->lock())
+    if (auto lockedPtr = m_ptr.template ptr<std::weak_ptr<ObjectType>>()->lock())
       return *(lockedPtr.get());
     throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
   }
 
   ObjectType* operator->() const {
-    if (auto ptr = m_ptr.template get<ObjectType*>())
+    if (auto ptr = m_ptr.template ptr<ObjectType*>())
       return *ptr;
-    if (auto lockedPtr = m_ptr.template get<std::weak_ptr<ObjectType>>()->lock())
+    if (auto lockedPtr = m_ptr.template ptr<std::weak_ptr<ObjectType>>()->lock())
       return lockedPtr.get();
     throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
   }
 
   ObjectType* get() const {
-    if (auto ptr = m_ptr.template get<ObjectType*>())
+    if (auto ptr = m_ptr.template ptr<ObjectType*>())
       return *ptr;
-    if (auto lockedPtr = m_ptr.template get<std::weak_ptr<ObjectType>>()->lock())
+    if (auto lockedPtr = m_ptr.template ptr<std::weak_ptr<ObjectType>>()->lock())
       return lockedPtr.get();
     throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
   }
 
   void checkSmuggle() const {
     if (m_ptr.template is<ObjectType*>()) return;
-    if (m_ptr.template get<std::weak_ptr<ObjectType>>()->expired())
+    if (m_ptr.template ptr<std::weak_ptr<ObjectType>>()->expired())
       throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
   }
 };
@@ -148,25 +148,25 @@ public:
 // FezzedOne: Needed for dynamic casting of `SmugglePtr`'s.
 template <typename Type1, typename Type2>
 SmugglePtr<Type1> as(SmugglePtr<Type2> const& p) {
-  if (auto weakPtr = p.m_ptr.template get<std::weak_ptr<Type2>>()) {
+  if (auto weakPtr = p.m_ptr.template ptr<std::weak_ptr<Type2>>()) {
     if (auto lockedPtr = weakPtr->lock())
       return SmugglePtr(dynamic_pointer_cast<Type1>(lockedPtr));
     else
       return SmugglePtr<Type1>();
   } else {
-    return dynamic_cast<Type1>(*(p.m_ptr.template get<Type2*>()));
+    return dynamic_cast<Type1>(*(p.m_ptr.template ptr<Type2*>()));
   }
 }
 
 template <typename Type1, typename Type2>
 SmugglePtr<Type1 const> as(SmugglePtr<Type2 const> const& p) {
-  if (auto weakPtr = p.m_ptr.template get<std::weak_ptr<Type2 const>>()) {
+  if (auto weakPtr = p.m_ptr.template ptr<std::weak_ptr<Type2 const>>()) {
     if (auto lockedPtr = weakPtr->lock())
       return SmugglePtr(dynamic_pointer_cast<Type1 const>(lockedPtr));
     else
       return SmugglePtr<Type1 const>();
   } else {
-    return dynamic_cast<Type1 const>(*(p.m_ptr.template get<Type2 const*>()));
+    return dynamic_cast<Type1 const>(*(p.m_ptr.template ptr<Type2 const*>()));
   }
 }
 
@@ -331,14 +331,14 @@ public:
   // When smuggling is disabled, pointer checking is disabled for performance because Lua context VM isolation prevents dangled pointers.
   template <typename ObjectType>
   static ObjectType* smuggleCheck(SmugglePtr<ObjectType> smuggledPtr) {
-    if (auto weakPtr = smuggledPtr.m_ptr.template get<std::weak_ptr<ObjectType>>()) {
+    if (auto weakPtr = smuggledPtr.m_ptr.template ptr<std::weak_ptr<ObjectType>>()) {
       if (auto rawPtr = weakPtr->lock()) {
         return rawPtr.get();
       } else {
         return nullptr;
       }
     } else {
-      return *(smuggledPtr.m_ptr.template get<ObjectType*>());
+      return *(smuggledPtr.m_ptr.template ptr<ObjectType*>());
     }
   }
 
@@ -390,12 +390,12 @@ void resetObject(std::shared_ptr<ObjectType>& objectToReset, std::shared_ptr<Obj
 template <typename ObjectType, typename Func>
 auto luaBind(Func&& functionToWrap, SmugglePtr<ObjectType> const& pointerToCheck) {
   return [func = std::forward<Func>(functionToWrap), ptr = pointerToCheck](auto&&... args) -> decltype(auto) {
-    if (std::weak_ptr<ObjectType>* weakPtr = ptr.m_ptr.template get<std::weak_ptr<ObjectType>>()) {
+    if (std::weak_ptr<ObjectType>* weakPtr = ptr.m_ptr.template ptr<std::weak_ptr<ObjectType>>()) {
       if (std::shared_ptr<ObjectType> rawPtr = weakPtr->lock())
         return std::invoke(func, rawPtr.get(), std::forward<decltype(args)>(args)...);
       throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
     } else {
-      ObjectType* rawPtr = *(ptr.m_ptr.template get<ObjectType*>());
+      ObjectType* rawPtr = *(ptr.m_ptr.template ptr<ObjectType*>());
       return std::invoke(func, rawPtr, std::forward<decltype(args)>(args)...);
     }
   };
@@ -410,7 +410,7 @@ auto luaBind(Func&& functionToWrap, SmugglePtr<ObjectType> const& pointerToCheck
 template <typename ObjectType, typename Func, typename PtrType>
 auto luaBindProxy(SmugglePtr<ObjectType> lifetimePtr, Func&& functionToWrap, PtrType* passedPointer) {
   return [func = std::forward<Func>(functionToWrap), ptr = lifetimePtr, passedPtr = passedPointer](auto&&... args) -> decltype(auto) {
-    if (std::weak_ptr<ObjectType>* weakPtr = ptr.m_ptr.template get<std::weak_ptr<ObjectType>>()) {
+    if (std::weak_ptr<ObjectType>* weakPtr = ptr.m_ptr.template ptr<std::weak_ptr<ObjectType>>()) {
       if (std::shared_ptr<ObjectType> rawPtr = weakPtr->lock())
         return std::invoke(func, passedPtr, std::forward<decltype(args)>(args)...);
       throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
