@@ -84,7 +84,7 @@ VersioningDatabase::VersioningDatabase() {
   auto assets = Root::singleton().assets();
   auto versioningConfig = assets->json("/versioning.config");
   // m_luaRoot.tuneAutoGarbageCollection(versioningConfig.optFloat("luaGcPause").value(1.2f),
-  //     versioningConfig.optFloat("luaGcStepMultiplier").value(1.2f));
+  //   versioningConfig.optFloat("luaGcStepMultiplier").value(1.2f));
 
   for (auto const& pair : versioningConfig.iterateObject()) {
     if (pair.first != "luaGcPause" && pair.first != "luaGcStepMultiplier")

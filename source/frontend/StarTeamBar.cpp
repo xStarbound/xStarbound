@@ -1,20 +1,20 @@
 #include "StarTeamBar.hpp"
-#include "StarMainInterface.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarRoot.hpp"
-#include "StarUniverseClient.hpp"
-#include "StarGuiReader.hpp"
-#include "StarButtonWidget.hpp"
-#include "StarTeamClient.hpp"
-#include "StarImageWidget.hpp"
-#include "StarProgressWidget.hpp"
-#include "StarTextBoxWidget.hpp"
-#include "StarLabelWidget.hpp"
-#include "StarPlayer.hpp"
 #include "StarAssets.hpp"
-#include "StarWorldClient.hpp"
-#include "StarPortraitWidget.hpp"
+#include "StarButtonWidget.hpp"
+#include "StarGuiReader.hpp"
+#include "StarImageWidget.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLabelWidget.hpp"
+#include "StarMainInterface.hpp"
 #include "StarMathCommon.hpp"
+#include "StarPlayer.hpp"
+#include "StarPortraitWidget.hpp"
+#include "StarProgressWidget.hpp"
+#include "StarRoot.hpp"
+#include "StarTeamClient.hpp"
+#include "StarTextBoxWidget.hpp"
+#include "StarUniverseClient.hpp"
+#include "StarWorldClient.hpp"
 
 namespace Star {
 
@@ -25,9 +25,9 @@ TeamBar::TeamBar(MainInterface* mainInterface, UniverseClientPtr client) {
   m_guiContext = GuiContext::singletonPtr();
   auto assets = Root::singleton().assets();
 
-  m_teamInvite = make_shared<TeamInvite>(this);
-  m_teamInvitation = make_shared<TeamInvitation>(this);
-  m_teamMemberMenu = make_shared<TeamMemberMenu>(this);
+  m_teamInvite = makeObject<TeamInvite>(this);
+  m_teamInvitation = makeObject<TeamInvitation>(this);
+  m_teamMemberMenu = makeObject<TeamMemberMenu>(this);
 
   m_nameFontSize = assets->json("/interface.config:font.nameSize").toInt();
   m_nameOffset = jsonToVec2F(assets->json("/interface.config:nameOffset"));
@@ -36,12 +36,12 @@ TeamBar::TeamBar(MainInterface* mainInterface, UniverseClientPtr client) {
 
   reader.registerCallback("inviteButton", [this](Widget*) { inviteButton(); });
   reader.registerCallback("showSelfMenu", [this](Widget*) {
-      if (!m_client->teamClient()->isMemberOfTeam())
-        return;
-      auto position = jsonToVec2I(Root::singleton().assets()->json("/interface/windowconfig/teambar.config:selfMenuOffset"));
-      position[1] += (int)(((float)windowHeight()) / m_guiContext->interfaceScale());
-      showMemberMenu(m_client->mainPlayer()->clientContext()->playerUuid(), position);
-    });
+    if (!m_client->teamClient()->isMemberOfTeam())
+      return;
+    auto position = jsonToVec2I(Root::singleton().assets()->json("/interface/windowconfig/teambar.config:selfMenuOffset"));
+    position[1] += (int)(((float)windowHeight()) / m_guiContext->interfaceScale());
+    showMemberMenu(m_client->mainPlayer()->clientContext()->playerUuid(), position);
+  });
 
   reader.construct(assets->json("/interface/windowconfig/teambar.config:paneLayout"), this);
 
@@ -64,8 +64,7 @@ TeamBar::TeamBar(MainInterface* mainInterface, UniverseClientPtr client) {
 }
 
 bool TeamBar::sendEvent(InputEvent const& event) {
-  if (event.is<MouseButtonDownEvent>()
-      && (event.get<MouseButtonDownEvent>().mouseButton == MouseButton::Left || event.get<MouseButtonDownEvent>().mouseButton == MouseButton::Right)) {
+  if (event.is<MouseButtonDownEvent>() && (event.get<MouseButtonDownEvent>().mouseButton == MouseButton::Left || event.get<MouseButtonDownEvent>().mouseButton == MouseButton::Right)) {
     if (m_teamMemberMenu->isDisplayed() && !m_teamMemberMenu->inMember(*context()->mousePosition(event)))
       m_teamMemberMenu->dismiss();
   }
@@ -176,14 +175,14 @@ void TeamBar::buildTeamBar() {
 
     if (!cell) {
       GuiReader reader;
-      cell = make_shared<Widget>();
+      cell = makeObject<Widget>();
       cell->disableScissoring();
       cell->markAsContainer();
 
       reader.registerCallback("showMemberMenu", [this](Widget* widget) {
-          auto position = widget->screenPosition() + jsonToVec2I(Root::singleton().assets()->json("/interface/windowconfig/teambar.config:memberMenuOffset"));
-          showMemberMenu(Uuid(widget->parent()->data().toString()), position);
-        });
+        auto position = widget->screenPosition() + jsonToVec2I(Root::singleton().assets()->json("/interface/windowconfig/teambar.config:memberMenuOffset"));
+        showMemberMenu(Uuid(widget->parent()->data().toString()), position);
+      });
 
       reader.construct(assets->json("/interface/windowconfig/teambar.config:entry"), cell.get());
 
@@ -241,8 +240,7 @@ void TeamBar::buildTeamBar() {
   inviteButton->setPosition(inviteOffset - Vec2I{0, inviteButton->size()[1]});
   noInviteImage->setPosition(inviteOffset - Vec2I{0, noInviteImage->size()[1]});
 
-  bool couldInvite = (!teamClient->currentTeam() || teamClient->isTeamLeader())
-      && m_client->teamClient()->members().size() < Root::singleton().configuration()->get("maxTeamSize").toUInt();
+  bool couldInvite = (!teamClient->currentTeam() || teamClient->isTeamLeader()) && m_client->teamClient()->members().size() < Root::singleton().configuration()->get("maxTeamSize").toUInt();
   inviteButton->setVisibility(couldInvite);
   inviteButton->setEnabled(!m_teamInvitation->active());
   noInviteImage->setVisibility(!couldInvite);
@@ -407,4 +405,4 @@ void TeamMemberMenu::removeFromTeam() {
   dismiss();
 }
 
-}
+} // namespace Star

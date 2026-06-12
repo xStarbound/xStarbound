@@ -210,13 +210,13 @@ Sets an instance value (parameter) of the item.
 
 #### `Json` activeItem.callOtherHandScript(`String` functionName, [`Json...` args])
 
-#### `LuaValue` activeItem.callOtherHandScript(`String` functionName, [`LuaValue...` args])
+#### [Legacy / Non-xStarbound] `LuaValue` activeItem.callOtherHandScript(`String` functionName, [`LuaValue...` args])
 
 Attempts to call the specified function name with the specified argument values in the context of an active item held in the opposing hand and synchronously returns the result if successful.
 
 On xStarbound, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
 
-> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such clients and servers, you should avoid passing Lua bindings or anything that can call them. Calling active item bindings after the active item has been removed from the game _will_ almost certainly cause segfaults or memory corruption!
+> **Warning:** When `"legacySmuggling"` is enabled on xStarbound v4.5+, any Lua binding references shared through this callback's `args` parameter or return value will throw a Lua reference error upon invocation if they're overleased; check your log for this error. **On non-xStarbound servers and clients, invoking an overleased binding will cause a crash to desktop or memory corruption!** On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game on a non-xStarbound client or server _will_ almost certainly cause segfaults or memory corruption!
 
 ---
 

@@ -2,9 +2,9 @@
 #include "StarConfigLuaBindings.hpp"
 #include "StarEntityLuaBindings.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarPlayer.hpp"
 #include "StarPlayerLuaBindings.hpp"
-#include "StarNetworkedAnimatorLuaBindings.hpp"
 #include "StarStatusControllerLuaBindings.hpp"
 
 namespace Star {
@@ -81,19 +81,27 @@ List<CompanionPtr> PlayerCompanions::getCompanions(String const& category) const
 void PlayerCompanions::init(Entity* player, World* world) {
   m_world = world;
 
+  auto thisPlayerCompanions = GameObjectRegistry::smuggleWrap(this);
+
   m_scriptComponent.setScripts(jsonToStringList(m_config.getArray("scripts", JsonArray())));
   m_scriptComponent.setUpdateDelta(m_config.getInt("scriptDelta", 10));
 
+  m_scriptComponent.initMessageBinding(this);
+  m_scriptComponent.initScriptBindings(this);
+
   m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(player));
   m_scriptComponent.addCallbacks("player", LuaBindings::makePlayerCallbacks(as<Player>(player)));
-  m_scriptComponent.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(as<Player>(player)->effectsAnimator().get()));
+  m_scriptComponent.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(as<Player>(player)->effectsAnimator().get(), as<Player>(player)->effectsAnimator().get()));
   m_scriptComponent.addCallbacks(
       "status", LuaBindings::makeStatusControllerCallbacks(as<Player>(player)->statusController()));
   m_scriptComponent.addCallbacks("playerCompanions", makeCompanionsCallbacks());
 
   m_scriptComponent.addCallbacks("config",
-      LuaBindings::makeConfigCallbacks([this](
-          String const& name, Json const& def) { return m_config.query(name, def); }));
+      LuaBindings::makeConfigCallbacks([this, thisPlayerCompanions](
+                                           String const& name, Json const& def) {
+        thisPlayerCompanions.checkSmuggle();
+        return m_config.query(name, def);
+      }));
 
   m_scriptComponent.init(world);
 }
@@ -124,16 +132,20 @@ void PlayerCompanions::update(float dt) {
 LuaCallbacks PlayerCompanions::makeCompanionsCallbacks() {
   LuaCallbacks callbacks;
 
+  auto thisPlayerCompanions = GameObjectRegistry::smuggleWrap(this);
+
   callbacks.registerCallback("getCompanions",
-      [this](String const& category) {
+      [this, thisPlayerCompanions](String const& category) {
+        thisPlayerCompanions.checkSmuggle();
         return m_companions[category].transformed([](CompanionPtr const& companion) { return companion->toJson(); });
       });
   callbacks.registerCallback("setCompanions",
-      [this](String const& category, JsonArray const& companions) {
+      [this, thisPlayerCompanions](String const& category, JsonArray const& companions) {
+        thisPlayerCompanions.checkSmuggle();
         m_companions[category] = companions.transformed([](Json const& json) { return make_shared<Companion>(json); });
       });
 
   return callbacks;
 }
 
-}
+} // namespace Star

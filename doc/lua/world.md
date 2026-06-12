@@ -533,7 +533,7 @@ Attempts to place the specified material mod in the specified position and layer
 
 #### `List<EntityId>` world.entityQuery(`Vec2F` position, `Variant<Vec2F, float` positionOrRadius, [`LuaTable` options])
 
-Queries for entities in a specified area of the world and returns a list of their entity IDs. Area can be specified either as the `Vec2F` lower left and upper right positions of a rectangle, or as the `Vec2F` center and `float` radius of a circular area. The following additional parameters can be specified in the `options` table:
+Queries for entities in a specified area of the world and returns a list of their entity IDs. Area can be specified either as the `Vec2F` lower left and upper right positions of a rectangle, or as the `Vec2F` center and `float` radius of a circular area. The following additional parameters can be specified in the `options` table; the «[Legacy / non-xStarbound]» variants apply for xStarbound with `"legacySmuggling"` enabled and on non-xStarbound clients and servers regardless.
 
 - **withoutEntityId** - Specifies an `EntityId` that will be excluded from the returned results
 - **includedTypes** - Specifies a list of one or more `String` entity types that the query will return. The valid entity type names are:
@@ -552,13 +552,13 @@ Queries for entities in a specified area of the world and returns a list of thei
 
 - **boundMode** - Specifies the bounding mode for determining whether entities fall within the query area. Valid options are `"position"`, `"collisionarea"` and `"metaboundbox"`. Defaults to `"collisionarea"` if unspecified.
 - **order** - A `String` used to specify how the results will be ordered. If this is set to `"nearest"` the entities will be sorted by ascending distance from the first positional argument. If this is set to `"random"` the list of results will be shuffled. If not specified, the list of entities will be in an undefined order.
-- **callScript** - Specifies a `String` name of a function that should be called in the script context of all scripted entities matching the query. Accepts Lua dot notation.
-- **callScriptArgs** - Specifies a list of arguments — `Json` values on xStarbound, or `LuaValue`s otherwise — that will be passed to the function called by `callScript`.
-- **callScriptResult** - Specifies a value — `Json` on xStarbound, or a `LuaValue` otherwise — that the function called by `callScript` must return; entities whose script calls do not return this value will be excluded from the results. Defaults to `true`. On xStarbound, `null` or `json.null` may be passed if you want to make sure the called function returns a `nil` or nothing.
+- **callScript** - Specifies a `String` name of a function that should be called in the script context of all scripted entities matching the query. Accepts Lua dot notation. Does not do anything for entities not mastered by the client or server that is executing the query.
+- **callScriptArgs** - Specifies a list of `Json`-convertible arguments that will be passed to the function called by `callScript`. An error is thrown if any passed argument isn't JSON-convertible.
+- **callScriptArgs [Legacy / Non-xStarbound]** - Same as above, but the argument are arbitrary `LuaValue`s.
+- **callScriptResult** - Specifies a `Json`-convertible value that the function called by `callScript` must return; entities whose script calls do not return this value will be excluded from the results. Defaults to `true`. `null` or `json.null` may be passed if you want to make sure the called function returns a `nil` or nothing. An error is thrown if the returned or expected value isn't JSON-convertible.
+- **callScriptResult** - Same as above, but the expected result is an arbitrary `LuaValue`. In this case on xStarbound, the `null` / `json.null` passing trick checks for a literal `null` / `json.null`, not `nil`.
 
-On xStarbound, all `callScript` arguments and the `callScriptResult` must be valid JSON, and an error will be thrown after the first script call if the returned result isn't convertible to valid JSON before comparison happens.
-
-**Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `callScriptArgs` and `callScriptResult`. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game _will_ almost certainly cause segfaults or memory corruption!
+> **Warning:** When `"legacySmuggling"` is enabled on xStarbound v4.5+, any Lua binding references shared through `callScriptArgs` or `callScriptResult` will throw a Lua reference error upon invocation if they're overleased; check your log for this error. **On non-xStarbound servers and clients, invoking an overleased binding will cause a crash to desktop or memory corruption!** On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game on a non-xStarbound client or server _will_ almost certainly cause segfaults or memory corruption!
 
 ---
 
@@ -948,19 +948,19 @@ A combination of `world.containerItemApply` and `world.containerSwapItemsNoCombi
 
 ---
 
-#### [xStarbound] `Json` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`Json...` args])
+#### `Json` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`Json...` args])
 
-#### [Non-xStarbound] `LuaValue` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`LuaValue...` args])
+#### [Legacy / Non-xStarbound] `LuaValue` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`LuaValue...` args])
 
 Attempts to call the specified function (or callback) name in the context of the specified scripted entity with any specified arguments and returns the result of that call. This method is synchronous and thus can only be used on local master entities, i.e. scripts run on the server may only call scripted entities (on the same world) that are also server-side mastered, and scripts run on the client may only call scripted entities that are client-side mastered on that client.
 
-On xStarbound, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
+On xStarbound with `"legacySmuggling"` disabled, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
 
 For more featureful entity messaging, use `world.sendEntityMessage`. To call a world script context, use `world.callScriptContext` server-side or set up an appropriate message handler in a server-side script and send an entity message that invokes it client-side.
 
 > **Note:** On xStarbound v3.5.2.3+, this callback will return `nil` (and log a warning before v4.0.0) if the entity is not locally mastered or doesn't exist. On other servers and clients, an error will be thrown instead.
 
-> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game _will_ almost certainly cause segfaults or memory corruption!
+> **Warning:** When `"legacySmuggling"` is enabled on xStarbound v4.5+, any Lua binding references shared through this callback's `args` parameter will throw a Lua reference error upon invocation if they're overleased; check your log for this error. **On non-xStarbound servers and clients, invoking an overleased binding will cause a crash to desktop or memory corruption!** On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game on a non-xStarbound client or server _will_ almost certainly cause segfaults or memory corruption!
 
 ---
 
@@ -1318,19 +1318,19 @@ Here's an abridged sample metadata «descriptor» showing the more important and
 
 > **WARNING: Very small world widths — below about 1000 tiles — _CAN_ crash and softlock non-xClient clients on that world! Be careful with small world sizes if non-xClient clients are going to be allowed on the world!**
 
-#### [xStarbound] `Json` world.callScriptContext(`String` contextName, `String` functionName, [`Json...` args])
+#### `Json` world.callScriptContext(`String` contextName, `String` functionName, [`Json...` args])
 
-#### [OpenStarbound] `LuaValue` world.callScriptContext(`String` contextName, `String` functionName, [`LuaValue...` args])
+#### [Legacy / Non-xStarbound] `LuaValue` world.callScriptContext(`String` contextName, `String` functionName, [`LuaValue...` args])
 
 > **Available only on xStarbound and OpenStarbound.**
 
 Attempts to call the specified function (or callback) name in the specified world script context (on the same world as the context or entity calling this binding) with any specified arguments and returns the result of that call.
 
-On xStarbound, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
+On xStarbound with `"legacySmuggling"` disabled, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
 
 To message _other_ worlds, use `universe.sendWorldMessage` in a world context script (see `universeserver.md`). If you need to message another world from a server-side entity, use `world.callScriptContext` to "pass through" to a `universe.sendWorldMessage` call. Both client- and server-side entities may also use `world.sendEntityMessage` for "passthrough".
 
-> **Warning:** On non-xStarbound servers and clients, potentially unsafe Lua values can be passed through `args` and/or returned through this function's return value. On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game _will_ almost certainly cause segfaults or memory corruption!
+> **Warning:** When `"legacySmuggling"` is enabled on xStarbound v4.5+, any Lua binding references shared through this callback's `args` parameter or return value will throw a Lua reference error upon invocation if they're overleased; check your log for this error. **On non-xStarbound servers and clients, invoking an overleased binding will cause a crash to desktop or memory corruption!** On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game on a non-xStarbound client or server _will_ almost certainly cause segfaults or memory corruption!
 
 ---
 

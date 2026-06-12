@@ -17,6 +17,8 @@ class CommandProcessor {
 public:
   CommandProcessor(UniverseServer* universe);
 
+  void initLua();
+
   String adminCommand(String const& command, String const& argumentString);
   String userCommand(ConnectionId clientId, String const& command, String const& argumentString);
   Maybe<std::tuple<ConnectionId, ChatReceivedMessage>> handleChatMessage(ConnectionId connection, ChatReceivedMessage const& chatMessage);

@@ -1,8 +1,9 @@
 #include "StarVehicleDatabase.hpp"
-#include "StarVehicle.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLua.hpp"
+#include "StarRoot.hpp"
+#include "StarVehicle.hpp"
 
 namespace Star {
 
@@ -29,7 +30,7 @@ VehiclePtr VehicleDatabase::create(String const& vehicleName, Json const& extraC
   auto configPair = m_vehicles.ptr(vehicleName);
   if (!configPair)
     throw VehicleDatabaseException::format("No such vehicle named '{}'", vehicleName);
-  return make_shared<Vehicle>(configPair->second, configPair->first, extraConfig);
+  return makeObject<Vehicle>(configPair->second, configPair->first, extraConfig);
 }
 
 ByteArray VehicleDatabase::netStore(VehiclePtr const& vehicle) const {
@@ -51,10 +52,9 @@ VehiclePtr VehicleDatabase::netLoad(ByteArray const& netStore) const {
 
 Json VehicleDatabase::diskStore(VehiclePtr const& vehicle) const {
   return JsonObject{
-    {"name", vehicle->baseConfig().getString("name")},
-    {"dynamicConfig", vehicle->dynamicConfig()},
-    {"state", vehicle->diskStore()}
-  };
+      {"name", vehicle->baseConfig().getString("name")},
+      {"dynamicConfig", vehicle->dynamicConfig()},
+      {"state", vehicle->diskStore()}};
 }
 
 VehiclePtr VehicleDatabase::diskLoad(Json const& diskStore) const {
@@ -63,4 +63,4 @@ VehiclePtr VehicleDatabase::diskLoad(Json const& diskStore) const {
   return vehicle;
 }
 
-}
+} // namespace Star

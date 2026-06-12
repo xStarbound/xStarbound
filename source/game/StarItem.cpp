@@ -361,7 +361,7 @@ GenericItem::GenericItem(Json const& config, String const& directory, Json const
   : Item(config, directory, parameters), SwingableItem(config) {}
 
 ItemPtr GenericItem::clone() const {
-  return make_shared<GenericItem>(*this);
+  return makeObject<GenericItem>(*this);
 }
 
 void GenericItem::fire(FireMode mode, bool shifting, bool edgeTriggered) {}

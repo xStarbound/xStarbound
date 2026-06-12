@@ -189,7 +189,7 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
   if (auto success = as<ConnectSuccessPacket>(packet)) {
     m_universeClock = make_shared<Clock>();
     m_clientContext = make_shared<ClientContext>(success->serverUuid, m_mainPlayer->uuid());
-    m_teamClient = make_shared<TeamClient>(m_mainPlayer, m_clientContext);
+    m_teamClient = makeObject<TeamClient>(m_mainPlayer, m_clientContext);
 
     m_mainPlayer->setClientContext(m_clientContext);
     m_mainPlayer->setStatistics(m_statistics);
@@ -209,19 +209,18 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     }
 
     // FezzedOne: I'll never know why the gods-damned world client couldn't access the universe client to begin with.
-    m_worldClient = make_shared<WorldClient>(m_mainPlayer, this);
-    // bool safeScripts = root.configuration()->get("safeScripts").toBool();
+    m_worldClient = makeObject<WorldClient>(m_mainPlayer, this);
+    bool legacySmuggling = GameObjectRegistry::smugglingEnabled();
     for (auto& pair : m_luaCallbacks) {
-      // Make sure non-universe scripts get the safe version of `interface`.
-      if (pair.first != "interface") // || !safeScripts
+      if (pair.first != "interface" || legacySmuggling)
         m_worldClient->setLuaCallbacks(pair.first, pair.second);
-      if (pair.first == "safeInterface") // && safeScripts
+      if (pair.first == "safeInterface" && !legacySmuggling)
         m_worldClient->setLuaCallbacks("interface", pair.second);
     }
 
     m_connection = std::move(connection);
-    m_celestialDatabase = make_shared<CelestialSlaveDatabase>(std::move(success->celestialInformation));
-    m_systemWorldClient = make_shared<SystemWorldClient>(m_universeClock, m_celestialDatabase, m_mainPlayer->universeMap());
+    m_celestialDatabase = makeObject<CelestialSlaveDatabase>(std::move(success->celestialInformation));
+    m_systemWorldClient = makeObject<SystemWorldClient>(m_universeClock, m_celestialDatabase, m_mainPlayer->universeMap());
 
     Logger::info("UniverseClient: Joined {} server as client {}",
         m_legacyServer ? "stock" : "custom",
@@ -688,9 +687,12 @@ void UniverseClient::startLua() {
 
   auto assets = Root::singleton().assets();
   for (auto& p : assets->json("/client.config:universeScriptContexts").toObject()) {
-    auto scriptComponent = make_shared<ScriptComponent>();
+    auto scriptComponent = makeObject<ScriptComponent>();
     scriptComponent->setLuaRoot(m_luaRoot);
     scriptComponent->setScripts(jsonToStringList(p.second.toArray()));
+
+    scriptComponent->initMessageBinding(scriptComponent.get());
+    scriptComponent->initScriptBindings(scriptComponent.get());
 
     for (auto& pair : m_luaCallbacks)
       scriptComponent->addCallbacks(pair.first, pair.second);

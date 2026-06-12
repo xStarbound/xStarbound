@@ -1,14 +1,14 @@
+#include "StarConfiguration.hpp"
 #include "StarFile.hpp"
-#include "StarRandom.hpp"
 #include "StarLexicalCast.hpp"
 #include "StarLogging.hpp"
-#include "StarUniverseServer.hpp"
+#include "StarRandom.hpp"
 #include "StarRootLoader.hpp"
-#include "StarConfiguration.hpp"
-#include "StarVersion.hpp"
 #include "StarServerQueryThread.hpp"
 #include "StarServerRconThread.hpp"
 #include "StarSignalHandler.hpp"
+#include "StarUniverseServer.hpp"
+#include "StarVersion.hpp"
 
 #ifdef STAR_USE_RPMALLOC
 #include "rpmalloc.h"
@@ -71,6 +71,19 @@ int main(int argc, char** argv) {
         Logger::info("[Init] Configured tickrate is {:4.2f}hz", updateRate);
       }
 
+      { /* FezzedOne: Check the smuggling setting *once* at startup after asset preprocessing. */
+        auto jLegacySmuggling = Root::singleton().configuration()->get("legacySmuggling");
+        LuaSmugglingSetting legacySmuggling = LuaSmugglingSetting::Disabled;
+        if (jLegacySmuggling.isType(Json::Type::Bool))
+          legacySmuggling = jLegacySmuggling.toBool() ? LuaSmugglingSetting::Enabled : LuaSmugglingSetting::Disabled;
+        auto unchecked = LuaSmugglingSetting::Unchecked;
+        GameObjectRegistry::setSmugglingSetting(legacySmuggling);
+        if (legacySmuggling == LuaSmugglingSetting::Enabled)
+          Logger::info("[xSB] Lua context isolation disabled. Running in \"Lua smuggling\" compatibility mode.");
+        else
+          Logger::info("[xSB] Lua context isolation enabled.");
+      }
+
       UniverseServerUPtr server = make_unique<UniverseServer>(root->toStoragePath("universe"));
       server->setListeningTcp(true);
       server->start();
@@ -114,8 +127,8 @@ int main(int argc, char** argv) {
     fatalException(e, true);
   }
 
-  #ifdef STAR_USE_RPMALLOC
-    ::rpmalloc_finalize();
-  #endif
+#ifdef STAR_USE_RPMALLOC
+  ::rpmalloc_finalize();
+#endif
   return 0;
 }

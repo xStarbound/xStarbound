@@ -1,10 +1,10 @@
 #ifndef STAR_BASE_SCRIPT_PANE_HPP
 #define STAR_BASE_SCRIPT_PANE_HPP
 
-#include "StarPane.hpp"
-#include "StarLuaComponents.hpp"
 #include "StarGuiReader.hpp"
+#include "StarLuaComponents.hpp"
 #include "StarMainInterface.hpp"
+#include "StarPane.hpp"
 
 namespace Star {
 
@@ -26,7 +26,7 @@ public:
   void tick(float dt) override;
 
   bool sendEvent(InputEvent const& event) override;
-  
+
   Json const& config() const;
   Json const& rawConfig() const;
 
@@ -38,13 +38,12 @@ public:
   Maybe<String> cursorOverride(Vec2I const& screenPosition) override;
 
   virtual Maybe<ItemPtr> shiftItemFromInventory(ItemPtr const& input) const override;
+
 protected:
   virtual GuiReaderPtr reader() override;
   Json m_config;
   Json m_rawConfig;
   bool m_dismissable;
-
-  GuiReaderPtr m_reader;
 
   Map<CanvasWidgetPtr, String> m_canvasClickCallbacks;
   Map<CanvasWidgetPtr, String> m_canvasKeyCallbacks;
@@ -57,6 +56,6 @@ protected:
   MainInterface* m_mainInterface; // If null, means the pane wasn't initialised from the main game interface.
 };
 
-}
+} // namespace Star
 
 #endif

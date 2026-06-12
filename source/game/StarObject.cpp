@@ -68,9 +68,9 @@ Object::Object(ObjectConfigConstPtr config, Json const& parameters) {
     animationConfig = jsonMerge(m_config->animationConfig, *animationCustom.objectPtr());
 
   if (animationConfig)
-    m_networkedAnimator = make_shared<NetworkedAnimator>(animationConfig, m_config->path);
+    m_networkedAnimator = makeObject<NetworkedAnimator>(animationConfig, m_config->path);
   else
-    m_networkedAnimator = make_shared<NetworkedAnimator>();
+    m_networkedAnimator = makeObject<NetworkedAnimator>();
 
   if (m_config->damageTeam.type != TeamType::Null) {
     setTeam(m_config->damageTeam);
@@ -185,6 +185,8 @@ void Object::init(World* world, EntityId entityId, EntityMode mode) {
       m_directives.parse(directives.toString());
   }
 
+  auto thisObject = GameObjectRegistry::smuggleWrap(this);
+
   if (isMaster()) {
     setImageKey("color", colorName);
 
@@ -200,25 +202,31 @@ void Object::init(World* world, EntityId entityId, EntityMode mode) {
 
     setKeepAlive(configValue("keepAlive", false).toBool());
 
+
     m_scriptComponent.setScripts(m_config->scripts);
     m_scriptComponent.setUpdateDelta(configValue("scriptDelta", 5).toInt());
 
+    m_scriptComponent.initScriptBindings(this);
+    m_scriptComponent.initMessageBinding(this);
+
     m_scriptComponent.addCallbacks("object", makeObjectCallbacks());
-    m_scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks(bind(&Object::configValue, this, _1, _2)));
+    m_scriptComponent.addCallbacks("config", LuaBindings::makeConfigCallbacks(LUA_BIND(&Object::configValue, thisObject, _1, _2)));
     m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
-    m_scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(m_networkedAnimator.get()));
+    m_scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(m_networkedAnimator.get(), m_networkedAnimator.get()));
     m_scriptComponent.init(world);
   }
 
   if (world->isClient()) {
     m_scriptedAnimator.setScripts(m_config->animationScripts);
 
-    m_scriptedAnimator.addCallbacks("animationConfig", LuaBindings::makeScriptedAnimatorCallbacks(m_networkedAnimator.get(),
-                                                           [this](String const& name, Json const& defaultValue) -> Json {
-                                                             return m_scriptedAnimationParameters.value(name, defaultValue);
-                                                           }));
+    m_scriptedAnimator.initScriptBindings(this);
+    m_scriptedAnimator.initAnimationBindings(this);
+
+    m_scriptedAnimator.addCallbacks("animationConfig", LuaBindings::makeScriptedAnimatorCallbacks(m_networkedAnimator.get(), [this, thisObject](String const& name, Json const& defaultValue) -> Json {
+      thisObject.checkSmuggle();
+      return m_scriptedAnimationParameters.value(name, defaultValue); }, this));
     m_scriptedAnimator.addCallbacks("objectAnimator", makeAnimatorObjectCallbacks());
-    m_scriptedAnimator.addCallbacks("config", LuaBindings::makeConfigCallbacks(bind(&Object::configValue, this, _1, _2)));
+    m_scriptedAnimator.addCallbacks("config", LuaBindings::makeConfigCallbacks(LUA_BIND(&Object::configValue, thisObject, _1, _2)));
     m_scriptedAnimator.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
     m_scriptedAnimator.init(world);
   }
@@ -932,54 +940,68 @@ bool Object::unbreakable() const {
 LuaCallbacks Object::makeObjectCallbacks() {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallback("name", [this]() {
+  auto thisObject = GameObjectRegistry::smuggleWrap(this);
+
+  callbacks.registerCallback("name", [this, thisObject]() {
+    thisObject.checkSmuggle();
     return name();
   });
 
-  callbacks.registerCallback("direction", [this]() {
+  callbacks.registerCallback("direction", [this, thisObject]() {
+    thisObject.checkSmuggle();
     return numericalDirection(direction());
   });
 
-  callbacks.registerCallback("position", [this]() {
+  callbacks.registerCallback("position", [this, thisObject]() {
+    thisObject.checkSmuggle();
     return position();
   });
 
-  callbacks.registerCallback("setInteractive", [this](bool interactive) {
+  callbacks.registerCallback("setInteractive", [this, thisObject](bool interactive) {
+    thisObject.checkSmuggle();
     m_interactive.set(interactive);
   });
 
-  callbacks.registerCallbackWithSignature<Maybe<String>>("uniqueId", bind(&Object::uniqueId, this));
-  callbacks.registerCallbackWithSignature<void, Maybe<String>>("setUniqueId", bind(&Object::setUniqueId, this, _1));
+  callbacks.registerCallbackWithSignature<Maybe<String>>("uniqueId", LUA_BIND(&Object::uniqueId, thisObject));
+  callbacks.registerCallbackWithSignature<void, Maybe<String>>("setUniqueId", LUA_BIND(&Object::setUniqueId, thisObject, _1));
 
-  callbacks.registerCallback("boundBox", [this]() {
+  callbacks.registerCallback("boundBox", [this, thisObject]() {
+    thisObject.checkSmuggle();
     return metaBoundBox().translated(position());
   });
 
-  callbacks.registerCallback("spaces", [this]() {
+  callbacks.registerCallback("spaces", [this, thisObject]() {
+    thisObject.checkSmuggle();
     return spaces();
   });
 
-  callbacks.registerCallback("setProcessingDirectives", [this](String const& directives) {
+  callbacks.registerCallback("setProcessingDirectives", [this, thisObject](String const& directives) {
+    thisObject.checkSmuggle();
     m_networkedAnimator->setProcessingDirectives(Directives(directives));
   });
 
-  callbacks.registerCallback("setSoundEffectEnabled", [this](bool soundEffectEnabled) {
+  callbacks.registerCallback("setSoundEffectEnabled", [this, thisObject](bool soundEffectEnabled) {
+    thisObject.checkSmuggle();
     m_soundEffectEnabled.set(soundEffectEnabled);
   });
 
-  callbacks.registerCallback("smash", [this](Maybe<bool> smash) {
+  callbacks.registerCallback("smash", [this, thisObject](Maybe<bool> smash) {
+    thisObject.checkSmuggle();
     breakObject(smash.value(false));
   });
 
-  callbacks.registerCallback("level", [this]() {
+  callbacks.registerCallback("level", [this, thisObject]() {
+    thisObject.checkSmuggle();
     return configValue("level", this->world()->threatLevel());
   });
 
-  callbacks.registerCallback("toAbsolutePosition", [this](Vec2F const& p) {
+  callbacks.registerCallback("toAbsolutePosition", [this, thisObject](Vec2F const& p) {
+    thisObject.checkSmuggle();
     return p + position();
   });
 
-  callbacks.registerCallback("say", [this](String line, Maybe<StringMap<String>> const& tags, Json const& config) {
+  callbacks.registerCallback("say", [this, thisObject](String line, Maybe<StringMap<String>> const& tags, Json const& config) {
+    thisObject.checkSmuggle();
     if (tags)
       line = line.replaceTags(*tags, false);
 
@@ -991,7 +1013,8 @@ LuaCallbacks Object::makeObjectCallbacks() {
     return false;
   });
 
-  callbacks.registerCallback("sayPortrait", [this](String line, String portrait, Maybe<StringMap<String>> const& tags, Json const& config) {
+  callbacks.registerCallback("sayPortrait", [this, thisObject](String line, String portrait, Maybe<StringMap<String>> const& tags, Json const& config) {
+    thisObject.checkSmuggle();
     if (tags)
       line = line.replaceTags(*tags, false);
 
@@ -1003,53 +1026,65 @@ LuaCallbacks Object::makeObjectCallbacks() {
     return false;
   });
 
-  callbacks.registerCallback("isTouching", [this](EntityId entityId) {
+  callbacks.registerCallback("isTouching", [this, thisObject](EntityId entityId) {
+    thisObject.checkSmuggle();
     if (auto entity = this->world()->entity(entityId))
       return !entity->collisionArea().overlap(volume().boundBox()).isEmpty();
     return false;
   });
 
-  callbacks.registerCallback("setLightColor", [this](Color const& color) {
+  callbacks.registerCallback("setLightColor", [this, thisObject](Color const& color) {
+    thisObject.checkSmuggle();
     m_lightSourceColor.set(color);
   });
 
-  callbacks.registerCallback("getLightColor", [this]() {
+  callbacks.registerCallback("getLightColor", [this, thisObject]() {
+    thisObject.checkSmuggle();
     return m_lightSourceColor.get();
   });
 
-  callbacks.registerCallback("inputNodeCount", [this]() {
+  callbacks.registerCallback("inputNodeCount", [this, thisObject]() {
+    thisObject.checkSmuggle();
     return m_inputNodes.size();
   });
 
-  callbacks.registerCallback("outputNodeCount", [this]() {
+  callbacks.registerCallback("outputNodeCount", [this, thisObject]() {
+    thisObject.checkSmuggle();
     return m_outputNodes.size();
   });
 
-  callbacks.registerCallback("getInputNodePosition", [this](size_t i) {
+  callbacks.registerCallback("getInputNodePosition", [this, thisObject](size_t i) {
+    thisObject.checkSmuggle();
     return m_inputNodes.at(i).position;
   });
 
-  callbacks.registerCallback("getOutputNodePosition", [this](size_t i) {
+  callbacks.registerCallback("getOutputNodePosition", [this, thisObject](size_t i) {
+    thisObject.checkSmuggle();
     return m_outputNodes.at(i).position;
   });
 
-  callbacks.registerCallback("getInputNodeLevel", [this](size_t i) {
+  callbacks.registerCallback("getInputNodeLevel", [this, thisObject](size_t i) {
+    thisObject.checkSmuggle();
     return m_inputNodes.at(i).state.get();
   });
 
-  callbacks.registerCallback("getOutputNodeLevel", [this](size_t i) {
+  callbacks.registerCallback("getOutputNodeLevel", [this, thisObject](size_t i) {
+    thisObject.checkSmuggle();
     return m_outputNodes.at(i).state.get();
   });
 
-  callbacks.registerCallback("isInputNodeConnected", [this](size_t i) {
+  callbacks.registerCallback("isInputNodeConnected", [this, thisObject](size_t i) {
+    thisObject.checkSmuggle();
     return !m_inputNodes.at(i).connections.get().empty();
   });
 
-  callbacks.registerCallback("isOutputNodeConnected", [this](size_t i) {
+  callbacks.registerCallback("isOutputNodeConnected", [this, thisObject](size_t i) {
+    thisObject.checkSmuggle();
     return !m_outputNodes.at(i).connections.get().empty();
   });
 
-  callbacks.registerCallback("getInputNodeIds", [this](LuaEngine& engine, size_t i) {
+  callbacks.registerCallback("getInputNodeIds", [this, thisObject](LuaEngine& engine, size_t i) {
+    thisObject.checkSmuggle();
     auto result = engine.createTable();
     for (auto const& conn : m_inputNodes.at(i).connections.get()) {
       for (auto const& entity : worldPtr()->atTile<WireEntity>(conn.entityLocation))
@@ -1058,7 +1093,8 @@ LuaCallbacks Object::makeObjectCallbacks() {
     return result;
   });
 
-  callbacks.registerCallback("getOutputNodeIds", [this](LuaEngine& engine, size_t i) {
+  callbacks.registerCallback("getOutputNodeIds", [this, thisObject](LuaEngine& engine, size_t i) {
+    thisObject.checkSmuggle();
     auto result = engine.createTable();
     for (auto const& conn : m_outputNodes.at(i).connections.get()) {
       for (auto const& entity : worldPtr()->atTile<WireEntity>(conn.entityLocation))
@@ -1067,32 +1103,39 @@ LuaCallbacks Object::makeObjectCallbacks() {
     return result;
   });
 
-  callbacks.registerCallback("setOutputNodeLevel", [this](size_t i, bool l) {
+  callbacks.registerCallback("setOutputNodeLevel", [this, thisObject](size_t i, bool l) {
+    thisObject.checkSmuggle();
     m_outputNodes.at(i).state.set(l);
   });
 
-  callbacks.registerCallback("setAllOutputNodes", [this](bool l) {
+  callbacks.registerCallback("setAllOutputNodes", [this, thisObject](bool l) {
+    thisObject.checkSmuggle();
     for (auto& out : m_outputNodes)
       out.state.set(l);
   });
 
-  callbacks.registerCallback("setOfferedQuests", [this](Maybe<JsonArray> const& offeredQuests) {
+  callbacks.registerCallback("setOfferedQuests", [this, thisObject](Maybe<JsonArray> const& offeredQuests) {
+    thisObject.checkSmuggle();
     m_offeredQuests.set(offeredQuests.value().transformed(&QuestArcDescriptor::fromJson));
   });
 
-  callbacks.registerCallback("setTurnInQuests", [this](Maybe<StringList> const& turnInQuests) {
+  callbacks.registerCallback("setTurnInQuests", [this, thisObject](Maybe<StringList> const& turnInQuests) {
+    thisObject.checkSmuggle();
     m_turnInQuests.set(StringSet::from(turnInQuests.value()));
   });
 
-  callbacks.registerCallback("setConfigParameter", [this](String key, Json value) {
+  callbacks.registerCallback("setConfigParameter", [this, thisObject](String key, Json value) {
+    thisObject.checkSmuggle();
     m_parameters.set(std::move(key), std::move(value));
   });
 
-  callbacks.registerCallback("setAnimationParameter", [this](String key, Json value) {
+  callbacks.registerCallback("setAnimationParameter", [this, thisObject](String key, Json value) {
+    thisObject.checkSmuggle();
     m_scriptedAnimationParameters.set(std::move(key), std::move(value));
   });
 
-  callbacks.registerCallback("setMaterialSpaces", [this](Maybe<JsonArray> const& newSpaces) {
+  callbacks.registerCallback("setMaterialSpaces", [this, thisObject](Maybe<JsonArray> const& newSpaces) {
+    thisObject.checkSmuggle();
     List<MaterialSpace> materialSpaces;
     auto materialDatabase = Root::singleton().materialDatabase();
     for (auto space : newSpaces.value())
@@ -1100,15 +1143,18 @@ LuaCallbacks Object::makeObjectCallbacks() {
     m_materialSpaces.set(materialSpaces);
   });
 
-  callbacks.registerCallback("setDamageSources", [this](Maybe<JsonArray> damageSources) {
+  callbacks.registerCallback("setDamageSources", [this, thisObject](Maybe<JsonArray> damageSources) {
+    thisObject.checkSmuggle();
     m_damageSources.set(damageSources.value().transformed(construct<DamageSource>()));
   });
 
-  callbacks.registerCallback("health", [this]() {
+  callbacks.registerCallback("health", [this, thisObject]() {
+    thisObject.checkSmuggle();
     return m_health.get();
   });
 
-  callbacks.registerCallback("setHealth", [this](float health) {
+  callbacks.registerCallback("setHealth", [this, thisObject](float health) {
+    thisObject.checkSmuggle();
     m_health.set(health);
   });
 
@@ -1118,15 +1164,20 @@ LuaCallbacks Object::makeObjectCallbacks() {
 LuaCallbacks Object::makeAnimatorObjectCallbacks() {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallback("getParameter", [this](String const& name, Json const& def) {
+  auto thisObject = GameObjectRegistry::smuggleWrap(this);
+
+  callbacks.registerCallback("getParameter", [this, thisObject](String const& name, Json const& def) {
+    thisObject.checkSmuggle();
     return configValue(name, def);
   });
 
-  callbacks.registerCallback("direction", [this]() {
+  callbacks.registerCallback("direction", [this, thisObject]() {
+    thisObject.checkSmuggle();
     return numericalDirection(direction());
   });
 
-  callbacks.registerCallback("position", [this]() {
+  callbacks.registerCallback("position", [this, thisObject]() {
+    thisObject.checkSmuggle();
     return position();
   });
 

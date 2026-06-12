@@ -15,7 +15,7 @@ AugmentItem::AugmentItem(Json const& config, String const& directory, Json const
 AugmentItem::AugmentItem(AugmentItem const& rhs) : AugmentItem(rhs.config(), rhs.directory(), rhs.parameters()) {}
 
 ItemPtr AugmentItem::clone() const {
-  return make_shared<AugmentItem>(*this);
+  return makeObject<AugmentItem>(*this);
 }
 
 List<Drawable> AugmentItem::drawables() const {

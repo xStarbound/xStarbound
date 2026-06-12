@@ -1,40 +1,42 @@
 #include "StarItemLuaBindings.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarLuaGameConverters.hpp"
 #include "StarCasting.hpp"
 #include "StarItem.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLuaGameConverters.hpp"
 #include "StarToolUserItem.hpp"
 
 namespace Star {
 
-LuaCallbacks LuaBindings::makeItemCallbacks(Item* item) {
+LuaCallbacks LuaBindings::makeItemCallbacks(Item* itemPtr) {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallbackWithSignature<String>("name", bind(ItemCallbacks::name, item));
-  callbacks.registerCallbackWithSignature<size_t>("count", bind(ItemCallbacks::count, item));
-  callbacks.registerCallbackWithSignature<size_t, size_t>("setCount", bind(ItemCallbacks::setCount, item, _1));
-  callbacks.registerCallbackWithSignature<size_t>("maxStack", bind(ItemCallbacks::maxStack, item));
-  callbacks.registerCallbackWithSignature<bool, Json, Maybe<bool>>("matches", bind(ItemCallbacks::matches, item, _1, _2));
-  callbacks.registerCallbackWithSignature<bool, size_t>("consume", bind(ItemCallbacks::consume, item, _1));
-  callbacks.registerCallbackWithSignature<bool>("empty", bind(ItemCallbacks::empty, item));
-  callbacks.registerCallbackWithSignature<Json>("descriptor", bind(ItemCallbacks::descriptor, item));
-  callbacks.registerCallbackWithSignature<String>("description", bind(ItemCallbacks::description, item));
-  callbacks.registerCallbackWithSignature<String>("friendlyName", bind(ItemCallbacks::friendlyName, item));
-  callbacks.registerCallbackWithSignature<int>("rarity", bind(ItemCallbacks::rarity, item));
-  callbacks.registerCallbackWithSignature<String>("rarityString", bind(ItemCallbacks::rarityString, item));
-  callbacks.registerCallbackWithSignature<size_t>("price", bind(ItemCallbacks::price, item));
-  callbacks.registerCallbackWithSignature<Json>("fuelAmount", bind(ItemCallbacks::fuelAmount, item));
-  callbacks.registerCallbackWithSignature<Json>("iconDrawables", bind(ItemCallbacks::iconDrawables, item));
-  callbacks.registerCallbackWithSignature<Json>("dropDrawables", bind(ItemCallbacks::dropDrawables, item));
-  callbacks.registerCallbackWithSignature<String>("largeImage", bind(ItemCallbacks::largeImage, item));
-  callbacks.registerCallbackWithSignature<String>("tooltipKind", bind(ItemCallbacks::tooltipKind, item));
-  callbacks.registerCallbackWithSignature<String>("category", bind(ItemCallbacks::category, item));
-  callbacks.registerCallbackWithSignature<String>("pickupSound", bind(ItemCallbacks::pickupSound, item));
-  callbacks.registerCallbackWithSignature<bool>("twoHanded", bind(ItemCallbacks::twoHanded, item));
-  callbacks.registerCallbackWithSignature<float>("timeToLive", bind(ItemCallbacks::timeToLive, item));
-  callbacks.registerCallbackWithSignature<Json>("learnBlueprintsOnPickup", bind(ItemCallbacks::learnBlueprintsOnPickup, item));
-  callbacks.registerCallbackWithSignature<bool, String>("hasItemTag", bind(ItemCallbacks::hasItemTag, item, _1));
-  callbacks.registerCallbackWithSignature<Json>("pickupQuestTemplates", bind(ItemCallbacks::pickupQuestTemplates, item));
+  auto item = GameObjectRegistry::smuggleWrap(itemPtr);
+
+  callbacks.registerCallbackWithSignature<String>("name", LUA_BIND(ItemCallbacks::name, item));
+  callbacks.registerCallbackWithSignature<size_t>("count", LUA_BIND(ItemCallbacks::count, item));
+  callbacks.registerCallbackWithSignature<size_t, size_t>("setCount", LUA_BIND(ItemCallbacks::setCount, item, _1));
+  callbacks.registerCallbackWithSignature<size_t>("maxStack", LUA_BIND(ItemCallbacks::maxStack, item));
+  callbacks.registerCallbackWithSignature<bool, Json, Maybe<bool>>("matches", LUA_BIND(ItemCallbacks::matches, item, _1, _2));
+  callbacks.registerCallbackWithSignature<bool, size_t>("consume", LUA_BIND(ItemCallbacks::consume, item, _1));
+  callbacks.registerCallbackWithSignature<bool>("empty", LUA_BIND(ItemCallbacks::empty, item));
+  callbacks.registerCallbackWithSignature<Json>("descriptor", LUA_BIND(ItemCallbacks::descriptor, item));
+  callbacks.registerCallbackWithSignature<String>("description", LUA_BIND(ItemCallbacks::description, item));
+  callbacks.registerCallbackWithSignature<String>("friendlyName", LUA_BIND(ItemCallbacks::friendlyName, item));
+  callbacks.registerCallbackWithSignature<int>("rarity", LUA_BIND(ItemCallbacks::rarity, item));
+  callbacks.registerCallbackWithSignature<String>("rarityString", LUA_BIND(ItemCallbacks::rarityString, item));
+  callbacks.registerCallbackWithSignature<size_t>("price", LUA_BIND(ItemCallbacks::price, item));
+  callbacks.registerCallbackWithSignature<Json>("fuelAmount", LUA_BIND(ItemCallbacks::fuelAmount, item));
+  callbacks.registerCallbackWithSignature<Json>("iconDrawables", LUA_BIND(ItemCallbacks::iconDrawables, item));
+  callbacks.registerCallbackWithSignature<Json>("dropDrawables", LUA_BIND(ItemCallbacks::dropDrawables, item));
+  callbacks.registerCallbackWithSignature<String>("largeImage", LUA_BIND(ItemCallbacks::largeImage, item));
+  callbacks.registerCallbackWithSignature<String>("tooltipKind", LUA_BIND(ItemCallbacks::tooltipKind, item));
+  callbacks.registerCallbackWithSignature<String>("category", LUA_BIND(ItemCallbacks::category, item));
+  callbacks.registerCallbackWithSignature<String>("pickupSound", LUA_BIND(ItemCallbacks::pickupSound, item));
+  callbacks.registerCallbackWithSignature<bool>("twoHanded", LUA_BIND(ItemCallbacks::twoHanded, item));
+  callbacks.registerCallbackWithSignature<float>("timeToLive", LUA_BIND(ItemCallbacks::timeToLive, item));
+  callbacks.registerCallbackWithSignature<Json>("learnBlueprintsOnPickup", LUA_BIND(ItemCallbacks::learnBlueprintsOnPickup, item));
+  callbacks.registerCallbackWithSignature<bool, String>("hasItemTag", LUA_BIND(ItemCallbacks::hasItemTag, item, _1));
+  callbacks.registerCallbackWithSignature<Json>("pickupQuestTemplates", LUA_BIND(ItemCallbacks::pickupQuestTemplates, item));
 
   return callbacks;
 }
@@ -243,4 +245,4 @@ Json LuaBindings::ItemCallbacks::pickupQuestTemplates(Item* item) {
   return item->pickupQuestTemplates().transformed(mem_fn(&QuestArcDescriptor::toJson));
 }
 
-}
+} // namespace Star

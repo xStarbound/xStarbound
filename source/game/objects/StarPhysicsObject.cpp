@@ -1,9 +1,9 @@
 #include "StarPhysicsObject.hpp"
-#include "StarJsonExtra.hpp"
 #include "StarInterpolation.hpp"
-#include "StarRoot.hpp"
-#include "StarObjectDatabase.hpp"
+#include "StarJsonExtra.hpp"
 #include "StarLuaConverters.hpp"
+#include "StarObjectDatabase.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -48,18 +48,24 @@ void PhysicsObject::disableInterpolation() {
 void PhysicsObject::init(World* world, EntityId entityId, EntityMode mode) {
   if (mode == EntityMode::Master) {
     LuaCallbacks physicsCallbacks;
-    physicsCallbacks.registerCallback("setForceEnabled", [this](String const& force, bool enabled) {
-        m_physicsForces.get(force).enabled.set(enabled);
-      });
-    physicsCallbacks.registerCallback("setCollisionPosition", [this](String const& collision, Vec2F const& pos) {
-        auto& collisionConfig = m_physicsCollisions.get(collision);
-        collisionConfig.xPosition.set(pos[0]);
-        collisionConfig.yPosition.set(pos[1]);
-      });
-    physicsCallbacks.registerCallback("setCollisionEnabled", [this](String const& collision, bool const& enabled) {
-        auto& collisionConfig = m_physicsCollisions.get(collision);
-        collisionConfig.enabled.set(enabled);
-      });
+
+    auto thisPhysicsObject = GameObjectRegistry::smuggleWrap(this);
+
+    physicsCallbacks.registerCallback("setForceEnabled", [this, thisPhysicsObject](String const& force, bool enabled) {
+      thisPhysicsObject.checkSmuggle();
+      m_physicsForces.get(force).enabled.set(enabled);
+    });
+    physicsCallbacks.registerCallback("setCollisionPosition", [this, thisPhysicsObject](String const& collision, Vec2F const& pos) {
+      thisPhysicsObject.checkSmuggle();
+      auto& collisionConfig = m_physicsCollisions.get(collision);
+      collisionConfig.xPosition.set(pos[0]);
+      collisionConfig.yPosition.set(pos[1]);
+    });
+    physicsCallbacks.registerCallback("setCollisionEnabled", [this, thisPhysicsObject](String const& collision, bool const& enabled) {
+      thisPhysicsObject.checkSmuggle();
+      auto& collisionConfig = m_physicsCollisions.get(collision);
+      collisionConfig.enabled.set(enabled);
+    });
     m_scriptComponent.addCallbacks("physics", std::move(physicsCallbacks));
   }
   Object::init(world, entityId, mode);
@@ -111,4 +117,4 @@ Maybe<PhysicsMovingCollision> PhysicsObject::movingCollision(size_t positionInde
   return collision;
 }
 
-}
+} // namespace Star

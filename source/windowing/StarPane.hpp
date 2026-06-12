@@ -1,9 +1,9 @@
 #ifndef STAR_PANE_HPP
 #define STAR_PANE_HPP
 
-#include "StarWidget.hpp"
 #include "StarBiMap.hpp"
 #include "StarItemDatabase.hpp"
+#include "StarWidget.hpp"
 
 namespace Star {
 
@@ -96,9 +96,12 @@ public:
   virtual Maybe<ItemPtr> shiftItemFromInventory(ItemPtr const& input) const;
 
   virtual LuaCallbacks makePaneCallbacks();
+
 protected:
   virtual GuiReaderPtr reader();
   virtual void renderImpl();
+
+  GuiReaderPtr m_guiReader;
 
   String m_bgHeader;
   String m_bgBody;
@@ -136,6 +139,6 @@ protected:
   List<pair<String, AudioInstancePtr>> m_playingSounds;
 };
 
-}
+} // namespace Star
 
 #endif

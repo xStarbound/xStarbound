@@ -329,7 +329,7 @@ If the specified patch file is later modified, removed or replaced by any script
 
 ---
 
-#### `Json` root.getConfiguration(`String` key)
+#### `Json` assets.getConfiguration(`String` key)
 
 > **Only available on xStarbound v4.1.1+.**
 
@@ -337,7 +337,7 @@ Gets the value of the specified key in `xclient.config` (on xClient, even if the
 
 ---
 
-#### `Json` root.getConfigurationPath(`String` path)
+#### `Json` assets.getConfigurationPath(`String` path)
 
 > **Only available on xStarbound v4.1.1+.**
 
@@ -345,7 +345,7 @@ Gets the value at the specified JSON path in `xclient.config` (on xClient, even 
 
 ---
 
-#### `Json` root.setConfiguration(`String` key)
+#### `Json` assets.setConfiguration(`String` key)
 
 > **Only available on xStarbound v4.1.1+.**
 
@@ -353,7 +353,7 @@ Sets the value of the specified key `xclient.config` (on xClient, even if the sc
 
 ---
 
-#### `Json` root.setConfigurationPath(`String` path)
+#### `Json` assets.setConfigurationPath(`String` path)
 
 > **Only available on xStarbound v4.1.1+.**
 

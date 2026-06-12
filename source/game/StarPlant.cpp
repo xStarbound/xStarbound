@@ -1038,7 +1038,7 @@ void Plant::breakAtPosition(Vec2I const& position, Vec2F const& sourcePosition) 
   bool first = true;
   for (auto segmentIdx : segmentOrder) {
     auto segment = segments[segmentIdx];
-    world()->addEntity(make_shared<PlantDrop>(segment,
+    world()->addEntity(makeObject<PlantDrop>(segment,
         worldSpaceBreakPoint,
         fallVector,
         description(),

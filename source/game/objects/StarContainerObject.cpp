@@ -29,7 +29,7 @@ ContainerObject::ContainerObject(ObjectConfigConstPtr config, Json const& parame
   m_itemsUpdated = true;
   m_runUpdatedCallback = true;
 
-  m_items = make_shared<ItemBag>(configValue("slotCount").toUInt());
+  m_items = makeObject<ItemBag>(configValue("slotCount").toUInt());
 
   m_netGroup.addNetElement(&m_opened);
   m_netGroup.addNetElement(&m_crafting);
@@ -519,7 +519,7 @@ void ContainerObject::readStoredData(Json const& diskStore) {
   m_crafting.set(diskStore.getBool("crafting"));
   m_craftingProgress.set(diskStore.getFloat("craftingProgress"));
   m_initialized = diskStore.getBool("initialized");
-  m_items = make_shared<ItemBag>(ItemBag::loadStore(diskStore.get("items")));
+  m_items = makeObject<ItemBag>(ItemBag::loadStore(diskStore.get("items")));
   m_ageItemsTimer = EpochTimer(diskStore.get("ageItemsTimer"));
 
   m_lostItems.appendAll(m_items->resize(configValue("slotCount").toUInt()));

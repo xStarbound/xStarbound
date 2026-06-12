@@ -52,7 +52,7 @@ void Cinematic::load(Json const& definition) {
   }
 
   for (auto panelDefinition : definition.getArray("panels")) {
-    PanelPtr panel = make_shared<Panel>();
+    PanelPtr panel = makeObject<Panel>();
     panel->useCamera = panelDefinition.getBool("useCamera", true);
     panel->drawables = panelDefinition.getArray("drawables", {});
     panel->animationFrames = panelDefinition.getInt("animationFrames", std::numeric_limits<int>::max());

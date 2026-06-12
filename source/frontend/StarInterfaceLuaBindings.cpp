@@ -17,8 +17,10 @@
 namespace Star {
 
 // For SE compatibility, so that mods don't need to get rewritten.
-LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface, bool removeHoakyCallbacks) {
+LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterfacePtr, bool removeHoakyCallbacks) {
   LuaCallbacks callbacks;
+
+  auto mainInterface = GameObjectRegistry::smuggleWrap(mainInterfacePtr);
 
   callbacks.registerCallback("send", [mainInterface](String const& text, Maybe<String> const& sendMode, Maybe<bool> addBubble, Maybe<JsonObject> metadata) {
     String sendModeStr = sendMode.value("Broadcast");
@@ -121,8 +123,10 @@ LuaCallbacks LuaBindings::makeChatCallbacks(MainInterface* mainInterface, bool r
   return callbacks;
 }
 
-LuaCallbacks LuaBindings::makeClipboardCallbacks(MainInterface* mainInterface) {
+LuaCallbacks LuaBindings::makeClipboardCallbacks(MainInterface* mainInterfacePtr) {
   LuaCallbacks callbacks;
+
+  auto mainInterface = GameObjectRegistry::smuggleWrap(mainInterfacePtr);
 
   callbacks.registerCallback("hasText", [mainInterface]() -> bool {
     return GuiContext::singleton().clipboardHasText();
@@ -137,14 +141,19 @@ LuaCallbacks LuaBindings::makeClipboardCallbacks(MainInterface* mainInterface) {
   return callbacks;
 }
 
-LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface, bool unsafeVersion) {
+LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterfacePtr, bool unsafeVersion) {
   LuaCallbacks callbacks;
 
+  auto mainInterface = GameObjectRegistry::smuggleWrap(mainInterfacePtr);
+
   // From OpenStarbound.
-  callbacks.registerCallbackWithSignature<bool>(
-      "hudVisible", bind(mem_fn(&MainInterface::hudVisible), mainInterface));
-  callbacks.registerCallbackWithSignature<void, bool>(
-      "setHudVisible", bind(mem_fn(&MainInterface::setHudVisible), mainInterface, _1));
+  callbacks.registerCallback("hudVisible", [mainInterface]() -> bool {
+    return mainInterface->hudVisible();
+  });
+
+  callbacks.registerCallback("setHudVisible", [mainInterface](bool newVisibility) -> void {
+    return mainInterface->setHudVisible(newVisibility);
+  });
 
   callbacks.registerCallback("bindCanvas", [mainInterface](String const& canvasName, Maybe<bool> ignoreInterfaceScale) -> Maybe<CanvasWidgetPtr> {
     if (auto canvas = mainInterface->fetchCanvas(canvasName, ignoreInterfaceScale.value(false)))
@@ -153,6 +162,7 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface, b
   });
 
   if (unsafeVersion) {
+    // FezzedOne: Now safe because the pane's lifetime is actually tracked for the Lua bindings.
     callbacks.registerCallback("bindRegisteredPane", [mainInterface](String const& registeredPaneName) -> Maybe<LuaCallbacks> {
       if (auto pane = mainInterface->paneManager()->maybeRegisteredPane(MainInterfacePanesNames.getLeft(registeredPaneName)))
         return pane->makePaneCallbacks();
@@ -261,6 +271,7 @@ LuaCallbacks LuaBindings::makeInterfaceCallbacks(MainInterface* mainInterface, b
 
 // [OpenStarbound] Kae: Added camera bindings.
 LuaCallbacks LuaBindings::makeCameraCallbacks(WorldCamera* camera) {
+  // FezzedOne: Surprisingly, these don't actually need a lifetime check.
   LuaCallbacks callbacks;
 
   callbacks.registerCallbackWithSignature<Vec2F>("position", bind(&WorldCamera::centerWorldPosition, camera));
@@ -284,6 +295,7 @@ LuaCallbacks LuaBindings::makeCameraCallbacks(WorldCamera* camera) {
 }
 
 LuaCallbacks LuaBindings::makeRenderingCallbacks(WorldPainter* worldPainter) {
+  // FezzedOne: Neither do these.
   LuaCallbacks callbacks;
 
   callbacks.registerCallbackWithSignature<void, Json>("setEnabledLayers",

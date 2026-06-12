@@ -1,15 +1,15 @@
 #ifndef STAR_STAT_CONTROLLER_HPP
 #define STAR_STAT_CONTROLLER_HPP
 
-#include "StarObserverStream.hpp"
+#include "StarDamage.hpp"
+#include "StarEntityRenderingTypes.hpp"
+#include "StarLuaActorMovementComponent.hpp"
+#include "StarLuaComponents.hpp"
 #include "StarNetElementSystem.hpp"
+#include "StarNetworkedAnimator.hpp"
+#include "StarObserverStream.hpp"
 #include "StarStatCollection.hpp"
 #include "StarStatusEffectDatabase.hpp"
-#include "StarDamage.hpp"
-#include "StarLuaComponents.hpp"
-#include "StarLuaActorMovementComponent.hpp"
-#include "StarNetworkedAnimator.hpp"
-#include "StarEntityRenderingTypes.hpp"
 
 namespace Star {
 
@@ -197,10 +197,10 @@ private:
   void initPrimaryScript();
   void uninitPrimaryScript();
 
-  void initUniqueEffectScript(UniqueEffectInstance& uniqueEffect);
-  void uninitUniqueEffectScript(UniqueEffectInstance& uniqueEffect);
+  void initUniqueEffectScript(std::shared_ptr<UniqueEffectInstance> uniqueEffect);
+  void uninitUniqueEffectScript(std::shared_ptr<UniqueEffectInstance> uniqueEffect);
 
-  LuaCallbacks makeUniqueEffectCallbacks(UniqueEffectInstance& uniqueEffect);
+  LuaCallbacks makeUniqueEffectCallbacks(std::shared_ptr<UniqueEffectInstance> uniqueEffect);
 
   NetElementGroup m_netGroup;
   StatCollection m_statCollection;
@@ -218,7 +218,8 @@ private:
   // there are two magic keys used for this map: 'entities' and 'environment' for StatusEffectEntity
   // and environmentally applied persistent status effects, respectively
   StringMap<PersistentEffectCategory> m_persistentEffects;
-  StableHashMap<UniqueStatusEffect, UniqueEffectInstance> m_uniqueEffects;
+  // FezzedOne: Need to turn these into `shared_ptr`s for lifetime management since they're exposed to Lua.
+  StableHashMap<UniqueStatusEffect, std::shared_ptr<UniqueEffectInstance>> m_uniqueEffects;
   float m_minimumLiquidStatusEffectPercentage;
   bool m_appliesEnvironmentStatusEffects;
   bool m_appliesWeatherStatusEffects;
@@ -236,6 +237,6 @@ private:
   ObserverStream<DamageNotification> m_recentDamageTaken;
 };
 
-}
+} // namespace Star
 
 #endif

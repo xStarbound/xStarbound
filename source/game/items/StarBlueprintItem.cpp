@@ -26,7 +26,7 @@ BlueprintItem::BlueprintItem(Json const& config, String const& directory, Json c
 }
 
 ItemPtr BlueprintItem::clone() const {
-  return make_shared<BlueprintItem>(*this);
+  return makeObject<BlueprintItem>(*this);
 }
 
 List<Drawable> BlueprintItem::drawables() const {

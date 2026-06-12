@@ -1,19 +1,19 @@
 #include "StarVehicle.hpp"
-#include "StarDataStreamExtra.hpp"
-#include "StarJsonExtra.hpp"
+#include "StarAssets.hpp"
 #include "StarConfigLuaBindings.hpp"
+#include "StarDataStreamExtra.hpp"
 #include "StarEntityLuaBindings.hpp"
-#include "StarLuaGameConverters.hpp"
 #include "StarEntityRendering.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLuaGameConverters.hpp"
 #include "StarMovementControllerLuaBindings.hpp"
 #include "StarNetworkedAnimatorLuaBindings.hpp"
-#include "StarAssets.hpp"
 #include "StarScriptedAnimatorLuaBindings.hpp"
 
 namespace Star {
 
 Vehicle::Vehicle(Json baseConfig, String path, Json dynamicConfig)
-  : m_baseConfig(std::move(baseConfig)), m_path(std::move(path)), m_dynamicConfig(std::move(dynamicConfig)) {
+    : m_baseConfig(std::move(baseConfig)), m_path(std::move(path)), m_dynamicConfig(std::move(dynamicConfig)) {
 
   m_typeName = m_baseConfig.getString("name");
 
@@ -134,11 +134,10 @@ Json Vehicle::dynamicConfig() const {
 
 Json Vehicle::diskStore() const {
   return JsonObject{
-    {"movement", m_movementController.storeState()},
-    {"damageTeam", m_damageTeam.get().toJson()},
-    {"persistent", persistent()},
-    {"scriptStorage", m_scriptComponent.getScriptStorage()}
-  };
+      {"movement", m_movementController.storeState()},
+      {"damageTeam", m_damageTeam.get().toJson()},
+      {"persistent", persistent()},
+      {"scriptStorage", m_scriptComponent.getScriptStorage()}};
 }
 
 void Vehicle::diskLoad(Json diskStore) {
@@ -182,26 +181,29 @@ void Vehicle::init(World* world, EntityId entityId, EntityMode mode) {
   Entity::init(world, entityId, mode);
   m_movementController.init(world);
   m_movementController.setIgnorePhysicsEntities({entityId});
+  auto thisVehicle = GameObjectRegistry::smuggleWrap(this);
   if (isMaster()) {
+    m_scriptComponent.initScriptBindings(this);
+    m_scriptComponent.initMessageBinding(this);
     m_scriptComponent.addCallbacks("vehicle", makeVehicleCallbacks());
     m_scriptComponent.addCallbacks(
-        "config", LuaBindings::makeConfigCallbacks(bind(&Vehicle::configValue, this, _1, _2)));
+        "config", LuaBindings::makeConfigCallbacks(LUA_BIND(&Vehicle::configValue, thisVehicle, _1, _2)));
     m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
-    m_scriptComponent.addCallbacks("mcontroller", LuaBindings::makeMovementControllerCallbacks(&m_movementController));
-    m_scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_networkedAnimator));
+    m_scriptComponent.addCallbacks("mcontroller", LuaBindings::makeMovementControllerCallbacks(&m_movementController, this));
+    m_scriptComponent.addCallbacks("animator", LuaBindings::makeNetworkedAnimatorCallbacks(&m_networkedAnimator, this));
     m_scriptComponent.init(world);
   } else {
     m_slaveHeartbeatTimer.reset();
   }
 
   if (world->isClient()) {
-    m_scriptedAnimator.addCallbacks("animationConfig", LuaBindings::makeScriptedAnimatorCallbacks(&m_networkedAnimator,
-      [this](String const& name, Json const& defaultValue) -> Json {
-        return m_scriptedAnimationParameters.value(name, defaultValue);
-      }));
-    m_scriptedAnimator.addCallbacks("config", LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def) {
-        return configValue(name, def);
-      }));
+    m_scriptedAnimator.initScriptBindings(this);
+    m_scriptedAnimator.initAnimationBindings(this);
+    m_scriptedAnimator.addCallbacks("animationConfig", LuaBindings::makeScriptedAnimatorCallbacks(&m_networkedAnimator, [this, thisVehicle](String const& name, Json const& defaultValue) -> Json { thisVehicle.checkSmuggle(); return m_scriptedAnimationParameters.value(name, defaultValue); }, this));
+    m_scriptedAnimator.addCallbacks("config", LuaBindings::makeConfigCallbacks([this, thisVehicle](String const& name, Json const& def) {
+      thisVehicle.checkSmuggle();
+      return configValue(name, def);
+    }));
     m_scriptedAnimator.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
 
     m_scriptedAnimator.init(world);
@@ -273,15 +275,15 @@ void Vehicle::update(float dt, uint64_t) {
     m_scriptComponent.update(m_scriptComponent.updateDt(dt));
 
     eraseWhere(m_aliveMasterConnections, [](auto& p) {
-        return p.second.tick(GlobalTimestep);
-      });
+      return p.second.tick(GlobalTimestep);
+    });
 
     for (auto& loungePositionPair : m_loungePositions) {
       for (auto& p : loungePositionPair.second.masterControlState) {
         p.second.masterHeld = false;
         filter(p.second.slavesHeld, [this](ConnectionId id) {
-            return m_aliveMasterConnections.contains(id);
-          });
+          return m_aliveMasterConnections.contains(id);
+        });
       }
     }
   } else {
@@ -294,8 +296,8 @@ void Vehicle::update(float dt, uint64_t) {
     for (auto& p : m_loungePositions) {
       if (heartbeat) {
         JsonArray allControlsHeld = transform<JsonArray>(p.second.slaveNewControls, [](LoungeControl control) {
-            return LoungeControlNames.getRight(control);
-          });
+          return LoungeControlNames.getRight(control);
+        });
         world()->sendEntityMessage(entityId(), "control_all", {*m_loungePositions.indexOf(p.first), std::move(allControlsHeld)});
       } else {
         for (auto control : p.second.slaveNewControls.difference(p.second.slaveOldControls))
@@ -401,10 +403,10 @@ bool Vehicle::isInteractive() const {
 
 InteractAction Vehicle::interact(InteractRequest const& request) {
   auto result = m_scriptComponent.invoke<Json>("onInteraction", JsonObject{
-      {"sourceId", request.sourceId},
-      {"sourcePosition", jsonFromVec2F(request.sourcePosition)},
-      {"interactPosition", jsonFromVec2F(request.interactPosition)}
-    }).value();
+                                                                    {"sourceId", request.sourceId},
+                                                                    {"sourcePosition", jsonFromVec2F(request.sourcePosition)},
+                                                                    {"interactPosition", jsonFromVec2F(request.interactPosition)}})
+                    .value();
 
   if (result.isType(Json::Type::String))
     return InteractAction(result.toString(), entityId(), Json());
@@ -448,7 +450,7 @@ LoungeAnchorConstPtr Vehicle::loungeAnchor(size_t positionIndex) const {
   Mat3F partTransformation = m_networkedAnimator.finalPartTransformation(positionConfig.part);
   Vec2F partAnchor = jsonToVec2F(m_networkedAnimator.partProperty(positionConfig.part, positionConfig.partAnchor));
 
-  auto loungePosition = make_shared<LoungeAnchor>();
+  auto loungePosition = makeObject<LoungeAnchor>();
   loungePosition->position = partTransformation.transformVec2(partAnchor) + position();
   if (positionConfig.exitBottomOffset)
     loungePosition->exitBottomPosition = partTransformation.transformVec2(partAnchor + positionConfig.exitBottomOffset.value()) + position();
@@ -581,76 +583,76 @@ LuaCallbacks Vehicle::makeVehicleCallbacks() {
   LuaCallbacks callbacks;
 
   callbacks.registerCallback("controlHeld", [this](String const& loungeName, String const& controlName) {
-      auto const& mc = m_loungePositions.get(loungeName).masterControlState[LoungeControlNames.getLeft(controlName)];
-      return mc.masterHeld || !mc.slavesHeld.empty();
-    });
+    auto const& mc = m_loungePositions.get(loungeName).masterControlState[LoungeControlNames.getLeft(controlName)];
+    return mc.masterHeld || !mc.slavesHeld.empty();
+  });
 
-  callbacks.registerCallback( "aimPosition", [this](String const& loungeName) {
-      return m_loungePositions.get(loungeName).masterAimPosition;
-    });
+  callbacks.registerCallback("aimPosition", [this](String const& loungeName) {
+    return m_loungePositions.get(loungeName).masterAimPosition;
+  });
 
   callbacks.registerCallback("entityLoungingIn", [this](String const& name) -> LuaValue {
-      auto entitiesIn = entitiesLoungingIn(*m_loungePositions.indexOf(name));
-      if (entitiesIn.empty())
-        return LuaNil;
-      return LuaInt(entitiesIn.first());
-    });
+    auto entitiesIn = entitiesLoungingIn(*m_loungePositions.indexOf(name));
+    if (entitiesIn.empty())
+      return LuaNil;
+    return LuaInt(entitiesIn.first());
+  });
 
   callbacks.registerCallback("setLoungeEnabled", [this](String const& name, bool enabled) {
-      m_loungePositions.get(name).enabled.set(enabled);
-    });
+    m_loungePositions.get(name).enabled.set(enabled);
+  });
 
   callbacks.registerCallback("setLoungeOrientation", [this](String const& name, String const& orientation) {
-      m_loungePositions.get(name).orientation.set(LoungeOrientationNames.getLeft(orientation));
-    });
+    m_loungePositions.get(name).orientation.set(LoungeOrientationNames.getLeft(orientation));
+  });
 
   callbacks.registerCallback("setLoungeEmote", [this](String const& name, Maybe<String> emote) {
-      m_loungePositions.get(name).emote.set(std::move(emote));
-    });
+    m_loungePositions.get(name).emote.set(std::move(emote));
+  });
 
   callbacks.registerCallback("setLoungeDance", [this](String const& name, Maybe<String> dance) {
-      m_loungePositions.get(name).dance.set(std::move(dance));
-    });
+    m_loungePositions.get(name).dance.set(std::move(dance));
+  });
 
   callbacks.registerCallback("setLoungeDirectives", [this](String const& name, Maybe<String> directives) {
-      m_loungePositions.get(name).directives.set(std::move(directives));
-    });
+    m_loungePositions.get(name).directives.set(std::move(directives));
+  });
 
   callbacks.registerCallback("setLoungeStatusEffects", [this](String const& name, JsonArray const& statusEffects) {
-      m_loungePositions.get(name).statusEffects.set(statusEffects.transformed(jsonToPersistentStatusEffect));
-    });
+    m_loungePositions.get(name).statusEffects.set(statusEffects.transformed(jsonToPersistentStatusEffect));
+  });
 
   callbacks.registerCallback("setPersistent", [this](bool persistent) {
-      setPersistent(persistent);
-    });
+    setPersistent(persistent);
+  });
 
   callbacks.registerCallback("setInteractive", [this](bool interactive) {
-      m_interactive.set(interactive);
-    });
+    m_interactive.set(interactive);
+  });
 
   callbacks.registerCallback("setDamageTeam", [this](Json damageTeam) {
-      m_damageTeam.set(EntityDamageTeam(damageTeam));
-    });
+    m_damageTeam.set(EntityDamageTeam(damageTeam));
+  });
 
   callbacks.registerCallback("setDamageSourceEnabled", [this](String const& name, bool enabled) {
-      m_damageSources.get(name).enabled.set(enabled);
-    });
+    m_damageSources.get(name).enabled.set(enabled);
+  });
 
   callbacks.registerCallback("setMovingCollisionEnabled", [this](String const& name, bool enabled) {
-      m_movingCollisions.get(name).enabled.set(enabled);
-    });
+    m_movingCollisions.get(name).enabled.set(enabled);
+  });
 
   callbacks.registerCallback("setForceRegionEnabled", [this](String const& name, bool enabled) {
-      m_forceRegions.get(name).enabled.set(enabled);
-    });
+    m_forceRegions.get(name).enabled.set(enabled);
+  });
 
   callbacks.registerCallback("destroy", [this]() {
-      m_shouldDestroy = true;
-    });
+    m_shouldDestroy = true;
+  });
 
   callbacks.registerCallback("setAnimationParameter", [this](String name, Json value) {
-      m_scriptedAnimationParameters.set(std::move(name), std::move(value));
-    });
+    m_scriptedAnimationParameters.set(std::move(name), std::move(value));
+  });
 
   return callbacks;
 }
@@ -659,4 +661,4 @@ Json Vehicle::configValue(String const& name, Json def) const {
   return jsonMergeQueryDef(name, std::move(def), m_baseConfig, m_dynamicConfig);
 }
 
-}
+} // namespace Star

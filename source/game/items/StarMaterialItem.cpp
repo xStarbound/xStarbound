@@ -60,7 +60,7 @@ MaterialItem::MaterialItem(Json const& config, String const& directory, Json con
 }
 
 ItemPtr MaterialItem::clone() const {
-  return make_shared<MaterialItem>(*this);
+  return makeObject<MaterialItem>(*this);
 }
 
 void MaterialItem::init(ToolUserEntity* owner, ToolHand hand) {

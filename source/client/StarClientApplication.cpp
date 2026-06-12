@@ -7,6 +7,7 @@
 #include "StarInput.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarLogging.hpp"
+#include "StarLua.hpp"
 #include "StarPlayer.hpp"
 #include "StarPlayerLog.hpp"
 #include "StarPlayerStorage.hpp"
@@ -20,6 +21,7 @@
 #include "StarInputLuaBindings.hpp"
 #include "StarInterfaceLuaBindings.hpp"
 #include "StarVoiceLuaBindings.hpp"
+#include <atomic>
 
 // Include Tracy here to measure frame times.
 #if defined TRACY_ENABLE
@@ -185,6 +187,19 @@ void ClientApplication::applicationInit(ApplicationControllerPtr appController) 
   Application::applicationInit(appController);
 
   auto assets = m_root->assets();
+
+  { /* FezzedOne: Check the smuggling setting *once* at startup after asset preprocessing. */
+    auto jLegacySmuggling = Root::singleton().configuration()->get("legacySmuggling");
+    LuaSmugglingSetting legacySmuggling = LuaSmugglingSetting::Disabled;
+    if (jLegacySmuggling.isType(Json::Type::Bool))
+      legacySmuggling = jLegacySmuggling.toBool() ? LuaSmugglingSetting::Enabled : LuaSmugglingSetting::Disabled;
+    GameObjectRegistry::setSmugglingSetting(legacySmuggling);
+    if (legacySmuggling == LuaSmugglingSetting::Enabled)
+      Logger::info("[xSB] Lua context isolation disabled. Running in \"Lua smuggling\" compatibility mode.");
+    else
+      Logger::info("[xSB] Lua context isolation enabled.");
+  }
+
   // m_minInterfaceScale = assets->json("/interface.config:minInterfaceScale").toInt();
   // m_maxInterfaceScale = assets->json("/interface.config:maxInterfaceScale").toInt();
   // m_crossoverRes = jsonToVec2F(assets->json("/interface.config:interfaceCrossoverRes"));
@@ -283,7 +298,7 @@ void ClientApplication::renderInit(RendererPtr renderer) {
   m_guiContext->renderInit(renderer);
 
   m_cinematicOverlay = make_shared<Cinematic>();
-  m_errorScreen = make_shared<ErrorScreen>();
+  m_errorScreen = makeObject<ErrorScreen>();
 
   if (m_titleScreen)
     m_titleScreen->renderInit(renderer);
@@ -597,7 +612,7 @@ void ClientApplication::changeState(MainAppState newState) {
     m_universeClient->setLuaCallbacks("input", LuaBindings::makeInputCallbacks());
     m_universeClient->setLuaCallbacks("voice", LuaBindings::makeVoiceCallbacks());
 
-    // auto heldScriptPanes = make_shared<List<MainInterface::ScriptPaneInfo>>();
+    // auto heldScriptPanes = makeObject<List<MainInterface::ScriptPaneInfo>>();
 
     m_universeClient->playerReloadPreCallback() = [&](bool resetInterface) {
       if (!resetInterface)
@@ -727,7 +742,7 @@ void ClientApplication::changeState(MainAppState newState) {
     } else {
       if (!m_universeServer) {
         try {
-          m_universeServer = make_shared<UniverseServer>(m_root->toStoragePath("universe"));
+          m_universeServer = makeObject<UniverseServer>(m_root->toStoragePath("universe"));
           m_universeServer->start();
         } catch (StarException const& e) {
           setError("Unable to start local server", e);
@@ -743,9 +758,13 @@ void ClientApplication::changeState(MainAppState newState) {
 
     m_titleScreen->stopMusic();
 
-    m_mainInterface = make_shared<MainInterface>(m_universeClient, m_worldPainter, m_cinematicOverlay);
-    m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), true), 1);
-    m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), false), 2);
+    // FezzedOne: Needs `makeObject` for legacy Lua smuggling because it's completely reset on player swaps.
+    m_mainInterface = makeObject<MainInterface>(m_universeClient, m_worldPainter, m_cinematicOverlay);
+    m_mainInterface->reset(); // Needs to be invoked separately to ensure the main interface is registered before any pane scripts are run.
+    auto legacySmuggling = GameObjectRegistry::smugglingEnabled();
+    if (!legacySmuggling)
+      m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), true), 1);
+    m_universeClient->setLuaCallbacks("interface", LuaBindings::makeInterfaceCallbacks(m_mainInterface.get(), legacySmuggling), legacySmuggling ? 0 : 2);
     // [OpenStarbound] Kae: Added camera callbacks.
     m_universeClient->setLuaCallbacks("camera", LuaBindings::makeCameraCallbacks(&m_worldPainter->camera()));
     m_universeClient->setLuaCallbacks("clipboard", LuaBindings::makeClipboardCallbacks(m_mainInterface.get()));

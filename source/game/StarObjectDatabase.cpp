@@ -154,7 +154,7 @@ List<ObjectOrientationPtr> ObjectDatabase::parseOrientations(String const& path,
   }
 
   for (auto const& orientationSettings : configs) {
-    auto orientation = make_shared<ObjectOrientation>();
+    auto orientation = makeObject<ObjectOrientation>();
     orientation->config = orientationSettings;
 
     if (orientationSettings.contains("imageLayers")) {
@@ -358,17 +358,17 @@ ObjectPtr ObjectDatabase::createObject(String const& objectName, Json const& par
   auto config = getConfig(objectName);
 
   if (config->type == "object") {
-    return make_shared<Object>(config, parameters);
+    return makeObject<Object>(config, parameters);
   } else if (config->type == "loungeable") {
-    return make_shared<LoungeableObject>(config, parameters);
+    return makeObject<LoungeableObject>(config, parameters);
   } else if (config->type == "container") {
-    return make_shared<ContainerObject>(config, parameters);
+    return makeObject<ContainerObject>(config, parameters);
   } else if (config->type == "farmable") {
-    return make_shared<FarmableObject>(config, parameters);
+    return makeObject<FarmableObject>(config, parameters);
   } else if (config->type == "teleporter") {
-    return make_shared<TeleporterObject>(config, parameters);
+    return makeObject<TeleporterObject>(config, parameters);
   } else if (config->type == "physics") {
-    return make_shared<PhysicsObject>(config, parameters);
+    return makeObject<PhysicsObject>(config, parameters);
   } else {
     throw ObjectException(strf("Unknown objectType '{}' constructing object '{}'", config->type, objectName));
   }
@@ -410,7 +410,7 @@ ObjectConfigPtr ObjectDatabase::readConfig(String const& path) {
 
     Json config = assets->json(path);
 
-    auto objectConfig = make_shared<ObjectConfig>();
+    auto objectConfig = makeObject<ObjectConfig>();
     objectConfig->path = path;
     objectConfig->config = config;
 

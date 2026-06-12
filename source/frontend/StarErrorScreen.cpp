@@ -1,16 +1,16 @@
 #include "StarErrorScreen.hpp"
-#include "StarGuiReader.hpp"
-#include "StarRoot.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarPaneManager.hpp"
-#include "StarLabelWidget.hpp"
 #include "StarAssets.hpp"
 #include "StarGameTypes.hpp"
+#include "StarGuiReader.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLabelWidget.hpp"
+#include "StarPaneManager.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
 ErrorScreen::ErrorScreen() {
-  m_paneManager = make_shared<PaneManager>();
+  m_paneManager = makeObject<PaneManager>();
 
   m_accepted = true;
 
@@ -18,11 +18,11 @@ ErrorScreen::ErrorScreen() {
 
   m_guiContext = GuiContext::singletonPtr();
 
-  m_errorPane = make_shared<Pane>();
+  m_errorPane = makeObject<Pane>();
   GuiReader reader;
   reader.registerCallback("btnOk", [this](Widget*) {
-      m_accepted = true;
-    });
+    m_accepted = true;
+  });
   reader.construct(assets->json("/interface/windowconfig/error.config:paneLayout"), m_errorPane.get());
 }
 
@@ -106,4 +106,4 @@ unsigned ErrorScreen::windowWidth() const {
   return m_guiContext->windowWidth();
 }
 
-}
+} // namespace Star

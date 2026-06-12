@@ -36,7 +36,7 @@ ScriptPane::ScriptPane(UniverseClientPtr client, Json config, EntityId sourceEnt
 
   m_script.addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(m_client->mainPlayer()).get()));
   m_script.addCallbacks("player", LuaBindings::makePlayerCallbacks(m_client->mainPlayer().get()));
-  m_script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_client->mainPlayer()->effectsAnimator().get()));
+  m_script.addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_client->mainPlayer()->effectsAnimator().get(), m_client->mainPlayer()->effectsAnimator().get()));
   m_script.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_client->mainPlayer()->statusController()));
   m_script.addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client.get()));
 
@@ -57,7 +57,11 @@ void ScriptPane::displayed() {
   auto world = m_client->worldClient();
   if (world && world->inWorld()) {
     auto config = Root::singleton().configuration();
-    m_script.setLuaRoot(make_shared<LuaRoot>());
+    auto worldLuaRoot = world->luaRoot();
+    if (GameObjectRegistry::smugglingEnabled() && worldLuaRoot)
+      m_script.setLuaRoot(worldLuaRoot);
+    else
+      m_script.setLuaRoot(make_shared<LuaRoot>());
 
     auto assets = Root::singleton().assets();
     Json clientConfig = assets->json("/client.config");
@@ -86,8 +90,8 @@ PanePtr ScriptPane::createTooltip(Vec2I const& screenPosition) {
     if (result->type() == Json::Type::String) {
       return SimpleTooltipBuilder::buildTooltip(result->toString());
     } else {
-      PanePtr tooltip = make_shared<Pane>();
-      m_reader->construct(*result, tooltip.get());
+      PanePtr tooltip = makeObject<Pane>();
+      m_guiReader->construct(*result, tooltip.get());
       return tooltip;
     }
   } else {

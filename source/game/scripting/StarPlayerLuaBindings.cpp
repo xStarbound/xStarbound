@@ -53,8 +53,10 @@ Maybe<InventorySlot> toInventorySlot(LuaValue const& luaValue) {
     return {};
 }
 
-LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player, bool removeChatCallbacks) {
+LuaCallbacks LuaBindings::makePlayerCallbacks(Player* playerPtr, bool removeChatCallbacks) {
   LuaCallbacks callbacks;
+
+  auto player = GameObjectRegistry::smuggleWrap(playerPtr);
 
   // FezzedOne: `"save"` works identically to `"getPlayerJson"`, and is here for OpenSB compatibility.
   callbacks.registerCallback("save", [player]() -> Json { return player->diskStore(); });
@@ -384,7 +386,7 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* player, bool removeChatCal
 
   callbacks.registerCallback("startQuest", [player](Json const& quest, Maybe<String> const& serverUuid, Maybe<String> const& worldId) {
     auto questArc = QuestArcDescriptor::fromJson(quest);
-    auto followUp = make_shared<Quest>(questArc, 0, player);
+    auto followUp = makeObject<Quest>(questArc, 0, player.get());
     if (serverUuid)
       followUp->setServerUuid(Uuid(*serverUuid));
     if (worldId)

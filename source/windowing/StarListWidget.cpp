@@ -95,7 +95,7 @@ WidgetPtr ListWidget::addItem(WidgetPtr existingItem) {
 }
 
 WidgetPtr ListWidget::constructWidget() {
-  WidgetPtr newItem = make_shared<Widget>();
+  WidgetPtr newItem = makeObject<Widget>();
   m_reader.construct(m_schema.get("listTemplate"), newItem.get());
   newItem->setSize(m_memberSize);
   m_doScissor ? newItem->enableScissoring() : newItem->disableScissoring();

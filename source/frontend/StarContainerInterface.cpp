@@ -1,28 +1,28 @@
 #include "StarContainerInterface.hpp"
+#include "StarAugmentItem.hpp"
 #include "StarCasting.hpp"
-#include "StarContainerEntity.hpp"
-#include "StarWorldClient.hpp"
-#include "StarRoot.hpp"
-#include "StarItemTooltip.hpp"
-#include "StarItemGridWidget.hpp"
-#include "StarLabelWidget.hpp"
-#include "StarImageWidget.hpp"
-#include "StarPaneManager.hpp"
-#include "StarFuelWidget.hpp"
-#include "StarPlayer.hpp"
-#include "StarItemDatabase.hpp"
-#include "StarObject.hpp"
-#include "StarPlayerInventory.hpp"
 #include "StarConfigLuaBindings.hpp"
+#include "StarContainerEntity.hpp"
 #include "StarEntityLuaBindings.hpp"
-#include "StarPlayerLuaBindings.hpp"
+#include "StarFuelWidget.hpp"
+#include "StarImageWidget.hpp"
+#include "StarInput.hpp"
+#include "StarInputLuaBindings.hpp"
+#include "StarInterfaceLuaBindings.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarItemGridWidget.hpp"
+#include "StarItemTooltip.hpp"
+#include "StarLabelWidget.hpp"
 #include "StarNetworkedAnimatorLuaBindings.hpp"
+#include "StarObject.hpp"
+#include "StarPaneManager.hpp"
+#include "StarPlayer.hpp"
+#include "StarPlayerInventory.hpp"
+#include "StarPlayerLuaBindings.hpp"
+#include "StarRoot.hpp"
 #include "StarStatusControllerLuaBindings.hpp"
 #include "StarWidgetLuaBindings.hpp"
-#include "StarAugmentItem.hpp"
-#include "StarInput.hpp"
-#include "StarInterfaceLuaBindings.hpp"
-#include "StarInputLuaBindings.hpp"
+#include "StarWorldClient.hpp"
 #include "StarWorldPainter.hpp"
 
 namespace Star {
@@ -34,7 +34,17 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
   m_worldClient = worldClient;
   m_player = player;
   m_containerInteractor = std::move(containerInteractor);
+  m_mainInterface = mainInterface;
+}
 
+ContainerPane::~ContainerPane() {
+  {
+    MutexLocker locker(ContainerPane::s_globalContainerPaneMutex);
+    ContainerPane::s_globalClientPaneRegistry.remove(this);
+  }
+}
+
+void ContainerPane::displayed() {
   auto container = m_containerInteractor->openContainer();
   auto guiConfig = container->containerGuiConfig();
 
@@ -43,25 +53,38 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
       m_script.emplace();
       m_script->setScripts(*scripts);
     }
+    m_script->initMessageBinding(this);
+    m_script->initScriptBindings(this);
     m_script->addCallbacks("widget", LuaBindings::makeWidgetCallbacks(this));
-    m_script->addCallbacks("config", LuaBindings::makeConfigCallbacks( [guiConfig](String const& name, Json const& def) {
-        return guiConfig.query(name, def);
-      }));
+    m_script->addCallbacks("config", LuaBindings::makeConfigCallbacks([guiConfig](String const& name, Json const& def) {
+      return guiConfig.query(name, def);
+    }));
     m_script->addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(m_player).get()));
     m_script->addCallbacks("player", LuaBindings::makePlayerCallbacks(m_player.get()));
-    m_script->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_player->effectsAnimator().get()));
+    m_script->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_player->effectsAnimator().get(), m_player->effectsAnimator().get()));
     m_script->addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_player->statusController()));
 
     LuaCallbacks containerPaneCallbacks;
-    containerPaneCallbacks.registerCallback("containerEntityId", [this]() -> Maybe<EntityId> {
-        return m_containerInteractor->openContainerId();
-      });
-    containerPaneCallbacks.registerCallback("playerEntityId", [this]() { return m_player->entityId(); });
-    containerPaneCallbacks.registerCallback("dismiss", [this]() { dismiss(); });
+
+    auto thisContainerPane = GameObjectRegistry::smuggleWrap(this);
+
+    containerPaneCallbacks.registerCallback("containerEntityId", [this, thisContainerPane]() -> Maybe<EntityId> {
+      thisContainerPane.checkSmuggle();
+      return m_containerInteractor->openContainerId();
+    });
+    containerPaneCallbacks.registerCallback("playerEntityId", [this, thisContainerPane]() {
+      thisContainerPane.checkSmuggle();
+      return m_player->entityId();
+    });
+    containerPaneCallbacks.registerCallback("dismiss", [this, thisContainerPane]() {
+      thisContainerPane.checkSmuggle();
+      dismiss();
+    });
     m_script->addCallbacks("pane", containerPaneCallbacks);
     m_script->addCallbacks("input", LuaBindings::makeInputCallbacks());
     // FezzedOne: The clipboard callbacks don't actually use the main interface, so it's fine to put a null pointer there.
     m_script->addCallbacks("clipboard", LuaBindings::makeClipboardCallbacks(nullptr));
+    auto& mainInterface = m_mainInterface;
     if (mainInterface) {
       m_script->addCallbacks("interface", LuaBindings::makeInterfaceCallbacks(mainInterface, true));
       m_script->addCallbacks("camera", LuaBindings::makeCameraCallbacks(&mainInterface->worldPainter()->camera()));
@@ -96,43 +119,43 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
 
   m_reader.registerCallback("close", [this](Widget*) { dismiss(); });
   m_reader.registerCallback("itemGrid", [=](Widget* paneObj) {
-      if (auto itemGrid = as<ItemGridWidget>(paneObj))
-        swapSlot(itemGrid);
-      else
-        throw GuiException("Invalid object type, expected ItemGridWidget.");
-    });
+    if (auto itemGrid = as<ItemGridWidget>(paneObj))
+      swapSlot(itemGrid);
+    else
+      throw GuiException("Invalid object type, expected ItemGridWidget.");
+  });
   m_reader.registerCallback("itemGrid.right", [=](Widget* paneObj) {
-      if (auto itemGrid = as<ItemGridWidget>(paneObj))
-        rightClickCallback(itemGrid->selectedIndex());
-      else
-        throw GuiException("Invalid object type, expected ItemGridWidget.");
-    });
+    if (auto itemGrid = as<ItemGridWidget>(paneObj))
+      rightClickCallback(itemGrid->selectedIndex());
+    else
+      throw GuiException("Invalid object type, expected ItemGridWidget.");
+  });
 
   m_reader.registerCallback("itemGrid2", [=](Widget* paneObj) {
-      if (auto itemGrid = as<ItemGridWidget>(paneObj))
-        swapSlot(itemGrid);
-      else
-        throw GuiException("Invalid object type, expected ItemGridWidget.");
-    });
+    if (auto itemGrid = as<ItemGridWidget>(paneObj))
+      swapSlot(itemGrid);
+    else
+      throw GuiException("Invalid object type, expected ItemGridWidget.");
+  });
   m_reader.registerCallback("itemGrid2.right", [=](Widget* paneObj) {
-      if (auto itemGrid = as<ItemGridWidget>(paneObj))
-        rightClickCallback(itemGrid->selectedIndex());
-      else
-        throw GuiException("Invalid object type, expected ItemGridWidget.");
-    });
+    if (auto itemGrid = as<ItemGridWidget>(paneObj))
+      rightClickCallback(itemGrid->selectedIndex());
+    else
+      throw GuiException("Invalid object type, expected ItemGridWidget.");
+  });
 
   m_reader.registerCallback("outputItemGrid", [=](Widget* paneObj) {
-      if (auto itemGrid = as<ItemGridWidget>(paneObj))
-        swapSlot(itemGrid);
-      else
-        throw GuiException("Invalid object type, expected ItemGridWidget.");
-    });
+    if (auto itemGrid = as<ItemGridWidget>(paneObj))
+      swapSlot(itemGrid);
+    else
+      throw GuiException("Invalid object type, expected ItemGridWidget.");
+  });
   m_reader.registerCallback("outputItemGrid.right", [=](Widget* paneObj) {
-      if (auto itemGrid = as<ItemGridWidget>(paneObj))
-        rightClickCallback(itemGrid->selectedIndex());
-      else
-        throw GuiException("Invalid object type, expected ItemGridWidget.");
-    });
+    if (auto itemGrid = as<ItemGridWidget>(paneObj))
+      rightClickCallback(itemGrid->selectedIndex());
+    else
+      throw GuiException("Invalid object type, expected ItemGridWidget.");
+  });
 
   m_reader.registerCallback("toggleCrafting", [=](Widget*) { toggleCrafting(); });
 
@@ -150,7 +173,7 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
   if (auto countWidget = fetchChild<LabelWidget>("count"))
     countWidget->setText(countWidget->text().replace("<slots>", toString(container->containerSize())));
 
-  m_itemBag = make_shared<ItemBag>(container->containerSize());
+  m_itemBag = makeObject<ItemBag>(container->containerSize());
   auto items = container->containerItems();
 
   fetchChild<ItemGridWidget>("itemGrid")->setItemBag(m_itemBag);
@@ -162,7 +185,7 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
   if (container->iconItem()) {
     auto itemDatabase = Root::singleton().itemDatabase();
     auto iconItem = itemDatabase->itemShared(container->iconItem());
-    auto icon = make_shared<ItemSlotWidget>(iconItem, "/interface/inventory/portrait.png");
+    auto icon = makeObject<ItemSlotWidget>(iconItem, "/interface/inventory/portrait.png");
     icon->showDurability(false);
     icon->showRarity(false);
     icon->setBackingImageAffinity(true, true);
@@ -179,16 +202,7 @@ ContainerPane::ContainerPane(WorldClientPtr worldClient, PlayerPtr player, Conta
     MutexLocker locker(ContainerPane::s_globalContainerPaneMutex);
     ContainerPane::s_globalClientPaneRegistry.append(this);
   }
-}
 
-ContainerPane::~ContainerPane() {
-  {
-    MutexLocker locker(ContainerPane::s_globalContainerPaneMutex);
-    ContainerPane::s_globalClientPaneRegistry.remove(this);
-  }
-}
-
-void ContainerPane::displayed() {
   Pane::displayed();
 
   m_expectingSwap = ExpectingSwap::None;
@@ -342,7 +356,7 @@ void ContainerPane::update(float dt) {
   }
 }
 
-Maybe<Json> ContainerPane::receivePaneMessages(const String &message, bool localMessage, const JsonArray &args) {
+Maybe<Json> ContainerPane::receivePaneMessages(const String& message, bool localMessage, const JsonArray& args) {
   Maybe<Json> result = {};
   bool isChatMessage = message == "chatMessage" || message == "newChatMessage";
   JsonArray results = JsonArray{};
@@ -363,4 +377,4 @@ Maybe<Json> ContainerPane::receivePaneMessages(const String &message, bool local
   return isChatMessage ? Json(results) : result;
 }
 
-}
+} // namespace Star

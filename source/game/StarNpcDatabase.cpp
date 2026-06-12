@@ -1,16 +1,16 @@
 #include "StarNpcDatabase.hpp"
-#include "StarEncode.hpp"
-#include "StarRandom.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarNpc.hpp"
-#include "StarRoot.hpp"
-#include "StarItemDatabase.hpp"
-#include "StarSpeciesDatabase.hpp"
-#include "StarNameGenerator.hpp"
-#include "StarStoredFunctions.hpp"
+#include "StarArmors.hpp"
 #include "StarAssets.hpp"
 #include "StarEncode.hpp"
-#include "StarArmors.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLua.hpp"
+#include "StarNameGenerator.hpp"
+#include "StarNpc.hpp"
+#include "StarRandom.hpp"
+#include "StarRoot.hpp"
+#include "StarSpeciesDatabase.hpp"
+#include "StarStoredFunctions.hpp"
 
 namespace Star {
 
@@ -317,16 +317,16 @@ NpcVariant NpcDatabase::readNpcVariantFromJson(Json const& data) const {
 }
 
 NpcPtr NpcDatabase::createNpc(NpcVariant const& npcVariant) const {
-  return make_shared<Npc>(npcVariant);
+  return makeObject<Npc>(npcVariant);
 }
 
 NpcPtr NpcDatabase::diskLoadNpc(Json const& diskStore) const {
   auto npcVariant = readNpcVariantFromJson(diskStore.get("npcVariant"));
-  return make_shared<Npc>(npcVariant, diskStore);
+  return makeObject<Npc>(npcVariant, diskStore);
 }
 
 NpcPtr NpcDatabase::netLoadNpc(ByteArray const& netStore) const {
-  return make_shared<Npc>(readNpcVariant(netStore));
+  return makeObject<Npc>(readNpcVariant(netStore));
 }
 
 List<Drawable> NpcDatabase::npcPortrait(NpcVariant const& npcVariant, PortraitMode mode) const {
@@ -391,4 +391,4 @@ Json NpcDatabase::mergeConfigValues(Json const& base, Json const& merger) const 
   }
 }
 
-}
+} // namespace Star

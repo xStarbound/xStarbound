@@ -20,7 +20,7 @@ CodexItem::CodexItem(Json const& config, String const& directory, Json const& da
 }
 
 ItemPtr CodexItem::clone() const {
-  return make_shared<CodexItem>(*this);
+  return makeObject<CodexItem>(*this);
 }
 
 List<Drawable> CodexItem::drawables() const {

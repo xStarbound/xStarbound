@@ -49,6 +49,8 @@ void SystemWorldServerThread::setPause(shared_ptr<const atomic<bool>> pause) {
 }
 
 void SystemWorldServerThread::run() {
+  GameObjectRegistry::registerGameObject(m_systemWorld.get(), m_systemWorld);
+
   TickRateApproacher tickApproacher(1.0 / SystemWorldTimestep, 0.5);
 
   while (!m_stop) {

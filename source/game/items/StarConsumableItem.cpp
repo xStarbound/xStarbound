@@ -25,7 +25,7 @@ ConsumableItem::ConsumableItem(Json const& config, String const& directory, Json
 }
 
 ItemPtr ConsumableItem::clone() const {
-  return make_shared<ConsumableItem>(*this);
+  return makeObject<ConsumableItem>(*this);
 }
 
 List<Drawable> ConsumableItem::drawables() const {

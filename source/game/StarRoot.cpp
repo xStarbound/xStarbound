@@ -174,6 +174,8 @@ Root::Root(Settings settings) {
         writeConfig();
       }
 
+      GameObjectRegistry::cleanUpRegistry();
+
       m_maintenanceStopCondition.wait(m_maintenanceStopMutex, RootMaintenanceSleep);
     }
   });
@@ -286,6 +288,7 @@ void Root::reload() {
     MutexLocker configurationLock(m_configurationMutex);
     MutexLocker assetsLock(m_assetsMutex);
 
+    GameObjectRegistry::cleanUpRegistry();
     writeConfig();
 
     m_entityFactory.reset();
@@ -330,6 +333,7 @@ void Root::reload() {
     m_collectionDatabase.reset();
     m_assets.reset();
     m_configuration.reset();
+    GameObjectRegistry::cleanUpRegistry();
   }
 
   m_reloadListeners.trigger();
@@ -337,6 +341,7 @@ void Root::reload() {
 
 void Root::hotReload() {
   MutexLocker assetsLock(m_assetsMutex);
+  GameObjectRegistry::cleanUpRegistry();
   m_assets->hotReload();
 }
 
@@ -403,6 +408,8 @@ void Root::fullyLoad() {
     if (m_assets)
       m_assets->clearCache();
   }
+
+  GameObjectRegistry::cleanUpRegistry();
 }
 
 void Root::cleanUpImageMetadata() {

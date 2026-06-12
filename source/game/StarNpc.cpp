@@ -64,11 +64,11 @@ Npc::Npc(NpcVariant const& npcVariant)
   auto movementParameters = ActorMovementParameters(m_npcVariant.movementParameters);
   if (!movementParameters.physicsEffectCategories)
     movementParameters.physicsEffectCategories = StringSet({"npc"});
-  m_movementController = make_shared<ActorMovementController>(movementParameters);
+  m_movementController = makeObject<ActorMovementController>(movementParameters);
   m_humanoid.setIdentity(m_npcVariant.humanoidIdentity);
   m_deathParticleBurst.set(m_humanoid.defaultDeathParticles());
 
-  m_statusController = make_shared<StatusController>(m_npcVariant.statusControllerSettings);
+  m_statusController = makeObject<StatusController>(m_npcVariant.statusControllerSettings);
   m_statusController->setPersistentEffects("innate", m_npcVariant.innateStatusEffects);
   auto speciesDefinition = Root::singleton().speciesDatabase()->species(species());
   m_statusController->setPersistentEffects("species", speciesDefinition->statusEffects());
@@ -76,15 +76,15 @@ Npc::Npc(NpcVariant const& npcVariant)
   if (!m_statusController->statusProperty("effectDirectives"))
     m_statusController->setStatusProperty("effectDirectives", speciesDefinition->effectDirectives());
 
-  m_effectEmitter = make_shared<EffectEmitter>();
+  m_effectEmitter = makeObject<EffectEmitter>();
 
   m_hitDamageNotificationLimiter = 0;
   m_hitDamageNotificationLimit = assets->json("/npcs/npc.config:hitDamageNotificationLimit").toInt();
 
   m_blinkCooldownTimer = GameTimer();
 
-  m_armor = make_shared<ArmorWearer>(this);
-  m_tools = make_shared<ToolUser>();
+  m_armor = makeObject<ArmorWearer>(this);
+  m_tools = makeObject<ToolUser>();
 
   m_aggressive.set(false);
 
@@ -181,13 +181,16 @@ void Npc::init(World* world, EntityId entityId, EntityMode mode) {
     auto itemDatabase = Root::singleton().itemDatabase();
     for (auto const& item : m_npcVariant.items)
       setItemSlot(item.first, item.second);
+    auto thisNpc = GameObjectRegistry::smuggleWrap(this);
+    m_scriptComponent.initScriptBindings(this);
+    m_scriptComponent.initMessageBinding(this);
     m_scriptComponent.addCallbacks("npc", makeNpcCallbacks());
     m_scriptComponent.addCallbacks("config",
-        LuaBindings::makeConfigCallbacks([this](String const& name, Json const& def) { return m_npcVariant.scriptConfig.query(name, def); }));
+        LuaBindings::makeConfigCallbacks([this, thisNpc](String const& name, Json const& def) { thisNpc.checkSmuggle(); return m_npcVariant.scriptConfig.query(name, def); }));
     m_scriptComponent.addCallbacks("entity", LuaBindings::makeEntityCallbacks(this));
     m_scriptComponent.addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_statusController.get()));
-    m_scriptComponent.addCallbacks("behavior", LuaBindings::makeBehaviorLuaCallbacks(&m_behaviors));
-    m_scriptComponent.addActorMovementCallbacks(m_movementController.get());
+    m_scriptComponent.addCallbacks("behavior", LuaBindings::makeBehaviorLuaCallbacks(&m_behaviors, this));
+    m_scriptComponent.addActorMovementCallbacks(m_movementController.get(), this);
     m_scriptComponent.init(world);
   }
 }
@@ -660,29 +663,32 @@ void Npc::tickShared(float dt) {
 LuaCallbacks Npc::makeNpcCallbacks() {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallback("toAbsolutePosition", [this](Vec2F const& p) { return getAbsolutePosition(p); });
+  auto thisNpc = GameObjectRegistry::smuggleWrap(this);
 
-  callbacks.registerCallback("species", [this]() { return m_npcVariant.species; });
+  callbacks.registerCallback("toAbsolutePosition", [this, thisNpc](Vec2F const& p) { thisNpc.checkSmuggle(); return getAbsolutePosition(p); });
 
-  callbacks.registerCallback("gender", [this]() { return GenderNames.getRight(m_humanoid.identity().gender); });
+  callbacks.registerCallback("species", [this, thisNpc]() { thisNpc.checkSmuggle(); return m_npcVariant.species; });
 
-  callbacks.registerCallback("humanoidIdentity", [this]() { return m_humanoid.identity().toJson(); });
+  callbacks.registerCallback("gender", [this, thisNpc]() {thisNpc.checkSmuggle();  return GenderNames.getRight(m_humanoid.identity().gender); });
 
-  callbacks.registerCallback("npcType", [this]() { return npcType(); });
+  callbacks.registerCallback("humanoidIdentity", [this, thisNpc]() {thisNpc.checkSmuggle();  return m_humanoid.identity().toJson(); });
 
-  callbacks.registerCallback("seed", [this]() { return m_npcVariant.seed; });
+  callbacks.registerCallback("npcType", [this, thisNpc]() {thisNpc.checkSmuggle();  return npcType(); });
 
-  callbacks.registerCallback("level", [this]() { return m_npcVariant.level; });
+  callbacks.registerCallback("seed", [this, thisNpc]() {thisNpc.checkSmuggle();  return m_npcVariant.seed; });
 
-  callbacks.registerCallback("dropPools", [this]() { return m_dropPools.get(); });
+  callbacks.registerCallback("level", [this, thisNpc]() {thisNpc.checkSmuggle();  return m_npcVariant.level; });
 
-  callbacks.registerCallback("setDropPools", [this](StringList const& dropPools) { m_dropPools.set(dropPools); });
+  callbacks.registerCallback("dropPools", [this, thisNpc]() {thisNpc.checkSmuggle();  return m_dropPools.get(); });
 
-  callbacks.registerCallback("energy", [this]() { return m_statusController->resource("energy"); });
+  callbacks.registerCallback("setDropPools", [this, thisNpc](StringList const& dropPools) {thisNpc.checkSmuggle();  m_dropPools.set(dropPools); });
 
-  callbacks.registerCallback("maxEnergy", [this]() { return m_statusController->resourceMax("energy"); });
+  callbacks.registerCallback("energy", [this, thisNpc]() {thisNpc.checkSmuggle();  return m_statusController->resource("energy"); });
 
-  callbacks.registerCallback("say", [this](String line, Maybe<StringMap<String>> const& tags, Json const& config) {
+  callbacks.registerCallback("maxEnergy", [this, thisNpc]() {thisNpc.checkSmuggle();  return m_statusController->resourceMax("energy"); });
+
+  callbacks.registerCallback("say", [this, thisNpc](String line, Maybe<StringMap<String>> const& tags, Json const& config) {
+    thisNpc.checkSmuggle();
     if (tags)
       line = line.replaceTags(*tags, false);
 
@@ -694,7 +700,8 @@ LuaCallbacks Npc::makeNpcCallbacks() {
     return false;
   });
 
-  callbacks.registerCallback("sayPortrait", [this](String line, String portrait, Maybe<StringMap<String>> const& tags, Json const& config) {
+  callbacks.registerCallback("sayPortrait", [this, thisNpc](String line, String portrait, Maybe<StringMap<String>> const& tags, Json const& config) {
+    thisNpc.checkSmuggle();
     if (tags)
       line = line.replaceTags(*tags, false);
 
@@ -706,13 +713,14 @@ LuaCallbacks Npc::makeNpcCallbacks() {
     return false;
   });
 
-  callbacks.registerCallback("emote", [this](String const& arg1) { addEmote(HumanoidEmoteNames.getLeft(arg1)); });
+  callbacks.registerCallback("emote", [this, thisNpc](String const& arg1) {thisNpc.checkSmuggle();  addEmote(HumanoidEmoteNames.getLeft(arg1)); });
 
-  callbacks.registerCallback("dance", [this](Maybe<String> const& danceName) { setDance(danceName); });
+  callbacks.registerCallback("dance", [this, thisNpc](Maybe<String> const& danceName) {thisNpc.checkSmuggle();  setDance(danceName); });
 
-  callbacks.registerCallback("setInteractive", [this](bool interactive) { m_isInteractive.set(interactive); });
+  callbacks.registerCallback("setInteractive", [this, thisNpc](bool interactive) {thisNpc.checkSmuggle();  m_isInteractive.set(interactive); });
 
-  callbacks.registerCallback("setLounging", [this](EntityId loungeableEntityId, Maybe<size_t> maybeAnchorIndex) {
+  callbacks.registerCallback("setLounging", [this, thisNpc](EntityId loungeableEntityId, Maybe<size_t> maybeAnchorIndex) {
+    thisNpc.checkSmuggle();
     size_t anchorIndex = maybeAnchorIndex.value(0);
     auto loungeableEntity = world()->get<LoungeableEntity>(loungeableEntityId);
     if (!loungeableEntity || anchorIndex >= loungeableEntity->anchorCount() || !loungeableEntity->entitiesLoungingIn(anchorIndex).empty() || !loungeableEntity->loungeAnchor(anchorIndex))
@@ -722,11 +730,12 @@ LuaCallbacks Npc::makeNpcCallbacks() {
     return true;
   });
 
-  callbacks.registerCallback("resetLounging", [this]() { m_movementController->resetAnchorState(); });
+  callbacks.registerCallback("resetLounging", [this, thisNpc]() {thisNpc.checkSmuggle();  m_movementController->resetAnchorState(); });
 
-  callbacks.registerCallback("isLounging", [this]() { return is<LoungeAnchor>(m_movementController->entityAnchor()); });
+  callbacks.registerCallback("isLounging", [this, thisNpc]() { thisNpc.checkSmuggle(); return is<LoungeAnchor>(m_movementController->entityAnchor()); });
 
-  callbacks.registerCallback("loungingIn", [this]() -> Maybe<EntityId> {
+  callbacks.registerCallback("loungingIn", [this, thisNpc]() -> Maybe<EntityId> {
+    thisNpc.checkSmuggle();
     auto loungingState = loungingIn();
     if (loungingState)
       return loungingState.value().entityId;
@@ -734,19 +743,23 @@ LuaCallbacks Npc::makeNpcCallbacks() {
       return {};
   });
 
-  callbacks.registerCallback("setOfferedQuests", [this](Maybe<JsonArray> const& offeredQuests) {
+  callbacks.registerCallback("setOfferedQuests", [this, thisNpc](Maybe<JsonArray> const& offeredQuests) {
+    thisNpc.checkSmuggle();
     m_offeredQuests.set(offeredQuests.value().transformed(&QuestArcDescriptor::fromJson));
   });
 
-  callbacks.registerCallback("setTurnInQuests", [this](Maybe<StringList> const& turnInQuests) {
+  callbacks.registerCallback("setTurnInQuests", [this, thisNpc](Maybe<StringList> const& turnInQuests) {
+    thisNpc.checkSmuggle();
     m_turnInQuests.set(StringSet::from(turnInQuests.value()));
   });
 
-  callbacks.registerCallback("setItemSlot", [this](String const& slot, Json const& itemDescriptor) -> Json {
+  callbacks.registerCallback("setItemSlot", [this, thisNpc](String const& slot, Json const& itemDescriptor) -> Json {
+    thisNpc.checkSmuggle();
     return setItemSlot(slot, ItemDescriptor(itemDescriptor));
   });
 
-  callbacks.registerCallback("getItemSlot", [this](String const& entry) -> Json {
+  callbacks.registerCallback("getItemSlot", [this, thisNpc](String const& entry) -> Json {
+    thisNpc.checkSmuggle();
     if (entry.equalsIgnoreCase("head"))
       return m_armor->headItemDescriptor().toJson();
     else if (entry.equalsIgnoreCase("headCosmetic"))
@@ -773,45 +786,48 @@ LuaCallbacks Npc::makeNpcCallbacks() {
     return {};
   });
 
-  callbacks.registerCallback("disableWornArmor", [this](bool disable) { m_disableWornArmor.set(disable); });
+  callbacks.registerCallback("disableWornArmor", [this, thisNpc](bool disable) {thisNpc.checkSmuggle();  m_disableWornArmor.set(disable); });
 
-  callbacks.registerCallback("beginPrimaryFire", [this]() { m_tools->beginPrimaryFire(); });
-  callbacks.registerCallback("beginAltFire", [this]() { m_tools->beginAltFire(); });
-  callbacks.registerCallback("endPrimaryFire", [this]() { m_tools->endPrimaryFire(); });
-  callbacks.registerCallback("endAltFire", [this]() { m_tools->endAltFire(); });
-  callbacks.registerCallback("setShifting", [this](bool shifting) { m_shifting.set(shifting); });
-  callbacks.registerCallback("setDamageOnTouch", [this](bool damageOnTouch) { m_damageOnTouch.set(damageOnTouch); });
+  callbacks.registerCallback("beginPrimaryFire", [this, thisNpc]() {thisNpc.checkSmuggle();  m_tools->beginPrimaryFire(); });
+  callbacks.registerCallback("beginAltFire", [this, thisNpc]() {thisNpc.checkSmuggle();  m_tools->beginAltFire(); });
+  callbacks.registerCallback("endPrimaryFire", [this, thisNpc]() {thisNpc.checkSmuggle();  m_tools->endPrimaryFire(); });
+  callbacks.registerCallback("endAltFire", [this, thisNpc]() {thisNpc.checkSmuggle();  m_tools->endAltFire(); });
+  callbacks.registerCallback("setShifting", [this, thisNpc](bool shifting) {thisNpc.checkSmuggle();  m_shifting.set(shifting); });
+  callbacks.registerCallback("setDamageOnTouch", [this, thisNpc](bool damageOnTouch) {thisNpc.checkSmuggle();  m_damageOnTouch.set(damageOnTouch); });
 
-  callbacks.registerCallback("aimPosition", [this]() { return jsonFromVec2F(aimPosition()); });
+  callbacks.registerCallback("aimPosition", [this, thisNpc]() {thisNpc.checkSmuggle();  return jsonFromVec2F(aimPosition()); });
 
-  callbacks.registerCallback("setAimPosition", [this](Vec2F const& pos) {
+  callbacks.registerCallback("setAimPosition", [this, thisNpc](Vec2F const& pos) {
+    thisNpc.checkSmuggle();
     auto aimPosition = world()->geometry().diff(pos, position());
     m_xAimPosition.set(aimPosition[0]);
     m_yAimPosition.set(aimPosition[1]);
   });
 
-  callbacks.registerCallback("setDeathParticleBurst", [this](Maybe<String> const& deathParticleBurst) {
+  callbacks.registerCallback("setDeathParticleBurst", [this, thisNpc](Maybe<String> const& deathParticleBurst) {
+    thisNpc.checkSmuggle();
     m_deathParticleBurst.set(deathParticleBurst);
   });
 
-  callbacks.registerCallback("setStatusText", [this](Maybe<String> const& status) { m_statusText.set(status); });
-  callbacks.registerCallback("setDisplayNametag", [this](bool display) { m_displayNametag.set(display); });
+  callbacks.registerCallback("setStatusText", [this, thisNpc](Maybe<String> const& status) {thisNpc.checkSmuggle();  m_statusText.set(status); });
+  callbacks.registerCallback("setDisplayNametag", [this, thisNpc](bool display) {thisNpc.checkSmuggle();  m_displayNametag.set(display); });
 
-  callbacks.registerCallback("setPersistent", [this](bool persistent) { setPersistent(persistent); });
+  callbacks.registerCallback("setPersistent", [this, thisNpc](bool persistent) {thisNpc.checkSmuggle();  setPersistent(persistent); });
 
-  callbacks.registerCallback("setKeepAlive", [this](bool keepAlive) { setKeepAlive(keepAlive); });
+  callbacks.registerCallback("setKeepAlive", [this, thisNpc](bool keepAlive) { thisNpc.checkSmuggle(); setKeepAlive(keepAlive); });
 
-  callbacks.registerCallback("setDamageTeam", [this](Json const& team) { setTeam(EntityDamageTeam(team)); });
+  callbacks.registerCallback("setDamageTeam", [this, thisNpc](Json const& team) { thisNpc.checkSmuggle(); setTeam(EntityDamageTeam(team)); });
 
-  callbacks.registerCallback("setAggressive", [this](bool aggressive) { m_aggressive.set(aggressive); });
+  callbacks.registerCallback("setAggressive", [this, thisNpc](bool aggressive) { thisNpc.checkSmuggle(); m_aggressive.set(aggressive); });
 
-  callbacks.registerCallback("setUniqueId", [this](Maybe<String> uniqueId) { setUniqueId(uniqueId); });
+  callbacks.registerCallback("setUniqueId", [this, thisNpc](Maybe<String> uniqueId) { thisNpc.checkSmuggle(); setUniqueId(uniqueId); });
 
-  callbacks.registerCallback("setIdentity", [this](Json const& newIdentity) { setIdentity(newIdentity); });
+  callbacks.registerCallback("setIdentity", [this, thisNpc](Json const& newIdentity) { thisNpc.checkSmuggle(); setIdentity(newIdentity); });
 
-  callbacks.registerCallback("parameters", [this]() -> Json { return diskStore(); });
+  callbacks.registerCallback("parameters", [this, thisNpc]() -> Json { thisNpc.checkSmuggle(); return diskStore(); });
 
-  // callbacks.registerCallback("setOverrideState", [this](Maybe<String> newState) {
+  // callbacks.registerCallback("setOverrideState", [this, thisNpc](Maybe<String> newState)
+  //   thisNpc.checkSmuggle();
   //   if (newState) {
   //     Humanoid::State newHumanoidState = Humanoid::StateNames.valueLeft(newState.get(), Humanoid::State::Idle);
   //     m_overrideState.set(newHumanoidState);

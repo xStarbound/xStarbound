@@ -275,7 +275,7 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
   auto centralPortrait = fetchChild<PortraitWidget>("portrait");
   centralPortrait->setEntity(m_player);
 
-  auto portrait = make_shared<PortraitWidget>(m_player, PortraitMode::Bust);
+  auto portrait = makeObject<PortraitWidget>(m_player, PortraitMode::Bust);
   portrait->setIconMode();
   setTitle(portrait, m_player->name(), config.getString("subtitle"));
 

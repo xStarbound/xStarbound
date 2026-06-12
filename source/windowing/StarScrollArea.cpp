@@ -91,17 +91,17 @@ Vec2U ScrollThumb::baseSize() const {
 
 ScrollBar::ScrollBar(GuiDirection direction, WidgetCallbackFunc forwardFunc, WidgetCallbackFunc backwardFunc)
   : m_direction(direction) {
-  m_forward = make_shared<ButtonWidget>();
+  m_forward = makeObject<ButtonWidget>();
   m_forward->setCallback(forwardFunc);
   m_forward->setSustainCallbackOnDownHold(true);
   m_forward->setPressedOffset({0, 0});
 
-  m_backward = make_shared<ButtonWidget>();
+  m_backward = makeObject<ButtonWidget>();
   m_backward->setCallback(backwardFunc);
   m_backward->setSustainCallbackOnDownHold(true);
   m_backward->setPressedOffset({0, 0});
 
-  m_thumb = make_shared<ScrollThumb>(m_direction);
+  m_thumb = makeObject<ScrollThumb>(m_direction);
 
   auto assets = Root::singleton().assets();
   setButtonImages(assets->json("/interface.config:scrollArea.buttons"));
@@ -254,8 +254,8 @@ ScrollArea::ScrollArea() {
   WidgetCallbackFunc hAdvance = [this](Widget*) { scrollAreaBy({advanceFactorHelper(), 0}); };
   WidgetCallbackFunc hRetreat = [this](Widget*) { scrollAreaBy({-advanceFactorHelper(), 0}); };
 
-  m_vBar = make_shared<ScrollBar>(GuiDirection::Vertical, vAdvance, vRetreat);
-  m_hBar = make_shared<ScrollBar>(GuiDirection::Horizontal, hAdvance, hRetreat);
+  m_vBar = makeObject<ScrollBar>(GuiDirection::Vertical, vAdvance, vRetreat);
+  m_hBar = makeObject<ScrollBar>(GuiDirection::Horizontal, hAdvance, hRetreat);
 
   m_dragActive = false;
 

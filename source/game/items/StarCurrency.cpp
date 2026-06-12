@@ -1,6 +1,6 @@
 #include "StarCurrency.hpp"
-#include "StarRandom.hpp"
 #include "StarJsonExtra.hpp"
+#include "StarRandom.hpp"
 
 namespace Star {
 
@@ -10,7 +10,7 @@ CurrencyItem::CurrencyItem(Json const& config, String const& directory) : Item(c
 }
 
 ItemPtr CurrencyItem::clone() const {
-  return make_shared<CurrencyItem>(*this);
+  return makeObject<CurrencyItem>(*this);
 }
 
 void CurrencyItem::fire(FireMode mode, bool shifting, bool edgeTriggered) {}
@@ -49,4 +49,4 @@ uint64_t CurrencyItem::totalValue() {
   return m_value * count();
 }
 
-}
+} // namespace Star

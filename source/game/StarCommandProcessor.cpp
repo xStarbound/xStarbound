@@ -26,6 +26,9 @@ namespace Star {
 
 CommandProcessor::CommandProcessor(UniverseServer* universe)
     : m_universe(universe) {
+}
+
+void CommandProcessor::initLua() {
   auto assets = Root::singleton().assets();
   m_scriptComponent.addCallbacks("universe", LuaBindings::makeUniverseServerCallbacks(m_universe));
   m_scriptComponent.addCallbacks("CommandProcessor", makeCommandCallbacks());
@@ -1143,10 +1146,13 @@ Maybe<String> CommandProcessor::localCheck(ConnectionId connectionId, String con
 
 LuaCallbacks CommandProcessor::makeCommandCallbacks() {
   LuaCallbacks callbacks;
+
+  auto commandProcessor = GameObjectRegistry::smuggleWrap(this);
+
   callbacks.registerCallbackWithSignature<Maybe<String>, ConnectionId, String>(
-      "adminCheck", bind(&CommandProcessor::adminCheck, this, _1, _2));
+      "adminCheck", LUA_BIND(&CommandProcessor::adminCheck, commandProcessor, _1, _2));
   callbacks.registerCallbackWithSignature<Maybe<String>, ConnectionId, String>(
-      "localCheck", bind(&CommandProcessor::localCheck, this, _1, _2));
+      "localCheck", LUA_BIND(&CommandProcessor::localCheck, commandProcessor, _1, _2));
   return callbacks;
 }
 

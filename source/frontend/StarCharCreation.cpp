@@ -594,7 +594,7 @@ PanePtr CharCreationPane::createTooltip(Vec2I const& screenPosition) {
       Star::SpeciesDefinitionPtr speciesDefinition = Root::singleton().speciesDatabase()->species(speciesName);
 
       // make a tooltip from the config file
-      PanePtr tooltip = make_shared<Pane>();
+      PanePtr tooltip = makeObject<Pane>();
       tooltip->removeAllChildren();
       GuiReader reader;
       auto& root = Root::singleton();
@@ -604,7 +604,7 @@ PanePtr CharCreationPane::createTooltip(Vec2I const& screenPosition) {
       // find out the gender option block from the currently selected gender
       auto genderOption = speciesDefinition->options().genderOptions.wrap(m_genderChoice);
       // makes an icon out of the default gendered character image
-      WidgetPtr titleIcon = make_shared<ImageWidget>(genderOption.characterImage);
+      WidgetPtr titleIcon = makeObject<ImageWidget>(genderOption.characterImage);
 
       // read the description out of the already loaded species database.
       String title = speciesDefinition->tooltip().title;

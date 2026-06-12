@@ -399,14 +399,16 @@ ItemPtr ItemDatabase::applyAugment(ItemPtr const item, AugmentItem* augment) con
     // RecursiveMutexLocker locker(m_luaMutex); // FezzedOne: No longer needed.
     LuaBaseComponent script;
     // FezzedOne: Needs its own Lua state because of the raw item pointer being passed around.
-    script.setLuaRoot(make_shared<LuaRoot>());
+    auto luaRoot = make_shared<LuaRoot>();
+    script.setLuaRoot(luaRoot);
     auto config = Root::singleton().assets()->json("/items/defaultParameters.config");
-    m_luaRoot->tuneAutoGarbageCollection(config.optFloat("luaGcPause").value(1.2f),
+    luaRoot->tuneAutoGarbageCollection(config.optFloat("luaGcPause").value(1.2f),
         config.optFloat("luaGcStepMultiplier").value(1.2f));
+    auto thisAugment = GameObjectRegistry::smuggleWrap(augment);
     script.setScripts(augment->augmentScripts());
     script.addCallbacks("root", LuaBindings::makeRootCallbacks());
     script.addCallbacks("item", LuaBindings::makeItemCallbacks(augment));
-    script.addCallbacks("config", LuaBindings::makeConfigCallbacks(bind(&Item::instanceValue, augment, _1, _2)));
+    script.addCallbacks("config", LuaBindings::makeConfigCallbacks(LUA_BIND(&Item::instanceValue, thisAugment, _1, _2)));
     script.init();
     auto luaResult = script.invoke<LuaTupleReturn<Json, Maybe<uint64_t>>>("apply", item->descriptor().toJson());
     script.uninit();
@@ -467,55 +469,55 @@ Maybe<String> ItemDatabase::itemFile(String const& itemName) const {
 
 ItemPtr ItemDatabase::createItem(ItemType type, ItemConfig const& config) {
   if (type == ItemType::Generic) {
-    return make_shared<GenericItem>(config.config, config.directory, config.parameters);
+    return makeObject<GenericItem>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::LiquidItem) {
-    return make_shared<LiquidItem>(config.config, config.directory, config.parameters);
+    return makeObject<LiquidItem>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::MaterialItem) {
-    return make_shared<MaterialItem>(config.config, config.directory, config.parameters);
+    return makeObject<MaterialItem>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::ObjectItem) {
-    return make_shared<ObjectItem>(config.config, config.directory, config.parameters);
+    return makeObject<ObjectItem>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::CurrencyItem) {
-    return make_shared<CurrencyItem>(config.config, config.directory);
+    return makeObject<CurrencyItem>(config.config, config.directory);
   } else if (type == ItemType::MiningTool) {
-    return make_shared<MiningTool>(config.config, config.directory, config.parameters);
+    return makeObject<MiningTool>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::Flashlight) {
-    return make_shared<Flashlight>(config.config, config.directory, config.parameters);
+    return makeObject<Flashlight>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::WireTool) {
-    return make_shared<WireTool>(config.config, config.directory, config.parameters);
+    return makeObject<WireTool>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::BeamMiningTool) {
-    return make_shared<BeamMiningTool>(config.config, config.directory, config.parameters);
+    return makeObject<BeamMiningTool>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::PaintingBeamTool) {
-    return make_shared<PaintingBeamTool>(config.config, config.directory, config.parameters);
+    return makeObject<PaintingBeamTool>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::TillingTool) {
-    return make_shared<TillingTool>(config.config, config.directory, config.parameters);
+    return makeObject<TillingTool>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::HarvestingTool) {
-    return make_shared<HarvestingTool>(config.config, config.directory, config.parameters);
+    return makeObject<HarvestingTool>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::HeadArmor) {
-    return make_shared<HeadArmor>(config.config, config.directory, config.parameters);
+    return makeObject<HeadArmor>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::ChestArmor) {
-    return make_shared<ChestArmor>(config.config, config.directory, config.parameters);
+    return makeObject<ChestArmor>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::LegsArmor) {
-    return make_shared<LegsArmor>(config.config, config.directory, config.parameters);
+    return makeObject<LegsArmor>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::BackArmor) {
-    return make_shared<BackArmor>(config.config, config.directory, config.parameters);
+    return makeObject<BackArmor>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::Consumable) {
-    return make_shared<ConsumableItem>(config.config, config.directory, config.parameters);
+    return makeObject<ConsumableItem>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::Blueprint) {
-    return make_shared<BlueprintItem>(config.config, config.directory, config.parameters);
+    return makeObject<BlueprintItem>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::Codex) {
-    return make_shared<CodexItem>(config.config, config.directory, config.parameters);
+    return makeObject<CodexItem>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::InspectionTool) {
-    return make_shared<InspectionTool>(config.config, config.directory, config.parameters);
+    return makeObject<InspectionTool>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::InstrumentItem) {
-    return make_shared<InstrumentItem>(config.config, config.directory, config.parameters);
+    return makeObject<InstrumentItem>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::ThrownItem) {
-    return make_shared<ThrownItem>(config.config, config.directory, config.parameters);
+    return makeObject<ThrownItem>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::UnlockItem) {
-    return make_shared<UnlockItem>(config.config, config.directory, config.parameters);
+    return makeObject<UnlockItem>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::ActiveItem) {
-    return make_shared<ActiveItem>(config.config, config.directory, config.parameters);
+    return makeObject<ActiveItem>(config.config, config.directory, config.parameters);
   } else if (type == ItemType::AugmentItem) {
-    return make_shared<AugmentItem>(config.config, config.directory, config.parameters);
+    return makeObject<AugmentItem>(config.config, config.directory, config.parameters);
   } else {
     throw ItemException(strf("Unknown item type {}", (int)type));
   }

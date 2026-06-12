@@ -17,6 +17,8 @@ local modName
 local ownedByMod = |assetPath, modName| -> type(modName) == "string" and assets.sourceMetadata(assets.origin(assetPath) or "xSBCompat")?.name == modName
 local modAssetsByExtension = |owningMod, extension| -> (table.filter(assets.byExtension(extension), |v| -> ownedByMod(v, owningMod)) |> table.reorder)
 
+local legacySmuggling = assets.getConfiguration("legacySmuggling") == true
+
 if xSBCompatVersion then
     sb.logInfo($"[xSBCompat] Loaded xSBCompat v{xSBCompatVersion} - post-load stage.")
 else
@@ -41,7 +43,10 @@ assets.add("/interface/cockpit/cockpit.config.postproc", morePlanetInfoPatch)
 assets.patch("/interface/cockpit/cockpit.config", "/interface/cockpit/cockpit.config.postproc")
 
 --- Compatibility patch for Sayter's Frackin' Universe ---
+-- This patch is not needed when `"legacySmuggling"` is enabled, as that disables xStarbound's
+-- JSON coercion for values sent via `world.callScriptedEntity`.
 
+if legacySmuggling then goto skipFUPatch end
 if not "FrackinUniverse" in loadedMods then goto skipFUPatch end
 modName = "Sayter's Frackin' Universe"
 
@@ -130,22 +135,6 @@ xpcall(|| -> do
     end
     ]==]
 
-    local patchCode2 = [==[
-    null = nil -- The script in question expects `null` to be exactly the same as `nil` to avoid a nil dereference error or improperly cleared table entry.
-    -- This conflicts with xStarbound's special `null` value. Stop using `null` when you mean `nil`, FU devs!
-    ]==]
-
-    if assets.exists(needsPatch) then
-        local patchedScript = assets.bytes(needsPatch) .. patchCode
-        assets.add(needsPatch, patchedScript)
-    end
-    for needsNullPatch as needsPatch do
-        if assets.exists(needsPatch) then
-            local patchedScript = assets.bytes(needsPatch) .. patchCode2
-            assets.add(needsPatch, patchedScript)
-        end
-    end
-
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
@@ -233,169 +222,175 @@ end)
 
 --- Compatibility patch for Patman's Infiniter Inventory ---
 
--- FezzedOne: This patch is needed to replace the unsafe smuggled Infiniter Inventory pane callback with a pane message,
--- since xStarbound does not allow unsafe callback smuggling for good reasons. Also includes forward compatibility for
--- any future usage of pane or widget callbacks on the stock inventory pane. The engine call for shift-clicking items
--- from the stock inventory is not currently implemented in xStarbound, so that feature isn't supported.
+-- FezzedOne: This patch is needed to replace the unsafe smuggled Infiniter
+-- Inventory pane callback with a pane message, when `"legacySmuggling"` is
+-- disabled on xStarbound. Also includes forward compatibility for any future
+-- usage of pane or widget callbacks on the stock inventory pane. The engine
+-- call for shift-clicking items from the stock inventory is not currently
+-- implemented in xStarbound, so that feature isn't supported.
 
 if not "pat_infinv" in loadedMods then goto skipInfiniterInventoryPatch end
 modName = "Patman's Infiniter Inventory"
 
 xpcall(|| -> do
-    local infiniterInventoryPlayerScriptPath = "/pat/infinv/binds/player.lua"
-    local infiniterInventoryPlayerScript = assets.bytes(infiniterInventoryPlayerScriptPath)
-    local infiniterInventoryPlayerScriptPatch = [==[
-        local dismissFunc = function()
-            world.sendEntityMessage(player.id(), "Patman::InfiniterInventory::dismiss")
-        end
-        local infInvIsOpen = function()
-            return world.sendEntityMessage(player.id(), "Patman::InfiniterInventory::isOpen"):result()
-        end
-        shared.pat_infinv_dismiss = dismissFunc
-
-        local patman_oldOpen = open
-        function open(...)
-            -- FezzedOne: Emulate the way the smuggled Lua value is used as a check for the pane being open on xStarbound.
-            if not infInvIsOpen() then
-                shared.pat_infinv_dismiss = nil
+    if not legacySmuggling then
+        local infiniterInventoryPlayerScriptPath = "/pat/infinv/binds/player.lua"
+        local infiniterInventoryPlayerScript = assets.bytes(infiniterInventoryPlayerScriptPath)
+        local infiniterInventoryPlayerScriptPatch = [==[
+            local dismissFunc = function()
+                world.sendEntityMessage(player.id(), "Patman::InfiniterInventory::dismiss")
             end
-            local ret = patman_oldOpen(...)
-            -- FezzedOne: The dismissal function gets cleared whenever the pane is dismissed. Reset it.
+            local infInvIsOpen = function()
+                return world.sendEntityMessage(player.id(), "Patman::InfiniterInventory::isOpen"):result()
+            end
             shared.pat_infinv_dismiss = dismissFunc
-            return ret
-        end
 
-        local patman_oldUninit = uninit
-        function uninit()
-            -- FezzedOne: Ensure the Infiniter Inventory isn't opened automatically as soon as the player gets in
-            -- game with a character.
-            jremove(storage, "restore")
-        end
-    ]==]
-    assets.add(infiniterInventoryPlayerScriptPath, infiniterInventoryPlayerScript .. infiniterInventoryPlayerScriptPatch)
-
-    local infiniterInventoryPaneScriptPath = "/pat/infinv/InfiniteInventory.lua"
-    local infiniterInventoryPaneScript = assets.bytes(infiniterInventoryPaneScriptPath)
-    local infiniterInventoryPaneScriptPatch = [==[
-        -- FezzedOne: Includes a full compatibility bridge for all possible inventory pane/widget binds (except 
-        -- imperfect `addWidget` compatibility) for forward compatibility with updates to Infiniter Inventory that
-        -- might modify the stock inventory pane.
-
-        local patman_infInv_oldInit = init
-
-        local __generateCanvasWidgetBridge = function(canvasName)
-            local canvasWidgetBridge = {}
-            local canvasWidgetBridgeMetatable = {
-                __canvasWidgetName = canvasName,
-                __index = function(self, key)
-                    local savedKey = key
-                    return function(...)
-                        return world.sendEntityMessage("Patman::canvasWidgetBridge", self.__canvasWidgetName, savedKey, ...):result()
-                    end
+            local patman_oldOpen = open
+            function open(...)
+                -- FezzedOne: Emulate the way the smuggled Lua value is used as a check for the pane being open on xStarbound.
+                if not infInvIsOpen() then
+                    shared.pat_infinv_dismiss = nil
                 end
-            }
-            setmetatable(canvasWidgetBridge, canvasWidgetBridgeMetatable)
-            return canvasWidgetBridge
-        end
-    
-        local __generateWidgetBridge = function()
-            local widgetBridge = {}
-            local widgetBridgeMetatable = {
-                __index = function(_, key)
-                    local savedKey = key
-                    if savedKey == "bindCanvas" then
-                        return function(canvasName)
-                            return __generateCanvasWidgetBridge(canvasName)
-                        end
-                    else
+                local ret = patman_oldOpen(...)
+                -- FezzedOne: The dismissal function gets cleared whenever the pane is dismissed. Reset it.
+                shared.pat_infinv_dismiss = dismissFunc
+                return ret
+            end
+
+            local patman_oldUninit = uninit
+            function uninit()
+                -- FezzedOne: Ensure the Infiniter Inventory isn't opened automatically as soon as the player gets in
+                -- game with a character.
+                jremove(storage, "restore")
+            end
+        ]==]
+        assets.add(infiniterInventoryPlayerScriptPath, infiniterInventoryPlayerScript .. infiniterInventoryPlayerScriptPatch)
+
+        local infiniterInventoryPaneScriptPath = "/pat/infinv/InfiniteInventory.lua"
+        local infiniterInventoryPaneScript = assets.bytes(infiniterInventoryPaneScriptPath)
+        local infiniterInventoryPaneScriptPatch = [==[
+            -- FezzedOne: Includes a full compatibility bridge for all possible inventory pane/widget binds (except 
+            -- imperfect `addWidget` compatibility) for forward compatibility with updates to Infiniter Inventory that
+            -- might modify the stock inventory pane.
+
+            local patman_infInv_oldInit = init
+
+            local __generateCanvasWidgetBridge = function(canvasName)
+                local canvasWidgetBridge = {}
+                local canvasWidgetBridgeMetatable = {
+                    __canvasWidgetName = canvasName,
+                    __index = function(self, key)
+                        local savedKey = key
                         return function(...)
-                            return world.sendEntityMessage("Patman::widgetBridge", savedKey, ...):result()
+                            return world.sendEntityMessage("Patman::canvasWidgetBridge", self.__canvasWidgetName, savedKey, ...):result()
                         end
                     end
-                end
-            }
-            setmetatable(widgetBridge, widgetBridgeMetatable)
-            return widgetBridge
-        end
-
-        function init()
-            -- FezzedOne: Required for the mod keybind to work properly on xStarbound.
-            message.setHandler("Patman::InfiniterInventory::isOpen", function (_, isLocal)
-                return true
-            end)
-            message.setHandler("Patman::InfiniterInventory::dismiss", function (_, isLocal)
-                pane.dismiss()
-            end)
-            interface.bindRegisteredPane = function(paneName)
-                if string.lower(paneName) == "inventory" then
-                    local paneBridge = {}
-                    local paneBridgeMetatable = {
-                        __index = function(_, key)
-                            local savedKey = key
-                            if savedKey == "toWidget" then
-                                return function()
-                                    return __generateWidgetBridge()
-                                end
-                            else
-                                return function(...)
-                                    return world.sendEntityMessage("Patman::paneBridge", savedKey, ...):result()
-                                end
+                }
+                setmetatable(canvasWidgetBridge, canvasWidgetBridgeMetatable)
+                return canvasWidgetBridge
+            end
+        
+            local __generateWidgetBridge = function()
+                local widgetBridge = {}
+                local widgetBridgeMetatable = {
+                    __index = function(_, key)
+                        local savedKey = key
+                        if savedKey == "bindCanvas" then
+                            return function(canvasName)
+                                return __generateCanvasWidgetBridge(canvasName)
+                            end
+                        else
+                            return function(...)
+                                return world.sendEntityMessage("Patman::widgetBridge", savedKey, ...):result()
                             end
                         end
-                    }
-                    setmetatable(paneBridge, paneBridgeMetatable)
-                    return paneBridge
-                else
-                    return nil
-                end
+                    end
+                }
+                setmetatable(widgetBridge, widgetBridgeMetatable)
+                return widgetBridge
             end
-            patman_infInv_oldInit()
-        end
-    ]==]
-    assets.add(infiniterInventoryPaneScriptPath, infiniterInventoryPaneScript .. infiniterInventoryPaneScriptPatch)
 
-    local inventoryBridgeScript = [==[
-        -- FezzedOne: Bridge script needed to emulate OpenStarbound's version of `interface.bindRegisteredPane`.
-
-        local inventoryPaneCallbacks, inventoryWidgetCallbacks
-        function init()
-            inventoryPaneCallbacks = interface.bindRegisteredPane("Inventory")
-            inventoryWidgetCallbacks = inventoryPaneCallbacks.toWidget()
-            message.setHandler("Patman::canvasWidgetBridge", function (_, isLocal, canvasName, funcKey, ...)
-                if isLocal and inventoryWidgetCallbacks then
-                    local canvasCallbacks = inventoryWidgetCallbacks.bindCanvas(canvasName)
-                    if canvasCallbacks then
-                        return canvasCallbacks[funcKey](canvasCallbacks, ...)
+            function init()
+                -- FezzedOne: Required for the mod keybind to work properly on xStarbound.
+                message.setHandler("Patman::InfiniterInventory::isOpen", function (_, isLocal)
+                    return true
+                end)
+                message.setHandler("Patman::InfiniterInventory::dismiss", function (_, isLocal)
+                    pane.dismiss()
+                end)
+                interface.bindRegisteredPane = function(paneName)
+                    if string.lower(paneName) == "inventory" then
+                        local paneBridge = {}
+                        local paneBridgeMetatable = {
+                            __index = function(_, key)
+                                local savedKey = key
+                                if savedKey == "toWidget" then
+                                    return function()
+                                        return __generateWidgetBridge()
+                                    end
+                                else
+                                    return function(...)
+                                        return world.sendEntityMessage("Patman::paneBridge", savedKey, ...):result()
+                                    end
+                                end
+                            end
+                        }
+                        setmetatable(paneBridge, paneBridgeMetatable)
+                        return paneBridge
                     else
                         return nil
                     end
                 end
-            end)
-            message.setHandler("Patman::widgetBridge", function (_, isLocal, funcKey, ...)
-                if isLocal and inventoryWidgetCallbacks then
-                    return inventoryWidgetCallbacks[funcKey](...)
-                end
-            end)
-            message.setHandler("Patman::paneBridge", function (_, isLocal, funcKey, ...)
-                if isLocal and inventoryPaneCallbacks then
-                    return inventoryPaneCallbacks[funcKey](...)
-                end
-            end)
-        end
-    ]==]
-    local inventoryBridgeScriptPath = "/pat/xsb/inventory_bridge.lua"
-    assets.add(inventoryBridgeScriptPath, inventoryBridgeScript)
-    local clientConfig = jobject{
-        universeScriptContexts = jobject{ 
-            pat_infinv = jarray{ 
-                inventoryBridgeScriptPath
+                patman_infInv_oldInit()
+            end
+        ]==]
+        assets.add(infiniterInventoryPaneScriptPath, infiniterInventoryPaneScript .. infiniterInventoryPaneScriptPatch)
+
+        local inventoryBridgeScript = [==[
+            -- FezzedOne: Bridge script needed to emulate OpenStarbound's version of `interface.bindRegisteredPane`.
+
+            local inventoryPaneCallbacks, inventoryWidgetCallbacks
+            function init()
+                inventoryPaneCallbacks = interface.bindRegisteredPane("Inventory")
+                inventoryWidgetCallbacks = inventoryPaneCallbacks.toWidget()
+                message.setHandler("Patman::canvasWidgetBridge", function (_, isLocal, canvasName, funcKey, ...)
+                    if isLocal and inventoryWidgetCallbacks then
+                        local canvasCallbacks = inventoryWidgetCallbacks.bindCanvas(canvasName)
+                        if canvasCallbacks then
+                            return canvasCallbacks[funcKey](canvasCallbacks, ...)
+                        else
+                            return nil
+                        end
+                    end
+                end)
+                message.setHandler("Patman::widgetBridge", function (_, isLocal, funcKey, ...)
+                    if isLocal and inventoryWidgetCallbacks then
+                        return inventoryWidgetCallbacks[funcKey](...)
+                    end
+                end)
+                message.setHandler("Patman::paneBridge", function (_, isLocal, funcKey, ...)
+                    if isLocal and inventoryPaneCallbacks then
+                        return inventoryPaneCallbacks[funcKey](...)
+                    end
+                end)
+            end
+        ]==]
+        local inventoryBridgeScriptPath = "/pat/xsb/inventory_bridge.lua"
+        assets.add(inventoryBridgeScriptPath, inventoryBridgeScript)
+        local clientConfig = jobject{
+            universeScriptContexts = jobject{ 
+                pat_infinv = jarray{ 
+                    inventoryBridgeScriptPath
+                }
             }
         }
-    }
-    assets.add("/client.config.xSB-postproc", clientConfig)
-    assets.patch("/client.config", "/client.config.xSB-postproc")
+        assets.add("/client.config.xSB-postproc", clientConfig)
+        assets.patch("/client.config", "/client.config.xSB-postproc")
+    end
 
-    -- FezzedOne: Fix for a Z-level bug in Infiniter Inventory's pane config that puts the editor controls behind the inventory slots, rendering the editor unusable.
+    -- FezzedOne: Fix for a Z-level bug in Infiniter Inventory's pane config that puts the editor
+    -- controls behind the inventory slots, rendering the editor unusable. Hopefully, Patman fixed
+    -- this issue already so I can remove this patch.
     local paneConfigPath = "/pat/infinv/infinv.config"
     local paneConfig = assets.json(paneConfigPath)
     paneConfig.gui.editorLayout.zlevel = 1
@@ -409,6 +404,7 @@ end)
 
 --- Compatibility patch for Patman's Save Inventory Position ---
 
+if legacySmuggling then goto skipInventoryResetPatch end
 if not "pat_saveInventoryPosition" in loadedMods then goto skipInventoryResetPatch end
 modName = "Patman's Save Inventory Position"
 
@@ -437,7 +433,8 @@ xpcall(|| -> do
     assets.patch("/player.config", "/player.config.xSB-postproc")
 
     local saveInventoryPositionPatch = [==[
-        -- Note: The patched mod script only works properly when `"safeScripts"` is *enabled*.
+        -- Note: The patched mod script only works properly when `"legacySmuggling"` is *disabled*,
+        -- which is why this patch is disabled when it's enabled.
 
         local patman_saveInv_oldInit = init
 
@@ -518,6 +515,7 @@ end)
 ::skipRulerPatch::
 
 --- Compatibility patch for Emmaker's Limited Lives ---
+-- Needed to defang stupid checks.
 
 if not "LimitedLives" in loadedMods then goto skipLimitedLivesPatch end
 modName = "Emmaker's Limited Lives"
@@ -538,6 +536,7 @@ end)
 ::skipLimitedLivesPatch::
 
 --- Compatibility patch for SomethingRetarded's Universal BYOS Patcher ---
+-- Needed to emulate OpenStarbound's `assets.sourcePaths`.
 
 if not "sr_oSB_UBYOS" in loadedMods then goto skipUniversalByosPatch end
 modName = "SomethingRetarded's Universal BYOS Patcher"
@@ -576,6 +575,8 @@ end)
 ::skipUniversalByosPatch::
 
 --- Compatibility patch for RingSpokes' Unde Venis ---
+-- Needed to emulate the output of OpenStarbound's `root.assetSourcePaths` when the optional boolean argument
+-- is specified.
 
 if not "UndeVenis" in loadedMods then goto skipUndeVenisPatch end
 modName = "RingSpokes' Unde Venis"
@@ -590,7 +591,6 @@ xpcall(|| -> do
         UNKNOWN = "<unknown>"
 
         function init()
-            root.assetOrigin = root.assetSource
             root.assetSourcePaths = function(addMetadata)
                 if addMetadata then
                     local assetSources = root.assetSources()
@@ -616,6 +616,7 @@ end)
 ::skipUndeVenisPatch::
 
 --- Compatibility patch for James' Wardrobe Cumulative Patch ---
+-- Needed to emulate OpenStarbound's `assets.sourcePaths`.
 
 if not "[oSB] Wardrobe Cumulative Patch" in loadedMods then goto skipWardrobeCumulativePatch end
 modName = "James' Wardrobe Cumulative Patch"
@@ -650,7 +651,9 @@ end)
 
 --- Compatibility patch for Silver Sokolova's Betabound ---
 -- This patch ensures the mod works as if on a vanilla client, but doesn't enable anything locked behind OpenStarbound checks.
+-- Not needed when `"legacySmuggling"` is enabled.
 
+if legacySmuggling then goto skipBetaboundPatch end
 if not "XRC_BETA_STARBOUND" in loadedMods then goto skipBetaboundPatch end
 modName = "Silver Sokolova's Betabound"
 
@@ -683,7 +686,7 @@ xpcall(|| -> do
         return betabound_player_init()
     end
     ]==]
-    assets.add(betaboundMissingAssetScriptPath, betaboundMissingAssetScript .. betaboundMissingAssetScriptPatch)
+    assets.add(betaboundMainPlayerScriptPath, betaboundMainPlayerScript .. betaboundMainPlayerScriptPatch)
 
     local betaboundMissingAssetScriptPath = "/scripts/sb_assetmissing.lua"
     local betaboundMissingAssetScript = assets.bytes(betaboundMissingAssetScriptPath)
@@ -703,10 +706,13 @@ end)
 ::skipBetaboundPatch::
 
 --- Compatibility patches for Futara's Dragon Race and Futara's Dragon Engine ---
--- This compatibility patch makes it possible to have these mods *installed* on an xStarbound, but
--- does *not* make dragons playable on xClient, allow the Skill Menu item to be usable,
--- or enable the additional FDR features for Arcana's Grand Cross Zȧnä.
+--  This compatibility patch makes it possible to have these mods *installed* on
+--  an xStarbound server with `"legacySmuggling"` disabled, but does *not* make
+--  dragons playable on xClient, allow the Skill Menu item to be usable, or
+--  enable the additional FDR features for Arcana's Grand Cross Zȧnä without
+--  disabling `"legacySmuggling"`.
 
+if legacySmuggling then goto skipFDEPatch end
 if not "Futara's Dragon Engine" in loadedMods then goto skipFDEPatch end
 modName = "Futara's Dragon Engine"
 
@@ -764,6 +770,7 @@ end, |e| -> do
 end)
 ::skipFDEPatch::
 
+if legacySmuggling then goto skipFDRPatch end
 if not "Futara's Dragon Race" in loadedMods then goto skipFDRPatch end
 modName = "Futara's Dragon Race"
 
@@ -867,6 +874,7 @@ end, |e| -> do
 end)
 ::skipFDRPatch::
 
+if legacySmuggling then goto skipFutaraZanaPatch end
 if not ("Futara's Dragon Race" in loadedMods and "Arcana" in loadedMods) then goto skipFutaraZanaPatch end
 modName = "Futara's Dragon Race and Sva's Arcana"
 

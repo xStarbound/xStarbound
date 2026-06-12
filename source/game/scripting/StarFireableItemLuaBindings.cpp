@@ -1,32 +1,34 @@
 #include "StarFireableItemLuaBindings.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarLuaGameConverters.hpp"
 #include "StarCasting.hpp"
 #include "StarFireableItem.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLuaGameConverters.hpp"
 
 namespace Star {
 
-LuaCallbacks LuaBindings::makeFireableItemCallbacks(FireableItem* fireableItem) {
+LuaCallbacks LuaBindings::makeFireableItemCallbacks(FireableItem* fireableItemPtr) {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallbackWithSignature<void, Maybe<String>>("fire", bind(FireableItemCallbacks::fire, fireableItem, _1));
-  callbacks.registerCallbackWithSignature<void>("triggerCooldown", bind(FireableItemCallbacks::triggerCooldown, fireableItem));
-  callbacks.registerCallbackWithSignature<void, float>("setCooldown", bind(FireableItemCallbacks::setCooldown, fireableItem, _1));
-  callbacks.registerCallbackWithSignature<void>("endCooldown", bind(FireableItemCallbacks::endCooldown, fireableItem));
-  callbacks.registerCallbackWithSignature<float>("cooldownTime", bind(FireableItemCallbacks::cooldownTime, fireableItem));
-  callbacks.registerCallbackWithSignature<Json, String, Json>("fireableParam", bind(FireableItemCallbacks::fireableParam, fireableItem, _1, _2));
-  callbacks.registerCallbackWithSignature<String>("fireMode", bind(FireableItemCallbacks::fireMode, fireableItem));
-  callbacks.registerCallbackWithSignature<bool>("ready", bind(FireableItemCallbacks::ready, fireableItem));
-  callbacks.registerCallbackWithSignature<bool>("firing", bind(FireableItemCallbacks::firing, fireableItem));
-  callbacks.registerCallbackWithSignature<bool>("windingUp", bind(FireableItemCallbacks::windingUp, fireableItem));
-  callbacks.registerCallbackWithSignature<bool>("coolingDown", bind(FireableItemCallbacks::coolingDown, fireableItem));
-  callbacks.registerCallbackWithSignature<bool>("ownerFullEnergy", bind(FireableItemCallbacks::ownerFullEnergy, fireableItem));
-  callbacks.registerCallbackWithSignature<float>("ownerEnergy", bind(FireableItemCallbacks::ownerEnergy, fireableItem));
-  callbacks.registerCallbackWithSignature<bool>("ownerEnergyLocked", bind(FireableItemCallbacks::ownerEnergyLocked, fireableItem));
-  callbacks.registerCallbackWithSignature<bool, float>("ownerConsumeEnergy", bind(FireableItemCallbacks::ownerConsumeEnergy, fireableItem, _1));
+  auto fireableItem = GameObjectRegistry::smuggleWrap(fireableItemPtr);
+
+  callbacks.registerCallbackWithSignature<void, Maybe<String>>("fire", LUA_BIND(FireableItemCallbacks::fire, fireableItem, _1));
+  callbacks.registerCallbackWithSignature<void>("triggerCooldown", LUA_BIND(FireableItemCallbacks::triggerCooldown, fireableItem));
+  callbacks.registerCallbackWithSignature<void, float>("setCooldown", LUA_BIND(FireableItemCallbacks::setCooldown, fireableItem, _1));
+  callbacks.registerCallbackWithSignature<void>("endCooldown", LUA_BIND(FireableItemCallbacks::endCooldown, fireableItem));
+  callbacks.registerCallbackWithSignature<float>("cooldownTime", LUA_BIND(FireableItemCallbacks::cooldownTime, fireableItem));
+  callbacks.registerCallbackWithSignature<Json, String, Json>("fireableParam", LUA_BIND(FireableItemCallbacks::fireableParam, fireableItem, _1, _2));
+  callbacks.registerCallbackWithSignature<String>("fireMode", LUA_BIND(FireableItemCallbacks::fireMode, fireableItem));
+  callbacks.registerCallbackWithSignature<bool>("ready", LUA_BIND(FireableItemCallbacks::ready, fireableItem));
+  callbacks.registerCallbackWithSignature<bool>("firing", LUA_BIND(FireableItemCallbacks::firing, fireableItem));
+  callbacks.registerCallbackWithSignature<bool>("windingUp", LUA_BIND(FireableItemCallbacks::windingUp, fireableItem));
+  callbacks.registerCallbackWithSignature<bool>("coolingDown", LUA_BIND(FireableItemCallbacks::coolingDown, fireableItem));
+  callbacks.registerCallbackWithSignature<bool>("ownerFullEnergy", LUA_BIND(FireableItemCallbacks::ownerFullEnergy, fireableItem));
+  callbacks.registerCallbackWithSignature<float>("ownerEnergy", LUA_BIND(FireableItemCallbacks::ownerEnergy, fireableItem));
+  callbacks.registerCallbackWithSignature<bool>("ownerEnergyLocked", LUA_BIND(FireableItemCallbacks::ownerEnergyLocked, fireableItem));
+  callbacks.registerCallbackWithSignature<bool, float>("ownerConsumeEnergy", LUA_BIND(FireableItemCallbacks::ownerConsumeEnergy, fireableItem, _1));
   callbacks.registerCallbackWithSignature<Vec2F>("ownerAimPosition", [fireableItem]() {
-      return fireableItem->owner()->aimPosition();
-    });
+    return fireableItem->owner()->aimPosition();
+  });
 
   return callbacks;
 }
@@ -165,4 +167,4 @@ bool LuaBindings::FireableItemCallbacks::ownerConsumeEnergy(FireableItem* fireab
   return fireableItem->owner()->consumeEnergy(energy);
 }
 
-}
+} // namespace Star

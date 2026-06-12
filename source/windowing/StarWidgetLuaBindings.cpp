@@ -91,9 +91,12 @@ LuaMethods<CanvasWidgetPtr> LuaUserDataMethods<CanvasWidgetPtr>::make() {
   return methods;
 }
 
-LuaCallbacks LuaBindings::makeWidgetCallbacks(Widget* parentWidget, GuiReaderPtr reader) {
-  if (!reader)
-    reader = make_shared<GuiReader>();
+LuaCallbacks LuaBindings::makeWidgetCallbacks(Widget* parentWidgetPtr, GuiReaderPtr readerPtr) {
+  if (!readerPtr)
+    readerPtr = makeObject<GuiReader>();
+
+  auto reader = GameObjectRegistry::smuggleWrap(readerPtr.get());
+  auto parentWidget = GameObjectRegistry::smuggleWrap(parentWidgetPtr);
 
   LuaCallbacks callbacks;
 
@@ -513,7 +516,7 @@ LuaCallbacks LuaBindings::makeWidgetCallbacks(Widget* parentWidget, GuiReaderPtr
   callbacks.registerCallback("addFlowImage", [parentWidget](String const& widgetName, String const& childName, String const& image) {
     if (parentWidget) {
       if (auto flow = parentWidget->fetchChild<FlowLayout>(widgetName)) {
-        WidgetPtr newChild = make_shared<ImageWidget>(image);
+        WidgetPtr newChild = makeObject<ImageWidget>(image);
         flow->addChild(childName, newChild);
       }
     }

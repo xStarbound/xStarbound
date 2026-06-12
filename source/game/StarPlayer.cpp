@@ -97,36 +97,36 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
 
   m_cameraOverridePosition = {};
 
-  m_questManager = make_shared<QuestManager>(this);
-  m_tools = make_shared<ToolUser>();
-  m_armor = make_shared<ArmorWearer>(this);
-  m_companions = make_shared<PlayerCompanions>(config->companionsConfig);
+  m_questManager = makeObject<QuestManager>(this);
+  m_tools = makeObject<ToolUser>();
+  m_armor = makeObject<ArmorWearer>(this);
+  m_companions = makeObject<PlayerCompanions>(config->companionsConfig);
 
   for (auto& p : config->genericScriptContexts) {
-    auto scriptComponent = make_shared<GenericScriptComponent>();
+    auto scriptComponent = makeObject<GenericScriptComponent>();
     scriptComponent->setScript(p.second);
     m_genericScriptContexts.set(p.first, scriptComponent);
   }
 
   // all of these are defaults and won't include the correct humanoid config for the species
-  m_humanoid = make_shared<Humanoid>(Root::singleton().speciesDatabase()->species(m_identity.species)->humanoidConfig());
+  m_humanoid = makeObject<Humanoid>(Root::singleton().speciesDatabase()->species(m_identity.species)->humanoidConfig());
   m_humanoid->setIdentity(m_identity);
   auto movementParameters = ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters));
   if (!movementParameters.physicsEffectCategories)
     movementParameters.physicsEffectCategories = StringSet({"player"});
-  m_movementController = make_shared<ActorMovementController>(movementParameters);
+  m_movementController = makeObject<ActorMovementController>(movementParameters);
   m_zeroGMovementParameters = ActorMovementParameters(m_config->zeroGMovementParameters);
 
-  m_techController = make_shared<TechController>();
-  m_statusController = make_shared<StatusController>(m_config->statusControllerSettings);
-  m_deployment = make_shared<PlayerDeployment>(m_config->deploymentConfig);
+  m_techController = makeObject<TechController>();
+  m_statusController = makeObject<StatusController>(m_config->statusControllerSettings);
+  m_deployment = makeObject<PlayerDeployment>(m_config->deploymentConfig);
 
-  m_inventory = make_shared<PlayerInventory>(this);
-  m_blueprints = make_shared<PlayerBlueprints>();
-  m_universeMap = make_shared<PlayerUniverseMap>();
-  m_codexes = make_shared<PlayerCodexes>();
-  m_techs = make_shared<PlayerTech>();
-  m_log = make_shared<PlayerLog>();
+  m_inventory = makeObject<PlayerInventory>(this);
+  m_blueprints = makeObject<PlayerBlueprints>();
+  m_universeMap = makeObject<PlayerUniverseMap>();
+  m_codexes = makeObject<PlayerCodexes>();
+  m_techs = makeObject<PlayerTech>();
+  m_log = makeObject<PlayerLog>();
 
   setModeType(PlayerMode::Casual);
 
@@ -137,8 +137,8 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
   m_footstepVolumeVariance = assets->json("/sfx.config:footstepVolumeVariance").toFloat();
   m_landingVolume = assets->json("/sfx.config:landingVolume").toFloat();
 
-  m_effectsAnimator = make_shared<NetworkedAnimator>(assets->fetchJson(m_config->effectsAnimator));
-  m_effectEmitter = make_shared<EffectEmitter>();
+  m_effectsAnimator = makeObject<NetworkedAnimator>(assets->fetchJson(m_config->effectsAnimator));
+  m_effectEmitter = makeObject<EffectEmitter>();
 
   m_interactRadius = assets->json("/player.config:interactRadius").toFloat();
 
@@ -161,7 +161,7 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
   m_overrideMenuIndicator = false;
   m_overrideChatIndicator = false;
 
-  m_songbook = make_shared<Songbook>(species());
+  m_songbook = makeObject<Songbook>(species());
 
   m_lastDamagedOtherTimer = 0;
   m_lastDamagedTarget = NullEntityId;
@@ -251,7 +251,7 @@ Player::Player(PlayerConfigPtr config, ByteArray const& netStore) : Player(confi
   ds.read(m_modeType);
   ds.read(m_identity);
 
-  m_humanoid = make_shared<Humanoid>(Root::singleton().speciesDatabase()->species(m_identity.species)->humanoidConfig());
+  m_humanoid = makeObject<Humanoid>(Root::singleton().speciesDatabase()->species(m_identity.species)->humanoidConfig());
   m_humanoid->setIdentity(m_identity);
   m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters)));
 }
@@ -266,13 +266,13 @@ void Player::diskLoad(Json const& diskStore) {
   m_description = diskStore.getString("description");
   setModeType(PlayerModeNames.getLeft(diskStore.getString("modeType")));
   m_shipUpgrades = ShipUpgrades(diskStore.get("shipUpgrades"));
-  m_blueprints = make_shared<PlayerBlueprints>(diskStore.get("blueprints"));
-  m_universeMap = make_shared<PlayerUniverseMap>(diskStore.get("universeMap"));
+  m_blueprints = makeObject<PlayerBlueprints>(diskStore.get("blueprints"));
+  m_universeMap = makeObject<PlayerUniverseMap>(diskStore.get("universeMap"));
   if (m_clientContext)
     m_universeMap->setServerUuid(m_clientContext->serverUuid());
 
-  m_codexes = make_shared<PlayerCodexes>(diskStore.get("codexes"));
-  m_techs = make_shared<PlayerTech>(diskStore.get("techs"));
+  m_codexes = makeObject<PlayerCodexes>(diskStore.get("codexes"));
+  m_techs = makeObject<PlayerTech>(diskStore.get("techs"));
   m_identity = HumanoidIdentity(diskStore.get("identity"));
   m_identityUpdated = true;
 
@@ -286,14 +286,14 @@ void Player::diskLoad(Json const& diskStore) {
   m_techController->diskLoad(diskStore.get("techController"));
   m_statusController->diskLoad(diskStore.get("statusController"));
 
-  m_log = make_shared<PlayerLog>(diskStore.get("log"));
+  m_log = makeObject<PlayerLog>(diskStore.get("log"));
 
   auto speciesDef = Root::singleton().speciesDatabase()->species(m_identity.species);
 
   m_questManager->diskLoad(diskStore.get("quests", JsonObject{}));
   m_companions->diskLoad(diskStore.get("companions", JsonObject{}));
   m_deployment->diskLoad(diskStore.get("deployment", JsonObject{}));
-  m_humanoid = make_shared<Humanoid>(speciesDef->humanoidConfig());
+  m_humanoid = makeObject<Humanoid>(speciesDef->humanoidConfig());
   m_humanoid->setIdentity(m_identity);
   m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters)));
   m_effectsAnimator->setGlobalTag("effectDirectives", speciesDef->effectDirectives());
@@ -418,11 +418,13 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
     m_statusController->setPersistentEffects("species", speciesDefinition->statusEffects());
 
     for (auto& p : m_genericScriptContexts) {
-      p.second->addActorMovementCallbacks(m_movementController.get());
+      p.second->initScriptBindings(p.second.get());
+      p.second->initMessageBinding(p.second.get());
+      p.second->addActorMovementCallbacks(m_movementController.get(), p.second.get());
       // FezzedOne: Added missing `entity` callbacks.
       p.second->addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(this)));
       p.second->addCallbacks("player", LuaBindings::makePlayerCallbacks(this));
-      p.second->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_effectsAnimator.get()));
+      p.second->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_effectsAnimator.get(), as<Entity>(this)));
       p.second->addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_statusController.get()));
       if (m_client)
         p.second->addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client));
@@ -1477,7 +1479,7 @@ void Player::triggerPickupEvents(ItemPtr const& item) {
 
     for (auto const& quest : item->pickupQuestTemplates()) {
       if (m_questManager->canStart(quest))
-        m_questManager->offer(make_shared<Quest>(quest, 0, this));
+        m_questManager->offer(makeObject<Quest>(quest, 0, this));
     }
 
     if (auto consume = item->instanceValue("consumeOnPickup", Json())) {
@@ -1678,7 +1680,7 @@ void Player::interactWithEntity(InteractiveEntityPtr entity) {
 
   for (auto questArc : entity->offeredQuests()) {
     if (m_questManager->canStart(questArc)) {
-      auto quest = make_shared<Quest>(questArc, 0, this);
+      auto quest = makeObject<Quest>(questArc, 0, this);
       quest->setWorldId(clientContext()->playerWorldId());
       quest->setServerUuid(clientContext()->serverUuid());
       quest->setEntityParameter("questGiver", entity);
@@ -2507,7 +2509,7 @@ void Player::setSpecies(String const& species) {
     m_identity.species = species;
     auto speciesToUse = m_identity.imagePath ? *m_identity.imagePath : species;
     auto speciesDef = Root::singleton().speciesDatabase()->species(checkSpecies(speciesToUse, String("setSpecies")) ? speciesToUse : species);
-    m_humanoid = make_shared<Humanoid>(speciesDef->humanoidConfig());
+    m_humanoid = makeObject<Humanoid>(speciesDef->humanoidConfig());
     updateIdentity();
   }
 }
@@ -2537,7 +2539,7 @@ void Player::setImagePath(Maybe<String> const& imagePath) {
   m_identity.imagePath = imagePath;
   auto speciesToUse = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
   auto speciesDef = Root::singleton().speciesDatabase()->species(checkSpecies(speciesToUse) ? speciesToUse : m_identity.species);
-  m_humanoid = make_shared<Humanoid>(speciesDef->humanoidConfig());
+  m_humanoid = makeObject<Humanoid>(speciesDef->humanoidConfig());
   updateIdentity();
 }
 
@@ -2561,7 +2563,7 @@ void Player::setIdentity(HumanoidIdentity identity) {
   m_identity = std::move(identity);
   if (speciesChanged) {
     auto speciesDef = Root::singleton().speciesDatabase()->species(speciesName);
-    m_humanoid = make_shared<Humanoid>(speciesDef->humanoidConfig());
+    m_humanoid = makeObject<Humanoid>(speciesDef->humanoidConfig());
   }
   updateIdentity();
 }
@@ -2589,7 +2591,7 @@ void Player::setIdentity(Json const& newIdentity) {
     m_identity = HumanoidIdentity(mergedIdentity);
     if (imagePath != oldSpecies) {
       auto speciesDef = Root::singleton().speciesDatabase()->species(checkSpecies(imagePath) ? imagePath : speciesName);
-      m_humanoid = make_shared<Humanoid>(speciesDef->humanoidConfig());
+      m_humanoid = makeObject<Humanoid>(speciesDef->humanoidConfig());
     }
     updateIdentity();
     // FezzedOne: Fixed bug where changing gender does not immediately swap armour sprites.
@@ -2886,8 +2888,8 @@ ByteArray Player::netStore() {
 }
 
 void Player::finalizeCreation() {
-  m_blueprints = make_shared<PlayerBlueprints>();
-  m_techs = make_shared<PlayerTech>();
+  m_blueprints = makeObject<PlayerBlueprints>();
+  m_techs = makeObject<PlayerTech>();
 
   auto itemDatabase = Root::singleton().itemDatabase();
   for (auto const& descriptor : m_config->defaultItems)

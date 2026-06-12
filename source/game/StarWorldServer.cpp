@@ -59,7 +59,7 @@ WorldServer::WorldServer(WorldTemplatePtr const& worldTemplate, IODevicePtr stor
   m_scriptGlobals = JsonObject{};
   m_universe = nullptr;
 
-  init(true);
+  // init(true);
   writeMetadata();
 }
 
@@ -73,7 +73,7 @@ WorldServer::WorldServer(IODevicePtr const& storage) : m_preUninitialized(false)
   m_worldId = "Nowhere";
 
   readMetadata();
-  init(false);
+  // init(false);
 }
 
 WorldServer::WorldServer(WorldChunks const& chunks) : m_preUninitialized(false) {
@@ -83,7 +83,7 @@ WorldServer::WorldServer(WorldChunks const& chunks) : m_preUninitialized(false) 
   m_worldId = "Nowhere";
 
   readMetadata();
-  init(false);
+  // init(false);
 }
 
 WorldServer::~WorldServer() {
@@ -161,17 +161,21 @@ void WorldServer::initLua(UniverseServer* universe) {
   m_universe = universe;
   auto assets = Root::singleton().assets();
   for (auto& p : assets->json("/worldserver.config:scriptContexts").toObject()) {
-    auto scriptComponent = make_shared<ScriptComponent>();
+    auto scriptComponent = makeObject<ScriptComponent>();
     scriptComponent->setScripts(jsonToStringList(p.second.toArray()));
     scriptComponent->addCallbacks("universe", LuaBindings::makeUniverseServerCallbacks(universe));
+    scriptComponent->initScriptBindings(scriptComponent.get());
+    scriptComponent->initMessageBinding(scriptComponent.get());
 
     m_scriptContexts.set(p.first, scriptComponent);
     scriptComponent->init(this);
   }
   if (!m_scriptContexts.contains("worldEval")) { // FezzedOne: Added a special script context for `/worldeval`.
-    auto scriptComponent = make_shared<ScriptComponent>();
+    auto scriptComponent = makeObject<ScriptComponent>();
     scriptComponent->setScripts(StringList{});
     scriptComponent->addCallbacks("universe", LuaBindings::makeUniverseServerCallbacks(universe));
+    scriptComponent->initScriptBindings(scriptComponent.get());
+    scriptComponent->initMessageBinding(scriptComponent.get());
 
     m_scriptContexts.set("worldEval", scriptComponent);
     scriptComponent->init(this);
@@ -569,6 +573,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
 
         auto entity = entityFactory->netLoadEntity(entityCreate->entityType, entityCreate->storeData);
         entity->readNetState(entityCreate->firstNetState);
+        GameObjectRegistry::registerGameObject(entity.get(), entity);
         entity->init(this, entityCreate->entityId, EntityMode::Slave);
         m_entityMap->addEntity(entity);
 
@@ -968,6 +973,7 @@ void WorldServer::addEntity(EntityPtr const& entity, EntityId entityId) {
   if (!entity)
     return;
 
+  GameObjectRegistry::registerGameObject(entity.get(), entity);
   entity->init(this, m_entityMap->reserveEntityId(entityId), EntityMode::Master);
   m_entityMap->addEntity(entity);
 

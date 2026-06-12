@@ -1,25 +1,27 @@
 #include "StarEntityLuaBindings.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarLuaGameConverters.hpp"
-#include "StarPlayer.hpp"
 #include "StarMonster.hpp"
 #include "StarNpc.hpp"
+#include "StarPlayer.hpp"
 #include "StarWorld.hpp"
 
 namespace Star {
 
-LuaCallbacks LuaBindings::makeEntityCallbacks(Entity const* entity) {
+LuaCallbacks LuaBindings::makeEntityCallbacks(Entity const* entityPtr) {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallbackWithSignature<EntityId>("id", bind(EntityCallbacks::id, entity));
+  auto entity = GameObjectRegistry::smuggleWrap(entityPtr);
+
+  callbacks.registerCallbackWithSignature<EntityId>("id", LUA_BIND(EntityCallbacks::id, entity));
   callbacks.registerCallbackWithSignature<LuaTable, LuaEngine&>(
-      "damageTeam", bind(EntityCallbacks::damageTeam, entity, _1));
+      "damageTeam", LUA_BIND(EntityCallbacks::damageTeam, entity, _1));
   callbacks.registerCallbackWithSignature<bool, EntityId>(
-      "isValidTarget", bind(EntityCallbacks::isValidTarget, entity, _1));
+      "isValidTarget", LUA_BIND(EntityCallbacks::isValidTarget, entity, _1));
   callbacks.registerCallbackWithSignature<Vec2F, EntityId>(
-      "distanceToEntity", bind(EntityCallbacks::distanceToEntity, entity, _1));
+      "distanceToEntity", LUA_BIND(EntityCallbacks::distanceToEntity, entity, _1));
   callbacks.registerCallbackWithSignature<bool, EntityId>(
-      "entityInSight", bind(EntityCallbacks::entityInSight, entity, _1));
+      "entityInSight", LUA_BIND(EntityCallbacks::entityInSight, entity, _1));
 
   callbacks.registerCallback("position", [entity]() { return entity->position(); });
   callbacks.registerCallback("entityType", [entity]() { return EntityTypeNames.getRight(entity->entityType()); });
@@ -74,4 +76,4 @@ bool LuaBindings::EntityCallbacks::entityInSight(Entity const* entity, EntityId 
     return false;
 }
 
-}
+} // namespace Star

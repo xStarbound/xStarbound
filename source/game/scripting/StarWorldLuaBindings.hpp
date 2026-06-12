@@ -2,14 +2,14 @@
 #define STAR_LUA_BINDINGS_HPP
 
 #include "StarBiMap.hpp"
-#include "StarRect.hpp"
-#include "StarPoly.hpp"
+#include "StarCollisionBlock.hpp"
 #include "StarColor.hpp"
 #include "StarDrawable.hpp"
 #include "StarGameTypes.hpp"
-#include "StarCollisionBlock.hpp"
 #include "StarLua.hpp"
 #include "StarPlatformerAStar.hpp"
+#include "StarPoly.hpp"
+#include "StarRect.hpp"
 
 namespace Star {
 
@@ -25,8 +25,8 @@ namespace LuaBindings {
   LuaCallbacks makeWorldCallbacks(World* world);
 
   void addWorldDebugCallbacks(LuaCallbacks& callbacks);
-  void addWorldEntityCallbacks(LuaCallbacks& callbacks, World* world);
-  void addWorldEnvironmentCallbacks(LuaCallbacks& callbacks, World* world);
+  void addWorldEntityCallbacks(LuaCallbacks& callbacks, SmugglePtr<World> world);
+  void addWorldEnvironmentCallbacks(LuaCallbacks& callbacks, SmugglePtr<World> world);
 
   namespace WorldCallbacks {
     float magnitude(World* world, Vec2F pos1, Maybe<Vec2F> pos2);
@@ -67,21 +67,21 @@ namespace LuaBindings {
     bool isTileProtected(World* world, Vec2F const& position);
     Maybe<PlatformerAStar::Path> findPlatformerPath(World* world, Vec2F const& start, Vec2F const& end, ActorMovementParameters actorMovementParameters, PlatformerAStar::Parameters searchParameters);
     PlatformerAStar::PathFinder platformerPathStart(World* world, Vec2F const& start, Vec2F const& end, ActorMovementParameters actorMovementParameters, PlatformerAStar::Parameters searchParameters);
-  }
+  } // namespace WorldCallbacks
 
   namespace ClientWorldCallbacks {
     RectI clientWindow(WorldClient* world);
     void setLightMultiplier(WorldClient* world, Maybe<Vec3F> const& newMultiplier);
     void setShaderParameters(WorldClient* world,
-                             Maybe<Vec3F> const& param1,
-                             Maybe<Vec3F> const& param2,
-                             Maybe<Vec3F> const& param3,
-                             Maybe<Vec3F> const& param4,
-                             Maybe<Vec3F> const& param5,
-                             Maybe<Vec3F> const& param6);
+        Maybe<Vec3F> const& param1,
+        Maybe<Vec3F> const& param2,
+        Maybe<Vec3F> const& param3,
+        Maybe<Vec3F> const& param4,
+        Maybe<Vec3F> const& param5,
+        Maybe<Vec3F> const& param6);
     LuaTupleReturn<Vec3F, Vec3F, Vec3F, Vec3F, Vec3F, Vec3F> getShaderParameters(WorldClient* world);
     void resetShaderParameters(WorldClient* world);
-  }
+  } // namespace ClientWorldCallbacks
 
   namespace ServerWorldCallbacks {
     bool breakObject(WorldServer* world, EntityId arg1, bool arg2);
@@ -98,14 +98,14 @@ namespace LuaBindings {
     List<EntityId> players(World* world);
     LuaString fidelity(World* world, LuaEngine& engine);
     Maybe<LuaValue> callScriptContext(World* world, LuaEngine& engine, String const& contextName, String const& function, LuaVariadic<LuaValue> const& args);
-  }
+  } // namespace ServerWorldCallbacks
 
   namespace WorldDebugCallbacks {
     void debugPoint(Vec2F const& arg1, Color const& arg2);
     void debugLine(Vec2F const& arg1, Vec2F const& arg2, Color const& arg3);
     void debugPoly(PolyF const& poly, Color const& color);
     void debugText(LuaEngine& engine, LuaVariadic<LuaValue> const& args);
-  }
+  } // namespace WorldDebugCallbacks
 
   namespace WorldEntityCallbacks {
     LuaTable entityQuery(World* world, LuaEngine& engine, Vec2F const& pos1, LuaValue const& pos2, Maybe<LuaTable> options);
@@ -140,7 +140,7 @@ namespace LuaBindings {
     Json getObjectParameter(World* world, EntityId entityId, String const& parameterName, Maybe<Json> const& defaultValue);
     Json getNpcScriptParameter(World* world, EntityId entityId, String const& parameterName, Maybe<Json> const& defaultValue);
     List<Vec2I> objectSpaces(World* world, EntityId entityId);
-    Maybe<int> objectDirection(World *world, EntityId entityId);
+    Maybe<int> objectDirection(World* world, EntityId entityId);
     Maybe<int> farmableStage(World* world, EntityId entityId);
     Maybe<int> containerSize(World* world, EntityId entityId);
     bool containerClose(World* world, EntityId entityId);
@@ -172,9 +172,9 @@ namespace LuaBindings {
     Maybe<String> npcType(World* world, EntityId entityId);
     Maybe<String> stagehandType(World* world, EntityId entityId);
     bool isNpc(World* world, EntityId entityId, Maybe<int> const& damageTeam);
-    Maybe<Vec2F> playerAimPosition(World *world, EntityId entityId);
+    Maybe<Vec2F> playerAimPosition(World* world, EntityId entityId);
     Maybe<Vec2F> entityAimPosition(World* world, EntityId entityId);
-  }
+  } // namespace WorldEntityCallbacks
 
   namespace WorldEnvironmentCallbacks {
     float lightLevel(World* world, Vec2F const& position);
@@ -191,9 +191,9 @@ namespace LuaBindings {
     bool damageTileArea(World* world, Vec2F center, float radius, String layer, Vec2F sourcePosition, String damageType, float damage, Maybe<unsigned> const& harvestLevel, Maybe<EntityId> sourceEntity);
     bool placeMaterial(World* world, Vec2I const& arg1, String const& arg2, String const& arg3, Maybe<int> const& arg4, bool arg5, bool arg6);
     bool placeMod(World* world, Vec2I const& arg1, String const& arg2, String const& arg3, Maybe<int> const& arg4, bool arg5);
-  }
-}
+  } // namespace WorldEnvironmentCallbacks
+} // namespace LuaBindings
 
-}
+} // namespace Star
 
 #endif

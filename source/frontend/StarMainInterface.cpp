@@ -80,8 +80,6 @@ MainInterface::MainInterface(UniverseClientPtr client, WorldPainterPtr painter, 
   m_client = client;
   m_worldPainter = painter;
   m_cinematicOverlay = cinematicOverlay;
-
-  reset();
 }
 
 MainInterface::~MainInterface() {
@@ -113,7 +111,7 @@ void MainInterface::reset() { // *Completely* reset the interface.
 
   m_config = MainInterfaceConfig::loadFromAssets();
 
-  m_containerInteractor = make_shared<ContainerInteractor>();
+  m_containerInteractor = makeObject<ContainerInteractor>();
 
   GuiReader itemSlotReader;
   m_cursorItem = convert<ItemSlotWidget>(itemSlotReader.makeSingle("cursorItemSlot", m_config->cursorItemSlot));
@@ -131,7 +129,7 @@ void MainInterface::reset() { // *Completely* reset the interface.
   // A lingering reference is required for Save Inventory Position to work correctly on xClient.
   m_paneManager.deregisterAllPanes();
 
-  m_inventoryWindow = make_shared<InventoryPane>(this, m_client->mainPlayer(), m_containerInteractor);
+  m_inventoryWindow = makeObject<InventoryPane>(this, m_client->mainPlayer(), m_containerInteractor);
   m_paneManager.registerPane(MainInterfacePanes::Inventory, PaneLayer::Window, m_inventoryWindow, [this](PanePtr const&) {
     if (auto player = m_client->mainPlayer())
       player->clearSwap();
@@ -146,68 +144,68 @@ void MainInterface::reset() { // *Completely* reset the interface.
     }
   });
 
-  m_overflowMessage = make_shared<GuiMessage>("", 0);
+  m_overflowMessage = makeObject<GuiMessage>("", 0);
 
-  m_plainCraftingWindow = make_shared<CraftingPane>(m_client->worldClient(), m_client->mainPlayer(), JsonObject{{"filter", JsonArray{"plain"}}}, m_client->mainPlayer()->entityId());
+  m_plainCraftingWindow = makeObject<CraftingPane>(m_client->worldClient(), m_client->mainPlayer(), JsonObject{{"filter", JsonArray{"plain"}}}, m_client->mainPlayer()->entityId());
   m_paneManager.registerPane(MainInterfacePanes::CraftingPlain, PaneLayer::Window, m_plainCraftingWindow);
 
   m_paneManager.registerPane(MainInterfacePanes::EscapeDialog, PaneLayer::ModalWindow, createEscapeDialog());
 
-  auto songbookInterface = make_shared<SongbookInterface>(m_client->mainPlayer());
+  auto songbookInterface = makeObject<SongbookInterface>(m_client->mainPlayer());
   m_paneManager.registerPane(MainInterfacePanes::Songbook, PaneLayer::Window, songbookInterface);
 
-  m_questLogInterface = make_shared<QuestLogInterface>(m_client->questManager(), m_client->mainPlayer(), m_cinematicOverlay, m_client);
+  m_questLogInterface = makeObject<QuestLogInterface>(m_client->questManager(), m_client->mainPlayer(), m_cinematicOverlay, m_client);
   m_paneManager.registerPane(MainInterfacePanes::QuestLog, PaneLayer::Window, m_questLogInterface);
 
-  auto aiInterface = make_shared<AiInterface>(m_client, m_cinematicOverlay, &m_paneManager);
+  auto aiInterface = makeObject<AiInterface>(m_client, m_cinematicOverlay, &m_paneManager);
   m_paneManager.registerPane(MainInterfacePanes::Ai, PaneLayer::Window, aiInterface);
 
-  m_codexInterface = make_shared<CodexInterface>(m_client->mainPlayer());
+  m_codexInterface = makeObject<CodexInterface>(m_client->mainPlayer());
   m_paneManager.registerPane(MainInterfacePanes::Codex, PaneLayer::Window, m_codexInterface);
 
-  m_optionsMenu = make_shared<OptionsMenu>(&m_paneManager);
+  m_optionsMenu = makeObject<OptionsMenu>(&m_paneManager);
   m_paneManager.registerPane(MainInterfacePanes::Options, PaneLayer::ModalWindow, m_optionsMenu);
 
-  m_popupInterface = make_shared<PopupInterface>();
+  m_popupInterface = makeObject<PopupInterface>();
   m_paneManager.registerPane(MainInterfacePanes::Popup, PaneLayer::Window, m_popupInterface);
 
-  m_confirmationDialog = make_shared<ConfirmationDialog>();
+  m_confirmationDialog = makeObject<ConfirmationDialog>();
   m_paneManager.registerPane(MainInterfacePanes::Confirmation, PaneLayer::ModalWindow, m_confirmationDialog);
 
-  m_joinRequestDialog = make_shared<JoinRequestDialog>();
+  m_joinRequestDialog = makeObject<JoinRequestDialog>();
   m_paneManager.registerPane(MainInterfacePanes::JoinRequest, PaneLayer::ModalWindow, m_joinRequestDialog);
 
-  m_actionBar = make_shared<ActionBar>(&m_paneManager, m_client->mainPlayer());
+  m_actionBar = makeObject<ActionBar>(&m_paneManager, m_client->mainPlayer());
   m_paneManager.registerPane(MainInterfacePanes::ActionBar, PaneLayer::Hud, m_actionBar);
 
-  m_questTracker = make_shared<QuestTrackerPane>();
+  m_questTracker = makeObject<QuestTrackerPane>();
   m_paneManager.registerPane(MainInterfacePanes::QuestTracker, PaneLayer::Hud, m_questTracker);
 
-  m_mmUpgrade = make_shared<ScriptPane>(m_client, "/interface/scripted/mmupgrade/mmupgradegui.config", NullEntityId, this);
+  m_mmUpgrade = makeObject<ScriptPane>(m_client, "/interface/scripted/mmupgrade/mmupgradegui.config", NullEntityId, this);
   m_paneManager.registerPane(MainInterfacePanes::MmUpgrade, PaneLayer::Window, m_mmUpgrade);
 
-  m_collections = make_shared<ScriptPane>(m_client, "/interface/scripted/collections/collectionsgui.config", NullEntityId, this);
+  m_collections = makeObject<ScriptPane>(m_client, "/interface/scripted/collections/collectionsgui.config", NullEntityId, this);
   m_paneManager.registerPane(MainInterfacePanes::Collections, PaneLayer::Window, m_collections);
 
-  m_chat = make_shared<Chat>(this, m_client, m_persistedChatState, Root::singleton().assets()->json("/interface/chat/chat.config"));
+  m_chat = makeObject<Chat>(this, m_client, m_persistedChatState, Root::singleton().assets()->json("/interface/chat/chat.config"));
   m_paneManager.registerPane(MainInterfacePanes::Chat, PaneLayer::Hud, m_chat);
-  m_clientCommandProcessor = make_shared<ClientCommandProcessor>(m_client, m_cinematicOverlay, &m_paneManager, m_config->macroCommands);
+  m_clientCommandProcessor = makeObject<ClientCommandProcessor>(m_client, m_cinematicOverlay, &m_paneManager, m_config->macroCommands);
 
-  m_radioMessagePopup = make_shared<RadioMessagePopup>();
+  m_radioMessagePopup = makeObject<RadioMessagePopup>();
   m_paneManager.registerPane(MainInterfacePanes::RadioMessagePopup, PaneLayer::Hud, m_radioMessagePopup);
 
-  m_wireInterface = make_shared<WirePane>(m_client->worldClient(), m_client->mainPlayer(), m_worldPainter);
+  m_wireInterface = makeObject<WirePane>(m_client->worldClient(), m_client->mainPlayer(), m_worldPainter);
   m_paneManager.registerPane(MainInterfacePanes::WireInterface, PaneLayer::World, m_wireInterface);
   m_client->mainPlayer()->setWireConnector(m_wireInterface.get());
 
-  auto teamBar = make_shared<TeamBar>(this, m_client);
+  auto teamBar = makeObject<TeamBar>(this, m_client);
   m_paneManager.registerPane(MainInterfacePanes::TeamBar, PaneLayer::Hud, teamBar);
 
-  auto statusPane = make_shared<StatusPane>(&m_paneManager, m_client);
+  auto statusPane = makeObject<StatusPane>(&m_paneManager, m_client);
   m_paneManager.registerPane(MainInterfacePanes::StatusPane, PaneLayer::Hud, statusPane);
 
-  auto planetName = make_shared<Pane>();
-  m_planetText = make_shared<LabelWidget>();
+  auto planetName = makeObject<Pane>();
+  m_planetText = makeObject<LabelWidget>();
   m_planetText->setFontSize(m_config->planetNameFontSize);
   m_planetText->setFontMode(FontMode::Normal);
   m_planetText->setAnchor(HorizontalAnchor::HMidAnchor, VerticalAnchor::VMidAnchor);
@@ -218,19 +216,19 @@ void MainInterface::reset() { // *Completely* reset the interface.
   planetName->addChild("planetText", m_planetText);
   m_paneManager.registerPane(MainInterfacePanes::PlanetText, PaneLayer::Hud, planetName);
 
-  m_nameplatePainter = make_shared<NameplatePainter>();
-  m_questIndicatorPainter = make_shared<QuestIndicatorPainter>(m_client);
-  m_chatBubbleManager = make_shared<ChatBubbleManager>();
+  m_nameplatePainter = makeObject<NameplatePainter>();
+  m_questIndicatorPainter = makeObject<QuestIndicatorPainter>(m_client);
+  m_chatBubbleManager = makeObject<ChatBubbleManager>();
 
   m_paneManager.displayRegisteredPane(MainInterfacePanes::ActionBar);
   m_paneManager.displayRegisteredPane(MainInterfacePanes::TeamBar);
   m_paneManager.displayRegisteredPane(MainInterfacePanes::StatusPane);
 
-  m_charSwapPane = make_shared<CharSelectionPane>(m_client->playerStorage(), [&]() {}, // Creation callback.
+  m_charSwapPane = makeObject<CharSelectionPane>(m_client->playerStorage(), [&]() {}, // Creation callback.
       [&](PlayerPtr const& player) {
       if (m_client && player)
-        m_client->switchPlayer(player->uuid()); },                                                // Selection callback.
-      [&](Uuid uuid) {                                                                 // Deletion callback.
+        m_client->switchPlayer(player->uuid()); },                                               // Selection callback.
+      [&](Uuid uuid) {                                                                // Deletion callback.
         if (m_client)
           m_client->removePlayer(uuid);
       },
@@ -243,11 +241,11 @@ void MainInterface::reset() { // *Completely* reset the interface.
   }
   m_paneManager.registerPane(MainInterfacePanes::CharacterSwap, PaneLayer::ModalWindow, m_charSwapPane);
 
-  m_charAddPane = make_shared<CharSelectionPane>(m_client->playerStorage(), [&]() {}, // Creation callback.
+  m_charAddPane = makeObject<CharSelectionPane>(m_client->playerStorage(), [&]() {}, // Creation callback.
       [&](PlayerPtr const& player) {
       if (m_client && player)
-        m_client->addPlayer(player->uuid()); },                                               // Selection callback.
-      [&](Uuid uuid) {                                                                // Deletion callback.
+        m_client->addPlayer(player->uuid()); },                                              // Selection callback.
+      [&](Uuid uuid) {                                                               // Deletion callback.
         if (m_client)
           m_client->removePlayer(uuid);
       },
@@ -260,11 +258,11 @@ void MainInterface::reset() { // *Completely* reset the interface.
   }
   m_paneManager.registerPane(MainInterfacePanes::CharacterAdd, PaneLayer::ModalWindow, m_charAddPane);
 
-  m_charRemovePane = make_shared<CharSelectionPane>(m_client->playerStorage(), [&]() {}, // Creation callback.
+  m_charRemovePane = makeObject<CharSelectionPane>(m_client->playerStorage(), [&]() {}, // Creation callback.
       [&](PlayerPtr const& player) {
       if (m_client && player)
-        m_client->removePlayer(player->uuid()); },                                                  // Selection callback.
-      [&](Uuid uuid) {                                                                   // Deletion callback.
+        m_client->removePlayer(player->uuid()); },                                                 // Selection callback.
+      [&](Uuid uuid) {                                                                  // Deletion callback.
         if (m_client)
           m_client->removePlayer(uuid);
       },
@@ -300,7 +298,7 @@ void MainInterface::reset() { // *Completely* reset the interface.
     return isChatMessage ? Json(results) : result;
   };
 
-  m_charEditor = make_shared<CharCreationPane>([=](PlayerPtr editedPlayer) {
+  m_charEditor = makeObject<CharCreationPane>([=](PlayerPtr editedPlayer) {
     m_paneManager.dismissRegisteredPane(MainInterfacePanes::CharacterEdit);
   },
       m_client->mainPlayer());
@@ -330,7 +328,7 @@ void MainInterface::openCraftingWindow(Json const& config, EntityId sourceEntity
     }
   }
 
-  m_craftingWindow = make_shared<CraftingPane>(m_client->worldClient(), m_client->mainPlayer(), config, sourceEntityId);
+  m_craftingWindow = makeObject<CraftingPane>(m_client->worldClient(), m_client->mainPlayer(), config, sourceEntityId);
   m_paneManager.displayPane(PaneLayer::Window, m_craftingWindow, [this](PanePtr const&) {
     if (auto player = m_client->mainPlayer())
       player->clearSwap();
@@ -347,7 +345,7 @@ void MainInterface::openMerchantWindow(Json const& config, EntityId sourceEntity
   }
 
   bool openWithInventory = config.getBool("openWithInventory", true);
-  m_merchantWindow = make_shared<MerchantPane>(m_client->worldClient(), m_client->mainPlayer(), config, sourceEntityId);
+  m_merchantWindow = makeObject<MerchantPane>(m_client->worldClient(), m_client->mainPlayer(), config, sourceEntityId);
   m_paneManager.displayPane(PaneLayer::Window,
       m_merchantWindow,
       [this, openWithInventory](PanePtr const&) {
@@ -525,7 +523,7 @@ void MainInterface::handleInteractAction(InteractAction interactAction) {
 
       m_paneManager.displayRegisteredPane(MainInterfacePanes::Inventory);
 
-      m_containerPane = make_shared<ContainerPane>(world, m_client->mainPlayer(), m_containerInteractor, this);
+      m_containerPane = makeObject<ContainerPane>(world, m_client->mainPlayer(), m_containerInteractor, this);
       m_paneManager.displayPane(PaneLayer::Window, m_containerPane, [this](PanePtr const&) {
         if (auto player = m_client->mainPlayer())
           player->clearSwap();
@@ -594,7 +592,7 @@ void MainInterface::handleInteractAction(InteractAction interactAction) {
                 icon};
 
             if (!m_client->mainPlayer()->universeMap()->teleportBookmarks().contains(currentLocation) || !config.getBool("canTeleport", true)) {
-              auto editBookmarkDialog = make_shared<EditBookmarkDialog>(m_client->mainPlayer()->universeMap());
+              auto editBookmarkDialog = makeObject<EditBookmarkDialog>(m_client->mainPlayer()->universeMap());
               editBookmarkDialog->setBookmark(currentLocation);
               m_paneManager.displayPane(PaneLayer::ModalWindow, editBookmarkDialog);
               return;
@@ -604,7 +602,7 @@ void MainInterface::handleInteractAction(InteractAction interactAction) {
       }
 
       if (config.getBool("canTeleport", true)) {
-        m_teleportDialog = make_shared<TeleportDialog>(m_client, &m_paneManager, interactAction.data, interactAction.entityId, currentLocation);
+        m_teleportDialog = makeObject<TeleportDialog>(m_client, &m_paneManager, interactAction.data, interactAction.entityId, currentLocation);
         m_paneManager.displayPane(PaneLayer::ModalWindow, m_teleportDialog);
       }
     } else if (interactAction.type == InteractActionType::ShowPopup) {
@@ -616,7 +614,7 @@ void MainInterface::handleInteractAction(InteractAction interactAction) {
       if (sourceEntity != NullEntityId && m_interactionScriptPanes.contains(sourceEntity) && m_paneManager.isDisplayed(m_interactionScriptPanes[sourceEntity]))
         m_paneManager.dismissPane(m_interactionScriptPanes[sourceEntity]);
 
-      ScriptPanePtr scriptPane = make_shared<ScriptPane>(m_client, interactAction.data, sourceEntity, this);
+      ScriptPanePtr scriptPane = makeObject<ScriptPane>(m_client, interactAction.data, sourceEntity, this);
       displayScriptPane(scriptPane, sourceEntity);
 
     } else if (interactAction.type == InteractActionType::Message) {
@@ -1021,7 +1019,7 @@ void MainInterface::addChatMessage(ChatReceivedMessage const& message, bool show
 }
 
 void MainInterface::queueMessage(String const& message, Maybe<float> cooldown, float spring) {
-  auto guiMessage = make_shared<GuiMessage>(message, cooldown.value(m_config->messageTime), spring);
+  auto guiMessage = makeObject<GuiMessage>(message, cooldown.value(m_config->messageTime), spring);
   m_messages.append(guiMessage);
 }
 
@@ -1049,7 +1047,7 @@ void MainInterface::queueItemPickupText(ItemPtr const& item) {
     message->cooldown = m_config->messageTime;
     m_itemDropMessages[descriptor.singular()] = {newCount, message};
   } else {
-    auto message = make_shared<GuiMessage>(strf("{} - {}", item->friendlyName(), item->count()), m_config->messageTime);
+    auto message = makeObject<GuiMessage>(strf("{} - {}", item->friendlyName(), item->count()), m_config->messageTime);
     m_messages.append(message);
     m_itemDropMessages[descriptor.singular()] = {item->count(), message};
   }
@@ -1104,7 +1102,7 @@ CanvasWidgetPtr MainInterface::fetchCanvas(String const& canvasName, bool ignore
   if (auto canvasPtr = m_canvases.ptr(canvasName))
     canvas = *canvasPtr;
   else {
-    m_canvases.emplace(canvasName, canvas = make_shared<CanvasWidget>());
+    m_canvases.emplace(canvasName, canvas = makeObject<CanvasWidget>());
     canvas->setPosition(Vec2I());
     if (ignoreInterfaceScale)
       canvas->setSize(Vec2I(m_guiContext->windowSize()));
@@ -1151,7 +1149,7 @@ void MainInterface::reviveScriptPanes(List<ScriptPaneInfo>& panes) {
 PanePtr MainInterface::createEscapeDialog() {
   auto assets = Root::singleton().assets();
 
-  auto escapeDialog = make_shared<Pane>();
+  auto escapeDialog = makeObject<Pane>();
   auto escapeDialogPtr = escapeDialog.get();
 
   GuiReader escapeDialogReader;

@@ -277,11 +277,15 @@ array[4] = nil -- Assigns `nil` to the fourth element. Array is now `[null, null
 
 ## Function calls and data transfer across Lua/Pluto contexts
 
-> **IMPORTANT NOTICE FOR SCRIPT MODDERS: Legacy support for shared Lua/Pluto states, and therefore unsafe cross-context Lua/Pluto state sharing and calls via sandbox exploits (i.e., smuggling values and calls through type metatables or base library tables), have been _deprecated and completely removed_ in xStarbound v3.5 — disabling `"safeScripts"` _no longer_ enables this functionality. Mods that use sandbox exploits to share state or make cross-context calls are _NO LONGER SUPPORTED_ by xStarbound.**
-
-> **WARNING:** On stock Starbound, StarExtensions, OpenStarbound and the like, **be careful about sharing references to engine callbacks or methods via `shared` or any metatable/table hacks, as calling them _WILL_ cause segfaults («access violations» on Windows)!** When in doubt, use message handlers.
+> **NOTE:** xStarbound v4.5 adds support for memory-safe «Lua smuggling», which is the sharing of Lua binding (or callback) references across contexts via type metatables or library tables, as used in certain mods. To use this feature, `"legacySmuggling"` must be enabled in the client's `xclient.config` or the server or host's `xserver.config` or `xclient.config`.
 >
-> Lua doesn't keep track of user-created references to callbacks after those callbacks get their lease "revoked" by the engine, which happens right after `uninit` finishes running in the context where the callback is leased, or for those "one-off" scripts without `uninit`, right after the script finishes running.
+> When this compatibility mode is enabled, all «smuggled» user-created references to Lua bindings (or callbacks) will throw a catchable Lua error on invocation after those bindings get their lease revoked by the engine. Lease revocation generally happens right after `uninit` finishes running in the context where the callback is leased, or for those «one-off» scripts without `uninit`, right after the script finishes running.
+
+> **FOR PLAYERS:** If you have mod compatibility issues that cause nil dereference errors in your game's log, these are likely due to the mod using «Lua smuggling». Try enabling `"legacySmuggling"` to solve this issue. Installing xSBCompat will automatically enable this setting if it hasn't been explicitly set before.
+>
+> _Character swapping:_ Mods that require «Lua smuggling» may have glitches after swapping, adding or removing player characters on xClient; if a `/swap`, `/add` or `/remove` command causes issues with your «smuggling»-dependent mods, avoid using those commands and go back to the main menu when you want to switch characters.
+
+> **WARNING FOR NON-XSTARBOUND CLIENTS AND SERVERS:** While xStarbound v4.5+ makes sharing references to Lua bindings between contexts (often called «Lua smuggling») memory-safe, on stock Starbound, StarExtensions, OpenStarbound and the like, **be careful about sharing references to engine callbacks or methods via `shared` or any metatable/table hacks, as calling them _WILL_ cause segfaults («access violations» on Windows)!** When in doubt, use message handlers or check your Lua binding references.
 
 There are four main ways to share data and make calls across Lua contexts on xStarbound:
 
@@ -289,34 +293,37 @@ There are four main ways to share data and make calls across Lua contexts on xSt
 - `world.getGlobal`, `world.getGlobals`, `world.setGlobal` and `world.setGlobals` allow JSON values to be shared across contexts that have access to `world`. Only available on xStarbound.
   - Client-side, there is only a single world globals table that only gets cleared upon disconnection, exiting the client or returning to the main menu.
   - Server-side, each world has its own globals table that gets cleared when the world is unloaded.
-- The `shared` table is available in all Lua contexts for sharing Lua values across contexts in the same Lua state. _On non-xStarbound clients and servers, this is potentially unsafe — calling «overleased» shared callback functions, or code containing calls to them, will cause segfaults! On xStarbound, this table is not very useful._
-- JSON-serialisable values — or on non-xStarbound servers and clients, Lua values — can be shared across contexts, and function/callback calls can be made across contexts, with `world.callScriptedEntity`, `world.callScriptContext`, `activeItem.callOtherHandScript` and the `callScriptArgs` argument to `world.entityQuery`. JSON sanitisation is enforced on all values shared this way on xStarbound. _On non-xStarbound clients and servers, this is potentially unsafe, like `shared`!_
+- The `shared` table is available in all Lua contexts for sharing Lua values across contexts in the same Lua state. _On xStarbound v4.5+ with `"legacySmuggling"` enabled, Lua bindings shared in this table are internally checked for «overleasing»; a Lua dereference error is thrown if an overleased Lua binding is called. If `"legacySmuggling"` is disabled, this table is not very useful. On non-xStarbound clients and servers, this is potentially unsafe — calling «overleased» shared Lua bindings, or code containing calls to them, will cause segfaults!_
+- JSON-serialisable values — or on xStarbound with `"legacySmuggling"` enabled or on non-xStarbound servers and clients, Lua values — can be shared across contexts, and function/callback calls can be made across contexts, with `world.callScriptedEntity`, `world.callScriptContext`, `activeItem.callOtherHandScript` and the `callScriptArgs` argument to `world.entityQuery`. JSON sanitisation is enforced on all values shared this way on xStarbound. _On non-xStarbound clients and servers, sharing Lua values this way is potentially unsafe, like `shared`!_
 - On xStarbound server-side, JSON-serialisable values can be shared across world threads and saved persistently in `server.dat` via `universe.getServerData`, `universe.setServerData`, `universe.getServerDataPath` and `universe.setServerDataPath`.
 
-Two other ways of sharing data and making calls across Lua contexts exist on non-xStarbound clients and servers:
+Two other ways of sharing data and making calls across Lua contexts exist on xStarbound when `"legacySmuggling"` is enabled in its config and on non-xStarbound clients and servers:
 
-- Values stored in Lua/Pluto base library tables (`math`, `os`, `table`, `json`, etc.) are shared across contexts, just as for `shared`. (The metatables of these tables are inaccessible though.) _This has very limited utility on xStarbound due to enforced sandbox isolation. On non-xStarbound clients and servers, this is unsafe, like `shared`!_
-- The "type metatables" shared across all values of each Lua type, other than tables and "full" userdata objects (not light userdata), are shared across contexts. _This has very limited utility on xStarbound due to enforced sandbox isolation. On non-xStarbound clients and servers, this is unsafe, like `shared`!_
+- Values stored in Lua/Pluto base library tables (`math`, `os`, `table`, `json`, etc.) are shared across contexts, just as for `shared`. (The metatables of these tables are inaccessible though.) _xStarbound v4.5+ internally checks smuggled references to prevent crashes, throwing a catchable Lua dereference error instead. On non-xStarbound clients and servers, this is unsafe, like `shared`!_
+- The "type metatables" shared across all values of each Lua type, other than tables and "full" userdata objects (not light userdata), are shared across contexts. _xStarbound v4.5+ internally checks smuggled references to prevent crashes, throwing a catchable Lua dereference error instead. On non-xStarbound clients and servers, this is unsafe, like `shared`!_
 
-Lua values cannot be shared across Lua states. On xStarbound, _all_ Lua contexts are run in fully isolated Lua/Pluto states, with the following safe exceptions:
+Lua values cannot be shared across Lua states. On xStarbound with `"legacySmuggling"` _disabled_, _all_ Lua contexts are run in fully isolated Lua/Pluto states, with the following safe exceptions:
 
 - Universe client script contexts, which still share their state with each other.
 - World server script contexts, which still share their state with each other on a per-world basis.
+- Client-side statistics scripts share their state with each other, but not with any other client-side scripts.
+- Item creation and ageing scripts share their state with each other, but augment scripts are isolated from each other.
+- All server command processor scripts share the same state with each other.
 
-These are safe because the Lua states share the same callback set across all scripts and never run after `world` and interface-related callbacks are revoked.
+However, on xStarbound v4.5+ with `"legacySmuggling"` enabled, stock Starbound, OpenStarbound, _et al._, Lua states are only weakly separated as follows (non-xStarbound entries apply only to non-xStarbound clients and servers):
 
-However, on stock Starbound, OpenStarbound, _et al._, Lua states are only weakly separated as follows:
-
-- Most client-side scripts for players, monsters, etc., share the same state with each other. The exceptions are noted below.
+- Most client-side scripts for players, monsters, panes, etc., share the same state with each other. The exceptions are noted below.
 - Client-side universe scripts share their state with each other, but _not_ with other client-side scripts.
 - All server-side scripts running on a given world share the same state for that world, but not with any other worlds. This is due to worlds being multithreaded on the server. For communication between worlds, use `message.setHandler` and `universe.sendWorldMessage` in a world server script (see `message.md` and `universeserver.md`).
 - All server command processor scripts share the same state with each other, but not with any worlds. Again, it's due to multithreading. For communication with worlds, use `message.setHandler` and `universe.sendWorldMessage` (see `message.md` and `universeserver.md`).
-- Augment, item creation and versioning scripts running on the same client or server share their state with each other, but not with any other scripts.
-- Asset preprocessor and patch scripts share their state with all other such scripts on the same asset load or reload, whether on the server or client; state is _not_ shared across asset reloads.
+- **[Non-xStarbound]** Augment, item creation and versioning scripts running on the same client or server share their state with each other, but not with any other scripts.
+- **[Non-xStarbound]** Asset preprocessor and patch scripts share their state with all other such scripts on the same asset load or reload, whether on the server or client; state is _not_ shared across asset reloads.
 - Client-side statistics scripts share their state with each other, but not with any other client-side scripts.
 - The **Mod Binds** and **Voice Options** dialogues have their own states which they _don't_ share with each other.
 
-> **Note:** World globals are shared across _all_ loaded primary and secondary players (and across player swaps!) on xStarbound, so be careful when using world globals to store global player state. Consider adding UUID checks (via `player.uniqueId`) if you need to "isolate" such global states — UUIDs are guaranteed to be unique to each loaded player as long as you use `player.uniqueId` or `entity.uniqueId` (but _not_ `world.entityUniqueId`, which can return a non-unique vanity UUID!).
+> **NOTE:** The two non-xStarbound entries don't apply to xStarbound with `"legacySmuggling"` enabled because «smuggling» is just not very useful in those cases.
+
+> **PLAYER STATE SHARING:** World globals are shared across _all_ loaded primary and secondary players (and across player swaps!) on xStarbound, so be careful when using world globals to store global player state, or else you might have the shared state apply to all loaded players! The same goes for usage of `shared` and other shared tables/metatables when `"legacySmuggling"` is enabled. Consider adding UUID checks (via `player.uniqueId`) if you need to "isolate" such global states — UUIDs are guaranteed to be unique to each loaded player as long as you use `player.uniqueId` or `entity.uniqueId` (but _not_ `world.entityUniqueId`, which can return a non-unique vanity UUID!).
 
 ## Common Lua functions called by the engine
 

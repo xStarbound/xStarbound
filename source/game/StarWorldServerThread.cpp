@@ -260,6 +260,8 @@ void WorldServerThread::run() {
     double fidelityDecrementScore = root.assets()->json("/universe_server.config:fidelityDecrementScore").toDouble();
     double fidelityIncrementScore = root.assets()->json("/universe_server.config:fidelityIncrementScore").toDouble();
 
+    GameObjectRegistry::registerGameObject(m_worldServer.get(), m_worldServer);
+
     String serverFidelityMode = root.configuration()->get("serverFidelity").toString();
     Maybe<WorldServerFidelity> lockedFidelity;
     if (!serverFidelityMode.equalsIgnoreCase("automatic"))

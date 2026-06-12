@@ -351,23 +351,31 @@ Maybe<String> Pane::cursorOverride(Vec2I const&) {
 LuaCallbacks Pane::makePaneCallbacks() {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallback("toWidget", [this]() -> LuaCallbacks {
+  auto thisPane = GameObjectRegistry::smuggleWrap(this);
+  auto thisReader = GameObjectRegistry::smuggleWrap(reader().get());
+
+  callbacks.registerCallback("toWidget", [this, thisPane, thisReader]() -> LuaCallbacks {
+    thisPane.checkSmuggle();
+    thisReader.checkSmuggle();
     return LuaBindings::makeWidgetCallbacks(this, reader());
   });
 
-  callbacks.registerCallback("dismiss", [this]() { dismiss(); });
+  callbacks.registerCallback("dismiss", [thisPane]() {
+    thisPane->dismiss();
+  });
 
-  callbacks.registerCallback("show", [this]() { show(); });
+  callbacks.registerCallback("show", [thisPane]() { thisPane->show(); });
 
-  callbacks.registerCallback("hide", [this]() { hide(); });
+  callbacks.registerCallback("hide", [thisPane]() { thisPane->hide(); });
 
-  callbacks.registerCallback("hasFocus", [this]() -> bool { return hasFocus(); });
+  callbacks.registerCallback("hasFocus", [thisPane]() -> bool { return thisPane->hasFocus(); });
 
   callbacks.registerCallback("playSound",
-      [this](String const& audio, Maybe<int> loops, Maybe<float> volume) {
+      [this, thisPane](String const& audio, Maybe<int> loops, Maybe<float> volume) {
+        thisPane.checkSmuggle();
         auto assets = Root::singleton().assets();
         auto config = Root::singleton().configuration();
-        auto audioInstance = make_shared<AudioInstance>(*assets->audio(audio));
+        auto audioInstance = makeObject<AudioInstance>(*assets->audio(audio));
         audioInstance->setVolume(volume.value(1.0));
         audioInstance->setLoops(loops.value(0));
         auto& guiContext = GuiContext::singleton();
@@ -375,7 +383,8 @@ LuaCallbacks Pane::makePaneCallbacks() {
         m_playingSounds.append({audio, std::move(audioInstance)});
       });
 
-  callbacks.registerCallback("stopAllSounds", [this](Maybe<String> const& audio) {
+  callbacks.registerCallback("stopAllSounds", [this, thisPane](Maybe<String> const& audio) {
+    thisPane.checkSmuggle();
     m_playingSounds.filter([audio](pair<String, AudioInstancePtr> const& p) {
       if (!audio || p.first == *audio) {
         p.second->stop();
@@ -385,36 +394,55 @@ LuaCallbacks Pane::makePaneCallbacks() {
     });
   });
 
-  callbacks.registerCallback("setTitle", [this](String const& title, String const& subTitle) {
-    setTitleString(title, subTitle);
+  callbacks.registerCallback("setTitle", [thisPane](String const& title, String const& subTitle) {
+    thisPane->setTitleString(title, subTitle);
   });
 
-  callbacks.registerCallback("setTitleIcon", [this](String const& image) {
+  callbacks.registerCallback("setTitleIcon", [this, thisPane](String const& image) {
+    thisPane.checkSmuggle();
     if (auto icon = as<ImageWidget>(titleIcon()))
       icon->setImage(image);
   });
 
-  callbacks.registerCallback("getPosition", [this]() -> Vec2I { return relativePosition(); });
-  callbacks.registerCallback("setPosition", [this](Vec2I const& position) { setPosition(position); });
-  callbacks.registerCallback("getSize", [this]() -> Vec2I { return size(); });
-  callbacks.registerCallback("setSize", [this](Vec2I const& size) { setSize(size); });
+  callbacks.registerCallback("getPosition", [thisPane]() -> Vec2I { return thisPane->relativePosition(); });
+  callbacks.registerCallback("setPosition", [thisPane](Vec2I const& position) { thisPane->setPosition(position); });
+  callbacks.registerCallback("getSize", [thisPane]() -> Vec2I { return thisPane->size(); });
+  callbacks.registerCallback("setSize", [thisPane](Vec2I const& size) { thisPane->setSize(size); });
 
-  callbacks.registerCallback("addWidget", [this](Json const& newWidgetConfig, Maybe<String> const& newWidgetName) {
-    String name = newWidgetName.value(toString(Random::randu64()));
-    // @emmypos: Crash fix for `widget.addChild`.
-    if (WidgetPtr newWidget = reader()->makeSingle(name, newWidgetConfig))
-      this->addChild(name, newWidget);
-  });
+  if (GameObjectRegistry::smugglingEnabled()) {
+    callbacks.registerCallback("addWidget", [this, thisPane, thisReader](Json const& newWidgetConfig, Maybe<String> const& newWidgetName) -> Maybe<LuaCallbacks> {
+      thisPane.checkSmuggle();
+      thisReader.checkSmuggle();
+      String name = newWidgetName.value(toString(Random::randu64()));
+      // @emmypos: Crash fix for `widget.addChild`.
+      // FezzedOne: Now safe to return widget callbacks because of smuggling safety checks.
+      if (WidgetPtr newWidget = reader()->makeSingle(name, newWidgetConfig)) {
+        this->addChild(name, newWidget);
+        return LuaBindings::makeWidgetCallbacks(newWidget.get(), reader());
+      }
+      return Maybe<LuaCallbacks>{};
+    });
+  } else {
+    callbacks.registerCallback("addWidget", [this, thisPane, thisReader](Json const& newWidgetConfig, Maybe<String> const& newWidgetName) {
+      thisPane.checkSmuggle();
+      thisReader.checkSmuggle();
+      String name = newWidgetName.value(toString(Random::randu64()));
+      // @emmypos: Crash fix for `widget.addChild`.
+      if (WidgetPtr newWidget = reader()->makeSingle(name, newWidgetConfig))
+        this->addChild(name, newWidget);
+    });
+  }
 
-  callbacks.registerCallback("removeWidget", [this](String const& widgetName) -> bool {
-    return this->removeChild(widgetName);
+  callbacks.registerCallback("removeWidget", [thisPane](String const& widgetName) -> bool {
+    return thisPane->removeChild(widgetName);
   });
 
   callbacks.registerCallback("scale", []() -> float {
     return GuiContext::singleton().interfaceScale();
   });
 
-  callbacks.registerCallback("isDisplayed", [this]() -> bool {
+  callbacks.registerCallback("isDisplayed", [this, thisPane]() -> bool {
+    thisPane.checkSmuggle();
     return !m_dismissed;
   });
 
@@ -426,7 +454,9 @@ Maybe<ItemPtr> Pane::shiftItemFromInventory(ItemPtr const& input) const {
 }
 
 GuiReaderPtr Pane::reader() {
-  return make_shared<GuiReader>();
+  if (!m_guiReader)
+    m_guiReader = makeObject<GuiReader>();
+  return m_guiReader;
 }
 
 void Pane::renderImpl() {

@@ -33,7 +33,7 @@ MiningTool::MiningTool(Json const& config, String const& directory, Json const& 
 }
 
 ItemPtr MiningTool::clone() const {
-  return make_shared<MiningTool>(*this);
+  return makeObject<MiningTool>(*this);
 }
 
 List<Drawable> MiningTool::drawables() const {
@@ -177,7 +177,7 @@ HarvestingTool::HarvestingTool(Json const& config, String const& directory, Json
 }
 
 ItemPtr HarvestingTool::clone() const {
-  return make_shared<HarvestingTool>(*this);
+  return makeObject<HarvestingTool>(*this);
 }
 
 List<Drawable> HarvestingTool::drawables() const {
@@ -238,7 +238,7 @@ Flashlight::Flashlight(Json const& config, String const& directory, Json const& 
 }
 
 ItemPtr Flashlight::clone() const {
-  return make_shared<Flashlight>(*this);
+  return makeObject<Flashlight>(*this);
 }
 
 List<Drawable> Flashlight::drawables() const {
@@ -272,7 +272,7 @@ WireTool::WireTool(Json const& config, String const& directory, Json const& para
 }
 
 ItemPtr WireTool::clone() const {
-  return make_shared<WireTool>(*this);
+  return makeObject<WireTool>(*this);
 }
 
 void WireTool::init(ToolUserEntity* owner, ToolHand hand) {
@@ -361,7 +361,7 @@ BeamMiningTool::BeamMiningTool(Json const& config, String const& directory, Json
 }
 
 ItemPtr BeamMiningTool::clone() const {
-  return make_shared<BeamMiningTool>(*this);
+  return makeObject<BeamMiningTool>(*this);
 }
 
 List<Drawable> BeamMiningTool::drawables() const {
@@ -539,7 +539,7 @@ TillingTool::TillingTool(Json const& config, String const& directory, Json const
 }
 
 ItemPtr TillingTool::clone() const {
-  return make_shared<TillingTool>(*this);
+  return makeObject<TillingTool>(*this);
 }
 
 List<Drawable> TillingTool::drawables() const {
@@ -637,7 +637,7 @@ PaintingBeamTool::PaintingBeamTool(Json const& config, String const& directory, 
 }
 
 ItemPtr PaintingBeamTool::clone() const {
-  return make_shared<PaintingBeamTool>(*this);
+  return makeObject<PaintingBeamTool>(*this);
 }
 
 List<Drawable> PaintingBeamTool::drawables() const {

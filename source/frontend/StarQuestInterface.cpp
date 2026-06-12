@@ -66,7 +66,7 @@ QuestLogInterface::QuestLogInterface(QuestManagerPtr manager, PlayerPtr player, 
   mainQuestList->disableScissoring();
   sideQuestList->disableScissoring();
 
-  m_rewardItems = make_shared<ItemBag>(5);
+  m_rewardItems = makeObject<ItemBag>(5);
   fetchChild<ItemGridWidget>("rewardItems")->setItemBag(m_rewardItems);
 
   m_refreshRate = 30;
@@ -315,7 +315,7 @@ void QuestPane::commonSetup(Json config, String bodyText, String const& portrait
   }
 
   if (auto rewardItemsWidget = fetchChild<ItemGridWidget>("rewardItems")) {
-    auto rewardItems = make_shared<ItemBag>(5);
+    auto rewardItems = makeObject<ItemBag>(5);
     for (auto const& reward : m_quest->rewards())
       rewardItems->addItems(reward->clone());
     rewardItemsWidget->setItemBag(rewardItems);

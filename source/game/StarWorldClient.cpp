@@ -57,7 +57,8 @@ WorldClient::WorldClient(PlayerPtr mainPlayer, UniverseClient* universeClient) {
   m_collisionDebug = false;
   m_inWorld = false;
 
-  // m_luaRoot = make_shared<LuaRoot>(); // FezzedOne: No longer necessary.
+  if (GameObjectRegistry::smugglingEnabled())
+    m_luaRoot = make_shared<LuaRoot>();
   m_scriptGlobals = JsonObject{};
 
   m_mainPlayer = mainPlayer;
@@ -959,6 +960,7 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
 
       auto entity = entityFactory->netLoadEntity(entityCreate->entityType, entityCreate->storeData);
       entity->readNetState(std::move(entityCreate->firstNetState));
+      GameObjectRegistry::registerGameObject(entity.get(), entity);
       entity->init(this, entityCreate->entityId, EntityMode::Slave);
       m_entityMap->addEntity(entity);
 
@@ -1275,8 +1277,10 @@ List<PacketPtr> WorldClient::getOutgoingPackets() {
 }
 
 void WorldClient::setLuaCallbacks(String const& groupName, LuaCallbacks const& callbacks) {
-  // m_luaRoot->addCallbacks(groupName, callbacks);
-  LuaBaseComponent::addBaseCallbacks(groupName, callbacks);
+  if (GameObjectRegistry::smugglingEnabled() && m_luaRoot)
+    m_luaRoot->addCallbacks(groupName, callbacks);
+  else
+    LuaBaseComponent::addBaseCallbacks(groupName, callbacks);
 }
 
 void WorldClient::update(float dt) {
@@ -1587,6 +1591,7 @@ void WorldClient::addEntity(EntityPtr const& entity, EntityId entityId) {
     return;
 
   if (entity->clientEntityMode() != ClientEntityMode::ClientSlaveOnly) {
+    GameObjectRegistry::registerGameObject(entity.get(), entity);
     entity->init(this, m_entityMap->reserveEntityId(entityId), EntityMode::Master);
     m_entityMap->addEntity(entity);
     notifyEntityCreate(entity);
