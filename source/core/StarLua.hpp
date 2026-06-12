@@ -154,7 +154,7 @@ SmugglePtr<Type1> as(SmugglePtr<Type2> const& p) {
     else
       return SmugglePtr<Type1>();
   } else {
-    return dynamic_cast<Type1>(*(p.m_ptr.template ptr<Type2*>()));
+    return SmugglePtr(dynamic_cast<Type1*>(*(p.m_ptr.template ptr<Type2*>())));
   }
 }
 
@@ -166,7 +166,7 @@ SmugglePtr<Type1 const> as(SmugglePtr<Type2 const> const& p) {
     else
       return SmugglePtr<Type1 const>();
   } else {
-    return dynamic_cast<Type1 const>(*(p.m_ptr.template ptr<Type2 const*>()));
+    return SmugglePtr(dynamic_cast<Type1 const*>(*(p.m_ptr.template ptr<Type2 const*>())));
   }
 }
 
