@@ -57,8 +57,9 @@ void ScriptPane::displayed() {
   auto world = m_client->worldClient();
   if (world && world->inWorld()) {
     auto config = Root::singleton().configuration();
-    if (true)
-      m_script.setLuaRoot(world->luaRoot());
+    auto worldLuaRoot = world->luaRoot();
+    if (GameObjectRegistry::smugglingEnabled() && worldLuaRoot)
+      m_script.setLuaRoot(worldLuaRoot);
     else
       m_script.setLuaRoot(make_shared<LuaRoot>());
 

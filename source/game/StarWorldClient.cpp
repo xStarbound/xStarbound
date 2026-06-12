@@ -1277,7 +1277,7 @@ List<PacketPtr> WorldClient::getOutgoingPackets() {
 }
 
 void WorldClient::setLuaCallbacks(String const& groupName, LuaCallbacks const& callbacks) {
-  if (true)
+  if (GameObjectRegistry::smugglingEnabled() && m_luaRoot)
     m_luaRoot->addCallbacks(groupName, callbacks);
   else
     LuaBaseComponent::addBaseCallbacks(groupName, callbacks);
