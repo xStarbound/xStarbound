@@ -57,7 +57,7 @@ WorldClient::WorldClient(PlayerPtr mainPlayer, UniverseClient* universeClient) {
   m_collisionDebug = false;
   m_inWorld = false;
 
-  if (GameObjectRegistry::getLuaSmugglingSetting() == LuaSmugglingSetting::Enabled)
+  if (GameObjectRegistry::smugglingEnabled())
     m_luaRoot = make_shared<LuaRoot>();
   m_scriptGlobals = JsonObject{};
 

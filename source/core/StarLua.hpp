@@ -267,7 +267,6 @@ public:
       if (needsRegistration) {
         MutexLocker lock(getRegistryMutex());
         // size_t uniqueId = incrementUniqueId();
-        // gameObjectRegistry()[newKey] = {uniqueId, std::shared_ptr<void>(owningPtr, const_cast<void*>(newKey))};
         gameObjectRegistry()[newKey] = std::shared_ptr<void>(owningPtr, const_cast<void*>(newKey));
       }
     }
@@ -283,7 +282,6 @@ public:
         auto it = gameObjectRegistry().find(newKey);
         if (it == gameObjectRegistry().end()) {
           // size_t uniqueId = incrementUniqueId();
-          // gameObjectRegistry()[newKey] = {uniqueId, trackingPtr};
           gameObjectRegistry()[newKey] = trackingPtr;
         }
       }
@@ -396,7 +394,7 @@ auto luaBind(Func&& functionToWrap, SmugglePtr<ObjectType> const& pointerToCheck
       throw LuaDereferenceException("Dereferenced (likely smuggled) pointer to nonexistent object in Lua script");
     } else {
       ObjectType const* rawPtr = *(ptr.m_ptr.template ptr<ObjectType*>());
-      return std::invoke(func, rawPtr, std::forward<decltype(args)>(args)...);
+      return std::invoke(func, const_cast<ObjectType*>(rawPtr), std::forward<decltype(args)>(args)...);
     }
   };
 }
