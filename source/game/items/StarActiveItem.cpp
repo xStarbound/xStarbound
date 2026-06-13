@@ -87,6 +87,7 @@ void ActiveItem::init(ToolUserEntity* owner, ToolHand hand) {
       m_scriptedAnimator.setScripts(jsonToStringList(animationScripts).transformed(bind(&AssetPath::relativeTo, directory(), _1)));
       m_scriptedAnimator.setUpdateDelta(instanceValue("animationDelta", 1).toUInt());
 
+      m_scriptedAnimator.initScriptBindings(this);
       m_scriptedAnimator.initAnimationBindings(this);
       m_scriptedAnimator.addCallbacks("animationConfig", LuaBindings::makeScriptedAnimatorCallbacks(&m_itemAnimator, [this, thisItem](String const& name, Json const& defaultValue) -> Json {
                                                                thisItem.checkSmuggle();
