@@ -17,7 +17,7 @@ jobs:
   windows-debug:
     if: false
     name: Windows x64 Debug (with Tests)
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
       - name: Export GitHub Actions cache environment variables
@@ -29,7 +29,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
 
       - name: Configure CMake
         env:
@@ -54,7 +54,7 @@ jobs:
 
   windows-release:
     name: Windows x64 Release
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
       - name: Export GitHub Actions cache environment variables
@@ -66,12 +66,12 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
 
       - name: Configure CMake
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: | 
+        run: |
           cmake --preset "windows-x64"
           # Clean up vcpkg temp dirs to save space
           Remove-Item $Env:VCPKG_INSTALLATION_ROOT\buildtrees\ -Force -Recurse -ErrorAction Continue
@@ -106,7 +106,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
 
       - name: Configure CMake
         env:
@@ -114,7 +114,7 @@ jobs:
         run: |
           cmake --preset "linux-vcpkg-x86_64"
           # Clean up vcpkg temp dirs to save space
-          rm -Rf "${VCPKG_INSTALLATION_ROOT}/buildtrees/"* "${VCPKG_INSTALLATION_ROOT}/downloads/"* 
+          rm -Rf "${VCPKG_INSTALLATION_ROOT}/buildtrees/"* "${VCPKG_INSTALLATION_ROOT}/downloads/"*
 
       - name: Build Debug
         run: cmake --build --preset "linux-vcpkg-x86_64-debug"
@@ -147,7 +147,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
 
       - name: Configure CMake
         env:
@@ -155,7 +155,7 @@ jobs:
         run: |
           cmake --preset "linux-vcpkg-x86_64"
           # Clean up vcpkg temp dirs to save space
-          rm -Rf "${VCPKG_INSTALLATION_ROOT}/buildtrees/"* "${VCPKG_INSTALLATION_ROOT}/downloads/"* 
+          rm -Rf "${VCPKG_INSTALLATION_ROOT}/buildtrees/"* "${VCPKG_INSTALLATION_ROOT}/downloads/"*
 
       - name: Build Release
         run: cmake --build --preset "linux-vcpkg-x86_64-release"
