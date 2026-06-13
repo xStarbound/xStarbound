@@ -931,7 +931,9 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* playerPtr, bool removeChat
     player->special(specialAction);
   });
 
-  callbacks.registerCallback("controlAction", [player](Maybe<String> const& action) {
+  callbacks.registerCallback("controlAction", [playerPtr = player](Maybe<String> const& action) {
+    playerPtr.checkSmuggle();
+    auto player = playerPtr.get();
     const CaseInsensitiveStringMap<std::function<void()>> playerActions = {
         {"left", bind(&Player::moveLeft, player)},
         {"right", bind(&Player::moveRight, player)},
