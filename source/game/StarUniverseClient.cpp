@@ -133,11 +133,12 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
 
   Logger::info("UniverseClient: Client connection timeout set to {} {}", timeout, timeout == 1 ? "millisecond" : "milliseconds");
 
-  // FezzedOne: Due to networking code changes in OpenStarbound that cause compatibility issues, added a
-  // `"forceLegacyConnection"` setting to `xclient.config` and also allowed prepending `@` to the
-  // server address to force a legacy connection. At v3.5.3+, `@` or `"forceLegacyConnection"` is
-  // *required* to connect to stock or OpenStarbound servers due to handshake changes.
-  bool shouldForceLegacyConnection = forceLegacyConnection || root.configuration()->get("forceLegacyConnection").optBool().value(false);
+  // FezzedOne: Changed to `"useNewProtocol"`. Now disabled by default to avoid compatibility issues.
+  bool autoForceLegacyConnection = true;
+  auto jUseNewProtocol = root.configuration()->get("useNewProtocol");
+  if (jUseNewProtocol.isType(Json::Type::Bool))
+    autoForceLegacyConnection = !jUseNewProtocol.toBool();
+  bool shouldForceLegacyConnection = forceLegacyConnection || autoForceLegacyConnection;
 
   {
     auto protocolRequest =
@@ -156,9 +157,11 @@ Maybe<String> UniverseClient::connect(UniverseConnection connection, bool allowA
     return String(strf("Join failed! Server does not support {} connections with protocol version {}!{}",
         shouldForceLegacyConnection ? "legacy" : "xStarbound",
         shouldForceLegacyConnection ? StarProtocolVersion : xSbProtocolVersion,
-        shouldForceLegacyConnection ? "" : strf("\n\nAdd ^orange;@^reset; before the server address to connect in legacy mode!"
-                                                " If connecting to a Steam/Discord game hosted by a non-xSB client (or an xSB client in legacy mode),"
-                                                " set ^orange;\"forceLegacyConnection\"^reset; to ^orange;true^reset; in ^orange;xclient.config^reset;."
+        shouldForceLegacyConnection ? "" : strf("\n\nYou're using the new xStarbound protocol."
+                                                " If connecting to a non-xSB server or host (or one not using the new protocol),"
+                                                " set ^orange;\"useNewProtocol\"^reset; to ^orange;false^reset; in ^orange;xclient.config^reset;."
+                                                " You can prepend ^orange;@^reset; to a dedicated server address instead to override the protocol"
+                                                " setting for this session."
                                                 "\n^orange;xStarbound netcode version: v{}",
                                                xSbNetworkVersionString)));
 

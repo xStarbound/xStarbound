@@ -1940,9 +1940,11 @@ void UniverseServer::acceptConnection(UniverseConnection connection, Maybe<HostA
   String serverAssetsMismatchMessage = assets->json("/universe_server.config:serverAssetsMismatchMessage").toString();
   String clientAssetsMismatchMessage = assets->json("/universe_server.config:clientAssetsMismatchMessage").toString();
 
-  // FezzedOne: Due to networking code changes in OpenStarbound that cause compatibility issues, added a
-  // `"forceLegacyConnection"` setting to the server's `xserver.config` or host's `xclient.config`.
-  bool forceLegacyConnection = root.configuration()->get("forceLegacyConnection").optBool().value(false);
+  // FezzedOne: Changed to `"useNewProtocol"`. Now disabled by default to avoid compatibility issues.
+  bool forceLegacyConnection = true;
+  auto jUseNewProtocol = root.configuration()->get("useNewProtocol");
+  if (jUseNewProtocol.isType(Json::Type::Bool))
+    forceLegacyConnection = !jUseNewProtocol.toBool();
 
   RecursiveMutexLocker mainLocker(m_mainLock, false);
 

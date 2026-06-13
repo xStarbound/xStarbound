@@ -4,9 +4,12 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
 
 **Download the latest release for Linux and Windows [here](https://github.com/xStarbound/xStarbound/releases/latest). Older releases [are also available](https://github.com/xStarbound/xStarbound/releases).**
 
-> 🪧 **FYI:** If you're connecting to an OpenStarbound server or hosting for OpenStarbound clients, scroll down to _Network compatibility_!
+## Features and changes
 
-## Changes
+- An internal dynamic object reference system (added in v4.5) that prevents hard game crashes from poorly written Lua scripts while maintaining compatibility with mods that use «Lua smuggling» for inter-script communication. Replaces the old Lua VM isolation. By @FezzedOne.
+  - If you want more performance, disable `"legacySmuggling"` in `xclient.config` or `xserver.config`. This disables the dynamic reference system but enforces Lua VM isolation to prevent shared Lua references from causing crashes. The VM isolation in «performance» mode can cause compatibility issues with mods that rely on shared Lua state. If your mods are having glitches, re-enable `"legacySmuggling"`.
+
+  See [`$docs/lua/lua.md`](doc/lua/lua.md) for more on cross-context data sharing and inter-script communication in Starbound Lua, including xStarbound-specific features and functionality.
 
 - Several new commands (by @fezzedone)! Type `/xclient` for info on the new client-side commands, or `/help` (on xServer, an xClient host or in single-player on xClient) to see the new server-side ones.
 - As of v4.2, xStarbound supports a new «creative mode» (by @fezzedone) that bypasses various placement restrictions applied to tiles, objects, plants and liquids. Its status is controlled by the `"bypassBuildChecks"` world property on a given world; if `true`, «creative mode» is enabled for that world. On xServer, build permission (or admin access) is required to toggle «creative mode» on a world. [xWEdit](https://github.com/FezzedOne/xWEdit) provides a `/creative` command for toggling «creative mode». More details:
@@ -35,14 +38,12 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
 
   As of v4.1.2.3, an xServer::Helper utility mod is available. This mod adds a `/claim` command for setting world protection and claims, as well as an optional user account registration command and several admin commands for viewing and changing the server configuration without having to restart xServer. Download xServer::Helper on [the releases page](https://github.com/xStarbound/xStarbound/releases/latest).
 
+- Support for message handlers in pane scripts. By @FezzedOne.
 - Persistent, scriptable server-side data storage that can be accessed and modified from any server-side universe, world or entity script (@FezzedOne). See [`$docs/lua/universeserver.md`](doc/lua/universeserver.md) for more.
 - Fully scriptable world metadata modification, including support for changing any existing world's tile size (@fezzedone). Modders can now modify _all_ attributes of any existing world without resorting to external Python tools. Additionally, xClient (the xStarbound client) users can safely explore very small worlds without crashing (aside from some harmless visual glitches).
 - Scriptable weather control for worlds (@Mofurka and @fezzedone) — scripts can now change a world's weather on demand.
 - Nicer (and optimised) non-pixelated humanoid tech and status effect scaling for players and NPCs (reimplementation by @fezzedone).
 - Now runs [Pluto](https://pluto-lang.org/), an optimised fork of Lua 5.4! As of xStarbound v4.0, Pluto's jump table optimisation is enabled, speeding up Lua scripts.
-- Full Lua sandboxing! By @fezzedone.
-  - To replace the old, potentially crash-prone sandbox-breaking code used by certain mods, xStarbound supports pane message handlers and Lua callbacks for safely saving and reading variables in global variable tables with the same expected cross-context scopes.
-  - **Note:** This causes some mod compatibility issues; see below for affected mods.
 - Full, up-to-date Lua API documentation. (Aside from a lot of engine calls into Lua scripts.)
 - Support for underlaying and overlaying cosmetic items, by @fezzedone. Now includes OpenStarbound v0.1.11+ cosmetic overlay compatibility (by @novaenia and @fezzedone)! Two types of layering are supported:
   - _Underlays:_ You can right-click an item in any armour or inventory slot to _underlay_ it below any item in the associated cosmetic slot. Underlaid items have a red border by default. For instance, you can layer a wig under a hat by putting the hat in the cosmetic slot, the wig in the armour slot and right-clicking the wig. Underlaid armour grants its usual effects; note that particle effects associated with an underlaid item as `"effectSources"` won't spawn, even if the underlaid item is visible. Underlaid items are indicated with a red border.
@@ -103,9 +104,22 @@ This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound
 
 ## Mod compatibility
 
-Read this to see if xStarbound is compatible with your mods.
+**Retail mods:** xStarbound v4.5+ is compatible with all retail Starbound mods out of the box, barring a very small handful of abandoned mods listed under _Unmaintained retail mods fixed by xSBCompat_ and _Mod incompatibities_.
 
-### ☑️ Has xStarbound support
+**«[oSB]»- and «[OpenSB]»-tagged mods:** Most «[oSB]»-tagged mods work on xStarbound. However, a few of these mods require xSBCompat and several aren't supported because xStarbound is missing the required OpenStarbound features. See below.
+
+> **Container QoL mods:** The «quick stack» features of [Enhanced Storage](https://steamcommunity.com/sharedfiles/filedetails/?id=731220462) and [Improved Containers](https://steamcommunity.com/sharedfiles/filedetails/?id=729427606) are _not_ aware of xStarbound's world claim system. If you have those mods installed on an xStarbound server or host with world claims enabled, check your server configuration and have claim owners ensure that guests either can't open containers _or_ can _both_ open and modify them, as these mods do not check if containers are modifiable before potentially «quick-stacking» items into the void (and losing them). Server owners may want to modify their copy of xServerHelper to prevent «one but not the other» situations with container permissions if a mod that allows «quick-stacking» is installed on the server or recommended to players.
+
+> **OpenStarbound and DLL features:** xStarbound does not and will not support «body dynamics» and text-to-speech features added by obsolete DLLs, nor will it support the OpenStarbound nightlies' scriptable humanoid animation system. Details:
+>
+> - Armour, clothing and race mods with included «body dynamics» support are compatible, but the «non-jiggle» sprites will be displayed.
+> - Mods intended to patch in «body dynamics» support for other mods simply will not work at all.
+> - Race mods that support StarExtensions' text-to-speech feature will work just fine, but the text-to-speech functionality won't work.
+> - Race mods that use the scriptable humanoid animation system in OpenStarbound v0.1.15+ will not have correct humanoid rendering on xStarbound and may even throw a fatal error on startup due to missing expected parameters.
+
+<details>
+
+<summary>☑️ <b>Supported OpenStarbound/xStarbound mods</b> </summary>
 
 The following mods have special functionality that requires or is supported by xStarbound.
 
@@ -124,6 +138,7 @@ The following mods have special functionality that requires or is supported by x
 - [Double-Tap Hotkey](https://steamcommunity.com/sharedfiles/filedetails/?id=3706488418) — requires xStarbound or OpenStarbound (or an oSB fork).
 - [Drop pixels on death](https://steamcommunity.com/sharedfiles/filedetails/?id=3350355857) ([GitHub](https://github.com/bongus-jive/drop-money-on-death)) — fully supported by xStarbound.
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
+- [Dynamic Proximity Chat](https://steamcommunity.com/sharedfiles/filedetails/?id=3450266347) ([GitHub](https://github.com/cptsalt/Dynamic-Proximity-Chat)) — works, but _don't_ expect support from its author. Unless a server requires this specific mod, xDPC (see below) is recommended instead.
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with stock Starbound.
@@ -141,7 +156,8 @@ The following mods have special functionality that requires or is supported by x
 - [One-For-All Compact and Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3427751671), [One-For-All Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3435109352) and [One-For-All Compact Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3457819726) — fully supported by xStarbound.
 - [OpenStarbound WEdit](https://github.com/Mofurka/OpenStarbound-WEdit) — this WEdit fork requires OpenStarbound or xStarbound; it doesn't support xStarbound's mid-air tile placement.
 - [Pan Dimensional Vending](https://steamcommunity.com/sharedfiles/filedetails/?id=3464213838&searchtext=) — fully supported by xStarbound.
-- [Persona Roleplay Suite (xSB compatibility branch)](https://github.com/FezzedOne/Lonaasan-Persona-Roleplay-Suite) — xStarbound branch of [Persona Roleplay Suite](https://steamcommunity.com/sharedfiles/filedetails/?id=3602045663) ([GitLab](https://gitlab.ysrv.de/fluffybound/persona)); the main version (see _Not compatible_ below) is _not_ compatible with xStarbound. Unfortunately set up this way for stupid reasons.
+- [Persona Roleplay Suite (main Workshop version)](https://steamcommunity.com/sharedfiles/filedetails/?id=3602045663) ([GitLab](https://gitlab.ysrv.de/fluffybound/persona)) — Works, but if you have FezzedTech or use `/add` or `/remove` regularly, use [the xStarbound/FezzedTech branch](https://github.com/FezzedOne/Lonaasan-Persona-Roleplay-Suite) instead so that Persona keybinds don't get triggered for every character you're controlling at once.
+- [Persona Roleplay Suite (xSB branch)](https://github.com/FezzedOne/Lonaasan-Persona-Roleplay-Suite) — xStarbound branch of [Persona Roleplay Suite](https://steamcommunity.com/sharedfiles/filedetails/?id=3602045663) ([GitLab](https://gitlab.ysrv.de/fluffybound/persona)) with better support for FezzedTech and xStarbound's multi-character-control feature.
 - [Phantasy Starbound Title](https://steamcommunity.com/sharedfiles/filedetails/?id=3475986947) — OpenStarbound title screen replacement mod that should be supported by xStarbound; report any visual issues.
 - [Planet Search](https://steamcommunity.com/sharedfiles/filedetails/?id=3269792617) — fully supported by xStarbound.
 - [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — all OpenStarbound-compatible commands are supported by xStarbound as of v3.1.6.
@@ -158,8 +174,9 @@ The following mods have special functionality that requires or is supported by x
 - [Space Station Terminal Quick Sell QoL](https://steamcommunity.com/sharedfiles/filedetails/?id=3723886096) — requires xStarbound or OpenStarbound (or an oSB fork) for the added shift-click functionality to work.
 - [Spawnable Item Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=733665104) — SIP's universal mod support requires xStarbound v2.5+ or OpenStarbound (or an oSB fork).
 - [Spenbed Starbound osb logo replacer] — another logo replacement mod for OpenStarbound (or an oSB fork) and the like. Should be supported. The associated modpack is fully compatible with xStarbound as long as xSBCompat is installed and Stardust Core Lite is replaced with Quickbar Mini or Classic Quickbar.
+- [(Starbound) Without Number - RPG Mechanics](https://steamcommunity.com/sharedfiles/filedetails/?id=3677633744) — works, but _don't_ expect support from this mod's developer.
 - [Starburst Rework T6 Armor Recipe Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3472326270) — requires xStarbound or OpenStarbound (or an oSB fork).
-- [StarCustomChat](https://steamcommunity.com/sharedfiles/filedetails/?id=3208917628) ([GitHub](https://github.com/KrashV/StarCustomChat)) and [StarCustomChatRP](https://steamcommunity.com/sharedfiles/filedetails/?id=3445409664) ([GitHub](https://github.com/KrashV/StarCustomChatRP)) — requires xStarbound v3.5.1+, OpenStarbound v0.1.8+ or StarExtensions. It's recommended to use FezzedOne's [StarCustomChat](https://github.com/FezzedOne/StarCustomChat) and [StarCustomChatRP](https://github.com/FezzedOne/StarCustomChatRP) forks for additional features and xStarbound compatibility fixes (not supported by Degranon, the original author).
+- [StarCustomChat](https://steamcommunity.com/sharedfiles/filedetails/?id=3208917628) ([GitHub](https://github.com/KrashV/StarCustomChat)) and [StarCustomChatRP](https://steamcommunity.com/sharedfiles/filedetails/?id=3445409664) ([GitHub](https://github.com/KrashV/StarCustomChatRP)) — requires xStarbound v3.5.1+, OpenStarbound v0.1.8+ or StarExtensions. As the original mod's author is unsupportive, it's recommended to use FezzedOne's [StarCustomChat](https://github.com/FezzedOne/StarCustomChat) and [StarCustomChatRP](https://github.com/FezzedOne/StarCustomChatRP) forks for additional features and xStarbound compatibility fixes (not supported by Degranon, the original author).
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xStarbound.
 - [The Hungercry Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3594407068) — requires xStarbound, OpenStarbound or StarExtensions for a `player` callback, despite not being tagged as such.
 - [Time Control Command](https://steamcommunity.com/sharedfiles/filedetails/?id=3256623666) ([GitHub](https://github.com/bongus-jive/TimeControlCommand)) — fully supported by xStarbound.
@@ -168,63 +185,12 @@ The following mods have special functionality that requires or is supported by x
 - [Universal Printable Objects Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3603139264) — requires xStarbound or OpenStarbound (or an oSB fork) to do anything.
 - [Universal Upgradeable Weapons Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3595603580) — requires xStarbound or OpenStarbound (or an oSB fork) to do anything.
 - [Wardrobe Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3433498458) — supported by xStarbound as of xSB v3.4.4.2.
-- [Warp Doors](https://steamcommunity.com/sharedfiles/filedetails/?id=3608977430) — xStarbound, OpenStarbound or StarExtensions required to use the client-side commands for generating warp doors and getting coordinates; may be installed on a stock client with no errors aside from the commands being unavailable. Mod must be installed server-side for placed warp doors to function, but placed warp doors function on any client regardless of whether the mod is installed client-side.
-- [xDPC](https://github.com/FezzedOne/xDPC) — requires xStarbound for full support, but also works on OpenStarbound and StarExtensions, albeit with a few missing features.
+- [Warp Doors](https://steamcommunity.com/sharedfiles/filedetails/?id=3608977430) — xStarbound, OpenStarbound or an OpenStarbound fork is required to use the client-side commands for generating warp doors and getting coordinates; may be installed on a retail client with no errors aside from the commands being unavailable. The mod must be installed server-side for placed warp doors to function, but placed warp doors function on any client regardless of whether the mod is installed client-side. Don't expect support from this mod's author.
+- [xDPC](https://github.com/FezzedOne/xDPC) — requires xStarbound for full support, but also works on OpenStarbound, albeit with a few missing features.
 - [xSIP](https://github.com/fezzedone/xSIP) — xSIP's universal mod support requires xStarbound v2.5+ or OpenStarbound (or an oSB fork).
 - [xWEdit](https://github.com/fezzedone/xWEdit) — this WEdit fork requires xStarbound for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
 - [Ztarbound S.A.I.L. All-In-One Race Support](https://steamcommunity.com/sharedfiles/filedetails/?id=3506162421) — requires xStarbound or OpenStarbound (or an oSB fork).
 - Mods that change the size or number of bags in the inventory or hotbar — as of xSB v2.4, xStarbound gives these mods full compatibility with vanilla multiplayer and existing characters «out of the box».
-
-### Requires xSBCompat
-
-xStarbound now has a «universal mod compatibiliser» called xSBCompat! xSBCompat is available as a separate download on the xStarbound downloads page, and _requires_ xStarbound, so it should be installed in your `xsb-assets/` directory. The following mods require xSBCompat to resolve compatibility issues:
-
-- [All Items are Stackable!](https://steamcommunity.com/sharedfiles/filedetails/?id=3370469697) — needs xSBCompat to remove an unnecessary OpenStarbound check.
-- [All Reward Items Faster & Stackable](https://steamcommunity.com/sharedfiles/filedetails/?id=3714760211) — ditto.
-- [Automatically Scan Objects!](https://steamcommunity.com/sharedfiles/filedetails/?id=3545869822) — ditto.
-- [Betabound!](https://steamcommunity.com/workshop/filedetails/?id=2010607826) — xSBCompat fixes compatibility issues, but doesn't enable a few OpenStarbound-specific bits and bobs.
-- [boner guy](https://steamcommunity.com/sharedfiles/filedetails/?id=2992238651) — no comment.
-- [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487) — xSBCompat required to render an OpenStarbound check toothless.
-- [Dynamic Proximity Chat](https://steamcommunity.com/sharedfiles/filedetails/?id=3450266347) ([GitHub](https://github.com/cptsalt/Dynamic-Proximity-Chat)) — may have minor compatibility issues even with xSBCompat. xStarbound users should use FezzedOne's fork [xDPC](https://github.com/FezzedOne/xDPC), which does not require xSBcompat, instead, unless the «mainline» Dynamic Proximity Chat is required for a server. Note that xDPC doesn't interact at all with «mainline» Dynamic Proximity Chat and acts as an entirely separate plugin now.
-- [Frackin' Universe](https://steamcommunity.com/sharedfiles/filedetails/?id=729480149) ([GitHub](https://github.com/sayterdarkwynd/FrackinUniverse)) — xSBCompat fixes an xStarbound sandbox compatibility issue in FU's power script that prevents power from being transferred in some object configurations.
-- [Frackin' Universe - Modular Mech Double-Tap Hotkey](https://steamcommunity.com/sharedfiles/filedetails/?id=3711559427) — listed here only because its Frackin' Universe dependency requires xSBCompat.
-- [Hunger Fighting Chairs](https://steamcommunity.com/sharedfiles/filedetails/?id=3546473893) — requires xSBCompat to defang an unnecessary OpenStarbound check.
-- [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — xSBCompat adds support for the keybind.
-- [Infiniter Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3514830972) ([GitHub](https://github.com/bongus-jive/infiniter-inventory)) — all features supported.
-- [Is this Printable?](https://steamcommunity.com/sharedfiles/filedetails/?id=3507216031) — requires xSBCompat to bypass unnecessary OpenStarbound checks.
-- [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645) — needs xSBCompat to defang an unneeded OpenStarbound check.
-- [Nodachi](https://steamcommunity.com/sharedfiles/filedetails/?id=2995409356) — the patch fixes a typo that causes an xStarbound compatibility issue.
-- [NPC Mechs](https://steamcommunity.com/sharedfiles/filedetails/?id=1788644520) — ditto.
-- [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — fully supported with xSBCompat. Use `/resetinventoryposition` if your inventory ends up off-screen after installation.
-- [Ship Pet Swapper](https://steamcommunity.com/sharedfiles/filedetails/?id=3474107812) — needs xSBCompat to remove yet another unnecessary OpenStarbound check.
-- [The Bookstore](https://steamcommunity.com/sharedfiles/filedetails/?id=1108897518) — since this mod will most likely never see a bugfix update, it needs a patch to fix a Lua 5.4 compatibility issue with the mod's news stand caused by its script passing a float to `math.randomseed`. Without xSBCompat, the mod's news stand won't show any pane when interacted with.
-- [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — requires a patch because xStarbound has `root.assetSources` instead of OpenStarbound's `root.assetSourcePaths`, and OpenStarbound adds a boolean parameter that needs emulation.
-- [Universal Instant Crafting for All Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3251274439) — requires xSBCompat to bypass unnecessary OpenStarbound checks.
-- [Universal BYOS Patcher](https://steamcommunity.com/sharedfiles/filedetails/?id=3648814036) — same compatibility issue as Unde Venis, just with `assets.sources` (xStarbound) and `assets.sourcePaths` (OpenStarbound), the equivalent asset preprocessor callback.
-- [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276) — requires xSBCompat to bypass unnecessary OpenStarbound checks.
-- [ZB SAIL: Standalone](https://steamcommunity.com/sharedfiles/filedetails/?id=3336389472) — Ditto.
-
-Additionally, xSBCompat now provides _server-side-only_ compatibility fixes for certain mods, allowing them to be hosted on xServer without compatibility-related errors. On the client's end, _a non-xStarbound client is still required to play these mods_; the [latest stable version of OpenStarbound](https://github.com/OpenStarbound/OpenStarbound/releases) is recommended. The following mods have a server-side patch:
-
-- [Futara's Dragon Engine](https://steamcommunity.com/workshop/filedetails/?id=2297133082), [Futara's Dragon Race](https://steamcommunity.com/sharedfiles/filedetails/?id=1958993491) and other mods that depend on the Dragon Engine or Race — the xSBCompat patch can be installed client-side to prevent client-side errors from these mods, but all features added by the mods are disabled. xSBCompat does _not_ prevent potential script errors on xClient from the client-side [Futara's Dragon Life Character Animation](https://steamcommunity.com/sharedfiles/filedetails/?id=2839701789), but this mod is not listed as «incompatible» because there are no server-side compatibility issues.
-
-Feel free to ask @FezzedOne about adding support for mods that are partially or totally incompatible with xStarbound to this patch, or contribute your own PR!
-
-> **Note:** xSBCompat support for Stardust Core and Classic Quickbar is _not_ planned due to those mods' heavy reliance on engine exploits that are no longer supported by xStarbound and unfortunately require extensive, painful workarounds to patch out. Additionally, the authors of many of the mods listed above will _not_ respond (or will respond in stupid ways) to xStarbound-related support requests for stupid reasons, so don't expect «first-party» support for mods covered by this patch.
-
-### ✅ Compatible
-
-Any mod not listed as «partially compatible», «not compatible» or «requires xSBCompat» category should be compatible with xStarbound. Major mods that have been tested to be compatible:
-
-- [Arcana](https://steamcommunity.com/workshop/filedetails/?id=2359135864) — use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) to satisfy this mod's «Stardust Core Lite» dependency (see that mod below for why).
-- [Avali (Triage) Race Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=729558042).
-- [Elithian Races Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=850109963).
-- [Infinite Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=1944652893) — works, but install xSBCompat to remove an unnecessary check that prevents the keybind from working on xStarbound.
-- [Maple32](https://steamcommunity.com/sharedfiles/filedetails/?id=2568667104&searchtext=maple32).
-- [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034). Note that the Classic Quickbar extension (see below) has sandbox-related compatibility issues.
-- [Shellguard: Starbound Expansion Remastered](https://steamcommunity.com/sharedfiles/filedetails/?id=1563376005).
-- [Updated Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=2641776549).
-- [WTM (WTM Teleporter Mod)](https://steamcommunity.com/sharedfiles/filedetails/?id=1268222595) — verified compatible; the developer Hiran is also behind Digital Storage (see below).
 
 The following «[oSB]»- or «[OpenStarbound]»-tagged mods do not actually require OpenStarbound (or xStarbound) for any part of their intended functionality:
 
@@ -233,77 +199,107 @@ The following «[oSB]»- or «[OpenStarbound]»-tagged mods do not actually requ
 - [OpenStarbound No Highlights on Scanned Objects and Players](https://steamcommunity.com/sharedfiles/filedetails/?id=3432675895) — compatible. Has no particular OpenStarbound or xStarbound support, actually.
 - [Tiri's Accessories](https://steamcommunity.com/sharedfiles/filedetails/?id=3619906462) — compatible. Has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support cosmetic overlays/underlays.
 
-> **StarExtensions and OpenStarbound features:** xStarbound does not and will not support StarExtensions' «body dynamics» and text-to-speech features, nor will it support OpenStarbound v0.1.15+'s scriptable humanoid animation system. Details:
->
-> - Armour, clothing and race mods with included SE «body dynamics» support are compatible, but the «non-jiggle» sprites will be displayed.
-> - Mods intended to patch in «body dynamics» support for other mods simply will not work at all.
-> - Race mods that support StarExtensions' text-to-speech feature will work just fine, but the text-to-speech functionality won't work.
-> - Race mods that use the scriptable humanoid animation system in OpenStarbound v0.1.15+ will not have correct humanoid rendering on xStarbound and may even throw a fatal error on startup due to missing expected parameters.
+</details>
 
-> **Container QoL mods:** The «quick stack» features of [Enhanced Storage](https://steamcommunity.com/sharedfiles/filedetails/?id=731220462) and [Improved Containers](https://steamcommunity.com/sharedfiles/filedetails/?id=729427606) are _not_ aware of xStarbound's world claim system. If you have those mods installed on an xStarbound server or host with world claims enabled, check your server configuration and have claim owners ensure that guests either can't open containers _or_ can _both_ open and modify them, as these mods do not check if containers are modifiable before potentially «quick-stacking» items into the void (and losing them). Server owners may want to modify their copy of xServerHelper to prevent «one but not the other» situations with container permissions if a mod that allows «quick-stacking» is installed on the server or recommended to players.
+<details>
 
-### ⚠️ Partially compatible
+<summary>⚠️ <b>OpenStarbound mods that require xSBCompat</b> </summary>
 
-The following mods are only partially compatible with xStarbound:
+The following OpenStarbound mods require xSBCompat to work properly (usually to defang an OpenStarbound check).
 
-- [1x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=1782208070) — won't do anything and is redundant.
-- [3x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=2681858844) — ditto.
-- [4x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=2870596125) — ditto.
-- [Classic Quickbar](https://steamcommunity.com/sharedfiles/filedetails/?id=2957136802) ([GitHub](https://github.com/bongus-jive/classic-quickbar)) — mostly functional on xStarbound, but the «Stardust Settings» menu item does nothing and logs a nil dereference error due to its incompatibility with xStarbound's Lua sandbox. Not a huge issue since that settings item only applies to mods that are incompatible with xStarbound anyway.
-- [Lexi's Automation](https://steamcommunity.com/sharedfiles/filedetails/?id=3673481087) ([GitHub](https://github.com/WasabiRaptor/Lexi-Automation)) — compatible _with xServer_, but incompatible _with xClient_ due to a dependency on metaGUI / Stardust Core/Lite for rendering UI panes (not just a mod menu entry). The author of this mod refuses to fix the xClient compatibility issue for stupid reasons.
-- [OpenUI](https://steamcommunity.com/workshop/filedetails/?id=3546647977), its [Race Extender](https://steamcommunity.com/sharedfiles/filedetails/?id=3546654953) and other OpenUI extensions — these mods require OpenStarbound; they work on xStarbound, but have glaring visual issues with certain xStarbound dialogues and menus (namely, the main settings dialogue, server connection dialogue and escape/pause menu) that warrant placing these mods in the _Partially compatible_ category for now.
-- [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) and its [two](https://steamcommunity.com/sharedfiles/filedetails/?id=2954344118) [counterparts](https://steamcommunity.com/sharedfiles/filedetails/?id=2954354494) — their PNG compression does not play well with xClient's hardware cursor, potentially making it invisible. Use `/cursor off` if you want to use these mods.
-- [Project Knightfall](https://steamcommunity.com/sharedfiles/filedetails/?id=2010883172) ([GitHub](https://github.com/Nitrosteel/Project-Knightfall)) — some added UIs have minor issues with xStarbound's Lua sandbox.
-- [Русификатор Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2980671752) — technically fully compatible, but the mod it patches isn't compatible anyway.
-- [Starloader](https://steamcommunity.com/sharedfiles/filedetails/?id=2936533996) ([GitHub](https://github.com/Starbound-Neon/StarLoader)) — fully compatible as long as `"safeScripts"` is disabled in your `xclient.config` (but be careful with that!).
-- [Unitilities | Lua Modding Library](https://steamcommunity.com/sharedfiles/filedetails/?id=2826961297) — the Hasibound-specific functionality is not supported by xStarbound.
-- Other UI scaling mods — these won't do anything and are redundant. Mods that do other stuff besides scaling the UI should work.
+- [All Items are Stackable!](https://steamcommunity.com/sharedfiles/filedetails/?id=3370469697).
+- [All Reward Items Faster & Stackable](https://steamcommunity.com/sharedfiles/filedetails/?id=3714760211).
+- [Automatically Scan Objects!](https://steamcommunity.com/sharedfiles/filedetails/?id=3545869822).
+- [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487).
+- [Hunger Fighting Chairs](https://steamcommunity.com/sharedfiles/filedetails/?id=3546473893).
+- [Is this Printable?](https://steamcommunity.com/sharedfiles/filedetails/?id=3507216031)
+- [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645).
+- [Ship Pet Swapper](https://steamcommunity.com/sharedfiles/filedetails/?id=3474107812).
+- [Universal Instant Crafting for All Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3251274439).
+- [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276).
+- [ZB SAIL: Standalone](https://steamcommunity.com/sharedfiles/filedetails/?id=3336389472).
 
-### ❌ Not compatible
+Two OpenStarbound mods require OpenStarbound-only callbacks that are emulated by an xSBCompat patch:
 
-The following mods are _NOT_ compatible with xStarbound, even with xSBCompat:
+- [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — requires a patch because xStarbound has `root.assetSources` instead of OpenStarbound's `root.assetSourcePaths`, and OpenStarbound adds a boolean parameter that needs emulation.
+- [Universal BYOS Patcher](https://steamcommunity.com/sharedfiles/filedetails/?id=3648814036) — same compatibility issue as Unde Venis, just with `assets.sources` (xStarbound) and `assets.sourcePaths` (OpenStarbound), the equivalent asset preprocessor callback.
+
+</details>
+
+<details>
+
+<summary>🪦 <b>Unmaintained retail mods fixed by xSBCompat</b> </summary>
+
+xSBCompat also fixes minor script typos and goofs that throw off xStarbound's Lua/Pluto interpreter in the following three retail mods, all abandoned or no longer updated by their creators.
+
+- [Nodachi](https://steamcommunity.com/sharedfiles/filedetails/?id=2995409356).
+- [NPC Mechs](https://steamcommunity.com/sharedfiles/filedetails/?id=1788644520).
+- [The Bookstore](https://steamcommunity.com/sharedfiles/filedetails/?id=1108897518).
+
+</details>
+
+<details>
+
+<summary> ❌ <b>Mod incompatibilities</b> </summary>
+
+The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due to reliance on OpenStarbound-only features, security issues or visual glitches:
 
 - [AR's Shader Pack v1.0](https://steamcommunity.com/sharedfiles/filedetails/?id=3487232242) — modular shader support is OpenStarbound-only.
-- [Beta Hotbar!](https://steamcommunity.com/sharedfiles/filedetails/?id=3472065640) — not compatible with xStarbound's Lua sandbox. xSBCompat support may be added in the future.
 - [Bottinator22's](https://steamcommunity.com/sharedfiles/filedetails/?id=3431152501) [shader](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151263) [mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151049) — modular shader support is OpenStarbound-only.
 - [Bott's Shaders - Disabled by Default](https://steamcommunity.com/sharedfiles/filedetails/?id=3468244512) — the mods it depends on are OpenStarbound-only, obviously.
-- [CosmicExt](https://steamcommunity.com/sharedfiles/filedetails/?id=3632179576) — this mod's compiled Lua 5.3 bytecode (yes, all the scripts are bytecode!) is not compatible with xStarbound's Pluto interpreter and will log errors. In addition, the mod requires UI callbacks currently present only in OpenStarbound. For Quickbar entry support, use Quickbar Mini instead.
-- [Crafting Overhaul](https://steamcommunity.com/sharedfiles/filedetails/?id=3659637859) — Ditto.
+- [CosmicExt](https://steamcommunity.com/sharedfiles/filedetails/?id=3632179576) — this OpenStarbound mod's compiled Lua 5.3 bytecode (yes, all the scripts are bytecode!) is not compatible with xStarbound's Pluto interpreter for security reasons, and will log errors.
+- [Crafting Overhaul](https://steamcommunity.com/sharedfiles/filedetails/?id=3659637859) — OpenStarbound mod with the same author as CosmicExt. Also has compiled bytecode.
 - [Cumulative Dynamic Lights](https://steamcommunity.com/sharedfiles/filedetails/?id=3444407977) — not compatible because it depends on OpenStarbound's lighting system changes. Won't do much on xStarbound.
-- [DigitalCrafting Support Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3519204938) — This mod depends on [DigitalCrafting](https://steamcommunity.com/workshop/filedetails/?id=2919830263), which itself depends on Digital Storage (see below), and is therefore incompatible with xStarbound for that reason.
-- [Digital Storage](https://steamcommunity.com/sharedfiles/filedetails/?id=946227505) — the server-side scripts are not compatible with xStarbound's Lua sandbox due to accidental disallowed «Lua function smuggling» through entity script calls. Not covered by xSBscripts due to very gnarly code.
-- [Futara's Dragon Rawr Damage Gating Balance](https://steamcommunity.com/sharedfiles/filedetails/?id=3457016898) — not compatible with xStarbound's Lua sandbox. Not covered with a server-side patch by xSBCompat because the mod has (most likely) incompatible server-side damage handling code for monsters and NPCs.
-- [Harder Core Mode](https://steamcommunity.com/sharedfiles/filedetails/?id=3527438945) — not compatible with xStarbound's Lua sandbox. Ask about xSBCompat support.
-- [inventory scrambler](https://steamcommunity.com/sharedfiles/filedetails/?id=3538536096) ([GitHub](https://github.com/bongus-jive/inventory-scrambler)) — not compatible with xStarbound's Lua sandbox. Ask about xSBCompat support, but seriously, why would you want to scramble your inventory?
 - [Light Limiter](https://steamcommunity.com/sharedfiles/filedetails/?id=3470727854) — neither compatible with nor necessary on xStarbound.
-- [OpenStarbound Revert](https://steamcommunity.com/sharedfiles/filedetails/?id=3509533339) — not compatible with xStarbound for obvious reasons. No compatibility patch is planned. Why do you need this on xStarbound anyway?
-- [Persona Roleplay Suite (main Workshop version)](https://steamcommunity.com/sharedfiles/filedetails/?id=3602045663) ([GitLab](https://gitlab.ysrv.de/fluffybound/persona)) — not compatible with xStarbound's Lua sandbox. Use [the xStarbound/FezzedTech branch](https://github.com/FezzedOne/Lonaasan-Persona-Roleplay-Suite) instead (see _Has xStarbound support_ above for more).
+- [OpenStarbound Revert](https://steamcommunity.com/sharedfiles/filedetails/?id=3509533339) — not fully compatible with xStarbound for obvious reasons. Why do you need this on xStarbound anyway?
+- [OpenUI](https://steamcommunity.com/workshop/filedetails/?id=3546647977), its [Race Extender](https://steamcommunity.com/sharedfiles/filedetails/?id=3546654953) and other OpenUI extensions — these have glaring visual issues (namely, the main settings dialogue, server connection dialogue and escape/pause menu) that warrant placing these mods in the _Incompatibilities_ section.
+- [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) and its [two](https://steamcommunity.com/sharedfiles/filedetails/?id=2954344118) [counterparts](https://steamcommunity.com/sharedfiles/filedetails/?id=2954354494) — their PNG compression does not play well with xClient's hardware cursor, potentially making it invisible. Use `/cursor off` if you want to use these mods.
 - [Psychedelic Shader](https://steamcommunity.com/sharedfiles/filedetails/?id=3573193020) — modular shader support is OpenStarbound-only.
-- [Quick Stack Gun [oSB + Cosmetic Slots Fix]](https://steamcommunity.com/sharedfiles/filedetails/?id=3674332086) — this mod is neither compatible nor necessary on xStarbound, which does not have extra cosmetic slots as such. Use the [other «OpenStarbound fix»](https://steamcommunity.com/sharedfiles/filedetails/?id=3501752811) instead.
-- [Raptor's Metroid Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3541573028) — certain scripting functionality required by this mod is not currently present in xStarbound; this may change in the future.
-- [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — won't work and is likely to log script errors.
-- [(Starbound) Without Number - RPG Mechanics](https://steamcommunity.com/sharedfiles/filedetails/?id=3677633744) — due to the mod's intentionally xStarbound-hostile licensing and a history of DMCA-related bullshit from OpenStarbound-associated developers, this mod is _not_ supported on xStarbound.
-- [Stardust Core](https://steamcommunity.com/sharedfiles/filedetails/?id=764887546) and [Stardust Core Lite](https://steamcommunity.com/sharedfiles/filedetails/?id=2512589532) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — these mods' scripts are not compatible with xStarbound's Lua sandbox, and xSBCompat support is _not_ planned, partly due to the hostility of this mod's developer. Use [Quickbar Mini](https://steamcommunity.com/sharedfiles/filedetails/?id=1088459034) instead. Unfortunately, this means that any mods dependent on these mods' UI library scripts are also incompatible with xStarbound.
-- [Stardust Suite](https://github.com/zetaPRIME/sb.StardustSuite) ([GitHub](https://github.com/zetaPRIME/sb.StardustSuite)) — Ditto.
-- [StarExtensions](https://github.com/StarExtensions/StarExtensions) — won't load on xClient and may cause crashes! However, xServer fully supports the server-side part of SE's «overground» tile placement feature.
-- [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — won't do anything.
-- [The Almandine](https://steamcommunity.com/sharedfiles/filedetails/?id=3474049592) — depends on OpenStarbound's modular shader system.
+- [Quick Stack Gun [oSB + Cosmetic Slots Fix]](https://steamcommunity.com/sharedfiles/filedetails/?id=3674332086) — this OpenStarbound mod is neither compatible nor necessary on xStarbound, which does not have extra cosmetic slots as such. Use the [other «OpenStarbound fix»](https://steamcommunity.com/sharedfiles/filedetails/?id=3501752811) instead.
+- [Raptor's Metroid Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3541573028) — certain OpenStarbound scripting functionality required by this mod is not currently present in xStarbound; this may change in the future. Don't expect support from the author though.
+- [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — requires a Windows DLL attached to retail Starbound, so it won't work and is likely to log script errors.
+- [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — depends on an obsolete DLL mod. Won't do anything.
+- [The Almandine](https://steamcommunity.com/sharedfiles/filedetails/?id=3474049592) — will throw shader-API-related errors on xStarbound that prevent your player from taking damage. The OpenStarbound shaders it contains aren't supported by xStarbound.
+
+The following retail mods are _NOT_ fully compatible with xStarbound due to redundancy, legacy DLL requirements or visual glitches:
+
+- [1x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=1782208070), [3x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=2681858844), [4x UI scaling](https://steamcommunity.com/sharedfiles/filedetails/?id=2870596125) and other UI scaling mods — these won't do anything and are redundant. Any non-scaling features in such mods should still work though.
+- [Русификатор Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2980671752) — technically fully compatible, but the mod it patches isn't compatible anyway.
+- [Unitilities | Lua Modding Library](https://steamcommunity.com/sharedfiles/filedetails/?id=2826961297) — the Hasibound-DLL-specific functionality is not supported by xStarbound.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xStarbound has differently named callbacks) and is redundant anyway because xStarbound already fully supports this feature.
-- Mods that patch in StarExtensions «body dynamics» support for other mods. These won't do anything.
+- Mods that patch in DLL-based «body dynamics» support for other mods. These won't do anything.
+- Some retail title screen mods. Your mileage may vary with these, as some have noticeable visual issues on xStarbound. That said, they have the same visual issues on OpenStarbound and OpenStarbound forks.
+
+</details>
 
 ## Network compatibility
 
-Due to recent changes in OpenStarbound's network protocol, xStarbound's network protocol is no longer fully network-compatible with OpenStarbound. As of v3.3.3r1, there are compatibility workarounds for this:
+**xStarbound supports a modified networking protocol needed for certain features of chat mods like xDPC. However, for compatibility, this modified protocol is _disabled by default_ on xClient and xServer installs. To enable the modified protocol on xClient, change `"useNewProtocol"` to `true` in `xclient.config`.**
 
-- If you're getting a «No server response received» error on xClient when connecting to an OpenStarbound server, try putting an `@` before the address in the **Multiplayer** box; e.g., `@sb.some-server.net` instead of `sb.some-server.net`. This tells xClient to pretend to be a vanilla client for networking purposes, and should let you connect.
-- If you're using an OpenStarbound v0.1.9+ client to connect to an xStarbound server, tick the «FORCE LEGACY» box on the connection screen before connecting.
-- If players with OpenStarbound clients are having trouble connecting to your xServer server or xClient Steam host, try adding `"forceLegacyConnection": true` to your server's `xserver.config` or host client's `xclient.config`. This tells xStarbound to pretend to be a vanilla server or host for networking purposes, and should let those players connect. (Enabling this setting on xClient also tells the client to always pretend to be a vanilla client for networking purposes.)
+<details>
+
+<summary>⚙️ <b>Info on the new protocol</b> </summary>
+
+If you have `"useNewProtocol"` enabled on the client:
+
+- You can still prepend `@` to server addresses in the connection dialogue to connect to any non-xStarbound server (or to an xStarbound server with the protocol disabled). This has no effect when `"useNewProtocol"` is disabled.
+
+For servers using the newer chat protocol:
+
+- Retail client users can still connect, but won't support xStarbound-specific networking features.
+- Users of OpenStarbound v0.1.9+ clients need to tick the «FORCE LEGACY» box on the connection screen before connecting, but won't be able to take advantage of any xStarbound-specific networking features.
+
+</details>
 
 ## Building
 
 This repository is already set up for easy building (mostly @kblaschke's work, with an updated Windows build script and some additional fixes by @fezzedone). Follow the appropriate instructions for your OS if listed; if your OS _isn't_ listed, adjustments generally shouldn't be too complex.
 
-### Linux
+<details>
+
+<summary>🐧 <b>Linux</b></summary>
+
+#### Dynamically linked builds
 
 On Linux, the xStarbound binaries are by default built against the system libraries. To build xStarbound on any reasonably up-to-date Linux install (assuming `bash` or `zsh`):
 
@@ -352,11 +348,19 @@ To build a statically linked version of xStarbound (assuming `bash` or `zsh`):
 12. `mv ${sbInstall}/linux/xclient-static.sh ${sbInstall}/linux/xclient.sh`
 13. Optionally configure Steam or your other launcher to launch `${sbInstall}/xsb-linux/xclient.sh`.
 
-### Nix / NixOS
+#### Nix / NixOS
 
 See [`$xsbSrc/nix/README.md`](nix/README.md) as well as the [`nix/` directory](nix/).
 
-### Windows 10 or 11
+#### Gentoo
+
+Gentoo ebuilds are being worked on.
+
+</details>
+
+<details>
+
+<summary>🪟 <b>Windows</b> </summary>
 
 To build and install xStarbound on Windows 10 or 11:
 
@@ -371,9 +375,13 @@ To build and install xStarbound on Windows 10 or 11:
 
 > **Building on older Windows versions:** Building on earlier versions of Windows is _not_ recommended, although it _should_ still be possible to build xStarbound on Windows 7, 8 or 8.1 if you can get VS 2022 installed.
 
-### Other OSes
+</details>
 
-The basic process for building on other OSes:
+<details>
+
+<summary>🍎 <b>macOS and other OSes</b></summary>
+
+The basic process for building on macOS, older Windows versions and other OSes:
 
 1. Install CMake, a C++ compiler toolchain and (optionally) Git.
    - On _macOS 10.11+_, you should use [Homebrew](https://brew.sh/) to install CMake, Git and the needed build dependencies on your system. Manual installation of dependencies via wizards or drag-and-drop is likely to cause build issues or be a pain to work with.
@@ -387,6 +395,8 @@ The basic process for building on other OSes:
 5. In the xStarbound directory, run `cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/`. On some OSes, you may need to add the full path to your CMake executable to the beginning of the command. If necessary, add `-DCMAKE_C_COMPILER=<path to C++ compiler> -DCMAKE_CXX_COMPILER=<path to C++ compiler>`. Note that a CMake build preset already exists for modern macOS; consider using that if you have build issues.
 
 > **Note:** If you're targeting an old OS or a niche/outdated compiler, or you're getting linker or compiler errors related to function mismatches or unrecognised options, you should remove `-flto` (GCC and Clang compiler flag), `/GL` (MSVC compiler flag) and `/LTCG` (MSVC linker flag) from the compiler flags in `$xsb/CMakeLists.txt`.
+
+</details>
 
 ### Packaging and installing xSB assets
 

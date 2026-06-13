@@ -792,7 +792,8 @@
 ** of a function in debug information.
 ** CHANGE it if you want a different size.
 */
-#define LUA_IDSIZE	60
+// See [this OpenStarbound PR by @Mofurka](https://github.com/OpenStarbound/OpenStarbound/pull/539).
+#define LUA_IDSIZE	512
 
 
 /*

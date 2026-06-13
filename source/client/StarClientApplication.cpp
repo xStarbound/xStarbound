@@ -198,9 +198,9 @@ void ClientApplication::applicationInit(ApplicationControllerPtr appController) 
       configuration->set("legacySmuggling", true);
     GameObjectRegistry::setSmugglingSetting(legacySmuggling);
     if (legacySmuggling == LuaSmugglingSetting::Enabled)
-      Logger::info("[xSB] Lua context isolation disabled. Running in \"Lua smuggling\" compatibility mode.");
+      Logger::info("[xSB] Lua context isolation disabled.");
     else
-      Logger::info("[xSB] Lua context isolation enabled.");
+      Logger::info("[xSB] Lua context isolation enabled. This may affect mod compatibility! Consider enabling \"legacySmuggling\" if mod scripts are throwing nil dereference errors or not functioning properly.");
   }
 
   // m_minInterfaceScale = assets->json("/interface.config:minInterfaceScale").toInt();

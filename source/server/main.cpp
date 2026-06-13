@@ -81,9 +81,9 @@ int main(int argc, char** argv) {
           configuration->set("legacySmuggling", false);
         GameObjectRegistry::setSmugglingSetting(legacySmuggling);
         if (legacySmuggling == LuaSmugglingSetting::Enabled)
-          Logger::info("[xSB] Lua context isolation disabled. Running in \"Lua smuggling\" compatibility mode.");
+          Logger::info("[xSB] Lua context isolation disabled.");
         else
-          Logger::info("[xSB] Lua context isolation enabled.");
+          Logger::info("[xSB] Lua context isolation enabled. This may affect mod compatibility! Consider enabling \"legacySmuggling\" if mod scripts are throwing nil dereference errors or not functioning properly.");
       }
 
       UniverseServerUPtr server = make_unique<UniverseServer>(root->toStoragePath("universe"));
