@@ -42,10 +42,18 @@ bool PlayerInventory::itemAllowedAsEquipment(ItemPtr const& item, EquipmentSlot 
 
 PlayerInventory::PlayerInventory(Player* player) : m_player(player) {
   // To avoid client-side lag spikes on very large modpacks, persistently preload these infrequently accessed configs.
+  auto gameConfig = Root::singleton().configuration();
   auto config = Root::singleton().assets()->json("/player.config:inventory", true);
   auto currenciesConfig = Root::singleton().assets()->json("/currencies.config", true);
   volatile Json _ = Root::singleton().assets()->json("/player.config:inventoryFilters", true);
   (void)_;
+
+  // FezzedOne: Only do inventory spoofing if `"inventorySpoofing"` is enabled; assume it's disabled as a default.
+  // Otherwise use the non-networked settings as the networked settings.
+  auto jInventorySpoofing = gameConfig->get("inventorySpoofing");
+  bool inventorySpoofing = false;
+  if (jInventorySpoofing.isType(Json::Type::Bool))
+    inventorySpoofing = jInventorySpoofing.toBool();
 
   m_inventorySettings = InventorySettings::Default;
   if (config.optBool("allowAnyBagItem").value(false))
@@ -63,7 +71,7 @@ PlayerInventory::PlayerInventory(Player* player) : m_player(player) {
     size_t size = bags.get(name).getUInt("size");
     m_bags[name] = makeObject<ItemBag>(size);
   }
-  auto networkedBags = config.get("networkedItemBags");
+  auto networkedBags = config.get(!inventorySpoofing ? "itemBags" : "networkedItemBags");
   auto networkedBagOrder = networkedBags.toObject().keys().sorted([&networkedBags](String const& a, String const& b) {
     return networkedBags.get(a).getInt("priority", 0) < networkedBags.get(b).getInt("priority", 0);
   });
@@ -99,8 +107,8 @@ PlayerInventory::PlayerInventory(Player* player) : m_player(player) {
 
   addNetElement(&m_currenciesNetState);
 
-  m_networkedCustomBarGroups = config.getUInt("networkedCustomBarGroups");
-  m_networkedCustomBarIndexes = config.getUInt("networkedCustomBarIndexes");
+  m_networkedCustomBarGroups = config.getUInt(!inventorySpoofing ? "customBarGroups" : "networkedCustomBarGroups");
+  m_networkedCustomBarIndexes = config.getUInt(!inventorySpoofing ? "customBarIndexes" : "networkedCustomBarIndexes");
   addNetElement(&m_customBarGroupNetState);
   m_customBarNetState.resize(m_networkedCustomBarGroups, m_networkedCustomBarIndexes);
   m_customBarNetState.forEach([this](Array2S const&, NetElementData<CustomBarLinkCompat>& e) {

@@ -106,7 +106,9 @@ Json const BaseDefaultConfiguration = Json::parseJson(R"JSON(
 
       "inventory" : {
         "pickupToActionBar" : true
-      }
+      },
+
+      "inventorySpoofing" : false
     }
   )JSON");
 
