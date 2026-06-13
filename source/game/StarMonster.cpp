@@ -157,6 +157,7 @@ void Monster::init(World* world, EntityId entityId, EntityMode mode) {
   if (world->isClient()) {
     m_scriptedAnimator.setScripts(m_monsterVariant.animationScripts);
 
+    m_scriptedAnimator.initAnimationBindings(this);
     m_scriptedAnimator.addCallbacks("animationConfig", LuaBindings::makeScriptedAnimatorCallbacks(&m_networkedAnimator, [this, thisMonster](String const& name, Json const& defaultValue) -> Json {
       thisMonster.checkSmuggle();
       return m_scriptedAnimationParameters.value(name, defaultValue); }, this));
