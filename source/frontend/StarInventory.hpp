@@ -44,10 +44,10 @@ const EnumMap<EquipmentSlot> WardrobeSlotNames{
     {EquipmentSlot::Overlay11, "headCosmeticLayer3"},
     {EquipmentSlot::Overlay12, "headCosmeticLayer4"},
     // The last four slots are only visible to xStarbound clients.
-    {EquipmentSlot::Overlay12, "backCosmeticLayer1"},
-    {EquipmentSlot::Overlay12, "backCosmeticLayer2"},
-    {EquipmentSlot::Overlay12, "backCosmeticLayer3"},
-    {EquipmentSlot::Overlay12, "backCosmeticLayer4"},
+    {EquipmentSlot::Overlay13, "backCosmeticLayer1"},
+    {EquipmentSlot::Overlay14, "backCosmeticLayer2"},
+    {EquipmentSlot::Overlay15, "backCosmeticLayer3"},
+    {EquipmentSlot::Overlay16, "backCosmeticLayer4"},
 };
 
 class InventoryPane : public Pane {
