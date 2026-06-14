@@ -1821,7 +1821,7 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
           }
 
           if (i < chestStackSize) {
-            auto& ordering = m_legsArmorStack[i].ordering;
+            auto& ordering = m_chestArmorStack[i].ordering;
             if (ordering >= 4) {
               String image = strf("{}:{}", m_chestArmorStack[i].frameset, personality.idle);
               Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, {});
