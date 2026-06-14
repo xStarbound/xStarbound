@@ -1210,6 +1210,7 @@ void ArmorWearer::setBackCosmeticItem(BackArmorPtr backCosmeticItem) {
 }
 
 void ArmorWearer::setExtendedCosmeticItem(uint8_t slot, ArmorItemPtr cosmeticItem) {
+  if (slot >= 16) return;
   m_extendedCosmeticItems[slot] = cosmeticItem;
   m_headNeedsSync = m_chestNeedsSync = m_legsNeedsSync = m_backNeedsSync = true;
 }
@@ -1244,6 +1245,11 @@ BackArmorPtr ArmorWearer::backItem() const {
 
 BackArmorPtr ArmorWearer::backCosmeticItem() const {
   return m_backCosmeticItem;
+}
+
+ArmorItemPtr ArmorWearer::extendedCosmeticItem(uint8_t slot) const {
+  if (slot >= 16) return {};
+  return m_extendedCosmeticItems[slot];
 }
 
 ItemDescriptor ArmorWearer::headItemDescriptor() const {
@@ -1293,6 +1299,15 @@ ItemDescriptor ArmorWearer::backCosmeticItemDescriptor() const {
     return m_backCosmeticItem->descriptor();
   return {};
 }
+
+ItemDescriptor ArmorWearer::extendedCosmeticItemDescriptor(uint8_t slot) const {
+  if (slot >= 16) return {};
+  auto& item = m_extendedCosmeticItems[slot];
+  if (item)
+    return item->descriptor();
+  return {};
+}
+
 
 void ArmorWearer::netElementsNeedLoad(bool) {
   if ((m_npc && m_npc->isMaster()) || (m_player && m_player->isMaster())) return; // FezzedOne: Required sanity check. Mastered entities should not have enslaved armour wearers. `m_isPlayer` is actually a «is mastered» check here.

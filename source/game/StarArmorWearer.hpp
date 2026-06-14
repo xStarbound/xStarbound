@@ -59,6 +59,7 @@ public:
   LegsArmorPtr legsCosmeticItem() const;
   BackArmorPtr backItem() const;
   BackArmorPtr backCosmeticItem() const;
+  ArmorItemPtr extendedCosmeticItem(uint8_t slot) const;
 
   ItemDescriptor headItemDescriptor() const;
   ItemDescriptor headCosmeticItemDescriptor() const;
@@ -68,6 +69,7 @@ public:
   ItemDescriptor legsCosmeticItemDescriptor() const;
   ItemDescriptor backItemDescriptor() const;
   ItemDescriptor backCosmeticItemDescriptor() const;
+  ItemDescriptor extendedCosmeticItemDescriptor(uint8_t slot) const;
 
   static ItemDescriptor setUpArmourItemNetworking(StringMap<String> const& identityTags, StringMap<String> const& visualIdentityTags,
       StringMap<String> const& netIdentityTags, ArmorItemPtr const& armourItem, Direction direction);

@@ -2838,6 +2838,13 @@ Json Player::diskStore() {
       genericScriptStorage[p.first] = std::move(scriptStorage);
   }
 
+  if (!isMaster()) {
+    for (uint8_t i = 0; i != 16; i++) {
+      EquipmentSlot slot = (EquipmentSlot)(i + 8);
+      m_inventory->setItem(slot, m_armor->extendedCosmeticItem(i));
+    }
+  }
+
   /* FezzedOne: Save the player's `"xSbProperties"` to the file. */
   Json xSbProperties = JsonObject{
       {"ignoreExternalWarps", m_ignoreExternalWarps},

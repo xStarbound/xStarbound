@@ -744,7 +744,6 @@ WardrobePane::WardrobePane(MainInterface* parent, PlayerPtr player, ContainerInt
 
 
   for (auto const p : WardrobeSlotNames) {
-    if (p.first == EquipmentSlot::Overlay1) break;
     registerSlotCallbacks(p.second, p.first);
   }
 
