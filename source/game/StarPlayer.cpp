@@ -3350,12 +3350,11 @@ void Player::setSecretProperty(String const& name, Json const& value) {
 }
 
 void Player::setNetArmorSecret(StringMap<String> const& identityTags, StringMap<String> const& visualIdentityTags, StringMap<String> const& netIdentityTags, uint8_t cosmeticSlot, ArmorItemPtr const& armor) { // FezzedOne: Called in the ArmorWearer whenever armour is updated.
-  String const& slotName = strf("cosmetic{}", (cosmeticSlot % 16) + 1);                                                                                                                                         // FezzedOne: Hacky workaround for OpenStarbound's weird legs/chest layering
-  // that should make it less likely for overlays to be covered up by an item in the stock chest slot on OpenStarbound.
+  String const& slotName = strf("cosmetic{}", (cosmeticSlot % 16) + 1);
 
-  if (!m_startedNetworkingCosmetics) {
-    setSecretProperty("armorWearer.isXStarbound", true);
-  }
+  // if (!m_startedNetworkingCosmetics) {
+  //  setSecretProperty("armorWearer.isXStarbound", true);
+  // }
 
   if (armor) {
     auto armourItem = ArmorWearer::setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, armor, m_movementController->facingDirection());
