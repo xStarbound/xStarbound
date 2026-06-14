@@ -236,7 +236,7 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
 
   m_startedNetworkingCosmetics = false;
   m_pulledCosmeticUpdate = false;
-  m_armorSecretNetVersions = Array<uint64_t, 12>::filled(0);
+  m_armorSecretNetVersions = Array<uint64_t, 16>::filled(0);
 
   m_netGroup.setNeedsLoadCallback(bind(&Player::getNetStates, this, _1));
   m_netGroup.setNeedsStoreCallback(bind(&Player::setNetStates, this));
@@ -435,7 +435,8 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
   m_xAimPositionNetState.setInterpolator(world->geometry().xLerpFunction());
   refreshEquipment();
   // Force a cosmetics sync to make sure humanoid overrides get applied on initialisation.
-  m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude(), true, m_movementController->facingDirection());
+  if (world->isClient())
+    m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude(), true, m_movementController->facingDirection());
 }
 
 void Player::uninit() {

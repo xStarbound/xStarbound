@@ -759,7 +759,7 @@ private:
   bool m_overflowCheckDone;
   bool m_startedNetworkingCosmetics;
   bool m_pulledCosmeticUpdate;
-  Array<uint64_t, 12> m_armorSecretNetVersions;
+  Array<uint64_t, 16> m_armorSecretNetVersions;
   Array<ArmorItemPtr, 16> m_extendedCosmetics;
 };
 
