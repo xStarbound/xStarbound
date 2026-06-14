@@ -383,13 +383,13 @@ void ClientApplication::processInput(InputEvent const& event) {
   int zoomOffset = 0;
 
   if (auto presses = m_input->bindDown("xsb", "zoomIn"))
-    zoomOffset += (*presses) * 16;
+    zoomOffset += 16;
   if (auto presses = m_input->bindDown("xsb", "zoomOut"))
-    zoomOffset -= (*presses) * 16;
+    zoomOffset -= 16;
   if (auto presses = m_input->bindDown("xsb", "incrementalZoomIn"))
-    zoomOffset += (*presses);
+    zoomOffset += 1;
   if (auto presses = m_input->bindDown("xsb", "incrementalZoomOut"))
-    zoomOffset -= (*presses);
+    zoomOffset -= 1;
 
   if (zoomOffset != 0)
     config->set("zoomLevel", min(100.0f, max(4.0f, round(config->get("zoomLevel").toFloat() * 16.0f + (float)zoomOffset)) * 0.0625f));
@@ -397,13 +397,13 @@ void ClientApplication::processInput(InputEvent const& event) {
   int interfaceScaleOffset = 0;
 
   if (auto presses = m_input->bindDown("xsb", "interfaceZoomIn"))
-    interfaceScaleOffset += (*presses) * 16;
+    interfaceScaleOffset += 16;
   if (auto presses = m_input->bindDown("xsb", "interfaceZoomOut"))
-    interfaceScaleOffset -= (*presses) * 16;
+    interfaceScaleOffset -= 16;
   if (auto presses = m_input->bindDown("xsb", "interfaceIncrementalZoomIn"))
-    interfaceScaleOffset += (*presses);
+    interfaceScaleOffset += 1;
   if (auto presses = m_input->bindDown("xsb", "interfaceIncrementalZoomOut"))
-    interfaceScaleOffset -= (*presses);
+    interfaceScaleOffset -= 1;
 
   if (interfaceScaleOffset != 0)
     config->set("interfaceScale", min(100.0f, max(8.0f, round(config->get("interfaceScale").toFloat() * 16.0f + (float)interfaceScaleOffset)) * 0.0625f));
