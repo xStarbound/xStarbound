@@ -181,6 +181,7 @@ The following mods have special functionality that requires or is supported by x
 - [The Hungercry Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3594407068) — requires xStarbound, OpenStarbound or StarExtensions for a `player` callback, despite not being tagged as such.
 - [Time Control Command](https://steamcommunity.com/sharedfiles/filedetails/?id=3256623666) ([GitHub](https://github.com/bongus-jive/TimeControlCommand)) — fully supported by xStarbound.
 - [Toggled Walking](https://steamcommunity.com/sharedfiles/filedetails/?id=3706549533) — requires xStarbound or OpenStarbound (or an oSB fork).
+- [Ultimate Mech Manager](https://steamcommunity.com/sharedfiles/filedetails/?id=3742826593) — requires xStarbound or OpenStarbound (or an oSB fork) for keybinds and some mech aiming functionality.
 - [Universal Keybind Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3466851780) ([GitHub](https://github.com/FezzedOne/Starbound-Universal-Keybind-Compatibility)) — requires xStarbound or OpenStarbound (or an oSB fork). Install this mod if you have issues with getting mod keybinds, like RPG Growth's tech keybinds, to work on xStarbound or OpenStarbound (or an oSB fork).
 - [Universal Printable Objects Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3603139264) — requires xStarbound or OpenStarbound (or an oSB fork) to do anything.
 - [Universal Upgradeable Weapons Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3595603580) — requires xStarbound or OpenStarbound (or an oSB fork) to do anything.
