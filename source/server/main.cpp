@@ -74,11 +74,11 @@ int main(int argc, char** argv) {
       { /* FezzedOne: Check the smuggling setting *once* at startup after asset preprocessing. */
         auto configuration = Root::singleton().configuration();
         auto jLegacySmuggling = configuration->get("legacySmuggling");
-        LuaSmugglingSetting legacySmuggling = LuaSmugglingSetting::Disabled;
+        LuaSmugglingSetting legacySmuggling = LuaSmugglingSetting::Enabled;
         if (jLegacySmuggling.isType(Json::Type::Bool))
           legacySmuggling = jLegacySmuggling.toBool() ? LuaSmugglingSetting::Enabled : LuaSmugglingSetting::Disabled;
         else if (jLegacySmuggling.isNull())
-          configuration->set("legacySmuggling", false);
+          configuration->set("legacySmuggling", true);
         GameObjectRegistry::setSmugglingSetting(legacySmuggling);
         if (legacySmuggling == LuaSmugglingSetting::Enabled)
           Logger::info("[xSB] Lua context isolation disabled.");
