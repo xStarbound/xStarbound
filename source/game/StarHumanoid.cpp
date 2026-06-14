@@ -802,10 +802,17 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
         addDrawable(backArmDrawable(entry.frameset, entry.directives));
       }
     }
+    if (!m_backSleeveStack.empty()) {
+      for (ArmorEntry entry : m_backSleeveStack) {
+        if (entry.ordering >= 4) continue;
+        addDrawable(backArmDrawable(entry.frameset, entry.directives));
+      }
+    }
     if (!m_backSleeveFrameset.empty())
       addDrawable(backArmDrawable(m_backSleeveFrameset, getChestDirectives()));
     if (!m_backSleeveStack.empty()) {
       for (ArmorEntry entry : m_backSleeveStack) {
+        if (entry.ordering < 4) continue;
         addDrawable(backArmDrawable(entry.frameset, entry.directives));
       }
     }
@@ -870,6 +877,27 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
       }
     }
 
+    if (!m_backSleeveStack.empty()) {
+      for (ArmorEntry entry : m_backSleeveStack) {
+        if (entry.ordering >= 4) continue;
+        String image;
+        Vec2F position;
+        if (dance.isValid() && danceStep->backArmFrame) {
+          image = strf("{}:{}{}", entry.frameset, *danceStep->backArmFrame, entry.directives.prefix());
+          position = danceStep->backArmOffset / TilePixels;
+        } else if (m_state == Idle) {
+          image = strf("{}:{}{}", entry.frameset, m_visualIdentity.personality.armIdle, entry.directives.prefix());
+          position = m_visualIdentity.personality.armOffset / TilePixels;
+        } else
+          image = strf("{}:{}.{}{}", entry.frameset, frameBase(m_state), armStateSeq, entry.directives.prefix());
+        auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, position);
+        drawable.imagePart().addDirectives(entry.directives, true);
+        if (dance.isValid())
+          drawable.rotate(danceStep->backArmRotation);
+        addDrawable(std::move(drawable));
+      }
+    }
+
     if (!m_backSleeveFrameset.empty()) {
       String image;
       Vec2F position;
@@ -891,6 +919,7 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
 
     if (!m_backSleeveStack.empty()) {
       for (ArmorEntry entry : m_backSleeveStack) {
+        if (entry.ordering < 4) continue;
         String image;
         Vec2F position;
         if (dance.isValid() && danceStep->backArmFrame) {
@@ -1082,7 +1111,7 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
     addDrawable(std::move(drawable));
   }
 
-  HashMap<uint8_t, Drawable> openSbCosmetics;
+  HashMap<uint8_t, Drawable> slottedCosmetics;
 
   if (!m_chestArmorStack.empty() || !m_legsArmorStack.empty()) {
     // FezzedOne: Chest and legs items in the first four OpenStarbound cosmetic slots are rendered at this point in order to emulate OpenStarbound's rendering.
@@ -1102,7 +1131,7 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
             image = strf("{}:{}.{}{}", m_legsArmorStack[i].frameset, frameBase(m_state), bodyStateSeq, m_legsArmorStack[i].directives.prefix());
           auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, {});
           drawable.imagePart().addDirectives(m_legsArmorStack[i].directives, true);
-          openSbCosmetics[ordering] = drawable;
+          slottedCosmetics[ordering] = drawable;
         }
       }
 
@@ -1127,14 +1156,14 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
             position[1] += bobYOffset;
           auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, position);
           drawable.imagePart().addDirectives(m_chestArmorStack[i].directives, true);
-          openSbCosmetics[ordering] = drawable;
+          slottedCosmetics[ordering] = drawable;
         }
       }
     }
 
-    // FezzedOne: Ensures oSB chest and leg cosmetics are rendered in the proper layer order.
+    // FezzedOne: Ensures slotted chest and leg cosmetics are rendered in the proper layer order.
     for (size_t i = 0; i != 4; i++) {
-      if (auto drawable = openSbCosmetics.ptr(i))
+      if (auto drawable = slottedCosmetics.ptr(i))
         addDrawable(std::move(*drawable));
     }
   }
@@ -1179,10 +1208,10 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
             image = strf("{}:{}.{}{}", m_legsArmorStack[i].frameset, frameBase(m_state), bodyStateSeq, m_legsArmorStack[i].directives.prefix());
           auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, {});
           drawable.imagePart().addDirectives(m_legsArmorStack[i].directives, true);
-          if (ordering >= 12)
+          if (ordering >= 16)
             addDrawable(std::move(drawable));
           else
-            openSbCosmetics[ordering] = drawable;
+            slottedCosmetics[ordering] = drawable;
         }
       }
 
@@ -1207,17 +1236,17 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
             position[1] += bobYOffset;
           auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, position);
           drawable.imagePart().addDirectives(m_chestArmorStack[i].directives, true);
-          if (ordering >= 12)
+          if (ordering >= 16)
             addDrawable(std::move(drawable));
           else
-            openSbCosmetics[ordering] = drawable;
+            slottedCosmetics[ordering] = drawable;
         }
       }
     }
 
-    // FezzedOne: Ensures oSB chest and leg cosmetics are rendered in the proper layer order.
+    // FezzedOne: Ensures slotted chest and leg cosmetics are rendered in the proper layer order.
     for (size_t i = 4; i != 16; i++) {
-      if (auto drawable = openSbCosmetics.ptr(i))
+      if (auto drawable = slottedCosmetics.ptr(i))
         addDrawable(std::move(*drawable));
     }
   }
@@ -1379,10 +1408,17 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
         addDrawable(frontArmDrawable(entry.frameset, entry.directives));
       }
     }
+    if (!m_frontSleeveStack.empty()) {
+      for (ArmorEntry entry : m_frontSleeveStack) {
+        if (entry.ordering >= 4) continue;
+        addDrawable(frontArmDrawable(entry.frameset, entry.directives));
+      }
+    }
     if (!m_frontSleeveFrameset.empty())
       addDrawable(frontArmDrawable(m_frontSleeveFrameset, getChestDirectives()));
     if (!m_frontSleeveStack.empty()) {
       for (ArmorEntry entry : m_frontSleeveStack) {
+        if (entry.ordering < 4) continue;
         addDrawable(frontArmDrawable(entry.frameset, entry.directives));
       }
     }
@@ -1447,6 +1483,27 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
       }
     }
 
+    if (!m_frontSleeveStack.empty()) {
+      for (ArmorEntry entry : m_frontSleeveStack) {
+        if (entry.ordering >= 4) continue;
+        String image;
+        Vec2F position;
+        if (dance.isValid() && danceStep->frontArmFrame) {
+          image = strf("{}:{}{}", entry.frameset, *danceStep->frontArmFrame, entry.directives.prefix());
+          position = danceStep->frontArmOffset / TilePixels;
+        } else if (m_state == Idle) {
+          image = strf("{}:{}{}", entry.frameset, m_visualIdentity.personality.armIdle, entry.directives.prefix());
+          position = m_visualIdentity.personality.armOffset / TilePixels;
+        } else
+          image = strf("{}:{}.{}{}", entry.frameset, frameBase(m_state), armStateSeq, entry.directives.prefix());
+        auto drawable = Drawable::makeImage(std::move(image), 1.0f / TilePixels, true, position);
+        drawable.imagePart().addDirectives(entry.directives, true);
+        if (dance.isValid())
+          drawable.rotate(danceStep->frontArmRotation);
+        addDrawable(std::move(drawable));
+      }
+    }
+
     if (!m_frontSleeveFrameset.empty()) {
       String image;
       Vec2F position;
@@ -1468,6 +1525,7 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
 
     if (!m_frontSleeveStack.empty()) {
       for (ArmorEntry entry : m_frontSleeveStack) {
+        if (entry.ordering < 4) continue;
         String image;
         Vec2F position;
         if (dance.isValid() && danceStep->frontArmFrame) {
@@ -1593,6 +1651,16 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
         }
       }
 
+      if (!m_backSleeveStack.empty()) {
+        for (ArmorEntry entry : m_backSleeveStack) {
+          if (entry.ordering >= 4) continue;
+          String image = strf("{}:{}", entry.frameset, personality.armIdle);
+          Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, personality.armOffset);
+          drawable.imagePart().addDirectives(entry.directives, true);
+          addDrawable(std::move(drawable));
+        }
+      }
+
       if (!m_backSleeveFrameset.empty()) {
         String image = strf("{}:{}", m_backSleeveFrameset, personality.armIdle);
         Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, personality.armOffset);
@@ -1602,6 +1670,7 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
 
       if (!m_backSleeveStack.empty()) {
         for (ArmorEntry entry : m_backSleeveStack) {
+          if (entry.ordering < 4) continue;
           String image = strf("{}:{}", entry.frameset, personality.armIdle);
           Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, personality.armOffset);
           drawable.imagePart().addDirectives(entry.directives, true);
@@ -1687,11 +1756,44 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
         }
       }
 
+      HashMap<uint8_t, Drawable> slottedCosmetics;
+
       if (!m_legsArmorFrameset.empty()) {
         String image = strf("{}:{}", m_legsArmorFrameset, personality.idle);
         Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, {});
         drawable.imagePart().addDirectives(getLegsDirectives(), true);
         addDrawable(std::move(drawable));
+      }
+
+      if ((!m_chestArmorStack.empty() || !m_legsArmorStack.empty())) {
+        size_t legsStackSize = m_legsArmorStack.size(), chestStackSize = m_chestArmorStack.size();
+        size_t largerStackSize = std::max<size_t>(legsStackSize, chestStackSize);
+        for (size_t i = 0; i < largerStackSize; i++) {
+          if (i < legsStackSize) {
+            auto& ordering = m_legsArmorStack[i].ordering;
+            if (ordering < 4) {
+              String image = strf("{}:{}", m_legsArmorStack[i].frameset, personality.idle);
+              Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, {});
+              drawable.imagePart().addDirectives(m_legsArmorStack[i].directives, true);
+              slottedCosmetics[ordering] = drawable;
+            }
+          }
+
+          if (i < chestStackSize) {
+            auto& ordering = m_chestArmorStack[i].ordering;
+            if (ordering < 4) {
+              String image = strf("{}:{}", m_chestArmorStack[i].frameset, personality.idle);
+              Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, {});
+              drawable.imagePart().addDirectives(m_chestArmorStack[i].directives, true);
+              slottedCosmetics[ordering] = drawable;
+            }
+          }
+        }
+
+        for (size_t i = 0; i != 4; i++) {
+          if (auto drawable = slottedCosmetics.ptr(i))
+            addDrawable(std::move(*drawable));
+        }
       }
 
       if (!m_chestArmorFrameset.empty()) {
@@ -1706,18 +1808,36 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
         size_t largerStackSize = std::max<size_t>(legsStackSize, chestStackSize);
         for (size_t i = 0; i < largerStackSize; i++) {
           if (i < legsStackSize) {
-            String image = strf("{}:{}", m_legsArmorStack[i].frameset, personality.idle);
-            Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, {});
-            drawable.imagePart().addDirectives(m_legsArmorStack[i].directives, true);
-            addDrawable(std::move(drawable));
+            auto& ordering = m_legsArmorStack[i].ordering;
+            if (ordering >= 4) {
+              String image = strf("{}:{}", m_legsArmorStack[i].frameset, personality.idle);
+              Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, {});
+              drawable.imagePart().addDirectives(m_legsArmorStack[i].directives, true);
+              if (ordering >= 16)
+                addDrawable(std::move(drawable));
+              else
+                slottedCosmetics[ordering] = drawable;
+            }
           }
 
           if (i < chestStackSize) {
-            String image = strf("{}:{}", m_chestArmorStack[i].frameset, personality.idle);
-            Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, {});
-            drawable.imagePart().addDirectives(m_chestArmorStack[i].directives, true);
-            addDrawable(std::move(drawable));
+            auto& ordering = m_legsArmorStack[i].ordering;
+            if (ordering >= 4) {
+              String image = strf("{}:{}", m_chestArmorStack[i].frameset, personality.idle);
+              Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, {});
+              drawable.imagePart().addDirectives(m_chestArmorStack[i].directives, true);
+              if (ordering >= 16)
+                addDrawable(std::move(drawable));
+              else
+                slottedCosmetics[ordering] = drawable;
+            }
           }
+        }
+
+        // FezzedOne: Ensures slotted chest and leg cosmetics are rendered in the proper layer order.
+        for (size_t i = 4; i != 16; i++) {
+          if (auto drawable = slottedCosmetics.ptr(i))
+            addDrawable(std::move(*drawable));
         }
       }
     }
@@ -1856,6 +1976,16 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
         }
       }
 
+      if (!m_frontSleeveStack.empty()) {
+        for (ArmorEntry entry : m_frontSleeveStack) {
+          if (entry.ordering >= 4) continue;
+          String image = strf("{}:{}", entry.frameset, personality.armIdle);
+          Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, personality.armOffset);
+          drawable.imagePart().addDirectives(entry.directives, true);
+          addDrawable(std::move(drawable));
+        }
+      }
+
       if (!m_frontSleeveFrameset.empty()) {
         String image = strf("{}:{}", m_frontSleeveFrameset, personality.armIdle);
         Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, personality.armOffset);
@@ -1865,6 +1995,7 @@ List<Drawable> Humanoid::renderPortrait(PortraitMode mode) const {
 
       if (!m_frontSleeveStack.empty()) {
         for (ArmorEntry entry : m_frontSleeveStack) {
+          if (entry.ordering < 4) continue;
           String image = strf("{}:{}", entry.frameset, personality.armIdle);
           Drawable drawable = Drawable::makeImage(std::move(image), 1.0f, true, personality.armOffset);
           drawable.imagePart().addDirectives(entry.directives, true);
