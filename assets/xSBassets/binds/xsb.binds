@@ -118,6 +118,15 @@
         "default": [],
         "group": "inventory",
         "name": "Paste JSON as item"
+      },
+      "toggleWardrobe": {
+        "default": [{
+          "type": "key",
+          "value": "I",
+          "mods" : ["LCtrl"]
+        }],
+        "group": "inventory",
+        "name": "Open/close wardrobe interface"
       }
     }
   }

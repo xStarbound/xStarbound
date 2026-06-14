@@ -223,14 +223,6 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
     selectTab(m_tabButtonData.keyOf(selected));
   });
 
-  invWindowReader.registerCallback("portrait", [=](Widget*) {
-    auto paneManager = m_parent->paneManager();
-    if (paneManager->registeredPaneIsDisplayed(MainInterfacePanes::Wardrobe))
-      paneManager->dismissRegisteredPane(MainInterfacePanes::Wardrobe);
-    else
-      paneManager->displayRegisteredPane(MainInterfacePanes::Wardrobe);
-  });
-
   auto registerSlotCallbacks = [&](String name, InventorySlot slot) {
     invWindowReader.registerCallback(name, [=](Widget* paneObj) {
       if (as<ItemSlotWidget>(paneObj))

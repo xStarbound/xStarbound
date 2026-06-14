@@ -23,6 +23,7 @@
 #include "StarFireableItem.hpp"
 #include "StarGuiReader.hpp"
 #include "StarImageMetadataDatabase.hpp"
+#include "StarInput.hpp"
 #include "StarInspectionTool.hpp"
 #include "StarItem.hpp"
 #include "StarItemDrop.hpp"
@@ -937,6 +938,13 @@ void MainInterface::update(float dt) {
       pair.second->setSize(Vec2I(m_guiContext->windowInterfaceSize()));
     pair.second->update(dt);
   }
+
+  if (Input::singleton().bindDown("xsb", "toggleWardrobe")) {
+    if (m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Wardrobe))
+      m_paneManager.dismissRegisteredPane(MainInterfacePanes::Wardrobe);
+    else
+      m_paneManager.displayRegisteredPane(MainInterfacePanes::Wardrobe);
+  }
 }
 
 void MainInterface::renderInWorldElements() {
@@ -1740,7 +1748,10 @@ bool MainInterface::overlayClick(Vec2I const& mousePos, MouseButton mouseButton)
   mainBarPoly = PolyI(mainBarPolyF);
 
   if (overButton(m_config->mainBarInventoryButtonPoly, mousePos)) {
-    m_paneManager.toggleRegisteredPane(MainInterfacePanes::Inventory);
+    if (mouseButton == MouseButton::Left)
+      m_paneManager.toggleRegisteredPane(MainInterfacePanes::Inventory);
+    else if (mouseButton == MouseButton::Right)
+      m_paneManager.toggleRegisteredPane(MainInterfacePanes::Wardrobe);
     return true;
   }
 
