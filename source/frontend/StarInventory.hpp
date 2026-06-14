@@ -102,7 +102,6 @@ class WardrobePane : public Pane {
 public:
   WardrobePane(MainInterface* parent, PlayerPtr player, ContainerInteractorPtr containerInteractor);
 
-  void displayed() override;
   PanePtr createTooltip(Vec2I const& screenPosition) override;
 
 protected:
@@ -112,7 +111,6 @@ private:
   MainInterface* m_parent;
   PlayerPtr m_player;
   ContainerInteractorPtr m_containerInteractor;
-  InventoryPanePtr inventory;
 };
 
 } // namespace Star
