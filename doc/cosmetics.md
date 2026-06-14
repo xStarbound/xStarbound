@@ -10,7 +10,7 @@ The following non-vanilla armour/cosmetic item instance values are supported by 
 
     _Note:_ If `"broadcast"` is `true` after merges, the `"name"` identity parameter can be used to visually override (or hide) your nametag for all clients. If disabled (unspecified or any other value), `"name"` does nothing.
 
-    _Note:_ Broadcast identity overrides are always visible to all clients as long as the item is visible on _your_ xClient client (or visible to an xServer server mastering an NPC), no matter whether the other clients can see the item itself (outside of the overrides).
+    _Note:_ Broadcast identity overrides are always visible to all clients as long as the item is visible on _your_ xClient client (or visible to an xServer server mastering an NPC), no matter whether it is a visible overlay, underlay, overlay on an underlay, or a visible item in an extended cosmetic slot, no matter whether the other clients can see the item itself (outside of the overrides).
 
     _Note:_ As of xStarbound v4.3.1+, NPCs mastered by an xStarbound client or server can broadcast humanoid overrides the same way that players on xClient can.
 
@@ -21,7 +21,7 @@ The following non-vanilla armour/cosmetic item instance values are supported by 
 - **`"maleDirectives"`, `"femaleDirectives"`, `"maleFlipDirectives"`, `"femaleFlipDirectives"`:** [If used in xSB directive substitutions and the wearer is using xClient v4.3.1+, renders on all clients.] Optional directive strings. Used for gender-specific xSB directive substitution (see below), where the directives are applied only if the wearer's gender matches the name of this parameter. The `"directivesUseOverrides"` parameter (and `"broadcast"` on overrides) control whether identity overrides are used for matches.
 - **`"<species>Directives"`, `"<species>FlipDirectives"`:** [If used in xSB directive substitutions and the wearer is using xClient v4.3.1+, renders on all clients.] Optional directive strings. This is a special set of generic parameter names; in the actual parameter names, replace `<species>` with the species or image path the substitution directives are intended for; e.g., `"humanDirectives"`, `"floranFlipDirectives"`, etc. Used for species-specific xSB directive substitution (see below), where the directives are applied only if the wearer's image path (if present) or species matches the name of this parameter. The `"directivesUseOverrides"` parameter (and `"broadcast"` on overrides) control whether identity overrides are used for matches.
 - **`"directivesUseOverrides"`:** [If the wearer is using xClient v4.3.1+, renders on all clients.] Optional string. Whether any directive tags present on the item's xSB directives should have any visible humanoid identity overrides from cosmetics applied to their return values as well as for determining which species / image path or gender to use when handling species/gender-specific tags. If `true`, the humanoid identity after overrides is used. If `false`, the base humanoid identity before overrides is used. If unspecified or any other value, the humanoid identity after overrides is used for matching the species and gender if those overrides are broadcast; otherwise, the base humanoid identity is used for matching.
-- **`"stackedItems"`:** _[xClient only, but renders with caveats on OpenStarbound clients.]_ Optional array of versioned item descriptors that store overlays on this armour/cosmetic item.
+- **`"stackedItems"`:** _[xClient only.]_ Optional array of versioned item descriptors that store overlays on this armour/cosmetic item.
 
   To stack overlays onto a base item on xClient, click the item you wish to use as an overlay to put it in in the swap slot, and then **<kbd>Shift</kbd> + <kbd>Right Click</kbd>** the base item you wish to overlay it onto (which must be of the same armour type, but valid items will show a small, red `+` indicator), which may already have overlays on it, and the item will disappear from the swap slot and be overlaid onto the base item. The base item needs to be in your armour/cosmetic slots or inventory to do this. The process may be further repeated with other armour/cosmetic items you want to use as overlays, as many times as you wish.
 
@@ -32,6 +32,8 @@ The following non-vanilla armour/cosmetic item instance values are supported by 
   Overlaid base items do not show their stack count when in containers (or modded inventory extension panes), but don't worry — this is purely visual and it's perfectly safe to leave overlay-stacked items in containers on non-xServer servers or even hand them to players who are not using xClient.
 
   Overlaid items that do not match this (base) item's armour type (any of head, chest, legs or back) are quietly ignored by xClient (and can still be unstacked with a **<kbd>Shift</kbd> + <kbd>Right Click</kbd>** if, for some reason, you stuck an «incompatible» item in here), although errors in overlay item instantiation will convert the overlaid item into a Perfectly Generic Item (with all item data saved in it) upon any attempt to unstack it. Up to twelve visible xStarbound overlays are networked to OpenStarbound clients, with certain other caveats mentioned below.
+
+  Overlays on items in xStarbound or OpenStarbound's extended cosmetic/wardrobe slots are visually ignored. That is, overlaid items must be in any vanilla cosmetic or armour slot for the overlays to be visible.
 
 - **`"underlaid"`:** _[xClient only.]_ Optional boolean. If `true` and this item is in an armour (not cosmetic) slot, this item and any overlays on it are visibly underlaid behind any item in the corresponding cosmetic slot, as long as the wearer isn't wearing any item in the stock cosmetic slots with this item's slot type «blacklisted» in its `"armorTypesToHide"` parameter.
 
@@ -94,29 +96,34 @@ xStarbound supports the following substitution tags in `"xSBdirectives"`, `"xSBf
 **Layering order:** When rendering humanoids and armour underlays and overlays, the following rendering order applies, from back to front:
 
 1. Back armour → back armour overlays (back to front) → back cosmetic → back cosmetic overlays (back to front).
-2. Back arm. `"bodyDirectives"` are applied, then arm frame override directives (split from the frame override itself) are applied. If the arm frame override directives begin with `??` (two question marks), the vanilla behaviour — arm frame override directives _before_ `"bodyDirectives"` — is restored.[^2]
-3. Chest armour back sleeves → chest armour overlay back sleeves (back to front) → chest cosmetic back sleeves → chest cosmetic overlay back sleeves (back to front).
-4. OpenStarbound chest cosmetic back sleeves, in numerical slot order from lowest to highest (left to right, bottom to top on OpenStarbound's inventory screen[^1]).
-5. Head. `"bodyDirectives"` are applied.
-6. Emotes. `"emoteDirectives"`, if they exist in the identity after all overrides are accounted for, are applied to the emotes; otherwise `"bodyDirectives"` are applied. _Not_ masked by armour/cosmetics, but you can apply an `?addmask` directive to the `"emoteDirectives"` after `<base>` in the armour item's humanoid identity overrides to work around this.
-7. Hair (including mask directives from head armour/cosmetics, in back-to-front order, _after_ the identity directives).
-8. Body. `"bodyDirectives"` are applied.
-9. Legs armour.
-10. Chest and legs cosmetics (not including their sleeves) in the first four OpenStarbound chest slots, in numerical slot order from lowest to highest (bottom row, left to right on OpenStarbound's inventory screen[^1]).
-11. Chest armour (not sleeves).
-12. Chest and legs armour overlays (not including their sleeves) in staggered order (**LEGS → CHEST → LEGS → CHEST → LEGS → CHEST → ...**); visually hidden overlays (with `"hideInVanillaSlots"` enabled) count as empty slots for staggering.
-13. Legs cosmetic → chest cosmetic (not sleeves).
-14. Chest and legs cosmetic overlays (not including their sleeves) in staggered order (**LEGS → CHEST → LEGS → CHEST → LEGS → CHEST → ...**); visually hidden overlays (with `"hideInVanillaSlots"` enabled) count as empty slots for staggering.
-15. Chest and legs cosmetics (not including their sleeves) in the last eight OpenStarbound chest slots, in numerical slot order from lowest to highest (middle and top rows, left to right, middle to top on OpenStarbound's inventory screen[^1]).
-16. Facial hair (including mask directives from head armour/cosmetics, in back-to-front order, _after_ the identity directives). `"facialHairDirectives"` are applied. In vanilla Starbound, this includes Apex facial hair / beards, Novakid brands and Avian fluff.
-17. Facial masks (including mask directives from head armour/cosmetics, in back-to-front order, _after_ the identity directives). `"facialMaskdirectives"` are applied. In vanilla Starbound, Avian beaks are facial masks.
-18. Head armour → head armour overlays (back to front) → head cosmetic → head cosmetic overlays (back to front). For each head item in the «stack», mask directives from all head items _above_ that item are applied to the head item in back-to-front order, _after_ the item's own directives. The topmost item obviously has no mask directives applied to it.
-19. OpenStarbound head cosmetics, in numerical slot order from lowest to highest (left to right, bottom to top on OpenStarbound's inventory screen[^1]). Mask directives from these items are applied to the hair, facial hair and facial mask in back-to-front order after all other head items' mask directives, but are intentionally _not_ applied to _any_ head items (including OpenStarbound cosmetics) to emulate OpenStarbound's behaviour in this regard for exact appearance matches.
-20. Front arm. `"bodyDirectives"` are applied, then arm frame override directives (split from the frame override itself) are applied. If the arm frame override directives begin with `??` (two question marks), the vanilla behaviour — arm frame override directives _before_ `"bodyDirectives"` — is restored.[^2]
-21. Chest armour front sleeves → chest armour overlay front sleeves (back to front) → chest cosmetic front sleeves → chest cosmetic overlay front sleeves (back to front).
-22. OpenStarbound chest cosmetic front sleeves, in numerical slot order from lowest to highest (left to right, bottom to top on OpenStarbound's inventory screen[^1]).
+2. xStarbound/OpenStarbound back cosmetics in the extended slots, in numerical slot order from lowest to highest (left to right, legs → chest → head → back order on xStarbound's wardrobe window, or left to right, bottom to top on OpenStarbound's inventory screen[^1]).
+3. Back arm. `"bodyDirectives"` are applied, then arm frame override directives (split from the frame override itself) are applied. If the arm frame override directives begin with `??` (two question marks), the vanilla behaviour — arm frame override directives _before_ `"bodyDirectives"` — is restored.[^2]
+4. Chest armour back sleeves → chest armour overlay back sleeves (back to front).
+5. xStarbound/OpenStarbound chest cosmetic back sleeves for items in the first four extended slots, in numerical slot order from lowest to highest (left to right, legs row on xStarbound's wardrobe window, or left to right, bottom row on OpenStarbound's inventory screen[^1]).
+6. Chest cosmetic back sleeves → chest cosmetic overlay back sleeves (back to front).
+7. xStarbound/OpenStarbound chest cosmetic back sleeves for items in the remaining extended slots, in numerical slot order from lowest to highest (left to right, chest → head → back order on xStarbound's wardrobe window, or left to right, middle to top on OpenStarbound's inventory screen[^1]).
+8. Head. `"bodyDirectives"` are applied.
+9. Emotes. `"emoteDirectives"`, if they exist in the identity after all overrides are accounted for, are applied to the emotes; otherwise `"bodyDirectives"` are applied. _Not_ masked by armour/cosmetics, but you can apply an `?addmask` directive to the `"emoteDirectives"` after `<base>` in the armour item's humanoid identity overrides to work around this.
+10. Hair (including mask directives from head armour/cosmetics, in back-to-front order, _after_ the identity directives).
+11. Body. `"bodyDirectives"` are applied.
+12. Legs armour.
+13. Chest and legs cosmetics (not including their sleeves) in the first four xStarbound/OpenStarbound extended slots, in numerical slot order from lowest to highest (legs-hinted row, left to right, on xStarbound's wardrobe window, or bottom row, left to right on OpenStarbound's inventory screen[^1]).
+14. Chest armour (not sleeves).
+15. Chest and legs armour overlays (not including their sleeves) in staggered order (**LEGS → CHEST → LEGS → CHEST → LEGS → CHEST → ...**); visually hidden overlays (with `"hideInVanillaSlots"` enabled) count as empty slots for staggering.
+16. Legs cosmetic → chest cosmetic (not sleeves).
+17. Chest and legs cosmetic overlays (not including their sleeves) in staggered order (**LEGS → CHEST → LEGS → CHEST → LEGS → CHEST → ...**); visually hidden overlays (with `"hideInVanillaSlots"` enabled) count as empty slots for staggering.
+18. Chest and legs cosmetics (not including their sleeves) in the remaining xStarbound/OpenStarbound extended slots, in numerical slot order from lowest to highest (left to right, chest → head → back order on xStarbound's wardrobe window, or left to right, middle to top on OpenStarbound's inventory screen[^1]).
+19. Facial hair (including mask directives from head armour/cosmetics, in back-to-front order, _after_ the identity directives). `"facialHairDirectives"` are applied. In vanilla Starbound, this includes Apex facial hair / beards, Novakid brands and Avian fluff.
+20. Facial masks (including mask directives from head armour/cosmetics, in back-to-front order, _after_ the identity directives). `"facialMaskdirectives"` are applied. In vanilla Starbound, Avian beaks are facial masks.
+21. Head armour → head armour overlays (back to front) → head cosmetic → head cosmetic overlays (back to front). For each head item in the «stack», mask directives from all head items _above_ that item are applied to the head item in back-to-front order, _after_ the item's own directives. The topmost item obviously has no mask directives applied to it.
+22. xStarbound/OpenStarbound head cosmetics in the extended slots, in numerical slot order from lowest to highest (left to right, bottom to top on OpenStarbound's inventory screen[^1]). Mask directives from these items are applied to the hair, facial hair and facial mask in back-to-front order after all other head items' mask directives, but are intentionally _not_ applied to _any_ head items (including OpenStarbound cosmetics) to emulate OpenStarbound's behaviour in this regard for exact appearance matches.
+23. Front arm. `"bodyDirectives"` are applied, then arm frame override directives (split from the frame override itself) are applied. If the arm frame override directives begin with `??` (two question marks), the vanilla behaviour — arm frame override directives _before_ `"bodyDirectives"` — is restored.[^2]
+24. Chest armour back sleeves → chest armour overlay front sleeves (back to front).
+25. xStarbound/OpenStarbound chest cosmetic front sleeves for items in the first four extended slots, in numerical slot order from lowest to highest (left to right, legs row on xStarbound's wardrobe window, or left to right, bottom row on OpenStarbound's inventory screen[^1]).
+26. Chest cosmetic back sleeves → chest cosmetic overlay front sleeves (back to front).
+27. xStarbound/OpenStarbound chest cosmetic front sleeves for items in the remaining extended slots, in numerical slot order from lowest to highest (left to right, chest → head → back order on xStarbound's wardrobe window, or left to right, middle to top on OpenStarbound's inventory screen[^1]).
 
-[^1]: Assuming no mods that alter the layout of the cosmetic slots. When in doubt, use the slot numbers in the tooltips.
+[^1]: Assuming no mods that alter the layout of the cosmetic slots. When in doubt, use the slot numbers in the tooltips. For xStarbound, the order for the extended slot type hints is legs → chest → head → back.
 
 [^2]: This is an intentional deviation from vanilla behaviour on both OpenStarbound and xStarbound, to prevent certain items from rendering big ugly squares caused by their `?crop` directives used to visually shift the sprite (or whatever else) being applied _before_ bodyDirectives (which may include a custom body sprite which depends on there not being weird `?crop` directives before it to be rendered properly). The `??` override to disable this behaviour is ignored by OpenStarbound.
 
@@ -125,33 +132,26 @@ xStarbound supports the following substitution tags in `"xSBdirectives"`, `"xSBf
 > - **LEGS → CHEST → LEGS → LEGS → LEGS:** One chest overlay and four legs overlays.
 > - **LEGS → CHEST → LEGS → CHEST → CHEST → CHEST:** Two legs items and four chest overlays.
 > - **CHEST → CHEST:** Zero legs overlays and two chest overlays.
->
-> xClient staggers items in the emulated OpenStarbound cosmetic slots when networking to OpenStarbound in the order used above.
 
-**OpenStarbound cosmetics emulation:** xClient emulates OpenStarbound's cosmetics system. See below.
+**xStarbound's extended wardrobe slots and OpenStarbound's extended cosmetic slots:** xClient adds 16 extended wardrobe slots; the first 12 slots are networked to OpenStarbound. The extended slots are hinted as «head», «chest», «legs» and «back» slots in the interface, but any slot may take any armour or cosmetic item of any slot type. xStarbound's legs-hinted extended slots differ in layering behaviour from the other extended slots — chest and legs items in the legs-hinted slots are layered _below_ chest items in the vanilla slots, while chest and legs items in any of the other slots are layered _above_ chest items in vanilla slots. This is consistent with OpenStarbound's behaviour with regard to its bottom row of extended slots.
 
 _OpenStarbound-to-xStarbound:_ xClient renders OpenStarbound cosmetics _exactly_ as they are rendered on OpenStarbound, aside from human underwear if `"removeHumanUndies"` is disabled (or unspecified) in `xclient.config`. That is, barring some xStarbound-only parameters — humanoid `"identity"` overrides, in the instance parameters of items in _all_ OpenStarbound armour slots, and overlays and underlay statuses on items in the stock armour/cosmetic slots, _are_ rendered on xClient clients, including tag substitutions (but not the `"broadcast"` parameter, for obvious reasons). This can be used to «forcibly» remove the underwear on your OpenStarbound human character with a special armour-slot item that has the parameters `"underlaid": true` and `"humanoidConfig": { "identity": { "imagePath": "nudehuman" } }`.
 
-_xClient-to-OpenStarbound:_ xClient networks up to twelve of its own cosmetic overlays to OpenStarbound clients with some caveats, namely that overlays on underlaid items are not networked and any non-hidden overlays on an item in an armour slot hide the base item on OpenStarbound clients.
-
-Additionally there's a visual layering quirk on OpenStarbound's end that xClient tries its best to work around — chest and legs items in the first four OpenStarbound cosmetic slots (the four to the right of the vanilla legs slots) are always layered _below_ any visible armour/cosmetic item in the vanilla chest slots, xStarbound v4.1.2+ prioritises chests and legs items, and starts at the fifth OpenStarbound cosmetic slot, wrapping around to the first four slots when it reaches the twelfth slot, in order to reduce the chance of legs overlays being shown as layered under chest items.
-
-Unfortunately, that means that any chest and legs overlays among the 9th to 12th visited xStarbound overlays will be layered under any chest items in the vanilla slots, so this workaround only «protects» the visual ordering of the first eight visited xStarbound overlays from being visually «mangled» by OpenStarbound clients. As such, you should ensure you have fewer than eight visible chest and legs overlays (including empty «filler» overlays) in total.
-
-As such, when tallying up overlays to network to OpenStarbound, the visitation order is: **Staggered Chest and Legs Cosmetics/Armour → Back Cosmetic/Armour → Head Cosmetic/Armour**. Overlays stacked on base items that are hidden by `"hideInVanillaSlots"`, disabled underlay status or any cosmetic item's `"armourTypesToHide"` value are not visited for OpenStarbound networking purposes, but hidden _overlays_ (those with `"hideInVanillaSlots"` enabled) _are_ visited (leaving corresponding empty OpenStarbound slots) as long as the base item isn't hidden. This allows hidden chest/legs overlays used to «fill» a chest/legs stagger slot to work properly when networked to OpenStarbound.
+_xClient-to-OpenStarbound:_ Since v4.5, xClient networks its first twelve extended wardrobe slot items (all except the slots with «back» hints) to OpenStarbound clients instead of networking xStarbound overlays in the vanilla cosmetic slots.
 
 **Visual hiddenness:** A «visually hidden» item is one for which at least _one_ of the following criteria apply:
 
 - This item is in an armour (not cosmetic) slot, has underlay visibility _disabled_ (i.e., `"underlaid"` is `false` or not present, and the underlay border isn't present), and the player/NPC is wearing an item in the corresponding cosmetic slot.
 - This item is in an armour (not cosmetic) slot, and the player/NPC is wearing another item in a cosmetic slot whose `"armourTypeToHides"` value includes the armour slot for this item.
-- This item has `"hideInVanillaSlots"` enabled and is not in an OpenStarbound cosmetic slot.
+- This item has `"hideInVanillaSlots"` enabled and _either_ the wearer is using an xStarbound client _or_ the item is not in an extended (OpenStarbound) cosmetic slot.
 - The player or NPC is nude (i.e., has the `"nude"` status modifier) and the item is a non-overlay that does not have `"bypassNude"` enabled.
 - This item is acting as an xStarbound overlay on any other armour/cosmetic item to which at least _one_ of the other four criteria apply.
 
 Note that for OpenStarbound clients viewing players mastered by an xClient client, the criteria for «visually hidden» include all of the above, plus the following:
 
 - This item is in an armour (not cosmetic) slot and an item is also worn in the corresponding cosmetic slot. This applies _regardless_ of xStarbound's underlay status.
-- This item is a cosmetic overlay, the player is wearing more than 12 total overlays on items in the armour or cosmetic slots (_not_ counting overlays on items in a given armour slot if the player/NPC is wearing an item _not_ hidden because of `"hideinVanillaSlots"` status in the corresponding cosmetic slot), and this overlay happens to be number 13 or higher in xClient's visitation order (see above).
 - This item is in an armour (not cosmetic) slot, there is no item worn in the corresponding cosmetic slot, and this item has _any_ visible overlays (i.e., overlays not hidden by `"hideInVanillaSlots"`).
+- This item is in the last four extended xStarbound cosmetic slots (i.e., the four «Cosmetic Back» slots).
+- This item is an overlay on an item in any extended xStarbound cosmetic slot.
 
 Humanoid identity overrides with `"broadcast"` enabled _don't_ abide by the additional OpenStarbound criteria if the wearer is a player on xClient. If it's visible on xClient, the overrides are visible to everyone else!

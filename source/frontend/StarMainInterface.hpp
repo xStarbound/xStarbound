@@ -207,6 +207,7 @@ private:
   QuestLogInterfacePtr m_questLogInterface;
 
   InventoryPanePtr m_inventoryWindow;
+  WardrobePanePtr m_wardrobeWindow;
   CraftingPanePtr m_plainCraftingWindow;
   CraftingPanePtr m_craftingWindow;
   MerchantPanePtr m_merchantWindow;

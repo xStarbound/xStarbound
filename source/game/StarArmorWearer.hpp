@@ -49,6 +49,7 @@ public:
   void setLegsCosmeticItem(LegsArmorPtr legsCosmeticItem);
   void setBackItem(BackArmorPtr backItem);
   void setBackCosmeticItem(BackArmorPtr backCosmeticItem);
+  void setExtendedCosmeticItem(uint8_t slot, ArmorItemPtr cosmeticItem);
 
   HeadArmorPtr headItem() const;
   HeadArmorPtr headCosmeticItem() const;
@@ -87,6 +88,8 @@ private:
   ChestArmorPtr m_chestCosmeticItem;
   LegsArmorPtr m_legsCosmeticItem;
   BackArmorPtr m_backCosmeticItem;
+
+  Array<ArmorItemPtr, 16> m_extendedCosmeticItems;
 
   NetElementData<ItemDescriptor> m_headItemDataNetState;
   NetElementData<ItemDescriptor> m_chestItemDataNetState;

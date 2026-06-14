@@ -1,5 +1,5 @@
 {
-  "author" : "FezzedOne and xSB/OpenSB contributors",
+  "author" : "xStarbound contributors",
   "name" : "xSBassets",
   "priority" : -9999,
   "friendlyName" : "xStarbound Assets",
@@ -8,5 +8,5 @@
     "onLoad": ["/scripts/xsb/onload/humansprites.pluto"],
     "postLoad": ["/scripts/xsb/postload/titlebar.lua"]
   },
-  "version" : "4.4.0.1"
+  "version" : "4.5"
 }

@@ -1,11 +1,11 @@
 #ifndef STAR_MAIN_INTERFACE_CONFIG_HPP
 #define STAR_MAIN_INTERFACE_CONFIG_HPP
 
+#include "StarAnimation.hpp"
+#include "StarBiMap.hpp"
 #include "StarJson.hpp"
 #include "StarPoly.hpp"
-#include "StarBiMap.hpp"
 #include "StarRegisteredPaneManager.hpp"
-#include "StarAnimation.hpp"
 
 namespace Star {
 
@@ -38,7 +38,8 @@ enum class MainInterfacePanes {
   CharacterSwap,
   CharacterAdd,
   CharacterRemove,
-  CharacterEdit
+  CharacterEdit,
+  Wardrobe
 };
 
 extern EnumMap<MainInterfacePanes> const MainInterfacePanesNames;
@@ -160,6 +161,6 @@ struct MainInterfaceConfig {
   StringMap<StringList> macroCommands;
 };
 
-}
+} // namespace Star
 
 #endif

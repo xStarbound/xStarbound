@@ -15,6 +15,7 @@ STAR_CLASS(HeadArmor);
 STAR_CLASS(ChestArmor);
 STAR_CLASS(LegsArmor);
 STAR_CLASS(BackArmor);
+STAR_CLASS(ArmorItem);
 STAR_CLASS(Player);
 
 STAR_CLASS(PlayerInventory);
@@ -59,7 +60,7 @@ inline InventorySettings& operator&=(InventorySettings& a, InventorySettings b) 
 // object bag, reagent bag, food bag, weapon and armor slots, swap slot, trash
 // slot, essential items, and currencies.
 //
-// Items in the inventory can be shorcutted in the "Action Bar", and one
+// Items in the inventory can be shortcutted in the "Action Bar", and one
 // location in the action bar is selected at a time and the primary and
 // secondary held items are the items pointed to in that action bar location.
 //
@@ -131,6 +132,8 @@ public:
   ChestArmorPtr chestCosmetic() const;
   LegsArmorPtr legsCosmetic() const;
   BackArmorPtr backCosmetic() const;
+
+  ArmorItemPtr cosmetic(EquipmentSlot slot) const;
 
   ItemBagConstPtr bagContents(String const& bag) const;
 

@@ -1,12 +1,13 @@
 #ifndef STAR_INVENTORY_TYPES_HPP
 #define STAR_INVENTORY_TYPES_HPP
 
-#include "StarJson.hpp"
 #include "StarBiMap.hpp"
+#include "StarJson.hpp"
 #include "StarStrongTypedef.hpp"
 
 namespace Star {
 
+// FezzedOne: Twelve extra overlay slots to take after OpenStarbound's.
 enum class EquipmentSlot : uint8_t {
   Head = 0,
   Chest = 1,
@@ -15,8 +16,25 @@ enum class EquipmentSlot : uint8_t {
   HeadCosmetic = 4,
   ChestCosmetic = 5,
   LegsCosmetic = 6,
-  BackCosmetic = 7
+  BackCosmetic = 7,
+  Overlay1 = 8,
+  Overlay2 = 9,
+  Overlay3 = 10,
+  Overlay4 = 11,
+  Overlay5 = 12,
+  Overlay6 = 13,
+  Overlay7 = 14,
+  Overlay8 = 15,
+  Overlay9 = 16,
+  Overlay10 = 17,
+  Overlay11 = 18,
+  Overlay12 = 19,
+  Overlay13 = 20,
+  Overlay14 = 21,
+  Overlay15 = 22,
+  Overlay16 = 23
 };
+
 extern EnumMap<EquipmentSlot> const EquipmentSlotNames;
 
 typedef pair<String, size_t> BagSlot;
@@ -58,8 +76,9 @@ Json jsonFromSelectedActionBarLocation(SelectedActionBarLocation const& location
 static uint8_t const EquipmentSize = 8;
 static uint8_t const EssentialItemCount = 4;
 
-}
+} // namespace Star
 
-template <> struct fmt::formatter<Star::InventorySlot> : ostream_formatter {};
+template <>
+struct fmt::formatter<Star::InventorySlot> : ostream_formatter {};
 
 #endif

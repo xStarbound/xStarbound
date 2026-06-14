@@ -223,6 +223,14 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
     selectTab(m_tabButtonData.keyOf(selected));
   });
 
+  invWindowReader.registerCallback("portrait", [=](Widget*) {
+    auto paneManager = m_parent->paneManager();
+    if (paneManager->registeredPaneIsDisplayed(MainInterfacePanes::Wardrobe))
+      paneManager->dismissRegisteredPane(MainInterfacePanes::Wardrobe);
+    else
+      paneManager->displayRegisteredPane(MainInterfacePanes::Wardrobe);
+  });
+
   auto registerSlotCallbacks = [&](String name, InventorySlot slot) {
     invWindowReader.registerCallback(name, [=](Widget* paneObj) {
       if (as<ItemSlotWidget>(paneObj))
@@ -244,8 +252,10 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
     });
   };
 
-  for (auto const p : EquipmentSlotNames)
+  for (auto const p : EquipmentSlotNames) {
+    if (p.first == EquipmentSlot::Overlay1) break;
     registerSlotCallbacks(p.second, p.first);
+  }
   registerSlotCallbacks("trash", TrashSlot());
 
   invWindowReader.construct(config.get("paneLayout"), this);
@@ -592,4 +602,208 @@ void InventoryPane::selectTab(String const& selected) {
       tabs->select(tabs->id(button));
 }
 
+WardrobePane::WardrobePane(MainInterface* parent, PlayerPtr player, ContainerInteractorPtr containerInteractor) {
+  m_parent = parent;
+  m_player = std::move(player);
+  m_containerInteractor = std::move(containerInteractor);
+
+  GuiReader wardrobeWindowReader;
+  auto config = Root::singleton().assets()->json("/interface/xsb/wardrobe/wardrobe.config");
+  auto playerInventoryConfig = Root::singleton().assets()->json("/player.config:inventory", true);
+
+  auto rightClickCallback = [this](InventorySlot slot) {
+    auto inventory = m_player->inventory();
+    if (ItemPtr slotItem = inventory->itemsAt(slot)) {
+      auto swapItem = inventory->swapSlotItem();
+      // FezzedOne: Shift-right-clicking on an armour item in the inventory with an armour item of the same type in the swap slot
+      // adds that item to the armour item's cosmetic stack (or adds a cosmetic stack if none is present).
+      if (context()->shiftHeld() && as<ArmorItem>(slotItem) && swapItem && !swapItem->empty() && slotItem->maxStack() == 1) {
+        constexpr size_t maxCosmeticStack = 99;
+        if (auto headItem = as<HeadArmor>(slotItem)) {
+          if (headItem->cosmeticStackCount() < maxCosmeticStack && as<HeadArmor>(swapItem)) {
+            headItem->pushCosmetic(swapItem);
+            inventory->setSwapSlotItem({});
+            m_player->refreshArmor();
+          }
+        } else if (auto chestItem = as<ChestArmor>(slotItem)) {
+          if (chestItem->cosmeticStackCount() < maxCosmeticStack && as<ChestArmor>(swapItem)) {
+            chestItem->pushCosmetic(swapItem);
+            inventory->setSwapSlotItem({});
+            m_player->refreshArmor();
+          }
+        } else if (auto legsItem = as<LegsArmor>(slotItem)) {
+          if (legsItem->cosmeticStackCount() < maxCosmeticStack && as<LegsArmor>(swapItem)) {
+            legsItem->pushCosmetic(swapItem);
+            inventory->setSwapSlotItem({});
+            m_player->refreshArmor();
+          }
+        } else if (auto backItem = as<BackArmor>(slotItem)) {
+          if (backItem->cosmeticStackCount() < maxCosmeticStack && as<BackArmor>(swapItem)) {
+            backItem->pushCosmetic(swapItem);
+            inventory->setSwapSlotItem({});
+            m_player->refreshArmor();
+          }
+        }
+      } else if (!swapItem || swapItem->empty() || swapItem->couldStack(slotItem)) {
+        uint64_t count = swapItem ? swapItem->couldStack(slotItem) : slotItem->maxStack();
+        if (context()->shiftHeld())
+          count = max<uint64_t>(1, min<uint64_t>(count, slotItem->count() / 2));
+        else
+          count = 1;
+
+        // FezzedOne: Right-clicking on an armour item in the wardrobe with an empty swap slot toggles the item's «underlaid» status.
+        // Shift-right-click grabs an item out of an armour item's cosmetic stack if any stack is present.
+        if (as<ArmorItem>(slotItem) && !swapItem && (slotItem->maxStack() == 1)) {
+          if (auto armourItem = as<ArmorItem>(slotItem)) {
+            if (context()->shiftHeld())
+              inventory->setSwapSlotItem(armourItem->popCosmetic());
+            else
+              armourItem->setUnderlaid(!armourItem->isUnderlaid());
+            m_player->refreshArmor();
+          }
+        } else {
+          if (auto taken = slotItem->take(count)) {
+            if (swapItem)
+              swapItem->stackWith(taken);
+            else
+              inventory->setSwapSlotItem(taken);
+          }
+        }
+      } else if (auto augment = as<AugmentItem>(swapItem)) {
+        if (auto augmented = augment->applyTo(slotItem))
+          inventory->setItem(slot, augmented);
+      }
+    } else if (auto swapSlot = inventory->swapSlotItem()) {
+      if (auto es = slot.ptr<EquipmentSlot>()) {
+        if (inventory->itemAllowedAsEquipment(swapSlot, *es))
+          inventory->setItem(slot, swapSlot->take(1));
+      }
+    }
+  };
+
+  auto middleClickCallback = [this](InventorySlot slot) {
+    auto inventory = m_player->inventory();
+    if (auto item = inventory->itemsAt(slot)) {
+      if (auto sourceItem = as<ObjectItem>(item)) {
+        if (!m_player->inWorld())
+          return;
+        if (Root::singleton().assets()->json("/player.config:inventory").optBool("disableInventoryObjectInteractions").value(false))
+          return;
+        auto jDisableInventoryInteraction = sourceItem->instanceValue("disableInventoryInteraction");
+        if (jDisableInventoryInteraction.isType(Json::Type::Bool)) {
+          auto disableInventoryInteraction = jDisableInventoryInteraction.toBool();
+          if (disableInventoryInteraction)
+            return;
+        }
+        if (auto actionTypeName = sourceItem->instanceValue("interactAction")) {
+          if (!actionTypeName.isType(Json::Type::String)) {
+            Logger::warn("[xSB] InventoryPane: Interact action of an invalid type! Item descriptor: {}", sourceItem->descriptor().toJson());
+            return;
+          }
+          auto actionTypeStr = actionTypeName.toString();
+          auto actionType = InteractActionTypeNames.maybeLeft(actionTypeStr);
+          if (!actionType) {
+            Logger::warn("[xSB] InventoryPane: Invalid interact action {} on object item in inventory! Item descriptor: {}", actionTypeStr, sourceItem->descriptor().toJson());
+            return;
+          }
+          if (*actionType >= InteractActionType::OpenCraftingInterface && *actionType <= InteractActionType::ScriptPane) {
+            auto actionData = sourceItem->instanceValue("interactData", Json());
+            if (actionData.isType(Json::Type::Object))
+              actionData = actionData.set("openWithInventory", false);
+            InteractAction action(*actionType, NullEntityId, actionData);
+            m_player->interact(action);
+          }
+        }
+      } else if (auto armourItem = as<ArmorItem>(item)) {
+        armourItem->setHideInStockSlots(!armourItem->hideInStockSlots());
+        m_player->refreshArmor();
+      }
+    }
+  };
+
+  auto registerSlotCallbacks = [&](String name, InventorySlot slot) {
+    wardrobeWindowReader.registerCallback(name, [=](Widget* paneObj) {
+      if (as<ItemSlotWidget>(paneObj))
+        m_player->inventory()->shiftSwap(slot);
+      else
+        throw GuiException("Invalid object type, expected ItemSlotWidget");
+    });
+    wardrobeWindowReader.registerCallback(name + ".middle", [=](Widget* paneObj) {
+      if (as<ItemSlotWidget>(paneObj))
+        middleClickCallback(slot);
+      else
+        throw GuiException("Invalid object type, expected ItemSlotWidget");
+    });
+    wardrobeWindowReader.registerCallback(name + ".right", [=](Widget* paneObj) {
+      if (as<ItemSlotWidget>(paneObj))
+        rightClickCallback(slot);
+      else
+        throw GuiException("Invalid object type, expected ItemSlotWidget");
+    });
+  };
+
+
+  for (auto const p : WardrobeSlotNames) {
+    if (p.first == EquipmentSlot::Overlay1) break;
+    registerSlotCallbacks(p.second, p.first);
+  }
+
+  wardrobeWindowReader.registerCallback("close", [=](Widget*) {
+    dismiss();
+  });
+
+  wardrobeWindowReader.construct(config.get("paneLayout"), this);
+
+  auto centralPortrait = fetchChild<PortraitWidget>("portrait");
+  centralPortrait->setEntity(m_player);
+}
+
+
+PanePtr WardrobePane::createTooltip(Vec2I const& screenPosition) {
+  ItemPtr item;
+  if (auto child = getChildAt(screenPosition)) {
+    if (auto itemSlot = as<ItemSlotWidget>(child)) {
+      item = itemSlot->item();
+      if (!item) {
+        auto widgetData = itemSlot->data();
+        if (widgetData && widgetData.type() == Json::Type::Object) {
+          if (auto text = widgetData.optString("tooltipText"))
+            return SimpleTooltipBuilder::buildTooltip(*text);
+        }
+      }
+    }
+  }
+  if (item)
+    return ItemTooltipBuilder::buildItemTooltip(item, m_player);
+
+  return {};
+}
+
+
+void WardrobePane::update(float dt) {
+  auto inventory = m_player->inventory();
+  auto context = Widget::context();
+
+  for (auto const& p : WardrobeSlotNames) {
+    if (auto itemSlot = fetchChild<ItemSlotWidget>(p.second)) {
+      itemSlot->setItem(inventory->itemsAt(p.first));
+      itemSlot->setCosmeticHighlightEnabled(false);
+      itemSlot->showSingleCountOnStackables(true);
+      if (ItemPtr swapSlot = inventory->swapSlotItem()) {
+        if (auto item = itemSlot->item()) {
+          if (as<HeadArmor>(item))
+            itemSlot->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
+          else if (as<ChestArmor>(item))
+            itemSlot->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
+          else if (as<LegsArmor>(item))
+            itemSlot->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
+          else if (as<BackArmor>(item))
+            itemSlot->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
+        }
+      }
+    }
+  }
+
+  Pane::update(dt);
+}
 } // namespace Star

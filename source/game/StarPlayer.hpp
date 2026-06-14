@@ -551,7 +551,7 @@ public:
 
   // From OpenStarbound: Get and set networked cosmetic items in the oSB cosmetic slots.
   void setNetArmorSecret(StringMap<String> const& identityTags, StringMap<String> const& visualIdentityTags, StringMap<String> const& netIdentityTags, uint8_t cosmeticSlot, ArmorItemPtr const& armour);
-  Array<ArmorItemPtr, 12> const& getNetArmorSecrets();
+  Array<ArmorItemPtr, 16> const& getNetArmorSecrets();
   bool pulledCosmeticUpdate();
 
   // FezzedOne: Should avoid potential mutex contention in single-player from reading the config every tick.
@@ -760,7 +760,7 @@ private:
   bool m_startedNetworkingCosmetics;
   bool m_pulledCosmeticUpdate;
   Array<uint64_t, 12> m_armorSecretNetVersions;
-  Array<ArmorItemPtr, 12> m_openSbCosmetics;
+  Array<ArmorItemPtr, 16> m_extendedCosmetics;
 };
 
 } // namespace Star

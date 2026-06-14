@@ -1216,7 +1216,7 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
     }
 
     // FezzedOne: Ensures oSB chest and leg cosmetics are rendered in the proper layer order.
-    for (size_t i = 4; i != 12; i++) {
+    for (size_t i = 4; i != 16; i++) {
       if (auto drawable = openSbCosmetics.ptr(i))
         addDrawable(std::move(*drawable));
     }

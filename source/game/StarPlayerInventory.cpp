@@ -36,8 +36,10 @@ bool PlayerInventory::itemAllowedAsEquipment(ItemPtr const& item, EquipmentSlot 
     return is<ChestArmor>(item);
   else if (equipmentSlot == EquipmentSlot::Legs || equipmentSlot == EquipmentSlot::LegsCosmetic)
     return is<LegsArmor>(item);
-  else
+  else if (equipmentSlot == EquipmentSlot::Back || equipmentSlot == EquipmentSlot::BackCosmetic)
     return is<BackArmor>(item);
+  else
+    return is<ArmorItem>(item);
 }
 
 PlayerInventory::PlayerInventory(Player* player) : m_player(player) {
@@ -521,6 +523,10 @@ LegsArmorPtr PlayerInventory::legsCosmetic() const {
 
 BackArmorPtr PlayerInventory::backCosmetic() const {
   return as<BackArmor>(m_equipment.value(EquipmentSlot::BackCosmetic));
+}
+
+ArmorItemPtr PlayerInventory::cosmetic(EquipmentSlot slot) const {
+  return as<ArmorItem>(m_equipment.value(slot));
 }
 
 ItemBagConstPtr PlayerInventory::bagContents(String const& type) const {

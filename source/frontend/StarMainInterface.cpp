@@ -131,9 +131,11 @@ void MainInterface::reset() { // *Completely* reset the interface.
 
   m_inventoryWindow = makeObject<InventoryPane>(this, m_client->mainPlayer(), m_containerInteractor);
   m_paneManager.registerPane(MainInterfacePanes::Inventory, PaneLayer::Window, m_inventoryWindow, [this](PanePtr const&) {
-    if (auto player = m_client->mainPlayer())
-      player->clearSwap();
-    if (m_containerPane) {
+    if (!m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Wardrobe)) {
+      if (auto player = m_client->mainPlayer())
+        player->clearSwap();
+    }
+    if (m_containerPane && !m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Wardrobe)) {
       m_containerPane->dismiss();
       m_containerPane = {};
       m_containerInteractor->closeContainer();
@@ -141,6 +143,19 @@ void MainInterface::reset() { // *Completely* reset the interface.
     for (EntityId id : m_interactionScriptPanes.keys()) {
       if (m_paneManager.isDisplayed(m_interactionScriptPanes[id]) && as<ScriptPane>(m_interactionScriptPanes[id])->openWithInventory())
         m_interactionScriptPanes[id]->dismiss();
+    }
+  });
+
+  m_wardrobeWindow = makeObject<WardrobePane>(this, m_client->mainPlayer(), m_containerInteractor);
+  m_paneManager.registerPane(MainInterfacePanes::Wardrobe, PaneLayer::Window, m_wardrobeWindow, [this](PanePtr const&) {
+    if (!m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Inventory)) {
+      if (auto player = m_client->mainPlayer())
+        player->clearSwap();
+    }
+    if (m_containerPane && !m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Inventory)) {
+      m_containerPane->dismiss();
+      m_containerPane = {};
+      m_containerInteractor->closeContainer();
     }
   });
 
@@ -304,7 +319,8 @@ void MainInterface::reset() { // *Completely* reset the interface.
       m_client->mainPlayer());
   m_charEditor->setAnchor(PaneAnchor::Center);
   m_charEditor->unlockPosition();
-  m_paneManager.registerPane(MainInterfacePanes::CharacterEdit, PaneLayer::ModalWindow, m_charEditor);
+  // FezzedOne: The character editor no longer obstructs interaction with other stuff while open.
+  m_paneManager.registerPane(MainInterfacePanes::CharacterEdit, PaneLayer::Window, m_charEditor);
 }
 
 MainInterface::RunningState MainInterface::currentState() const {
@@ -1167,9 +1183,8 @@ PanePtr MainInterface::createEscapeDialog() {
 
   escapeDialogReader.construct(assets->json("/interface.config:escapeDialog"), escapeDialogPtr);
 
-  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(/* Dummy comment to force MSVC rebuild. */
-      strf("^font=iosevka-extrabold,set;^#822;xClient^reset,#999,font=iosevka-semibold,set; v{} [{}]\nStarbound v{}\n{}", xSbVersionString, StarArchitectureString, StarVersionString, "^font=iosevka-semibold,set;By ^#800;FezzedOne^reset,#999;, xStarbound and OpenStarbound\ncontributors, and Chucklefish"));
-  escapeDialog->fetchChild<LabelWidget>("lblcopyright")->setText("");
+  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(strf("xClient v{} [{}]", xSbVersionString, StarArchitectureString, StarVersionString));
+  escapeDialog->fetchChild<LabelWidget>("lblcopyright")->setText("xStarbound contributors and Chucklefish");
   return escapeDialog;
 }
 

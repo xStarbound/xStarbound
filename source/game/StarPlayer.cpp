@@ -1549,6 +1549,10 @@ void Player::refreshArmor(bool fullRefresh) {
   m_armor->setLegsCosmeticItem(m_inventory->legsCosmetic());
   m_armor->setBackItem(m_inventory->backArmor());
   m_armor->setBackCosmeticItem(m_inventory->backCosmetic());
+  for (uint8_t i = 0; i != 16; i++) {
+    const EquipmentSlot slot = (EquipmentSlot)(i + 8);
+    m_armor->setExtendedCosmeticItem(i, m_inventory->cosmetic(slot));
+  }
   m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters)));
   m_identityUpdated = true;
 }
@@ -3346,7 +3350,7 @@ void Player::setSecretProperty(String const& name, Json const& value) {
 }
 
 void Player::setNetArmorSecret(StringMap<String> const& identityTags, StringMap<String> const& visualIdentityTags, StringMap<String> const& netIdentityTags, uint8_t cosmeticSlot, ArmorItemPtr const& armor) { // FezzedOne: Called in the ArmorWearer whenever armour is updated.
-  String const& slotName = strf("cosmetic{}", ((cosmeticSlot + 4) % 12) + 1);                                                                                                                                   // FezzedOne: Hacky workaround for OpenStarbound's weird legs/chest layering
+  String const& slotName = strf("cosmetic{}", (cosmeticSlot % 16) + 1);                                                                                                                                         // FezzedOne: Hacky workaround for OpenStarbound's weird legs/chest layering
   // that should make it less likely for overlays to be covered up by an item in the stock chest slot on OpenStarbound.
 
   if (!m_startedNetworkingCosmetics) {
@@ -3366,11 +3370,11 @@ void Player::setNetArmorSecret(StringMap<String> const& identityTags, StringMap<
   setSecretProperty(strf("armorWearer.{}.version", slotName), ++m_armorSecretNetVersions[cosmeticSlot]);
 }
 
-Array<ArmorItemPtr, 12> const& Player::getNetArmorSecrets() {
-  if (isSlave() && getSecretPropertyPtr("armorWearer.replicating") && !getSecretPropertyPtr("armorWearer.isXStarbound")) {
+Array<ArmorItemPtr, 16> const& Player::getNetArmorSecrets() {
+  if (isSlave() && getSecretPropertyPtr("armorWearer.replicating")) {
     auto itemDatabase = Root::singleton().itemDatabase();
 
-    for (uint8_t i = 0; i != 12; ++i) {
+    for (uint8_t i = 0; i != 16; ++i) {
       String const& slotName = strf("cosmetic{}", i + 1);
       uint64_t& curVersion = m_armorSecretNetVersions[i];
       uint64_t newVersion = 0;
@@ -3382,12 +3386,12 @@ Array<ArmorItemPtr, 12> const& Player::getNetArmorSecrets() {
         ArmorItemPtr item = nullptr;
         if (auto jData = getSecretProperty(strf("armorWearer.{}.data", slotName)))
           itemDatabase->diskLoad(jData, item);
-        m_openSbCosmetics[i] = item;
+        m_extendedCosmetics[i] = item;
       }
     }
   }
 
-  return m_openSbCosmetics;
+  return m_extendedCosmetics;
 }
 
 bool Player::pulledCosmeticUpdate() {

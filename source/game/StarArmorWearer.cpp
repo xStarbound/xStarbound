@@ -314,9 +314,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   List<Humanoid::ArmorEntry> legsArmorStack = {};
   List<Humanoid::BackEntry> backArmorStack = {};
 
-  bool pulledOpenSbCosmeticUpdate = m_player ? m_player->pulledCosmeticUpdate() : false;
+  bool pulledCosmeticUpdate = m_player ? m_player->pulledCosmeticUpdate() : false;
 
-  auto& openSbCosmeticStack = m_player ? m_player->getNetArmorSecrets() : Array<ArmorItemPtr, 12>::filled(nullptr);
+  auto& extendedCosmeticStack = m_player ? (m_player->isMaster() ? m_extendedCosmeticItems : m_player->getNetArmorSecrets()) : Array<ArmorItemPtr, 16>::filled(nullptr);
 
   if (anyNeedsSync) { // FezzedOne: Handle armour hiding from stock cosmetic slots.
     if (auto& item = m_headCosmeticItem) {
@@ -357,10 +357,10 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     }
   }
 
-  if (m_player && m_player->isSlave() && (pulledOpenSbCosmeticUpdate || anyNeedsSync)) { // FezzedOne: Handle armour hiding from oSB cosmetic slots.
+  if (m_player && (pulledCosmeticUpdate || anyNeedsSync)) { // FezzedOne: Handle armour hiding from extended cosmetic slots.
     anyNeedsSync = true;
-    for (uint8_t i = 0; i != 12; i++) {
-      auto& item = openSbCosmeticStack[i];
+    for (uint8_t i = 0; i != 16; i++) {
+      auto& item = extendedCosmeticStack[i];
       if (!item) continue;
       auto hiddenSlots = item->armorTypesToHide();
       hiddenArmourSlots.head |= hiddenSlots.head || is<HeadArmor>(item);
@@ -372,7 +372,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
 
   anyNeedsSync |= directionChanged;
 
-  uint8_t openSbLayerCount = 0;
+  // uint8_t openSbLayerCount = 0;
 
   auto shouldShowArmour = [&](auto const& armour) -> bool {
     return (bool)m_npc || !forceNude || armour->bypassNudity();
@@ -807,27 +807,27 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
         }
       }
 
-      if (secondPass) {
-        // FezzedOne: Staggers legs and chest armour items the same way they are visually staggered on xSB
-        // when networking to oSB clients.
-        size_t chestItemCount = chestItems.size(), legsItemCount = legsItems.size();
-        size_t largerCount = std::max<size_t>(legsItemCount, chestItemCount);
-
-        if (largerCount != 0) {
-          for (size_t i = 0; i < largerCount; i++) {
-            if (i < legsItems.size()) {
-              if (m_player && openSbLayerCount < 12 && m_player->isMaster())
-                m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, as<ArmorItem>(legsItems[i]));
-            }
-            if (openSbLayerCount >= 12) break;
-            if (i < chestItems.size()) {
-              if (m_player && openSbLayerCount < 12 && m_player->isMaster())
-                m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, as<ArmorItem>(chestItems[i]));
-            }
-            if (openSbLayerCount >= 12) break;
-          }
-        }
-      }
+      // if (secondPass) {
+      //   // FezzedOne: Staggers legs and chest armour items the same way they are visually staggered on xSB
+      //   // when networking to oSB clients.
+      //   size_t chestItemCount = chestItems.size(), legsItemCount = legsItems.size();
+      //   size_t largerCount = std::max<size_t>(legsItemCount, chestItemCount);
+      //
+      //   if (largerCount != 0) {
+      //     for (size_t i = 0; i < largerCount; i++) {
+      //       if (i < legsItems.size()) {
+      //         if (m_player && openSbLayerCount < 12 && m_player->isMaster())
+      //           m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, as<ArmorItem>(legsItems[i]));
+      //       }
+      //       if (openSbLayerCount >= 12) break;
+      //       if (i < chestItems.size()) {
+      //         if (m_player && openSbLayerCount < 12 && m_player->isMaster())
+      //           m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, as<ArmorItem>(chestItems[i]));
+      //       }
+      //       if (openSbLayerCount >= 12) break;
+      //     }
+      //   }
+      // }
     }
 
     if (m_backCosmeticItem && !m_backCosmeticItem->hideInStockSlots()) {
@@ -843,8 +843,8 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
             if (item) {
               if (auto armourItem = as<BackArmor>(item)) {
                 bool hidden = armourItem->hideInStockSlots();
-                if (secondPass && m_player && openSbLayerCount < 12 && m_player->isMaster())
-                  m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, hidden ? nullptr : as<ArmorItem>(item));
+                // if (secondPass && m_player && openSbLayerCount < 12 && m_player->isMaster())
+                //   m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, hidden ? nullptr : as<ArmorItem>(item));
                 append(backArmorStack, Humanoid::BackEntry{
                                            armourItem->frameset(newGender),
                                            hidden ? Directives("?scale=0") : getDirectives(armourItem),
@@ -922,8 +922,8 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           if (item) {
             if (auto armourItem = as<BackArmor>(item)) {
               bool hidden = armourItem->hideInStockSlots();
-              if (secondPass && m_player && openSbLayerCount < 12 && m_player->isMaster())
-                m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, hidden ? nullptr : as<ArmorItem>(item));
+              // if (secondPass && m_player && openSbLayerCount < 12 && m_player->isMaster())
+              //   m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, hidden ? nullptr : as<ArmorItem>(item));
               append(backArmorStack, Humanoid::BackEntry{
                                          armourItem->frameset(newGender),
                                          hidden ? Directives("?scale=0") : getDirectives(armourItem),
@@ -956,18 +956,18 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       }
     }
 
-    // Push head items last, to increase the chance they end up in the first four OpenStarbound slots, since the chest item quirk doesn't affect head or back items.
-    size_t headItemCount = headItems.size();
-    if (secondPass && headItemCount != 0) {
-      for (size_t j = 0; j < headItemCount; j++) {
-        if (m_player && openSbLayerCount < 12 && m_player->isMaster())
-          m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, as<ArmorItem>(headItems[j]));
-      }
-    }
+    // // Push head items last, to increase the chance they end up in the first four OpenStarbound slots, since the chest item quirk doesn't affect head or back items.
+    // size_t headItemCount = headItems.size();
+    // if (secondPass && headItemCount != 0) {
+    //   for (size_t j = 0; j < headItemCount; j++) {
+    //     if (m_player && openSbLayerCount < 12 && m_player->isMaster())
+    //       m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, openSbLayerCount++, as<ArmorItem>(headItems[j]));
+    //   }
+    // }
 
-    if (m_player && m_player->isSlave() && anyNeedsSync) { // FezzedOne: Reads OpenStarbound cosmetic layers into xSB overlays.
-      for (uint8_t j = 0; j != 12; j++) {
-        auto& item = openSbCosmeticStack[j];
+    if (m_player && anyNeedsSync) { // FezzedOne: Reads OpenStarbound/xStarbound cosmetic slot items.
+      for (uint8_t j = 0; j != 16; j++) {
+        auto& item = extendedCosmeticStack[j];
         if (!item) continue;
         if (auto armourItem = as<HeadArmor>(item)) {
           if (!shouldShowArmour(armourItem)) continue;
@@ -1053,11 +1053,15 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     humanoid.setBackSleeveStack(backSleeveStack);
     humanoid.setLegsArmorStack(legsArmorStack);
     humanoid.setBackArmorStack(backArmorStack);
-    // FezzedOne: Clear any emulated OpenStarbound cosmetic slots after the last xStarbound overlay, if any cosmetic slots are left unfilled.
-    if (m_player && m_player->isMaster() && openSbLayerCount < 12) {
-      for (uint8_t i = openSbLayerCount; i != 12; i++) {
-        m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, i, nullptr);
-      }
+    // // FezzedOne: Clear any emulated OpenStarbound cosmetic slots after the last xStarbound overlay, if any cosmetic slots are left unfilled.
+    // if (m_player && m_player->isMaster() && openSbLayerCount < 12) {
+    //   for (uint8_t i = openSbLayerCount; i != 12; i++) {
+    //     m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, i, nullptr);
+    //   }
+    // }
+    if (m_player && m_player->isMaster()) {
+      for (uint8_t i = 0; i != 16; i++)
+        m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, i, m_extendedCosmeticItems[i]);
     }
   }
 
@@ -1203,6 +1207,11 @@ void ArmorWearer::setBackCosmeticItem(BackArmorPtr backCosmeticItem) {
     return;
   m_backCosmeticItem = backCosmeticItem;
   m_backNeedsSync = true;
+}
+
+void ArmorWearer::setExtendedCosmeticItem(uint8_t slot, ArmorItemPtr cosmeticItem) {
+  m_extendedCosmeticItems[slot] = cosmeticItem;
+  m_headNeedsSync = m_chestNeedsSync = m_legsNeedsSync = m_backNeedsSync = true;
 }
 
 HeadArmorPtr ArmorWearer::headItem() const {
