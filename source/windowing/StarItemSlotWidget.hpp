@@ -34,6 +34,7 @@ public:
   void showRarity(bool showRarity);
   void showLinkIndicator(bool showLinkIndicator);
   void showSecondaryIcon(bool showSecondaryIcon);
+  void showArmourAnyway(bool showArmourAnyway);
 
   void indicateNew();
 
@@ -55,6 +56,7 @@ private:
   bool m_showRarity;
   bool m_showLinkIndicator;
   bool m_showSecondaryIcon;
+  bool m_showArmourAnyway;
 
   TextPositioning m_countPosition;
   FontMode m_countFontMode;

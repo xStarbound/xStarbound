@@ -79,7 +79,7 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
     m_genderOverride = true;
   }
 
-  m_underlaid = instanceValue("underlaid").optBool().value(false);
+  m_underlaid = instanceValue("layered").optBool().value(false);
 
   if (auto jArmorTypesToHide = instanceValue("armorTypesToHide"); jArmorTypesToHide.isType(Json::Type::Array)) {
     auto armorTypesToHide = jArmorTypesToHide.toArray();
@@ -115,7 +115,7 @@ ArmorItem::ArmorItem(Json const& config, String const& directory, Json const& da
 
 void ArmorItem::setUnderlaid(bool underlaid) {
   m_underlaid = underlaid;
-  setInstanceValue("underlaid", underlaid);
+  setInstanceValue("layered", underlaid);
 }
 
 bool ArmorItem::isUnderlaid() const {

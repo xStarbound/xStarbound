@@ -244,7 +244,8 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     Json configsToMerge[3] = {
         armourItem ? armourItem->instanceValue("humanoidConfig", Json()) : m_scriptedHumanoidConfig,
         armourItem ? armourItem->instanceValue(gender + "HumanoidConfig", Json()) : Json(),
-        armourItem ? armourItem->instanceValue(humanoid.identity().species + "HumanoidConfig", Json()) : Json()};
+        armourItem ? armourItem->instanceValue(humanoid.identity().species + "HumanoidConfig", Json()) : Json(),
+    };
     for (int i = 0; i < 3; i++) {
       if (configsToMerge[i].isType(Json::Type::Object)) {
         if (Json identityToMerge = configsToMerge[i].opt("identity").value(Json()); identityToMerge.isType(Json::Type::Object)) {
@@ -255,8 +256,8 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           mergeDirectives(baseIdentity, "emoteDirectives", identityToMerge);
           mergeDirectives(baseIdentity, "facialHairDirectives", identityToMerge);
           mergeDirectives(baseIdentity, "facialMaskDirectives", identityToMerge);
-          baseIdentity = jsonMerge(baseIdentity, identityToMerge);
-          humanoidOverrides = jsonMerge(humanoidOverrides, configsToMerge[i]);
+          baseIdentity = jsonMergeNull(baseIdentity, identityToMerge);
+          humanoidOverrides = jsonMergeNull(humanoidOverrides, configsToMerge[i]);
           humanoidOverrides = humanoidOverrides.set("identity", baseIdentity);
           Json jNewGender = baseIdentity.opt("gender").value();
           if (jNewGender.isType(Json::Type::String)) {
@@ -265,7 +266,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
               newGender = newGenderStr == "male" ? Gender::Male : Gender::Female;
           }
         } else {
-          humanoidOverrides = jsonMerge(humanoidOverrides, configsToMerge[i]);
+          humanoidOverrides = jsonMergeNull(humanoidOverrides, configsToMerge[i]);
         }
       }
     }
@@ -375,7 +376,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
   // uint8_t openSbLayerCount = 0;
 
   auto shouldShowArmour = [&](auto const& armour) -> bool {
-    return (bool)m_npc || !forceNude || armour->bypassNudity();
+    return (bool)m_npc || !forceNude || (armour && armour->bypassNudity());
   };
 
   mergeHumanoidConfig(ArmorItemPtr(nullptr), false);
@@ -966,11 +967,13 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     // }
 
     if (m_player && anyNeedsSync) { // FezzedOne: Reads OpenStarbound/xStarbound cosmetic slot items.
+      bool isMaster = m_player->isMaster();
       for (uint8_t j = 0; j != 16; j++) {
         auto& item = extendedCosmeticStack[j];
         if (!item) continue;
         if (auto armourItem = as<HeadArmor>(item)) {
           if (!shouldShowArmour(armourItem)) continue;
+          if (isMaster && armourItem->hideInStockSlots() && !armourItem->isUnderlaid()) continue;
           append(headArmorStack, Humanoid::ArmorEntry{
                                      armourItem->frameset(newGender),
                                      getDirectives(armourItem),
@@ -981,6 +984,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           if (!secondPass) bodyHidden |= armourItem->hideBody();
         } else if (auto armourItem = as<ChestArmor>(item)) {
           if (!shouldShowArmour(armourItem)) continue;
+          if (isMaster && armourItem->hideInStockSlots() && !armourItem->isUnderlaid()) continue;
           append(chestArmorStack, Humanoid::ArmorEntry{
                                       armourItem->bodyFrameset(newGender),
                                       getDirectives(armourItem),
@@ -1000,6 +1004,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           if (!secondPass) bodyHidden |= armourItem->hideBody();
         } else if (auto armourItem = as<LegsArmor>(item)) {
           if (!shouldShowArmour(armourItem)) continue;
+          if (isMaster && armourItem->hideInStockSlots() && !armourItem->isUnderlaid()) continue;
           append(legsArmorStack, Humanoid::ArmorEntry{
                                      armourItem->frameset(newGender),
                                      getDirectives(armourItem),
@@ -1009,6 +1014,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           if (!secondPass) bodyHidden |= armourItem->hideBody();
         } else if (auto armourItem = as<BackArmor>(item)) {
           if (!shouldShowArmour(armourItem)) continue;
+          if (isMaster && armourItem->hideInStockSlots() && !armourItem->isUnderlaid()) continue;
           append(backArmorStack, Humanoid::BackEntry{
                                      armourItem->frameset(newGender),
                                      getDirectives(armourItem),
@@ -1053,15 +1059,17 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     humanoid.setBackSleeveStack(backSleeveStack);
     humanoid.setLegsArmorStack(legsArmorStack);
     humanoid.setBackArmorStack(backArmorStack);
-    // // FezzedOne: Clear any emulated OpenStarbound cosmetic slots after the last xStarbound overlay, if any cosmetic slots are left unfilled.
     // if (m_player && m_player->isMaster() && openSbLayerCount < 12) {
     //   for (uint8_t i = openSbLayerCount; i != 12; i++) {
     //     m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, i, nullptr);
     //   }
     // }
     if (m_player && m_player->isMaster()) {
-      for (uint8_t i = 0; i != 16; i++)
-        m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, i, m_extendedCosmeticItems[i]);
+      for (uint8_t i = 0; i != 16; i++) {
+        auto& armourItem = m_extendedCosmeticItems[i];
+        bool shouldShowItem = armourItem ? (armourItem->hideInStockSlots() && !armourItem->isUnderlaid()) : false;
+        m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, i, shouldShowItem ? armourItem : nullptr);
+      }
     }
   }
 

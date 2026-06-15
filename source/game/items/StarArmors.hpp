@@ -79,12 +79,12 @@ protected:
   Maybe<String> m_xSBflipDirectives; // FezzedOne: Ditto.
   bool m_hideBody;
   bool m_underlaid;
-  // FezzedOne: For oSB's `"hideInVanillaSlots"`. On xSB, this makes the item visible only when used as an overlay.
+  // FezzedOne: For `"hideInVanillaSlots"`.
   bool m_hideInStockSlots;
   bool m_bypassNudity;
   bool m_genderOverride;
   bool m_femaleOverride;
-  // FezzedOne: For oSB's `"armorTypesToHide"`.
+  // FezzedOne: For `"armorTypesToHide"`.
   HiddenArmorTypes m_armorTypesToHide;
   Maybe<String> m_techModule;
   List<ItemPtr> m_stackedCosmetics;

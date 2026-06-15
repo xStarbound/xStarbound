@@ -99,6 +99,7 @@ ItemSlotWidget::ItemSlotWidget(ItemPtr const& item, String const& backingImage)
   m_showSingleCountOnStackables = false;
   m_showRarity = true;
   m_showLinkIndicator = false;
+  m_showArmourAnyway = false;
 
   disableScissoring();
 }
@@ -114,9 +115,7 @@ void ItemSlotWidget::update(float dt) {
 bool ItemSlotWidget::sendEvent(InputEvent const& event) {
   if (m_visible) {
     if (auto mouseButton = event.ptr<MouseButtonDownEvent>()) {
-      if (mouseButton->mouseButton == MouseButton::Left
-        || (m_rightClickCallback && mouseButton->mouseButton == MouseButton::Right)
-        || (m_middleClickCallback && mouseButton->mouseButton == MouseButton::Middle)) {
+      if (mouseButton->mouseButton == MouseButton::Left || (m_rightClickCallback && mouseButton->mouseButton == MouseButton::Right) || (m_middleClickCallback && mouseButton->mouseButton == MouseButton::Middle)) {
         Vec2I mousePos = *context()->mousePosition(event);
         RectI itemArea = m_itemDraggableArea.translated(screenPosition());
         if (itemArea.contains(mousePos)) {
@@ -196,6 +195,10 @@ void ItemSlotWidget::showSecondaryIcon(bool showSecondaryIcon) {
   m_showSecondaryIcon = showSecondaryIcon;
 }
 
+void ItemSlotWidget::showArmourAnyway(bool showArmourAnyway) {
+  m_showArmourAnyway = showArmourAnyway;
+}
+
 void ItemSlotWidget::indicateNew() {
   m_newItemIndicator.reset();
 }
@@ -216,7 +219,7 @@ void ItemSlotWidget::renderImpl() {
       if (m_drawBackingImageWhenFull)
         context()->drawInterfaceQuad(m_backingImage, Vec2F(screenPosition()));
       else if (auto armourItem = as<ArmorItem>(m_item)) {
-        if (armourItem->hideInStockSlots())
+        if (armourItem->hideInStockSlots() && !m_showArmourAnyway)
           context()->drawInterfaceQuad(m_backingImage, Vec2F(screenPosition()));
       }
     }
@@ -243,7 +246,7 @@ void ItemSlotWidget::renderImpl() {
     if (auto armourItem = as<ArmorItem>(m_item))
       isHiddenArmourItem = armourItem->hideInStockSlots();
 
-    if (!m_showRarity || !isHiddenArmourItem) {
+    if (!m_showRarity || !(isHiddenArmourItem && !m_showArmourAnyway)) {
       for (auto i : iconDrawables)
         context()->drawInterfaceDrawable(i, Vec2F(screenPosition() + size() / 2));
     }

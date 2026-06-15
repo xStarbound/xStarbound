@@ -2209,7 +2209,9 @@ void Player::getNetStates(bool initial) {
   m_aimPosition[0] = m_xAimPositionNetState.get();
   m_aimPosition[1] = m_yAimPositionNetState.get();
 
+  bool identityUpdated = false;
   if (m_identityNetState.pullUpdated()) {
+    identityUpdated = true;
     m_identity = m_identityNetState.get();
     m_humanoid->setIdentity(m_identity);
   }
@@ -2229,6 +2231,9 @@ void Player::getNetStates(bool initial) {
   m_emoteState = HumanoidEmoteNames.getLeft(m_emoteNetState.get());
 
   (void)getNetArmorSecrets();
+
+  if (identityUpdated)
+    m_armor->setupHumanoidClothingDrawables(*m_humanoid, forceNude(), true, m_movementController->facingDirection());
 }
 
 void Player::setNetStates() {

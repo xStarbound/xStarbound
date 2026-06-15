@@ -402,20 +402,24 @@ void InventoryPane::update(float dt) {
 
   for (auto const& p : EquipmentSlotNames) {
     if (auto itemSlot = fetchChild<ItemSlotWidget>(p.second)) {
-      itemSlot->setItem(inventory->itemsAt(p.first));
+      auto& slot = p.first;
+      itemSlot->setItem(inventory->itemsAt(slot));
       itemSlot->showLinkIndicator(customBarItems.contains(itemSlot->item()));
       itemSlot->setCosmeticHighlightEnabled(false);
       itemSlot->showSingleCountOnStackables(true);
       if (ItemPtr swapSlot = inventory->swapSlotItem()) {
         if (auto item = itemSlot->item()) {
-          if (as<HeadArmor>(item))
-            itemSlot->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
-          else if (as<ChestArmor>(item))
-            itemSlot->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
-          else if (as<LegsArmor>(item))
-            itemSlot->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
-          else if (as<BackArmor>(item))
-            itemSlot->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
+          if (auto armour = as<ArmorItem>(item)) {
+            itemSlot->showArmourAnyway(false);
+            if (as<HeadArmor>(armour))
+              itemSlot->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
+            else if (as<ChestArmor>(armour))
+              itemSlot->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
+            else if (as<LegsArmor>(armour))
+              itemSlot->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
+            else if (as<BackArmor>(armour))
+              itemSlot->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
+          }
         }
       }
     }
@@ -777,19 +781,26 @@ void WardrobePane::update(float dt) {
 
   for (auto const& p : WardrobeSlotNames) {
     if (auto itemSlot = fetchChild<ItemSlotWidget>(p.second)) {
-      itemSlot->setItem(inventory->itemsAt(p.first));
+      auto& slot = p.first;
+      itemSlot->setItem(inventory->itemsAt(slot));
       itemSlot->setCosmeticHighlightEnabled(false);
       itemSlot->showSingleCountOnStackables(true);
       if (ItemPtr swapSlot = inventory->swapSlotItem()) {
         if (auto item = itemSlot->item()) {
-          if (as<HeadArmor>(item))
-            itemSlot->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
-          else if (as<ChestArmor>(item))
-            itemSlot->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
-          else if (as<LegsArmor>(item))
-            itemSlot->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
-          else if (as<BackArmor>(item))
-            itemSlot->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
+          if (auto armour = as<ArmorItem>(item)) {
+            if (slot >= EquipmentSlot::Overlay1)
+              itemSlot->showArmourAnyway(armour->isUnderlaid());
+            else
+              itemSlot->showArmourAnyway(false);
+            if (as<HeadArmor>(armour))
+              itemSlot->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
+            else if (as<ChestArmor>(armour))
+              itemSlot->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
+            else if (as<LegsArmor>(armour))
+              itemSlot->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
+            else if (as<BackArmor>(armour))
+              itemSlot->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
+          }
         }
       }
     }
