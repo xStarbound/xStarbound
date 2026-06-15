@@ -235,11 +235,15 @@ Two OpenStarbound mods require OpenStarbound-only callbacks that are emulated by
 
 <summary>🪦 <b>Unmaintained retail mods fixed by xSBCompat</b> </summary>
 
-xSBCompat also fixes minor script typos and goofs that throw off xStarbound's Lua/Pluto interpreter in the following three retail mods, all abandoned or no longer updated by their creators.
+xSBCompat fixes minor script typos and goofs that throw off xStarbound's Lua/Pluto interpreter in the following three retail mods, all abandoned or no longer updated by their creators.
 
 - [Nodachi](https://steamcommunity.com/sharedfiles/filedetails/?id=2995409356).
 - [NPC Mechs](https://steamcommunity.com/sharedfiles/filedetails/?id=1788644520).
 - [The Bookstore](https://steamcommunity.com/sharedfiles/filedetails/?id=1108897518).
+
+xSBCompat also fixes bugs in the following retail mods that are unrelated to xStarbound compatibility:
+
+- [More Planet Info](https://steamcommunity.com/sharedfiles/filedetails/?id=1117007107) and some of its reuploads and derivatives.
 
 </details>
 
