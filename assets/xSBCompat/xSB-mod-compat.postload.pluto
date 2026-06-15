@@ -574,6 +574,47 @@ end, |e| -> do
 end)
 ::skipUniversalByosPatch::
 
+--- Compatibility patch for Silver Sokolova's Show Item Names! ---
+-- Needed to emulate the output of OpenStarbound's `root.assetSourcePaths` when the optional boolean argument
+-- is specified. xSBCompat's generic spoofing is needed to bypass an OpenStarbound check too.
+
+if not "XRC_ITEMNAMES" in loadedMods then goto skipShowItemNamesPatch end
+modName = "Silver Sokolova's Show Item Names!"
+
+xpcall(|| -> do
+    local showItemNamesScriptPath = "/xrc_sin.lua"
+    local showItemNamesScript = assets.bytes(showItemNamesScriptPath)
+
+    local showItemNamesScriptPatch = "\n" .. [==[
+        ---<< ORIGINAL SHOW ITEM NAMES! SCRIPT ENDS HERE >>---
+
+        UNKNOWN = "<unknown>"
+
+        function init()
+            root.assetSourcePaths = function(addMetadata)
+                if addMetadata then
+                    local assetSources = root.assetSources()
+                    local returnValue = jobject{}
+                    for assetSources as source do
+                        returnValue[source] = root.assetSourceMetadata(source)
+                          |> |x| -> type(x.name) == "string" ? x : rawset(x, "name", sb.printJson(x.name))
+                          |> |x| -> type(x.friendlyName) == "string" ? x : rawset(x, "friendlyName", sb.printJson(x.friendlyName))
+                    end
+                    return returnValue
+                else
+                    return root.assetSources()
+                end
+            end
+        end   
+    ]==]
+    assets.add(showItemNamesScriptPath, showItemNamesScript .. showItemNamesScriptPatch)
+
+    logInfo(modName)
+end, |e| -> do
+    logError(modName, e)
+end)
+::skipShowItemNamesPatch::
+
 --- Compatibility patch for RingSpokes' Unde Venis ---
 -- Needed to emulate the output of OpenStarbound's `root.assetSourcePaths` when the optional boolean argument
 -- is specified.
