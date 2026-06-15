@@ -786,10 +786,14 @@ void WardrobePane::update(float dt) {
       itemSlot->showSingleCountOnStackables(true);
       itemSlot->showArmourAnyway(false);
       auto item = itemSlot->item();
-      if (auto armour = as<ArmorItem>(item))
-        itemSlot->showArmourAnyway(armour->isUnderlaid());
-      else
+      if (slot >= EquipmentSlot::Overlay1) {
+        if (auto armour = as<ArmorItem>(item))
+          itemSlot->showArmourAnyway(armour->isUnderlaid());
+        else
+          itemSlot->showArmourAnyway(false);
+      } else {
         itemSlot->showArmourAnyway(false);
+      }
       if (ItemPtr swapSlot = inventory->swapSlotItem()) {
         if (as<HeadArmor>(item))
           itemSlot->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
