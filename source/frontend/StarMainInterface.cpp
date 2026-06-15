@@ -1191,7 +1191,7 @@ PanePtr MainInterface::createEscapeDialog() {
 
   escapeDialogReader.construct(assets->json("/interface.config:escapeDialog"), escapeDialogPtr);
 
-  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(strf("xClient v{} [{}]", xSbVersionString, StarArchitectureString, StarVersionString));
+  escapeDialog->fetchChild<LabelWidget>("lblversion")->setText(strf("xClient v{} [{}] (Starbound v{})", xSbVersionString, StarArchitectureString, StarVersionString));
   escapeDialog->fetchChild<LabelWidget>("lblcopyright")->setText("xStarbound contributors and Chucklefish");
   return escapeDialog;
 }
