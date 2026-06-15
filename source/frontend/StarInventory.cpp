@@ -407,19 +407,18 @@ void InventoryPane::update(float dt) {
       itemSlot->showLinkIndicator(customBarItems.contains(itemSlot->item()));
       itemSlot->setCosmeticHighlightEnabled(false);
       itemSlot->showSingleCountOnStackables(true);
+      itemSlot->showArmourAnyway(false);
+      auto item = itemSlot->item();
       if (ItemPtr swapSlot = inventory->swapSlotItem()) {
-        if (auto item = itemSlot->item()) {
-          if (auto armour = as<ArmorItem>(item)) {
-            itemSlot->showArmourAnyway(false);
-            if (as<HeadArmor>(armour))
-              itemSlot->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
-            else if (as<ChestArmor>(armour))
-              itemSlot->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
-            else if (as<LegsArmor>(armour))
-              itemSlot->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
-            else if (as<BackArmor>(armour))
-              itemSlot->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
-          }
+        if (auto armour = as<ArmorItem>(item)) {
+          if (as<HeadArmor>(armour))
+            itemSlot->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
+          else if (as<ChestArmor>(armour))
+            itemSlot->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
+          else if (as<LegsArmor>(armour))
+            itemSlot->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
+          else if (as<BackArmor>(armour))
+            itemSlot->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
         }
       }
     }
@@ -452,19 +451,19 @@ void InventoryPane::update(float dt) {
       if (auto itemWidget = p.second->itemWidgetAt(i)) {
         itemWidget->showLinkIndicator(customBarItems.contains(itemWidget->item()));
         itemWidget->setCosmeticHighlightEnabled(false);
+        itemWidget->showArmourAnyway(false);
+        auto item = itemWidget->item();
         if (ItemPtr swapSlot = inventory->swapSlotItem()) {
-          if (auto item = itemWidget->item()) {
-            if (as<HeadArmor>(item))
-              itemWidget->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
-            else if (as<ChestArmor>(item))
-              itemWidget->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
-            else if (as<LegsArmor>(item))
-              itemWidget->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
-            else if (as<BackArmor>(item))
-              itemWidget->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
-          }
+          if (as<HeadArmor>(item))
+            itemWidget->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
+          else if (as<ChestArmor>(item))
+            itemWidget->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
+          else if (as<LegsArmor>(item))
+            itemWidget->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
+          else if (as<BackArmor>(item))
+            itemWidget->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
         }
-      } else { // Kae: Downstreamed from OpenStarbound.
+      } else {
         Logger::warn("InventoryPane: Could not find item widget {} in item grid {}; skipping widget.", i, p.first);
       }
     }
@@ -785,27 +784,26 @@ void WardrobePane::update(float dt) {
       itemSlot->setItem(inventory->itemsAt(slot));
       itemSlot->setCosmeticHighlightEnabled(false);
       itemSlot->showSingleCountOnStackables(true);
+      itemSlot->showArmourAnyway(false);
+      auto item = itemSlot->item();
+      if (auto armour = as<ArmorItem>(item))
+        itemSlot->showArmourAnyway(armour->isUnderlaid());
+      else
+        itemSlot->showArmourAnyway(false);
       if (ItemPtr swapSlot = inventory->swapSlotItem()) {
-        if (auto item = itemSlot->item()) {
-          if (auto armour = as<ArmorItem>(item)) {
-            if (slot >= EquipmentSlot::Overlay1)
-              itemSlot->showArmourAnyway(armour->isUnderlaid());
-            else
-              itemSlot->showArmourAnyway(false);
-            if (as<HeadArmor>(armour))
-              itemSlot->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
-            else if (as<ChestArmor>(armour))
-              itemSlot->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
-            else if (as<LegsArmor>(armour))
-              itemSlot->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
-            else if (as<BackArmor>(armour))
-              itemSlot->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
-          }
-        }
+        if (as<HeadArmor>(item))
+          itemSlot->setCosmeticHighlightEnabled((bool)as<HeadArmor>(swapSlot));
+        else if (as<ChestArmor>(item))
+          itemSlot->setCosmeticHighlightEnabled((bool)as<ChestArmor>(swapSlot));
+        else if (as<LegsArmor>(item))
+          itemSlot->setCosmeticHighlightEnabled((bool)as<LegsArmor>(swapSlot));
+        else if (as<BackArmor>(item))
+          itemSlot->setCosmeticHighlightEnabled((bool)as<BackArmor>(swapSlot));
       }
     }
   }
 
   Pane::update(dt);
 }
+
 } // namespace Star
