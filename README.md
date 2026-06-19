@@ -254,6 +254,7 @@ xSBCompat also fixes bugs in the following retail mods that are unrelated to xSt
 The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due to reliance on OpenStarbound-only features, security issues or visual glitches:
 
 - [AR's Shader Pack v1.0](https://steamcommunity.com/sharedfiles/filedetails/?id=3487232242) — modular shader support is OpenStarbound-only.
+- [Betabound CosmicExt Quests Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3747815781) — its CosmicExt dependency (see below) is not compatible with xStarbound.
 - [Bottinator22's](https://steamcommunity.com/sharedfiles/filedetails/?id=3431152501) [shader](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151263) [mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151049) — modular shader support is OpenStarbound-only.
 - [Bott's Shaders - Disabled by Default](https://steamcommunity.com/sharedfiles/filedetails/?id=3468244512) — the mods it depends on are OpenStarbound-only, obviously.
 - [CosmicExt](https://steamcommunity.com/sharedfiles/filedetails/?id=3632179576) — this OpenStarbound mod's compiled Lua 5.3 bytecode (yes, all the scripts are bytecode!) is not compatible with xStarbound's Pluto interpreter for security reasons, and will log errors.
