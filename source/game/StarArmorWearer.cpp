@@ -317,7 +317,10 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
 
   bool pulledCosmeticUpdate = m_player ? m_player->pulledCosmeticUpdate() : false;
 
-  auto& extendedCosmeticStack = m_player ? (m_player->isMaster() ? m_extendedCosmeticItems : m_player->getNetArmorSecrets()) : Array<ArmorItemPtr, 16>::filled(nullptr);
+  auto& extendedCosmeticStack = m_player ? ((m_player->isMaster() || !m_player->inWorld())
+                                                   ? m_extendedCosmeticItems
+                                                   : m_player->getNetArmorSecrets())
+                                         : Array<ArmorItemPtr, 16>::filled(nullptr);
 
   bool headUnderlaid = false, chestUnderlaid = false, legsUnderlaid = false, backUnderlaid = false;
 
