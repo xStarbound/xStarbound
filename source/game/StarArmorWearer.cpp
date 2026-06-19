@@ -319,8 +319,18 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
 
   auto& extendedCosmeticStack = m_player ? (m_player->isMaster() ? m_extendedCosmeticItems : m_player->getNetArmorSecrets()) : Array<ArmorItemPtr, 16>::filled(nullptr);
 
+  bool headUnderlaid = false, chestUnderlaid = false, legsUnderlaid = false, backUnderlaid = false;
+
   if (anyNeedsSync) { // FezzedOne: Handle armour hiding from stock cosmetic slots.
-    if (auto& item = m_headCosmeticItem) {
+    if (auto& item = m_headItem)
+      headUnderlaid = item->isUnderlaid();
+    if (auto& item = m_chestItem)
+      chestUnderlaid = item->isUnderlaid();
+    if (auto& item = m_legsItem)
+      legsUnderlaid = item->isUnderlaid();
+    if (auto& item = m_backItem)
+      backUnderlaid = item->isUnderlaid();
+    if (auto& item = m_headItem) {
       if (!item->hideInStockSlots()) {
         auto hiddenSlots = item->armorTypesToHide();
         hiddenArmourSlots.head |= hiddenSlots.head;
@@ -364,10 +374,10 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
       auto& item = extendedCosmeticStack[i];
       if (!item) continue;
       auto hiddenSlots = item->armorTypesToHide();
-      hiddenArmourSlots.head |= hiddenSlots.head || is<HeadArmor>(item);
-      hiddenArmourSlots.chest |= hiddenSlots.chest || is<ChestArmor>(item);
-      hiddenArmourSlots.legs |= hiddenSlots.legs || is<LegsArmor>(item);
-      hiddenArmourSlots.back |= hiddenSlots.back || is<BackArmor>(item);
+      hiddenArmourSlots.head |= hiddenSlots.head || (is<HeadArmor>(item) && !headUnderlaid);
+      hiddenArmourSlots.chest |= hiddenSlots.chest || (is<ChestArmor>(item) && !chestUnderlaid);
+      hiddenArmourSlots.legs |= hiddenSlots.legs || (is<LegsArmor>(item) && !legsUnderlaid);
+      hiddenArmourSlots.back |= hiddenSlots.back || (is<BackArmor>(item) && !backUnderlaid);
     }
   }
 
@@ -979,7 +989,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
                                      getDirectives(armourItem),
                                      armourItem->maskDirectives(),
                                      BaseCosmeticOrdering,
-                                     true});
+                                     !item->isUnderlaid()});
           mergeHumanoidConfig(item, secondPass);
           if (!secondPass) bodyHidden |= armourItem->hideBody();
         } else if (auto armourItem = as<ChestArmor>(item)) {

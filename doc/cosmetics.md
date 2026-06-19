@@ -38,8 +38,10 @@ The following non-vanilla armour/cosmetic item instance values are supported by 
   Overlays on items in xStarbound or OpenStarbound's extended cosmetic/wardrobe slots are visually ignored. That is, overlaid items must be in any vanilla cosmetic or armour slot for the overlays to be visible.
 
 - **`"layered"`:** _[xClient only.]_ Optional boolean. If `true`, the following apply:
-  - If this item is in an armour (not cosmetic) slot, this item and any overlays on it are visibly underlaid behind any item in the corresponding cosmetic slot, as long as the wearer isn't wearing any item in the stock cosmetic slots with this item's slot type «blacklisted» in its `"armorTypesToHide"` parameter.
-  - If this item is in an extended cosmetic slot in xStarbound's wardrobe pane, `"hideInVanillaSlots"` (see below) behaves as it does on OpenStarbound (hence the parameter's name, for compatibility) and does _not_ visually hide the item. `"layered"` is assumed to be `true` for cosmetics in extended non-retail slots worn by players on OpenStarbound clients.
+  - If this item is in an armour (not cosmetic) slot, this item and any overlays on it are visibly underlaid behind any item in the corresponding cosmetic slot or any items of the same type in the extended cosmetic slots, as long as the wearer isn't wearing any item in the stock cosmetic slots with this item's slot type «blacklisted» in its `"armorTypesToHide"` parameter.
+  - If this item is in an extended cosmetic slot in xStarbound's wardrobe pane, the item (if it is a head item) applies any masks to head items below it, not just to hair, facial hair and facial masks (counter to OpenStarbound's behaviour), and for this item, `"hideInVanillaSlots"` (see below) behaves as it does on OpenStarbound (hence the parameter's name, for compatibility) and does _not_ visually hide the item.
+
+  `"layered"` is assumed to be `true` for `"hideInVanillaSlots"` purposes, but the actual value (assumed `false` if not present) is used for head masking purposes, for items worn in the extended cosmetic slots by players on OpenStarbound clients.
 
   May be toggled on xClient by right-clicking the item in your armour/cosmetic slots or inventory. When enabled, the item has a red outer border.
 
