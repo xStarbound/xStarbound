@@ -1,6 +1,6 @@
 # xStarbound
 
-This is a fork of [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound); all credit for the original code goes to the respective authors. Contributions are welcomed. You **must** own a copy of Starbound to use xStarbound. Base game assets are not provided for obvious reasons.
+This is a fork of Starbound's source code; all credit for the original code goes to the respective authors. Contributions are welcomed. You **must** own a copy of Starbound to use xStarbound. Base game assets are not provided for obvious reasons.
 
 **Download the latest release for Linux and Windows [here](https://github.com/xStarbound/xStarbound/releases/latest). Older releases [are also available](https://github.com/xStarbound/xStarbound/releases).**
 
