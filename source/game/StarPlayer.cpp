@@ -3370,7 +3370,7 @@ void Player::setNetArmorSecret(StringMap<String> const& identityTags, StringMap<
   // }
 
   if (armor) {
-    auto armourItem = ArmorWearer::setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, armor, m_movementController->facingDirection());
+    auto armourItem = ArmorWearer::setUpArmourItemNetworking(identityTags, visualIdentityTags, netIdentityTags, armor, m_movementController->facingDirection(), true);
     setSecretProperty(strf("armorWearer.{}.data", slotName), armourItem.diskStore());
   } else {
     setSecretProperty(strf("armorWearer.{}.data", slotName), Json());

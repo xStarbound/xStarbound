@@ -28,7 +28,7 @@
 namespace Star {
 
 ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& identityTags, StringMap<String> const& visualIdentityTags, StringMap<String> const& netIdentityTags,
-    ArmorItemPtr const& armourItem, Direction facingDirection) {
+    ArmorItemPtr const& armourItem, Direction facingDirection, bool notStockSlot) {
   ZoneScoped;
   auto processDirectives = [&](ArmorItemPtr const& armourItem, JsonObject& processedDirectives, Maybe<String> const& directives, Maybe<String> const& flipDirectives) {
     bool facingLeft = facingDirection == Direction::Left;
@@ -102,7 +102,7 @@ ItemDescriptor ArmorWearer::setUpArmourItemNetworking(StringMap<String> const& i
     return armourItemDesc;
   };
 
-  if (armourItem && !armourItem->hideInStockSlots()) {
+  if (armourItem && (notStockSlot || !armourItem->hideInStockSlots())) {
     ItemDescriptor desc;
     if (!identityTags.empty())
       desc = handleDirectiveTags(armourItem);
@@ -1080,7 +1080,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     if (m_player && m_player->isMaster()) {
       for (uint8_t i = 0; i != 16; i++) {
         auto& armourItem = extendedCosmeticStack[i];
-        bool shouldShowItem = armourItem ? (armourItem->hideInStockSlots() && !armourItem->isUnderlaid()) : false;
+        bool shouldShowItem = armourItem ? !(armourItem->hideInStockSlots() && !armourItem->isUnderlaid()) : false;
         m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, i, shouldShowItem ? armourItem : nullptr);
       }
     }

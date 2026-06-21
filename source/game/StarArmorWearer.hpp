@@ -72,7 +72,7 @@ public:
   ItemDescriptor extendedCosmeticItemDescriptor(uint8_t slot) const;
 
   static ItemDescriptor setUpArmourItemNetworking(StringMap<String> const& identityTags, StringMap<String> const& visualIdentityTags,
-      StringMap<String> const& netIdentityTags, ArmorItemPtr const& armourItem, Direction direction);
+      StringMap<String> const& netIdentityTags, ArmorItemPtr const& armourItem, Direction direction, bool notStockSlot = false);
 
   void setScriptedHumanoidConfig(Json const& newConfig);
   Json scriptedHumanoidConfig() const;
