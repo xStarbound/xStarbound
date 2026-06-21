@@ -1079,7 +1079,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     // }
     if (m_player && m_player->isMaster()) {
       for (uint8_t i = 0; i != 16; i++) {
-        auto& armourItem = m_extendedCosmeticItems[i];
+        auto& armourItem = extendedCosmeticStack[i];
         bool shouldShowItem = armourItem ? (armourItem->hideInStockSlots() && !armourItem->isUnderlaid()) : false;
         m_player->setNetArmorSecret(identityTags, visualIdentityTags, netIdentityTags, i, shouldShowItem ? armourItem : nullptr);
       }
