@@ -1354,9 +1354,12 @@ void UniverseServer::shutdownInactiveWorlds() {
             clientWarpPlayer(clientId, WarpAlias::OwnShip);
         }
 
+        // FezzedOne: Needed because `world` bindings need to be accessible on `uninit` calls in entity and world server scripts.
+        // Letting the destructor handle this means the world is already marked as invalid by then, throwing Lua dereference errors.
+        world->preUninit();
+
         if (worldId.is<ClientShipWorldId>()) {
           if (auto clientId = getClientForUuid(worldId.get<ClientShipWorldId>())) {
-            world->preUninit();
             m_clients.get(*clientId)->updateShipChunks(world->readChunks());
           }
         }
