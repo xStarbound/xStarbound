@@ -79,7 +79,7 @@ This is a fork of Starbound's source code; all credit for the original code goes
 - Supports scriptable asset preprocessing. By @novaenia; fixed and greatly enhanced by @fezzedone.
 - Modded techs and status effects no longer cause crashes to the menu when the offending mod is removed (@WasabiRaptor and @novaenia).
 - Scriptable shader and lighting parameters are supported (@fezzedone).
-- You can now make `.patch` files that are just merged in, early-beta-style (@novaenia). That's why the patch files in `assets/xSBassets` are unusually simple. All of OpenStarbound's JSON patch parameters are also supported.
+- You can now make `.patch` files that are just merged in, early-beta-style (@novaenia). That's why the patch files in `assets/xSBassets` are unusually simple. All of OpenStarbound's JSON patch extensions (by @JamesTheMaker) are also supported.
 - Almost all Lua callbacks from the original xSB (by @fezzedone), `input` callbacks (by @novaenia), plus some extra `player`, `chat`, `interface` and `clipboard` callbacks for compatibility with OpenStarbound mods and some StarExtensions mods (@fezzedone).
 - Various crash fixes (@fezzedone and @novaenia).
 - `/settileprotection` supports variadic arguments and ranges like on OpenStarbound (@novaenia).
@@ -136,6 +136,7 @@ The following mods have special functionality that requires or is supported by x
 - [Chroma Colour Utils](https://steamcommunity.com/sharedfiles/filedetails/?id=3632274480) — requires xStarbound or OpenStarbound (or an oSB fork).
 - [Clicky Keyboard UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3476945792) — should be supported by xStarbound; report any issues.
 - [Custom Ship Capsule](https://steamcommunity.com/sharedfiles/filedetails/?id=3740868265) — requires xStarbound or OpenStarbound (or an oSB fork). In multiplayer, must be installed on the server.
+- [Disable Parallax](https://steamcommunity.com/sharedfiles/filedetails/?id=3748974083) — requires xStarbound or OpenStarbound (or an oSB fork).
 - [Double-Tap Hotkey](https://steamcommunity.com/sharedfiles/filedetails/?id=3706488418) — requires xStarbound or OpenStarbound (or an oSB fork).
 - [Drop pixels on death](https://steamcommunity.com/sharedfiles/filedetails/?id=3350355857) ([GitHub](https://github.com/bongus-jive/drop-money-on-death)) — fully supported by xStarbound.
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
@@ -162,9 +163,10 @@ The following mods have special functionality that requires or is supported by x
 - [Phantasy Starbound Title](https://steamcommunity.com/sharedfiles/filedetails/?id=3475986947) — OpenStarbound title screen replacement mod that should be supported by xStarbound; report any visual issues.
 - [Planet Search](https://steamcommunity.com/sharedfiles/filedetails/?id=3269792617) — fully supported by xStarbound.
 - [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — all OpenStarbound-compatible commands are supported by xStarbound as of v3.1.6.
-- [Quick Stack Gun [OpenStarbound Fix]](https://steamcommunity.com/sharedfiles/filedetails/?id=3501752811) — Despite the name, requires xStarbound, OpenStarbound or StarExtensions.
+- [Quick Stack Gun [OpenStarbound Fix]](https://steamcommunity.com/sharedfiles/filedetails/?id=3501752811) — Despite the name, requires xStarbound or OpenStarbound (or an oSB fork).
 - [Recipe Browser](https://steamcommunity.com/sharedfiles/filedetails/?id=2018183533) — Recipe Browser's universal mod support requires xStarbound or OpenStarbound (or an oSB fork).
 - [RPG Growth Keybind Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3368499316) — this mod fixes a compatibility issue between RPG Growth and xStarbound/OpenStarbound/StarExtensions.
+- [RPG Levels](https://steamcommunity.com/sharedfiles/filedetails/?id=3705791048) — its automatic boss patching functionality («OpenStarbound» support) requires xStarbound or OpenStarbound (or an oSB fork). The disabled debug logging mode would require an xSBCompat patch if enabled, but it's disabled. _Don't_ expect xStarbound support from this mod's author.
 - [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — fully supported by xStarbound, including keybinds, as of v3.1.6. (Bravo for getting rid of the sandbox-breaking code, Patman!)
 - [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — fully supported by xStarbound. Use `/resetinventoryposition` if your inventory ends up off-screen after installation.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xStarbound as of xSB v2.3.7.
@@ -174,7 +176,8 @@ The following mods have special functionality that requires or is supported by x
 - [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111), [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) and other mods based on the framework — xStarbound supports «nice» non-pixelated scaling as of v2.4.1.1.
 - [Space Station Terminal Quick Sell QoL](https://steamcommunity.com/sharedfiles/filedetails/?id=3723886096) — requires xStarbound or OpenStarbound (or an oSB fork) for the added shift-click functionality to work.
 - [Spawnable Item Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=733665104) — SIP's universal mod support requires xStarbound v2.5+ or OpenStarbound (or an oSB fork).
-- [Spenbed Starbound osb logo replacer] — another logo replacement mod for OpenStarbound (or an oSB fork) and the like. Should be supported. The associated modpack is fully compatible with xStarbound as long as xSBCompat is installed and Stardust Core Lite is replaced with Quickbar Mini or Classic Quickbar.
+- [Spenbed Starbound osb logo replacer] — another logo replacement mod for OpenStarbound (or an oSB fork) and the like. Should be supported. The associated modpack is fully compatible with xStarbound.
+- [Sprite Dragon Interact (FDR)](https://steamcommunity.com/sharedfiles/filedetails/?id=3748728626) — requires xStarbound or OpenStarbound (or an oSB fork). Not supported by xStarbound are this mod's optional «hooks» on OpenStarbound-only bind tags (e.g., `"interact"` or `"playerInteract"`) potentially added by other OpenStarbound mods; all other functionality is supported.
 - [(Starbound) Without Number - RPG Mechanics](https://steamcommunity.com/sharedfiles/filedetails/?id=3677633744) — works, but _don't_ expect support from this mod's developer.
 - [Starburst Rework T6 Armor Recipe Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3472326270) — requires xStarbound or OpenStarbound (or an oSB fork).
 - [StarCustomChat](https://steamcommunity.com/sharedfiles/filedetails/?id=3208917628) ([GitHub](https://github.com/KrashV/StarCustomChat)) and [StarCustomChatRP](https://steamcommunity.com/sharedfiles/filedetails/?id=3445409664) ([GitHub](https://github.com/KrashV/StarCustomChatRP)) — requires xStarbound v3.5.1+, OpenStarbound v0.1.8+ or StarExtensions. As the original mod's author is unsupportive, it's recommended to use FezzedOne's [StarCustomChat](https://github.com/FezzedOne/StarCustomChat) and [StarCustomChatRP](https://github.com/FezzedOne/StarCustomChatRP) forks for additional features and xStarbound compatibility fixes (not supported by Degranon, the original author).
