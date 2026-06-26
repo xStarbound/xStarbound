@@ -201,8 +201,9 @@ The following «[oSB]»- or «[OpenStarbound]»-tagged mods do not actually requ
 
 - [Aiko's Additions](https://steamcommunity.com/workshop/filedetails/?id=3603021961) — has no OpenStarbound requirement despite the mod's description.
 - [GM Vehicles](https://steamcommunity.com/sharedfiles/filedetails/?id=3644577479) — has no OpenStarbound requirement despite the mod's description.
-- [OpenStarbound No Highlights on Scanned Objects and Players](https://steamcommunity.com/sharedfiles/filedetails/?id=3432675895) — compatible. Has no particular OpenStarbound or xStarbound support, actually.
-- [Tiri's Accessories](https://steamcommunity.com/sharedfiles/filedetails/?id=3619906462) — compatible. Has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support cosmetic overlays/underlays.
+- [NIGHTMARE Clothin' Pack] — has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support extended cosmetic slots or cosmetic overlays/underlays.
+- [OpenStarbound No Highlights on Scanned Objects and Players](https://steamcommunity.com/sharedfiles/filedetails/?id=3432675895) — has no particular OpenStarbound or xStarbound support, actually.
+- [Tiri's Accessories](https://steamcommunity.com/sharedfiles/filedetails/?id=3619906462) — has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support extended cosmetic slots or cosmetic overlays/underlays.
 
 </details>
 
