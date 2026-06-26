@@ -49,6 +49,9 @@ Quest::Quest(QuestArcDescriptor const& questArc, size_t arcPos, Player* player) 
   auto templateDatabase = Root::singleton().questTemplateDatabase();
   auto questTemplate = templateDatabase->questTemplate(templateId());
 
+  // FezzedOne: Throw if a quest template is not found to avoid a null dereference or storing a null pointer.
+  if (!questTemplate) throw StarException::format("Quest template '{}' not found!", templateId());
+
   m_parameters = questDescriptor().parameters;
   m_displayParameters = DisplayParameters{
       questTemplate->ephemeral,
@@ -121,6 +124,10 @@ Quest::Quest(Json const& spec) {
 
   auto templateDatabase = Root::singleton().questTemplateDatabase();
   auto questTemplate = templateDatabase->questTemplate(templateId());
+
+  // FezzedOne: Throw if a quest template is not found to avoid a null dereference or storing a null pointer.
+  if (!questTemplate) throw StarException::format("Quest template '{}' not found!", templateId());
+
   m_displayParameters = DisplayParameters{
       questTemplate->ephemeral,
       questTemplate->showInLog,
@@ -271,13 +278,17 @@ void Quest::complete(Maybe<size_t> followupIndex) {
   bool trackNewQuest = m_player->questManager()->isTracked(questId());
   size_t nextArcPos = followupIndex.value(questArcPosition() + 1);
   if (nextArcPos < m_arc.quests.size()) {
-    auto followUp = make_shared<Quest>(m_arc, nextArcPos, m_player);
-    followUp->setWorldId(worldId());
-    followUp->setLocation(location());
-    followUp->setServerUuid(serverUuid());
-    m_player->questManager()->offer(followUp);
-    if (trackNewQuest)
-      m_player->questManager()->setAsTracked(followUp->questId());
+    try {
+      auto followUp = makeObject<Quest>(m_arc, nextArcPos, m_player);
+      followUp->setWorldId(worldId());
+      followUp->setLocation(location());
+      followUp->setServerUuid(serverUuid());
+      m_player->questManager()->offer(followUp);
+      if (trackNewQuest)
+        m_player->questManager()->setAsTracked(followUp->questId());
+    } catch (StarException const& e) {
+      Logger::error("Exception caught while attempting to start follow-up quest for quest '{}' at arc position {}: {}", questId(), nextArcPos, outputException(e, true));
+    }
   } else if (trackNewQuest) {
     // no followup, track another main quest or clear quest tracker
     if (auto main = m_player->questManager()->getFirstMainQuest())
@@ -347,6 +358,7 @@ Maybe<String> Quest::portraitTitle(String const& portraitName) const {
 }
 
 QuestDescriptor Quest::questDescriptor() const {
+  if (m_arcPos >= m_arc.quests.size()) throw StarException::format("Current quest arc position {} does not exist in the arc", m_arcPos);
   return m_arc.quests[m_arcPos];
 }
 
@@ -778,7 +790,7 @@ QuestPtr createPreviewQuest(
     arcPos = 2;
   }
 
-  auto quest = make_shared<Quest>(arc, arcPos, player);
+  auto quest = makeObject<Quest>(arc, arcPos, player);
   quest->setParameter("questGiver", QuestParam{QuestEntity{{}, questGiverSpecies, {}}, {"Quest Giver"}, portrait, {}});
   return quest;
 }

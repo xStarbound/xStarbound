@@ -1,72 +1,71 @@
 #include "StarClientCommandProcessor.hpp"
-#include "StarItem.hpp"
+#include "StarAiInterface.hpp"
 #include "StarAssets.hpp"
+#include "StarInterfaceLuaBindings.hpp"
+#include "StarItem.hpp"
 #include "StarItemDatabase.hpp"
 #include "StarItemDrop.hpp"
 #include "StarPlayer.hpp"
-#include "StarPlayerTech.hpp"
 #include "StarPlayerInventory.hpp"
 #include "StarPlayerLog.hpp"
-#include "StarWorldClient.hpp"
-#include "StarAiInterface.hpp"
+#include "StarPlayerTech.hpp"
 #include "StarQuestInterface.hpp"
 #include "StarStatistics.hpp"
-#include "StarInterfaceLuaBindings.hpp"
+#include "StarWorldClient.hpp"
 
 namespace Star {
 
 ClientCommandProcessor::ClientCommandProcessor(UniverseClientPtr universeClient, CinematicPtr cinematicOverlay,
     MainInterfacePaneManager* paneManager, StringMap<StringList> macroCommands)
-  : m_universeClient(std::move(universeClient)), m_cinematicOverlay(std::move(cinematicOverlay)),
-    m_paneManager(paneManager), m_macroCommands(std::move(macroCommands)) {
+    : m_universeClient(std::move(universeClient)), m_cinematicOverlay(std::move(cinematicOverlay)),
+      m_paneManager(paneManager), m_macroCommands(std::move(macroCommands)) {
   m_builtinCommands = {
-    {"reload", bind(&ClientCommandProcessor::reload, this)},
-    {"hotreload", bind(&ClientCommandProcessor::hotReload, this)},
-    {"whoami", bind(&ClientCommandProcessor::whoami, this)},
-    {"gravity", bind(&ClientCommandProcessor::gravity, this)},
-    {"debug", bind(&ClientCommandProcessor::debug, this, _1)},
-    {"boxes", bind(&ClientCommandProcessor::boxes, this)},
-    {"fullbright", bind(&ClientCommandProcessor::fullbright, this)},
-    {"asyncLighting", bind(&ClientCommandProcessor::asyncLighting, this)},
-    {"setGravity", bind(&ClientCommandProcessor::setGravity, this, _1)},
-    {"resetGravity", bind(&ClientCommandProcessor::resetGravity, this)},
-    {"fixedCamera", bind(&ClientCommandProcessor::fixedCamera, this)},
-    {"monochromeLighting", bind(&ClientCommandProcessor::monochromeLighting, this)},
-    {"radioMessage", bind(&ClientCommandProcessor::radioMessage, this, _1)},
-    {"clearRadioMessages", bind(&ClientCommandProcessor::clearRadioMessages, this)},
-    {"clearCinematics", bind(&ClientCommandProcessor::clearCinematics, this)},
-    {"startQuest", bind(&ClientCommandProcessor::startQuest, this, _1)},
-    {"completeQuest", bind(&ClientCommandProcessor::completeQuest, this, _1)},
-    {"failQuest", bind(&ClientCommandProcessor::failQuest, this, _1)},
-    {"previewNewQuest", bind(&ClientCommandProcessor::previewNewQuest, this, _1)},
-    {"previewQuestComplete", bind(&ClientCommandProcessor::previewQuestComplete, this, _1)},
-    {"previewQuestFailed", bind(&ClientCommandProcessor::previewQuestFailed, this, _1)},
-    {"clearScannedObjects", bind(&ClientCommandProcessor::clearScannedObjects, this)},
-    {"played", bind(&ClientCommandProcessor::playTime, this)},
-    {"deaths", bind(&ClientCommandProcessor::deathCount, this)},
-    {"cinema", bind(&ClientCommandProcessor::cinema, this, _1)},
-    {"suicide", bind(&ClientCommandProcessor::suicide, this)},
-    {"naked", bind(&ClientCommandProcessor::naked, this)},
-    {"resetAchievements", bind(&ClientCommandProcessor::resetAchievements, this)},
-    {"statistic", bind(&ClientCommandProcessor::statistic, this, _1)},
-    {"giveessentialitem", bind(&ClientCommandProcessor::giveEssentialItem, this, _1)},
-    {"maketechavailable", bind(&ClientCommandProcessor::makeTechAvailable, this, _1)},
-    {"enabletech", bind(&ClientCommandProcessor::enableTech, this, _1)},
-    {"upgradeship", bind(&ClientCommandProcessor::upgradeShip, this, _1)},
-    {"swap", bind(&ClientCommandProcessor::swap, this, _1)},
-    {"swapuuid", bind(&ClientCommandProcessor::swapUuid, this, _1)},
-    {"add", bind(&ClientCommandProcessor::add, this, _1)},
-    {"adduuid", bind(&ClientCommandProcessor::addUuid, this, _1)},
-    {"remove", bind(&ClientCommandProcessor::remove, this, _1)},
-    {"removeuuid", bind(&ClientCommandProcessor::removeUuid, this, _1)},
-    {"timescale", bind(&ClientCommandProcessor::timeScale, this, _1)},
-    {"editor", bind(&ClientCommandProcessor::editor, this, _1)}
-  };
+      {"reload", bind(&ClientCommandProcessor::reload, this)},
+      {"hotreload", bind(&ClientCommandProcessor::hotReload, this)},
+      {"whoami", bind(&ClientCommandProcessor::whoami, this)},
+      {"gravity", bind(&ClientCommandProcessor::gravity, this)},
+      {"debug", bind(&ClientCommandProcessor::debug, this, _1)},
+      {"boxes", bind(&ClientCommandProcessor::boxes, this)},
+      {"fullbright", bind(&ClientCommandProcessor::fullbright, this)},
+      {"asyncLighting", bind(&ClientCommandProcessor::asyncLighting, this)},
+      {"setGravity", bind(&ClientCommandProcessor::setGravity, this, _1)},
+      {"resetGravity", bind(&ClientCommandProcessor::resetGravity, this)},
+      {"fixedCamera", bind(&ClientCommandProcessor::fixedCamera, this)},
+      {"monochromeLighting", bind(&ClientCommandProcessor::monochromeLighting, this)},
+      {"radioMessage", bind(&ClientCommandProcessor::radioMessage, this, _1)},
+      {"clearRadioMessages", bind(&ClientCommandProcessor::clearRadioMessages, this)},
+      {"clearCinematics", bind(&ClientCommandProcessor::clearCinematics, this)},
+      {"startQuest", bind(&ClientCommandProcessor::startQuest, this, _1)},
+      {"completeQuest", bind(&ClientCommandProcessor::completeQuest, this, _1)},
+      {"failQuest", bind(&ClientCommandProcessor::failQuest, this, _1)},
+      {"previewNewQuest", bind(&ClientCommandProcessor::previewNewQuest, this, _1)},
+      {"previewQuestComplete", bind(&ClientCommandProcessor::previewQuestComplete, this, _1)},
+      {"previewQuestFailed", bind(&ClientCommandProcessor::previewQuestFailed, this, _1)},
+      {"clearScannedObjects", bind(&ClientCommandProcessor::clearScannedObjects, this)},
+      {"played", bind(&ClientCommandProcessor::playTime, this)},
+      {"deaths", bind(&ClientCommandProcessor::deathCount, this)},
+      {"cinema", bind(&ClientCommandProcessor::cinema, this, _1)},
+      {"suicide", bind(&ClientCommandProcessor::suicide, this)},
+      {"naked", bind(&ClientCommandProcessor::naked, this)},
+      {"resetAchievements", bind(&ClientCommandProcessor::resetAchievements, this)},
+      {"statistic", bind(&ClientCommandProcessor::statistic, this, _1)},
+      {"giveessentialitem", bind(&ClientCommandProcessor::giveEssentialItem, this, _1)},
+      {"maketechavailable", bind(&ClientCommandProcessor::makeTechAvailable, this, _1)},
+      {"enabletech", bind(&ClientCommandProcessor::enableTech, this, _1)},
+      {"upgradeship", bind(&ClientCommandProcessor::upgradeShip, this, _1)},
+      {"swap", bind(&ClientCommandProcessor::swap, this, _1)},
+      {"swapuuid", bind(&ClientCommandProcessor::swapUuid, this, _1)},
+      {"add", bind(&ClientCommandProcessor::add, this, _1)},
+      {"adduuid", bind(&ClientCommandProcessor::addUuid, this, _1)},
+      {"remove", bind(&ClientCommandProcessor::remove, this, _1)},
+      {"removeuuid", bind(&ClientCommandProcessor::removeUuid, this, _1)},
+      {"timescale", bind(&ClientCommandProcessor::timeScale, this, _1)},
+      {"editor", bind(&ClientCommandProcessor::editor, this, _1)}};
 }
 
 bool ClientCommandProcessor::adminCommandAllowed() const {
   return Root::singleton().configuration()->get("allowAdminCommandsFromAnyone").toBool() ||
-    m_universeClient->mainPlayer()->isAdmin();
+         m_universeClient->mainPlayer()->isAdmin();
 }
 
 String ClientCommandProcessor::previewQuestPane(StringList const& arguments, function<PanePtr(QuestPtr)> createPane) {
@@ -101,8 +100,7 @@ StringList ClientCommandProcessor::handleCommand(String const& commandLine) {
     } else {
       auto player = m_universeClient->mainPlayer();
       if (auto messageResult = player->receiveMessage(
-          connectionForEntity(player->entityId()), strf("/{}", command), { allArguments }
-        )) {
+              connectionForEntity(player->entityId()), strf("/{}", command), {allArguments})) {
         if (messageResult->isType(Json::Type::String)) {
           auto messageStr = *messageResult->stringPtr();
           if (messageStr != "") {
@@ -152,7 +150,7 @@ String ClientCommandProcessor::hotReload() {
 
 String ClientCommandProcessor::whoami() {
   return strf("[Client] You are {}^reset;. You are {}an admin.",
-    m_universeClient->mainPlayer()->name(), m_universeClient->mainPlayer()->isAdmin() ? "" : "not ");
+      m_universeClient->mainPlayer()->name(), m_universeClient->mainPlayer()->isAdmin() ? "" : "not ");
 }
 
 String ClientCommandProcessor::gravity() {
@@ -170,8 +168,7 @@ String ClientCommandProcessor::debug(String const& argumentsString) {
   if (!arguments.empty() && arguments.at(0).equalsIgnoreCase("hud")) {
     m_debugHudEnabled = !m_debugHudEnabled;
     return strf("Debug HUD {}", m_debugHudEnabled ? "enabled" : "disabled");
-  }
-  else {
+  } else {
     m_debugDisplayEnabled = !m_debugDisplayEnabled;
     return strf("Debug display {}", m_debugDisplayEnabled ? "enabled" : "disabled");
   }
@@ -183,7 +180,8 @@ String ClientCommandProcessor::boxes() {
 
   return strf("Geometry debug display {}",
       m_universeClient->worldClient()->toggleCollisionDebug()
-      ? "enabled" : "disabled");
+          ? "enabled"
+          : "disabled");
 }
 
 String ClientCommandProcessor::fullbright() {
@@ -192,13 +190,15 @@ String ClientCommandProcessor::fullbright() {
 
   return strf("Fullbright render lighting {}",
       m_universeClient->worldClient()->toggleFullbright()
-      ? "enabled" : "disabled");
+          ? "enabled"
+          : "disabled");
 }
 
 String ClientCommandProcessor::asyncLighting() {
   return strf("Asynchronous render lighting {}",
-    m_universeClient->worldClient()->toggleAsyncLighting()
-    ? "enabled" : "disabled");
+      m_universeClient->worldClient()->toggleAsyncLighting()
+          ? "enabled"
+          : "disabled");
 }
 
 String ClientCommandProcessor::setGravity(String const& argumentsString) {
@@ -266,8 +266,21 @@ String ClientCommandProcessor::startQuest(String const& argumentsString) {
     return "You must be an admin to use this command.";
 
   auto questArc = QuestArcDescriptor::fromJson(Json::parse(arguments.at(0)));
-  m_universeClient->questManager()->offer(make_shared<Quest>(questArc, 0, m_universeClient->mainPlayer().get()));
-  return "Quest started";
+  try {
+    // FezzedOne: Added sanity checks to prevent null dereference crashes.
+    if (questArc.quests.size() == 0) return "No quests specified";
+
+    auto templateDatabase = Root::singleton().questTemplateDatabase();
+    String templateId = questArc.quests[0].templateId;
+    auto questTemplate = templateDatabase->questTemplate(templateId);
+    if (!questTemplate) return strf("Quest template '{}' not found", templateId);
+
+    m_universeClient->questManager()->offer(makeObject<Quest>(questArc, 0, m_universeClient->mainPlayer().get()));
+    return "Quest started";
+  } catch (StarException const& e) {
+    Logger::error("ClientCommandProcessor: Exception caught while attempting to start quest: {}", outputException(e, true));
+    return "Failed to start quest; check log";
+  }
 }
 
 String ClientCommandProcessor::completeQuest(String const& argumentsString) {
@@ -294,8 +307,8 @@ String ClientCommandProcessor::previewNewQuest(String const& argumentsString) {
     return "You must be an admin to use this command.";
 
   return previewQuestPane(arguments, [this](QuestPtr const& quest) {
-      return make_shared<NewQuestInterface>(m_universeClient->questManager(), quest, m_universeClient->mainPlayer());
-    });
+    return make_shared<NewQuestInterface>(m_universeClient->questManager(), quest, m_universeClient->mainPlayer());
+  });
 }
 
 String ClientCommandProcessor::previewQuestComplete(String const& argumentsString) {
@@ -304,8 +317,8 @@ String ClientCommandProcessor::previewQuestComplete(String const& argumentsStrin
     return "You must be an admin to use this command.";
 
   return previewQuestPane(arguments, [this](QuestPtr const& quest) {
-      return make_shared<QuestCompleteInterface>(quest, m_universeClient->mainPlayer(), CinematicPtr{});
-    });
+    return make_shared<QuestCompleteInterface>(quest, m_universeClient->mainPlayer(), CinematicPtr{});
+  });
 }
 
 String ClientCommandProcessor::previewQuestFailed(String const& argumentsString) {
@@ -314,8 +327,8 @@ String ClientCommandProcessor::previewQuestFailed(String const& argumentsString)
     return "You must be an admin to use this command.";
 
   return previewQuestPane(arguments, [this](QuestPtr const& quest) {
-      return make_shared<QuestFailedInterface>(quest, m_universeClient->mainPlayer());
-    });
+    return make_shared<QuestFailedInterface>(quest, m_universeClient->mainPlayer());
+  });
 }
 
 String ClientCommandProcessor::clearScannedObjects() {
@@ -358,10 +371,9 @@ String ClientCommandProcessor::naked() {
   if (player->inWorld()) {
     for (auto slot : EquipmentSlotNames.leftValues()) {
       auto remainingItem = playerInventory->addItems(playerInventory->addToBags(playerInventory->takeSlot(slot)));
-      if (remainingItem) 
+      if (remainingItem)
         m_universeClient->worldClient()->addEntity(
-          ItemDrop::createRandomizedDrop(remainingItem->descriptor(), player->position(), true)
-        );
+            ItemDrop::createRandomizedDrop(remainingItem->descriptor(), player->position(), true));
     }
     return "You are now naked";
   } else {
@@ -542,4 +554,4 @@ String ClientCommandProcessor::editor(String const& argumentsString) {
   return "Showing character editor";
 }
 
-}
+} // namespace Star

@@ -256,6 +256,10 @@ xSBCompat also fixes bugs in the following retail mods that are unrelated to xSt
 
 <summary> ❌ <b>Mod incompatibilities</b> </summary>
 
+The following retail mods _ARE_ compatible with xStarbound, but their OpenStarbound-specific functionality is _NOT_ compatible due to reliance on OpenStarbound-only features:
+
+- [throwable npcs](https://steamcommunity.com/sharedfiles/filedetails/?id=3751241517) — the keybind doesn't do anything because xStarbound is missing player quest bindings present only in OpenStarbound and oSB forks.
+
 The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due to reliance on OpenStarbound-only features, security issues or visual glitches:
 
 - [AR's Shader Pack v1.0](https://steamcommunity.com/sharedfiles/filedetails/?id=3487232242) — modular shader support is OpenStarbound-only.

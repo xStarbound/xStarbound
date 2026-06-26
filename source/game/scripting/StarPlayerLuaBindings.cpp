@@ -384,8 +384,16 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* playerPtr, bool removeChat
   callbacks.registerCallback("canStartQuest",
       [player](Json const& quest) { return player->questManager()->canStart(QuestArcDescriptor::fromJson(quest)); });
 
-  callbacks.registerCallback("startQuest", [player](Json const& quest, Maybe<String> const& serverUuid, Maybe<String> const& worldId) {
+  callbacks.registerCallback("startQuest", [player](Json const& quest, Maybe<String> const& serverUuid, Maybe<String> const& worldId) -> Maybe<String> {
     auto questArc = QuestArcDescriptor::fromJson(quest);
+
+    // FezzedOne: Added sanity checks to prevent null dereference crashes.
+    if (questArc.quests.size() == 0) return {};
+
+    auto templateDatabase = Root::singleton().questTemplateDatabase();
+    auto questTemplate = templateDatabase->questTemplate(questArc.quests[0].templateId);
+    if (!questTemplate) return {};
+
     auto followUp = makeObject<Quest>(questArc, 0, player.get());
     if (serverUuid)
       followUp->setServerUuid(Uuid(*serverUuid));
