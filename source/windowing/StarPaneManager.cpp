@@ -24,8 +24,13 @@ PaneManager::PaneManager()
 }
 
 void PaneManager::displayPane(PaneLayer paneLayer, PanePtr const& pane, DismissCallback onDismiss) {
-  if (!m_displayedPanes[paneLayer].insertFront(pane, std::move(onDismiss)).second)
-    throw GuiException("Pane displayed twice in PaneManager::displayPane");
+  if (!m_displayedPanes[paneLayer].insertFront(pane, std::move(onDismiss)).second) {
+    if (pane)
+      Logger::debug("PaneManager::displayPlane: Pane '{}' is already displayed, ignoring", pane->name());
+    else
+      Logger::warn("PaneManager::displayPane: No pane to display, ignoring");
+    // throw GuiException("Pane displayed twice in PaneManager::displayPane");
+  }
 
   if (!pane->hasDisplayed() && pane->anchor() == PaneAnchor::None)
     pane->setPosition(Vec2I((windowSize() - pane->size()) / 2) + pane->centerOffset()); // center it
@@ -43,8 +48,13 @@ bool PaneManager::isDisplayed(PanePtr const& pane) const {
 }
 
 void PaneManager::dismissPane(PanePtr const& pane) {
-  if (!dismiss(pane))
-    throw GuiException("No such pane in PaneManager::dismissPane");
+  if (!dismiss(pane)) {
+    if (pane)
+      Logger::debug("[xSB] PaneManager::dismissPane: Pane '{}' is already dismissed, ignoring", pane->name());
+    else
+      Logger::warn("[xSB] PaneManager::dismissPane: No pane to dismiss, ignoring");
+    // throw GuiException("No such pane in PaneManager::dismissPane");
+  }
 }
 
 void PaneManager::dismissAllPanes(Set<PaneLayer> const& paneLayers) {
@@ -85,7 +95,11 @@ void PaneManager::bringToTop(PanePtr const& pane) {
     }
   }
 
-  throw GuiException("Pane was not displayed in PaneManager::bringToTop");
+  if (pane)
+    Logger::debug("[xSB] PaneManager::bringToTop: Pane '{}' is not shown, ignoring", pane->name());
+  else
+    Logger::warn("[xSB] PaneManager::bringToTop: No pane to bring to top");
+  // throw GuiException("Pane was not displayed in PaneManager::bringToTop");
 }
 
 void PaneManager::bringPaneAdjacent(PanePtr const& anchor, PanePtr const& adjacent, int gap) {
