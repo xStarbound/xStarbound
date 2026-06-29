@@ -368,7 +368,7 @@ void MainInterface::openMerchantWindow(Json const& config, EntityId sourceEntity
       [this, openWithInventory](PanePtr const&) {
         if (auto player = m_client->mainPlayer())
           player->clearSwap();
-        if (openWithInventory)
+        if (openWithInventory && m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Inventory))
           m_paneManager.dismissRegisteredPane(MainInterfacePanes::Inventory);
       });
   if (openWithInventory)
@@ -544,7 +544,8 @@ void MainInterface::handleInteractAction(InteractAction interactAction) {
       m_paneManager.displayPane(PaneLayer::Window, m_containerPane, [this](PanePtr const&) {
         if (auto player = m_client->mainPlayer())
           player->clearSwap();
-        m_paneManager.dismissRegisteredPane(MainInterfacePanes::Inventory);
+        if (m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Inventory))
+          m_paneManager.dismissRegisteredPane(MainInterfacePanes::Inventory);
       });
 
       m_paneManager.bringPaneAdjacent(m_paneManager.registeredPane(MainInterfacePanes::Inventory),
@@ -1818,7 +1819,8 @@ void MainInterface::displayScriptPane(ScriptPanePtr& scriptPane, EntityId source
     m_paneManager.displayPane(layer, scriptPane, [this](PanePtr const&) {
       if (auto player = m_client->mainPlayer())
         player->clearSwap();
-      m_paneManager.dismissRegisteredPane(MainInterfacePanes::Inventory);
+      if (m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Inventory))
+        m_paneManager.dismissRegisteredPane(MainInterfacePanes::Inventory);
     });
     m_paneManager.displayRegisteredPane(MainInterfacePanes::Inventory);
     m_paneManager.bringPaneAdjacent(m_paneManager.registeredPane(MainInterfacePanes::Inventory),
