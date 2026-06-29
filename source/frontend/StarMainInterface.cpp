@@ -523,13 +523,13 @@ void MainInterface::handleInteractAction(InteractAction interactAction) {
   if (!m_client->switchingPlayer()) {
     if (interactAction.type == InteractActionType::OpenContainer) {
       // If we're currently displaying this container, close it.
-      if (m_containerPane && m_containerInteractor->openContainerId() == interactAction.entityId) {
+      if (m_containerPane && m_containerInteractor->openContainerId() == interactAction.entityId && m_paneManager.isDisplayed(m_containerPane)) {
         m_paneManager.dismissPane(m_containerPane);
         return;
       }
 
       // If we're currently displaying another container, close it before we open.
-      if (m_containerPane)
+      if (m_containerPane && m_paneManager.isDisplayed(m_containerPane))
         m_paneManager.dismissPane(m_containerPane);
 
       auto containerEntity = world->get<ContainerEntity>(interactAction.entityId);
