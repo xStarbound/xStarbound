@@ -132,6 +132,7 @@ The following mods have special functionality that requires or is supported by x
 - [Auto DoubleTap Bind for Modded Techs](https://steamcommunity.com/sharedfiles/filedetails/?id=3502260176) — requires xStarbound or OpenStarbound (or an oSB fork).
 - [Back Weapon II](https://steamcommunity.com/sharedfiles/filedetails/?id=3405399202) — fully supported by xStarbound.
 - [Back Weapon II SChinese patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3581572023) — requires xStarbound or OpenStarbound (or an oSB fork) for some of the translation patches to work properly.
+- [Camera Look++](https://steamcommunity.com/sharedfiles/filedetails/?id=3754903454) — requires xStarbound or OpenStarbound (or an oSB fork).
 - [Chaos](https://steamcommunity.com/sharedfiles/filedetails/?id=3590904263) — requires xStarbound or OpenStarbound (or an oSB fork) to actually scramble treasure pools. Fun for randomiser playthroughs.
 - [Chroma Colour Utils](https://steamcommunity.com/sharedfiles/filedetails/?id=3632274480) — requires xStarbound or OpenStarbound (or an oSB fork).
 - [Clicky Keyboard UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3476945792) — should be supported by xStarbound; report any issues.
@@ -266,6 +267,7 @@ The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due 
 - [Betabound CosmicExt Quests Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3747815781) — its CosmicExt dependency (see below) is not compatible with xStarbound.
 - [Bottinator22's](https://steamcommunity.com/sharedfiles/filedetails/?id=3431152501) [shader](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151263) [mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151049) — modular shader support is OpenStarbound-only.
 - [Bott's Shaders - Disabled by Default](https://steamcommunity.com/sharedfiles/filedetails/?id=3468244512) — the mods it depends on are OpenStarbound-only, obviously.
+- [Camera Look+](https://steamcommunity.com/sharedfiles/filedetails/?id=3386502382) — depends on an obsolete DLL mod. Use [Camera Look++](https://steamcommunity.com/sharedfiles/filedetails/?id=3754903454) (see _Supported xStarbound/OpenStarbound mods_ above) instead.
 - [CosmicExt](https://steamcommunity.com/sharedfiles/filedetails/?id=3632179576) — this OpenStarbound mod's compiled Lua 5.3 bytecode (yes, all the scripts are bytecode!) is not compatible with xStarbound's Pluto interpreter for security reasons, and will log errors.
 - [Crafting Overhaul](https://steamcommunity.com/sharedfiles/filedetails/?id=3659637859) — OpenStarbound mod with the same author as CosmicExt. Also has compiled bytecode.
 - [Cumulative Dynamic Lights](https://steamcommunity.com/sharedfiles/filedetails/?id=3444407977) — not compatible because it depends on OpenStarbound's lighting system changes. Won't do much on xStarbound.
