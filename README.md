@@ -132,7 +132,7 @@ The following mods have special functionality that requires or is supported by x
 - [Auto DoubleTap Bind for Modded Techs](https://steamcommunity.com/sharedfiles/filedetails/?id=3502260176) — requires xStarbound or OpenStarbound (or an oSB fork).
 - [Back Weapon II](https://steamcommunity.com/sharedfiles/filedetails/?id=3405399202) — fully supported by xStarbound.
 - [Back Weapon II SChinese patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3581572023) — requires xStarbound or OpenStarbound (or an oSB fork) for some of the translation patches to work properly.
-- [Camera Look++](https://steamcommunity.com/sharedfiles/filedetails/?id=3754903454) — requires xStarbound or OpenStarbound (or an oSB fork).
+- [Camera Look++](https://steamcommunity.com/sharedfiles/filedetails/?id=3754903454) — requires xStarbound, oSBM or a _nightly_ build of OpenStarbound.
 - [Chaos](https://steamcommunity.com/sharedfiles/filedetails/?id=3590904263) — requires xStarbound or OpenStarbound (or an oSB fork) to actually scramble treasure pools. Fun for randomiser playthroughs.
 - [Chroma Colour Utils](https://steamcommunity.com/sharedfiles/filedetails/?id=3632274480) — requires xStarbound or OpenStarbound (or an oSB fork).
 - [Clicky Keyboard UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3476945792) — should be supported by xStarbound; report any issues.
@@ -146,6 +146,7 @@ The following mods have special functionality that requires or is supported by x
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with stock Starbound.
 - [Improved Containers: OpenStarbound Post-Load Mega-Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3430203726) — requires xStarbound or OpenStarbound (or an oSB fork).
+- [Lexi's Automation](https://steamcommunity.com/sharedfiles/filedetails/?id=3673481087&tscn=1783028287) — requires xStarbound, oSBM or a _nightly_ build of OpenStarbound. Don't expect support from this mod's author.
 - [Loading Screen AAA Gaming Tips](https://steamcommunity.com/sharedfiles/filedetails/?id=3742480361) — requires xStarbound or OpenStarbound (or an oSB fork). Now has patches for Pixelflame's [Ancient Cosmos](https://steamcommunity.com/sharedfiles/filedetails/?id=3744936641) and [Starburst Rework](https://steamcommunity.com/sharedfiles/filedetails/?id=3744928917).
 - [LR's Storage Dimension](https://steamcommunity.com/sharedfiles/filedetails/?id=3432253227) — automatic recipe detection is fully supported by xStarbound.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
