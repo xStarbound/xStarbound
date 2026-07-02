@@ -2062,6 +2062,11 @@ void WorldClient::initWorld(WorldStartPacket const& startPacket) {
 }
 
 void WorldClient::clearWorld() {
+  // FezzedOne: Fix for a vanilla bug discovered by @Bottinator22 where this never gets cleaned up on world changes while
+  // the client is connected. That said, this is a relatively minor bug. `FindUniqueEntity` packets sent to a server
+  // require the server to always send a `FindUniqueEntityResponse` back.
+  m_findUniqueEntityResponses.clear();
+
   if (m_entityMap) {
     while (m_entityMap->size() > 0) {
       for (auto entityId : m_entityMap->entityIds())
