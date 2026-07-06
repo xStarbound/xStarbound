@@ -60,7 +60,7 @@ KeyMod keyModsFromJson(Json const& json, uint8_t* priority = nullptr) {
 
   uint8_t modPriority = 0;
   for (Json const& jMod : json.toArray()) {
-    KeyMod changedMod = mod | KeyModNames.getLeft(jMod.toString());
+    KeyMod changedMod = mod | KeyModNames.maybeLeft(jMod.toString()).value(KeyMod::NoMod);
     if (mod != changedMod) {
       mod = changedMod;
       ++modPriority;
@@ -147,19 +147,22 @@ Input::Bind Input::bindFromJson(Json const& json) {
 
   if (type == "key") {
     KeyBind keyBind;
-    keyBind.key = KeyNames.getLeft(value.toString());
+    String valueStr = value.isType(Json::Type::String) ? value.toString() : "";
+    keyBind.key = valueStr == "Escape" ? Key::Escape : KeyNames.maybeLeft(valueStr).value();
     keyBind.mods = keyModsFromJson(json.getArray("mods", {}), &keyBind.priority);
     bind = std::move(keyBind);
   }
   else if (type == "mouse") {
     MouseBind mouseBind;
-    mouseBind.button = MouseButtonNames.getLeft(value.toString());
+    String valueStr = value.isType(Json::Type::String) ? value.toString() : "";
+    mouseBind.button = MouseButtonNames.maybeLeft(valueStr).value(MouseButton::Left);
     mouseBind.mods = keyModsFromJson(json.getArray("mods", {}), &mouseBind.priority);
     bind = std::move(mouseBind);
   }
   else if (type == "controller") {
     ControllerBind controllerBind;
-    controllerBind.button = ControllerButtonNames.getLeft(value.toString());
+    String valueStr = value.isType(Json::Type::String) ? value.toString() : "";
+    controllerBind.button = ControllerButtonNames.maybeLeft(valueStr).value(ControllerButton::Invalid);
     controllerBind.controller = json.getUInt("controller", 0);
     bind = std::move(controllerBind);
   }
