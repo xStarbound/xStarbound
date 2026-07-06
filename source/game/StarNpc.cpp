@@ -355,9 +355,13 @@ void Npc::destroy(RenderCallback* renderCallback) {
 
   if (isMaster() && !m_dropPools.get().empty()) {
     auto treasureDatabase = Root::singleton().treasureDatabase();
-    for (auto const& treasureItem :
-        treasureDatabase->createTreasure(staticRandomFrom(m_dropPools.get(), m_npcVariant.seed), m_npcVariant.level))
-      world()->addEntity(ItemDrop::createRandomizedDrop(treasureItem, position()));
+    try {
+      for (auto const& treasureItem :
+          treasureDatabase->createTreasure(staticRandomFrom(m_dropPools.get(), m_npcVariant.seed), m_npcVariant.level))
+        world()->addEntity(ItemDrop::createRandomizedDrop(treasureItem, position()));
+    } catch (StarException const& e) {
+      Logger::error("Npc: Exception caught spawning treasure drops for NPC '{}' (ID: {}): {}", name(), entityId(), outputException(e, true));
+    }
   }
 
   if (renderCallback && m_deathParticleBurst.get())

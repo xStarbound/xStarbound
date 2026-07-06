@@ -407,8 +407,12 @@ void Monster::destroy(RenderCallback* renderCallback) {
         treasurePool = m_dropPool.getString("default");
     }
 
-    for (auto const& treasureItem : treasureDatabase->createTreasure(treasurePool, *m_monsterLevel))
-      world()->addEntity(ItemDrop::createRandomizedDrop(treasureItem, position()));
+    try {
+      for (auto const& treasureItem : treasureDatabase->createTreasure(treasurePool, *m_monsterLevel))
+        world()->addEntity(ItemDrop::createRandomizedDrop(treasureItem, position()));
+    } catch (StarException const& e) {
+      Logger::error("Monster: Exception caught spawning treasure drops from pool '{}' for monster '{}' (ID: {}): {}", treasurePool, name(), entityId(), outputException(e, true));
+    }
   }
 
   if (renderCallback) {

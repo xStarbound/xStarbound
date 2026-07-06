@@ -75,8 +75,12 @@ InteractAction FarmableObject::interact(InteractRequest const&) {
 
 bool FarmableObject::harvest() {
   if (isMaster() && m_stages.get(m_stage).contains("harvestPool")) {
-    for (auto const& treasureItem : Root::singleton().treasureDatabase()->createTreasure(m_stages.get(m_stage).getString("harvestPool"), world()->threatLevel()))
-      world()->addEntity(ItemDrop::createRandomizedDrop(treasureItem, position()));
+    try {
+      for (auto const& treasureItem : Root::singleton().treasureDatabase()->createTreasure(m_stages.get(m_stage).getString("harvestPool"), world()->threatLevel()))
+        world()->addEntity(ItemDrop::createRandomizedDrop(treasureItem, position()));
+    } catch (StarException const& e) {
+      Logger::error("FarmableObject: Exception caught spawning treasure drops for farmable object '{}' (ID: {}): {}", name(), entityId(), outputException(e, true));
+    }
 
     if (m_stages.get(m_stage).contains("resetToStage")) {
       m_nextStageTime = world()->epochTime();

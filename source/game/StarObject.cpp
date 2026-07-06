@@ -555,7 +555,7 @@ void Object::destroy(RenderCallback* renderCallback) {
         }
       }
     } catch (StarException const& e) {
-      Logger::warn("Invalid dropID in entity death. {}", outputException(e, false));
+      Logger::error("Object: Exception caught spawning treasure drops for object '{}' (ID: {}): {}", name(), entityId(), outputException(e, true));
     }
   }
 
