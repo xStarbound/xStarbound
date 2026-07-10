@@ -29,7 +29,7 @@ List<Drawable> UnlockItem::preview(PlayerPtr const& viewer) const {
 }
 
 float UnlockItem::getAngle(float) {
-  return -25.0f * Constants::deg2rad;
+  return idleAngle();
 }
 
 void UnlockItem::fireTriggered() {

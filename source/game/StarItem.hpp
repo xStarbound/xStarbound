@@ -123,6 +123,9 @@ public:
   // Returns just the dynamic parameters
   Json parameters() const;
 
+  // Returns the idle angle at which the item is visually held in the hand.
+  float idleAngle() const;
+
   virtual void markTaken();
 
   static bool itemsEqual(ItemConstPtr const& a, ItemConstPtr const& b);
@@ -170,6 +173,8 @@ private:
   List<ItemDescriptor> m_matchingDescriptors;
   List<ItemDescriptor> m_learnBlueprintsOnPickup;
   StringMap<String> m_collectablesOnPickup;
+
+  float m_idleAngle;
 };
 
 class GenericItem : public Item, public SwingableItem {

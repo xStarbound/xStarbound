@@ -29,8 +29,9 @@ protected:
   float m_swingFinish;
   float m_swingAimFactor;
   Maybe<float> m_coolingDownAngle;
+  float m_swingIdleAngle;
 };
 
-}
+} // namespace Star
 
 #endif

@@ -22,12 +22,14 @@ public:
   virtual void fire(FireMode mode, bool shifting, bool edgeTriggered) override;
   virtual void fireTriggered() override;
 
+  virtual float getAngle(float) override;
+
   // Makes no change to the given item if the augment can't be applied.
   // Consumes itself and returns true if the augment is applied.
   // Has no effect if augmentation fails.
   ItemPtr applyTo(ItemPtr const item);
 };
 
-}
+} // namespace Star
 
 #endif

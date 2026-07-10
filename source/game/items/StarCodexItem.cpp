@@ -47,7 +47,7 @@ List<Drawable> CodexItem::dropDrawables() const {
 }
 
 float CodexItem::getAngle(float) {
-  return -25.0f * Constants::deg2rad;
+  return idleAngle();
 }
 
 } // namespace Star

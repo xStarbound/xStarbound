@@ -11,7 +11,7 @@
 namespace Star {
 
 MiningTool::MiningTool(Json const& config, String const& directory, Json const& parameters)
-    : Item(config, directory, parameters), SwingableItem(config) {
+    : Item(config, directory, parameters), SwingableItem(jsonMergeNull(config, parameters)) {
   auto assets = Root::singleton().assets();
 
   m_image = AssetPath::relativeTo(directory, instanceValue("image").toString());
@@ -159,7 +159,7 @@ void MiningTool::changeDurability(float amount) {
 }
 
 HarvestingTool::HarvestingTool(Json const& config, String const& directory, Json const& parameters)
-    : Item(config, directory, parameters), SwingableItem(config) {
+    : Item(config, directory, parameters), SwingableItem(jsonMergeNull(config, parameters)) {
   auto assets = Root::singleton().assets();
 
   m_image = AssetPath::relativeTo(directory, instanceValue("image").toString());
@@ -522,7 +522,7 @@ float BeamMiningTool::getAngle(float angle) {
 }
 
 TillingTool::TillingTool(Json const& config, String const& directory, Json const& parameters)
-    : Item(config, directory, parameters), SwingableItem(config) {
+    : Item(config, directory, parameters), SwingableItem(jsonMergeNull(config, parameters)) {
   auto assets = Root::singleton().assets();
 
   m_image = AssetPath::relativeTo(directory, instanceValue("image").toString());

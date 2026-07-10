@@ -1,13 +1,13 @@
 #include "StarConsumableItem.hpp"
-#include "StarRoot.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarRandom.hpp"
+#include "StarRoot.hpp"
 #include "StarStatusController.hpp"
 
 namespace Star {
 
 ConsumableItem::ConsumableItem(Json const& config, String const& directory, Json const& data)
-  : Item(config, directory, data), SwingableItem(config) {
+    : Item(config, directory, data), SwingableItem(jsonMergeNull(config, data)) {
   setWindupTime(0);
   setCooldownTime(0.25f);
   m_requireEdgeTrigger = true;
@@ -97,9 +97,7 @@ void ConsumableItem::maybeConsume() {
   if (m_consuming) {
     m_consuming = false;
 
-    world()->sendEntityMessage(owner()->entityId(), "recordEvent", {"useItem", JsonObject {
-      {"itemType", name()}
-    }});
+    world()->sendEntityMessage(owner()->entityId(), "recordEvent", {"useItem", JsonObject{{"itemType", name()}}});
     if (count())
       setCount(count() - 1);
     else
@@ -111,4 +109,4 @@ void ConsumableItem::markTaken() {
   maybeConsume();
 }
 
-}
+} // namespace Star

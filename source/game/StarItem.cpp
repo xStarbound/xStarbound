@@ -83,6 +83,13 @@ Item::Item(Json config, String directory, Json parameters) {
 
   for (auto pair : instanceValue("collectablesOnPickup", JsonObject{}).iterateObject())
     m_collectablesOnPickup[pair.first] = pair.second.toString();
+
+  m_idleAngle = -25.0f * Constants::deg2rad;
+  auto idleAngle = instanceValue("coolingDownAngle");
+  if (idleAngle.isType(Json::Type::Float))
+    m_idleAngle = idleAngle.toFloat() * Constants::deg2rad;
+  else if (idleAngle.isType(Json::Type::Int))
+    m_idleAngle = ((float)idleAngle.toInt()) * Constants::deg2rad;
 }
 
 Item::~Item() {}
@@ -338,6 +345,10 @@ Json Item::parameters() const {
   return m_parameters;
 }
 
+float Item::idleAngle() const {
+  return m_idleAngle;
+}
+
 void Item::setInstanceValue(String const& name, Json const& value) {
   if (m_parameters.get(name, {}) != value)
     m_parameters = m_parameters.setAll(JsonObject{{name, value}});
@@ -365,7 +376,7 @@ ItemPtr GenericItem::clone() const {
 }
 
 float GenericItem::getAngle(float) {
-  return -25.0f * Constants::deg2rad;
+  return idleAngle();
 }
 
 void GenericItem::fire(FireMode mode, bool shifting, bool edgeTriggered) {}

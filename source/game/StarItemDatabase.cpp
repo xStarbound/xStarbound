@@ -542,7 +542,13 @@ ItemPtr ItemDatabase::tryCreateItem(ItemDescriptor const& descriptor, Maybe<floa
       result = createItem(m_items.get("perfectlygenericitem").type, itemConfig("perfectlygenericitem", descriptor.parameters(), level, seed));
     } else if (ignoreInvalid) {
       Logger::error("Could not instantiate item '{}'. {}", descriptor, outputException(e, false));
-      result = createItem(m_items.get("perfectlygenericitem").type, itemConfig("perfectlygenericitem", JsonObject({{"genericItemStorage", descriptor.toJson()}, {"shortdescription", descriptor.name()}, {"description", "Reinstall the parent mod to return this item to normal!\n^red;(To retain data, do not place as an object or craft with it!)"}}), {}, {}));
+      JsonObject parameters = JsonObject{
+          {"genericItemStorage", descriptor.toJson()},
+          {"shortdescription", descriptor.name()},
+          {"description", "Reinstall the parent mod to return this item to normal!\n^red;(To retain data, do not place on a retail server or craft with it!)"},
+          {"retainObjectParametersInItem", true},
+      };
+      result = createItem(m_items.get("perfectlygenericitem").type, itemConfig("perfectlygenericitem", parameters, {}, {}));
     } else {
       // FezzedOne: Rethrowing this exception stops the game and prevents certain mods from loading when they would have loaded in vanilla.
       // So we're not doing that anymore.

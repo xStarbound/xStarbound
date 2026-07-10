@@ -50,7 +50,7 @@ uint64_t CurrencyItem::totalValue() {
 }
 
 float CurrencyItem::getAngle(float) {
-  return -25.0f * Constants::deg2rad;
+  return idleAngle();
 }
 
 } // namespace Star
