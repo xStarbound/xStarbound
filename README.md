@@ -264,6 +264,7 @@ The following retail mods _ARE_ compatible with xStarbound, but their OpenStarbo
 
 The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due to reliance on OpenStarbound-only features, security issues or visual glitches:
 
+- [Almandine Edits](https://steamcommunity.com/sharedfiles/filedetails/?id=3761333758) — like its Event Horizon Primary mod dependency, requires a recent OpenStarbound nightly build for shaders and HDR support.
 - [AR's Shader Pack v1.0](https://steamcommunity.com/sharedfiles/filedetails/?id=3487232242) — modular shader support is OpenStarbound-only.
 - [Betabound CosmicExt Quests Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3747815781) — its CosmicExt dependency (see below) is not compatible with xStarbound.
 - [Bottinator22's](https://steamcommunity.com/sharedfiles/filedetails/?id=3431152501) [shader](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151263) [mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151049) — modular shader support is OpenStarbound-only.
@@ -272,6 +273,7 @@ The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due 
 - [CosmicExt](https://steamcommunity.com/sharedfiles/filedetails/?id=3632179576) — this OpenStarbound mod's compiled Lua 5.3 bytecode (yes, all the scripts are bytecode!) is not compatible with xStarbound's Pluto interpreter for security reasons, and will log errors.
 - [Crafting Overhaul](https://steamcommunity.com/sharedfiles/filedetails/?id=3659637859) — OpenStarbound mod with the same author as CosmicExt. Also has compiled bytecode.
 - [Cumulative Dynamic Lights](https://steamcommunity.com/sharedfiles/filedetails/?id=3444407977) — not compatible because it depends on OpenStarbound's lighting system changes. Won't do much on xStarbound.
+- [Event Horizon Primary Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3474049592) — will throw shader-API-related errors on xStarbound that prevent your player from taking damage. The OpenStarbound shaders it contains aren't supported by xStarbound and require a recent OpenStarbound nightly build.
 - [Light Limiter](https://steamcommunity.com/sharedfiles/filedetails/?id=3470727854) — neither compatible with nor necessary on xStarbound.
 - [OpenStarbound Revert](https://steamcommunity.com/sharedfiles/filedetails/?id=3509533339) — not fully compatible with xStarbound for obvious reasons. Why do you need this on xStarbound anyway?
 - [OpenUI](https://steamcommunity.com/workshop/filedetails/?id=3546647977), its [Race Extender](https://steamcommunity.com/sharedfiles/filedetails/?id=3546654953) and other OpenUI extensions — these have glaring visual issues (namely, the main settings dialogue, server connection dialogue and escape/pause menu) that warrant placing these mods in the _Incompatibilities_ section.
@@ -281,7 +283,6 @@ The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due 
 - [Raptor's Metroid Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3541573028) — certain OpenStarbound scripting functionality required by this mod is not currently present in xStarbound; this may change in the future. Don't expect support from the author though.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — requires a Windows DLL attached to retail Starbound, so it won't work and is likely to log script errors.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — depends on an obsolete DLL mod. Won't do anything.
-- [The Almandine](https://steamcommunity.com/sharedfiles/filedetails/?id=3474049592) — will throw shader-API-related errors on xStarbound that prevent your player from taking damage. The OpenStarbound shaders it contains aren't supported by xStarbound.
 
 The following retail mods are _NOT_ fully compatible with xStarbound due to redundancy, legacy DLL requirements or visual glitches:
 
