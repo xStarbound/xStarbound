@@ -305,6 +305,22 @@ Returns the contents of the specified equipment slot, or `nil` if the slot is em
 - `"chestCosmetic"`
 - `"legsCosmetic"`
 - `"backCosmetic"`
+- `"cosmetic1"` (xStarbound and OpenStarbound only; shows as _legs_ slot)
+- `"cosmetic2"` (xStarbound and OpenStarbound only; shows as _legs_ slot)
+- `"cosmetic3"` (xStarbound and OpenStarbound only; shows as _legs_ slot)
+- `"cosmetic4"` (xStarbound and OpenStarbound only; shows as _legs_ slot)
+- `"cosmetic5"` (xStarbound and OpenStarbound only; shows as _chest_ slot)
+- `"cosmetic6"` (xStarbound and OpenStarbound only; shows as _chest_ slot)
+- `"cosmetic7"` (xStarbound and OpenStarbound only; shows as _chest_ slot)
+- `"cosmetic8"` (xStarbound and OpenStarbound only; shows as _chest_ slot)
+- `"cosmetic9"` (xStarbound and OpenStarbound only; shows as _head_ slot)
+- `"cosmetic10"` (xStarbound and OpenStarbound only; shows as _head_ slot)
+- `"cosmetic11"` (xStarbound and OpenStarbound only; shows as _head_ slot)
+- `"cosmetic12"` (xStarbound and OpenStarbound only; shows as _head_ slot)
+- `"cosmetic13"` (xStarbound only; shows as _back_ slot)
+- `"cosmetic14"` (xStarbound only; shows as _back_ slot)
+- `"cosmetic15"` (xStarbound only; shows as _back_ slot)
+- `"cosmetic16"` (xStarbound only; shows as _back_ slot)
 
 ---
 
