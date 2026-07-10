@@ -18,6 +18,7 @@ public:
 
   virtual List<Drawable> iconDrawables() const override;
   virtual List<Drawable> dropDrawables() const override;
+  virtual float getAngle(float) override;
 
 private:
   String m_codexId;
@@ -25,6 +26,6 @@ private:
   List<Drawable> m_worldDrawables;
 };
 
-}
+} // namespace Star
 
 #endif

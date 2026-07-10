@@ -1,19 +1,27 @@
 #include "StarBeamItem.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarImageProcessing.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
-#include "StarRandom.hpp"
+#include "StarImageProcessing.hpp"
 #include "StarItem.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarRandom.hpp"
+#include "StarRoot.hpp"
 #include "StarToolUserEntity.hpp"
 #include "StarWorld.hpp"
 
 namespace Star {
 
 BeamItem::BeamItem(Json config) {
-  config = Root::singleton().assets()->json("/player.config:beamGunConfig").setAll(config.toObject());
+  auto root = Root::singletonPtr();
+  config = root->assets()->json("/player.config:beamGunConfig").setAll(config.toObject());
+  auto clientConfig = root->configuration();
 
-  m_terrariaPreview = config.optBool("terrariaPreview").value(true);
+  // FezzedOne: If not explicitly set in the assets, make the Terraria-style preview get its setting from xClient's config file.
+  bool terrariaPreview = false;
+  auto jTerrariaPreview = clientConfig->get("terrariaPreview");
+  if (jTerrariaPreview.isType(Json::Type::Bool))
+    terrariaPreview = jTerrariaPreview.toBool();
+
+  m_terrariaPreview = config.optBool("terrariaPreview").value(terrariaPreview);
   m_notBeamaxe = false;
   m_dropDrawables = {};
 
@@ -102,8 +110,7 @@ List<Drawable> BeamItem::nonRotatedDrawables() const {
 }
 
 float BeamItem::getAngle(float angle) {
-  if (m_beamCurve.dest().magnitudeSquared() < m_beamCurve.origin().magnitudeSquared()
-      || m_beamCurve.origin() == m_beamCurve[1])
+  if (m_beamCurve.dest().magnitudeSquared() < m_beamCurve.origin().magnitudeSquared() || m_beamCurve.origin() == m_beamCurve[1])
     return angle;
   return getAngleSide(m_beamCurve[1].angle()).first;
 }
@@ -215,12 +222,12 @@ List<Drawable> BeamItem::beamDrawables(bool canPlace) const {
           innerStripe.setSaturation(innerStripe.saturation() / m_innerBrightnessScale);
           Vec4B secondStripe = innerStripe.toRgba();
 
-          for (auto i = 1; i < (int)(curveLen * m_targetSegmentRun - .5); i++) { // one less than full length
+          for (auto i = 1; i < (int)(curveLen * m_targetSegmentRun - .5); i++) {     // one less than full length
             float pos = (float)i / (float)(int)(curveLen * m_targetSegmentRun + .5); // project the discrete steps evenly
 
             Vec2F currentLoc =
                 m_beamCurve.pointAt(pos) + Vec2F(rangeRand(m_beamJitterDev, -m_maxBeamJitter, m_maxBeamJitter),
-                                              rangeRand(m_beamJitterDev, -m_maxBeamJitter, m_maxBeamJitter));
+                                               rangeRand(m_beamJitterDev, -m_maxBeamJitter, m_maxBeamJitter));
             res.push_back(
                 Drawable::makeLine(Line2F(previousLoc, currentLoc), lineThickness, Color::rgba(mainColor), Vec2F()));
             res.push_back(Drawable::makeLine(Line2F(previousLoc, currentLoc),
@@ -282,4 +289,4 @@ List<Drawable> BeamItem::beamDrawables(bool canPlace) const {
   return res;
 }
 
-}
+} // namespace Star

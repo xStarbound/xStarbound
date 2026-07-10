@@ -22,6 +22,7 @@
 #include "StarInterfaceLuaBindings.hpp"
 #include "StarVoiceLuaBindings.hpp"
 #include <atomic>
+#include <cmath>
 
 // Include Tracy here to measure frame times.
 #if defined TRACY_ENABLE
@@ -382,10 +383,15 @@ void ClientApplication::processInput(InputEvent const& event) {
 
   int zoomOffset = 0;
 
-  if (auto presses = m_input->bindDown("xsb", "zoomIn"))
+  // FezzedOne: Made non-incremental zoom keybinds «snap» to integer zoom levels (except the minimum 0.25× zoom level).
+  if (auto presses = m_input->bindDown("xsb", "zoomIn")) {
+    config->set("zoomLevel", std::floor(config->get("zoomLevel").toFloat()));
     zoomOffset += 16;
-  if (auto presses = m_input->bindDown("xsb", "zoomOut"))
+  }
+  if (auto presses = m_input->bindDown("xsb", "zoomOut")) {
+    config->set("zoomLevel", std::ceil(config->get("zoomLevel").toFloat()));
     zoomOffset -= 16;
+  }
   if (auto presses = m_input->bindDown("xsb", "incrementalZoomIn"))
     zoomOffset += 1;
   if (auto presses = m_input->bindDown("xsb", "incrementalZoomOut"))

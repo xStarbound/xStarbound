@@ -1,9 +1,9 @@
 #include "StarItem.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
 #include "StarJsonExtra.hpp"
-#include "StarRandom.hpp"
 #include "StarLogging.hpp"
+#include "StarRandom.hpp"
+#include "StarRoot.hpp"
 #include "StarWorldLuaBindings.hpp"
 
 namespace Star {
@@ -358,10 +358,14 @@ StringMap<String> Item::collectablesOnPickup() const {
 void Item::markTaken() {}
 
 GenericItem::GenericItem(Json const& config, String const& directory, Json const& parameters)
-  : Item(config, directory, parameters), SwingableItem(config) {}
+    : Item(config, directory, parameters), SwingableItem(config) {}
 
 ItemPtr GenericItem::clone() const {
   return makeObject<GenericItem>(*this);
+}
+
+float GenericItem::getAngle(float) {
+  return -25.0f * Constants::deg2rad;
 }
 
 void GenericItem::fire(FireMode mode, bool shifting, bool edgeTriggered) {}
@@ -383,4 +387,4 @@ bool Item::itemsEqual(ItemConstPtr const& a, ItemConstPtr const& b) {
     return false;
 }
 
-}
+} // namespace Star

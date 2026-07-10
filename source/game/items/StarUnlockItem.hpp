@@ -2,9 +2,9 @@
 #define STAR_CELESTIAL_ITEM_HPP
 
 #include "StarItem.hpp"
-#include "StarWorld.hpp"
-#include "StarSwingableItem.hpp"
 #include "StarPreviewableItem.hpp"
+#include "StarSwingableItem.hpp"
+#include "StarWorld.hpp"
 
 namespace Star {
 
@@ -19,6 +19,8 @@ public:
   List<Drawable> drawables() const override;
   List<Drawable> preview(PlayerPtr const& viewer = {}) const override;
 
+  virtual float getAngle(float) override;
+
 protected:
   void fireTriggered() override;
 
@@ -30,6 +32,6 @@ private:
   List<Drawable> m_drawables;
 };
 
-}
+} // namespace Star
 
 #endif

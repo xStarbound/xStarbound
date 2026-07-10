@@ -1,15 +1,15 @@
 #include "StarCodexItem.hpp"
-#include "StarRoot.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarPlayer.hpp"
 #include "StarAssets.hpp"
 #include "StarClientContext.hpp"
 #include "StarCodex.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarPlayer.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
 CodexItem::CodexItem(Json const& config, String const& directory, Json const& data)
-  : Item(config, directory, data), SwingableItem(config) {
+    : Item(config, directory, data), SwingableItem(config) {
   setWindupTime(0.2f);
   setCooldownTime(0.5f);
   m_requireEdgeTrigger = true;
@@ -46,4 +46,8 @@ List<Drawable> CodexItem::dropDrawables() const {
   return m_worldDrawables;
 }
 
+float CodexItem::getAngle(float) {
+  return -25.0f * Constants::deg2rad;
 }
+
+} // namespace Star

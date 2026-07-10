@@ -21,6 +21,8 @@ public:
 
   virtual String pickupSound() const override;
 
+  virtual float getAngle(float) override;
+
   String currencyType();
 
   // Value of a single instance of this currency
@@ -34,6 +36,6 @@ private:
   uint64_t m_value;
 };
 
-}
+} // namespace Star
 
 #endif

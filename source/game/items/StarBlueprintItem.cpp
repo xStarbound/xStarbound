@@ -1,14 +1,14 @@
 #include "StarBlueprintItem.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarRoot.hpp"
-#include "StarPlayer.hpp"
 #include "StarAssets.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarPlayer.hpp"
 #include "StarPlayerBlueprints.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
 BlueprintItem::BlueprintItem(Json const& config, String const& directory, Json const& data)
-  : Item(config, directory, data), SwingableItem(config) {
+    : Item(config, directory, data), SwingableItem(config) {
   setWindupTime(0.2f);
   setCooldownTime(0.1f);
   setMaxStack(1);
@@ -51,4 +51,8 @@ List<Drawable> BlueprintItem::dropDrawables() const {
   return m_inHandDrawable;
 }
 
+float BlueprintItem::getAngle(float) {
+  return -25.0f * Constants::deg2rad;
 }
+
+} // namespace Star

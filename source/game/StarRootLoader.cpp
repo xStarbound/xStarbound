@@ -108,7 +108,9 @@ Json const BaseDefaultConfiguration = Json::parseJson(R"JSON(
         "pickupToActionBar" : true
       },
 
-      "inventorySpoofing" : false
+      "inventorySpoofing" : false,
+
+      "terrariaPreview" : true
     }
   )JSON");
 

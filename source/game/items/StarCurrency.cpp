@@ -49,4 +49,8 @@ uint64_t CurrencyItem::totalValue() {
   return m_value * count();
 }
 
+float CurrencyItem::getAngle(float) {
+  return -25.0f * Constants::deg2rad;
+}
+
 } // namespace Star

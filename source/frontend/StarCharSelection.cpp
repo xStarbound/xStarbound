@@ -47,11 +47,17 @@ CharSelectionPane::CharSelectionPane(PlayerStoragePtr playerStorage,
 
   guiReader.construct(root.assets()->json("/interface/windowconfig/charselection.config"), this);
 
-  if (filterCallback) {
-    fetchChild<ButtonWidget>("createCharButton")->hide();
+  auto createCharButton = fetchChild<ButtonWidget>("createCharButton");
+
+  if (m_filterCallback) {
+    createCharButton->hide();
     for (int i = 1; i <= 4; i++) {
       fetchChild<LargeCharPlateWidget>(strf("charSelector{}", i))->setNoPlayerText(root.assets()->json("/interface.config:largeCharPlate.noPlayerSwapText").toString());
     }
+  } else if (!m_playerStorage->playerUuidAt(m_downScroll + 3, m_filterCallback, m_search)) {
+    createCharButton->hide();
+  } else {
+    createCharButton->show();
   }
 }
 
@@ -111,7 +117,8 @@ void CharSelectionPane::selectCharacter(unsigned buttonIndex) {
 void CharSelectionPane::updateCharacterPlates() {
   auto updatePlayerLine = [this](String name, unsigned scrollPosition) {
     auto charSelector = fetchChild<LargeCharPlateWidget>(name);
-    if (auto playerUuid = m_playerStorage->playerUuidAt(scrollPosition, m_filterCallback, m_search)) {
+    auto playerUuid = m_playerStorage->playerUuidAt(scrollPosition, m_filterCallback, m_search);
+    if (playerUuid) {
       charSelector->setPlayer(m_playerStorage->loadPlayer(*playerUuid));
       charSelector->enableDelete([this, playerUuid](Widget*) {
         m_deleteCallback(*playerUuid);
@@ -120,6 +127,13 @@ void CharSelectionPane::updateCharacterPlates() {
     } else {
       charSelector->setPlayer(PlayerPtr());
       charSelector->disableDelete();
+    }
+    if (scrollPosition == m_downScroll + 3) {
+      auto createCharButton = fetchChild<ButtonWidget>("createCharButton");
+      if (!playerUuid)
+        createCharButton->hide();
+      else
+        createCharButton->show();
     }
   };
 

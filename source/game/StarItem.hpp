@@ -177,7 +177,8 @@ public:
   GenericItem(Json const& config, String const& directory, Json const& parameters);
   virtual ~GenericItem() {}
   virtual List<Drawable> drawables() const override;
-  virtual ItemPtr clone() const;
+  virtual ItemPtr clone() const override;
+  virtual float getAngle(float) override;
   virtual void fire(FireMode mode, bool shifting, bool edgeTriggered) override;
   virtual void fireTriggered() override;
 };

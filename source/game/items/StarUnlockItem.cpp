@@ -1,14 +1,14 @@
 #include "StarUnlockItem.hpp"
-#include "StarPlayer.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
 #include "StarClientContext.hpp"
+#include "StarPlayer.hpp"
 #include "StarPlayerBlueprints.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
 UnlockItem::UnlockItem(Json const& config, String const& directory, Json const& itemParameters)
-  : Item(config, directory, itemParameters), SwingableItem(config) {
+    : Item(config, directory, itemParameters), SwingableItem(config) {
   m_tierRecipesUnlock = instanceValue("tierRecipesUnlock").optString();
   m_shipUpgrade = instanceValue("shipUpgrade").optUInt();
   m_unlockMessage = instanceValue("unlockMessage").optString().value();
@@ -28,6 +28,10 @@ List<Drawable> UnlockItem::preview(PlayerPtr const& viewer) const {
   return iconDrawables();
 }
 
+float UnlockItem::getAngle(float) {
+  return -25.0f * Constants::deg2rad;
+}
+
 void UnlockItem::fireTriggered() {
   if (!initialized())
     throw ItemException("Item not init'd properly, or user not recognized as Tool User.");
@@ -40,7 +44,7 @@ void UnlockItem::fireTriggered() {
 
     if (auto clientContext = player->clientContext()) {
       if (m_shipUpgrade)
-        player->applyShipUpgrades(JsonObject{ {"shipLevel", *m_shipUpgrade} });
+        player->applyShipUpgrades(JsonObject{{"shipLevel", *m_shipUpgrade}});
     }
 
     if (!m_unlockMessage.empty()) {
@@ -66,4 +70,4 @@ void UnlockItem::fireTriggered() {
   }
 }
 
-}
+} // namespace Star

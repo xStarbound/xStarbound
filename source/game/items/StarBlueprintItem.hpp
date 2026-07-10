@@ -2,8 +2,8 @@
 #define STAR_BLUEPRINT_ITEM_HPP
 
 #include "StarItem.hpp"
-#include "StarWorld.hpp"
 #include "StarSwingableItem.hpp"
+#include "StarWorld.hpp"
 
 namespace Star {
 
@@ -20,6 +20,7 @@ public:
 
   virtual List<Drawable> iconDrawables() const override;
   virtual List<Drawable> dropDrawables() const override;
+  virtual float getAngle(float) override;
 
 private:
   ItemDescriptor m_recipe;
@@ -27,6 +28,6 @@ private:
   List<Drawable> m_inHandDrawable;
 };
 
-}
+} // namespace Star
 
 #endif

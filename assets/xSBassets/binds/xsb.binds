@@ -126,7 +126,7 @@
           "mods" : ["LCtrl"]
         }],
         "group": "inventory",
-        "name": "Open/close wardrobe interface"
+        "name": "Open/close wardrobe"
       }
     }
   }
