@@ -16,7 +16,7 @@ BeamItem::BeamItem(Json config) {
   auto clientConfig = root->configuration();
 
   // FezzedOne: If not explicitly set in the assets, make the Terraria-style preview get its setting from xClient's config file.
-  bool terrariaPreview = false;
+  bool terrariaPreview = true;
   auto jTerrariaPreview = clientConfig->get("terrariaPreview");
   if (jTerrariaPreview.isType(Json::Type::Bool))
     terrariaPreview = jTerrariaPreview.toBool();
