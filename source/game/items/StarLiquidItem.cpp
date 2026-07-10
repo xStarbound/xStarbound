@@ -8,7 +8,7 @@
 namespace Star {
 
 LiquidItem::LiquidItem(Json const& config, String const& directory, Json const& settings)
-    : Item(config, directory, settings), FireableItem(config), BeamItem(config) {
+    : Item(config, directory, settings), FireableItem(jsonMerge(config, settings)), BeamItem(jsonMerge(config, settings)) {
   m_liquidId = Root::singleton().liquidsDatabase()->liquidId(config.getString("liquid"));
 
   setTwoHanded(config.getBool("twoHanded", false));

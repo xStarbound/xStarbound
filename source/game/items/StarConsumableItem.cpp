@@ -7,13 +7,14 @@
 namespace Star {
 
 ConsumableItem::ConsumableItem(Json const& config, String const& directory, Json const& data)
-    : Item(config, directory, data), SwingableItem(jsonMergeNull(config, data)) {
+    : Item(config, directory, data), SwingableItem(jsonMerge(config, data)) {
   setWindupTime(0);
   setCooldownTime(0.25f);
   m_requireEdgeTrigger = true;
-  m_swingStart = config.getFloat("swingStart", -60) * Constants::pi / 180;
-  m_swingFinish = config.getFloat("swingFinish", 40) * Constants::pi / 180;
-  m_swingAimFactor = config.getFloat("swingAimFactor", 0.2f);
+  auto mergedConfig = jsonMergeNull(config, data);
+  m_swingStart = mergedConfig.getFloat("swingStart", -60) * Constants::pi / 180;
+  m_swingFinish = mergedConfig.getFloat("swingFinish", 40) * Constants::pi / 180;
+  m_swingAimFactor = mergedConfig.getFloat("swingAimFactor", 0.2f);
   m_blockingEffects = jsonToStringSet(instanceValue("blockingEffects", JsonArray()));
   if (auto foodValue = instanceValue("foodValue")) {
     m_foodValue = foodValue.toFloat();

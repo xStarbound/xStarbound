@@ -19,7 +19,7 @@ const String AltBlockRadiusPropertyKey = "building.altBlockRadius";
 const String CollisionOverridePropertyKey = "building.collisionOverride";
 
 MaterialItem::MaterialItem(Json const& config, String const& directory, Json const& settings)
-    : Item(config, directory, settings), FireableItem(config), BeamItem(config) {
+    : Item(config, directory, settings), FireableItem(jsonMerge(config, settings)), BeamItem(jsonMerge(config, settings)) {
   m_material = config.getInt("materialId");
   m_materialHueShift = materialHueFromDegrees(instanceValue("materialHueShift", 0).toFloat());
   auto materialDatabase = Root::singleton().materialDatabase();

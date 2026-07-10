@@ -11,7 +11,7 @@
 namespace Star {
 
 MiningTool::MiningTool(Json const& config, String const& directory, Json const& parameters)
-    : Item(config, directory, parameters), SwingableItem(jsonMergeNull(config, parameters)) {
+    : Item(config, directory, parameters), SwingableItem(jsonMerge(config, parameters)) {
   auto assets = Root::singleton().assets();
 
   m_image = AssetPath::relativeTo(directory, instanceValue("image").toString());
@@ -159,7 +159,7 @@ void MiningTool::changeDurability(float amount) {
 }
 
 HarvestingTool::HarvestingTool(Json const& config, String const& directory, Json const& parameters)
-    : Item(config, directory, parameters), SwingableItem(jsonMergeNull(config, parameters)) {
+    : Item(config, directory, parameters), SwingableItem(jsonMerge(config, parameters)) {
   auto assets = Root::singleton().assets();
 
   m_image = AssetPath::relativeTo(directory, instanceValue("image").toString());
@@ -261,7 +261,7 @@ List<LightSource> Flashlight::lightSources() const {
 }
 
 WireTool::WireTool(Json const& config, String const& directory, Json const& parameters)
-    : Item(config, directory, parameters), FireableItem(config), BeamItem(config.setAll(parameters.toObject())) {
+    : Item(config, directory, parameters), FireableItem(jsonMerge(config, parameters)), BeamItem(jsonMerge(config, parameters)) {
   auto assets = Root::singleton().assets();
 
   m_handPosition = jsonToVec2F(instanceValue("handPosition"));
@@ -336,7 +336,7 @@ void WireTool::setConnector(WireConnector* connector) {
 }
 
 BeamMiningTool::BeamMiningTool(Json const& config, String const& directory, Json const& parameters)
-    : Item(config, directory, parameters), FireableItem(config), BeamItem(config.setAll(parameters.toObject())) {
+    : Item(config, directory, parameters), FireableItem(jsonMerge(config, parameters)), BeamItem(jsonMerge(config, parameters)) {
   auto assets = Root::singleton().assets();
 
   m_blockRadius = instanceValue("blockRadius").toFloat();
@@ -522,7 +522,7 @@ float BeamMiningTool::getAngle(float angle) {
 }
 
 TillingTool::TillingTool(Json const& config, String const& directory, Json const& parameters)
-    : Item(config, directory, parameters), SwingableItem(jsonMergeNull(config, parameters)) {
+    : Item(config, directory, parameters), SwingableItem(jsonMerge(config, parameters)) {
   auto assets = Root::singleton().assets();
 
   m_image = AssetPath::relativeTo(directory, instanceValue("image").toString());
@@ -617,7 +617,7 @@ float TillingTool::getAngle(float aimAngle) {
 }
 
 PaintingBeamTool::PaintingBeamTool(Json const& config, String const& directory, Json const& parameters)
-    : Item(config, directory, parameters), FireableItem(config), BeamItem(config) {
+    : Item(config, directory, parameters), FireableItem(jsonMerge(config, parameters)), BeamItem(jsonMerge(config, parameters)) {
   auto assets = Root::singleton().assets();
 
   m_blockRadius = instanceValue("blockRadius").toFloat();

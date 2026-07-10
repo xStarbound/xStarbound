@@ -30,6 +30,8 @@ void SwingableItem::setParams(Json const& params) {
     m_swingIdleAngle = idleAngle.toFloat() * Constants::deg2rad;
   else if (idleAngle.isType(Json::Type::Int))
     m_swingIdleAngle = ((float)idleAngle.toInt()) * Constants::deg2rad;
+  else
+    m_swingIdleAngle = -25.0f * Constants::deg2rad;
   FireableItem::setParams(params);
 }
 

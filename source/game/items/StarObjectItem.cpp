@@ -10,7 +10,7 @@
 namespace Star {
 
 ObjectItem::ObjectItem(Json const& config, String const& directory, Json const& objectParameters)
-    : Item(config, directory, objectParameters), FireableItem(config), BeamItem(config) {
+    : Item(config, directory, objectParameters), FireableItem(jsonMerge(config, objectParameters)), BeamItem(jsonMerge(config, objectParameters)) {
   setTwoHanded(config.getBool("twoHanded", false));
 
   // Make sure that all script objects that have retainObjectParametersInItem

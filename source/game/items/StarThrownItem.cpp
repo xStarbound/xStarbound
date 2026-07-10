@@ -8,7 +8,7 @@
 namespace Star {
 
 ThrownItem::ThrownItem(Json const& config, String const& directory, Json const& itemParameters)
-    : Item(config, directory, itemParameters), SwingableItem(jsonMergeNull(config, itemParameters)) {
+    : Item(config, directory, itemParameters), SwingableItem(jsonMerge(config, itemParameters)) {
   m_projectileType = instanceValue("projectileType").toString();
   m_projectileConfig = instanceValue("projectileConfig", {});
   m_ammoUsage = instanceValue("ammoUsage", 1).toUInt();
