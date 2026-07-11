@@ -1,18 +1,24 @@
 {
   "instrumentDelta" : 5,
   "paneLayout" : {
+    "bgShine" : {
+      "type" : "image",
+      "file" : "/interface/optionsmenu/shine.png",
+      "position" : [19, 12],
+      "zlevel" : -1
+    },
     "voiceLabel" : {
       "type" : "label",
       "position" : [119, 186],
       "hAnchor" : "mid",
-      "value" : "VOICE"
+      "value" : ""
     },
     "showVoiceSettings" : {
       "type" : "button",
-      "position" : [82, 169],
-      "caption" : "Settings",
-      "base" : "/interface/optionsmenu/duocontrolsbutton.png",
-      "hover" : "/interface/optionsmenu/duocontrolsbuttonhover.png"
+      "position" : [87, 111],
+      "caption" : "Voice Chat",
+      "base" : "/interface/optionsmenu/tricontrolsbutton.png",
+      "hover" : "/interface/optionsmenu/tricontrolsbuttonhover.png"
     },
     "showKeybindings" : {
       "type" : "button",
@@ -35,26 +41,32 @@
       "base" : "/interface/optionsmenu/tricontrolsbutton.png",
       "hover" : "/interface/optionsmenu/tricontrolsbuttonhover.png"
     },
-    "sfxLabel" : {  "position" : [32, 144] },
-    "musicLabel" : { "position" : [32, 124] },
+    "volumeLabel" : {
+      "type" : "label",
+      "position" : [119, 172],
+      "hAnchor" : "mid",
+      "value" : "VOLUME"
+    },
+    "sfxLabel" : {  "position" : [32, 159] },
+    "musicLabel" : { "position" : [32, 139] },
     "instrumentLabel" : {
       "type" : "label",
-      "position" : [32, 134],
+      "position" : [32, 149],
       "value" : "Instr."
     },
-    "sfxValueLabel" : { "position" : [192, 144] },
-    "musicValueLabel" : { "position" : [192, 124] },
+    "sfxValueLabel" : { "position" : [192, 159] },
+    "musicValueLabel" : { "position" : [192, 139] },
     "instrumentValueLabel" : {
       "type" : "label",
-      "position" : [192, 134],
+      "position" : [192, 149],
       "hAnchor" : "mid",
       "value" : "Replace Me"
     },
-    "sfxSlider" : { "position" : [62, 144] },
-    "musicSlider" : { "position" : [62, 124] },
+    "sfxSlider" : { "position" : [62, 159] },
+    "musicSlider" : { "position" : [62, 139] },
     "instrumentSlider" : {
       "type" : "slider",
-      "position" : [62, 134],
+      "position" : [62, 149],
       "gridImage" : "/interface/optionsmenu/largeselection.png"
     }
   }

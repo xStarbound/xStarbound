@@ -1,12 +1,9 @@
---constants
 local PATH = "/interface/xsb/bindings/"
 local CATEGORY_LIST_WIDGET = "categories.list"
 local BINDS_WIDGET       = "binds"
 
 local fmt = string.format
 local log = function() end
-
---SNARE
 
 local snared = false
 
@@ -71,9 +68,6 @@ local function beginSnare()
   snared = true
   widget.focus("snare")
 end
-
--- BINDING
-
 
 local function alphabeticalNameSortGreater(a, b) return a.name > b.name end
 local function alphabeticalNameSortLesser(a, b)  return a.name < b.name end
@@ -224,7 +218,7 @@ local function addBindGroup(data, i, added)
     fontSize = 8,
     hAnchor = "mid",
     vAnchor = "mid",
-    position = {120, 6}
+    position = {120, 7}
   }
   widget.addChild(fmt("%s.%s", BINDS_WIDGET, name), label, "text")
 end
@@ -246,13 +240,13 @@ local function addBindSet(data, i, added)
     fontSize = 8,
     hAnchor = "mid",
     vAnchor = "mid",
-    position = {62, 6}
+    position = {62, 7}
   }
   widget.addChild(fmt("%s.%s", BINDS_WIDGET, name), label, "text")
   local button = {
     type = "button",
     callback = "applyBind",
-    position = {112, y + 2},
+    position = {112, y + 3},
     pressedOffset = {0, 0},
     base = PATH .. "bind.png",
     hover = PATH .. "bind.png?fade=fff;0.025",
@@ -265,7 +259,7 @@ local function addBindSet(data, i, added)
   local erase = {
     type = "button",
     callback = "eraseBind",
-    position = {209, y + 2},
+    position = {209, y + 3},
     pressedOffset = {0, -1},
     base = PATH .. "garbage.png",
     hover = PATH .. "garbage.png?multiply=faa",
@@ -277,7 +271,7 @@ local function addBindSet(data, i, added)
   local reset = {
     type = "button",
     callback = "resetBind",
-    position = {218, y + 2},
+    position = {218, y + 3},
     pressedOffset = {0, -1},
     base = PATH .. "reset.png",
     hover = PATH .. "reset.png?multiply=faa",
@@ -332,7 +326,7 @@ function selectCategory()
   bannerBinds:clear()
 
   local bannerName = tostring(category.bannerName or category.name or category.categoryId)
-  bannerBinds:drawText(bannerName, {position = {127, 13}, horizontalAnchor = "mid", verticalAnchor = "mid"}, 16)
+  bannerBinds:drawText("Binds for: " .. bannerName, {position = {127, 6.5}, horizontalAnchor = "mid", verticalAnchor = "mid"}, 8)
 
   local onlyUnsorted = not sortedGroups[2] and sortedGroups[1] == groups.unsorted
 

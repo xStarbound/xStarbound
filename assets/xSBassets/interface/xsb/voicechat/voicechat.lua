@@ -1,13 +1,13 @@
 --constants
 local PATH = "/interface/xsb/voicechat/"
 local DEVICE_LIST_WIDGET = "devices.list"
-local DEFAULT_DEVICE_NAME = "Use System Default"
-local NULL_DEVICE_NAME = "No Audio Device"
-local COLD_COLOR = {25, 255, 255, 225}
-local HOT_COLOR = {255, 96, 96, 225}
+local DEFAULT_DEVICE_NAME = "<system default>"
+local NULL_DEVICE_NAME = "<no device>"
+local COLD_COLOR = {140, 140, 140, 225}
+local HOT_COLOR = {140, 140, 140, 225}
 local MINIMUM_DB = -80
 local VOICE_MAX, INPUT_MAX = 1.75, 1.0
-local MID = 7.5
+local MID = 3.5
 
 local fmt = string.format
 
@@ -71,23 +71,23 @@ end
 
 local function updateVoiceButton()
 	local enabled = settings.enabled
-	widget.setText("enableVoiceToggle", enabled and "^#0f0;disable voice chat" or "^#f00;enable voice chat")
-	widget.setImage("enableVoiceToggleBack", PATH .. "bigbuttonback.png?multiply=" .. (enabled and "0f0" or "f00"))
+	widget.setText("enableVoiceLabel", enabled and "Voice chat enabled" or "^#f00;Voice chat disabled")
+	--widget.setImage("enableVoiceToggleBack", PATH .. "bigbuttonback.png?multiply=" .. (enabled and "555" or "800"))
 end
 
 local function updateVoiceModeButtons()
 	local pushToTalk = settings.inputMode:lower() == "pushtotalk"
-	widget.setImage("pushToTalkBack",    PATH .. "pushtotalkback.png?multiply=" .. (pushToTalk and "0f0" or "f00"))
-	widget.setImage("voiceActivityBack", PATH .. "activityback.png?multiply="   .. (pushToTalk and "f00" or "0f0"))
-	widget.setText("pushToTalk",    pushToTalk and "^#0f0;PUSH TO TALK" or "^#f00;PUSH TO TALK")
-	widget.setText("voiceActivity", pushToTalk and "^#f00;ACTIVITY"     or "^#0f0;ACTIVITY")
+	widget.setImage("pushToTalkBack",    PATH .. "bigbuttonback.png?multiply=" .. (pushToTalk and "0f0" or "f00"))
+	--widget.setImage("voiceActivityBack", PATH .. "bigbuttonback.png?multiply="   .. (pushToTalk and "f00" or "0f0"))
+	widget.setText("pushToTalkLabel",    pushToTalk and "Push to talk" or "Voice activated")
+	--widget.setText("voiceActivity", pushToTalk and "^#f00;VOICE ACTIVATED"     or "^#0f0;VOICE ACTIVATED")
 end
 
 local voiceCanvas, inputCanvas = nil, nil
 local function updateVolumeCanvas(canvas, volume, multiplier)
 	canvas:clear()
 	local lineEnd = 1 + volume * 195
-	local lineColor = {95, 110, 255, 225}
+	local lineColor = {140, 140, 140, 225}
 	local multiplied = volume * multiplier
 	if multiplied > 1 then
 		local level = (multiplied - 1) / (multiplier - 1)
@@ -102,8 +102,8 @@ local function updateVolumeCanvas(canvas, volume, multiplier)
 
 	canvas:drawLine({1, MID}, {lineEnd, MID}, lineColor, 60)
 	canvas:drawLine({lineEnd - 0.5, MID}, {lineEnd + 0.5, MID}, {255, 255, 255, 200}, 60)
-	local str = volume == 0 and "^#f00,shadow;MUTED" or fmt("^shadow;%s%%", math.floor(volume * multiplier * 1000) * 0.1)
-	canvas:drawText(str, {position = {92.5, MID}, horizontalAnchor = "mid", verticalAnchor = "mid"}, 16, {255, 255, 255, 255})
+	local str = volume == 0 and "^#f00,shadow;<muted>" or fmt("^shadow;%s%%", math.floor(volume * multiplier * 1000) * 0.1)
+	canvas:drawText(str, {position = {102, MID}, horizontalAnchor = "mid", verticalAnchor = "mid"}, 8, {255, 255, 255, 255})
 end
 
 local thresholdCanvas = nil
@@ -113,10 +113,10 @@ local function updateThresholdCanvas(canvas, dB)
 	local lineEnd = 1 + (1 - (dB / MINIMUM_DB)) * 195
 	local lineColor = {255, 255, 0, 127}
 	canvas:drawLine({1,  2}, {lineEnd,  2}, lineColor, scale)
-	canvas:drawLine({1, 13}, {lineEnd, 13}, lineColor, scale)
+	canvas:drawLine({1, 11}, {lineEnd, 11}, lineColor, scale)
 	lineColor[4] = 64
 	canvas:drawLine({lineEnd,  2}, {196,  2}, lineColor, scale)
-	canvas:drawLine({lineEnd, 13}, {196, 13}, lineColor, scale)
+	canvas:drawLine({lineEnd, 11}, {196, 11}, lineColor, scale)
 	canvas:drawLine({lineEnd - 0.5, MID}, {lineEnd + 0.5, MID}, {255, 255, 255, 200}, 60)
 
 	local loudness = 1 - (voice.speaker().smoothDecibels / MINIMUM_DB)
@@ -127,11 +127,15 @@ local function updateThresholdCanvas(canvas, dB)
 	end
 
 	local str = fmt("^shadow;%sdB", math.floor(dB * 10) * 0.1)
-	canvas:drawText(str, {position = {92.5, MID}, horizontalAnchor = "mid", verticalAnchor = "mid"}, 16, {255, 255, 255, 255})
+	canvas:drawText(str, {position = {98, MID + 2.5}, horizontalAnchor = "mid", verticalAnchor = "mid"}, 8, {255, 255, 255, 255})
 end
 
 function init()
 	settings = voice.getSettings()
+	--sb.logInfo("item: %s", settings.inputMode)
+	if settings.inputMode == "PushToTalk" then
+		widget.setChecked("pushToTalk", true)
+	end
 	voiceCanvas = widget.bindCanvas("voiceVolume")
 	inputCanvas = widget.bindCanvas("inputVolume")
 	thresholdCanvas = widget.bindCanvas("threshold")
@@ -213,6 +217,9 @@ function threshold(mouse, button)
 end
 
 function switchVoiceMode(mode)
+	--sb.logInfo(tostring(mode))
+	local modeCheck = widget.getChecked("pushToTalk")
+	if modeCheck == false then mode = "voiceActivity" end
 	log("switching voice mode to %s", tostring(mode))
 	local success, err = pcall(function()
 		set("inputMode", mode)
