@@ -376,6 +376,7 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
     for (uint8_t i = 0; i != 16; i++) {
       auto& item = extendedCosmeticStack[i];
       if (!item) continue;
+      if (item->hideInStockSlots() && !item->isUnderlaid()) continue;
       auto hiddenSlots = item->armorTypesToHide();
       hiddenArmourSlots.head |= hiddenSlots.head || (is<HeadArmor>(item) && !headUnderlaid);
       hiddenArmourSlots.chest |= hiddenSlots.chest || (is<ChestArmor>(item) && !chestUnderlaid);
