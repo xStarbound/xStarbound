@@ -149,20 +149,31 @@ _OpenStarbound-to-xStarbound:_ xClient renders OpenStarbound cosmetics _exactly_
 
 _xClient-to-OpenStarbound:_ Since v4.5, xClient networks its first twelve extended wardrobe slot items (all except the slots with «back» hints) to OpenStarbound clients instead of networking xStarbound overlays in the vanilla cosmetic slots.
 
-**Visual hiddenness:** A «visually hidden» item is one for which at least _one_ of the following criteria apply:
+**Visual hiddenness:** For xClient clients viewing players mastered by any client (xClient, retail or otherwise), a «visually hidden» item is one for which at least _one_ of the following criteria apply:
 
 - This item is in an armour (not cosmetic) slot, has layer visibility _disabled_ (i.e., `"layered"` is `false` or not present, and the underlay border isn't present), and the player/NPC is wearing an item in the corresponding cosmetic slot.
 - This item is in an extended cosmetic slot (in xStarbound's wardrobe or OpenStarbound's extended slots), `"hideInVanillaSlots"` is `true`, and `"layered"` is `false` or not present.
-- This item is in an armour (not cosmetic) slot, and the player/NPC is wearing another item in a cosmetic slot whose `"armourTypeToHides"` value includes the armour slot for this item.
+- This item is in an armour (not cosmetic) slot, and the player/NPC is wearing another item in a cosmetic slot (retail or extended) whose `"armourTypeToHides"` value includes the armour type (head, chest, legs or back) of this item.
 - This item has `"hideInVanillaSlots"` enabled and _either_ the wearer is using an xStarbound client _or_ the item is not in an extended (OpenStarbound) cosmetic slot.
 - The player or NPC is nude (i.e., has the `"nude"` status modifier) and the item is a non-overlay that does not have `"bypassNude"` enabled.
 - This item is acting as an xStarbound overlay on any other armour/cosmetic item to which at least _one_ of the other four criteria apply.
 
-Note that for OpenStarbound clients viewing players mastered by an xClient client, the criteria for «visually hidden» include all of the above, plus the following:
+xClient assumes that the last four xStarbound extended cosmetic slots (the four extended «back» slots in the wardrobe interface) are empty when viewing characters mastered by OpenStarbound and OpenStarbound-fork clients. xClient, OpenStarbound and OpenStarbound forks assume that all extended cosmetic slots are empty when viewing player characters mastered by retail clients.
+
+For OpenStarbound or OpenStarbound-fork clients viewing players mastered by an xClient client, the criteria for «visually hidden» include all of the above, plus the following:
 
 - This item is in an armour (not cosmetic) slot and an item is also worn in the corresponding cosmetic slot. This applies _regardless_ of xStarbound's underlay status.
-- This item is in an armour (not cosmetic) slot, there is no item worn in the corresponding cosmetic slot, and this item has _any_ visible overlays (i.e., overlays not hidden by `"hideInVanillaSlots"`).
+- This item is in an armour (not cosmetic) slot and an item of the same armour type (head, chest, legs or back) is worn in any of the first twelve extended cosmetic slots. This applies _regardless_ of xStarbound's underlay status.
 - This item is in the last four extended xStarbound cosmetic slots (i.e., the four «Cosmetic Back» slots).
 - This item is an overlay on an item in any extended xStarbound cosmetic slot.
 
-Humanoid identity overrides with `"broadcast"` enabled _don't_ abide by the additional OpenStarbound criteria if the wearer is a player on xClient. If it's visible on xClient, the overrides are visible to everyone else!
+For retail clients viewing players mastered by an xClient client, the criteria for «visually hidden» include all of the above, plus the following:
+
+- This item is in any extended cosmetic slot.
+
+Additionally, the following visibility rules apply for retail clients viewing players mastered by xClient, OpenStarbound or OpenStarbound-fork clients:
+
+- If the wearing client is xClient, any armour slot item hidden by any other item's `"armourSlotsToHide"` is always visible unless hidden by `"hideInVanillaSlots"` or by a visible item (i.e., an item with `"hideInVanillaSlots"` unset or set to `false`) in the corresponding retail armour slot.
+- If the wearing client is xClient, OpenStarbound or an OpenStarbound fork, any armour slot item hidden by any extended-cosmetic-slot item's `"armourSlotsToHide"` is always visible unless hidden by `"hideInVanillaSlots"` or by a visible item (i.e., an item with `"hideInVanillaSlots"` unset or set to `false`) in the corresponding retail armour slot.
+
+Humanoid identity overrides with `"broadcast"` enabled _don't_ abide by any additional non-xClient rules if the wearer is a player on xClient. If it's visible on xClient, the overrides are visible to everyone else, even retail clients! Similarly, if an item with broadcast identity overrides is _hidden_ on xClient, even if the item itself is visible on a non-xClient client, the overrides are hidden for everyone else.
