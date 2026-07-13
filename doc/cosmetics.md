@@ -160,7 +160,7 @@ _xClient-to-OpenStarbound:_ Since v4.5, xClient networks its first twelve extend
 
 xClient assumes that the last four xStarbound extended cosmetic slots (the four extended «back» slots in the wardrobe interface) are empty when viewing characters mastered by OpenStarbound and OpenStarbound-fork clients. xClient, OpenStarbound and OpenStarbound forks assume that all extended cosmetic slots are empty when viewing player characters mastered by retail clients.
 
-For OpenStarbound or OpenStarbound-fork clients viewing players mastered by an xClient client, the criteria for «visually hidden» include all of the above, plus the following:
+For OpenStarbound or OpenStarbound-fork clients viewing players mastered by an xClient, OpenStarbound or OpenStarbound-fork client, the criteria for «visually hidden» include all of the above, plus the following:
 
 - This item is in an armour (not cosmetic) slot and an item is also worn in the corresponding cosmetic slot. This applies _regardless_ of xStarbound's underlay status.
 - This item is in an armour (not cosmetic) slot and an item of the same armour type (head, chest, legs or back) is worn in any of the first twelve extended cosmetic slots. This applies _regardless_ of xStarbound's underlay status.
