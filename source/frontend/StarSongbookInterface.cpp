@@ -64,40 +64,51 @@ void SongbookInterface::refresh(bool reloadFiles) {
     sort(m_files, [](String const& a, String const& b) -> bool { return b.compare(a, String::CaseInsensitive) > 0; });
   }
 
-  auto& search = fetchChild<TextBoxWidget>("search")->getText();
+  String search;
+
+  if (auto searchWidget = fetchChild<TextBoxWidget>("search")) {
+    search = searchWidget->getText();
+  }
   if (m_lastSearch != search || reloadFiles) {
     m_lastSearch = search;
     auto songList = fetchChild<ListWidget>("songs.list");
-    songList->clear();
-    for (auto const& s : m_files) {
-      if (s.length() < 11) {
-        Logger::warn("Song '{}' has too short a path, ignoring", s);
-        continue;
-      }
-      StringView song = s;
-      song = song.substr(7, song.length() - 11);
+    if (songList) {
+      songList->clear();
+      for (auto const& s : m_files) {
+        if (s.length() < 11) {
+          Logger::warn("Song '{}' has too short a path, ignoring", s);
+          continue;
+        }
+        StringView song = s;
+        song = song.substr(7, song.length() - 11);
 
-      if (search.empty()) {
-        auto widget = songList->addItem();
-        widget->setData(s);
-        auto songName = widget->fetchChild<LabelWidget>("songName");
-        songName->setText(String(song));
-        widget->show();
+        if (search.empty()) {
+          auto widget = songList->addItem();
+          if (widget) {
+            widget->setData(s);
+
+            if (auto songName = widget->fetchChild<LabelWidget>("songName"))
+                songName->setText(String(song));
+            widget->show();
+          }
       } else {
         auto find = song.find(search, 0, String::CaseInsensitive);
         if (find != NPos) {
           auto widget = songList->addItem();
-          widget->setData(s);
-          String text = "";
-          size_t last = 0;
-          do {
-            text += strf("^#bbb;{}^#ff7777;{}", song.substr(last, find - last), song.substr(find, search.size()));
-            last = find + search.size();
-            find = song.find(search, last, String::CaseInsensitive);
-          } while (find != NPos);
-          auto songName = widget->fetchChild<LabelWidget>("songName");
-          songName->setText(text + strf("^#bbb;{}", song.substr(last)));
-          widget->show();
+          if(widget) {
+            widget->setData(s);
+            String text = "";
+            size_t last = 0;
+            do {
+              text += strf("^#bbb;{}^#ff7777;{}", song.substr(last, find - last), song.substr(find, search.size()));
+              last = find + search.size();
+              find = song.find(search, last, String::CaseInsensitive);
+            } while (find != NPos);
+            if (auto songName = widget->fetchChild<LabelWidget>("songName"))
+              songName->setText(text + strf("^#bbb;{}", song.substr(last)));
+            widget->show();
+            }
+          }
         }
       }
     }
