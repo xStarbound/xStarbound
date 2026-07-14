@@ -74,29 +74,29 @@ public:
   }
 
   operator bool() const {
-    return (bool)m_ptr->get();
+    return (bool)m_ptr.get();
   }
 
   ObjectType& operator*() const {
-    if (auto lockedPtr = m_ptr->get())
-      return *lockedPtr;
+    if (auto ptr = m_ptr.get())
+      return *ptr;
     throw GuiException("Dereferenced pointer to nonexistent widget");
   }
 
   ObjectType* operator->() const {
-    if (auto lockedPtr = m_ptr->get())
-      return lockedPtr;
+    if (auto ptr = m_ptr.get())
+      return ptr;
     throw GuiException("Dereferenced pointer to nonexistent widget");
   }
 
   ObjectType* get() const {
-    if (auto lockedPtr = m_ptr->get())
-      return lockedPtr;
+    if (auto ptr = m_ptr.get())
+      return ptr;
     throw GuiException("Dereferenced pointer to nonexistent widget");
   }
 
   void checkValid() const {
-    if (!m_ptr->get())
+    if (!m_ptr.get())
       throw GuiException("Dereferenced pointer to nonexistent widget");
   }
 };
