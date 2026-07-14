@@ -113,7 +113,7 @@ LuaCallbacks LuaBindings::makeWidgetCallbacks(Widget* parentWidgetPtr, GuiReader
   callbacks.registerCallback("bindCanvas", [parentWidget](String const& widgetName) -> Maybe<CanvasWidgetPtr> {
     if (parentWidget) {
       if (auto canvas = parentWidget->fetchChild<CanvasWidget>(widgetName))
-        return canvas;
+        return Maybe<CanvasWidgetPtr>(canvas.m_ptr);
     }
     return {};
   });
