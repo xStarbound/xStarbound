@@ -2,13 +2,13 @@
 #define STAR_AI_INTERFACE_HPP
 
 #include "StarAiTypes.hpp"
-#include "StarGameTimers.hpp"
-#include "StarWarping.hpp"
 #include "StarAnimation.hpp"
+#include "StarGameTimers.hpp"
 #include "StarItemDescriptor.hpp"
-#include "StarPane.hpp"
 #include "StarMainInterfaceTypes.hpp"
+#include "StarPane.hpp"
 #include "StarTechDatabase.hpp"
+#include "StarWarping.hpp"
 
 namespace Star {
 
@@ -140,6 +140,6 @@ private:
   ButtonWidgetPtr m_dismissRecruitButton;
 };
 
-}
+} // namespace Star
 
 #endif

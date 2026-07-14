@@ -23,6 +23,95 @@ enum class KeyboardCaptureMode {
 
 typedef function<void(Widget*)> WidgetCallbackFunc;
 
+// FezzedOne: Wrapper class for pointers passed into Lua binding constructors.
+// Throws instead of dereferencing when asked to dereference a null pointer.
+// Used to wrap around all `fetchChild` calls because I don't want to have to
+// rewrite them individually. This wrapper is needed because of `removeChild` and
+// `removeAllChildren` callbacks and some widgets not having `if (widget)` checks
+// in C++.
+template <typename ObjectType>
+class SafeWidgetPtr {
+public:
+  // FezzedOne: Internal shared pointer to an object.
+  std::shared_ptr<ObjectType> m_ptr;
+
+  SafeWidgetPtr(std::shared_ptr<ObjectType> objectPointer /*, size_t uniqueId */) {
+    m_ptr = objectPointer;
+  }
+
+
+  SafeWidgetPtr(ObjectType* objectPointer) {
+    m_ptr = objectPointer;
+  }
+
+  SafeWidgetPtr() : SafeWidgetPtr(std::shared_ptr<ObjectType>()) {}
+
+  SafeWidgetPtr(std::nullptr_t) : m_ptr((ObjectType*)nullptr) {}
+
+  SafeWidgetPtr(SafeWidgetPtr const& r) : SafeWidgetPtr(r.m_ptr /*, r.m_uniqueId */) {}
+
+  SafeWidgetPtr(SafeWidgetPtr&& r) {
+    m_ptr = std::move(r.m_ptr);
+    r.m_ptr = std::shared_ptr<ObjectType>();
+  }
+
+  SafeWidgetPtr& operator=(SafeWidgetPtr const& r) {
+    m_ptr = r.m_ptr;
+    return *this;
+  }
+
+  SafeWidgetPtr& operator=(SafeWidgetPtr&& r) {
+    m_ptr = std::move(r.m_ptr);
+    r.m_ptr = std::shared_ptr<ObjectType>();
+    return *this;
+  }
+
+  // Just as an extra sanity check on assignment to member variables.
+  operator std::shared_ptr<ObjectType>() const {
+    if (m_ptr.get())
+      return m_ptr;
+    throw GuiException("Dereferenced pointer to nonexistent widget");
+  }
+
+  operator bool() const {
+    return (bool)m_ptr->get();
+  }
+
+  ObjectType& operator*() const {
+    if (auto lockedPtr = m_ptr->get())
+      return *lockedPtr;
+    throw GuiException("Dereferenced pointer to nonexistent widget");
+  }
+
+  ObjectType* operator->() const {
+    if (auto lockedPtr = m_ptr->get())
+      return lockedPtr;
+    throw GuiException("Dereferenced pointer to nonexistent widget");
+  }
+
+  ObjectType* get() const {
+    if (auto lockedPtr = m_ptr->get())
+      return lockedPtr;
+    throw GuiException("Dereferenced pointer to nonexistent widget");
+  }
+
+  void checkValid() const {
+    if (!m_ptr->get())
+      throw GuiException("Dereferenced pointer to nonexistent widget");
+  }
+};
+
+// FezzedOne: Needed for dynamic casting of `SafeWidgetPtr`'s.
+template <typename Type1, typename Type2>
+SafeWidgetPtr<Type1> as(SafeWidgetPtr<Type2> const& p) {
+  return SafeWidgetPtr(dynamic_pointer_cast<Type1>(p.m_ptr));
+}
+
+template <typename Type1, typename Type2>
+SafeWidgetPtr<Type1 const> as(SafeWidgetPtr<Type2 const> const& p) {
+  return SafeWidgetPtr(dynamic_pointer_cast<Type1 const>(p.m_ptr));
+}
+
 class Widget {
 public:
   Widget();
@@ -92,18 +181,18 @@ public:
   virtual bool containsChild(String const& name);
   virtual WidgetPtr fetchChild(String const& name);
   template <typename WidgetType>
-  shared_ptr<WidgetType> fetchChild(String const& name);
+  SafeWidgetPtr<WidgetType> fetchChild(String const& name);
 
   virtual WidgetPtr findChild(String const& name);
   template <typename WidgetType>
-  shared_ptr<WidgetType> findChild(String const& name);
+  SafeWidgetPtr<WidgetType> findChild(String const& name);
 
   WidgetPtr childPtr(Widget const* widget) const;
 
   virtual size_t numChildren() const;
   virtual WidgetPtr getChildNum(size_t num) const;
   template <typename WidgetType>
-  shared_ptr<WidgetType> getChildNum(size_t num) const;
+  SafeWidgetPtr<WidgetType> getChildNum(size_t num) const;
   virtual void removeAllChildren();
 
   virtual String const& name() const;
@@ -162,18 +251,18 @@ protected:
 std::ostream& operator<<(std::ostream& os, Widget const& widget);
 
 template <typename WidgetType>
-shared_ptr<WidgetType> Widget::getChildNum(size_t num) const {
-  return as<WidgetType>(getChildNum(num));
+SafeWidgetPtr<WidgetType> Widget::getChildNum(size_t num) const {
+  return SafeWidgetPtr(as<WidgetType>(getChildNum(num)));
 }
 
 template <typename WidgetType>
-shared_ptr<WidgetType> Widget::fetchChild(String const& name) {
-  return as<WidgetType>(fetchChild(name));
+SafeWidgetPtr<WidgetType> Widget::fetchChild(String const& name) {
+  return SafeWidgetPtr(as<WidgetType>(fetchChild(name)));
 }
 
 template <typename WidgetType>
-shared_ptr<WidgetType> Widget::findChild(String const& name) {
-  return as<WidgetType>(findChild(name));
+SafeWidgetPtr<WidgetType> Widget::findChild(String const& name) {
+  return SafeWidgetPtr(as<WidgetType>(findChild(name)));
 }
 
 } // namespace Star
