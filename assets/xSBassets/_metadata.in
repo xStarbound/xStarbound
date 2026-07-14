@@ -6,7 +6,7 @@
   "requires" : ["base"],
   "scripts": {
     "onLoad": ["/scripts/xsb/onload/humansprites.pluto"],
-    "postLoad": ["/scripts/xsb/postload/titlebar.lua"]
+    "postLoad": ["/scripts/xsb/postload/titlebar.lua", "/scripts/xsb/postload/songbook_search.lua"]
   },
   "version" : "@XSB_ASSET_VERSION@"
 }
