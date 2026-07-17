@@ -112,7 +112,11 @@ CraftingPane::CraftingPane(WorldClientPtr worldClient, PlayerPtr player, Json co
   m_guiList = fetchChild<ListWidget>("scrollArea.itemList");
   m_textBox = fetchChild<TextBoxWidget>("tbSpinCount");
 
-  m_filterHaveMaterials = fetchChild<ButtonWidget>("btnFilterHaveMaterials");
+  auto filterHaveMaterials = fetchChild<ButtonWidget>("btnFilterHaveMaterials");
+  if (filterHaveMaterials)
+    m_filterHaveMaterials = filterHaveMaterials;
+  else
+    m_filterHaveMaterials = nullptr;
   if (m_filterHaveMaterials)
     m_filterHaveMaterials->setChecked(Root::singleton().configuration()->getPath("crafting.filterHaveMaterials").toBool());
 
