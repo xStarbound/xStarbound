@@ -2,7 +2,7 @@
   description = "Fork of OpenStarbound and successor to xSB-2";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
   };
 
   outputs =

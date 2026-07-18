@@ -13,7 +13,8 @@
   libopus,
   SDL2,
   glew,
-  xorg,
+  libsm,
+  libxi,
   ...
 }:
 let
@@ -83,11 +84,7 @@ let
     # the reason for why we have to do this is unknown. All other libraries gets automatically passed by
     # existing in nativeBuildInputs, but not libopus. This hack makes the build logs very noisy and it's not
     # very elegant, so if any future readers know what the issue might be, please improve this.
-    env.CXXFLAGS =
-      let
-        opusObjects = builtins.attrNames (builtins.readDir "${libopus}/lib");
-      in
-      "-Wl,-rpath ${lib.concatMapStringsSep " " (obj: "${libopus}/lib/${obj}") opusObjects}";
+    env.LDFLAGS = "-Wl,-rpath,${libopus}/lib -lopus";
 
     nativeBuildInputs = [
       cmake
@@ -99,9 +96,14 @@ let
       libopus
       SDL2
       glew
-      xorg.libSM
-      xorg.libXi
+      libsm
+      libxi
     ];
+
+    postPatch = ''
+      substituteInPlace CMakeLists.txt \
+        --replace-fail "-flto " ""
+    '';
 
     postInstall = ''
       mkdir -p "$out/bin"
