@@ -1339,3 +1339,5 @@ The `action` is case-insensitive. If `nil` or any other string is specified, or 
 Overrides the player's current render layer. If unspecified, clears this override, which defaults to any `"renderLayer"` cosmetic override present on worn cosmetics, which cascades to the retail default of `"Player"` if no such overrides are present. Logs a warning if an invalid render layer specification is passed. For valid render layer specifications, see _Entity render layers_ in `$docs/cosmetics.md`. Note that any render layer specified by an object or vehicle the player is lounging in overrides this override.
 
 The override set by this binding is reset every time the player is initialised (i.e., whenever the player is loaded into the game or warped anywhere). For persistence, consider using a player generic property or a cosmetic item with a `"renderLayer"` override.
+
+Render layer overrides (aside from lounging overrides) are only visible to clients running xStarbound v4.5.2+ or an OpenStarbound nightly build built on or after 21 July 2026.
