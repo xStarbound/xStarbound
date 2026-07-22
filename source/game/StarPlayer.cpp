@@ -238,6 +238,8 @@ Player::Player(PlayerConfigPtr config, Uuid uuid) {
   m_pulledCosmeticUpdate = false;
   m_armorSecretNetVersions = Array<uint64_t, 16>::filled(0);
 
+  m_renderLayerOverride = {};
+
   m_netGroup.setNeedsLoadCallback(bind(&Player::getNetStates, this, _1));
   m_netGroup.setNeedsStoreCallback(bind(&Player::setNetStates, this));
 }
@@ -1392,7 +1394,16 @@ void Player::render(RenderCallback* renderCallback) {
   }
 
   auto loungeAnchor = as<LoungeAnchor>(m_movementController->entityAnchor());
-  EntityRenderLayer renderLayer = loungeAnchor ? loungeAnchor->loungeRenderLayer : RenderLayerPlayer;
+  // EntityRenderLayer renderLayer = loungeAnchor ? loungeAnchor->loungeRenderLayer : RenderLayerPlayer;
+
+  // @Bottinator22: Render layer overrides.
+  // @FezzedOne: Plus support for `"renderLayer"` on cosmetics.
+  EntityRenderLayer renderLayer = m_humanoid->renderLayerOverride().value(RenderLayerPlayer);
+  if (loungeAnchor) {
+    renderLayer = loungeAnchor->loungeRenderLayer;
+  } else if (auto overrideRenderLayer = getSecretProperty("overrideRenderLayer", Json()); overrideRenderLayer.canConvert(Json::Type::Int)) {
+    renderLayer = overrideRenderLayer.toUInt();
+  }
 
   renderCallback->addDrawables(drawables(), renderLayer);
   if (!isTeleporting())
@@ -1555,6 +1566,7 @@ void Player::refreshArmor(bool fullRefresh) {
     m_armor->setExtendedCosmeticItem(i, m_inventory->cosmetic(slot));
   }
   m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters)));
+  pushRenderLayer(m_renderLayerOverride);
   m_identityUpdated = true;
 }
 
@@ -3410,6 +3422,16 @@ bool Player::pulledCosmeticUpdate() {
   bool pulledUpdate = m_pulledCosmeticUpdate;
   m_pulledCosmeticUpdate = false;
   return pulledUpdate;
+}
+
+void Player::setRenderLayer(Maybe<EntityRenderLayer> layer) {
+  m_renderLayerOverride = layer;
+  pushRenderLayer(m_renderLayerOverride);
+}
+
+void Player::pushRenderLayer(Maybe<EntityRenderLayer> layer) {
+  EntityRenderLayer renderLayerOverride = m_humanoid->renderLayerOverride().value(RenderLayerPlayer);
+  setSecretProperty("overrideRenderLayer", layer ? Json(*layer) : (renderLayerOverride == RenderLayerPlayer ? Json() : Json(renderLayerOverride)));
 }
 
 } // namespace Star

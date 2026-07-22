@@ -3,6 +3,7 @@
 
 #include "StarDataStream.hpp"
 #include "StarDrawable.hpp"
+#include "StarEntityRenderingTypes.hpp"
 #include "StarGameTypes.hpp"
 #include "StarParticle.hpp"
 
@@ -300,6 +301,8 @@ public:
 
   Json const& defaultMovementParameters() const;
 
+  Maybe<EntityRenderLayer> renderLayerOverride() const;
+
 private:
   struct HandDrawingInfo {
     List<Drawable> itemDrawables;
@@ -479,6 +482,8 @@ private:
 
   Json m_baseHumanoidConfig;
   Json m_previousOverrides;
+
+  Maybe<EntityRenderLayer> m_renderLayerOverride;
 };
 
 } // namespace Star

@@ -967,6 +967,22 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* playerPtr, bool removeChat
     }
   });
 
+  callbacks.registerCallback("setRenderLayer", [player](Maybe<String> const& layer) {
+    if (layer) {
+      Maybe<uint32_t> entityRenderLayer;
+      try {
+        entityRenderLayer = parseRenderLayer(*layer);
+      } catch (std::exception const& e) {
+        Logger::warn("[xSB] Failed to parse render layer specification '{}', ignoring.", *layer);
+      }
+      if (entityRenderLayer) {
+        player->setRenderLayer(*entityRenderLayer);
+      }
+    } else {
+      player->setRenderLayer({});
+    }
+  });
+
   return callbacks;
 }
 

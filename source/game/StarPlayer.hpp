@@ -554,6 +554,10 @@ public:
   Array<ArmorItemPtr, 16> const& getNetArmorSecrets();
   bool pulledCosmeticUpdate();
 
+  // From @Bottinator22: Set the player's render layer override.
+  void setRenderLayer(Maybe<EntityRenderLayer> layer);
+  void pushRenderLayer(Maybe<EntityRenderLayer> layer);
+
   // FezzedOne: Should avoid potential mutex contention in single-player from reading the config every tick.
   static atomic<bool> s_headRotation;
 
@@ -761,6 +765,8 @@ private:
   bool m_pulledCosmeticUpdate;
   Array<uint64_t, 16> m_armorSecretNetVersions;
   Array<ArmorItemPtr, 16> m_extendedCosmetics;
+
+  Maybe<EntityRenderLayer> m_renderLayerOverride;
 };
 
 } // namespace Star

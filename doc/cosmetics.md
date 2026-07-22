@@ -57,6 +57,7 @@ The following non-vanilla armour/cosmetic item instance values are supported by 
 - **`"bypassNude"`:** [xClient and OpenStarbound.] Optional boolean. If `true`, this item is visible even when the player is nude (i.e., has the `"nude"` status modifier). Doesn't do anything on overlays themselves, but if overlaid on an item with `"bypassEnabled"`, the overlay is also visible while nude (if it's not hidden, of course). Useful for underwear! Doesn't get networked to stock clients though.
 - **`"hideBody"`:** _[xClient and OpenStarbound. xClient wearers network to all clients.]_ Optional boolean. Toggles whether the base humanoid body is invisible when this item is worn and not visually hidden. Works on xStarbound overlays and OpenStarbound cosmetic slots. On stock clients, this setting can only be changed in the item's asset file (i.e., its `.head`, `.chest`, `.legs` or `.back` file) and the _viewing_ client's setting is what's used. On OpenStarbound and xClient, this setting is supported as an instance value, and xClient v4.1.2+, the wearer's body is hidden for _all_ viewing clients if `"hideBody"` is enabled, regardless of its asset setting, but the setting can't be disabled on an item whose asset config has it enabled this way.
 - **`"gender"`:** _[xClient only.]_ Optional string. If `"male"` or `"female"`, xClient displays that gender's sprites regardless of the player or NPC's gender; if unspecified or any other value, it does nothing and the vanilla behaviour is used. Note that without this setting, xClient always uses the armour sprites for the gender in the player or NPC's identity after overrides. Unfortunately visible only on other xClient v4.1.2+ clients, but hey, this is what directive sprites are for!
+- **`"renderLayer"`:** _[xClient only, but visible to OpenStarbound nightly clients if worn on a player entity.]_ Optional string. If present and a valid entity render string, visually overrides the player or NPC's default render layer. Itself overridden by any override passed to `player.overrideRenderLayer` (a `null` or `nil` clears this «second» override layer).
 
 [^3] Technically, the supported overlay stack size is unlimited, but xClient's UI caps it at 99.
 
@@ -98,6 +99,35 @@ xStarbound supports the following substitution tags in `"xSBdirectives"`, `"xSBf
 - **`<headOffsetX>` and `<headOffsetY>`:** The X and Y values for the player or NPC's idle head offset, respectively. Both default to `0.0` internally.
 - **`<armOffsetX>` and `<armOffsetY>`:** The X and Y values for the player or NPC's idle arm offset, respectively. Both default to `0.0` internally.
 - **`<color>`:** The player or NPC's favourite colour. Defaults to `ffffffff` (i.e., fully opaque white) internally. _Vanilla:_ The default favourite colour defined in the vanilla `$assets/player.config` is `3375edff` (a light blueish colour, `51, 117, 237, 255` in decimal).
+
+## Entity render layers
+
+Render layers are specified in either `"<renderLayerName>"` or `"<renderLayerName><offset>"` former, where `<renderLayerName>` is a valid render layer name and `<offset>`, if present, is an integer offset from that render layer, prefixed with a _mandatory_ `+` or `-` for positive or negative integers. A positive offset moves the entity frontward (i.e., «toward» the viewer) compared to the default for that layer, while a negative offset moves the entity rearward (i.e., «away» from the viewer) compared to the default for that layer. The following render layer names, from back to front, are available:
+
+- `"BackgroundOverlay"`
+- `"BackgroundTile"`
+- `"Platform"`
+- `"Plant"`
+- `"PlantDrop"`
+- `"Object"`
+- `"PreviewObject"`
+- `"BackParticle"`
+- `"Vehicle"`
+- `"Effect"`
+- `"Projectile"`
+- `"Monster"`
+- `"Npc"`
+- `"Player"`
+- `"ItemDrop"`
+- `"Liquid"`
+- `"MiddleParticle"`
+- `"ForegroundTile"`
+- `"ForegroundEntity"`
+- `"ForegroundOverlay"`
+- `"FrontParticle"`
+- `"Overlay"`
+
+While a change to a player or NPC's render layer obviously affects rendering order, it does _not_ affect how `renderer` callbacks (see `$docs/lua/renderer.md`) categorise the player — player entities are always considered player entities and NPCs are always considered NPCs. If the player is lounging in any vehicle or object, the player is always rendered on the render layer used by that vehicle or object, overriding all other overrides. If _no_ overrides are found, the default rendering layer for players is `"Player"` and the default layer for NPCs is `"Npc"`.
 
 ## Notes
 

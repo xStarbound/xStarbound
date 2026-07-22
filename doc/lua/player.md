@@ -1331,3 +1331,11 @@ Used to make the player perform various special actions, depending on the specif
 The `action` is case-insensitive. If `nil` or any other string is specified, or no parameter is specified, the callback does nothing.
 
 **Note:** If `player.controlAction("dropItem")` is called in the dropped item's script, `init` or `update` will finish running and `uninit` will run, but the item drop will not have any state saved by `item` callbacks after this callback is invoked.
+
+---
+
+#### `void` player.overrideRenderLayer(`Maybe<String>` renderLayer)
+
+Overrides the player's current render layer. If unspecified, clears this override, which defaults to any `"renderLayer"` cosmetic override present on worn cosmetics, which cascades to the retail default of `"Player"` if no such overrides are present. Logs a warning if an invalid render layer specification is passed. For valid render layer specifications, see _Entity render layers_ in `$docs/cosmetics.md`. Note that any render layer specified by an object or vehicle the player is lounging in overrides this override.
+
+The override set by this binding is reset every time the player is initialised (i.e., whenever the player is loaded into the game or warped anywhere). For persistence, consider using a player generic property or a cosmetic item with a `"renderLayer"` override.

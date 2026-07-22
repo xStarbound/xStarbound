@@ -183,19 +183,19 @@ Returns `true` if the movement controller is touching the bottom or the top (unl
 
 ---
 
-##### `void` mcontroller.setAnchorState(`EntityId` anchorableEntity, size_t anchorPosition)
+#### `void` mcontroller.setAnchorState(`EntityId` anchorableEntity, size_t anchorPosition)
 
 Anchors the movement controller to an anchorable entity at the given anchor index.
 
 ---
 
-##### `void` mcontroller.resetAnchorState()
+#### `void` mcontroller.resetAnchorState()
 
 Reset the anchor state.
 
 ---
 
-##### `EntityId`, `int` mcontroller.anchorState()
+#### `EntityId`, `int` mcontroller.anchorState()
 
 Returns ID of anchored entity and index of the anchor position.
 
@@ -255,73 +255,73 @@ Sets the rotation of the movement controller. Angle is in radians.
 
 ---
 
-##### `ActorMovementParameters` mcontroller.baseParameters()
+#### `ActorMovementParameters` mcontroller.baseParameters()
 
 Returns the base movement parameters.
 
 ---
 
-##### `bool` mcontroller.walking()
+#### `bool` mcontroller.walking()
 
 Returns whether the actor movement controller is currently walking.
 
 ---
 
-##### `bool` mcontroller.running()
+#### `bool` mcontroller.running()
 
 Returns whether the actor movement controller is currently running.
 
 ---
 
-##### `int` mcontroller.movingDirection()
+#### `int` mcontroller.movingDirection()
 
 Returns the direction that the actor movement controller is currently moving in. -1 for left, 1 for right.
 
 ---
 
-##### `int` mcontroller.facingDirection()
+#### `int` mcontroller.facingDirection()
 
 Returns the facing direction. -1 for left, 1 for right.
 
 ---
 
-##### `bool` mcontroller.crouching()
+#### `bool` mcontroller.crouching()
 
 Returns whether the controller is currently crouching.
 
 ---
 
-##### `bool` mcontroller.flying()
+#### `bool` mcontroller.flying()
 
 Returns whether the controller is currently flying.
 
 ---
 
-##### `bool` mcontroller.falling()
+#### `bool` mcontroller.falling()
 
 Returns whether the controller is currently falling.
 
 ---
 
-##### `bool` mcontroller.canJump()
+#### `bool` mcontroller.canJump()
 
 Returns whether the controller can currently jump.
 
 ---
 
-##### `bool` mcontroller.jumping()
+#### `bool` mcontroller.jumping()
 
 Returns whether the controller is currently jumping.
 
 ---
 
-##### `bool` mcontroller.groundMovement()
+#### `bool` mcontroller.groundMovement()
 
 Returns whether the controller is currently in a ground movement state. Movement controllers can be in ground movement even when onGround returns false.
 
 ---
 
-##### `bool` mcontroller.liquidMovement()
+#### `bool` mcontroller.liquidMovement()
 
 Returns whether the controller is currently in liquid movement mode.
 
@@ -335,25 +335,25 @@ Controls are either cleared before every script update, or can be set to be manu
 
 ---
 
-##### `void` mcontroller.controlRotation(`float` rotation)
+#### `void` mcontroller.controlRotation(`float` rotation)
 
 Rotates the controller. Each control adds to the previous one.
 
 ---
 
-##### `void` mcontroller.controlAcceleration(`Vec2F` acceleration)
+#### `void` mcontroller.controlAcceleration(`Vec2F` acceleration)
 
 Controls acceleration. Each control adds to the previous one.
 
 ---
 
-##### `void` mcontroller.controlForce()
+#### `void` mcontroller.controlForce()
 
 Controls force. Each control adds to the previous one.
 
 ---
 
-##### `void` mcontroller.controlApproachVelocity(`Vec2F` targetVelocity, `float` maxControlForce)
+#### `void` mcontroller.controlApproachVelocity(`Vec2F` targetVelocity, `float` maxControlForce)
 
 Approaches the targetVelocity using the force provided. If the current velocity is higher than the provided targetVelocity, the targetVelocity will still be approached, effectively slowing down the entity.
 
@@ -385,7 +385,7 @@ Each control overrides the previous one.
 
 ---
 
-##### `void` mcontroller.controlParameters(`ActorMovementParameters` parameters)
+#### `void` mcontroller.controlParameters(`ActorMovementParameters` parameters)
 
 Changes movement parameters. Parameters are merged into the base parameters.
 
@@ -393,7 +393,7 @@ Each control is merged into the previous one.
 
 ---
 
-##### `void` mcontroller.controlModifiers(`ActorMovementModifiers` modifiers)
+#### `void` mcontroller.controlModifiers(`ActorMovementModifiers` modifiers)
 
 Changes movement modifiers. Modifiers are merged into the base modifiers.
 
@@ -401,7 +401,7 @@ Each control is merged into the previous one.
 
 ---
 
-##### `void` mcontroller.controlMove(`float` direction, `bool` run)
+#### `void` mcontroller.controlMove(`float` direction, `bool` run)
 
 Controls movement in a direction.
 
@@ -409,7 +409,7 @@ Each control replaces the previous one.
 
 ---
 
-##### `void` mcontroller.controlFace(`float` direction)
+#### `void` mcontroller.controlFace(`float` direction)
 
 Controls the facing direction.
 
@@ -417,31 +417,31 @@ Each control replaces the previous one.
 
 ---
 
-##### `void` mcontroller.controlDown()
+#### `void` mcontroller.controlDown()
 
 Controls dropping through platforms.
 
 ---
 
-##### `void` mcontroller.controlCrouch()
+#### `void` mcontroller.controlCrouch()
 
 Controls crouching.
 
 ---
 
-##### `void` mcontroller.controlJump()
+#### `void` mcontroller.controlJump()
 
 Controls starting a jump. Only has an effect if canJump is true.
 
 ---
 
-##### `void` mcontroller.controlHoldJump()
+#### `void` mcontroller.controlHoldJump()
 
 Keeps holding jump. Will not trigger a new jump, and can be held in the air.
 
 ---
 
-##### `void` mcontroller.controlFly(`Vec2F` direction)
+#### `void` mcontroller.controlFly(`Vec2F` direction)
 
 Controls flying in the specified direction (or {0, 0} to stop) with the configured flightSpeed parameter.
 
@@ -449,18 +449,18 @@ Each control overrides the previous one.
 
 ---
 
-##### `bool` mcontroller.autoClearControls()
+#### `bool` mcontroller.autoClearControls()
 
 Returns whether the controller is currently set to auto clear controls before each script update.
 
 ---
 
-##### `void` mcontroller.setAutoClearControls(`bool` enabled)
+#### `void` mcontroller.setAutoClearControls(`bool` enabled)
 
 Set whether to automatically clear controls before each script update.
 
 ---
 
-##### `void` mcontroller.clearControls()
+#### `void` mcontroller.clearControls()
 
 Manually clear all controls.

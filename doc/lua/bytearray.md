@@ -12,7 +12,7 @@ These objects have the following methods available:
 
 #### `ByteArray` `[ByteArray]`:size()
 
-Returns a *copy* of this `ByteArray` object.
+Returns a _copy_ of this `ByteArray` object.
 
 #### `size_t` `[ByteArray]`:size()
 
@@ -38,13 +38,13 @@ Returns the given byte as an 8-bit unsigned integer. Indexing is `1`-based for c
 
 Will throw an error if an out-of-bounds index is used.
 
-### `ByteArray` `[ByteArray]`:set(`Variant<List<uint8_t>, ByteArray, String>` newBytes)
+#### `ByteArray` `[ByteArray]`:set(`Variant<List<uint8_t>, ByteArray, String>` newBytes)
 
 Sets the byte array to the given array of unsigned 8-bit integers, a copy of the given `ByteArray` object, or to the given Lua string of bytes. Returns the modified base `ByteArray`, which is modified in place.
 
 Note that Lua supports byte escape codes in strings, and that byte arrays do not need to terminate with a null byte (`\0`).
 
-### `ByteArray` `[ByteArray]`:setByte(`Variant<String, uint8_t>` newByte)
+#### `ByteArray` `[ByteArray]`:setByte(`Variant<String, uint8_t>` newByte)
 
 Sets the byte at the given position in the byte array to the specified byte in the form of an unsigned 8-bit integer or a Lua string. Indexing is `1`-based for consistency with Lua. Returns the modified `ByteArray`, which is modified in place.
 

@@ -479,7 +479,7 @@ void Npc::update(float dt, uint64_t) {
 }
 
 void Npc::render(RenderCallback* renderCallback) {
-  EntityRenderLayer renderLayer = RenderLayerNpc;
+  EntityRenderLayer renderLayer = m_humanoid.renderLayerOverride().value(RenderLayerNpc);
   if (auto loungeAnchor = as<LoungeAnchor>(m_movementController->entityAnchor()))
     renderLayer = loungeAnchor->loungeRenderLayer;
 

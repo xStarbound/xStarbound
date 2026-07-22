@@ -1,10 +1,10 @@
 #include "StarMovementController.hpp"
-#include "StarJsonExtra.hpp"
+#include "StarAssets.hpp"
 #include "StarDataStreamExtra.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarRandom.hpp"
 #include "StarRoot.hpp"
 #include "StarWorld.hpp"
-#include "StarAssets.hpp"
-#include "StarRandom.hpp"
 
 namespace Star {
 
@@ -81,32 +81,31 @@ MovementParameters MovementParameters::merge(MovementParameters const& rhs) cons
 
 Json MovementParameters::toJson() const {
   return JsonObject{
-    {"mass", jsonFromMaybe(mass)},
-    {"gravityMultiplier", jsonFromMaybe(gravityMultiplier)},
-    {"liquidBuoyancy", jsonFromMaybe(liquidBuoyancy)},
-    {"airBuoyancy", jsonFromMaybe(airBuoyancy)},
-    {"stopOnFirstBounce", jsonFromMaybe(stopOnFirstBounce)},
-    {"enableSurfaceSlopeCorrection", jsonFromMaybe(enableSurfaceSlopeCorrection)},
-    {"slopeSlidingFactor", jsonFromMaybe(slopeSlidingFactor)},
-    {"maxMovementPerStep", jsonFromMaybe(maxMovementPerStep)},
-    {"maximumCorrection", jsonFromMaybe(maximumCorrection)},
-    {"speedLimit", jsonFromMaybe(speedLimit)},
-    {"discontinuityThreshold", jsonFromMaybe(discontinuityThreshold)},
-    {"collisionPoly", jsonFromMaybe(collisionPoly, jsonFromPolyF)},
-    {"stickyCollision", jsonFromMaybe(stickyCollision)},
-    {"stickyForce", jsonFromMaybe(stickyForce)},
-    {"airFriction", jsonFromMaybe(airFriction)},
-    {"liquidFriction", jsonFromMaybe(liquidFriction)},
-    {"groundFriction", jsonFromMaybe(groundFriction)},
-    {"collisionEnabled", jsonFromMaybe(collisionEnabled)},
-    {"frictionEnabled", jsonFromMaybe(frictionEnabled)},
-    {"gravityEnabled", jsonFromMaybe(gravityEnabled)},
-    {"ignorePlatformCollision", jsonFromMaybe(ignorePlatformCollision)},
-    {"maximumPlatformCorrection", jsonFromMaybe(maximumPlatformCorrection)},
-    {"maximumPlatformCorrectionVelocityFactor", jsonFromMaybe(maximumPlatformCorrectionVelocityFactor)},
-    {"physicsEffectCategories", jsonFromMaybe(physicsEffectCategories, jsonFromStringSet)},
-    {"restDuration", jsonFromMaybe(restDuration)}
-  };
+      {"mass", jsonFromMaybe(mass)},
+      {"gravityMultiplier", jsonFromMaybe(gravityMultiplier)},
+      {"liquidBuoyancy", jsonFromMaybe(liquidBuoyancy)},
+      {"airBuoyancy", jsonFromMaybe(airBuoyancy)},
+      {"stopOnFirstBounce", jsonFromMaybe(stopOnFirstBounce)},
+      {"enableSurfaceSlopeCorrection", jsonFromMaybe(enableSurfaceSlopeCorrection)},
+      {"slopeSlidingFactor", jsonFromMaybe(slopeSlidingFactor)},
+      {"maxMovementPerStep", jsonFromMaybe(maxMovementPerStep)},
+      {"maximumCorrection", jsonFromMaybe(maximumCorrection)},
+      {"speedLimit", jsonFromMaybe(speedLimit)},
+      {"discontinuityThreshold", jsonFromMaybe(discontinuityThreshold)},
+      {"collisionPoly", jsonFromMaybe(collisionPoly, jsonFromPolyF)},
+      {"stickyCollision", jsonFromMaybe(stickyCollision)},
+      {"stickyForce", jsonFromMaybe(stickyForce)},
+      {"airFriction", jsonFromMaybe(airFriction)},
+      {"liquidFriction", jsonFromMaybe(liquidFriction)},
+      {"groundFriction", jsonFromMaybe(groundFriction)},
+      {"collisionEnabled", jsonFromMaybe(collisionEnabled)},
+      {"frictionEnabled", jsonFromMaybe(frictionEnabled)},
+      {"gravityEnabled", jsonFromMaybe(gravityEnabled)},
+      {"ignorePlatformCollision", jsonFromMaybe(ignorePlatformCollision)},
+      {"maximumPlatformCorrection", jsonFromMaybe(maximumPlatformCorrection)},
+      {"maximumPlatformCorrectionVelocityFactor", jsonFromMaybe(maximumPlatformCorrectionVelocityFactor)},
+      {"physicsEffectCategories", jsonFromMaybe(physicsEffectCategories, jsonFromStringSet)},
+      {"restDuration", jsonFromMaybe(restDuration)}};
 }
 
 DataStream& operator>>(DataStream& ds, MovementParameters& movementParameters) {
@@ -230,10 +229,9 @@ void MovementController::resetParameters(MovementParameters const& parameters) {
 
 Json MovementController::storeState() const {
   return JsonObject{
-    {"position", jsonFromVec2F(position())},
-    {"velocity", jsonFromVec2F(velocity())},
-    {"rotation", rotation()}
-  };
+      {"position", jsonFromVec2F(position())},
+      {"velocity", jsonFromVec2F(velocity())},
+      {"rotation", rotation()}};
 }
 
 void MovementController::loadState(Json const& state) {
@@ -553,8 +551,7 @@ void MovementController::tickMaster(float dt) {
 
       bool ignorePlatforms = *m_parameters.ignorePlatformCollision || relativeVelocity[1] > 0;
       float maximumCorrection = *m_parameters.maximumCorrection;
-      float maximumPlatformCorrection = *m_parameters.maximumPlatformCorrection
-          + *m_parameters.maximumPlatformCorrectionVelocityFactor * velocityMagnitude;
+      float maximumPlatformCorrection = *m_parameters.maximumPlatformCorrection + *m_parameters.maximumPlatformCorrectionVelocityFactor * velocityMagnitude;
       Vec2F bodyCenter = body.center();
 
       RectF queryBounds = body.boundBox().padded(maximumCorrection);
@@ -625,7 +622,10 @@ void MovementController::tickMaster(float dt) {
       }
     }
   }
-  
+
+  // @grbr404: Fixed permanently stuck collisions.
+  if (!m_colliding.get()) m_stickingDirection.set({});
+
   Vec2F newVelocity = relativeVelocity + m_surfaceVelocity;
 
   Vec2F pos = position();
@@ -647,7 +647,7 @@ void MovementController::tickMaster(float dt) {
     m_surfaceMovingCollisionPosition = {};
     m_surfaceVelocity = {};
   }
-  
+
   // In order to make control work accurately, passive forces need to be
   // applied to velocity *after* integrating.  This prevents control from
   // having to account for one timestep of passive forces in order to result
@@ -667,7 +667,9 @@ void MovementController::tickMaster(float dt) {
   // If original movement was entirely (almost) in the direction of gravity
   // and was entirely (almost) cancelled by collision correction, put the
   // entity into rest for restDuration
+  // @grbr404: Stuck entities are no longer marked as at rest until unstuck.
   if (!m_resting &&
+      !stickingDirection() &&
       abs(originalMovement[0]) < 0.0001 &&
       originalMovement[1] * gravity() <= 0.0 &&
       abs(originalMovement[1] + m_collisionCorrection[1]) < 0.0001) {
@@ -691,7 +693,7 @@ void MovementController::tickMaster(float dt) {
     float frictionFactor = clamp(friction / mass() * dt, 0.0f, 1.0f);
     newVelocity = lerp(frictionFactor, newVelocity, refVel);
   }
-  
+
   setVelocity(newVelocity);
 
   updateForceRegions(dt);
@@ -736,7 +738,7 @@ void MovementController::forEachMovingCollision(RectF const& region, function<bo
 
             if (region.intersects(polyBounds)) {
               // early exit if the callback returns false
-              if(callback({physicsEntity->entityId(), i}, *mc, poly, polyBounds) == false)
+              if (callback({physicsEntity->entityId(), i}, *mc, poly, polyBounds) == false)
                 return;
             }
           }
@@ -754,54 +756,54 @@ void MovementController::updateForceRegions(float dt) {
 
   m_appliedForceRegion = false;
   auto handleForceRegions = [&](List<PhysicsForceRegion> const& forces) {
-      for (auto const& force : forces) {
-        bool categoryCheck = force.call([myCategories = m_parameters.physicsEffectCategories.value()](auto& fr) {
-            return fr.categoryFilter.check(myCategories);
-          });
-        if (!categoryCheck)
-          continue;
+    for (auto const& force : forces) {
+      bool categoryCheck = force.call([myCategories = m_parameters.physicsEffectCategories.value()](auto& fr) {
+        return fr.categoryFilter.check(myCategories);
+      });
+      if (!categoryCheck)
+        continue;
 
-        bool boundsCheck = force.call([geometry, myBounds = collisionBoundBox()](auto& fr) {
-            return geometry.rectIntersectsRect(myBounds, fr.boundBox());
-          });
-        if (!boundsCheck)
-          continue;
+      bool boundsCheck = force.call([geometry, myBounds = collisionBoundBox()](auto& fr) {
+        return geometry.rectIntersectsRect(myBounds, fr.boundBox());
+      });
+      if (!boundsCheck)
+        continue;
 
-        m_appliedForceRegion = true;
-        if (auto directionalForceRegion = force.ptr<DirectionalForceRegion>()) {
-          float forceEffect = geometry.polyOverlapArea(directionalForceRegion->region, body) / body.convexArea();
-          if (directionalForceRegion->xTargetVelocity)
-            approachXVelocity(*directionalForceRegion->xTargetVelocity, directionalForceRegion->controlForce * forceEffect);
-          if (directionalForceRegion->yTargetVelocity)
-            approachYVelocity(*directionalForceRegion->yTargetVelocity, directionalForceRegion->controlForce * forceEffect);
+      m_appliedForceRegion = true;
+      if (auto directionalForceRegion = force.ptr<DirectionalForceRegion>()) {
+        float forceEffect = geometry.polyOverlapArea(directionalForceRegion->region, body) / body.convexArea();
+        if (directionalForceRegion->xTargetVelocity)
+          approachXVelocity(*directionalForceRegion->xTargetVelocity, directionalForceRegion->controlForce * forceEffect);
+        if (directionalForceRegion->yTargetVelocity)
+          approachYVelocity(*directionalForceRegion->yTargetVelocity, directionalForceRegion->controlForce * forceEffect);
 
-        } else if (auto radialForceRegion = force.ptr<RadialForceRegion>()) {
-          Vec2F direction = geometry.diff(pos, radialForceRegion->center);
-          float distance = vmag(direction);
-          if (distance > 0 && distance < radialForceRegion->outerRadius) {
-            float incidence = min(1.0f - (distance - radialForceRegion->innerRadius) / (radialForceRegion->outerRadius - radialForceRegion->innerRadius), distance / radialForceRegion->innerRadius);
-            if (radialForceRegion->targetRadialVelocity < 0)
-              direction = -direction;
-            approachVelocityAlongAngle(direction.angle(),
-                abs(radialForceRegion->targetRadialVelocity),
-                radialForceRegion->controlForce * incidence,
-                true);
-          }
-        } else if (auto gradientForceRegion = force.ptr<GradientForceRegion>()) {
-          float overlapFactor = geometry.polyOverlapArea(gradientForceRegion->region, body) / body.convexArea();
-
-          Vec2F gNorm = gradientForceRegion->gradient.direction();
-          Vec2F pDiff = geometry.diff(pos, gradientForceRegion->gradient.min());
-          float projected = pDiff[0] * gNorm[0] + pDiff[1] * gNorm[1];
-          float gradientFactor = 1.0 - clamp(projected / gradientForceRegion->gradient.length(), -1.0f, 1.0f);
-
-          approachVelocityAlongAngle(gradientForceRegion->gradient.angle(),
-              gradientForceRegion->baseTargetVelocity * overlapFactor * gradientFactor,
-              gradientForceRegion->baseControlForce * overlapFactor * gradientFactor,
+      } else if (auto radialForceRegion = force.ptr<RadialForceRegion>()) {
+        Vec2F direction = geometry.diff(pos, radialForceRegion->center);
+        float distance = vmag(direction);
+        if (distance > 0 && distance < radialForceRegion->outerRadius) {
+          float incidence = min(1.0f - (distance - radialForceRegion->innerRadius) / (radialForceRegion->outerRadius - radialForceRegion->innerRadius), distance / radialForceRegion->innerRadius);
+          if (radialForceRegion->targetRadialVelocity < 0)
+            direction = -direction;
+          approachVelocityAlongAngle(direction.angle(),
+              abs(radialForceRegion->targetRadialVelocity),
+              radialForceRegion->controlForce * incidence,
               true);
         }
+      } else if (auto gradientForceRegion = force.ptr<GradientForceRegion>()) {
+        float overlapFactor = geometry.polyOverlapArea(gradientForceRegion->region, body) / body.convexArea();
+
+        Vec2F gNorm = gradientForceRegion->gradient.direction();
+        Vec2F pDiff = geometry.diff(pos, gradientForceRegion->gradient.min());
+        float projected = pDiff[0] * gNorm[0] + pDiff[1] * gNorm[1];
+        float gradientFactor = 1.0 - clamp(projected / gradientForceRegion->gradient.length(), -1.0f, 1.0f);
+
+        approachVelocityAlongAngle(gradientForceRegion->gradient.angle(),
+            gradientForceRegion->baseTargetVelocity * overlapFactor * gradientFactor,
+            gradientForceRegion->baseControlForce * overlapFactor * gradientFactor,
+            true);
       }
-    };
+    }
+  };
 
   if (!m_ignoreAllPhysicsEntities) {
     for (auto& physicsEntity : world()->query<PhysicsEntity>(boundBox)) {
@@ -1014,8 +1016,8 @@ MovementController::CollisionSeparation MovementController::collisionSeparate(Li
     cp.sortDistance = vmagSquared(cp.sortPosition - sortCenter);
 
   sort(collisionPolys, [](auto const& a, auto const& b) {
-      return a.sortDistance < b.sortDistance;
-    });
+    return a.sortDistance < b.sortDistance;
+  });
 
   PolyF::IntersectResult intersectResult;
   PolyF correctedPoly = poly;
@@ -1089,8 +1091,7 @@ void MovementController::queryCollisions(RectF const& region) {
   auto newCollisionPoly = [this]() -> CollisionPoly& {
     if (!m_collisionBuffers.empty())
       return m_workingCollisions.emplaceAppend(CollisionPoly{
-          m_collisionBuffers.takeLast(), {}, {}, {}, {}, {}
-        });
+          m_collisionBuffers.takeLast(), {}, {}, {}, {}, {}});
     else
       return m_workingCollisions.emplaceAppend(CollisionPoly{});
   };
@@ -1098,23 +1099,23 @@ void MovementController::queryCollisions(RectF const& region) {
   auto geometry = world()->geometry();
 
   world()->forEachCollisionBlock(RectI::integral(region.padded(1)), [&](CollisionBlock const& block) {
-      if (block.kind != CollisionKind::None && !block.poly.isNull()) {
-        RectF polyBounds = block.polyBounds;
-        Vec2F basePosition = block.poly.vertex(0);
-        Vec2F nearTranslation = geometry.nearestTo(region.min(), basePosition) - basePosition;
-        polyBounds.translate(nearTranslation);
+    if (block.kind != CollisionKind::None && !block.poly.isNull()) {
+      RectF polyBounds = block.polyBounds;
+      Vec2F basePosition = block.poly.vertex(0);
+      Vec2F nearTranslation = geometry.nearestTo(region.min(), basePosition) - basePosition;
+      polyBounds.translate(nearTranslation);
 
-        if (region.intersects(polyBounds)) {
-          CollisionPoly& collisionPoly = newCollisionPoly();
-          collisionPoly.poly = block.poly;
-          collisionPoly.poly.translate(nearTranslation);
-          collisionPoly.polyBounds = polyBounds;
-          collisionPoly.sortPosition = centerOfTile(block.space);
-          collisionPoly.movingCollisionId = {};
-          collisionPoly.collisionKind = block.kind;
-        }
+      if (region.intersects(polyBounds)) {
+        CollisionPoly& collisionPoly = newCollisionPoly();
+        collisionPoly.poly = block.poly;
+        collisionPoly.poly.translate(nearTranslation);
+        collisionPoly.polyBounds = polyBounds;
+        collisionPoly.sortPosition = centerOfTile(block.space);
+        collisionPoly.movingCollisionId = {};
+        collisionPoly.collisionKind = block.kind;
       }
-    });
+    }
+  });
 
   forEachMovingCollision(region, [&](MovingCollisionId id, PhysicsMovingCollision mc, PolyF poly, RectF bounds) {
     CollisionPoly& collisionPoly = newCollisionPoly();
@@ -1132,4 +1133,4 @@ float MovementController::gravity() {
   return world()->gravity(position()) * *m_parameters.gravityMultiplier * (1.0f - buoyancy);
 }
 
-}
+} // namespace Star
