@@ -162,7 +162,6 @@ The following mods have special functionality that requires or is supported by x
 - [One-For-All Compact and Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3427751671), [One-For-All Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3435109352) and [One-For-All Compact Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3457819726) — fully supported by xStarbound.
 - [OpenStarbound WEdit](https://github.com/Mofurka/OpenStarbound-WEdit) — this WEdit fork requires OpenStarbound or xStarbound; it doesn't support xStarbound's mid-air tile placement.
 - [Pan Dimensional Vending](https://steamcommunity.com/sharedfiles/filedetails/?id=3464213838&searchtext=) — fully supported by xStarbound.
-- [Persona Roleplay Suite](https://steamcommunity.com/sharedfiles/filedetails/?id=3602045663) ([GitLab](https://gitlab.ysrv.de/fluffybound/persona)) — requires xStarbound v4.5.2+ or any OpenStarbound nightly built on or after 21 July 2026 for full functionality. xSBCompat (see below) adds a patch to fix annoyances with xStarbound's multi-player-character feature and a FezzedTech compatibility issue, so install FezzedTech if you use `/add` or `/remove` regularly or have FezzedTech installed for custom items.
 - [Phantasy Starbound Title](https://steamcommunity.com/sharedfiles/filedetails/?id=3475986947) — OpenStarbound title screen replacement mod that should be supported by xStarbound; report any visual issues.
 - [Planet Search](https://steamcommunity.com/sharedfiles/filedetails/?id=3269792617) — fully supported by xStarbound.
 - [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — all OpenStarbound-compatible commands are supported by xStarbound as of v3.1.6.
@@ -219,6 +218,7 @@ The following «[oSB]»- or «[OpenStarbound]»-tagged mods do not actually requ
 The following mods work on xStarbound, but require xSBCompat to unlock «OpenStarbound»-tagged functionality:
 
 - [Show Item Names!](https://steamcommunity.com/sharedfiles/filedetails/?id=2283501469) — xStarbound supports the needed functionality, but a patch is required to emulate OpenStarbound's `root.assetSourcePaths` and bypass an OpenStarbound check.
+- [Persona Roleplay Suite](https://steamcommunity.com/sharedfiles/filedetails/?id=3602045663) ([GitLab](https://gitlab.ysrv.de/fluffybound/persona)) — requires xStarbound v4.5.2+ or any OpenStarbound nightly built on or after 21 July 2026 for full functionality (particularly player render layer support). On xStarbound, xSBCompat is required to translate some oSBisms (`input.getTag` and `player.effectsAnimator`) to xStarbound equivalents, fix compatibility issues with xStarbound's multi-player-character feature (`/add`, `/remove`, xPlayer, etc.) and resolve a FezzedTech compatibility issue that can override poses and rotations.
 
 The following OpenStarbound mods require xSBCompat to bypass unnecessary OpenStarbound checks:
 
