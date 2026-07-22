@@ -975,223 +975,179 @@ end)
 
 ::skipBookstorePatch::
 
-if not "Lonaasan's Persona" in loadedMods then goto skipPersonaPatch end
-modName = "persona"
+if not "persona" in loadedMods then goto skipPersonaPatch end
+modName = "Lonaasan's Persona"
 
 --- Compatibility patch for Lonaasan's Persona ---
 -- Needed for Persona to correctly handle xStarbound's multi-player-entity feature without duplicate rendering, inputs erroneously going to secondary characters, etc.
 -- This patch also adds FezzedTech compatibility so that FezzedTech doesn't mess up rotations or persistent player states.
 xpcall(|| -> do
     local smugglingHandlerScript = [==[
---- xStarbound smuggling handler for Persona ---
---- $persona/persona/xsb/smuggling.lua ---
+        --- xStarbound smuggling handler for Persona ---
+        --- $persona/persona/xsb/smuggling.lua ---
 
--- FezzedOne: Must be required *inside* `init` to work properly!
+        -- FezzedOne: Must be required *inside* `init` to work properly!
 
-function jsonPack(...)
-    local packedArgs = table.pack(...)
-    local argNum = packedArgs.n
-    packedArgs.n = nil
-    if argNum > 0 then
-        local result = jarray(packedArgs)
-        for i = 1, argNum do
-            if packedArgs[i] == nil then result[i] = null end
+        PersonaBinds = root.assetJson("/persona/binds/persona.binds")
+
+        function jsonPack(...)
+            local packedArgs = table.pack(...)
+            local argNum = packedArgs.n
+            packedArgs.n = nil
+            if argNum > 0 then
+                local result = jarray(packedArgs)
+                for i = 1, argNum do
+                    if packedArgs[i] == nil then result[i] = null end
+                end
+                return result
+            else
+                return jarray()
+            end
         end
-        return result
-    else
-        return jarray()
-    end
-end
 
-function jsonUnpack(argArr, i)
-    i = i or 1
-    local argNum = jsize(argArr)
-    if i <= argNum then return argArr[i], jsonUnpack(argArr, i + 1) end
-end
-
-if xsb then
-    if localAnimator then
-        message.setHandler("LonasaanPersona::LocalAnimator::callBinding", function(_, isLocal, bindingRef, args)
-            if isLocal and type(bindingRef) == "string" and type(args) == "table" then
-                local success, result = pcall(
-                    function() return jsonPack(localAnimator[bindingRef](jsonUnpack(args))) end
-                )
-                if success then
-                    return result
-                else
-                    sb.logError(
-                        "[Lonasaan::Persona] Error thrown while attempting to invoke tech script function 'localAnimator.%s': %s",
-                        bindingRef,
-                        result
-                    )
-                    return jarray({})
-                end
-            else
-                return jarray({})
-            end
-        end)
-    end
-    if tech then
-        message.setHandler("LonasaanPersona::Tech::callBinding", function(_, isLocal, bindingRef, args)
-            if isLocal and type(bindingRef) == "string" and type(args) == "table" then
-                local success, result = pcall(function() return jsonPack(tech[bindingRef](jsonUnpack(args))) end)
-                if success then
-                    return result
-                else
-                    sb.logError(
-                        "[Lonasaan::Persona] Error thrown while attempting to invoke tech script function 'tech.%s': %s",
-                        bindingRef,
-                        result
-                    )
-                    return jarray({})
-                end
-            else
-                return jarray({})
-            end
-        end)
-    end
-
-    -- FezzedOne: The actual metatable magic used to emulate OpenStarbound smuggling behaviour.
-    local localAnimatorMetatable = {
---- xStarbound smuggling handler for Persona ---
---- $persona/persona/xsb/smuggling.lua ---
-
--- FezzedOne: Must be required *inside* `init` to work properly!
-
-function jsonPack(...)
-    local packedArgs = table.pack(...)
-    local argNum = packedArgs.n
-    packedArgs.n = nil
-    if argNum > 0 then
-        local result = jarray(packedArgs)
-        for i = 1, argNum do
-            if packedArgs[i] == nil then result[i] = null end
+        function jsonUnpack(argArr, i)
+            i = i or 1
+            local argNum = jsize(argArr)
+            if i <= argNum then return argArr[i], jsonUnpack(argArr, i + 1) end
         end
-        return result
-    else
-        return jarray()
-    end
-end
 
-function jsonUnpack(argArr, i)
-    i = i or 1
-    local argNum = jsize(argArr)
-    if i <= argNum then return argArr[i], jsonUnpack(argArr, i + 1) end
-end
-
-if xsb then
-    if localAnimator then
-        message.setHandler("LonasaanPersona::LocalAnimator::callBinding", function(_, isLocal, bindingRef, args)
-            if isLocal and type(bindingRef) == "string" and type(args) == "table" then
-                local success, result = pcall(
-                    function() return jsonPack(localAnimator[bindingRef](jsonUnpack(args))) end
-                )
-                if success then
-                    return result
-                else
-                    sb.logError(
-                        "[Lonasaan::Persona] Error thrown while attempting to invoke tech script function 'localAnimator.%s': %s",
-                        bindingRef,
-                        result
-                    )
-                    return jarray({})
-                end
-            else
-                return jarray({})
+        if xsb then
+            if localAnimator then
+                message.setHandler("LonasaanPersona::LocalAnimator::callBinding", function(_, isLocal, bindingRef, args)
+                    if isLocal and type(bindingRef) == "string" and type(args) == "table" then
+                        local success, result = pcall(
+                            function() return jsonPack(localAnimator[bindingRef](jsonUnpack(args))) end
+                        )
+                        if success then
+                            return result
+                        else
+                            sb.logError(
+                                "[Lonasaan::Persona] Error thrown while attempting to invoke tech script function 'localAnimator.%s': %s",
+                                bindingRef,
+                                result
+                            )
+                            return jarray({})
+                        end
+                    else
+                        return jarray({})
+                    end
+                end)
             end
-        end)
-    end
-    if tech then
-        message.setHandler("LonasaanPersona::Tech::callBinding", function(_, isLocal, bindingRef, args)
-            if isLocal and type(bindingRef) == "string" and type(args) == "table" then
-                local success, result = pcall(function() return jsonPack(tech[bindingRef](jsonUnpack(args))) end)
-                if success then
-                    return result
-                else
-                    sb.logError(
-                        "[Lonasaan::Persona] Error thrown while attempting to invoke tech script function 'tech.%s': %s",
-                        bindingRef,
-                        result
-                    )
-                    return jarray({})
-                end
-            else
-                return jarray({})
+            if tech then
+                message.setHandler("LonasaanPersona::Tech::callBinding", function(_, isLocal, bindingRef, args)
+                    if isLocal and type(bindingRef) == "string" and type(args) == "table" then
+                        local success, result = pcall(function() return jsonPack(tech[bindingRef](jsonUnpack(args))) end)
+                        if success then
+                            return result
+                        else
+                            sb.logError(
+                                "[Lonasaan::Persona] Error thrown while attempting to invoke tech script function 'tech.%s': %s",
+                                bindingRef,
+                                result
+                            )
+                            return jarray({})
+                        end
+                    else
+                        return jarray({})
+                    end
+                end)
             end
-        end)
-    end
-
-    -- FezzedOne: The actual metatable magic used to emulate OpenStarbound smuggling behaviour.
-    local localAnimatorMetatable = {
-        __newindex = function(_, _, _) end,
-        __index = function(_, key)
-            local callbackKey = key
-            if world.mainPlayer() ~= entity.id() then
-                -- Needed to make sure local animator drawables are rendered correctly when controlling multiple players on xClient.
-                return function(...) return nil end
-            else
-                return function(...)
-                    local result = world
-                        .sendEntityMessage(world.mainPlayer(), "LonasaanPersona::LocalAnimator::callBinding", callbackKey, jsonPack(...))
-                        :result()
-                    if result then return jsonUnpack(result) end
+            if input then
+                input.getTag = function(tagName)
+                    local numPresses = 0
+                    for categoryName, category in pairs(PersonaBinds or {}) do
+                        if type(category) == "table" and type(category.binds) == "table" then
+                            for bindName, bindConfig in pairs(category.binds) do
+                                if type(bindConfig) == "table" and type(bindConfig.tags) == "table" then
+                                    for bindConfig.tags as tag do
+                                        if tagName == tag then
+                                            numPresses += input.bind(categoryName, bindName) and 1 or 0
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    return numPresses
                 end
             end
-        end,
-    }
 
-    local localAnimatorTable = {}
-    setmetatable(localAnimatorTable, localAnimatorMetatable)
-    os.__localAnimator = localAnimatorTable
-
-    local techMetatable = {
-        __newindex = function(_, _, _) end,
-        __index = function(_, key)
-            local callbackKey = key
-            return function(...)
-                local result = world
-                    .sendEntityMessage(
-                        entity and entity.id() or world.mainPlayer(),
-                        "LonasaanPersona::Tech::callBinding",
-                        callbackKey,
-                        jsonPack(...)
-                    )
-                    :result()
-                if result then return jsonUnpack(result) end
+            -- FezzedOne: Because OpenStarbound insists on having a `player` binding that returns these bindings for no good reason.
+            if player then
+                player.effectsAnimator = function() return playerAnimator end
             end
-        end,
-    }
 
-    local techTable = {}
-    setmetatable(techTable, techMetatable)
-    os.__tech = techTable
+            -- FezzedOne: The actual metatable magic used to emulate OpenStarbound smuggling behaviour. Now only needed because of `/add` and `/remove`.
+            local localAnimatorMetatable = {
+                __newindex = function(_, _, _) end,
+                __index = function(_, key)
+                    local callbackKey = key
+                    if world.mainPlayer() ~= entity.id() then
+                        -- Needed to make sure local animator drawables are rendered correctly when controlling multiple players on xClient.
+                        return function(...) return nil end
+                    else
+                        return function(...)
+                            local result = world
+                                .sendEntityMessage(world.mainPlayer(), "LonasaanPersona::LocalAnimator::callBinding", callbackKey, jsonPack(...))
+                                :result()
+                            if result then return jsonUnpack(result) end
+                        end
+                    end
+                end,
+            }
 
-    -- FezzedOne: Because on xSB, `entity` is available in the context where the smuggled entity bindings are used.
-    os.__entity = entity
+            local localAnimatorTable = {}
+            setmetatable(localAnimatorTable, localAnimatorMetatable)
+            os.__localAnimator = localAnimatorTable
 
-    -- FezzedOne: Ensures `input` calls are passed only to the main player on xClient.
-    for bindingName, binding in pairs(input) do
-        local name = bindingName
-        local bindingToUse = binding
-        if not input["raw_" .. name] then
-            input["raw_" .. name] = bindingToUse
-            input[name] = function(...)
-                if world.mainPlayer() == entity.id() then
-                    return input["raw_" .. name](...)
-                else
-                    return nil
+            local techMetatable = {
+                __newindex = function(_, _, _) end,
+                __index = function(_, key)
+                    local callbackKey = key
+                    return function(...)
+                        local result = world
+                            .sendEntityMessage(
+                                entity and entity.id() or world.mainPlayer(),
+                                "LonasaanPersona::Tech::callBinding",
+                                callbackKey,
+                                jsonPack(...)
+                            )
+                            :result()
+                        if result then return jsonUnpack(result) end
+                    end
+                end,
+            }
+
+            local techTable = {}
+            setmetatable(techTable, techMetatable)
+            os.__tech = techTable
+
+            -- FezzedOne: Because on xSB, `entity` is available in the context where the smuggled entity bindings are used.
+            os.__entity = entity
+
+            -- FezzedOne: Ensures `input` calls are passed only to the main player on xClient.
+            for bindingName, binding in pairs(input) do
+                local name = bindingName
+                local bindingToUse = binding
+                if not input["raw_" .. name] then
+                    input["raw_" .. name] = bindingToUse
+                    input[name] = function(...)
+                        if world.mainPlayer() == entity.id() then
+                            return input["raw_" .. name](...)
+                        else
+                            return nil
+                        end
+                    end
                 end
             end
         end
-    end
-end
     ]==]
     assets.add("/persona/xsb/smuggling.lua", smugglingHandlerScript)
 
     local personaScriptPaths = {
         "/persona/core/deployment.lua",
-        "/persona/core/generic.lua",
-        "/persona/core/tech.lua",
+        "/persona/tech/tech.lua",
+        "/interface/persona/scrollLock/scrollLock.lua"
     }
     for personaScriptPaths as scriptPath do
         local personaScript = assets.bytes(scriptPath)
@@ -1213,6 +1169,13 @@ end
     local personaGenericScript = assets.bytes(personaGenericScriptPath)
     local personaGenericScriptPatch = [==[
     ---<< END OF ORIGINAL PERSONA SCRIPT >>---
+
+    local base_persona_init = init
+    function init(...)
+        require "/persona/xsb/smuggling.lua"
+        base_persona_init(...)
+    end
+
     local base_persona_update = update
     function update(...)
         base_persona_update(...)
@@ -1241,7 +1204,6 @@ end
     end
     ]==]
     assets.add(personaRotateScriptPath, personaRotateScript .. personaRotateScriptPatch)
-end
 
     logInfo(modName)
 end, |e| -> do
