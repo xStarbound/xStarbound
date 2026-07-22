@@ -2679,4 +2679,8 @@ Json const& Humanoid::defaultMovementParameters() const {
   return m_defaultMovementParameters;
 }
 
+Maybe<EntityRenderLayer> Humanoid::renderLayerOverride() const {
+  return m_renderLayerOverride;
+}
+
 } // namespace Star
