@@ -2461,15 +2461,6 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
     newIdentity.imagePath = speciesToCheck;
     setIdentity(m_identity, newIdentity);
     baseConfig = Root::singleton().speciesDatabase()->species(speciesToUse)->humanoidConfig();
-    if (Json jRenderLayer = jIdentityOverrides.query("renderLayer", Json()); jRenderLayer.isType(Json::Type::String)) {
-      try {
-        m_renderLayerOverride = parseRenderLayer(jRenderLayer.toString());
-      } catch (std::exception const& e) {
-        Logger::warn("[xSB] Failed to parse render layer specification '{}', ignoring.", jRenderLayer.toString());
-      }
-    } else {
-      m_renderLayerOverride = {};
-    }
   } else {
     setIdentity(m_identity);
     m_broadcastToStock = m_bodyHidden;
@@ -2529,6 +2520,16 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
   m_particleEmitters = jParticleEmitters.isType(Json::Type::Object) ? jParticleEmitters : JsonObject{};
 
   m_defaultMovementParameters = config.get("movementParameters");
+
+  if (Json jRenderLayer = config.get("renderLayer", Json()); jRenderLayer.isType(Json::Type::String)) {
+    try {
+      m_renderLayerOverride = parseRenderLayer(jRenderLayer.toString());
+    } catch (std::exception const& e) {
+      Logger::warn("[xSB] Failed to parse render layer specification '{}', ignoring.", jRenderLayer.toString());
+    }
+  } else {
+    m_renderLayerOverride = {};
+  }
 }
 
 int Humanoid::getEmoteStateSequence() const {
