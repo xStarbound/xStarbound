@@ -1,10 +1,10 @@
 #ifndef STAR_PARALLAX_HPP
 #define STAR_PARALLAX_HPP
 
-#include "StarMaybe.hpp"
 #include "StarColor.hpp"
-#include "StarPlantDatabase.hpp"
 #include "StarDirectives.hpp"
+#include "StarMaybe.hpp"
+#include "StarPlantDatabase.hpp"
 
 namespace Star {
 
@@ -21,7 +21,7 @@ struct ParallaxLayer {
   void fadeToSkyColor(Color skyColor);
 
   List<String> textures;
-  Directives directives;
+  DirectivesGroup directives;
   float alpha;
   Vec2F parallaxValue;
   Vec2B repeat;
@@ -70,6 +70,6 @@ private:
   ParallaxLayers m_layers;
 };
 
-}
+} // namespace Star
 
 #endif

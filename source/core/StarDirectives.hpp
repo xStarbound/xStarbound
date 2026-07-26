@@ -1,9 +1,9 @@
 #ifndef STAR_DIRECTIVES_HPP
 #define STAR_DIRECTIVES_HPP
 
-#include "StarImageProcessing.hpp"
-#include "StarHash.hpp"
 #include "StarDataStream.hpp"
+#include "StarHash.hpp"
+#include "StarImageProcessing.hpp"
 #include "StarStringView.hpp"
 #include "StarThread.hpp"
 
@@ -85,6 +85,7 @@ public:
   void clear();
 
   DirectivesGroup& operator+=(Directives const& other);
+  DirectivesGroup& operator+=(DirectivesGroup const& other);
 
   String toString() const;
   void addToString(String& string) const;
@@ -97,7 +98,7 @@ public:
 
   Image applyNewImage(const Image& image) const;
   void applyExistingImage(Image& image) const;
-  
+
   size_t hash() const;
   const List<Directives>& list() const;
 
@@ -106,6 +107,7 @@ public:
 
   friend DataStream& operator>>(DataStream& ds, DirectivesGroup& directives);
   friend DataStream& operator<<(DataStream& ds, DirectivesGroup const& directives);
+
 private:
   void buildString(String& string, const DirectivesGroup& directives) const;
 
@@ -121,6 +123,6 @@ struct hash<DirectivesGroup> {
 
 typedef DirectivesGroup ImageDirectives;
 
-}
+} // namespace Star
 
 #endif

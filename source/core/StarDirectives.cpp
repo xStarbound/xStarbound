@@ -291,6 +291,12 @@ DirectivesGroup& DirectivesGroup::operator+=(Directives const& other) {
   return *this;
 }
 
+DirectivesGroup& DirectivesGroup::operator+=(DirectivesGroup const& other) {
+  for (auto const& otherDirectives : other.m_directives)
+    append(otherDirectives);
+  return *this;
+}
+
 String DirectivesGroup::toString() const {
   String string;
   addToString(string);

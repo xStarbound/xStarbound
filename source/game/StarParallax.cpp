@@ -1,11 +1,11 @@
 #include "StarParallax.hpp"
-#include "StarLexicalCast.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarRoot.hpp"
-#include "StarImageMetadataDatabase.hpp"
-#include "StarRandom.hpp"
 #include "StarAssets.hpp"
 #include "StarDataStreamExtra.hpp"
+#include "StarImageMetadataDatabase.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarLexicalCast.hpp"
+#include "StarRandom.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -17,7 +17,7 @@ ParallaxLayer::ParallaxLayer() {
   unlit = false;
   lightMapped = false;
   fadePercent = 0;
-  directives = "";
+  directives = DirectivesGroup();
   alpha = 1.0f;
 }
 
@@ -32,7 +32,7 @@ ParallaxLayer::ParallaxLayer(Json const& store) : ParallaxLayer() {
   zLevel = store.getFloat("zLevel");
   parallaxOffset = jsonToVec2F(store.get("parallaxOffset"));
   timeOfDayCorrelation = store.getString("timeOfDayCorrelation");
-  speed = { store.getFloat("speed"), store.getFloat("speedY", 0.0f) };
+  speed = {store.getFloat("speed"), store.getFloat("speedY", 0.0f)};
   unlit = store.getBool("unlit");
   lightMapped = store.getBool("lightMapped");
   fadePercent = store.getFloat("fadePercent");
@@ -41,7 +41,7 @@ ParallaxLayer::ParallaxLayer(Json const& store) : ParallaxLayer() {
 Json ParallaxLayer::store() const {
   return JsonObject{
       {"textures", jsonFromStringList(textures)},
-      {"directives", directives.string()},
+      {"directives", directives.toString()},
       {"parallaxValue", jsonFromVec2F(parallaxValue)},
       {"repeat", jsonFromVec2B(repeat)},
       {"tileLimitTop", jsonFromMaybe(tileLimitTop)},
@@ -50,7 +50,7 @@ Json ParallaxLayer::store() const {
       {"zLevel", zLevel},
       {"parallaxOffset", jsonFromVec2F(parallaxOffset)},
       {"timeOfDayCorrelation", timeOfDayCorrelation},
-      {"speed",  speed[0]},
+      {"speed", speed[0]},
       {"speedY", speed[1]},
       {"unlit", unlit},
       {"lightMapped", lightMapped},
@@ -59,18 +59,7 @@ Json ParallaxLayer::store() const {
 
 void ParallaxLayer::addImageDirectives(Directives const& newDirectives) {
   if (newDirectives) { // TODO: Move to Directives +=
-    if (directives) {
-      String newString;
-
-      for (auto const& entry : newDirectives.shared->entries) {
-        newString += "+";
-        newString += entry.string(*newDirectives.shared);
-      }
-
-      directives = std::move(newString);
-    }
-    else
-      directives = newDirectives;
+    directives += newDirectives;
   }
 }
 
@@ -228,19 +217,19 @@ void Parallax::buildLayer(Json const& layerSettings, String const& kind) {
 
   layer.verticalOrigin = m_verticalOrigin;
   layer.zLevel = layer.parallaxValue.sum();
-  auto offset = layerSettings.getArray("offset", { 0, 0 });
-  layer.parallaxOffset = { offset[0].toFloat(), offset[1].toFloat() }; // Vertical parallex. Added by Kae.
+  auto offset = layerSettings.getArray("offset", {0, 0});
+  layer.parallaxOffset = {offset[0].toFloat(), offset[1].toFloat()}; // Vertical parallex. Added by Kae.
   if (!layerSettings.getBool("noRandomOffset", false))
     layer.parallaxOffset[0] += rnd.randInt(imgMetadata->imageSize(layer.textures[0])[0]);
   layer.timeOfDayCorrelation = layerSettings.getString("timeOfDayCorrelation", "");
   auto minSpeed = layerSettings.get("minSpeed", 0.0f);
   auto maxSpeed = layerSettings.get("maxSpeed", 0.0f);
   if (!minSpeed.isType(Json::Type::Array))
-    minSpeed = JsonArray{ minSpeed, 0.0f };
+    minSpeed = JsonArray{minSpeed, 0.0f};
   if (!maxSpeed.isType(Json::Type::Array))
-    maxSpeed = JsonArray{ maxSpeed, 0.0f };
-  layer.speed = { rnd.randf(minSpeed.getFloat(0), maxSpeed.getFloat(0)),
-                  rnd.randf(minSpeed.getFloat(1), maxSpeed.getFloat(1)) };
+    maxSpeed = JsonArray{maxSpeed, 0.0f};
+  layer.speed = {rnd.randf(minSpeed.getFloat(0), maxSpeed.getFloat(0)),
+      rnd.randf(minSpeed.getFloat(1), maxSpeed.getFloat(1))};
   layer.unlit = layerSettings.getBool("unlit", false);
   layer.lightMapped = layerSettings.getBool("lightMapped", false);
 
@@ -257,4 +246,4 @@ void Parallax::buildLayer(Json const& layerSettings, String const& kind) {
   m_layers.append(layer);
 }
 
-}
+} // namespace Star
