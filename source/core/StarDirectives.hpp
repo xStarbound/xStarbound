@@ -85,7 +85,8 @@ public:
   void clear();
 
   DirectivesGroup& operator+=(Directives const& other);
-  DirectivesGroup& operator+=(DirectivesGroup const& other);
+  // FezzedOne: Slightly weird to use this operator, but it looks like `<<` without clobbering `<<` or `+=`.
+  DirectivesGroup& operator<<=(DirectivesGroup const& other);
 
   String toString() const;
   void addToString(String& string) const;
