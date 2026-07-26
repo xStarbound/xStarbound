@@ -65,7 +65,7 @@ void ParallaxLayer::addImageDirectives(Directives const& newDirectives) {
 
 void ParallaxLayer::fadeToSkyColor(Color skyColor) {
   if (fadePercent > 0) {
-    String fade = "fade=" + skyColor.toHex().slice(0, 6) + "=" + toString(fadePercent);
+    String fade = "?fade=" + skyColor.toHex().slice(0, 6) + "=" + toString(fadePercent);
     addImageDirectives(fade);
   }
 }
