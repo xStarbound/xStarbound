@@ -110,7 +110,11 @@ CraftingPane::CraftingPane(WorldClientPtr worldClient, PlayerPtr player, Json co
   }
 
   m_guiList = fetchChild<ListWidget>("scrollArea.itemList");
-  m_textBox = fetchChild<TextBoxWidget>("tbSpinCount");
+
+  if (auto countTextBox = fetchChild<TextBoxWidget>("tbSpinCount"))
+    m_textBox = countTextBox;
+  else
+    m_textBox = nullptr;
 
   auto filterHaveMaterials = fetchChild<ButtonWidget>("btnFilterHaveMaterials");
   if (filterHaveMaterials)
