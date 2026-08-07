@@ -126,38 +126,39 @@ The following mods have special functionality that requires or is supported by x
 
 - [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — fully supported by xStarbound.
 - [Alternate UI Sounds [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3360332852) — should be supported by xStarbound; report any issues.
-- [Animis](https://github.com/Lonaasan/Animis) — requires xStarbound or OpenStarbound (or an oSB fork).
-- [Armor Augment Slot](https://steamcommunity.com/sharedfiles/filedetails/?id=3448934708) — requires xStarbound or OpenStarbound (or an oSB fork).
-- [asset scrambler](https://steamcommunity.com/sharedfiles/filedetails/?id=3703414215) — requires xStarbound or OpenStarbound (or an oSB fork). Ensure you have plenty of RAM when loading Starbound with this mod, especially on a large modpack.
-- [Auto DoubleTap Bind for Modded Techs](https://steamcommunity.com/sharedfiles/filedetails/?id=3502260176) — requires xStarbound or OpenStarbound (or an oSB fork).
+- [Animis](https://github.com/Lonaasan/Animis) — requires xStarbound, oSBM or OpenStarbound.
+- [Armor Augment Slot](https://steamcommunity.com/sharedfiles/filedetails/?id=3448934708) — requires xStarbound, oSBM or OpenStarbound.
+- [asset scrambler](https://steamcommunity.com/sharedfiles/filedetails/?id=3703414215) — requires xStarbound, oSBM or OpenStarbound. Ensure you have plenty of RAM when loading Starbound with this mod, especially on a large modpack.
+- [Auto DoubleTap Bind for Modded Techs](https://steamcommunity.com/sharedfiles/filedetails/?id=3502260176) — requires xStarbound, oSBM or OpenStarbound.
 - [Back Weapon II](https://steamcommunity.com/sharedfiles/filedetails/?id=3405399202) — fully supported by xStarbound.
-- [Back Weapon II SChinese patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3581572023) — requires xStarbound or OpenStarbound (or an oSB fork) for some of the translation patches to work properly.
+- [Back Weapon II SChinese patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3581572023) — requires xStarbound, oSBM or OpenStarbound for some of the translation patches to work properly.
 - [Camera Look++](https://steamcommunity.com/sharedfiles/filedetails/?id=3754903454) — requires xStarbound, oSBM or a _nightly_ build of OpenStarbound.
-- [Chaos](https://steamcommunity.com/sharedfiles/filedetails/?id=3590904263) — requires xStarbound or OpenStarbound (or an oSB fork) to actually scramble treasure pools. Fun for randomiser playthroughs.
-- [Chroma Colour Utils](https://steamcommunity.com/sharedfiles/filedetails/?id=3632274480) — requires xStarbound or OpenStarbound (or an oSB fork).
+- [Chaos](https://steamcommunity.com/sharedfiles/filedetails/?id=3590904263) — requires xStarbound, oSBM or OpenStarbound to actually scramble treasure pools. Fun for randomiser playthroughs.
+- [Chroma Colour Utils](https://steamcommunity.com/sharedfiles/filedetails/?id=3632274480) — requires xStarbound, oSBM or OpenStarbound.
 - [Clicky Keyboard UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3476945792) — should be supported by xStarbound; report any issues.
-- [Custom Ship Capsule](https://steamcommunity.com/sharedfiles/filedetails/?id=3740868265) — requires xStarbound or OpenStarbound (or an oSB fork). In multiplayer, must be installed on the server.
-- [Disable Parallax](https://steamcommunity.com/sharedfiles/filedetails/?id=3748974083) — requires xStarbound or OpenStarbound (or an oSB fork).
-- [Double-Tap Hotkey](https://steamcommunity.com/sharedfiles/filedetails/?id=3706488418) — requires xStarbound or OpenStarbound (or an oSB fork).
+- [Custom Ship Capsule](https://steamcommunity.com/sharedfiles/filedetails/?id=3740868265) — requires xStarbound, oSBM or OpenStarbound. In multiplayer, must be installed on the server.
+- [Disable Parallax](https://steamcommunity.com/sharedfiles/filedetails/?id=3748974083) — requires xStarbound, oSBM or OpenStarbound.
+- [Double-Tap Hotkey](https://steamcommunity.com/sharedfiles/filedetails/?id=3706488418) — requires xStarbound, oSBM or OpenStarbound.
 - [Drop pixels on death](https://steamcommunity.com/sharedfiles/filedetails/?id=3350355857) ([GitHub](https://github.com/bongus-jive/drop-money-on-death)) — fully supported by xStarbound.
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
 - [Dynamic Proximity Chat](https://steamcommunity.com/sharedfiles/filedetails/?id=3450266347) ([GitHub](https://github.com/cptsalt/Dynamic-Proximity-Chat)) — works, but _don't_ expect support from its author. Unless a server requires this specific mod, xDPC (see below) is recommended instead.
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with stock Starbound.
-- [Improved Containers: OpenStarbound Post-Load Mega-Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3430203726) — requires xStarbound or OpenStarbound (or an oSB fork).
-- [Improved Inventory Stack Management](https://steamcommunity.com/sharedfiles/filedetails/?id=3758908230) — requires xStarbound or OpenStarbound (or an oSB fork).
+- [Improved Containers: OpenStarbound Post-Load Mega-Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3430203726) — requires xStarbound, oSBM or OpenStarbound.
+- [Improved Inventory Stack Management](https://steamcommunity.com/sharedfiles/filedetails/?id=3758908230) — requires xStarbound, oSBM or OpenStarbound.
 - [Lexi's Automation](https://steamcommunity.com/sharedfiles/filedetails/?id=3673481087&tscn=1783028287) — requires xStarbound, oSBM or a _nightly_ build of OpenStarbound. Don't expect support from this mod's author.
-- [Loading Screen AAA Gaming Tips](https://steamcommunity.com/sharedfiles/filedetails/?id=3742480361) — requires xStarbound or OpenStarbound (or an oSB fork). Now has patches for Pixelflame's [Ancient Cosmos](https://steamcommunity.com/sharedfiles/filedetails/?id=3744936641) and [Starburst Rework](https://steamcommunity.com/sharedfiles/filedetails/?id=3744928917).
+- [Loading Screen AAA Gaming Tips](https://steamcommunity.com/sharedfiles/filedetails/?id=3742480361) — requires xStarbound, oSBM or OpenStarbound. Now has patches for Pixelflame's [Ancient Cosmos](https://steamcommunity.com/sharedfiles/filedetails/?id=3744936641) and [Starburst Rework](https://steamcommunity.com/sharedfiles/filedetails/?id=3744928917).
 - [LR's Storage Dimension](https://steamcommunity.com/sharedfiles/filedetails/?id=3432253227) — automatic recipe detection is fully supported by xStarbound.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
 - [Minecraft UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3412449426) — should be supported by xStarbound; report any issues.
-- [Minimap - Alpha Enhancements](https://steamcommunity.com/sharedfiles/filedetails/?id=3765546722) — requires xStarbound or OpenStarbound (or an oSB fork). A recent, post-February OpenStarbound nightly is required for trees and vines to look a bit nicer on the minimap.
+- [Minimap - Alpha Enhancements](https://steamcommunity.com/sharedfiles/filedetails/?id=3765546722) — requires xStarbound, oSBM or OpenStarbound. A recent, post-February OpenStarbound nightly is required for trees and vines to look a bit nicer on the minimap.
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — fully supported by xStarbound.
 - [NamjeShipwright](https://github.com/namje0/namje_shipwright) — should be fully supported on xStarbound v4.1.1+. The mod is still in alpha though!
 - [Neki](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) ([GitHub](https://github.com/hyperjuni/Neki)) and [Nekibound](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) — head rotation no longer clips Neki ears in xStarbound as of v3.4.4.
 - [NEONPUNK Title Screen [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3359876550) — OpenStarbound title screen replacement mod that should be supported by xStarbound; report any visual issues.
 - [No Food Rotting](https://steamcommunity.com/sharedfiles/filedetails/?id=3484110634) — supported by xStarbound.
+- [Nytes Ship Parts](https://steamcommunity.com/sharedfiles/filedetails/?id=3777627193) — the OpenStarbound-specific patches require xStarbound, oSBM or OpenStarbound.
 - [OCD Tooltip Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3355387636) — technically supported by xStarbound, but unnecessary.
 - [One-For-All Compact and Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3427751671), [One-For-All Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3435109352) and [One-For-All Compact Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3457819726) — fully supported by xStarbound.
 - [OpenStarbound WEdit](https://github.com/Mofurka/OpenStarbound-WEdit) — this WEdit fork requires OpenStarbound or xStarbound; it doesn't support xStarbound's mid-air tile placement.
@@ -165,40 +166,40 @@ The following mods have special functionality that requires or is supported by x
 - [Phantasy Starbound Title](https://steamcommunity.com/sharedfiles/filedetails/?id=3475986947) — OpenStarbound title screen replacement mod that should be supported by xStarbound; report any visual issues.
 - [Planet Search](https://steamcommunity.com/sharedfiles/filedetails/?id=3269792617) — fully supported by xStarbound.
 - [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — all OpenStarbound-compatible commands are supported by xStarbound as of v3.1.6.
-- [Quick Stack Gun [OpenStarbound Fix]](https://steamcommunity.com/sharedfiles/filedetails/?id=3501752811) — Despite the name, requires xStarbound or OpenStarbound (or an oSB fork).
-- [Recipe Browser](https://steamcommunity.com/sharedfiles/filedetails/?id=2018183533) — Recipe Browser's universal mod support requires xStarbound or OpenStarbound (or an oSB fork).
+- [Quick Stack Gun [OpenStarbound Fix]](https://steamcommunity.com/sharedfiles/filedetails/?id=3501752811) — Despite the name, requires xStarbound, oSBM or OpenStarbound.
+- [Recipe Browser](https://steamcommunity.com/sharedfiles/filedetails/?id=2018183533) — Recipe Browser's universal mod support requires xStarbound, oSBM or OpenStarbound.
 - [RPG Growth Keybind Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3368499316) — this mod fixes a compatibility issue between RPG Growth and xStarbound/OpenStarbound/StarExtensions.
-- [RPG Levels](https://steamcommunity.com/sharedfiles/filedetails/?id=3705791048) — its automatic boss patching functionality («OpenStarbound» support) requires xStarbound or OpenStarbound (or an oSB fork). The disabled debug logging mode would require an xSBCompat patch if enabled, but it's disabled. _Don't_ expect xStarbound support from this mod's author.
+- [RPG Levels](https://steamcommunity.com/sharedfiles/filedetails/?id=3705791048) — its automatic boss patching functionality («OpenStarbound» support) requires xStarbound, oSBM or OpenStarbound. The disabled debug logging mode would require an xSBCompat patch if enabled, but it's disabled. _Don't_ expect xStarbound support from this mod's author.
 - [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — fully supported by xStarbound, including keybinds, as of v3.1.6. (Bravo for getting rid of the sandbox-breaking code, Patman!)
 - [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — fully supported by xStarbound. Use `/resetinventoryposition` if your inventory ends up off-screen after installation.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xStarbound as of xSB v2.3.7.
-- [scorchedcityfridge.png](https://steamcommunity.com/sharedfiles/filedetails/?id=3702246480) — requires xStarbound or OpenStarbound (or an oSB fork). Ensure you have plenty of RAM when loading Starbound with this mod, especially on a large modpack.
-- [Searchable Colony Tags](https://steamcommunity.com/sharedfiles/filedetails/?id=3496192756) — requires xStarbound or OpenStarbound (or an oSB fork).
-- [Shut up about raceeffects](https://steamcommunity.com/sharedfiles/filedetails/?id=3549581457) — requires xStarbound or OpenStarbound (or an oSB fork). Recommended if you have [Frackin' Races](https://steamcommunity.com/sharedfiles/filedetails/?id=763259329) installed.
+- [scorchedcityfridge.png](https://steamcommunity.com/sharedfiles/filedetails/?id=3702246480) — requires xStarbound, oSBM or OpenStarbound. Ensure you have plenty of RAM when loading Starbound with this mod, especially on a large modpack.
+- [Searchable Colony Tags](https://steamcommunity.com/sharedfiles/filedetails/?id=3496192756) — requires xStarbound, oSBM or OpenStarbound.
+- [Shut up about raceeffects](https://steamcommunity.com/sharedfiles/filedetails/?id=3549581457) — requires xStarbound, oSBM or OpenStarbound. Recommended if you have [Frackin' Races](https://steamcommunity.com/sharedfiles/filedetails/?id=763259329) installed.
 - [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111), [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) and other mods based on the framework — xStarbound supports «nice» non-pixelated scaling as of v2.4.1.1.
-- [Space Station Terminal Quick Sell QoL](https://steamcommunity.com/sharedfiles/filedetails/?id=3723886096) — requires xStarbound or OpenStarbound (or an oSB fork) for the added shift-click functionality to work.
-- [Spawnable Item Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=733665104) — SIP's universal mod support requires xStarbound v2.5+ or OpenStarbound (or an oSB fork).
+- [Space Station Terminal Quick Sell QoL](https://steamcommunity.com/sharedfiles/filedetails/?id=3723886096) — requires xStarbound, oSBM or OpenStarbound for the added shift-click functionality to work.
+- [Spawnable Item Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=733665104) — SIP's universal mod support requires xStarbound v2.5+, oSBM or OpenStarbound.
 - [Spenbed Starbound osb logo replacer] — another logo replacement mod for OpenStarbound (or an oSB fork) and the like. Should be supported. The associated modpack is fully compatible with xStarbound.
-- [Sprite Dragon Interact (FDR)](https://steamcommunity.com/sharedfiles/filedetails/?id=3748728626) — requires xStarbound or OpenStarbound (or an oSB fork). Not supported by xStarbound are this mod's optional «hooks» on OpenStarbound-only bind tags (e.g., `"interact"` or `"playerInteract"`) potentially added by other OpenStarbound mods; all other functionality is supported.
+- [Sprite Dragon Interact (FDR)](https://steamcommunity.com/sharedfiles/filedetails/?id=3748728626) — requires xStarbound, oSBM or OpenStarbound. Not supported by xStarbound are this mod's optional «hooks» on OpenStarbound-only bind tags (e.g., `"interact"` or `"playerInteract"`) potentially added by other OpenStarbound mods; all other functionality is supported.
 - [(Starbound) Without Number - RPG Mechanics](https://steamcommunity.com/sharedfiles/filedetails/?id=3677633744) — works, but _don't_ expect support from this mod's developer.
-- [Starburst Rework T6 Armor Recipe Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3472326270) — requires xStarbound or OpenStarbound (or an oSB fork).
+- [Starburst Rework T6 Armor Recipe Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3472326270) — requires xStarbound, oSBM or OpenStarbound.
 - [StarCustomChat](https://steamcommunity.com/sharedfiles/filedetails/?id=3208917628) ([GitHub](https://github.com/KrashV/StarCustomChat)) and [StarCustomChatRP](https://steamcommunity.com/sharedfiles/filedetails/?id=3445409664) ([GitHub](https://github.com/KrashV/StarCustomChatRP)) — requires xStarbound v3.5.1+, OpenStarbound v0.1.8+ or StarExtensions. As the original mod's author is unsupportive, it's recommended to use FezzedOne's [StarCustomChat](https://github.com/FezzedOne/StarCustomChat) and [StarCustomChatRP](https://github.com/FezzedOne/StarCustomChatRP) forks for additional features and xStarbound compatibility fixes (not supported by Degranon, the original author).
-- [Subspace Black Market](https://steamcommunity.com/sharedfiles/filedetails/?id=3764065766) — requires xStarbound or OpenStarbound (or an oSB fork) for an item-related `root` call.
+- [Subspace Black Market](https://steamcommunity.com/sharedfiles/filedetails/?id=3764065766) — requires xStarbound, oSBM or OpenStarbound for an item-related `root` call.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xStarbound.
-- [The Hungercry Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3594407068) — requires xStarbound or OpenStarbound (or an oSB fork) for a `player` callback, despite not being tagged as such.
+- [The Hungercry Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3594407068) — requires xStarbound, oSBM or OpenStarbound for a `player` callback, despite not being tagged as such.
 - [Time Control Command](https://steamcommunity.com/sharedfiles/filedetails/?id=3256623666) ([GitHub](https://github.com/bongus-jive/TimeControlCommand)) — fully supported by xStarbound.
-- [Toggled Walking](https://steamcommunity.com/sharedfiles/filedetails/?id=3706549533) — requires xStarbound or OpenStarbound (or an oSB fork).
-- [Ultimate Mech Manager](https://steamcommunity.com/sharedfiles/filedetails/?id=3742826593) — requires xStarbound or OpenStarbound (or an oSB fork) for keybinds and some mech aiming functionality.
-- [Uncrafter Interface](https://steamcommunity.com/sharedfiles/filedetails/?id=3766727660) — requires xStarbound or OpenStarbound (or an oSB fork).
-- [Universal Keybind Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3466851780) ([GitHub](https://github.com/FezzedOne/Starbound-Universal-Keybind-Compatibility)) — requires xStarbound or OpenStarbound (or an oSB fork). Install this mod if you have issues with getting mod keybinds, like RPG Growth's tech keybinds, to work on xStarbound or OpenStarbound (or an oSB fork).
-- [Universal Printable Objects Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3603139264) — requires xStarbound or OpenStarbound (or an oSB fork) to do anything.
-- [Universal Upgradeable Weapons Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3595603580) — requires xStarbound or OpenStarbound (or an oSB fork) to do anything.
+- [Toggled Walking](https://steamcommunity.com/sharedfiles/filedetails/?id=3706549533) — requires xStarbound, oSBM or OpenStarbound.
+- [Ultimate Mech Manager](https://steamcommunity.com/sharedfiles/filedetails/?id=3742826593) — requires xStarbound, oSBM or OpenStarbound for keybinds and some mech aiming functionality.
+- [Uncrafter Interface](https://steamcommunity.com/sharedfiles/filedetails/?id=3766727660) — requires xStarbound, oSBM or OpenStarbound.
+- [Universal Keybind Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3466851780) ([GitHub](https://github.com/FezzedOne/Starbound-Universal-Keybind-Compatibility)) — requires xStarbound, oSBM or OpenStarbound. Install this mod if you have issues with getting mod keybinds, like RPG Growth's tech keybinds, to work on xStarbound, oSBM or OpenStarbound.
+- [Universal Printable Objects Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3603139264) — requires xStarbound, oSBM or OpenStarbound to do anything.
+- [Universal Upgradeable Weapons Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3595603580) — requires xStarbound, oSBM or OpenStarbound to do anything.
 - [Wardrobe Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3433498458) — supported by xStarbound as of xSB v3.4.4.2.
 - [Warp Doors](https://steamcommunity.com/sharedfiles/filedetails/?id=3608977430) — xStarbound, OpenStarbound or an OpenStarbound fork is required to use the client-side commands for generating warp doors and getting coordinates; may be installed on a retail client with no errors aside from the commands being unavailable. The mod must be installed server-side for placed warp doors to function, but placed warp doors function on any client regardless of whether the mod is installed client-side. Don't expect support from this mod's author.
 - [xDPC](https://github.com/FezzedOne/xDPC) — requires xStarbound for full support, but also works on OpenStarbound, albeit with a few missing features.
-- [xSIP](https://github.com/fezzedone/xSIP) — xSIP's universal mod support requires xStarbound v2.5+ or OpenStarbound (or an oSB fork).
+- [xSIP](https://github.com/fezzedone/xSIP) — xSIP's universal mod support requires xStarbound v2.5+, oSBM or OpenStarbound.
 - [xWEdit](https://github.com/fezzedone/xWEdit) — this WEdit fork requires xStarbound for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
-- [Ztarbound S.A.I.L. All-In-One Race Support](https://steamcommunity.com/sharedfiles/filedetails/?id=3506162421) — requires xStarbound or OpenStarbound (or an oSB fork).
+- [Ztarbound S.A.I.L. All-In-One Race Support](https://steamcommunity.com/sharedfiles/filedetails/?id=3506162421) — requires xStarbound, oSBM or OpenStarbound.
 - Mods that change the size or number of bags in the inventory or hotbar — as of xSB v2.4, xStarbound gives these mods full compatibility with vanilla multiplayer and existing characters «out of the box».
 
 The following «[oSB]»- or «[OpenStarbound]»-tagged mods do not actually require OpenStarbound (or xStarbound) for any part of their intended functionality:
