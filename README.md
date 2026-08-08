@@ -223,6 +223,7 @@ The following mods work on xStarbound, but require xSBCompat to unlock «OpenSta
 
 The following OpenStarbound mods require xSBCompat to bypass unnecessary OpenStarbound checks:
 
+- [Advanced Inventory Interaction](https://steamcommunity.com/sharedfiles/filedetails/?id=3779709650).
 - [All Items are Stackable!](https://steamcommunity.com/sharedfiles/filedetails/?id=3370469697).
 - [All Reward Items Faster & Stackable](https://steamcommunity.com/sharedfiles/filedetails/?id=3714760211).
 - [Automatically Scan Objects!](https://steamcommunity.com/sharedfiles/filedetails/?id=3545869822).
