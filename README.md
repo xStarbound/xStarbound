@@ -223,7 +223,6 @@ The following mods work on xStarbound, but require xSBCompat to unlock «OpenSta
 
 The following OpenStarbound mods require xSBCompat to bypass unnecessary OpenStarbound checks:
 
-- [Advanced Inventory Interaction](https://steamcommunity.com/sharedfiles/filedetails/?id=3779709650).
 - [All Items are Stackable!](https://steamcommunity.com/sharedfiles/filedetails/?id=3370469697).
 - [All Reward Items Faster & Stackable](https://steamcommunity.com/sharedfiles/filedetails/?id=3714760211).
 - [Automatically Scan Objects!](https://steamcommunity.com/sharedfiles/filedetails/?id=3545869822).
@@ -269,6 +268,7 @@ The following retail mods _ARE_ compatible with xStarbound, but their OpenStarbo
 
 The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due to reliance on OpenStarbound-only features, security issues or visual glitches:
 
+- [Advanced Inventory Interaction](https://steamcommunity.com/sharedfiles/filedetails/?id=3779709650) — not currently fully compatible with xStarbound until xSB compatibility code gets added by the author; the README will be updated when this gets fixed.
 - [Almandine Edits](https://steamcommunity.com/sharedfiles/filedetails/?id=3761333758) — like its Event Horizon Primary mod dependency, requires a recent OpenStarbound nightly build for shaders and HDR support.
 - [AR's Shader Pack v1.0](https://steamcommunity.com/sharedfiles/filedetails/?id=3487232242) — modular shader support is OpenStarbound-only.
 - [Betabound CosmicExt Quests Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3747815781) — its CosmicExt dependency (see below) is not compatible with xStarbound.
@@ -296,7 +296,6 @@ The following retail mods are _NOT_ fully compatible with xStarbound due to redu
 - [Unitilities | Lua Modding Library](https://steamcommunity.com/sharedfiles/filedetails/?id=2826961297) — the Hasibound-DLL-specific functionality is not supported by xStarbound.
 - [Zoom Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=2916058850) — will log script errors (xStarbound has differently named callbacks) and is redundant anyway because xStarbound already fully supports this feature.
 - Mods that patch in DLL-based «body dynamics» support for other mods. These won't do anything.
-- Some retail title screen mods. Your mileage may vary with these, as some have noticeable visual issues on xStarbound. That said, they have the same visual issues on OpenStarbound and OpenStarbound forks.
 
 </details>
 
