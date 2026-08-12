@@ -237,6 +237,8 @@ The following OpenStarbound mods require xSBCompat to bypass unnecessary OpenSta
 
 Two OpenStarbound mods require OpenStarbound-only callbacks that are emulated by an xSBCompat patch:
 
+- [Advanced Inventory Interaction](https://steamcommunity.com/sharedfiles/filedetails/?id=3779709650) — currently requires a patch for some functionality because xStarbound has `interface.cursorPosition` instead of OpenStarbound's `input.mousePosition`; the patch also makes AII properly aware of xClient resetting all main interface panes on player swaps so that AII doesn't get disabled after swapping characters.
+- [AII - Enhanced Storage Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3780999731) — requires Advanced Inventory Interaction above, which currently requires an xSBCompat patch; also requires Enhanced Storage, obviously.
 - [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — requires a patch because xStarbound has `root.assetSources` instead of OpenStarbound's `root.assetSourcePaths`, and OpenStarbound adds a boolean parameter that needs emulation.
 - [Universal BYOS Patcher](https://steamcommunity.com/sharedfiles/filedetails/?id=3648814036) — same compatibility issue as Unde Venis, just with `assets.sources` (xStarbound) and `assets.sourcePaths` (OpenStarbound), the equivalent asset preprocessor callback.
 
@@ -268,7 +270,6 @@ The following retail mods _ARE_ compatible with xStarbound, but their OpenStarbo
 
 The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due to reliance on OpenStarbound-only features, security issues or visual glitches:
 
-- [Advanced Inventory Interaction](https://steamcommunity.com/sharedfiles/filedetails/?id=3779709650) — not currently fully compatible with xStarbound until xSB compatibility code gets added by the author; the README will be updated when this gets fixed.
 - [Almandine Edits](https://steamcommunity.com/sharedfiles/filedetails/?id=3761333758) — like its Event Horizon Primary mod dependency, requires a recent OpenStarbound nightly build for shaders and HDR support.
 - [AR's Shader Pack v1.0](https://steamcommunity.com/sharedfiles/filedetails/?id=3487232242) — modular shader support is OpenStarbound-only.
 - [Betabound CosmicExt Quests Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3747815781) — its CosmicExt dependency (see below) is not compatible with xStarbound.

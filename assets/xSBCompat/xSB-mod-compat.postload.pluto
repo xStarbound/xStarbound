@@ -975,12 +975,72 @@ end)
 
 ::skipBookstorePatch::
 
-if not "persona" in loadedMods then goto skipPersonaPatch end
-modName = "Lonaasan's Persona"
+--- Compatibility patch for jacob_chou's Advanced Inventory Interaction (and submods) ---
+-- Adds an `input.mousePosition` alias for xStarbound's `interface.mousePosition` and fixes the mod's interface additions disappearing on xClient player swaps
+-- (so that `/swap`, `/add` and `/remove` can be used without being stuck with retail inventory sorting).
+
+if not ("advanced_inventory_interaction" in loadedMods) then goto skipAIIPatch end
+modName = "jacob_chou's Advanced Inventory Interaction"
+
+xpcall(|| -> do
+    local aiiScriptPath = "/scripts/aii/player.lua"
+    local aiiScript = assets.bytes(aiiScriptPath)
+
+    local aiiScriptPatch = [==[
+    ---<< END OF ORIGINAL AII SCRIPT >>---
+
+    local AII_xSB_Initialised = false
+    local AII_init = init or function() end
+    local AII_update = update or function(...) end
+    local AII_uninit = uninit or function() end
+
+    function init(...)
+        if xsb then
+            if (world and world.primaryPlayerUuid() ~= player.uniqueId()) or not world then
+                return
+            end
+            input.mousePosition = interface.cursorPosition
+        end
+        AII_init()
+        AII_xSB_Initialised = true
+    end
+
+    function uninit()
+        AII_uninit()
+        AII_xSB_Initialised = false
+    end
+
+    function update(dt)
+        if not AII_xSB_Initialised then
+            init()
+        else
+            if xsb and ((world and world.primaryPlayerUuid() ~= player.uniqueId()) or not world) then
+                if AII_xSB_Initialised then
+                    uninit()
+                end
+                return
+            end
+        end
+        AII_update(dt)
+    end
+    ]==]
+
+    assets.add(aiiScriptPath, aiiScript .. aiiScriptPatch)
+
+    logInfo(modName)
+end, |e| -> do
+    logError(modName, e)
+end)
+
+::skipAIIPatch::
 
 --- Compatibility patch for Lonaasan's Persona ---
 -- Needed for Persona to correctly handle xStarbound's multi-player-entity feature without duplicate rendering, inputs erroneously going to secondary characters, etc.
 -- This patch also adds FezzedTech compatibility so that FezzedTech doesn't mess up rotations or persistent player states.
+
+if not "persona" in loadedMods then goto skipPersonaPatch end
+modName = "Lonaasan's Persona"
+
 xpcall(|| -> do
     local smugglingHandlerScript = [==[
         --- xStarbound smuggling handler for Persona ---
