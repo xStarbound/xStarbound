@@ -134,6 +134,7 @@ The following mods have special functionality that requires or is supported by x
 - [Back Weapon II SChinese patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3581572023) — requires xStarbound, oSBM or OpenStarbound for some of the translation patches to work properly.
 - [Camera Look++](https://steamcommunity.com/sharedfiles/filedetails/?id=3754903454) — requires xStarbound, oSBM or a _nightly_ build of OpenStarbound.
 - [Chaos](https://steamcommunity.com/sharedfiles/filedetails/?id=3590904263) — requires xStarbound, oSBM or OpenStarbound to actually scramble treasure pools. Fun for randomiser playthroughs.
+- [Character Editor](https://steamcommunity.com/sharedfiles/filedetails/?id=3782196111) — requires xStarbound, oSBM or OpenStarbound to actually edit your character; also requires Stardust Core or Stardust Core Lite. xStarbound has its own `/editor`, but this mod adds niceties like presets.
 - [Chroma Colour Utils](https://steamcommunity.com/sharedfiles/filedetails/?id=3632274480) — requires xStarbound, oSBM or OpenStarbound.
 - [Clicky Keyboard UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3476945792) — should be supported by xStarbound; report any issues.
 - [Custom Ship Capsule](https://steamcommunity.com/sharedfiles/filedetails/?id=3740868265) — requires xStarbound, oSBM or OpenStarbound. In multiplayer, must be installed on the server.
@@ -181,9 +182,11 @@ The following mods have special functionality that requires or is supported by x
 - [Spawnable Item Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=733665104) — SIP's universal mod support requires xStarbound v2.5+, oSBM or OpenStarbound.
 - [Spenbed Starbound osb logo replacer] — another logo replacement mod for OpenStarbound (or an oSB fork) and the like. Should be supported. The associated modpack is fully compatible with xStarbound.
 - [Sprite Dragon Interact (FDR)](https://steamcommunity.com/sharedfiles/filedetails/?id=3748728626) — requires xStarbound, oSBM or OpenStarbound. Not supported by xStarbound are this mod's optional «hooks» on OpenStarbound-only bind tags (e.g., `"interact"` or `"playerInteract"`) potentially added by other OpenStarbound mods; all other functionality is supported.
+- [Starbound Item Finder](https://steamcommunity.com/sharedfiles/filedetails/?id=3782116674) — requires xStarbound, oSBM or OpenStarbound.
 - [(Starbound) Without Number - RPG Mechanics](https://steamcommunity.com/sharedfiles/filedetails/?id=3677633744) — works, but _don't_ expect support from this mod's developer.
 - [Starburst Rework T6 Armor Recipe Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3472326270) — requires xStarbound, oSBM or OpenStarbound.
 - [StarCustomChat](https://steamcommunity.com/sharedfiles/filedetails/?id=3208917628) ([GitHub](https://github.com/KrashV/StarCustomChat)) and [StarCustomChatRP](https://steamcommunity.com/sharedfiles/filedetails/?id=3445409664) ([GitHub](https://github.com/KrashV/StarCustomChatRP)) — requires xStarbound v3.5.1+, OpenStarbound v0.1.8+ or StarExtensions. As the original mod's author is unsupportive, it's recommended to use FezzedOne's [StarCustomChat](https://github.com/FezzedOne/StarCustomChat) and [StarCustomChatRP](https://github.com/FezzedOne/StarCustomChatRP) forks for additional features and xStarbound compatibility fixes (not supported by Degranon, the original author).
+- [StarTechUltimateUpgrade](https://steamcommunity.com/sharedfiles/filedetails/?id=3781692656) — xStarbound, oSBM or OpenStarbound is required because of the «use other techs with Nanofield» functionality.
 - [Subspace Black Market](https://steamcommunity.com/sharedfiles/filedetails/?id=3764065766) — requires xStarbound, oSBM or OpenStarbound for an item-related `root` call.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xStarbound.
 - [The Hungercry Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3594407068) — requires xStarbound, oSBM or OpenStarbound for a `player` callback, despite not being tagged as such.
@@ -205,6 +208,7 @@ The following mods have special functionality that requires or is supported by x
 The following «[oSB]»- or «[OpenStarbound]»-tagged mods do not actually require OpenStarbound (or xStarbound) for any part of their intended functionality:
 
 - [Aiko's Additions](https://steamcommunity.com/workshop/filedetails/?id=3603021961) — has no OpenStarbound requirement despite the mod's description.
+- [Arcana NPC Invincibility Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3782021392) — has no OpenStarbound requirement despite the mod's description; the bug it fixes is not even an OpenStarbound bug anyway.
 - [GM Vehicles](https://steamcommunity.com/sharedfiles/filedetails/?id=3644577479) — has no OpenStarbound requirement despite the mod's description.
 - [NIGHTMARE Clothin' Pack] — has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support extended cosmetic slots or cosmetic overlays/underlays.
 - [OpenStarbound No Highlights on Scanned Objects and Players](https://steamcommunity.com/sharedfiles/filedetails/?id=3432675895) — has no particular OpenStarbound or xStarbound support, actually.
