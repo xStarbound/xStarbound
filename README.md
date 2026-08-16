@@ -209,6 +209,7 @@ The following «[oSB]»- or «[OpenStarbound]»-tagged mods do not actually requ
 
 - [Aiko's Additions](https://steamcommunity.com/workshop/filedetails/?id=3603021961) — has no OpenStarbound requirement despite the mod's description.
 - [Arcana NPC Invincibility Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3782021392) — has no OpenStarbound requirement despite the mod's description; the bug it fixes is not even an OpenStarbound bug anyway.
+- [Digital Storage & Digital Crafting OpenStarbound Multiplayer Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3784233810) — has no OpenStarbound requirement despite the mod's description.
 - [GM Vehicles](https://steamcommunity.com/sharedfiles/filedetails/?id=3644577479) — has no OpenStarbound requirement despite the mod's description.
 - [NIGHTMARE Clothin' Pack] — has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support extended cosmetic slots or cosmetic overlays/underlays.
 - [OpenStarbound No Highlights on Scanned Objects and Players](https://steamcommunity.com/sharedfiles/filedetails/?id=3432675895) — has no particular OpenStarbound or xStarbound support, actually.
