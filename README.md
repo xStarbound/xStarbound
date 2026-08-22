@@ -147,7 +147,6 @@ The following mods have special functionality that requires or is supported by x
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with stock Starbound.
 - [Improved Containers: OpenStarbound Post-Load Mega-Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3430203726) — requires xStarbound, oSBM or OpenStarbound.
-- [Improved Inventory Stack Management](https://steamcommunity.com/sharedfiles/filedetails/?id=3758908230) — requires xStarbound, oSBM or OpenStarbound.
 - [Lexi's Automation](https://steamcommunity.com/sharedfiles/filedetails/?id=3673481087&tscn=1783028287) — requires xStarbound, oSBM or a _nightly_ build of OpenStarbound. Don't expect support from this mod's author.
 - [Loading Screen AAA Gaming Tips](https://steamcommunity.com/sharedfiles/filedetails/?id=3742480361) — requires xStarbound, oSBM or OpenStarbound. Now has patches for Pixelflame's [Ancient Cosmos](https://steamcommunity.com/sharedfiles/filedetails/?id=3744936641) and [Starburst Rework](https://steamcommunity.com/sharedfiles/filedetails/?id=3744928917).
 - [LR's Storage Dimension](https://steamcommunity.com/sharedfiles/filedetails/?id=3432253227) — automatic recipe detection is fully supported by xStarbound.
@@ -240,10 +239,12 @@ The following OpenStarbound mods require xSBCompat to bypass unnecessary OpenSta
 - [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276).
 - [ZB SAIL: Standalone](https://steamcommunity.com/sharedfiles/filedetails/?id=3336389472).
 
-Two OpenStarbound mods require OpenStarbound-only callbacks that are emulated by an xSBCompat patch:
+The following OpenStarbound mods require OpenStarbound-only callbacks that are emulated by an xSBCompat patch:
 
 - [Advanced Inventory Interaction](https://steamcommunity.com/sharedfiles/filedetails/?id=3779709650) — currently requires a patch for some functionality because xStarbound has `interface.cursorPosition` instead of OpenStarbound's `input.mousePosition`; the patch also makes AII properly aware of xClient resetting all main interface panes on player swaps so that AII doesn't get disabled after swapping characters.
 - [AII - Enhanced Storage Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3780999731) — requires Advanced Inventory Interaction above, which currently requires an xSBCompat patch; also requires Enhanced Storage, obviously.
+- [AII - Improved Containers Patch] — requires Advanced Inventory Interaction above, which currently requires an xSBCompat patch; also requires Improved Containers, obviously.
+- [Improved Inventory Stack Management](https://steamcommunity.com/sharedfiles/filedetails/?id=3758908230) — currently requires a patch to fix a script error because xStarbound has `interface.cursorPosition` instead of OpenStarbound's `input.mousePosition`.
 - [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — requires a patch because xStarbound has `root.assetSources` instead of OpenStarbound's `root.assetSourcePaths`, and OpenStarbound adds a boolean parameter that needs emulation.
 - [Universal BYOS Patcher](https://steamcommunity.com/sharedfiles/filedetails/?id=3648814036) — same compatibility issue as Unde Venis, just with `assets.sources` (xStarbound) and `assets.sourcePaths` (OpenStarbound), the equivalent asset preprocessor callback.
 

@@ -1034,6 +1034,33 @@ end)
 
 ::skipAIIPatch::
 
+--- Compatibility patch for Darchon's Improved Inventory Stack Management ---
+-- Adds an `input.mousePosition` alias for xStarbound's `interface.mousePosition`.
+
+if not ("advanced_inventory_interaction" in loadedMods) then goto skipIISMPatch end
+modName = "Improved Inventory Stack Management"
+
+xpcall(|| -> do
+    local IISMScriptPath = "/rt_stackmanager.lua"
+    local IISMScript = assets.bytes(IISMScriptPath)
+
+    local IISMScriptPatch = [==[
+    ---<< END OF ORIGINAL IISM SCRIPT >>---
+
+    function init(...)
+        if xsb then input.mousePosition = interface.cursorPosition end
+    end
+    ]==]
+
+    assets.add(IISMScriptPath, IISMScript .. IISMScriptPatch)
+
+    logInfo(modName)
+end, |e| -> do
+    logError(modName, e)
+end)
+
+::skipIISMPatch::
+
 --- Compatibility patch for Lonaasan's Persona ---
 -- Needed for Persona to correctly handle xStarbound's multi-player-entity feature without duplicate rendering, inputs erroneously going to secondary characters, etc.
 -- This patch also adds FezzedTech compatibility so that FezzedTech doesn't mess up rotations or persistent player states.
