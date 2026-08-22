@@ -1037,7 +1037,7 @@ end)
 --- Compatibility patch for Darchon's Improved Inventory Stack Management ---
 -- Adds an `input.mousePosition` alias for xStarbound's `interface.mousePosition`.
 
-if not ("advanced_inventory_interaction" in loadedMods) then goto skipIISMPatch end
+if not ("[oSB] Improved Inventory Stack Management" in loadedMods) then goto skipIISMPatch end
 modName = "Improved Inventory Stack Management"
 
 xpcall(|| -> do
