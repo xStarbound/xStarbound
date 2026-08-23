@@ -1,22 +1,22 @@
 #ifdef STAR_SYSTEM_FAMILY_WINDOWS
+#include <stdio.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <stdio.h>
 #else
 #ifdef STAR_SYSTEM_FREEBSD
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #endif
-#include <errno.h>
-#include <string.h>
 #include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <netinet/udp.h>
 #include <netinet/tcp.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include <netinet/udp.h>
 #include <poll.h>
+#include <string.h>
+#include <unistd.h>
 #endif
 
 #include "StarHostAddress.hpp"
@@ -50,7 +50,8 @@ inline String netErrorString() {
       0,
       NULL);
 
-  String result = String((char*)lpMsgBuf);
+  // FezzedOne: Why is this not checked? WINE sometimes returns a null pointer in FormatMessage.
+  String result = String(lpMsgBuf ? (char*)lpMsgBuf : "");
 
   if (lpMsgBuf != NULL)
     LocalFree(lpMsgBuf);
@@ -154,4 +155,4 @@ struct SocketImpl {
 #endif
 };
 
-}
+} // namespace Star
