@@ -1086,6 +1086,22 @@ xpcall(|| -> do
 
     assets.add(IISMScriptPath, IISMScript .. IISMScriptPatch)
 
+    local IISMScriptPath2 = "/interface/scripted/rt_stackmanager/picker.lua"
+    local IISMScript2 = assets.bytes(IISMScriptPath2)
+
+    local IISMScriptPatch2 = [==[
+    ---<< END OF ORIGINAL IISM SCRIPT >>---
+
+    local IISM_init = init or function() end
+
+    function init(...)
+        input.mousePosition = interface.cursorPosition
+        IISM_init()
+    end
+    ]==]
+
+    assets.add(IISMScriptPath2, IISMScript2 .. IISMScriptPatch2)
+
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
