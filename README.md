@@ -125,6 +125,7 @@ This is a fork of Starbound's source code; all credit for the original code goes
 The following mods have special functionality that requires or is supported by xStarbound.
 
 - [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — fully supported by xStarbound.
+- [Advanced Teleporter Interface](https://steamcommunity.com/sharedfiles/filedetails/?id=3788629855) — requires xStarbound, oSBM or OpenStarbound's asset preprocessor system _on the server_ to detect and patch teleporter objects; the _server_ must run the script to patch teleporter objects, or else you get the retail warp interface when using them. Only install this mod server-side if all clients have it installed. The preprocessor _isn't_ needed to use the interface from your Quickbar / Stardust menu though.
 - [Alternate UI Sounds [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3360332852) — should be supported by xStarbound; report any issues.
 - [Animis](https://github.com/Lonaasan/Animis) — requires xStarbound, oSBM or OpenStarbound.
 - [Armor Augment Slot](https://steamcommunity.com/sharedfiles/filedetails/?id=3448934708) — requires xStarbound, oSBM or OpenStarbound.
@@ -244,7 +245,7 @@ The following OpenStarbound mods require OpenStarbound-only callbacks that are e
 - [Advanced Inventory Interaction](https://steamcommunity.com/sharedfiles/filedetails/?id=3779709650) — currently requires a patch for some functionality because xStarbound has `interface.cursorPosition` instead of OpenStarbound's `input.mousePosition`; the patch also makes AII properly aware of xClient resetting all main interface panes on player swaps so that AII doesn't get disabled after swapping characters.
 - [AII - Enhanced Storage Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3780999731) — requires Advanced Inventory Interaction above, which currently requires an xSBCompat patch; also requires Enhanced Storage, obviously.
 - [AII - Improved Containers Patch] — requires Advanced Inventory Interaction above, which currently requires an xSBCompat patch; also requires Improved Containers, obviously.
-- [Improved Inventory Stack Management](https://steamcommunity.com/sharedfiles/filedetails/?id=3758908230) — currently requires a patch to fix a script error because xStarbound has `interface.cursorPosition` instead of OpenStarbound's `input.mousePosition`.
+- [Improved Inventory Stack Management](https://steamcommunity.com/sharedfiles/filedetails/?id=3758908230) — currently requires a patch to fix a script error because xStarbound has `interface.cursorPosition` instead of OpenStarbound's `input.mousePosition`. The patch is also needed to ensure the mod is properly aware of player swaps on xClient.
 - [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — requires a patch because xStarbound has `root.assetSources` instead of OpenStarbound's `root.assetSourcePaths`, and OpenStarbound adds a boolean parameter that needs emulation.
 - [Universal BYOS Patcher](https://steamcommunity.com/sharedfiles/filedetails/?id=3648814036) — same compatibility issue as Unde Venis, just with `assets.sources` (xStarbound) and `assets.sourcePaths` (OpenStarbound), the equivalent asset preprocessor callback.
 

@@ -976,7 +976,7 @@ end)
 ::skipBookstorePatch::
 
 --- Compatibility patch for jacob_chou's Advanced Inventory Interaction (and submods) ---
--- Adds an `input.mousePosition` alias for xStarbound's `interface.mousePosition` and fixes the mod's interface additions disappearing on xClient player swaps
+-- Adds an `input.mousePosition` alias for xStarbound's `interface.cursorPosition` and fixes the mod's interface additions disappearing on xClient player swaps
 -- (so that `/swap`, `/add` and `/remove` can be used without being stuck with retail inventory sorting).
 
 if not ("advanced_inventory_interaction" in loadedMods) then goto skipAIIPatch end
@@ -1035,10 +1035,11 @@ end)
 ::skipAIIPatch::
 
 --- Compatibility patch for Darchon's Improved Inventory Stack Management ---
--- Adds an `input.mousePosition` alias for xStarbound's `interface.mousePosition`.
+-- Adds an `input.mousePosition` alias for xStarbound's `interface.cursorPosition` and ensures the mod is aware of xClient player swaps
+-- (so that `/swap`, `/add` and `/remove` can be used without the mod's features getting disabled).
 
 if not ("[oSB] Improved Inventory Stack Management" in loadedMods) then goto skipIISMPatch end
-modName = "Improved Inventory Stack Management"
+modName = "Darchon's Improved Inventory Stack Management"
 
 xpcall(|| -> do
     local IISMScriptPath = "/rt_stackmanager.lua"
@@ -1047,8 +1048,39 @@ xpcall(|| -> do
     local IISMScriptPatch = [==[
     ---<< END OF ORIGINAL IISM SCRIPT >>---
 
+    local IISM_xSB_Initialised = false
+    local IISM_init = init or function() end
+    local IISM_update = update or function(...) end
+    local IISM_uninit = uninit or function() end
+
     function init(...)
-        if xsb then input.mousePosition = interface.cursorPosition end
+        if xsb then
+            if (world and world.primaryPlayerUuid() ~= player.uniqueId()) or not world then
+                return
+            end
+            input.mousePosition = interface.cursorPosition
+        end
+        IISM_init()
+        IISM_xSB_Initialised = true
+    end
+
+    function uninit()
+        IISM_uninit()
+        IISM_xSB_Initialised = false
+    end
+
+    function update(dt)
+        if not IISM_xSB_Initialised then
+            init()
+        else
+            if xsb and ((world and world.primaryPlayerUuid() ~= player.uniqueId()) or not world) then
+                if IISM_xSB_Initialised then
+                    uninit()
+                end
+                return
+            end
+        end
+        IISM_update(dt)
     end
     ]==]
 
