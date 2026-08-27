@@ -1340,6 +1340,19 @@ xpcall(|| -> do
     ]==]
     assets.add(personaRotateScriptPath, personaRotateScript .. personaRotateScriptPatch)
 
+    local personaPlayerInfoScriptPath = "/persona/utils/players.lua"
+    local personaPlayerInfoScript = assets.bytes(personaPlayerInfoScriptPath)
+    local personaPlayerInfoScriptPatch = [==[
+    ---<< END OF ORIGINAL PERSONA SCRIPT >>---
+    
+    persona_players.base_getInfo = persona_players.getInfo
+    function persona_players.getInfo(entityId, zoom, _)
+        -- Needed to bypass an unintentional anti-xStarbound check.
+        return persona_players.base_getInfo(entityId, zoom, "OpenStarbound")
+    end
+    ]==]
+    assets.add(personaPlayerInfoScriptPath, personaPlayerInfoScript .. personaPlayerInfoScriptPatch)
+
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
