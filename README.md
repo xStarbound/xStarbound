@@ -245,7 +245,7 @@ The following OpenStarbound mods require OpenStarbound-only callbacks that are e
 
 - [Advanced Inventory Interaction](https://steamcommunity.com/sharedfiles/filedetails/?id=3779709650) — currently requires a patch for some functionality because xStarbound has `interface.cursorPosition` instead of OpenStarbound's `input.mousePosition`; the patch also makes AII properly aware of xClient resetting all main interface panes on player swaps so that AII doesn't get disabled after swapping characters.
 - [AII - Enhanced Storage Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3780999731) — requires Advanced Inventory Interaction above, which currently requires an xSBCompat patch; also requires Enhanced Storage, obviously.
-- [AII - Improved Containers Patch] — requires Advanced Inventory Interaction above, which currently requires an xSBCompat patch; also requires Improved Containers, obviously.
+- [AII - Improved Containers Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3783216469) — requires Advanced Inventory Interaction above, which currently requires an xSBCompat patch; also requires Improved Containers, obviously.
 - [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — requires a patch because xStarbound has `root.assetSources` instead of OpenStarbound's `root.assetSourcePaths`, and OpenStarbound adds a boolean parameter that needs emulation.
 - [Universal BYOS Patcher](https://steamcommunity.com/sharedfiles/filedetails/?id=3648814036) — same compatibility issue as Unde Venis, just with `assets.sources` (xStarbound) and `assets.sourcePaths` (OpenStarbound), the equivalent asset preprocessor callback.
 
