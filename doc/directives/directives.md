@@ -64,8 +64,8 @@ xStarbound supports the image operations listed below. Names and arguments are i
 - **`flipxy`:** Same, but on both axes.
 - **`setpixel=x;y;newColour` [xStarbound only]:** Sets the pixel at the given `x` (`uint`) and `y` (`uint`) coordinates to the given `newColour` (`colour`).
 - **`blendpixel=x;y;newColour` [xStarbound only]:** `x` (`uint`), `y` (`uint`), `newColour` (`colour`). Same as above, but uses alpha blending to blend the pixel into the base image if the alpha isn't `ff`.
-- **`copyinto=image;x;y`:** Copies the pixels of the specified `image` (`image`) into the base image, _replacing_ in-bounds pixels of the base image with those of the copied image. The specified image to copy is offset from the base's origin by the specified `x` (`uint`) and `y` (`uint`) values.
-- **`drawinto=image;x;y`:** `image` (`image`), `x` (`uint`), `y` (`uint`). Same as above, but alpha-blends the copied image's pixels into the base image. Preferable if you don't want the copied image's transparent pixels to «cut out» portions of the base.
+- **`copyinto=image;x;y` [xStarbound only]:** Copies the pixels of the specified `image` (`path`) into the base image, _replacing_ in-bounds pixels of the base image with those of the copied image. The specified image to copy is offset from the base's origin by the specified `x` (`uint`) and `y` (`uint`) values.
+- **`drawinto=image;x;y` [xStarbound only]:** `image` (`path`), `x` (`uint`), `y` (`uint`). Same as above, but alpha-blends the copied image's pixels into the base image. Preferable if you don't want the copied image's transparent pixels to «cut out» portions of the base.
 
 ### Technical note for macOS users
 
