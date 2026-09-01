@@ -160,6 +160,12 @@ LuaCallbacks LuaBindings::makeRootCallbacks() {
     return {};
   });
 
+  callbacks.registerCallback("assetImage", [root](String const& imagePath) -> Maybe<Image> {
+    if (auto image = root->assets()->image(imagePath))
+      return *image;
+    return {};
+  });
+
   callbacks.registerCallback("newImage", [root](Vec2U const& imageSize) -> Image {
     return Image(imageSize);
   });

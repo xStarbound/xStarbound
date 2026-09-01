@@ -1494,13 +1494,13 @@ Returns the current time for the world's sky.
 
 Sets the current time for the world's sky to the specified value. If `math.huge` is specified, disables the pegging of the world's clock to the universe clock _without_ setting the time; if `-math.huge` is specified, re-enables the clock pegging, which will change the world's sky time to conform with the universe clock on the same tick if there's a mismatch. Clock pegging is automatically (re-)enabled whenever a world is unloaded and reloaded; i.e., it's _not_ saved to the world file automatically, so find a way to save what the world's time should be if you wish to do so.
 
-**Note:** This callback is buggy to the point of uselessness on the stock Starbound server and various other servers — any newly set time would just get reverted on the same world tick. xStarbound fixes this bug by keeping track of whether the world's clock is actually overridden and assigning special meanings to the infinity values.
+**Note:** This callback is buggy to the point of uselessness on the stock Starbound server and various other servers — any newly set time would just get reverted on the same world tick. xServer fixes this bug by keeping track of whether the world's clock is actually overridden and assigning special meanings to the infinity values.
 
 ---
 
 #### `void` world.setExpiryTime(`float` expiryTime)
 
-> **Available only on xStarbound and OpenStarbound.**
+> **Available only on xStarbound/xServer and OpenStarbound.**
 
 Sets the amount of time remaining on the world's expiration/unloading timer in seconds. This timer starts ticking down when there are no longer any players on the world. To immediately cause this world to be unloaded while players aren't present, pass a value of `0` to this callback.
 
@@ -1508,9 +1508,9 @@ If a negative timer value is passed to the callback, the world will never be unl
 
 ---
 
-#### `void` world.setExpiryTime(`float` expiryTime)
+#### `void` world.expiryTime(`float` expiryTime)
 
-> **Available only on xStarbound v4.3+, and may be introduced in a future OpenStarbound update or nightly build.**
+> **Available only on xStarbound/xServer v4.3+ and OpenStarbound v0.1.15+.**
 
 Returns the amount of time remaining on the world's expiration/unloading timer, when there are no players on it, in seconds. The timer does not tick and is continually reset back to the last initial value set via `world.setExpiryTime` while any players remain on the world. If a player warps to this world while the world's expiry time is still ticking down to zero, the timer is immediately reset to its last initial value (and the world is obviously kept loaded due to the player's presence).
 

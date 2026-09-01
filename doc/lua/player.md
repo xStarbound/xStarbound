@@ -1340,4 +1340,4 @@ Overrides the player's current render layer. If unspecified, clears this overrid
 
 The override set by this binding is reset every time the player is initialised (i.e., whenever the player is loaded into the game or warped anywhere). For persistence, consider using a player generic property or a cosmetic item with a `"renderLayer"` override.
 
-Render layer overrides (aside from lounging overrides) are only visible to clients running xStarbound v4.5.2+ or an OpenStarbound nightly build built on or after 21 July 2026.
+Render layer overrides (aside from lounging overrides) are only visible to clients running xStarbound v4.5.2+ or OpenStarbound v0.1.15+.

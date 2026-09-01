@@ -312,7 +312,7 @@ Consider using `root.assetExists` to avoid unnecessary error handling.
 
 #### `Image` root.image(`AssetPath<Image, Directives>` assetPath)
 
-> **Only available on xStarbound.**
+> **`root.image` is only available on xStarbound, while `root.assetImage` is available on xStarbound v4.5.2.5+, OpenStarbound v0.1.15+ and oSBM v1.1+.**
 
 Returns the specified asset file as an `Image` object, if it exists, is a valid image and any frame specifier is valid for it. Otherwise, it logs an uncatchable warning and returns an `Image` object based on `/assetmissing.png` without a frame specifier but with any directives applied. Throws an error if an invalid path is specified.
 

@@ -1,28 +1,28 @@
 #include "StarSpeciesDatabase.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarRandom.hpp"
-#include "StarItemDatabase.hpp"
-#include "StarNameGenerator.hpp"
 #include "StarAssets.hpp"
-#include "StarRoot.hpp"
 #include "StarImageProcessing.hpp"
+#include "StarItemDatabase.hpp"
+#include "StarJsonExtra.hpp"
+#include "StarNameGenerator.hpp"
+#include "StarRandom.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
 SpeciesOption::SpeciesOption()
-  : species(),
-    headOptionAsHairColor(),
-    headOptionAsFacialhair(),
-    altOptionAsUndyColor(),
-    altOptionAsHairColor(),
-    altOptionAsFacialMask(),
-    hairColorAsBodySubColor(),
-    bodyColorAsFacialMaskSubColor(),
-    altColorAsFacialMaskSubColor(),
-    genderOptions(),
-    bodyColorDirectives(),
-    undyColorDirectives(),
-    hairColorDirectives() {}
+    : species(),
+      headOptionAsHairColor(),
+      headOptionAsFacialhair(),
+      altOptionAsUndyColor(),
+      altOptionAsHairColor(),
+      altOptionAsFacialMask(),
+      hairColorAsBodySubColor(),
+      bodyColorAsFacialMaskSubColor(),
+      altColorAsFacialMaskSubColor(),
+      genderOptions(),
+      bodyColorDirectives(),
+      undyColorDirectives(),
+      hairColorDirectives() {}
 
 SpeciesDatabase::SpeciesDatabase() {
   auto assets = Root::singleton().assets();
@@ -118,11 +118,21 @@ String SpeciesDefinition::kind() const {
 }
 
 String SpeciesDefinition::nameGen(Gender gender) const {
-  return m_nameGen[(unsigned)gender];
+  if (m_nameGen.size() > (unsigned)gender)
+    return m_nameGen[(unsigned)gender];
+  else {
+    Logger::warn("SpeciesDatabase: {} name generation rules not specified for species '{}'; using no rules and skipping name generation", gender == Gender::Male ? "Male" : "Female", m_kind);
+    return "";
+  }
 }
 
 String SpeciesDefinition::ouchNoise(Gender gender) const {
-  return m_ouchNoises[(unsigned)gender];
+  if (m_nameGen.size() > (unsigned)gender)
+    return m_ouchNoises[(unsigned)gender];
+  else {
+    Logger::warn("SpeciesDatabase: {} ouch noise not specified for species '{}'", gender == Gender::Male ? "Male" : "Female", m_kind);
+    return "";
+  }
 }
 
 SpeciesOption const& SpeciesDefinition::options() const {
@@ -235,4 +245,4 @@ void SpeciesDefinition::generateHumanoid(HumanoidIdentity& identity, int64_t see
   identity.facialMaskDirectives = facialMaskDirective;
 }
 
-}
+} // namespace Star
