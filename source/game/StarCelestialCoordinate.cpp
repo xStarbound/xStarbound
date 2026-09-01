@@ -1,18 +1,18 @@
 #include "StarCelestialCoordinate.hpp"
 #include "StarCelestialTypes.hpp"
+#include "StarDataStreamExtra.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarLexicalCast.hpp"
 #include "StarStaticRandom.hpp"
-#include "StarDataStreamExtra.hpp"
 
 namespace Star {
 
 CelestialCoordinate::CelestialCoordinate() : m_planetaryOrbitNumber(0), m_satelliteOrbitNumber(0) {}
 
 CelestialCoordinate::CelestialCoordinate(Vec3I location, int planetaryOrbitNumber, int satelliteOrbitNumber)
-  : m_location(std::move(location)),
-    m_planetaryOrbitNumber(planetaryOrbitNumber),
-    m_satelliteOrbitNumber(satelliteOrbitNumber) {}
+    : m_location(std::move(location)),
+      m_planetaryOrbitNumber(planetaryOrbitNumber),
+      m_satelliteOrbitNumber(satelliteOrbitNumber) {}
 
 CelestialCoordinate::CelestialCoordinate(Json const& variant) : CelestialCoordinate() {
   if (variant.isType(Json::Type::String)) {
@@ -21,19 +21,22 @@ CelestialCoordinate::CelestialCoordinate(Json const& variant) : CelestialCoordin
       try {
         auto plist = id.splitAny(" _:");
 
-        m_location[0] = lexicalCast<int>(plist.at(0));
-        m_location[1] = lexicalCast<int>(plist.at(1));
-        m_location[2] = lexicalCast<int>(plist.at(2));
+        if (plist.size() < 3)
+          throw CelestialException(strf("Must specify at least three colon-separated integers (X, Y, Z coordinates)", id));
+
+        m_location[0] = lexicalCast<int>(plist[0]);
+        m_location[1] = lexicalCast<int>(plist[1]);
+        m_location[2] = lexicalCast<int>(plist[2]);
 
         if (plist.size() > 3)
-          m_planetaryOrbitNumber = lexicalCast<int>(plist.at(3));
+          m_planetaryOrbitNumber = lexicalCast<int>(plist[3]);
         if (plist.size() > 4)
-          m_satelliteOrbitNumber = lexicalCast<int>(plist.at(4));
+          m_satelliteOrbitNumber = lexicalCast<int>(plist[4]);
 
         if (m_planetaryOrbitNumber <= 0)
-          throw CelestialException(strf("Planetary body number out of range in '{}'", id));
+          throw CelestialException(strf("Planetary body number (fourth integer) out of range in '{}'", id));
         if (m_satelliteOrbitNumber < 0)
-          throw CelestialException(strf("Satellite body number out of range in '{}'", id));
+          throw CelestialException(strf("Satellite body number (fifth integer) out of range in '{}'", id));
       } catch (StarException const& e) {
         throw CelestialException(strf("Error parsing CelestialCoordinate from '{}'", id), e);
       }
@@ -135,18 +138,15 @@ CelestialCoordinate::operator bool() const {
 }
 
 bool CelestialCoordinate::operator<(CelestialCoordinate const& rhs) const {
-  return tie(m_location, m_planetaryOrbitNumber, m_satelliteOrbitNumber)
-      < tie(rhs.m_location, rhs.m_planetaryOrbitNumber, rhs.m_satelliteOrbitNumber);
+  return tie(m_location, m_planetaryOrbitNumber, m_satelliteOrbitNumber) < tie(rhs.m_location, rhs.m_planetaryOrbitNumber, rhs.m_satelliteOrbitNumber);
 }
 
 bool CelestialCoordinate::operator==(CelestialCoordinate const& rhs) const {
-  return tie(m_location, m_planetaryOrbitNumber, m_satelliteOrbitNumber)
-      == tie(rhs.m_location, rhs.m_planetaryOrbitNumber, rhs.m_satelliteOrbitNumber);
+  return tie(m_location, m_planetaryOrbitNumber, m_satelliteOrbitNumber) == tie(rhs.m_location, rhs.m_planetaryOrbitNumber, rhs.m_satelliteOrbitNumber);
 }
 
 bool CelestialCoordinate::operator!=(CelestialCoordinate const& rhs) const {
-  return tie(m_location, m_planetaryOrbitNumber, m_satelliteOrbitNumber)
-      != tie(rhs.m_location, rhs.m_planetaryOrbitNumber, rhs.m_satelliteOrbitNumber);
+  return tie(m_location, m_planetaryOrbitNumber, m_satelliteOrbitNumber) != tie(rhs.m_location, rhs.m_planetaryOrbitNumber, rhs.m_satelliteOrbitNumber);
 }
 
 std::ostream& operator<<(std::ostream& os, CelestialCoordinate const& coord) {
@@ -181,4 +181,4 @@ DataStream& operator<<(DataStream& ds, CelestialCoordinate const& coordinate) {
   return ds;
 }
 
-}
+} // namespace Star

@@ -19,13 +19,18 @@ PatternedNameGenerator::PatternedNameGenerator() {
       m_markovSources.insert(sourceConfig.getString("name"), makeMarkovSource(sourceConfig.getUInt("prefixSize", 1),
                                                                  sourceConfig.getUInt("endSize", 1), jsonToStringList(sourceConfig.get("sourceNames"))));
     } catch (std::exception const& e) {
-      Logger::warn("NameGenerator: Error occurred while reading name source config file '{}', skipping: {}", file, outputException(e, true));
+      Logger::warn("NameGenerator: Error occurred while parsing name source config file '{}', skipping: {}", file, outputException(e, true));
     }
   }
 
-  auto profanityFilter = assets->json("/names/profanityfilter.config").toArray();
-  for (auto naughtyWord : profanityFilter)
-    m_profanityFilter.add(naughtyWord.toString().toLower());
+  try {
+    auto profanityFilter = assets->json("/names/profanityfilter.config").toArray();
+    for (auto naughtyWord : profanityFilter)
+      m_profanityFilter.add(naughtyWord.toString().toLower());
+  } catch (std::exception const& e) {
+    m_profanityFilter.clear();
+    Logger::warn("NameGenerator: Unable to set up profanity filter due to JSON asset parsing error, skipping profanity filtering: {}", outputException(e, true));
+  }
 }
 
 String PatternedNameGenerator::generateName(String const& rulesAsset) const {
@@ -41,17 +46,23 @@ String PatternedNameGenerator::generateName(String const& rulesAsset, uint64_t s
 String PatternedNameGenerator::generateName(String const& rulesAsset, RandomSource& random) const {
   auto assets = Root::singleton().assets();
   if (rulesAsset.empty()) {
-    Logger::warn("NameGenerator: No name generator rule file specified; skipping random name generation");
     return "";
   }
-  if (!assets->assetExists(rulesAsset)) {
+  auto splits = rulesAsset.splitAny(":?");
+  if (!assets->assetExists(splits.at(0))) {
     Logger::warn("NameGenerator: Name generator rule file '{}' not found; skipping random name generation", rulesAsset);
     return "";
   }
-  auto jRules = assets->json(rulesAsset);
+  Json jRules = Json();
+  try {
+    jRules = assets->json(rulesAsset);
+  } catch (std::exception const& e) {
+    Logger::warn("NameGenerator: Could not find name generator rules at JSON asset path '{}' (check JSON); skipping random name generation: {}", rulesAsset, outputException(e, true));
+    return "";
+  }
   bool rulesAreArray = jRules.isType(Json::Type::Array);
   if (!rulesAreArray)
-    Logger::warn("NameGenerator: Name generator rule file '{}' not a valid rules array; skipping random name generation", rulesAsset);
+    Logger::warn("NameGenerator: Name generator rule at path '{}' is not an array; skipping random name generation", rulesAsset);
   auto rules = rulesAreArray ? jRules.toArray() : JsonArray{};
   String res = "";
   int tries = 100;
@@ -74,7 +85,13 @@ String PatternedNameGenerator::processRule(JsonArray const& rule, RandomSource& 
     meta = rule[0];
     auto jMode = meta.get("mode", mode);
     mode = jMode.isType(Json::Type::String) ? jMode.toString() : mode;
-    titleCase = meta.get("titleCase", false) == true;
+    auto jTitleCase = meta.get("titleCase", false);
+    if (jTitleCase.isType(Json::Type::Bool)) {
+      titleCase = jTitleCase == true;
+    } else if (!jTitleCase.isNull()) {
+      Logger::warn("NameGenerator: Skipping bad \"titleCase\" value");
+      Logger::warn("Rule: {}", Json(rule).repr(2));
+    }
     index++;
   }
 
@@ -85,8 +102,10 @@ String PatternedNameGenerator::processRule(JsonArray const& rule, RandomSource& 
         result += processRule(entry.toArray(), random);
       else if (entry.type() == Json::Type::String)
         result += entry.toString();
-      else
+      else {
         Logger::warn("NameGenerator: Skipping non-string, non-array \"serie\" or \"series\" entry");
+        Logger::warn("Rule: {}", Json(rule).repr(2));
+      }
     }
   } else if (mode == "alts") {
     int i = index + random.randInt(rule.size() - 1 - index);
@@ -95,46 +114,56 @@ String PatternedNameGenerator::processRule(JsonArray const& rule, RandomSource& 
       result += processRule(entry.toArray(), random);
     else if (entry.type() == Json::Type::String)
       result += entry.toString();
-    else
+    else {
       Logger::warn("NameGenerator: Skipping non-string, non-array \"alts\" entry");
+      Logger::warn("Rule: {}", Json(rule).repr(2));
+    }
   } else if (mode == "markov") {
     if (!m_markovSources.contains(meta.getString("source"))) {
       Logger::warn("Unknown Markov name source '{}', skipping \"markov\" rule", meta.getString("source"));
+      Logger::warn("Rule: {}", Json(rule).repr(2));
       return result;
     }
 
     auto jSourceName = meta.get("source", Json());
     if (!jSourceName.isType(Json::Type::String)) {
       Logger::warn("NameGenerator: Markov \"source\" not a string, ignoring");
+      Logger::warn("Rule: {}", Json(rule).repr(2));
       return result;
     }
     auto sourceName = jSourceName.toString();
     if (!m_markovSources.contains(sourceName)) {
       Logger::warn("NameGenerator: Markov source '{}' not found, ignoring", sourceName);
+      Logger::warn("Rule: {}", Json(rule).repr(2));
       return result;
     }
     auto source = m_markovSources.get(sourceName);
     auto jLengthRange = meta.get("targetLength", Json());
     if (!jLengthRange.isType(Json::Type::Array)) {
-      Logger::warn("NameGenerator: Config for Markov source '{}' missing length range, ignoring", sourceName);
+      Logger::warn("NameGenerator: Config for Markov source '{}' missing length range or length range is invalid type, ignoring", sourceName);
+      Logger::warn("Rule: {}", Json(rule).repr(2));
       return result;
     }
     auto lengthRange = jLengthRange.toArray();
     if (lengthRange.size() != 2) {
-      Logger::warn("NameGenerator: Length range array for Markov source '{}' not two items in length, ignoring", sourceName);
+      Logger::warn("NameGenerator: Target length array for Markov source '{}' not two items in length, ignoring", sourceName);
+      Logger::warn("Rule: {}", Json(rule).repr(2));
       return result;
     }
     if (!(lengthRange[0].isType(Json::Type::Int) && lengthRange[1].isType(Json::Type::Int))) {
-      Logger::warn("NameGenerator: Item(s) in length range array for Markov source '{}' not integer(s), ignoring", sourceName);
+      Logger::warn("NameGenerator: Item(s) in target length array for Markov source '{}' not integer(s), ignoring", sourceName);
+      Logger::warn("Rule: {}", Json(rule).repr(2));
       return result;
     }
     int64_t shortest = lengthRange[0].toInt(), longest = lengthRange[1].toInt();
     if (shortest < 0 || longest < 0) {
-      Logger::warn("NameGenerator: Negative integer(s) found in length range array, ignoring", sourceName);
+      Logger::warn("NameGenerator: Negative integer(s) found in target length array, ignoring", sourceName);
+      Logger::warn("Rule: {}", Json(rule).repr(2));
       return result;
     }
     if (shortest > longest) {
-      Logger::warn("NameGenerator: Lower bound is larger than upper bound, ignoring", sourceName);
+      Logger::warn("NameGenerator: Lower bound for target length {} is larger than upper bound {}, ignoring", sourceName, shortest, longest);
+      Logger::warn("Rule: {}", Json(rule).repr(2));
       return result;
     }
     auto targetLength = random.randUInt(lengthRange[0].toUInt(), lengthRange[1].toUInt());
@@ -154,7 +183,8 @@ String PatternedNameGenerator::processRule(JsonArray const& rule, RandomSource& 
 
     result += piece;
   } else {
-    Logger::info("NameGenerator: Unknown mode '{}' specified; skipping rule", mode);
+    Logger::warn("NameGenerator: Unknown mode '{}' specified; skipping rule", mode);
+    Logger::warn("Rule: {}", Json(rule).repr(2));
   }
 
   if (titleCase)
