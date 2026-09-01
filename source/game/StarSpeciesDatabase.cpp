@@ -63,6 +63,13 @@ SpeciesDefinition::SpeciesDefinition(Json const& config) {
 
   m_nameGen = jsonToStringList(config.get("nameGen"));
   m_charGenTextLabels = jsonToStringList(config.getArray("charGenTextLabels", {}));
+  // FezzedOne: Required because of blind dereferences in `CharCreationPane`.
+  size_t sz = m_charGenTextLabels.size();
+  if (sz < 10) {
+    for (size_t i = sz; i < 10; i++) {
+      m_charGenTextLabels.emplaceAppend(String());
+    }
+  }
   m_skull = config.getString("skull", "/humanoid/any/dead.png");
 
   m_ouchNoises = jsonToStringList(config.get("ouchNoises"));
