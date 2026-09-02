@@ -466,6 +466,7 @@ List<WorldLayout::RegionWeighting> WorldLayout::getWeighting(int x, int y) const
 }
 
 List<RectI> WorldLayout::previewAddBiomeRegion(Vec2I const& position, int width) const {
+  if (m_layers.empty()) return {};
   auto layerAndCell = findLayerAndCell(position[0], position[1]);
   auto targetLayer = m_layers[layerAndCell.first];
   auto targetRegion = targetLayer.cells[layerAndCell.second];
@@ -487,6 +488,7 @@ List<RectI> WorldLayout::previewAddBiomeRegion(Vec2I const& position, int width)
 }
 
 List<RectI> WorldLayout::previewExpandBiomeRegion(Vec2I const& position, int width) const {
+  if (m_layers.empty()) return {};
   auto layerAndCell = findLayerAndCell(position[0], position[1]);
   auto targetLayer = m_layers[layerAndCell.first];
 
@@ -496,6 +498,7 @@ List<RectI> WorldLayout::previewExpandBiomeRegion(Vec2I const& position, int wid
 }
 
 String WorldLayout::setLayerEnvironmentBiome(Vec2I const& position) {
+  if (m_layers.empty()) return "";
   auto layerAndCell = findLayerAndCell(position[0], position[1]);
   auto targetLayer = m_layers[layerAndCell.first];
   auto targetBiomeIndex = targetLayer.cells[layerAndCell.second]->blockBiomeIndex;
@@ -515,6 +518,8 @@ void WorldLayout::addBiomeRegion(
     String biomeName,
     String const& subBlockSelector,
     int width) {
+
+  if (m_layers.empty()) return;
 
   auto layerAndCell = findLayerAndCell(position[0], position[1]);
 
@@ -596,6 +601,7 @@ void WorldLayout::addBiomeRegion(
 }
 
 void WorldLayout::expandBiomeRegion(Vec2I const& position, int newWidth) {
+  if (m_layers.empty()) return;
   auto layerAndCell = findLayerAndCell(position[0], position[1]);
 
   auto targetLayer = m_layers[layerAndCell.first];
@@ -606,6 +612,8 @@ void WorldLayout::expandBiomeRegion(Vec2I const& position, int newWidth) {
 }
 
 pair<size_t, size_t> WorldLayout::findLayerAndCell(int x, int y) const {
+  // FezzedOne: Return if the layer list is empty. Also added other layer checks to fix retail-related segfaults.
+  if (m_layers.empty()) return {0, 0};
   // find the target layer
   size_t targetLayerIndex = 0; // FezzedOne: Fixed a segfault by making sure this variable actually gets initialised.
   for (size_t i = 0; i < m_layers.size(); ++i) {
