@@ -442,7 +442,9 @@ void SystemObject::clientUpdate(float dt) {
 }
 
 void SystemObject::serverUpdate(SystemWorldServer* system, float dt) {
-  if (!m_config.permanent && m_spawnTime > 0.0 && system->time() > m_spawnTime + m_config.lifeTime)
+  // @CrysMia/@Bottinator22: Removed unnecessary `m_spawnTime > 0.0` check to allow objects spawned with a negative spawn time to despawn.
+  // Minor bug that only occurs with initially spawned objects in the first starter system upon creation of a new universe in single-player.
+  if (!m_config.permanent && system->time() > m_spawnTime + m_config.lifeTime)
     m_shouldDestroy = true;
 
   if (m_orbit.get()) {
