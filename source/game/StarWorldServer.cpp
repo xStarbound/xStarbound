@@ -1352,6 +1352,8 @@ void WorldServer::expandBiomeRegion(Vec2I const& position, int newWidth) {
 }
 
 bool WorldServer::pregenerateAddBiome(Vec2I const& position, int width) {
+  width = std::min(width, (int)m_worldTemplate->size()[0]);
+
   auto regions = m_worldTemplate->previewAddBiomeRegion(position, width);
 
   bool generationComplete = true;
@@ -1362,6 +1364,8 @@ bool WorldServer::pregenerateAddBiome(Vec2I const& position, int width) {
 }
 
 bool WorldServer::pregenerateExpandBiome(Vec2I const& position, int newWidth) {
+  newWidth = std::min(newWidth, (int)m_worldTemplate->size()[0]);
+
   auto regions = m_worldTemplate->previewExpandBiomeRegion(position, newWidth);
 
   bool generationComplete = true;
