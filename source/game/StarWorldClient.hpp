@@ -199,6 +199,8 @@ public:
 
   int64_t latency() const;
 
+  void clearWorld();
+
 private:
   static const float DropDist;
 
@@ -246,7 +248,6 @@ private:
   void lightingMain();
 
   void initWorld(WorldStartPacket const& packet);
-  void clearWorld();
   void tryGiveMainPlayerItem(ItemPtr item);
 
   void notifyEntityCreate(EntityPtr const& entity);

@@ -1528,7 +1528,8 @@ void WorldClient::update(float dt) {
 
   LogMap::set("client_entities", m_entityMap->size());
   LogMap::set("client_sectors", toString(loadedSectors.size()));
-  // LogMap::set("client_lua_mem", m_luaRoot->luaMemoryUsage());
+  if (GameObjectRegistry::smugglingEnabled())
+    LogMap::set("client_lua_mem", m_luaRoot->luaMemoryUsage());
 }
 
 ConnectionId WorldClient::connection() const {

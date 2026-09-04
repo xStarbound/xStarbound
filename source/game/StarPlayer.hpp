@@ -145,6 +145,8 @@ public:
   List<Drawable> renderHumanoid(bool withItems, bool withRotation);
   bool underwater() const;
 
+  // FezzedOne: Why was this missing?
+  bool shifting() const;
   void setShifting(bool shifting);
   void special(int specialKey);
 

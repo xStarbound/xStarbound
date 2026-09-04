@@ -822,6 +822,10 @@ void Player::revive(Vec2F const& footPosition) {
   }
 }
 
+bool Player::shifting() const {
+  return m_shifting;
+}
+
 void Player::setShifting(bool shifting) {
   m_shifting = shifting;
 }
@@ -2806,13 +2810,13 @@ void Player::addEffectEmitters(StringSet const& emitters) {
 }
 
 void Player::requestEmote(String const& emote) {
-  auto state = HumanoidEmoteNames.getLeft(emote);
+  auto state = HumanoidEmoteNames.maybeLeft(emote).value(HumanoidEmote::Idle);
   if (state != HumanoidEmote::Idle && (m_emoteState == state || m_emoteState == HumanoidEmote::Idle || m_emoteState == HumanoidEmote::Blink))
     addEmote(state);
 }
 
 void Player::requestEmote(String const& emote, Maybe<float> cooldownTime) {
-  auto state = HumanoidEmoteNames.getLeft(emote);
+  auto state = HumanoidEmoteNames.maybeLeft(emote).value(HumanoidEmote::Idle);
   if (state != HumanoidEmote::Idle && (m_emoteState == state || m_emoteState == HumanoidEmote::Idle || m_emoteState == HumanoidEmote::Blink))
     addEmote(state, cooldownTime);
 }

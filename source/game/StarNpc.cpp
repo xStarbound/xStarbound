@@ -1167,7 +1167,7 @@ void Npc::addEffectEmitters(StringSet const& emitters) {
 
 void Npc::requestEmote(String const& emote) {
   if (!emote.empty()) {
-    auto state = HumanoidEmoteNames.getLeft(emote);
+    auto state = HumanoidEmoteNames.maybeLeft(emote).value(HumanoidEmote::Idle);
     if (state != HumanoidEmote::Idle && (m_emoteState == HumanoidEmote::Idle || m_emoteState == HumanoidEmote::Blink))
       addEmote(state);
   }

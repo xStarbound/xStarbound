@@ -8,6 +8,7 @@
 #include "StarLuaGameConverters.hpp"
 #include "StarMovementControllerLuaBindings.hpp"
 #include "StarNetworkedAnimatorLuaBindings.hpp"
+#include "StarPlayer.hpp"
 #include "StarScriptedAnimatorLuaBindings.hpp"
 
 namespace Star {
@@ -365,18 +366,64 @@ void Vehicle::destroy(RenderCallback* renderCallback) {
 Maybe<Json> Vehicle::receiveMessage(ConnectionId connectionId, String const& message, JsonArray const& args) {
   m_aliveMasterConnections[connectionId] = GameTimer(m_slaveControlTimeout);
   if (message.equalsIgnoreCase("control_on")) {
+    if (args.size() < 2) {
+      Logger::warn("[xSB] Vehicle: Ignored 'control_on' message with too few arguments (2 required) to vehicle entity '{}' (ID: {}). Arguments: {}", name(), entityId(), Json(args).repr(0));
+      return Json();
+    }
+    if (!args[0].isType(Json::Type::Int) || !args[1].isType(Json::Type::String)) {
+      Logger::warn("[xSB] Vehicle: Ignored invalid arguments to 'control_on' message to vehicle entity '{}' (ID: {}). Arguments: {}", name(), entityId(), Json(args).repr(0));
+      return Json();
+    }
+    if (args[0].toInt() < 0 || args[0].toUInt() >= m_loungePositions.size() || !LoungeControlNames.hasRightValue(args[1].toString())) {
+      Logger::warn("[xSB] Vehicle: Ignored invalid lounge position or control name specified for 'control_on' message to vehicle entity '{}' (ID: {}). Arguments: {}", name(), entityId(), Json(args).repr(0));
+      return Json();
+    }
     auto& loungePosition = m_loungePositions.valueAt(args.at(0).toUInt());
     loungePosition.masterControlState[LoungeControlNames.getLeft(args.at(1).toString())].slavesHeld.add(connectionId);
     return Json();
   } else if (message.equalsIgnoreCase("control_off")) {
+    if (args.size() < 2) {
+      Logger::warn("[xSB] Vehicle: Ignored 'control_off' message with too few arguments (2 required) to vehicle entity '{}' (ID: {}). Arguments: {}", name(), entityId(), Json(args).repr(0));
+      return Json();
+    }
+    if (!args[0].isType(Json::Type::Int) || !args[1].isType(Json::Type::String)) {
+      Logger::warn("[xSB] Vehicle: Ignored invalid arguments to 'control_off' message to vehicle entity '{}' (ID: {}). Arguments: {}", name(), entityId(), Json(args).repr(0));
+      return Json();
+    }
+    if (args[0].toInt() < 0 || args[0].toUInt() >= m_loungePositions.size() || !LoungeControlNames.hasRightValue(args[1].toString())) {
+      Logger::warn("[xSB] Vehicle: Ignored invalid lounge position or control name specified for 'control_off' message to vehicle entity '{}' (ID: {}). Arguments: {}", name(), entityId(), Json(args).repr(0));
+      return Json();
+    }
     auto& loungePosition = m_loungePositions.valueAt(args.at(0).toUInt());
-    loungePosition.masterControlState[LoungeControlNames.getLeft(args.at(1).toString())].slavesHeld.remove(connectionId);
+    loungePosition.masterControlState[LoungeControlNames.getLeft(args[1].toString())].slavesHeld.remove(connectionId);
     return Json();
   } else if (message.equalsIgnoreCase("control_all")) {
+    if (args.size() < 2) {
+      Logger::warn("[xSB] Vehicle: Ignored 'control_all' message with too few arguments (2 required) to vehicle entity '{}' (ID: {}). Arguments: {}", name(), entityId(), Json(args).repr(0));
+      return Json();
+    }
+    if (!args[0].isType(Json::Type::Int) || !args[1].isType(Json::Type::Array)) {
+      Logger::warn("[xSB] Vehicle: Ignored invalid arguments to 'control_all' message to vehicle entity '{}' (ID: {}). Arguments: {}", name(), entityId(), Json(args).repr(0));
+      return Json();
+    }
+    if (args.at(0).toInt() < 0 || args[0].toUInt() >= m_loungePositions.size()) {
+      Logger::warn("[xSB] Vehicle: Ignored invalid lounge position specified for 'control_all' message to vehicle entity '{}' (ID: {}). Arguments: {}", name(), entityId(), Json(args).repr(0));
+      return Json();
+    }
     auto& loungePosition = m_loungePositions.valueAt(args.at(0).toUInt());
     Set<LoungeControl> allControlsHeld;
-    for (auto const& s : args.at(1).iterateArray())
+    for (auto const& s : args[1].iterateArray()) {
+      if (!s.isType(Json::Type::String)) {
+        if (!s.isNull())
+          Logger::warn("[xSB] Vehicle: Ignored invalid value '{}' passed as control name in 'control_all' message to vehicle entity '{}' (ID: {}). Arguments: {}", s.repr(0), name(), entityId(), Json(args).repr(0));
+        continue;
+      }
+      if (!LoungeControlNames.hasRightValue(s.toString())) {
+        Logger::warn("[xSB] Vehicle: Ignored invalid control name '{}' passed in 'control_all' message to vehicle entity '{}' (ID: {}). Arguments: {}", s.toString(), name(), entityId(), Json(args).repr(0));
+        continue;
+      }
       allControlsHeld.add(LoungeControlNames.getLeft(s.toString()));
+    }
     for (auto& p : loungePosition.masterControlState) {
       if (allControlsHeld.contains(p.first))
         p.second.slavesHeld.add(connectionId);
@@ -385,8 +432,19 @@ Maybe<Json> Vehicle::receiveMessage(ConnectionId connectionId, String const& mes
     }
     return Json();
   } else if (message.equalsIgnoreCase("aim")) {
+    auto isConvertibleToFloat = [](Json const& arg) -> bool {
+      return arg.isType(Json::Type::Float) || arg.isType(Json::Type::Int);
+    };
+    if (args.size() < 3) {
+      Logger::warn("[xSB] Vehicle: Ignored 'aim' message with too few arguments (3 required) to vehicle entity '{}' (ID: {}). Arguments: {}", name(), entityId(), Json(args).repr(0));
+      return Json();
+    }
+    if (!args[0].isType(Json::Type::Int) || !isConvertibleToFloat(args[1]) || !isConvertibleToFloat(args[2])) {
+      Logger::warn("[xSB] Vehicle: Ignored invalid arguments to 'aim' message to vehicle entity '{}' (ID: {}). Arguments: {}", name(), entityId(), Json(args).repr(0));
+      return Json();
+    }
     auto& loungePosition = m_loungePositions.valueAt(args.at(0).toUInt());
-    loungePosition.masterAimPosition = {args.at(1).toFloat(), args.at(2).toFloat()};
+    loungePosition.masterAimPosition = {args[1].toFloat(), args[2].toFloat()};
     return Json();
   } else {
     return m_scriptComponent.handleMessage(message, connectionId == world()->connection(), args);
@@ -457,7 +515,7 @@ LoungeAnchorConstPtr Vehicle::loungeAnchor(size_t positionIndex) const {
   loungePosition->direction = partTransformation.determinant() > 0 ? Direction::Right : Direction::Left;
   loungePosition->angle = partTransformation.transformAngle(0.0f);
   if (loungePosition->direction == Direction::Left)
-    loungePosition->angle += Constants::pi;
+    loungePosition->angle += (float)Constants::pi;
   loungePosition->controllable = true;
   loungePosition->loungeRenderLayer = renderLayer(VehicleLayer::Passenger);
   loungePosition->orientation = positionConfig.orientation.get();
@@ -582,75 +640,127 @@ EntityRenderLayer Vehicle::renderLayer(VehicleLayer vehicleLayer) const {
 LuaCallbacks Vehicle::makeVehicleCallbacks() {
   LuaCallbacks callbacks;
 
-  callbacks.registerCallback("controlHeld", [this](String const& loungeName, String const& controlName) {
-    auto const& mc = m_loungePositions.get(loungeName).masterControlState[LoungeControlNames.getLeft(controlName)];
-    return mc.masterHeld || !mc.slavesHeld.empty();
+  auto thisVehicle = GameObjectRegistry::smuggleWrap(this);
+
+  callbacks.registerCallback("controlHeld", [this, thisVehicle](String const& loungeName, String const& controlName) {
+    thisVehicle.checkSmuggle();
+    if (!m_loungePositions.contains(loungeName)) return false;
+    if (controlName.toLower() == "walk") {
+      auto entitiesIn = entitiesLoungingIn(*m_loungePositions.indexOf(loungeName));
+      if (!entitiesIn.empty()) {
+        if (auto player = world()->get<Player>(entitiesIn.first())) {
+          return player->shifting();
+        }
+      }
+      return false;
+    } else {
+      if (!LoungeControlNames.hasRightValue(controlName)) return false;
+      auto const& mc = m_loungePositions.get(loungeName).masterControlState[LoungeControlNames.getLeft(controlName)];
+      return mc.masterHeld || !mc.slavesHeld.empty();
+    }
   });
 
-  callbacks.registerCallback("aimPosition", [this](String const& loungeName) {
+  callbacks.registerCallback("shiftingHeld", [this, thisVehicle](String const& loungeName) {
+    thisVehicle.checkSmuggle();
+    if (!m_loungePositions.contains(loungeName)) return false;
+    for (EntityId entity : entitiesLoungingIn(*m_loungePositions.indexOf(loungeName))) {
+      if (auto player = world()->get<Player>(entity))
+        return player->shifting();
+    }
+    return false;
+  });
+
+  callbacks.registerCallback("aimPosition", [this, thisVehicle](String const& loungeName) -> Maybe<Vec2F> {
+    thisVehicle.checkSmuggle();
+    if (!m_loungePositions.contains(loungeName)) return Maybe<Vec2F>{};
     return m_loungePositions.get(loungeName).masterAimPosition;
   });
 
-  callbacks.registerCallback("entityLoungingIn", [this](String const& name) -> LuaValue {
+  callbacks.registerCallback("entityLoungingIn", [this, thisVehicle](String const& name) -> LuaValue {
+    thisVehicle.checkSmuggle();
+    if (!m_loungePositions.contains(name)) return LuaNil;
     auto entitiesIn = entitiesLoungingIn(*m_loungePositions.indexOf(name));
     if (entitiesIn.empty())
       return LuaNil;
     return LuaInt(entitiesIn.first());
   });
 
-  callbacks.registerCallback("setLoungeEnabled", [this](String const& name, bool enabled) {
+  callbacks.registerCallback("setLoungeEnabled", [this, thisVehicle](String const& name, bool enabled) {
+    thisVehicle.checkSmuggle();
+    if (!m_loungePositions.contains(name)) return;
     m_loungePositions.get(name).enabled.set(enabled);
   });
 
-  callbacks.registerCallback("setLoungeOrientation", [this](String const& name, String const& orientation) {
+  callbacks.registerCallback("setLoungeOrientation", [this, thisVehicle](String const& name, String const& orientation) {
+    thisVehicle.checkSmuggle();
+    if (!m_loungePositions.contains(name)) return;
     m_loungePositions.get(name).orientation.set(LoungeOrientationNames.getLeft(orientation));
   });
 
-  callbacks.registerCallback("setLoungeEmote", [this](String const& name, Maybe<String> emote) {
+  callbacks.registerCallback("setLoungeEmote", [this, thisVehicle](String const& name, Maybe<String> emote) {
+    thisVehicle.checkSmuggle();
+    if (!m_loungePositions.contains(name)) return;
     m_loungePositions.get(name).emote.set(std::move(emote));
   });
 
-  callbacks.registerCallback("setLoungeDance", [this](String const& name, Maybe<String> dance) {
+  callbacks.registerCallback("setLoungeDance", [this, thisVehicle](String const& name, Maybe<String> dance) {
+    thisVehicle.checkSmuggle();
+    if (!m_loungePositions.contains(name)) return;
     m_loungePositions.get(name).dance.set(std::move(dance));
   });
 
-  callbacks.registerCallback("setLoungeDirectives", [this](String const& name, Maybe<String> directives) {
+  callbacks.registerCallback("setLoungeDirectives", [this, thisVehicle](String const& name, Maybe<String> directives) {
+    thisVehicle.checkSmuggle();
+    if (!m_loungePositions.contains(name)) return;
     m_loungePositions.get(name).directives.set(std::move(directives));
   });
 
-  callbacks.registerCallback("setLoungeStatusEffects", [this](String const& name, JsonArray const& statusEffects) {
+  callbacks.registerCallback("setLoungeStatusEffects", [this, thisVehicle](String const& name, JsonArray const& statusEffects) {
+    thisVehicle.checkSmuggle();
+    if (!m_loungePositions.contains(name)) return;
     m_loungePositions.get(name).statusEffects.set(statusEffects.transformed(jsonToPersistentStatusEffect));
   });
 
-  callbacks.registerCallback("setPersistent", [this](bool persistent) {
+  callbacks.registerCallback("setPersistent", [this, thisVehicle](bool persistent) {
+    thisVehicle.checkSmuggle();
     setPersistent(persistent);
   });
 
-  callbacks.registerCallback("setInteractive", [this](bool interactive) {
+  callbacks.registerCallback("setInteractive", [this, thisVehicle](bool interactive) {
+    thisVehicle.checkSmuggle();
     m_interactive.set(interactive);
   });
 
-  callbacks.registerCallback("setDamageTeam", [this](Json damageTeam) {
+  callbacks.registerCallback("setDamageTeam", [this, thisVehicle](Json damageTeam) {
+    thisVehicle.checkSmuggle();
     m_damageTeam.set(EntityDamageTeam(damageTeam));
   });
 
-  callbacks.registerCallback("setDamageSourceEnabled", [this](String const& name, bool enabled) {
+  callbacks.registerCallback("setDamageSourceEnabled", [this, thisVehicle](String const& name, bool enabled) {
+    thisVehicle.checkSmuggle();
+    if (!m_damageSources.contains(name)) return;
     m_damageSources.get(name).enabled.set(enabled);
   });
 
-  callbacks.registerCallback("setMovingCollisionEnabled", [this](String const& name, bool enabled) {
+  callbacks.registerCallback("setMovingCollisionEnabled", [this, thisVehicle](String const& name, bool enabled) {
+    thisVehicle.checkSmuggle();
+    if (!m_movingCollisions.contains(name)) return;
     m_movingCollisions.get(name).enabled.set(enabled);
   });
 
-  callbacks.registerCallback("setForceRegionEnabled", [this](String const& name, bool enabled) {
+  callbacks.registerCallback("setForceRegionEnabled", [this, thisVehicle](String const& name, bool enabled) {
+    thisVehicle.checkSmuggle();
+    if (!m_forceRegions.contains(name)) return;
     m_forceRegions.get(name).enabled.set(enabled);
   });
 
-  callbacks.registerCallback("destroy", [this]() {
+  callbacks.registerCallback("destroy", [this, thisVehicle]() {
+    thisVehicle.checkSmuggle();
     m_shouldDestroy = true;
   });
 
-  callbacks.registerCallback("setAnimationParameter", [this](String name, Json value) {
+  callbacks.registerCallback("setAnimationParameter", [this, thisVehicle](String name, Json value) {
+    thisVehicle.checkSmuggle();
     m_scriptedAnimationParameters.set(std::move(name), std::move(value));
   });
 

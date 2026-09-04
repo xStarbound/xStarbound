@@ -1389,6 +1389,8 @@ void UniverseClient::reset(bool skipLuaUninit) {
   stopLua(skipLuaUninit);
 
   m_universeClock.reset();
+  // FezzedOne: Needed so that the Lua object tracker doesn't throw errors on `world` binds when leaving the world.
+  m_worldClient->clearWorld();
   m_worldClient.reset();
   m_celestialDatabase.reset();
   m_clientContext.reset();

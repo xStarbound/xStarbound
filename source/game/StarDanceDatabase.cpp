@@ -14,6 +14,10 @@ DanceDatabase::DanceDatabase() {
       Logger::error("Error loading dance file {}: {}", file, outputException(e, true));
     }
   }
+  // FezzedOne: Ensure the `"assetmissing"` dance *always* exists because it's blindly dereferenced.
+  if (!m_dances.contains("assetmissing")) {
+    m_dances["assetmissing"] = make_shared<Dance>(Dance());
+  }
 }
 
 DancePtr DanceDatabase::getDance(String const& name) const {
@@ -66,4 +70,4 @@ DancePtr DanceDatabase::readDance(String const& path) {
   return make_shared<Dance>(Dance{name, states, cycle, cyclic, duration, steps});
 }
 
-}
+} // namespace Star

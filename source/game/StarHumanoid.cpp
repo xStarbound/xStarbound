@@ -553,7 +553,7 @@ void Humanoid::setPrimaryHandParameters(bool holdingItem, float angle, float ite
 
 void Humanoid::setPrimaryHandFrameOverrides(String backFrameOverride, String frontFrameOverride) {
   // Novaenia: some users stick directives in these?? better make sure they don't break with custom clothing
-  // FezzedOne: This splits override directives from frame specifier and moved them behind clothing directives.
+  // FezzedOne: This splits override directives from frame specifier and moves them behind clothing directives.
   // Unless the directives begin with a `??`.
   size_t backEnd = backFrameOverride.utf8().find('?');
   size_t frontEnd = frontFrameOverride.utf8().find('?');
@@ -589,7 +589,7 @@ void Humanoid::setAltHandParameters(bool holdingItem, float angle, float itemAng
 }
 
 void Humanoid::setAltHandFrameOverrides(String backFrameOverride, String frontFrameOverride) {
-  // Novaenia: Split override directives from frame specifier and moved them behind clothing directives.
+  // Novaenia: Split override directives from frame specifier and move them behind clothing directives.
   // FezzedOne: Unless the directives begin with a `??`.
   size_t backEnd = backFrameOverride.utf8().find('?');
   size_t frontEnd = frontFrameOverride.utf8().find('?');
@@ -640,8 +640,12 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
   if (dance.isValid()) {
     if (!(*dance)->states.contains(StateNames.getRight(m_state)))
       dance = {};
-    else
-      danceStep = (*dance)->steps[m_timing.danceSeq(m_danceTimer, *dance)];
+    else {
+      // FezzedOne: Needs to be able to handle zero-sized dances without a blind out-of-range dereference.
+      auto danceSeq = m_timing.danceSeq(m_danceTimer, *dance);
+      if ((*dance)->steps.size() > (size_t)danceSeq)
+        danceStep = (*dance)->steps[(size_t)danceSeq];
+    }
   }
 
   auto frontHand = (m_facingDirection == Direction::Left || m_twoHanded) ? m_primaryHand : m_altHand;
