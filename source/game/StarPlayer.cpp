@@ -1567,6 +1567,7 @@ void Player::refreshArmor(bool fullRefresh) {
     m_armor->setExtendedCosmeticItem(i, m_inventory->cosmetic(slot));
   }
   m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters, m_humanoid->overrideMovementParameters())));
+  m_zeroGMovementParameters = ActorMovementParameters(jsonMerge(m_config->zeroGMovementParameters, m_humanoid->overrideMovementParameters()));
   pushRenderLayer(m_renderLayerOverride);
   m_identityUpdated = true;
 }
