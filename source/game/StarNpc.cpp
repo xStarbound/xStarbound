@@ -167,6 +167,7 @@ ClientEntityMode Npc::clientEntityMode() const {
 
 void Npc::init(World* world, EntityId entityId, EntityMode mode) {
   Entity::init(world, entityId, mode);
+  m_humanoid.init(true);
   m_movementController->init(world);
   m_movementController->setIgnorePhysicsEntities({entityId});
   m_statusController->init(this, m_movementController.get());
@@ -174,6 +175,7 @@ void Npc::init(World* world, EntityId entityId, EntityMode mode) {
 
   // FezzedOne: Since NPCs never use `forceNude` anyway, using that parameter as an 'is master' parameter required for sane armour item networking.
   m_armor->setupHumanoidClothingDrawables(m_humanoid, isMaster(), true, m_movementController->facingDirection());
+  m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_npcVariant.movementParameters, m_humanoid.overrideMovementParameters())));
 
   if (isMaster()) {
     m_movementController->resetAnchorState();
@@ -673,23 +675,23 @@ LuaCallbacks Npc::makeNpcCallbacks() {
 
   callbacks.registerCallback("species", [this, thisNpc]() { thisNpc.checkSmuggle(); return m_npcVariant.species; });
 
-  callbacks.registerCallback("gender", [this, thisNpc]() {thisNpc.checkSmuggle();  return GenderNames.getRight(m_humanoid.identity().gender); });
+  callbacks.registerCallback("gender", [this, thisNpc]() { thisNpc.checkSmuggle(); return GenderNames.getRight(m_humanoid.identity().gender); });
 
-  callbacks.registerCallback("humanoidIdentity", [this, thisNpc]() {thisNpc.checkSmuggle();  return m_humanoid.identity().toJson(); });
+  callbacks.registerCallback("humanoidIdentity", [this, thisNpc]() { thisNpc.checkSmuggle(); return m_humanoid.identity().toJson(); });
 
-  callbacks.registerCallback("npcType", [this, thisNpc]() {thisNpc.checkSmuggle();  return npcType(); });
+  callbacks.registerCallback("npcType", [this, thisNpc]() { thisNpc.checkSmuggle(); return npcType(); });
 
-  callbacks.registerCallback("seed", [this, thisNpc]() {thisNpc.checkSmuggle();  return m_npcVariant.seed; });
+  callbacks.registerCallback("seed", [this, thisNpc]() { thisNpc.checkSmuggle(); return m_npcVariant.seed; });
 
-  callbacks.registerCallback("level", [this, thisNpc]() {thisNpc.checkSmuggle();  return m_npcVariant.level; });
+  callbacks.registerCallback("level", [this, thisNpc]() {thisNpc.checkSmuggle(); return m_npcVariant.level; });
 
-  callbacks.registerCallback("dropPools", [this, thisNpc]() {thisNpc.checkSmuggle();  return m_dropPools.get(); });
+  callbacks.registerCallback("dropPools", [this, thisNpc]() { thisNpc.checkSmuggle(); return m_dropPools.get(); });
 
-  callbacks.registerCallback("setDropPools", [this, thisNpc](StringList const& dropPools) {thisNpc.checkSmuggle();  m_dropPools.set(dropPools); });
+  callbacks.registerCallback("setDropPools", [this, thisNpc](StringList const& dropPools) { thisNpc.checkSmuggle(); m_dropPools.set(dropPools); });
 
-  callbacks.registerCallback("energy", [this, thisNpc]() {thisNpc.checkSmuggle();  return m_statusController->resource("energy"); });
+  callbacks.registerCallback("energy", [this, thisNpc]() { thisNpc.checkSmuggle(); return m_statusController->resource("energy"); });
 
-  callbacks.registerCallback("maxEnergy", [this, thisNpc]() {thisNpc.checkSmuggle();  return m_statusController->resourceMax("energy"); });
+  callbacks.registerCallback("maxEnergy", [this, thisNpc]() { thisNpc.checkSmuggle(); return m_statusController->resourceMax("energy"); });
 
   callbacks.registerCallback("say", [this, thisNpc](String line, Maybe<StringMap<String>> const& tags, Json const& config) {
     thisNpc.checkSmuggle();
@@ -717,11 +719,11 @@ LuaCallbacks Npc::makeNpcCallbacks() {
     return false;
   });
 
-  callbacks.registerCallback("emote", [this, thisNpc](String const& arg1) {thisNpc.checkSmuggle();  addEmote(HumanoidEmoteNames.getLeft(arg1)); });
+  callbacks.registerCallback("emote", [this, thisNpc](String const& arg1) { thisNpc.checkSmuggle(); addEmote(HumanoidEmoteNames.getLeft(arg1)); });
 
-  callbacks.registerCallback("dance", [this, thisNpc](Maybe<String> const& danceName) {thisNpc.checkSmuggle();  setDance(danceName); });
+  callbacks.registerCallback("dance", [this, thisNpc](Maybe<String> const& danceName) { thisNpc.checkSmuggle(); setDance(danceName); });
 
-  callbacks.registerCallback("setInteractive", [this, thisNpc](bool interactive) {thisNpc.checkSmuggle();  m_isInteractive.set(interactive); });
+  callbacks.registerCallback("setInteractive", [this, thisNpc](bool interactive) { thisNpc.checkSmuggle(); m_isInteractive.set(interactive); });
 
   callbacks.registerCallback("setLounging", [this, thisNpc](EntityId loungeableEntityId, Maybe<size_t> maybeAnchorIndex) {
     thisNpc.checkSmuggle();
@@ -734,7 +736,7 @@ LuaCallbacks Npc::makeNpcCallbacks() {
     return true;
   });
 
-  callbacks.registerCallback("resetLounging", [this, thisNpc]() {thisNpc.checkSmuggle();  m_movementController->resetAnchorState(); });
+  callbacks.registerCallback("resetLounging", [this, thisNpc]() { thisNpc.checkSmuggle(); m_movementController->resetAnchorState(); });
 
   callbacks.registerCallback("isLounging", [this, thisNpc]() { thisNpc.checkSmuggle(); return is<LoungeAnchor>(m_movementController->entityAnchor()); });
 
@@ -790,16 +792,16 @@ LuaCallbacks Npc::makeNpcCallbacks() {
     return {};
   });
 
-  callbacks.registerCallback("disableWornArmor", [this, thisNpc](bool disable) {thisNpc.checkSmuggle();  m_disableWornArmor.set(disable); });
+  callbacks.registerCallback("disableWornArmor", [this, thisNpc](bool disable) { thisNpc.checkSmuggle(); m_disableWornArmor.set(disable); });
 
-  callbacks.registerCallback("beginPrimaryFire", [this, thisNpc]() {thisNpc.checkSmuggle();  m_tools->beginPrimaryFire(); });
-  callbacks.registerCallback("beginAltFire", [this, thisNpc]() {thisNpc.checkSmuggle();  m_tools->beginAltFire(); });
-  callbacks.registerCallback("endPrimaryFire", [this, thisNpc]() {thisNpc.checkSmuggle();  m_tools->endPrimaryFire(); });
-  callbacks.registerCallback("endAltFire", [this, thisNpc]() {thisNpc.checkSmuggle();  m_tools->endAltFire(); });
-  callbacks.registerCallback("setShifting", [this, thisNpc](bool shifting) {thisNpc.checkSmuggle();  m_shifting.set(shifting); });
-  callbacks.registerCallback("setDamageOnTouch", [this, thisNpc](bool damageOnTouch) {thisNpc.checkSmuggle();  m_damageOnTouch.set(damageOnTouch); });
+  callbacks.registerCallback("beginPrimaryFire", [this, thisNpc]() { thisNpc.checkSmuggle(); m_tools->beginPrimaryFire(); });
+  callbacks.registerCallback("beginAltFire", [this, thisNpc]() { thisNpc.checkSmuggle(); m_tools->beginAltFire(); });
+  callbacks.registerCallback("endPrimaryFire", [this, thisNpc]() { thisNpc.checkSmuggle(); m_tools->endPrimaryFire(); });
+  callbacks.registerCallback("endAltFire", [this, thisNpc]() { thisNpc.checkSmuggle(); m_tools->endAltFire(); });
+  callbacks.registerCallback("setShifting", [this, thisNpc](bool shifting) { thisNpc.checkSmuggle();  m_shifting.set(shifting); });
+  callbacks.registerCallback("setDamageOnTouch", [this, thisNpc](bool damageOnTouch) { thisNpc.checkSmuggle(); m_damageOnTouch.set(damageOnTouch); });
 
-  callbacks.registerCallback("aimPosition", [this, thisNpc]() {thisNpc.checkSmuggle();  return jsonFromVec2F(aimPosition()); });
+  callbacks.registerCallback("aimPosition", [this, thisNpc]() { thisNpc.checkSmuggle(); return jsonFromVec2F(aimPosition()); });
 
   callbacks.registerCallback("setAimPosition", [this, thisNpc](Vec2F const& pos) {
     thisNpc.checkSmuggle();
@@ -813,10 +815,10 @@ LuaCallbacks Npc::makeNpcCallbacks() {
     m_deathParticleBurst.set(deathParticleBurst);
   });
 
-  callbacks.registerCallback("setStatusText", [this, thisNpc](Maybe<String> const& status) {thisNpc.checkSmuggle();  m_statusText.set(status); });
-  callbacks.registerCallback("setDisplayNametag", [this, thisNpc](bool display) {thisNpc.checkSmuggle();  m_displayNametag.set(display); });
+  callbacks.registerCallback("setStatusText", [this, thisNpc](Maybe<String> const& status) { thisNpc.checkSmuggle(); m_statusText.set(status); });
+  callbacks.registerCallback("setDisplayNametag", [this, thisNpc](bool display) { thisNpc.checkSmuggle(); m_displayNametag.set(display); });
 
-  callbacks.registerCallback("setPersistent", [this, thisNpc](bool persistent) {thisNpc.checkSmuggle();  setPersistent(persistent); });
+  callbacks.registerCallback("setPersistent", [this, thisNpc](bool persistent) { thisNpc.checkSmuggle(); setPersistent(persistent); });
 
   callbacks.registerCallback("setKeepAlive", [this, thisNpc](bool keepAlive) { thisNpc.checkSmuggle(); setKeepAlive(keepAlive); });
 
@@ -826,7 +828,9 @@ LuaCallbacks Npc::makeNpcCallbacks() {
 
   callbacks.registerCallback("setUniqueId", [this, thisNpc](Maybe<String> uniqueId) { thisNpc.checkSmuggle(); setUniqueId(uniqueId); });
 
-  callbacks.registerCallback("setIdentity", [this, thisNpc](Json const& newIdentity) { thisNpc.checkSmuggle(); setIdentity(newIdentity); });
+  // FezzedOne: Not useful since the identity change doesn't get networked. Respawn the NPC with the new identity or use an
+  // armour item with identity overrides (unfortunately xClient viewers only) instead.
+  // callbacks.registerCallback("setIdentity", [this, thisNpc](Json const& newIdentity) { thisNpc.checkSmuggle(); setIdentity(newIdentity); });
 
   callbacks.registerCallback("parameters", [this, thisNpc]() -> Json { thisNpc.checkSmuggle(); return diskStore(); });
 
@@ -1025,6 +1029,8 @@ bool Npc::setItemSlot(String const& slot, ItemDescriptor itemDescriptor) {
     m_tools->setItems(m_tools->primaryHandItem(), item);
   else
     return false;
+
+  m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_npcVariant.movementParameters, m_humanoid.overrideMovementParameters())));
 
   return true;
 }

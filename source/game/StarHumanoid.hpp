@@ -115,6 +115,8 @@ public:
   Humanoid(HumanoidIdentity const& identity);
   // Humanoid(Humanoid const&) = default;
 
+  void init(bool isMaster);
+
   struct HumanoidTiming {
     explicit HumanoidTiming(Json config = Json());
 
@@ -300,6 +302,7 @@ public:
   List<Particle> particles(String const& name) const;
 
   Json const& defaultMovementParameters() const;
+  Json const& overrideMovementParameters() const;
 
   Maybe<EntityRenderLayer> renderLayerOverride() const;
 
@@ -375,6 +378,7 @@ private:
   Vec2F m_legsArmorOffset;
   Vec2F m_backArmorOffset;
 
+  bool m_isMaster;
   bool m_bodyHidden;
 
   List<int> m_armWalkSeq;
@@ -477,6 +481,7 @@ private:
   String m_defaultDeathParticles;
 
   Json m_defaultMovementParameters;
+  Json m_overrideMovementParameters;
 
   uint32_t m_humanoidRotationSettings;
 

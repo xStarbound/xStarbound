@@ -247,7 +247,7 @@ EnumMap<Humanoid::State> const Humanoid::StateNames{
     {Humanoid::State::Lay, "lay"},
 };
 
-Humanoid::Humanoid(Json const& config) {
+Humanoid::Humanoid(Json const& config) : m_isMaster(true) {
   m_baseHumanoidConfig = config;
   m_previousOverrides = Json();
   updateHumanoidConfigOverrides(JsonObject{});
@@ -312,6 +312,10 @@ void Humanoid::setIdentity(HumanoidIdentity const& identity, Maybe<HumanoidIdent
   m_humanoidRotationSettings = HumanoidRotationSettings::Null;
   m_humanoidRotationSettings |= useBodyMask ? HumanoidRotationSettings::UseBodyMask : HumanoidRotationSettings::Null;
   m_humanoidRotationSettings |= useBodyHeadMask ? HumanoidRotationSettings::UseBodyHeadMask : HumanoidRotationSettings::Null;
+}
+
+void Humanoid::init(bool isMaster) {
+  m_isMaster = isMaster;
 }
 
 HumanoidIdentity const& Humanoid::identity() const {
@@ -2447,26 +2451,33 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
   if (auto jIdentityOverrides = overrides.get("identity", Json()); jIdentityOverrides.isType(Json::Type::Object)) {
     Json jBroadcastToStock = jIdentityOverrides.opt("broadcast").value(Json());
     m_broadcastToStock = jBroadcastToStock.isType(Json::Type::Bool) ? jBroadcastToStock.toBool() : false;
-    m_broadcastToStock |= m_bodyHidden;
-    auto baseSpecies = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
-    mergeOverrides(jIdentityOverrides, "bodyDirectives", m_identity.bodyDirectives);
-    mergeOverrides(jIdentityOverrides, "hairDirectives", m_identity.hairDirectives);
-    mergeOverrides(jIdentityOverrides, "emoteDirectives", m_identity.emoteDirectives);
-    mergeOverrides(jIdentityOverrides, "facialHairDirectives", m_identity.facialHairDirectives);
-    mergeOverrides(jIdentityOverrides, "facialMaskDirectives", m_identity.facialMaskDirectives);
-    auto newIdentity = HumanoidIdentity(jsonMerge(m_identity.toJson(), jIdentityOverrides));
-    auto speciesToCheck = newIdentity.imagePath ? *newIdentity.imagePath : newIdentity.species;
-    auto speciesToUse = checkSpecies(speciesToCheck) ? speciesToCheck : baseSpecies;
-    newIdentity.species = m_identity.species;
-    newIdentity.imagePath = speciesToCheck;
-    setIdentity(m_identity, newIdentity);
-    baseConfig = Root::singleton().speciesDatabase()->species(speciesToUse)->humanoidConfig();
+    if (m_broadcastToStock && !m_isMaster) {
+      setIdentity(m_identity);
+    } else {
+      auto baseSpecies = m_identity.imagePath ? *m_identity.imagePath : m_identity.species;
+      mergeOverrides(jIdentityOverrides, "bodyDirectives", m_identity.bodyDirectives);
+      mergeOverrides(jIdentityOverrides, "hairDirectives", m_identity.hairDirectives);
+      mergeOverrides(jIdentityOverrides, "emoteDirectives", m_identity.emoteDirectives);
+      mergeOverrides(jIdentityOverrides, "facialHairDirectives", m_identity.facialHairDirectives);
+      mergeOverrides(jIdentityOverrides, "facialMaskDirectives", m_identity.facialMaskDirectives);
+      auto newIdentity = HumanoidIdentity(jsonMerge(m_identity.toJson(), jIdentityOverrides));
+      auto speciesToCheck = newIdentity.imagePath ? *newIdentity.imagePath : newIdentity.species;
+      auto speciesToUse = checkSpecies(speciesToCheck) ? speciesToCheck : baseSpecies;
+      newIdentity.species = m_identity.species;
+      newIdentity.imagePath = speciesToCheck;
+      setIdentity(m_identity, newIdentity);
+      baseConfig = Root::singleton().speciesDatabase()->species(speciesToUse)->humanoidConfig();
+    }
   } else {
     setIdentity(m_identity);
-    m_broadcastToStock = m_bodyHidden;
+  }
+  m_previousOverrides = overrides;
+  {
+    auto overrideMovementParameters = overrides.get("movementParameters", Json());
+    m_overrideMovementParameters = overrideMovementParameters.isType(Json::Type::Object) ? overrideMovementParameters : JsonObject();
+    overrides = overrides.eraseKey("movementParameters");
   }
   Json config = jsonMerge(baseConfig, overrides);
-  m_previousOverrides = overrides;
 
   m_timing = HumanoidTiming(config.getObject("humanoidTiming"));
   m_globalOffset = jsonToVec2F(config.get("globalOffset")) / TilePixels;
@@ -2495,7 +2506,8 @@ void Humanoid::updateHumanoidConfigOverrides(Json overrides, bool force) {
   Json headCenterPosition = config.get("headRotationCenter", JsonArray{0.0f, 2.0f});
   m_headCenterPosition = jsonToVec2F(headCenterPosition) / TilePixels;
 
-  m_bodyHidden = config.getBool("bodyHidden", false);
+  m_bodyHidden = config.getBool("bodyHidden", m_bodyHidden);
+  m_broadcastToStock |= m_bodyHidden;
 
   m_armWalkSeq = jsonToIntList(config.get("armWalkSeq"));
   m_armRunSeq = jsonToIntList(config.get("armRunSeq"));
@@ -2678,6 +2690,10 @@ List<Particle> Humanoid::particles(String const& name) const {
 
 Json const& Humanoid::defaultMovementParameters() const {
   return m_defaultMovementParameters;
+}
+
+Json const& Humanoid::overrideMovementParameters() const {
+  return m_overrideMovementParameters;
 }
 
 Maybe<EntityRenderLayer> Humanoid::renderLayerOverride() const {

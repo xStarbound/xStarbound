@@ -255,7 +255,7 @@ Player::Player(PlayerConfigPtr config, ByteArray const& netStore) : Player(confi
 
   m_humanoid = makeObject<Humanoid>(Root::singleton().speciesDatabase()->species(m_identity.species)->humanoidConfig());
   m_humanoid->setIdentity(m_identity);
-  m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters)));
+  m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters, m_humanoid->overrideMovementParameters())));
 }
 
 
@@ -297,7 +297,7 @@ void Player::diskLoad(Json const& diskStore) {
   m_deployment->diskLoad(diskStore.get("deployment", JsonObject{}));
   m_humanoid = makeObject<Humanoid>(speciesDef->humanoidConfig());
   m_humanoid->setIdentity(m_identity);
-  m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters)));
+  m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters, m_humanoid->overrideMovementParameters())));
   m_effectsAnimator->setGlobalTag("effectDirectives", speciesDef->effectDirectives());
 
   m_genericProperties = diskStore.getObject("genericProperties");
@@ -399,6 +399,7 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
   m_overrideChatIndicator = false;
   m_overrideState = {};
 
+  m_humanoid->init(mode == EntityMode::Master);
   m_tools->init(this);
   m_movementController->init(world);
   m_movementController->tickIgnorePhysicsEntities(m_ignoreAllPhysicsEntities);
@@ -1565,7 +1566,7 @@ void Player::refreshArmor(bool fullRefresh) {
     const EquipmentSlot slot = (EquipmentSlot)(i + 8);
     m_armor->setExtendedCosmeticItem(i, m_inventory->cosmetic(slot));
   }
-  m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters)));
+  m_movementController->resetBaseParameters(ActorMovementParameters(jsonMerge(m_humanoid->defaultMovementParameters(), m_config->movementParameters, m_humanoid->overrideMovementParameters())));
   pushRenderLayer(m_renderLayerOverride);
   m_identityUpdated = true;
 }

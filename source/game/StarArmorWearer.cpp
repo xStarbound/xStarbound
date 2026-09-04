@@ -1053,9 +1053,9 @@ void ArmorWearer::setupHumanoidClothingDrawables(Humanoid& humanoid, bool forceN
           }
           humanoid.updateHumanoidConfigOverrides(JsonObject{}, true);
         }
-      }
 
-      humanoid.setBodyHidden(bodyHidden);
+        humanoid.setBodyHidden(bodyHidden);
+      }
 
       // FezzedOne: These tags aren't generated until the end of the first pass because they need to take identity overrides into account.
       visualIdentityTags = generateIdentityTags(humanoid.visualIdentity());
