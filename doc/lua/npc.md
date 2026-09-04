@@ -182,13 +182,13 @@ The valid values for `slot` are:
 
 #### `ItemDescriptor` npc.getItemSlot(`ItemSlot` slot)
 
-Returns the item currently in the specified item slot. See above for valid values for `slot`.
+Returns the item currently in the specified item slot. See above for valid values for `slot`. Any extra item slots defined in the NPC's variant config (e.g., `"sheathedprimary"` and `"sheathedalt"`, used for stowed/secondary weapons by many NPC variants) are also allowed as an argument to this binding, but not for `npc.setItemSlot`.
 
 ---
 
 #### `void` npc.disableWornArmor(`bool` disable)
 
-Set whether the NPC should not gain status effects from the equipped armour. Armour will still be visually equipped.
+Set whether the NPC should not gain status effects from the equipped armour. Armour will still be visually equipped and (if the NPC is mastered by xStarbound) any movement parameter overrides from worn armour still apply.
 
 ---
 
@@ -305,4 +305,3 @@ Sets the NPC's humanoid identity. The new identity will be merged with the curre
 #### `Json` npc.parameters()
 
 Returns the NPC's full parameters.
-
