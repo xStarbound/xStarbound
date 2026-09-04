@@ -422,7 +422,7 @@ void MovementController::approachVelocity(Vec2F const& targetVelocity, float max
   if (diffMagnitude == 0.0f)
     return;
 
-  float maximumAcceleration = maxControlForce / mass() * FixedTimeStep; // m_timeStep
+  float maximumAcceleration = maxControlForce / mass() * m_timeStep;
   float clampedMagnitude = clamp(diffMagnitude, 0.0f, maximumAcceleration);
 
   setVelocity(velocity() + diff * (clampedMagnitude / diffMagnitude));
@@ -445,7 +445,7 @@ void MovementController::approachVelocityAlongAngle(float angle, float targetVel
   if (positiveOnly && diff < 0)
     return;
 
-  float maximumAcceleration = maxControlForce / mass() * FixedTimeStep; // m_timeStep
+  float maximumAcceleration = maxControlForce / mass() * m_timeStep;
 
   float diffMagnitude = std::fabs(diff);
   float clampedMagnitude = clamp(diffMagnitude, 0.0f, maximumAcceleration);
