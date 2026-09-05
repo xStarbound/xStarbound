@@ -212,6 +212,11 @@ UniverseServer::~UniverseServer() {
 
   // Make sure that all world threads and net sockets (and associated threads)
   // are shutdown before other member destruction.
+  // FezzedOne: Fixed logged Lua dereference errors when shutting down the server.
+  for (auto const& worldId : m_worlds.keys()) {
+    if (auto world = getWorld(worldId))
+      world->preUninit();
+  }
   m_clients.clear();
   m_worlds.clear();
 }
@@ -715,6 +720,11 @@ void UniverseServer::run() {
     for (auto clientId : m_clients.keys())
       doDisconnection(clientId, "Server is shutting down");
 
+    // FezzedOne: Fixed logged Lua dereference errors when shutting down the server.
+    for (auto const& worldId : m_worlds.keys()) {
+      if (auto world = getWorld(worldId))
+        world->preUninit();
+    }
     saveSettings();
     saveTempWorldIndex();
     m_worlds.clear();
