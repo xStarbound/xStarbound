@@ -271,6 +271,7 @@ Humanoid::Humanoid(Json const& config) : m_isMaster(true) {
 
   m_humanoidRotationSettings = HumanoidRotationSettings::Null;
 
+  m_bodyHidden = false;
   m_broadcastToStock = false;
 }
 
