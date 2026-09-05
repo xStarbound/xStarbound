@@ -214,8 +214,11 @@ UniverseServer::~UniverseServer() {
   // are shutdown before other member destruction.
   // FezzedOne: Fixed logged Lua dereference errors when shutting down the server.
   for (auto const& worldId : m_worlds.keys()) {
-    if (auto world = getWorld(worldId))
-      world->preUninit();
+    if (auto world = getWorld(worldId)) {
+      world->stop();
+      if (world->isJoined())
+        world->preUninit();
+    }
   }
   m_clients.clear();
   m_worlds.clear();
@@ -722,8 +725,11 @@ void UniverseServer::run() {
 
     // FezzedOne: Fixed logged Lua dereference errors when shutting down the server.
     for (auto const& worldId : m_worlds.keys()) {
-      if (auto world = getWorld(worldId))
-        world->preUninit();
+      if (auto world = getWorld(worldId)) {
+        world->stop();
+        if (world->isJoined())
+          world->preUninit();
+      }
     }
     saveSettings();
     saveTempWorldIndex();
@@ -2408,8 +2414,10 @@ void UniverseServer::doDisconnection(ConnectionId clientId, String const& reason
       // Send the client the last ship update.
       if (auto shipWorld = getWorld(ClientShipWorldId(clientContext->playerUuid()))) {
         shipWorld->stop();
-        shipWorld->preUninit();
-        clientContext->updateShipChunks(shipWorld->readChunks());
+        if (shipWorld->isJoined()) {
+          shipWorld->preUninit();
+          clientContext->updateShipChunks(shipWorld->readChunks());
+        }
       }
       sendClientContextUpdate(clientContext);
 

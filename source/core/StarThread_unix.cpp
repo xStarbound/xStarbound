@@ -1,23 +1,23 @@
+#include "StarLogging.hpp"
 #include "StarThread.hpp"
 #include "StarTime.hpp"
-#include "StarLogging.hpp"
 
-#include <limits.h>
+#include <dirent.h>
+#include <dlfcn.h>
 #include <libgen.h>
+#include <limits.h>
+#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <dlfcn.h>
-#include <dirent.h>
-#include <pthread.h>
 #ifdef STAR_SYSTEM_FREEBSD
 #include <pthread_np.h>
 #endif
-#include <sys/time.h>
 #include <errno.h>
+#include <sys/time.h>
 
 #ifdef STAR_USE_RPMALLOC
-  #include "rpmalloc.h"
+#include "rpmalloc.h"
 #endif
 
 #ifdef MAXCOMLEN
@@ -62,7 +62,7 @@ struct ThreadImpl {
   }
 
   ThreadImpl(std::function<void()> function, String name)
-    : function(std::move(function)), name(std::move(name)), stopped(true), joined(true) {}
+      : function(std::move(function)), name(std::move(name)), stopped(true), joined(true) {}
 
   bool start() {
     MutexLocker mutexLocker(mutex);
@@ -111,7 +111,7 @@ struct ThreadImpl {
 
 struct ThreadFunctionImpl : ThreadImpl {
   ThreadFunctionImpl(std::function<void()> function, String name)
-    : ThreadImpl(wrapFunction(std::move(function)), std::move(name)) {}
+      : ThreadImpl(wrapFunction(std::move(function)), std::move(name)) {}
 
   std::function<void()> wrapFunction(std::function<void()> function) {
     return [function = std::move(function), this]() {
@@ -286,8 +286,9 @@ unsigned Thread::numberOfProcessors() {
 
 Thread::Thread(String const& name) {
   m_impl.reset(new ThreadImpl([this]() {
-      run();
-    }, name));
+    run();
+  },
+      name));
 }
 
 Thread::Thread(Thread&&) = default;
@@ -360,7 +361,7 @@ String ThreadFunction<void>::name() {
 }
 
 Mutex::Mutex()
-  : m_impl(new MutexImpl()) {}
+    : m_impl(new MutexImpl()) {}
 
 Mutex::Mutex(Mutex&&) = default;
 
@@ -381,7 +382,7 @@ void Mutex::unlock() {
 }
 
 ConditionVariable::ConditionVariable()
-  : m_impl(new ConditionVariableImpl()) {}
+    : m_impl(new ConditionVariableImpl()) {}
 
 ConditionVariable::ConditionVariable(ConditionVariable&&) = default;
 
@@ -405,7 +406,7 @@ void ConditionVariable::broadcast() {
 }
 
 RecursiveMutex::RecursiveMutex()
-  : m_impl(new RecursiveMutexImpl()) {}
+    : m_impl(new RecursiveMutexImpl()) {}
 
 RecursiveMutex::RecursiveMutex(RecursiveMutex&&) = default;
 
@@ -425,4 +426,4 @@ void RecursiveMutex::unlock() {
   m_impl->unlock();
 }
 
-}
+} // namespace Star
