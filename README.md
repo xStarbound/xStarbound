@@ -126,6 +126,7 @@ The following mods have special functionality that requires or is supported by x
 
 - [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — fully supported by xStarbound.
 - [Advanced Teleporter Interface](https://steamcommunity.com/sharedfiles/filedetails/?id=3788629855) — requires xStarbound, oSBM or OpenStarbound; can be used as a client-side mod if using the Quickbar entry. In order for this mod to affect placed teleporters, xStarbound or OpenStarbound must be installed _on the server_ to detect and patch teleporter objects. Only install this mod server-side if all clients have it installed. The party member listing functionality isn't currently supported on xClient because xStarbound's binding for listing team members differs from OpenStarbound's and oSBM's; use the 'open vanilla interface' button to teleport to party members.
+- [all blocks fall](https://github.com/bongus-jive/all-blocks-fall) — requires xStarbound, oSBM or OpenStarbound; is _server-side_. Note that xStarbound's «creative mode» prevents falling tiles from being triggered when enabled.
 - [Alternate UI Sounds [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3360332852) — should be supported by xStarbound; report any issues.
 - [Animis](https://github.com/Lonaasan/Animis) — requires xStarbound, oSBM or OpenStarbound.
 - [Armor Augment Slot](https://steamcommunity.com/sharedfiles/filedetails/?id=3448934708) — requires xStarbound, oSBM or OpenStarbound.
