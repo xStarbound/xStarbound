@@ -126,7 +126,7 @@ The following mods have special functionality that requires or is supported by x
 
 - [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — fully supported by xStarbound.
 - [Advanced Teleporter Interface](https://steamcommunity.com/sharedfiles/filedetails/?id=3788629855) — requires xStarbound, oSBM or OpenStarbound; can be used as a client-side mod if using the Quickbar entry. In order for this mod to affect placed teleporters, xStarbound or OpenStarbound must be installed _on the server_ to detect and patch teleporter objects. Only install this mod server-side if all clients have it installed. The party member listing functionality isn't currently supported on xClient because xStarbound's binding for listing team members differs from OpenStarbound's and oSBM's; use the 'open vanilla interface' button to teleport to party members.
-- [all blocks fall](https://github.com/bongus-jive/all-blocks-fall) — requires xStarbound, oSBM or OpenStarbound; is _server-side_. Note that xStarbound's «creative mode» prevents falling tiles from being triggered when enabled.
+- [all blocks fall](https://github.com/bongus-jive/all-blocks-fall) — requires xStarbound, oSBM or OpenStarbound; is _server-side_. Note that xStarbound's «creative mode» prevents falling and cascading tiles from being triggered when enabled.
 - [Alternate UI Sounds [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3360332852) — should be supported by xStarbound; report any issues.
 - [Animis](https://github.com/Lonaasan/Animis) — requires xStarbound, oSBM or OpenStarbound.
 - [Armor Augment Slot](https://steamcommunity.com/sharedfiles/filedetails/?id=3448934708) — requires xStarbound, oSBM or OpenStarbound.
@@ -160,7 +160,8 @@ The following mods have special functionality that requires or is supported by x
 - [NamjeShipwright](https://github.com/namje0/namje_shipwright) — should be fully supported on xStarbound v4.1.1+. The mod is still in alpha though!
 - [Neki](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) ([GitHub](https://github.com/hyperjuni/Neki)) and [Nekibound](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) — head rotation no longer clips Neki ears in xStarbound as of v3.4.4.
 - [NEONPUNK Title Screen [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3359876550) — OpenStarbound title screen replacement mod that should be supported by xStarbound; report any visual issues.
-- [No Food Rotting](https://steamcommunity.com/sharedfiles/filedetails/?id=3484110634) — supported by xStarbound.
+- [No Falling or Cascading Blocks](https://steamcommunity.com/sharedfiles/filedetails/?id=3795740702) — requires xStarbound, oSBM or OpenStarbound; is server-side. Be careful when exploring the Ruin with this mod installed!
+- [No Food Rotting](https://steamcommunity.com/sharedfiles/filedetails/?id=3484110634) — requires xStarbound, oSBM or OpenStarbound. Is client-side.
 - [Nytes Ship Parts](https://steamcommunity.com/sharedfiles/filedetails/?id=3777627193) — the OpenStarbound-specific patches require xStarbound, oSBM or OpenStarbound.
 - [OCD Tooltip Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3355387636) — technically supported by xStarbound, but unnecessary.
 - [One-For-All Compact and Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3427751671), [One-For-All Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3435109352) and [One-For-All Compact Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3457819726) — fully supported by xStarbound.
