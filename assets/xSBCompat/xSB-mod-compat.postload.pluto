@@ -690,6 +690,35 @@ end, |e| -> do
 end)
 ::skipWardrobeCumulativePatch::
 
+--- Compatibility patch for Silver Sokolova's Quick Commands ---
+-- This patch is needed because xStarbound's `chat.command` returns `nil` where OpenStarbound's version returns an empty array for a command
+-- that returns no chat messages and Quick Commands' script blindly assumes the return value is always an array (because it is on OpenStarbound).
+
+if not "XRC_quickCommands" in loadedMods then goto skipQuickCommandsPatch end
+modName = "Silver Sokolova's Quick Commands"
+
+xpcall(|| -> do
+    local quickCommandsScriptPath = "/xrc_bindings.lua"
+    local quickCommandsScript = assets.bytes(quickCommandsScriptPath)
+
+    local quickCommandsScriptPatch = [==[
+    ---<< END OF ORIGINAL QUICK COMMANDS SCRIPT >>---
+
+    local quick_commands_init = init
+    function init()
+        local xsb_chat_command = chat.command
+        chat.command = |...| -> xsb_chat_command(...) or {}
+        return quick_commands_init()
+    end
+    ]==]
+    assets.add(quickCommandsScriptPath, quickCommandsScript .. quickCommandsScriptPatch)
+
+    logInfo(modName)
+end, |e| -> do
+    logError(modName, e)
+end)
+::skipQuickCommandsPatch::
+
 --- Compatibility patch for Silver Sokolova's Betabound ---
 -- This patch ensures the mod works as if on a vanilla client, but doesn't enable anything locked behind OpenStarbound checks.
 -- Not needed when `"legacySmuggling"` is enabled.
@@ -764,8 +793,8 @@ xpcall(|| -> do
     function init()
         local interactData = {
             title = "Incompatible Item",
-            message = "^orange;This item is incompatible with xClient!^reset;\n"
-                .. "Switch to a different client to use this item. ^yellow;OpenStarbound^reset; is recommended.",
+            message = "^orange;This item is currently not usable!^reset;\n"
+                .. "Enable ^cyan;\"legacySmuggling\"^reset; in ^cyan;$storage/xclient.config^reset; to use this item.",
             sound = "/sfx/interface/nav_insufficient_fuel.ogg"
         }
         player.interact("ShowPopup", interactData)
@@ -825,8 +854,8 @@ xpcall(|| -> do
         function init()
             local interactData = {
                 title = "Incompatible Item",
-                message = "^orange;This item is incompatible with xClient!^reset;\n"
-                    .. "Switch to a different client to use this item. ^yellow;OpenStarbound^reset; is recommended.",
+                message = "^orange;This item is currently not usable!^reset;\n"
+                .. "Enable ^cyan;\"legacySmuggling\"^reset; in ^cyan;$storage/xclient.config^reset; to use this item.",
                 sound = "/sfx/interface/nav_insufficient_fuel.ogg"
             }
             player.interact("ShowPopup", interactData)
@@ -854,10 +883,10 @@ xpcall(|| -> do
         local interactData = {
             title = "Incompatible Character",
             message = isThisPlayer
-                and ("^orange;This character is incompatible with xClient!^reset;\n\n"
-                    .. "Swap to a non-Futara-Dragon character on this client or switch to a different client to play a Futara Dragon. ^yellow;OpenStarbound^reset; is recommended.")
-                or ("^orange;A character you just added is incompatible with xClient!^reset; The character has been removed from play.\n\n"
-                    .. "Switch to a different client to play a Futara Dragon. ^yellow;OpenStarbound^reset; is recommended."),
+                and ("^orange;This character is currently not playable!^reset;\n\n"
+                    .. "Enable ^cyan;\"legacySmuggling\"^reset; in ^cyan;$storage/xclient.config^reset; to play this character or swap to a non-Futara-Dragon character on this client.")
+                or ("^orange;A character you just added is currently not playable!^reset; The character has been removed from play.\n\n"
+                    .. "Enable ^cyan;\"legacySmuggling\"^reset; in ^cyan;$storage/xclient.config^reset; to play Futara dragons."),
             sound = "/sfx/interface/nav_insufficient_fuel.ogg"
         }
         player.interact("ShowPopup", interactData)
