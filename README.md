@@ -169,7 +169,6 @@ The following mods have special functionality that requires or is supported by x
 - [Pan Dimensional Vending](https://steamcommunity.com/sharedfiles/filedetails/?id=3464213838&searchtext=) — fully supported by xStarbound.
 - [Phantasy Starbound Title](https://steamcommunity.com/sharedfiles/filedetails/?id=3475986947) — OpenStarbound title screen replacement mod that should be supported by xStarbound; report any visual issues.
 - [Planet Search](https://steamcommunity.com/sharedfiles/filedetails/?id=3269792617) — fully supported by xStarbound.
-- [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — all OpenStarbound-compatible commands are supported by xStarbound as of v3.1.6.
 - [Quick Stack Gun [OpenStarbound Fix]](https://steamcommunity.com/sharedfiles/filedetails/?id=3501752811) — Despite the name, requires xStarbound, oSBM or OpenStarbound.
 - [Recipe Browser](https://steamcommunity.com/sharedfiles/filedetails/?id=2018183533) — Recipe Browser's universal mod support requires xStarbound, oSBM or OpenStarbound.
 - [RPG Growth Keybind Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3368499316) — this mod fixes a compatibility issue between RPG Growth and xStarbound/OpenStarbound/StarExtensions.
@@ -250,6 +249,10 @@ The following OpenStarbound mods require OpenStarbound-only callbacks that are e
 - [AII - Improved Containers Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3783216469) — requires Advanced Inventory Interaction above, which currently requires an xSBCompat patch; also requires Improved Containers, obviously.
 - [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — requires a patch because xStarbound has `root.assetSources` instead of OpenStarbound's `root.assetSourcePaths`, and OpenStarbound adds a boolean parameter that needs emulation.
 - [Universal BYOS Patcher](https://steamcommunity.com/sharedfiles/filedetails/?id=3648814036) — same compatibility issue as Unde Venis, just with `assets.sources` (xStarbound) and `assets.sourcePaths` (OpenStarbound), the equivalent asset preprocessor callback.
+
+The following OpenStarbound mod requires an xSBCompat to work around behavioural differences between xStarbound and OpenStarbound:
+
+- [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — patch needed because `chat.command`'s return value on xStarbound is `nil` when a command returns no messages and the mod's code doesn't check for this.
 
 </details>
 
