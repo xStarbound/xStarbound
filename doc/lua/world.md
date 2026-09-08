@@ -780,6 +780,22 @@ Similar to `world.entityHandItem`, but returns the full descriptor of the item r
 
 ---
 
+#### `Maybe<Json>` world.entitySong(`EntityId` entityId)
+
+> **Only available on xStarbound v4.5.3+, but can access JSON data broadcast by OpenStarbound or oSBM clients.**
+
+If the entity is a player playing a song, returns the notes of the song currently being played, in the following format:
+
+```lua
+jobject{
+    abc = "<ABC notation>"
+}
+```
+
+... or `nil` if no song is currently being played by the player or the entity is not a player. The song data may contain other arbitrary JSON data, which can potentially be useful as data storage for script mods. The only required key is `"abc"`, whose value must be a string constituting a (hopefully valid) ABC song.
+
+---
+
 #### `Maybe<ItemDescriptor>` world.itemDropItem(`EntityId` entityId)
 
 Returns the item descriptor of an item drop's contents, or `nil` if the specified entity is not an item drop.

@@ -1,12 +1,12 @@
 #include "StarSongbook.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
-#include "StarLexicalCast.hpp"
-#include "StarRandom.hpp"
-#include "StarWorld.hpp"
-#include "StarLogging.hpp"
 #include "StarEntityRendering.hpp"
+#include "StarLexicalCast.hpp"
+#include "StarLogging.hpp"
+#include "StarRandom.hpp"
+#include "StarRoot.hpp"
 #include "StarTime.hpp"
+#include "StarWorld.hpp"
 
 namespace Star {
 
@@ -33,6 +33,10 @@ Songbook::Songbook(String const& species) {
 
 Songbook::~Songbook() {
   stop();
+}
+
+void Songbook::updateSpecies(String const& species) {
+  m_species = species;
 }
 
 Songbook::NoteMapping& Songbook::noteMapping(String const& instrument, String const& species, int note) {
@@ -94,8 +98,9 @@ void Songbook::update(EntityMode mode, World* world) {
         m_track.clear();
         m_stopped = false;
         m_track.appendAll(parseABC(m_song.getString("abc")));
-      } catch (StarException const& e) {
-        Logger::error("Failed to handle abc: {}", outputException(e, true));
+      } catch (std::exception const& e) {
+        Logger::error("Songbook: Failed to handle ABC: {}", outputException(e, true));
+        Logger::info("[xSB] Ensure the config for instrument '{}' exists in your mod files and the ABC is valid.\n  Got song data: {}", m_instrument, m_song.repr(2, true));
         m_stopped = true;
       }
     }
@@ -118,8 +123,8 @@ void Songbook::playback() {
     for (auto& note : m_heldNotes)
       note.audio->setPosition(m_position);
     eraseWhere(m_heldNotes, [&](HeldNote const& note) -> bool {
-        return note.audio->finished();
-      });
+      return note.audio->finished();
+    });
   }
 
   while (!m_track.empty() && (m_track.first().timecode <= (now + 0.5))) {
@@ -208,25 +213,47 @@ List<Songbook::Note> Songbook::parseABC(String const& abc) {
     return lexicalCast<int>(t);
   };
 
-  auto fetchKeySignatureMapping = [&]() -> List<int> {
+  auto fetchKeySignatureMapping = [&]() -> Array<int, 7> {
     auto cleanupKey = [](String const& key) -> String {
       return key.toLower().replace(" ", "").replace("minor", "m").replace("min", "m").replace("major", "maj");
     };
     String key = cleanupKey(fields.value("K", "c"));
     auto keys = Root::singleton().assets()->json("/songbook.config:keys");
+    size_t keyLinks = 0;
     while (true) {
+      if (keyLinks > 10) return Array<int, 7>{0, 0, 0, 0, 0, 0, 0};
       if (!keys.contains(key)) {
-        Logger::info("Failed to find key {}, falling back to C", key);
+        Logger::info("Songbook: Failed to find key '{}', falling back to 'C' for signature", key);
         key = "c";
       }
       auto signature = keys.get(key);
       if (signature.isType(Json::Type::String)) {
         key = cleanupKey(signature.toString());
+        keyLinks++;
         continue;
       }
-      List<int> keySignatureMapping;
-      for (auto e : signature.toArray())
-        keySignatureMapping.append(e.toInt());
+      Array<int, 7> keySignatureMapping = {0, 0, 0, 0, 0, 0, 0};
+      bool badSignature = false;
+      // FezzedOne: Needed to avoid a segfault because of unchecked blind dereferences on the returned vector that assume a minimum of 7 elements.
+      if (signature.isType(Json::Type::Array)) {
+        if (signature.size() != 7) badSignature = true;
+        size_t i = 0;
+        for (auto e : signature.toArray()) {
+          if (i > 7) break;
+          if (e.isType(Json::Type::Float) || e.isType(Json::Type::Int)) {
+            keySignatureMapping[i] = (int)e.toInt();
+          } else {
+            badSignature = true;
+            keySignatureMapping[i] = 0;
+          }
+          i++;
+        }
+      } else {
+        badSignature = true;
+      }
+      if (badSignature) {
+        Logger::info("Songbook: Signature map is the wrong size or not all signatures mapped for key '{}'; assumed missing or bad signatures are 0. Check to make there's a valid array of seven integers for the referenced key.", key);
+      }
       return keySignatureMapping;
     }
   };
@@ -241,8 +268,8 @@ List<Songbook::Note> Songbook::parseABC(String const& abc) {
   double groupDuration = 0;
   bool dirtyFlags = true;
 
-  List<int> keySignatureMapping;
-  List<int> tupleMapping;
+  Array<int, 7> keySignatureMapping = {0, 0, 0, 0, 0, 0, 0};
+  Array<int, 10> tupleMapping = {0, 0, 3, 2, 3, 2, 2, 2, 3, 2};
   double fullNoteDuration = 0;
   double noteDuration = 0;
   double barDuration = 0;
@@ -293,17 +320,7 @@ List<Songbook::Note> Songbook::parseABC(String const& abc) {
         if ((m[1] == 8) && ((m[0] == 6) || (m[0] == 9) || (m[0] == 12)))
           tdt = 3;
 
-        tupleMapping.clear();
-        tupleMapping.append(0);
-        tupleMapping.append(0);
-        tupleMapping.append(3);
-        tupleMapping.append(2);
-        tupleMapping.append(3);
-        tupleMapping.append(tdt);
-        tupleMapping.append(2);
-        tupleMapping.append(tdt);
-        tupleMapping.append(3);
-        tupleMapping.append(tdt);
+        tupleMapping = {0, 0, 3, 2, 3, tdt, 2, tdt, 3, tdt};
       }
 
       Deque<String::Char> buffer(l.begin(), l.end());
@@ -427,10 +444,10 @@ List<Songbook::Note> Songbook::parseABC(String const& abc) {
             if (r == 0)
               r = p;
             if (q == 0)
-              q = tupleMapping[p];
+              q = p < 10 ? tupleMapping[p] : 0; // FezzedOne: Added extra sanity check just to be sure.
 
             tupleCount = p;
-            tupleDurationFactor = (float)q / (float)p;
+            tupleDurationFactor = p != 0 ? (float)q / (float)p : 0.0; // FezzedOne: Sanity check to prevent a NaN.
           }
 
           continue;
@@ -588,12 +605,11 @@ List<Songbook::Note> Songbook::parseABC(String const& abc) {
                 auto mapping = noteMapping(m_instrument, m_species, note);
                 result.append(Note{
                     m_instrument,
-                    Random::randFrom(mapping.files),
+                    mapping.files.size() > 0 ? Random::randFrom(mapping.files) : "/assetmissing.wav",
                     now,
                     noteDuration,
                     mapping.fadeout,
-                    mapping.velocity
-                  });
+                    mapping.velocity});
                 pendingTies.add(note, result.size() - 1);
               }
             }
@@ -607,12 +623,11 @@ List<Songbook::Note> Songbook::parseABC(String const& abc) {
                 auto mapping = noteMapping(m_instrument, m_species, note);
                 result.append(Note{
                     m_instrument,
-                    Random::randFrom(mapping.files),
+                    mapping.files.size() > 0 ? Random::randFrom(mapping.files) : "/assetmissing.wav",
                     now,
                     noteDuration,
                     mapping.fadeout,
-                    mapping.velocity
-                  });
+                    mapping.velocity});
               }
             }
           }
@@ -733,4 +748,16 @@ void Songbook::netElementsNeedStore() {
   m_timeSourceNetState.set(m_timeSource);
 }
 
+Maybe<String> Songbook::timeSource() const {
+  return m_timeSource;
 }
+
+Maybe<String> Songbook::instrument() const {
+  return m_instrument;
+}
+
+Json Songbook::song() const {
+  return m_song;
+}
+
+} // namespace Star

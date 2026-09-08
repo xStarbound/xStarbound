@@ -428,6 +428,7 @@ void Player::init(World* world, EntityId entityId, EntityMode mode) {
       p.second->addCallbacks("entity", LuaBindings::makeEntityCallbacks(as<Entity>(this)));
       p.second->addCallbacks("player", LuaBindings::makePlayerCallbacks(this));
       p.second->addCallbacks("playerAnimator", LuaBindings::makeNetworkedAnimatorCallbacks(m_effectsAnimator.get(), as<Entity>(this)));
+      p.second->addCallbacks("songbook", LuaBindings::makeSongbookCallbacks(m_songbook.get()));
       p.second->addCallbacks("status", LuaBindings::makeStatusControllerCallbacks(m_statusController.get()));
       if (m_client)
         p.second->addCallbacks("celestial", LuaBindings::makeCelestialCallbacks(m_client));
@@ -458,6 +459,7 @@ void Player::uninit() {
       p.second->removeCallbacks("entity");
       p.second->removeCallbacks("player");
       p.second->removeCallbacks("playerAnimator");
+      p.second->removeCallbacks("songbook");
       p.second->removeCallbacks("mcontroller");
       p.second->removeCallbacks("status");
       p.second->removeCallbacks("world");

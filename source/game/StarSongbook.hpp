@@ -1,10 +1,10 @@
 #ifndef STAR_SONGBOOK_HPP
 #define STAR_SONGBOOK_HPP
 
-#include "StarThread.hpp"
+#include "StarGameTypes.hpp"
 #include "StarJson.hpp"
 #include "StarNetElementSystem.hpp"
-#include "StarGameTypes.hpp"
+#include "StarThread.hpp"
 
 namespace Star {
 
@@ -19,6 +19,8 @@ public:
   Songbook(String const& species);
   ~Songbook();
 
+  void updateSpecies(String const& species);
+
   void update(EntityMode mode, World* world);
   void render(RenderCallback* renderCallback);
 
@@ -31,6 +33,11 @@ public:
   void play(Json const& song, String const& timesource);
   bool active();
   bool instrumentPlaying();
+
+  // For oSB-derived `songbook` bindings.
+  Maybe<String> timeSource() const; // The band name, if any.
+  Maybe<String> instrument() const; // Name of the instrument being used, if any.
+  Json song() const;                // JSON data (including ABC data and name) for the song being played, if any.
 
 private:
   struct Note {
@@ -110,6 +117,6 @@ private:
   NetElementString m_instrumentNetState;
 };
 
-}
+} // namespace Star
 
 #endif

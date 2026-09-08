@@ -9,6 +9,7 @@
 #include "StarPlayerTech.hpp"
 #include "StarPlayerUniverseMap.hpp"
 #include "StarQuestManager.hpp"
+#include "StarSongbook.hpp"
 #include "StarStatistics.hpp"
 #include "StarUniverseClient.hpp"
 #include "StarWarping.hpp"
@@ -982,6 +983,25 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* playerPtr, bool removeChat
       player->setRenderLayer({});
     }
   });
+
+  return callbacks;
+}
+
+
+LuaCallbacks LuaBindings::makeSongbookCallbacks(Songbook* songbookPtr) {
+  // FezzedOne: Imported from OpenStarbound. Only available on player entities on xStarbound.
+  LuaCallbacks callbacks;
+
+  auto songbook = GameObjectRegistry::smuggleWrap(songbookPtr);
+
+  callbacks.registerCallbackWithSignature<void, Json, String>("play", LUA_BIND(&Songbook::play, songbook, _1, _2));
+  callbacks.registerCallbackWithSignature<void, String, Vec2F>("keepAlive", LUA_BIND(&Songbook::keepalive, songbook, _1, _2));
+  callbacks.registerCallbackWithSignature<void>("stop", LUA_BIND(&Songbook::stop, songbook));
+  callbacks.registerCallbackWithSignature<bool>("active", LUA_BIND(&Songbook::active, songbook));
+  callbacks.registerCallbackWithSignature<Maybe<String>>("band", LUA_BIND(&Songbook::timeSource, songbook)); // FezzedOne: I.e., the band name.
+  callbacks.registerCallbackWithSignature<Maybe<String>>("instrument", LUA_BIND(&Songbook::instrument, songbook));
+  callbacks.registerCallbackWithSignature<bool>("instrumentPlaying", LUA_BIND(&Songbook::instrumentPlaying, songbook));
+  callbacks.registerCallbackWithSignature<Json>("song", LUA_BIND(&Songbook::song, songbook));
 
   return callbacks;
 }

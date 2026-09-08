@@ -25,6 +25,7 @@
 #include "StarProjectileDatabase.hpp"
 #include "StarRoot.hpp"
 #include "StarSky.hpp"
+#include "StarSongbook.hpp"
 #include "StarStagehand.hpp"
 #include "StarTreasure.hpp"
 #include "StarUniverseSettings.hpp"
@@ -853,6 +854,11 @@ namespace LuaBindings {
       return {};
     });
     callbacks.registerCallbackWithSignature<Maybe<Vec2F>, EntityId>("entityAimPosition", LUA_BIND(WorldEntityCallbacks::entityAimPosition, world, _1));
+    callbacks.registerCallback("entitySong", [world](EntityId entityId) -> Maybe<Json> {
+      if (auto entity = world->get<Player>(entityId))
+        return entity->songbook()->song();
+      return {};
+    });
   }
 
   void addWorldEnvironmentCallbacks(LuaCallbacks& callbacks, SmugglePtr<World> world) {

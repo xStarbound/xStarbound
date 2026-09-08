@@ -1299,7 +1299,7 @@ xpcall(|| -> do
                         if world.mainPlayer() == entity.id() then
                             return input["raw_" .. name](...)
                         else
-                            return nil
+                            return name == "getTag" ? 0 : nil
                         end
                     end
                 end
