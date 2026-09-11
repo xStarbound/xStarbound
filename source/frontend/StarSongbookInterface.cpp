@@ -27,12 +27,10 @@ SongbookInterface::SongbookInterface(PlayerPtr player) {
 
   reader.construct(assets->json("/interface/windowconfig/songbook.config:paneLayout"), this);
 
-  // FezzedOne: Disabled this listener for now.
-  // Root::singleton().registerReloadListener(
-  //   m_reloadListener = make_shared<CallbackListener>([this]() {
-  //     refresh(true);
-  //   })
-  // );
+  Root::singleton().registerReloadListener(
+      m_reloadListener = make_shared<CallbackListener>([this]() {
+        refresh(true);
+      }));
 
   refresh(true);
 }
@@ -43,8 +41,7 @@ void SongbookInterface::update(float dt) {
 }
 
 void SongbookInterface::show() {
-  // FezzedOne: The songbook now reloads songs every time it's opened instead of on asset reloads.
-  refresh(true);
+  // refresh(true);
   Pane::show();
 }
 
