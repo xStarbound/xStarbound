@@ -16,7 +16,7 @@ public:
   JsonObject metadata() const override;
   StringList assetPaths() const override;
 
-  // do not use the returned IODevice after the file is gone or bad things will happen
+  // FezzedOne: Fixed ownership issue. It's now safe to use this after the associated memory asset file is deleted.
   IODevicePtr open(String const& path) override;
 
   bool empty() const;
@@ -27,6 +27,7 @@ public:
   void set(String const& path, Image&& image);
   ByteArray read(String const& path) override;
   ImageConstPtr image(String const& path);
+
 private:
   typedef Variant<ByteArray, ImagePtr> FileEntry;
 
@@ -38,4 +39,4 @@ private:
   CaseInsensitiveStringMap<FileEntry> m_files;
 };
 
-}
+} // namespace Star

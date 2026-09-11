@@ -1,11 +1,11 @@
 #include "StarFontTextureGroup.hpp"
-#include "StarTime.hpp"
 #include "StarImageProcessing.hpp"
+#include "StarTime.hpp"
 
 namespace Star {
 
 FontTextureGroup::FontTextureGroup(TextureGroupPtr textureGroup)
-  : m_textureGroup(std::move(textureGroup)) {}
+    : m_textureGroup(std::move(textureGroup)) {}
 
 void FontTextureGroup::cleanup(int64_t timeout) {
   int64_t currentTime = Time::monotonicMilliseconds();
@@ -16,8 +16,7 @@ void FontTextureGroup::switchFont(String const& font) {
   if (font.empty()) {
     m_font = m_defaultFont;
     m_fontName.clear();
-  }
-  else if (m_fontName != font) {
+  } else if (m_fontName != font) {
     m_fontName = font;
     auto find = m_fonts.find(font);
     m_font = find != m_fonts.end() ? find->second : m_defaultFont;
@@ -41,8 +40,8 @@ void FontTextureGroup::clearFonts() {
   m_font = m_defaultFont;
 }
 
-const FontTextureGroup::GlyphTexture& FontTextureGroup::glyphTexture(String::Char c, unsigned size, Directives const* processingDirectives)
-{
+const FontTextureGroup::GlyphTexture& FontTextureGroup::glyphTexture(String::Char c, unsigned size, Directives const* processingDirectives) {
+  if (!m_font) return m_blankGlyphTexture;
   Font* font = (m_font->exists(c) || !m_fallbackFont) ? m_font.get() : m_fallbackFont.get();
 
   auto res = m_glyphs.insert(GlyphDescriptor{c, size, processingDirectives ? processingDirectives->hash() : 0, m_font.get()}, GlyphTexture());
@@ -59,14 +58,12 @@ const FontTextureGroup::GlyphTexture& FontTextureGroup::glyphTexture(String::Cha
           processImageOperation(entry.operation, image);
 
         res.first->second.offset = (preSize - Vec2F(image.size())) / 2;
-      }
-      catch (StarException&) {
+      } catch (StarException&) {
         image.forEachPixel([](unsigned x, unsigned y, Vec4B& pixel) {
           pixel = ((x + y) % 2 == 0) ? Vec4B(255, 0, 255, pixel[3]) : Vec4B(0, 0, 0, pixel[3]);
         });
       }
-    }
-    else
+    } else
       res.first->second.offset = Vec2F();
 
     res.first->second.offset += Vec2F(pair.second);
@@ -86,9 +83,10 @@ TexturePtr FontTextureGroup::glyphTexturePtr(String::Char c, unsigned size, Dire
 }
 
 unsigned FontTextureGroup::glyphWidth(String::Char c, unsigned fontSize) {
+  if (!m_font) return 0;
   Font* font = ((m_font->exists(c) || !m_fallbackFont) ? m_font.get() : m_fallbackFont.get());
   font->setPixelSize(fontSize);
   return font->width(c);
 }
 
-}
+} // namespace Star

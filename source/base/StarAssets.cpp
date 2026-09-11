@@ -114,6 +114,7 @@ Maybe<RectU> FramesSpecification::getRect(String const& frame) const {
 }
 
 Assets::Assets(Settings settings, StringList assetSources) {
+  ZoneScoped;
   const char* const AssetsPatchSuffix = ".patch";
   const char* const AssetsLuaPatchSuffix = ".patch.lua";
   const char* const AssetsPlutoPatchSuffix = ".patch.pluto";
@@ -580,6 +581,7 @@ Assets::~Assets() {
 }
 
 void Assets::hotReload() {
+  ZoneScoped;
   MutexLocker assetsLocker(m_assetsMutex);
   m_assetsCache.clear();
   m_queue.clear();
@@ -1631,9 +1633,9 @@ shared_ptr<Assets::AssetData> Assets::loadImage(AssetPath const& path) const {
       auto components = AssetPath::split(ref);
       validatePath(components, true, false);
       auto refImage = as<ImageData>(loadAsset(AssetId{AssetType::Image, std::move(components)}));
-      if (!refImage)
-        return {};
-      references[ref] = refImage->image;
+      // if (!refImage)
+      //   Logger::warn("Could not find referenced image '{}', substituting empty image", ref);
+      references[ref] = refImage ? refImage->image : make_shared<Image>();
     }
 
     return unlockDuring([&]() {

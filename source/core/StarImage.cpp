@@ -18,7 +18,7 @@ void readPngData(png_structp pngPtr, png_bytep data, png_size_t length) {
 };
 
 bool Image::isPngImage(IODevicePtr device) {
-  png_byte header[8];
+  png_byte header[8] = {0, 0, 0, 0, 0, 0, 0, 0};
   auto readByteSize = device->readAbsolute(0, (char*)header, sizeof(header));
   if (!png_sig_cmp(header, 0, readByteSize))
     return true;
@@ -26,7 +26,7 @@ bool Image::isPngImage(IODevicePtr device) {
 }
 
 Image Image::readPng(IODevicePtr device) {
-  png_byte header[8];
+  png_byte header[8] = {0, 0, 0, 0, 0, 0, 0, 0};
   device->readFull((char*)header, sizeof(header));
 
   if (png_sig_cmp(header, 0, sizeof(header)))
@@ -208,13 +208,13 @@ Image Image::filled(Vec2U size, Vec4B color, PixelFormat pf) {
 }
 
 Image::Image(PixelFormat pf)
-  : m_data(nullptr), m_width(0), m_height(0), m_pixelFormat(pf) {}
+    : m_data(nullptr), m_width(0), m_height(0), m_pixelFormat(pf) {}
 
 Image::Image(Vec2U size, PixelFormat pf)
-  : Image(size[0], size[1], pf) {}
+    : Image(size[0], size[1], pf) {}
 
 Image::Image(unsigned width, unsigned height, PixelFormat pf)
-  : Image(pf) {
+    : Image(pf) {
   reset(width, height, pf);
 }
 
@@ -532,4 +532,4 @@ void Image::writePng(IODevicePtr device) const {
   png_destroy_write_struct(&png_ptr, &info_ptr);
 }
 
-}
+} // namespace Star

@@ -14,7 +14,7 @@ TextPositioning::TextPositioning() {
 
 TextPositioning::TextPositioning(Vec2F pos, HorizontalAnchor hAnchor, VerticalAnchor vAnchor,
     Maybe<unsigned> wrapWidth, Maybe<unsigned> charLimit)
-  : pos(pos), hAnchor(hAnchor), vAnchor(vAnchor), wrapWidth(wrapWidth), charLimit(charLimit) {}
+    : pos(pos), hAnchor(hAnchor), vAnchor(vAnchor), wrapWidth(wrapWidth), charLimit(charLimit) {}
 
 TextPositioning::TextPositioning(Json const& v) {
   pos = v.opt("position").apply(jsonToVec2F).value();
@@ -26,11 +26,10 @@ TextPositioning::TextPositioning(Json const& v) {
 
 Json TextPositioning::toJson() const {
   return JsonObject{
-    {"position", jsonFromVec2F(pos)},
-    {"horizontalAnchor", HorizontalAnchorNames.getRight(hAnchor)},
-    {"verticalAnchor", VerticalAnchorNames.getRight(vAnchor)},
-    {"wrapWidth", jsonFromMaybe(wrapWidth)}
-  };
+      {"position", jsonFromVec2F(pos)},
+      {"horizontalAnchor", HorizontalAnchorNames.getRight(hAnchor)},
+      {"verticalAnchor", VerticalAnchorNames.getRight(vAnchor)},
+      {"wrapWidth", jsonFromMaybe(wrapWidth)}};
 }
 
 TextPositioning TextPositioning::translated(Vec2F translation) const {
@@ -38,11 +37,11 @@ TextPositioning TextPositioning::translated(Vec2F translation) const {
 }
 
 TextPainter::TextPainter(RendererPtr renderer, TextureGroupPtr textureGroup)
-  : m_renderer(renderer),
-    m_fontTextureGroup(textureGroup),
-    m_fontSize(8),
-    m_lineSpacing(1.30f),
-    m_defaultFontName("hobo") {
+    : m_renderer(renderer),
+      m_fontTextureGroup(textureGroup),
+      m_fontSize(8),
+      m_lineSpacing(1.30f),
+      m_defaultFontName("hobo") {
   reloadFonts();
   m_renderSettings = {FontMode::Normal, Vec4B::filled(255), m_defaultFontName, ""};
   m_reloadTracker = make_shared<TrackerListener>();
@@ -150,7 +149,7 @@ bool TextPainter::processWrapText(StringView text, unsigned* wrapWidth, WrapText
       size_t index = &*iterator.base() - text.utf8Ptr();
       if (commandStart == NPos) {
         for (size_t escOrEnd = commandStart = index;
-        (escOrEnd = text.utf8().find_first_of(AllEscEnd, escOrEnd + 1)) != NPos;) {
+            (escOrEnd = text.utf8().find_first_of(AllEscEnd, escOrEnd + 1)) != NPos;) {
           if (text.utf8().at(escOrEnd) != Text::EndEsc)
             commandStart = escOrEnd;
           else {
@@ -212,7 +211,7 @@ bool TextPainter::processWrapText(StringView text, unsigned* wrapWidth, WrapText
           if (!textFunc(slice(lineStartIterator, iterator), lines++))
             return false;
           // include that character on the next line
-          lineStartIterator = iterator;  
+          lineStartIterator = iterator;
           linePixelWidth = characterWidth;
           finished = false;
         }
@@ -396,7 +395,8 @@ RectF TextPainter::doRenderText(StringView s, TextPositioning const& position, b
   // FezzedOne: Check if text is valid UTF-8 before rendering to prevent CTDs.
   bool invalidUtf8 = false;
   try {
-    volatile size_t _ = s.size(); (void)_;
+    volatile size_t _ = s.size();
+    (void)_;
   } catch (UnicodeException const& e) {
     invalidUtf8 = true;
   }
@@ -417,7 +417,7 @@ RectF TextPainter::doRenderText(StringView s, TextPositioning const& position, b
 
   RectF bounds = RectF::withSize(pos, Vec2F());
   for (auto& i : lines) {
-    bounds.combine(doRenderLine(i, { pos, position.hAnchor, position.vAnchor }, reallyRender, charLimit));
+    bounds.combine(doRenderLine(i, {pos, position.hAnchor, position.vAnchor}, reallyRender, charLimit));
     pos[1] -= m_fontSize * m_lineSpacing;
 
     if (charLimit && *charLimit == 0)
@@ -456,7 +456,7 @@ RectF TextPainter::doRenderLine(StringView text, TextPositioning const& position
         if (*charLimit == 0)
           return false;
         else
-          --* charLimit;
+          --*charLimit;
       }
 
       RectF glyphBounds = doRenderGlyph(c, pos, reallyRender);
@@ -505,8 +505,7 @@ RectF TextPainter::doRenderGlyph(String::Char c, TextPositioning const& position
       if (alphaU != 255) {
         float alpha = byteToFloat(alphaU);
         shadow.setAlpha(floatToByte(alpha * (1.5f - 0.5f * alpha)));
-      }
-      else
+      } else
         shadow.setAlpha(alphaU);
 
       //Kae: Draw only one shadow glyph instead of stacking two, alpha modified to appear perceptually the same as vanilla
@@ -526,7 +525,8 @@ void TextPainter::renderGlyph(String::Char c, Vec2F const& screenPos, unsigned f
 
   const FontTextureGroup::GlyphTexture& glyphTexture = m_fontTextureGroup.glyphTexture(c, fontSize, processingDirectives);
   Vec2F offset = glyphTexture.offset * scale;
-  m_renderer->immediatePrimitives().emplace_back(std::in_place_type_t<RenderQuad>(), glyphTexture.texture, Vec2F::round(screenPos + offset), scale, color, 0.0f);
+  if (glyphTexture.texture)
+    m_renderer->immediatePrimitives().emplace_back(std::in_place_type_t<RenderQuad>(), glyphTexture.texture, Vec2F::round(screenPos + offset), scale, color, 0.0f);
 }
 
 FontPtr TextPainter::loadFont(String const& fontPath, Maybe<String> fontName) {
@@ -543,4 +543,4 @@ FontPtr TextPainter::loadFont(String const& fontPath, Maybe<String> fontName) {
   }
   return font;
 }
-}
+} // namespace Star

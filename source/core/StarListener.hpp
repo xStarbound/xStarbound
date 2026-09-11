@@ -50,7 +50,8 @@ public:
   void trigger();
 
 private:
-  Mutex m_mutex;
+  // FezzedOne: Make this mutex recursive because triggered listeners can potentially trigger database loads, which themelves trigger listener creation.
+  RecursiveMutex m_mutex;
   std::set<ListenerWeakPtr, std::owner_less<ListenerWeakPtr>> m_listeners;
 };
 
@@ -62,6 +63,6 @@ inline void TrackerListener::trigger() {
   triggered = true;
 }
 
-}
+} // namespace Star
 
 #endif

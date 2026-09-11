@@ -2,9 +2,9 @@
 #define STAR_FONT_TEXTURE_GROUP_HPP
 
 #include "StarColor.hpp"
+#include "StarDirectives.hpp"
 #include "StarFont.hpp"
 #include "StarRenderer.hpp"
-#include "StarDirectives.hpp"
 
 namespace Star {
 
@@ -16,9 +16,9 @@ public:
   typedef tuple<String::Char, unsigned, size_t, Font*> GlyphDescriptor;
 
   struct GlyphTexture {
-    TexturePtr texture;
-    int64_t time;
-    Vec2F offset;
+    TexturePtr texture = {};
+    int64_t time = 0;
+    Vec2F offset = Vec2F();
   };
 
   FontTextureGroup(TextureGroupPtr textureGroup);
@@ -38,6 +38,7 @@ public:
   String const& activeFont();
   void addFont(FontPtr const& font, String const& name, bool isDefault = false, bool isFallback = false);
   void clearFonts();
+
 private:
   CaseInsensitiveStringMap<FontPtr> m_fonts;
   String m_fontName;
@@ -47,8 +48,9 @@ private:
 
   TextureGroupPtr m_textureGroup;
   HashMap<GlyphDescriptor, GlyphTexture> m_glyphs;
+  GlyphTexture m_blankGlyphTexture;
 };
 
-}
+} // namespace Star
 
 #endif

@@ -1,11 +1,11 @@
 #include "StarSongbookInterface.hpp"
-#include "StarGuiReader.hpp"
-#include "StarRoot.hpp"
-#include "StarListWidget.hpp"
-#include "StarLabelWidget.hpp"
-#include "StarTextBoxWidget.hpp"
-#include "StarPlayer.hpp"
 #include "StarAssets.hpp"
+#include "StarGuiReader.hpp"
+#include "StarLabelWidget.hpp"
+#include "StarListWidget.hpp"
+#include "StarPlayer.hpp"
+#include "StarRoot.hpp"
+#include "StarTextBoxWidget.hpp"
 
 namespace Star {
 
@@ -18,20 +18,21 @@ SongbookInterface::SongbookInterface(PlayerPtr player) {
 
   reader.registerCallback("close", [=](Widget*) { dismiss(); });
   reader.registerCallback("btnPlay",
-                          [=](Widget*) {
-                            if (play())
-                              dismiss();
-                          });
+      [=](Widget*) {
+        if (play())
+          dismiss();
+      });
   reader.registerCallback("group", [=](Widget*) {});
   reader.registerCallback("search", [=](Widget*) {});
 
   reader.construct(assets->json("/interface/windowconfig/songbook.config:paneLayout"), this);
 
-  Root::singleton().registerReloadListener(
-    m_reloadListener = make_shared<CallbackListener>([this]() {
-      refresh(true);
-    })
-  );
+  // FezzedOne: Disabled this listener for now.
+  // Root::singleton().registerReloadListener(
+  //   m_reloadListener = make_shared<CallbackListener>([this]() {
+  //     refresh(true);
+  //   })
+  // );
 
   refresh(true);
 }
@@ -39,6 +40,12 @@ SongbookInterface::SongbookInterface(PlayerPtr player) {
 void SongbookInterface::update(float dt) {
   Pane::update(dt);
   refresh();
+}
+
+void SongbookInterface::show() {
+  // FezzedOne: The songbook now reloads songs every time it's opened instead of on asset reloads.
+  refresh(true);
+  Pane::show();
 }
 
 bool SongbookInterface::play() {
@@ -88,25 +95,25 @@ void SongbookInterface::refresh(bool reloadFiles) {
             widget->setData(s);
 
             if (auto songName = widget->fetchChild<LabelWidget>("songName"))
-                songName->setText(String(song));
+              songName->setText(String(song));
             widget->show();
           }
-      } else {
-        auto find = song.find(search, 0, String::CaseInsensitive);
-        if (find != NPos) {
-          auto widget = songList->addItem();
-          if(widget) {
-            widget->setData(s);
-            String text = "";
-            size_t last = 0;
-            do {
-              text += strf("^#bbb;{}^#ff7777;{}", song.substr(last, find - last), song.substr(find, search.size()));
-              last = find + search.size();
-              find = song.find(search, last, String::CaseInsensitive);
-            } while (find != NPos);
-            if (auto songName = widget->fetchChild<LabelWidget>("songName"))
-              songName->setText(text + strf("^#bbb;{}", song.substr(last)));
-            widget->show();
+        } else {
+          auto find = song.find(search, 0, String::CaseInsensitive);
+          if (find != NPos) {
+            auto widget = songList->addItem();
+            if (widget) {
+              widget->setData(s);
+              String text = "";
+              size_t last = 0;
+              do {
+                text += strf("^#bbb;{}^#ff7777;{}", song.substr(last, find - last), song.substr(find, search.size()));
+                last = find + search.size();
+                find = song.find(search, last, String::CaseInsensitive);
+              } while (find != NPos);
+              if (auto songName = widget->fetchChild<LabelWidget>("songName"))
+                songName->setText(text + strf("^#bbb;{}", song.substr(last)));
+              widget->show();
             }
           }
         }
@@ -115,4 +122,4 @@ void SongbookInterface::refresh(bool reloadFiles) {
   }
 }
 
-}
+} // namespace Star

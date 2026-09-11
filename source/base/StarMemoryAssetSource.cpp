@@ -6,11 +6,10 @@
 
 namespace Star {
 
-MemoryAssetSource::MemoryAssetSource(String const& name, JsonObject metadata) :
-  m_name(name),
-  m_metadata(metadata),
-  /* FezzedOne: Make sure this is properly empty when we begin. */
-  m_files(CaseInsensitiveStringMap<FileEntry>{}) {}
+MemoryAssetSource::MemoryAssetSource(String const& name, JsonObject metadata) : m_name(name),
+                                                                                m_metadata(metadata),
+                                                                                /* FezzedOne: Make sure this is properly empty when we begin. */
+                                                                                m_files(CaseInsensitiveStringMap<FileEntry>{}) {}
 
 String MemoryAssetSource::name() const {
   return m_name;
@@ -26,10 +25,13 @@ StringList MemoryAssetSource::assetPaths() const {
 
 IODevicePtr MemoryAssetSource::open(String const& path) {
   struct AssetReader : public IODevice {
-    AssetReader(char* assetData, size_t assetSize, String name) {
-      this->assetData = assetData;
-      this->assetSize = assetSize;
+    AssetReader(String name, std::shared_ptr<ByteArray> assetDataCopy) {
+      if (!assetDataCopy)
+        throw IOException::format("Requested memory asset IODevice for file '{}' not associated with owned data in memory", name);
       this->name = std::move(name);
+      this->assetDataCopy = std::move(assetDataCopy);
+      this->assetSize = assetDataCopy->size();
+      this->assetData = assetDataCopy->ptr();
       setMode(IOMode::Read);
     }
 
@@ -66,16 +68,19 @@ IODevicePtr MemoryAssetSource::open(String const& path) {
     size_t assetSize;
     StreamOffset assetPos = 0;
     String name;
+
+    std::shared_ptr<ByteArray> assetDataCopy;
   };
 
   auto p = m_files.ptr(path);
   if (!p)
     throw AssetSourceException::format("Requested file '{}' does not exist in memory", path);
   else if (auto byteArray = p->ptr<ByteArray>())
-    return make_shared<AssetReader>(byteArray->ptr(), byteArray->size(), path);
+    return make_shared<AssetReader>(path, make_shared<ByteArray>(*byteArray));
   else {
     auto image = p->get<ImagePtr>().get();
-    return make_shared<AssetReader>((char*)image->data(), image->width() * image->height() * image->bytesPerPixel(), path);
+    size_t imageSize = (size_t)image->width() * (size_t)image->height() * (size_t)image->bytesPerPixel();
+    return make_shared<AssetReader>(path, make_shared<ByteArray>((char*)image->data(), imageSize));
   }
 }
 
@@ -133,4 +138,4 @@ ImageConstPtr MemoryAssetSource::image(String const& path) {
   }
 }
 
-}
+} // namespace Star

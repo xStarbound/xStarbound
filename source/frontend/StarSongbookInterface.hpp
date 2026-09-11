@@ -1,9 +1,9 @@
 #ifndef STAR_SONGBOOK_INTERFACE_HPP
 #define STAR_SONGBOOK_INTERFACE_HPP
 
-#include "StarSongbook.hpp"
-#include "StarPane.hpp"
 #include "StarListener.hpp"
+#include "StarPane.hpp"
+#include "StarSongbook.hpp"
 
 namespace Star {
 
@@ -23,8 +23,9 @@ private:
   CallbackListenerPtr m_reloadListener;
   bool play();
   void refresh(bool reloadFiles = false);
+  void show() override;
 };
 
-}
+} // namespace Star
 
 #endif
