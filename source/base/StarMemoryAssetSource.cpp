@@ -30,8 +30,8 @@ IODevicePtr MemoryAssetSource::open(String const& path) {
         throw IOException::format("Requested memory asset IODevice for file '{}' not associated with owned data in memory", name);
       this->name = std::move(name);
       this->assetDataCopy = std::move(assetDataCopy);
-      this->assetSize = assetDataCopy->size();
-      this->assetData = assetDataCopy->ptr();
+      this->assetSize = this->assetDataCopy->size();
+      this->assetData = this->assetDataCopy->ptr();
       setMode(IOMode::Read);
     }
 
