@@ -341,11 +341,14 @@ void Root::reload() {
 
 void Root::hotReload() {
   ZoneScoped;
-  MutexLocker imageMetadataDatabaseLock(m_imageMetadataDatabaseMutex);
-  MutexLocker assetsLock(m_assetsMutex);
-  GameObjectRegistry::cleanUpRegistry();
-  if (m_imageMetadataDatabase) m_imageMetadataDatabase->cleanup(true);
-  m_assets->hotReload();
+  {
+    MutexLocker imageMetadataDatabaseLock(m_imageMetadataDatabaseMutex);
+    MutexLocker assetsLock(m_assetsMutex);
+    GameObjectRegistry::cleanUpRegistry();
+    if (m_imageMetadataDatabase) m_imageMetadataDatabase->cleanup(true);
+    m_assets->hotReload();
+  }
+
   m_reloadListeners.trigger();
 }
 

@@ -68,7 +68,7 @@ This is a fork of Starbound's source code; all credit for the original code goes
   - Shipworld repacking is client-side; celestial world repacking is server-side.
   - Disable this automatic repacking by adding `"disableRepacking": true` to `xclient.config` or `xserver.config`.
 - Various UI modding callbacks and tweaks by @grbr404, @WasabiRaptor and @Novaenia.
-- Additional Lua callbacks to make player characters fully scriptable, just like NPCs! By @fezzedone.
+- Additional Lua callbacks to make player characters fully scriptable, just like NPCs! By @fezzedone. As of v4.5.3, this now includes `songbook` bindings (for controlling musical instruments) in generic player scripts (from OpenStarbound, by @novaenia).
 - The UI scale can now be adjusted in the graphics settings dialogue, complete with configurable keybinds and support for fractional scales (@fezzedone). There are also keybinds for changing the in-game camera zoom (@novaenia). Both the UI scale and zoom level are scriptable (@fezzedone). UI scaling mods are no longer needed (and in fact no longer do anything) in xStarbound!
 - Chat message history is now saved to `messages.json` in your storage directory instead of being reset on every disconnection (@fezzedone). Use the new `/clear` command on xClient to clear the chat history instead.
 - Inventory and action bar expansion (or reduction) mods are now fully compatible with vanilla multiplayer with no changes needed on the mod's part. Additionally, these mods can now be safely added or removed without item loss or crashes as long as characters are loaded in xStarbound. Added by @WasabiRaptor and @fezzedone.
@@ -78,7 +78,7 @@ This is a fork of Starbound's source code; all credit for the original code goes
 - Anything that the game converts to a Perfectly Generic Item now has its parameters saved in the item and will be restored once any missing mods are reinstalled (@WasabiRaptor and @fezzedone). Requires xServer (or xClient on the host) for server-side items (such as those in containers on worlds, even shipworlds!) and xClient for single-player and client-side items (those in the player's inventory).
 - Supports scriptable asset preprocessing. By @novaenia; fixed and greatly enhanced by @fezzedone.
 - Modded techs and status effects no longer cause crashes to the menu when the offending mod is removed (@WasabiRaptor and @novaenia).
-- Scriptable shader and lighting parameters are supported (@fezzedone).
+- Scriptable shader and lighting parameters are supported (@fezzedone). Not compatible with OpenStarbound shaders.
 - You can now make `.patch` files that are just merged in, early-beta-style (@novaenia). That's why the patch files in `assets/xSBassets` are unusually simple. All of OpenStarbound's JSON patch extensions (by @JamesTheMaker) are also supported.
 - Almost all Lua callbacks from the original xSB (by @fezzedone), `input` callbacks (by @novaenia), plus some extra `player`, `chat`, `interface` and `clipboard` callbacks for compatibility with OpenStarbound mods and some StarExtensions mods (@fezzedone).
 - Various crash fixes (@fezzedone and @novaenia).
