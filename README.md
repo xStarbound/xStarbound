@@ -92,9 +92,9 @@ This is a fork of Starbound's source code; all credit for the original code goes
 - Lighting is partially asynchronous (@novaenia).
 - Various changes to the storage of directives and images in memory to greatly reduce their impact on FPS (@novaenia).
   - Works well when extremely long directives are used for «vanilla multiplayer-compatible» creations, like [generated](https://silverfeelin.github.io/Starbound-NgOutfitGenerator/) [clothing](https://github.com/fezzedone/fezzedone-Drawable-Generator).
-- Client-side tile placement prediction (rewrite by @novaenia from StarExtensions).
+- Client-side tile placement prediction (by @novaenia).
   - You can also resize the placement area of tiles on the fly.
-- Client- and server-side support for placing foreground tiles with a custom collision type (rewrite by @novaenia from StarExtensions; requires xServer or xClient on the host). Compatible with the collision modifier feature of OpenStarbound clients. [xWEdit](https://github.com/fezzedone/xWEdit), a fork of WEdit with support for these features, is available; xWEdit requires xClient for full client-side functionality, but partially works with OpenStarbound clients (not StarExtensions!).
+- Client- and server-side support for placing foreground tiles with a custom collision type (@novaenia; requires an xServer/OpenStarbound server or an xClient/OpenStarbound/oSBM host). Compatible with the collision modifier feature of OpenStarbound clients. [xWEdit](https://github.com/fezzedone/xWEdit), a fork of WEdit with support for these features, is available; xWEdit requires xClient for full client-side functionality, but partially works with OpenStarbound clients.
   - Additionally, objects can be placed under non-solid foreground tiles (@novaenia).
 - Ability to place platforms as background tiles (based on the same feature by @SilverSokolova in OpenStarbound).
 - Support for placing tiles in mid-air, not connected to existing ones, via an extra argument to `world.placeMaterial()` (requires _both_ xClient and, in multiplayer, xServer/xClient on the host). By @fezzedone.
@@ -116,7 +116,7 @@ This is a fork of Starbound's source code; all credit for the original code goes
 >
 > - Armour, clothing and race mods with included «body dynamics» support are compatible, but the «non-jiggle» sprites will be displayed.
 > - Mods intended to patch in «body dynamics» support for other mods simply will not work at all.
-> - Race mods that support StarExtensions' text-to-speech feature will work just fine, but the text-to-speech functionality won't work.
+> - Race mods that support text-to-speech features from legacy DLL mods will work just fine, but the text-to-speech functionality won't work.
 > - Race mods that use the scriptable humanoid animation system in OpenStarbound v0.1.15+ will not have correct humanoid rendering on xStarbound and may even throw a fatal error on startup due to missing expected parameters.
 
 <details>
@@ -148,7 +148,7 @@ The following mods have special functionality that requires or is supported by x
 - [Dynamic Proximity Chat](https://steamcommunity.com/sharedfiles/filedetails/?id=3450266347) ([GitHub](https://github.com/cptsalt/Dynamic-Proximity-Chat)) — works, but _don't_ expect support from its author. Unless a server requires this specific mod, xDPC (see below) is recommended instead.
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
-- [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound and StarExtensions (with reduced functionality) and is compatible with stock Starbound.
+- [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound (with reduced functionality) and is compatible with stock Starbound.
 - [Improved Containers: OpenStarbound Post-Load Mega-Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3430203726) — requires xStarbound, oSBM or OpenStarbound.
 - [Improved Inventory Stack Management](https://steamcommunity.com/sharedfiles/filedetails/?id=3758908230) — requires xStarbound, oSBM or OpenStarbound for its functionality. Install xSBCompat if you want the mod to be properly aware of player swaps on xClient.
 - [Lexi's Automation](https://steamcommunity.com/sharedfiles/filedetails/?id=3673481087&tscn=1783028287) — requires xStarbound, oSBM or a _nightly_ build of OpenStarbound. Don't expect support from this mod's author.
@@ -172,7 +172,7 @@ The following mods have special functionality that requires or is supported by x
 - [Planet Search](https://steamcommunity.com/sharedfiles/filedetails/?id=3269792617) — fully supported by xStarbound.
 - [Quick Stack Gun [OpenStarbound Fix]](https://steamcommunity.com/sharedfiles/filedetails/?id=3501752811) — Despite the name, requires xStarbound, oSBM or OpenStarbound.
 - [Recipe Browser](https://steamcommunity.com/sharedfiles/filedetails/?id=2018183533) — Recipe Browser's universal mod support requires xStarbound, oSBM or OpenStarbound.
-- [RPG Growth Keybind Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3368499316) — this mod fixes a compatibility issue between RPG Growth and xStarbound/OpenStarbound/StarExtensions.
+- [RPG Growth Keybind Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3368499316) — this mod fixes a compatibility issue between RPG Growth and xStarbound/OpenStarbound/oSBM.
 - [RPG Levels](https://steamcommunity.com/sharedfiles/filedetails/?id=3705791048) — its automatic boss patching functionality («OpenStarbound» support) requires xStarbound, oSBM or OpenStarbound. The disabled debug logging mode would require an xSBCompat patch if enabled, but it's disabled. _Don't_ expect xStarbound support from this mod's author.
 - [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — fully supported by xStarbound, including keybinds, as of v3.1.6. (Bravo for getting rid of the sandbox-breaking code, Patman!)
 - [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — fully supported by xStarbound. Use `/resetinventoryposition` if your inventory ends up off-screen after installation.
@@ -188,7 +188,7 @@ The following mods have special functionality that requires or is supported by x
 - [Starbound Item Finder](https://steamcommunity.com/sharedfiles/filedetails/?id=3782116674) — requires xStarbound, oSBM or OpenStarbound.
 - [(Starbound) Without Number - RPG Mechanics](https://steamcommunity.com/sharedfiles/filedetails/?id=3677633744) — works, but _don't_ expect support from this mod's developer.
 - [Starburst Rework T6 Armor Recipe Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3472326270) — requires xStarbound, oSBM or OpenStarbound.
-- [StarCustomChat](https://steamcommunity.com/sharedfiles/filedetails/?id=3208917628) ([GitHub](https://github.com/KrashV/StarCustomChat)) and [StarCustomChatRP](https://steamcommunity.com/sharedfiles/filedetails/?id=3445409664) ([GitHub](https://github.com/KrashV/StarCustomChatRP)) — requires xStarbound v3.5.1+, OpenStarbound v0.1.8+ or StarExtensions. As the original mod's author is unsupportive, it's recommended to use FezzedOne's [StarCustomChat](https://github.com/FezzedOne/StarCustomChat) and [StarCustomChatRP](https://github.com/FezzedOne/StarCustomChatRP) forks for additional features and xStarbound compatibility fixes (not supported by Degranon, the original author).
+- [StarCustomChat](https://steamcommunity.com/sharedfiles/filedetails/?id=3208917628) ([GitHub](https://github.com/KrashV/StarCustomChat)) and [StarCustomChatRP](https://steamcommunity.com/sharedfiles/filedetails/?id=3445409664) ([GitHub](https://github.com/KrashV/StarCustomChatRP)) — requires xStarbound v3.5.1+ or OpenStarbound v0.1.8+. As the original mod's author is unsupportive, it's recommended to use FezzedOne's [StarCustomChat](https://github.com/FezzedOne/StarCustomChat) and [StarCustomChatRP](https://github.com/FezzedOne/StarCustomChatRP) forks for additional features and xStarbound compatibility fixes (not supported by Degranon, the original author).
 - [StarTechUltimateUpgrade](https://steamcommunity.com/sharedfiles/filedetails/?id=3781692656) — xStarbound, oSBM or OpenStarbound is required because of the «use other techs with Nanofield» functionality.
 - [Subspace Black Market](https://steamcommunity.com/sharedfiles/filedetails/?id=3764065766) — requires xStarbound, oSBM or OpenStarbound for an item-related `root` call.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xStarbound.
