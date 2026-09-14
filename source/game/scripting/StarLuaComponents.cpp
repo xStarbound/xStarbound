@@ -1,8 +1,8 @@
 #include "StarLuaComponents.hpp"
-#include "StarUtilityLuaBindings.hpp"
+#include "StarAssets.hpp"
 #include "StarRoot.hpp"
 #include "StarRootLuaBindings.hpp"
-#include "StarAssets.hpp"
+#include "StarUtilityLuaBindings.hpp"
 #include "StarWorld.hpp"
 #include "StarWorldClient.hpp"
 #include "StarWorldServer.hpp"
@@ -38,7 +38,7 @@ void LuaBaseComponent::setScripts(StringList scripts) {
 void LuaBaseComponent::addBaseCallbacks(String groupName, LuaCallbacks callbacks) {
   if (!m_baseCallbacks.insert(groupName, callbacks).second)
     m_baseCallbacks.at(groupName) = callbacks;
-    // throw LuaComponentException::format("Duplicate base callbacks named '{}' in LuaBaseComponent", groupName);
+  // throw LuaComponentException::format("Duplicate base callbacks named '{}' in LuaBaseComponent", groupName);
 }
 
 void LuaBaseComponent::addCallbacks(String groupName, LuaCallbacks callbacks) {
@@ -127,7 +127,11 @@ void LuaBaseComponent::uninit() {
         m_error = String(printException(e, false));
       }
     }
-    contextShutdown();
+    try {
+      contextShutdown();
+    } catch (std::exception const& e) {
+      Logger::error("Exception while shutting down Lua context: {}", outputException(e, true));
+    }
     m_context.reset();
   }
 
@@ -160,7 +164,7 @@ void LuaBaseComponent::contextSetup() {
 void LuaBaseComponent::contextShutdown() {
   // FezzedOne: Tell the Lua root to clean up its fucking garbage whenever any script context is shut down.
   if (m_luaRoot) {}
-    // m_luaRoot->collectGarbage();
+  // m_luaRoot->collectGarbage();
 }
 
 void LuaBaseComponent::setError(String error) {
@@ -181,4 +185,4 @@ bool LuaBaseComponent::checkIfClient(World* worldPtr) {
   return (bool)as<WorldClient>(worldPtr);
 }
 
-}
+} // namespace Star

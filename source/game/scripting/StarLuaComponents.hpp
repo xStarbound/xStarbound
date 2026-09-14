@@ -45,7 +45,7 @@ STAR_EXCEPTION(LuaComponentException, LuaException);
 class LuaBaseComponent {
 public:
   LuaBaseComponent();
-  // The LuaBaseComponent destructor does NOT call the 'unint' entry point in
+  // The LuaBaseComponent destructor does NOT call the 'uninit' entry point in
   // the script.  In order to do so, uninit() must be called manually before
   // destruction.  This is because during destruction, it is highly likely that
   // callbacks may not be valid, and highly likely that exceptions could be
@@ -289,10 +289,16 @@ Maybe<Ret> LuaBaseComponent::eval(String const& code) {
 
 template <typename Base>
 JsonObject LuaStorableComponent<Base>::getScriptStorage() const {
-  if (Base::initialized())
-    return Base::context()->template getPath<JsonObject>("storage");
-  else
+  if (Base::initialized()) {
+    try {
+      return Base::context()->template getPath<JsonObject>("storage");
+    } catch (std::exception const& e) {
+      Logger::error("[xSB] Exception while converting Lua `storage` into JSON: {}\n  Scripts: {}", outputException(e, true), Base::scripts());
+      return JsonObject{};
+    }
+  } else {
     return m_storage;
+  }
 }
 
 template <typename Base>
@@ -311,7 +317,12 @@ void LuaStorableComponent<Base>::contextSetup() {
 
 template <typename Base>
 void LuaStorableComponent<Base>::contextShutdown() {
-  m_storage = Base::context()->template getPath<JsonObject>("storage");
+  try {
+    m_storage = Base::context()->template getPath<JsonObject>("storage");
+  } catch (std::exception const& e) {
+    Logger::error("[xSB] Exception while converting Lua `storage` into JSON: {}\n  Scripts: {}", outputException(e, true), Base::scripts());
+    m_storage = JsonObject{};
+  }
   Base::contextShutdown();
 }
 
