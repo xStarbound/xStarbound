@@ -285,6 +285,7 @@ The following retail mods _ARE_ compatible with xStarbound, but their OpenStarbo
 The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due to reliance on OpenStarbound-only features, security issues or visual glitches:
 
 - [Almandine Edits](https://steamcommunity.com/sharedfiles/filedetails/?id=3761333758) — like its Event Horizon Primary mod dependency, requires a recent OpenStarbound nightly build for shaders and HDR support.
+- [AI Crew](https://steamcommunity.com/sharedfiles/filedetails/?id=3802136597) — uses OpenStarbound's version of `http`, not xStarbound's. If you really want compatibility, ask about an xSBCompat wrapper.
 - [AR's Shader Pack v1.0](https://steamcommunity.com/sharedfiles/filedetails/?id=3487232242) — modular shader support is OpenStarbound-only.
 - [Betabound CosmicExt Quests Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3747815781) — its CosmicExt dependency (see below) is not compatible with xStarbound.
 - [Bottinator22's](https://steamcommunity.com/sharedfiles/filedetails/?id=3431152501) [shader](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151263) [mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3431151049) — modular shader support is OpenStarbound-only.
