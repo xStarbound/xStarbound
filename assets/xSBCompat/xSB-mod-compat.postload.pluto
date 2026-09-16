@@ -1424,9 +1424,7 @@ end)
 --- Compatibility patch for Degranon's StarCustomChat ---
 -- Needed to ensure StarCustomChat doesn't screw up connection or entity IDs for xClient clients mastering multiple
 -- characters in a few places. Kind of required if you use xDPC with mainline SCC, since xDPC expects correct
--- connection IDs. Also need to make `chat.command` return an empty array because xClient already handles
--- sending command results to a scripted chat pane; this avoids client-side command messages being displayed
--- twice.
+-- connection IDs.
 
 if not "starcustomchat" in loadedMods then goto skipSCCPatch end
 modName = "Degranon's StarCustomChat"
@@ -1464,25 +1462,6 @@ xpcall(|| -> do
 
     local sccUtilScript = assets.bytes(sccUtilScriptPath)
     assets.add(sccUtilScriptPath, sccUtilScript .. sccUtilScriptPatch)
-
-    local sccMainScriptPath = "/interface/scripted/starcustomchat/base/starcustomchatgui.lua"
-    local sccMainScriptPatch = [==[
-    ---<< END OF ORIGINAL SCRIPT >>---
-
-    local scc_gui_init = init
-
-    function init(...)
-        local xsb_chat_command = chat.command
-        chat.command = function(...)
-            xsb_chat_command(...)
-            return {}
-        end
-        return scc_gui_init(...)
-    end
-    ]==]
-
-    local sccMainScriptPath = assets.bytes(sccMainScriptPath)
-    assets.add(sccMainScriptPath, sccMainScriptPath .. sccMainScriptPatch)
 
     logInfo(modName)
 end, |e| -> do
