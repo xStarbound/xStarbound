@@ -1393,6 +1393,7 @@ end)
 -- This patch is needed to substitute `input.mousePosition` calls with xStarbound's `interface.cursorPosition`.
 -- Unlike most patches, this checks for the specific library scripts and patches them. The patch is required
 -- to prevent StarCustomChat and other mods that depend on this library from logging immediate script errors.
+-- Also patches a regex to fix an annoying JavaScriptism.
 
 if not assets.exists("/interface/StarboundTextboxInterface/textarea/scripts/textbox.lua") then goto skipSBTextBoxPatch end
 modName = "Mofurka/Degranon's StarboundTextboxInterface [internal mod library]"
@@ -1410,7 +1411,7 @@ xpcall(|| -> do
 
     for assets.scan("/interface/StarboundTextboxInterface/", ".lua") as scriptPath do
         local script = assets.bytes(scriptPath)
-        assets.add(scriptPath, script .. sbTextboxPatch)
+        assets.add(scriptPath, script:gsub("\"%[\\s\\S%]%*\"", "\".*\"") .. sbTextboxPatch)
     end
 
     logInfo(modName)
