@@ -707,7 +707,7 @@ xpcall(|| -> do
     local quick_commands_init = init
     function init()
         local xsb_chat_command = chat.command
-        chat.command = |...| -> xsb_chat_command(...) or {}
+        chat.command = |...| -> xsb_chat_command(...) ?? {}
         return quick_commands_init()
     end
     ]==]
@@ -1420,3 +1420,72 @@ end, |e| -> do
 end)
 
 ::skipSBTextBoxPatch::
+
+--- Compatibility patch for Degranon's StarCustomChat ---
+-- Needed to ensure StarCustomChat doesn't screw up connection or entity IDs for xClient clients mastering multiple
+-- characters in a few places. Kind of required if you use xDPC with mainline SCC, since xDPC expects correct
+-- connection IDs. Also need to make `chat.command` return an empty array because xClient already handles
+-- sending command results to a scripted chat pane; this avoids client-side command messages being displayed
+-- twice.
+
+if not "starcustomchat" in loadedMods then goto skipSCCPatch end
+
+xpcall(|| -> do
+    local sccUtilScriptPath = "/interface/scripted/starcustomchat/base/starcustomchatutils.lua"
+    local sccUtilScriptPatch = [==[
+    ---<< END OF ORIGINAL SCRIPT >>---
+
+    -- FezzedOne: Technically needed on all receivers' ends for portraits and entity messages
+    -- because xStarbound clients that send messages are *NOT* guaranteed to be controlling
+    -- a player with the entity ID `connectionID * -65536`. Without this patch, SCC might
+    -- display the wrong portrait for xClient users who've swapped characters.
+    function starcustomchat.utils.connectionToEntityId(connection)
+        local entityId = connection * -65536
+        if not (world.entityExists(entityId) and world.entityType(entityId) == "player") then
+            -- FezzedOne: Tested this. Should not cause any noticeable frame spikes at 60 FPS,
+            -- even if the entire ID space is checked.
+            for id = entityId + 1, entityId + 65535, 1 do
+                -- FezzedOne: Actually faster than just checking `entityType`.
+                if world.entityExists(id) and world.entityType(id) == "player" then
+                    entityId = id
+                    break
+                end
+            end
+        end
+        return entityId
+    end
+
+    -- FezzedOne: Ditto. Arguably more important.
+    function starcustomchat.utils.entityIdToConnection(entityId)
+        return math.max(0, (entityId - 65535) // -65536)
+    end
+    ]==]
+
+    local sccUtilScript = assets.bytes(sccUtilScriptPath)
+    assets.add(sccUtilScriptPath, sccUtilScript .. sccUtilScriptPatch)
+
+    local sccMainScriptPath = "/interface/scripted/starcustomchat/base/starcustomchatgui.lua"
+    local sccMainScriptPatch = [==[
+    ---<< END OF ORIGINAL SCRIPT >>---
+
+    local scc_gui_init = init
+
+    function init(...)
+        local xsb_chat_command = chat.command
+        chat.command = function(...)
+            xsb_chat_command(...)
+            return {}
+        end
+        return scc_gui_init(...)
+    end
+    ]==]
+
+    local sccMainScriptPath = assets.bytes(sccMainScriptPath)
+    assets.add(sccMainScriptPath, sccMainScriptPath .. sccMainScriptPatch)
+
+    logInfo(modName)
+end, |e| -> do
+    logError(modName, e)
+end)
+
+::skipSCCPatch::
