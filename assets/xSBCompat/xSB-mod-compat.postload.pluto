@@ -1429,6 +1429,7 @@ end)
 -- twice.
 
 if not "starcustomchat" in loadedMods then goto skipSCCPatch end
+modName = "Degranon's StarCustomChat"
 
 xpcall(|| -> do
     local sccUtilScriptPath = "/interface/scripted/starcustomchat/base/starcustomchatutils.lua"
