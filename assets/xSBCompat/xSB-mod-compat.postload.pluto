@@ -1388,3 +1388,34 @@ end, |e| -> do
 end)
 
 ::skipPersonaPatch::
+
+--- Compatibility patch for Mofurka/Degranon's StarboundTextboxInterface ---
+-- This patch is needed to substitute `input.mousePosition` calls with xStarbound's `interface.cursorPosition`.
+-- Unlike most patches, this checks for the specific library scripts and patches them. The patch is required
+-- to prevent StarCustomChat and other mods that depend on this library from logging immediate script errors.
+
+if not assets.exists("/interface/StarboundTextboxInterface/textarea/scripts/textbox.lua") then goto skipSBTextBoxPatch end
+modName = "Mofurka/Degranon's StarboundTextboxInterface [internal mod library]"
+
+xpcall(|| -> do
+    local sbTextboxPatch = [==[
+    ---<< END OF ORIGINAL SCRIPT >>---
+
+    local sbTextBoxInit = init
+    function init(...)
+        input.mousePosition = interface.cursorPosition
+        return sbTextBoxInit(...)
+    end
+    ]==]
+
+    for assets.scan("/interface/StarboundTextboxInterface/", ".lua") as scriptPath do
+        local script = assets.bytes(scriptPath)
+        assets.add(scriptPath, script .. sbTextBoxPatch)
+    end
+
+    logInfo(modName)
+end, |e| -> do
+    logError(modName, e)
+end)
+
+::skipSBTextBoxPatch::
