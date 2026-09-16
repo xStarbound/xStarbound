@@ -1894,7 +1894,8 @@ static void field (LexState *ls, ConsControl *cc, bool for_class = false) {
   }
   else switch(ls->t.token) {
     case TK_NAME: {  /* may be 'listfield', 'recfield' or static 'funcfield' */
-      if (strcmp(getstr(ls->t.seminfo.ts), "static") == 0) {
+      // FezzedOne: Quick fix for a backwards compatibility issue with vanilla Lua scripts regarding `static` keys in tables.
+      if (luaX_lookahead(ls) == TK_FUNCTION && strcmp(getstr(ls->t.seminfo.ts), "static") == 0) {
         luaX_next(ls);
         check(ls, TK_FUNCTION);
         funcfield(ls, cc, false);
