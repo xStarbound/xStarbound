@@ -1479,7 +1479,9 @@ xpcall(|| -> do
                 if commandResultLines > 0 then
                     local messages = self:getMessages()
                     for i = 0, commandResultLines - 1 do
-                        messages[#messages - i].tooltip = starcustomchat.utils.cropMessage(text, self.config.commandHintCharacterLimit)
+                        if messages[#messages - i] then
+                            messages[#messages - i].tooltip = starcustomchat.utils.cropMessage(text, self.config.commandHintCharacterLimit)
+                        end
                     end
                 end
             else
