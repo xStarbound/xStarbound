@@ -1463,6 +1463,44 @@ xpcall(|| -> do
     local sccUtilScript = assets.bytes(sccUtilScriptPath)
     assets.add(sccUtilScriptPath, sccUtilScript .. sccUtilScriptPatch)
 
+    local sccBaseScriptPath = "/interface/scripted/starcustomchat/base/chat_class.lua"
+    local sccBaseScriptPatch = [==[
+    ---<< END OF ORIGINAL SCRIPT >>---
+
+    function StarCustomChat:processCommand(text)
+
+        if not self.callbackPlugins("onProcessCommand", text) then
+            local commandResult = chat.command(text) or {}
+            local commandResultLines = #commandResult
+
+            if xsb then
+                -- FezzedOne: On xStarbound, `:addMessage` is invoked by `chat.command`. To avoid duplicate messages, don't run `:addMessage` again;
+                -- instead, tag the existing messages with the command tooltip.
+                if commandResultLines > 0 then
+                    local messages = self:getMessages()
+                    for i = 0, commandResultLines - 1 do
+                        messages[#messages - i].tooltip = starcustomchat.utils.cropMessage(text, self.config.commandHintCharacterLimit)
+                    end
+                end
+            else
+                for _, line in ipairs(commandResult) do 
+                    self:addMessage({
+                        connection = 0,
+                        mode = "CommandResult",
+                        text = line,
+                        tooltip = starcustomchat.utils.cropMessage(text, self.config.commandHintCharacterLimit)
+                    })
+                end
+            end
+            
+            return commandResult
+        end
+    end
+    ]==]
+
+    local sccBaseScript = assets.bytes(sccBaseScriptPath)
+    assets.add(sccBaseScriptPath, sccBaseScript .. sccBaseScriptPatch)
+
     logInfo(modName)
 end, |e| -> do
     logError(modName, e)
