@@ -772,11 +772,17 @@ void MainInterface::update(float dt) {
 
   if (auto worldClient = m_client->worldClient()) {
     if (worldClient->inWorld()) {
-      if (auto cinematic = m_client->mainPlayer()->pullPendingCinematic()) {
-        if (*cinematic)
-          m_cinematicOverlay->load(Root::singleton().assets()->fetchJson(cinematic.take()));
-        else
-          m_cinematicOverlay->stop();
+      auto cinematic = m_client->mainPlayer()->pullPendingCinematic();
+      try {
+        if (cinematic) {
+          if (*cinematic)
+            m_cinematicOverlay->load(Root::singleton().assets()->fetchJson(cinematic.take()));
+          else
+            m_cinematicOverlay->stop();
+        }
+      } catch (std::exception const& e) {
+        Logger::error("[xSB] Exception caught while loading cinematic: {}\n  Cinematic data: {}", outputException(e, true), cinematic.value(Json()).repr(2));
+        m_cinematicOverlay->stop();
       }
     }
   }

@@ -1,15 +1,15 @@
 #include "StarStatistics.hpp"
-#include "StarStatisticsDatabase.hpp"
-#include "StarStatisticsService.hpp"
 #include "StarConfigLuaBindings.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarLogging.hpp"
+#include "StarStatisticsDatabase.hpp"
+#include "StarStatisticsService.hpp"
 
 #if defined TRACY_ENABLE
-  #include "tracy/Tracy.hpp"
+#include "tracy/Tracy.hpp"
 #else
-  #define ZoneScoped
-  #define ZoneScopedN(name)
+#define ZoneScoped
+#define ZoneScopedN(name)
 #endif
 
 namespace Star {
@@ -19,14 +19,6 @@ Statistics::Statistics(String const& storageDirectory, StatisticsServicePtr serv
   m_initialized = !m_service;
   m_storageDirectory = storageDirectory;
   readStatistics();
-
-  auto assets = Root::singleton().assets();
-  auto clientConfig = assets->json("/client.config");
-
-  m_luaRoot = make_shared<LuaRoot>();
-
-  m_luaRoot->tuneAutoGarbageCollection(clientConfig.get("luaGcPause").optFloat().value(1.2f),
-    clientConfig.get("luaGcStepMultiplier").optFloat().value(1.2f));
 }
 
 void Statistics::writeStatistics() {
@@ -34,12 +26,11 @@ void Statistics::writeStatistics() {
   String filename = File::relativeTo(m_storageDirectory, "statistics");
 
   Json stats = JsonObject::from(m_stats.pairs().transformed([](auto const& entry) {
-      return make_pair(entry.first, entry.second.toJson());
-    }));
+    return make_pair(entry.first, entry.second.toJson());
+  }));
   JsonObject storage = {
-      { "stats", stats },
-      { "achievements", jsonFromStringSet(m_achievements) }
-    };
+      {"stats", stats},
+      {"achievements", jsonFromStringSet(m_achievements)}};
 
   auto versionedStorage = versioningDatabase->makeCurrentVersionedJson("Statistics", storage);
   VersionedJson::writeFile(versionedStorage, filename);
@@ -111,33 +102,40 @@ void Statistics::update() {
 }
 
 Statistics::Stat Statistics::Stat::fromJson(Json const& json) {
-  return Stat {
-    json.getString("type"),
-    json.get("value")
-  };
+  return Stat{
+      json.getString("type"),
+      json.get("value")};
 }
 
 Json Statistics::Stat::toJson() const {
-  return JsonObject {
-    {"type", type},
-    {"value", value}
-  };
+  return JsonObject{
+      {"type", type},
+      {"value", value}};
 }
 
 void Statistics::processEvent(String const& name, Json const& fields) {
   if (m_service)
     m_service->reportEvent(name, fields);
-  Logger::debug("Event {} {}", name, fields);
+  Logger::debug("Statistics: Event '{}': {}", name, fields.repr(0));
 
   auto statisticsDatabase = Root::singleton().statisticsDatabase();
-  if (auto const& event = statisticsDatabase->event(name)) {
-    runStatScript(event->scripts, event->config, "event", name, fields);
+  try {
+    if (auto const& event = statisticsDatabase->event(name)) {
+      try {
+        runStatScript(event->scripts, event->config, "event", name, fields);
+      } catch (std::exception const& e) {
+        Logger::error("Statistics: Exception thrown while running `event` for an event named '{}' (fields: {}) in statistics scripts {} with config {}: {}",
+            name, fields.repr(0), event->scripts, event->config.repr(0), outputException(e, true));
+      }
+    }
+  } catch (std::exception const& e) {
+    Logger::error("Statistics: Exception thrown while attempting to load config for event '{}' (fields: {}): {}", name, fields.repr(0), outputException(e, true));
   }
 }
 
 void Statistics::setStat(String const& name, String const& type, Json const& value) {
   Logger::debug("Stat {} ({}) : {}", name, type, value);
-  m_stats[name] = Stat { type, value };
+  m_stats[name] = Stat{type, value};
   if (m_service)
     m_service->setStat(name, type, value);
 
@@ -151,17 +149,33 @@ void Statistics::unlockAchievement(String const& name) {
   m_achievements.add(name);
   if (m_service)
     m_service->unlockAchievement(name);
-  Logger::debug("Achievement get {}", name);
+  Logger::debug("Statistics: Achievement get! '{}'", name);
 }
 
 bool Statistics::checkAchievement(String const& achievementName) {
   auto statisticsDatabase = Root::singleton().statisticsDatabase();
-  auto achievement = statisticsDatabase->achievement(achievementName);
-  if (achievementUnlocked(achievement->name))
-    return true;
+  try {
+    auto achievement = statisticsDatabase->achievement(achievementName);
+    if (!achievement) {
+      Logger::warn("Statistics: Achievement '{}' not found", achievementName);
+      return false;
+    }
 
-  Maybe<bool> result = runStatScript<bool>(achievement->scripts, achievement->config, "check", achievementName);
-  return result && *result;
+    if (achievementUnlocked(achievement->name))
+      return true;
+
+    try {
+      Maybe<bool> result = runStatScript<bool>(achievement->scripts, achievement->config, "check", achievementName);
+      return result && *result;
+    } catch (std::exception const& e) {
+      Logger::error("Statistics: Exception thrown while running `check` for an achievement named '{}' in statistics scripts {} with config {}: {}",
+          achievementName, achievement->scripts, achievement->config.repr(0), outputException(e, true));
+      return false;
+    }
+  } catch (std::exception const& e) {
+    Logger::error("Statistics: Exception thrown while attempting to load config for achievement '{}': {}", achievementName, outputException(e, true));
+    return false;
+  }
 }
 
 void Statistics::readStatistics() {
@@ -172,13 +186,12 @@ void Statistics::readStatistics() {
       Json storage = versioningDatabase->loadVersionedJson(VersionedJson::readFile(filename), "Statistics");
 
       m_stats = StringMap<Stat>::from(storage.getObject("stats", {}).pairs().transformed([](auto const& entry) {
-          return make_pair(entry.first, Stat::fromJson(entry.second));
-        }));
+        return make_pair(entry.first, Stat::fromJson(entry.second));
+      }));
       m_achievements = jsonToStringSet(storage.get("achievements", JsonArray{}));
-
     }
   } catch (std::exception const& e) {
-    Logger::warn("Error loading local player statistics file, resetting: {}", outputException(e, false));
+    Logger::warn("Statistics: Error loading local player statistics file, resetting: {}", outputException(e, false));
   }
 }
 
@@ -231,17 +244,27 @@ LuaCallbacks Statistics::makeStatisticsCallbacks() {
 
 template <typename Result, typename... V>
 Maybe<Result> Statistics::runStatScript(StringList const& scripts, Json const& config, String const& functionName, V&&... args) {
+  // FezzedOne: A new Lua root is needed for every stat script execution because the `config` argument's lifetime is bounded to this method and `config` can be smuggled.
+  auto assets = Root::singleton().assets();
+  auto clientConfig = assets->json("/client.config");
+  auto luaRoot = make_shared<LuaRoot>();
+  luaRoot->tuneAutoGarbageCollection(clientConfig.get("luaGcPause").optFloat().value(1.2f),
+      clientConfig.get("luaGcStepMultiplier").optFloat().value(1.2f));
+
   LuaBaseComponent script;
-  script.setLuaRoot(m_luaRoot);
+  script.setLuaRoot(luaRoot);
   script.setScripts(scripts);
-  script.addCallbacks("config", LuaBindings::makeConfigCallbacks([config] (String const& name, Json const& def) {
-      return config.query(name, def);
-    }));
+
+  script.addCallbacks("config", LuaBindings::makeConfigCallbacks([config](String const& name, Json const& def) {
+    return config.query(name, def);
+  }));
   script.addCallbacks("statistics", makeStatisticsCallbacks());
   script.init();
   Maybe<Result> result = script.invoke<Result>(functionName, args...);
   script.uninit();
+
+  luaRoot.reset();
   return result;
 }
 
-}
+} // namespace Star

@@ -894,11 +894,12 @@ Maybe<Json> Player::receiveMessage(ConnectionId fromConnection, String const& me
   bool localMessage = fromConnection == world()->connection();
   if (message == "queueRadioMessage" && args.size() > 0) {
     if (localMessage || !m_ignoreExternalRadioMessages) {
-      float delay = 0;
+      float delay = 0.0f;
       if (args.size() > 1 && args.get(1).canConvert(Json::Type::Float))
-        delay = args.get(1).toFloat();
+        delay = args.get(1).optFloat().value(0.0f);
 
-      queueRadioMessage(args.get(0), delay);
+      if (args.size() > 0)
+        queueRadioMessage(args.get(0), delay);
     } else {
       try {
         Json jsonArgs = Json(args);
@@ -910,14 +911,25 @@ Maybe<Json> Player::receiveMessage(ConnectionId fromConnection, String const& me
   } else if (message == "warp") {
     if (localMessage || !m_ignoreExternalWarps) {
       Maybe<String> animation;
-      if (args.size() > 1)
-        animation = args.get(1).toString();
+      if (args.size() > 1 && args.get(1).canConvert(Json::Type::String))
+        animation = args.get(1).optString();
 
       bool deploy = false;
-      if (args.size() > 2)
-        deploy = args.get(2).toBool();
+      if (args.size() > 2 && args.get(2).canConvert(Json::Type::Bool))
+        deploy = args.get(2).optBool().value(false);
 
-      setPendingWarp(args.get(0).toString(), animation, deploy);
+      if (args.size() > 0 && args.get(0).isType(Json::Type::String)) {
+        String warpAction = args.get(0).toString();
+        bool valid = true;
+        try {
+          volatile WarpAction _ = parseWarpAction(warpAction);
+        } catch (std::exception const& e) {
+          valid = false;
+          Logger::warn("[xSB] Ignored unparseable warp action '{}' due to parsing exception: {}", warpAction, outputException(e, true));
+        }
+        if (valid)
+          setPendingWarp(warpAction, animation, deploy);
+      }
     } else {
       try {
         Json jsonArgs = Json(args);
@@ -942,7 +954,8 @@ Maybe<Json> Player::receiveMessage(ConnectionId fromConnection, String const& me
       bool unique = false;
       if (args.size() > 1)
         unique = args.get(1).toBool();
-      setPendingCinematic(args.get(0), unique);
+      if (args.size() > 0)
+        setPendingCinematic(args.get(0), unique);
     } else {
       try {
         Json jsonArgs = Json(args);
@@ -953,12 +966,12 @@ Maybe<Json> Player::receiveMessage(ConnectionId fromConnection, String const& me
     }
   } else if (message == "playAltMusic" && args.size() > 0) {
     if (localMessage || !m_ignoreExternalCinematics) {
-      float fadeTime = 0;
-      if (args.size() > 1)
-        fadeTime = args.get(1).toFloat();
+      float fadeTime = 0.0f;
+      if (args.size() > 1 && args.get(1).canConvert(Json::Type::Float))
+        fadeTime = args.get(1).optFloat().value(0.0f);
       StringList trackList;
-      if (args.get(0).canConvert(Json::Type::Array))
-        trackList = jsonToStringList(args.get(0).toArray());
+      if (args.size() > 0 && args.get(0).canConvert(Json::Type::Array))
+        trackList = jsonToStringList(args.get(0).optArray().value(JsonArray{}));
       else
         trackList = StringList();
       m_pendingAltMusic = pair<Maybe<StringList>, float>(trackList, fadeTime);
@@ -972,9 +985,9 @@ Maybe<Json> Player::receiveMessage(ConnectionId fromConnection, String const& me
     }
   } else if (message == "stopAltMusic") {
     if (localMessage || !m_ignoreExternalCinematics) {
-      float fadeTime = 0;
-      if (args.size() > 0)
-        fadeTime = args.get(0).toFloat();
+      float fadeTime = 0.0f;
+      if (args.size() > 0 && args.get(0).canConvert(Json::Type::Float))
+        fadeTime = args.get(0).optFloat().value(0.0f);
       m_pendingAltMusic = pair<Maybe<StringList>, float>({}, fadeTime);
     } else {
       try {
@@ -986,7 +999,12 @@ Maybe<Json> Player::receiveMessage(ConnectionId fromConnection, String const& me
     }
   } else if (message == "recordEvent") {
     if (localMessage || !m_ignoreExternalRadioMessages) {
-      statistics()->recordEvent(args.at(0).toString(), args.at(1));
+      if (args.size() > 1 && args.get(0).isType(Json::Type::String)) {
+        statistics()->recordEvent(args.at(0).toString(), args.at(1));
+      } else {
+        Json jsonArgs = Json(args);
+        Logger::info("[xSB] Bad arguments to 'recordEvent' message from cID {}. Message arguments: {}", fromConnection, jsonArgs.repr(0));
+      }
     } else {
       try {
         Json jsonArgs = Json(args);
@@ -997,10 +1015,15 @@ Maybe<Json> Player::receiveMessage(ConnectionId fromConnection, String const& me
     }
   } else if (message == "addCollectable") {
     if (localMessage || !m_ignoreExternalRadioMessages) {
-      auto collection = args.get(0).toString();
-      auto collectable = args.get(1).toString();
-      if (Root::singleton().collectionDatabase()->hasCollectable(collection, collectable))
-        addCollectable(collection, collectable);
+      if (args.size() > 1 && args.get(0).isType(Json::Type::String) && args.get(1).isType(Json::Type::String)) {
+        auto collection = args.get(0).toString();
+        auto collectable = args.get(1).toString();
+        if (Root::singleton().collectionDatabase()->hasCollectable(collection, collectable))
+          addCollectable(collection, collectable);
+      } else {
+        Json jsonArgs = Json(args);
+        Logger::info("[xSB] Bad arguments to 'addCollectable' message from cID {}. Message arguments: {}", fromConnection, jsonArgs.repr(0));
+      }
     } else {
       try {
         Json jsonArgs = Json(args);
@@ -1613,6 +1636,10 @@ bool Player::blueprintKnown(ItemDescriptor const& descriptor) const {
 }
 
 bool Player::addCollectable(String const& collectionName, String const& collectableName) {
+  if (!Root::singleton().collectionDatabase()->hasCollectable(collectionName, collectableName)) {
+    Logger::warn("[xSB] Collectable '{}' in collection '{}' not valid; check your mods", collectableName, collectionName);
+    return false;
+  }
   if (m_log->addCollectable(collectionName, collectableName)) {
     auto collectionDatabase = Root::singleton().collectionDatabase();
 
@@ -3027,8 +3054,8 @@ void Player::queueRadioMessage(Json const& messageConfig, float delay) {
     // non-absolute portrait image paths are assumed to be a frame name within the player's species-specific AI
     if (!message.portraitImage.empty() && message.portraitImage[0] != '/')
       message.portraitImage = Root::singleton().aiDatabase()->portraitImage(species(), message.portraitImage);
-  } catch (RadioMessageDatabaseException const& e) {
-    Logger::error("Couldn't queue radio message '{}': {}", messageConfig, e.what());
+  } catch (std::exception const& e) {
+    Logger::error("[xSB] Couldn't queue radio message '{}' due to exception: {}", messageConfig, e.what());
     return;
   }
 
