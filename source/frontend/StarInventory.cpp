@@ -64,6 +64,14 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
       }
     } else {
       inventory->shiftSwap(inventorySlot);
+      if (is<ArmorItem>(m_player->inventory()->swapSlotItem()) && !m_parent->hasSidePaneOpen()) {
+        if (!m_parent->paneManager()->registeredPaneIsDisplayed(MainInterfacePanes::Wardrobe)) {
+          m_parent->paneManager()->displayRegisteredPane(MainInterfacePanes::Wardrobe);
+          m_parent->paneManager()->bringPaneAdjacent(m_parent->paneManager()->registeredPane(MainInterfacePanes::Inventory),
+              m_parent->paneManager()->registeredPane(MainInterfacePanes::Wardrobe),
+              Root::singleton().assets()->json("/interface.config:bringAdjacentWindowGap").toFloat());
+        }
+      }
     }
   };
 
@@ -230,16 +238,13 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
         if (auto es = slot.ptr<EquipmentSlot>()) {
           if (*es == EquipmentSlot::HeadCosmetic || *es == EquipmentSlot::ChestCosmetic ||
               *es == EquipmentSlot::LegsCosmetic || *es == EquipmentSlot::BackCosmetic) {
-            m_parent->paneManager()->displayRegisteredPane(MainInterfacePanes::Wardrobe);
-            m_parent->paneManager()->bringPaneAdjacent(m_parent->paneManager()->registeredPane(MainInterfacePanes::Inventory),
-                m_parent->paneManager()->registeredPane(MainInterfacePanes::Wardrobe),
-                Root::singleton().assets()->json("/interface.config:bringAdjacentWindowGap").toFloat());
+            if (!m_parent->paneManager()->registeredPaneIsDisplayed(MainInterfacePanes::Wardrobe)) {
+              m_parent->paneManager()->displayRegisteredPane(MainInterfacePanes::Wardrobe);
+              m_parent->paneManager()->bringPaneAdjacent(m_parent->paneManager()->registeredPane(MainInterfacePanes::Inventory),
+                  m_parent->paneManager()->registeredPane(MainInterfacePanes::Wardrobe),
+                  Root::singleton().assets()->json("/interface.config:bringAdjacentWindowGap").toFloat());
+            }
           }
-        } else if (is<ArmorItem>(m_player->inventory()->swapSlotItem()) && !m_parent->hasSidePaneOpen()) {
-          m_parent->paneManager()->displayRegisteredPane(MainInterfacePanes::Wardrobe);
-          m_parent->paneManager()->bringPaneAdjacent(m_parent->paneManager()->registeredPane(MainInterfacePanes::Inventory),
-              m_parent->paneManager()->registeredPane(MainInterfacePanes::Wardrobe),
-              Root::singleton().assets()->json("/interface.config:bringAdjacentWindowGap").toFloat());
         }
       } else
         throw GuiException("Invalid object type, expected ItemSlotWidget");
