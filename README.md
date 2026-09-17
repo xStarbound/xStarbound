@@ -12,6 +12,7 @@ This is a fork of Starbound's source code; all credit for the original code goes
   See [`$docs/lua/lua.md`](doc/lua/lua.md) for more on cross-context data sharing and inter-script communication in Starbound Lua, including xStarbound-specific features and functionality.
 
 - Lots of crash fixes (mostly @fezzedone, plus a few by @novaenia).
+- Various security fixes and checks by @Lonaasan and @fezzedone for both xServer (xStarbound's server) and xClient (xStarbound's client).
 - Several new commands (by @fezzedone)! Type `/xclient` for info on the new client-side commands, or `/help` (on xServer, an xClient host or in single-player on xClient) to see the new server-side ones.
 - As of v4.2, xStarbound supports a new «creative mode» (by @fezzedone) that bypasses various placement restrictions applied to tiles, objects, plants and liquids. Its status is controlled by the `"bypassBuildChecks"` world property on a given world; if `true`, «creative mode» is enabled for that world. On xServer, build permission (or admin access) is required to toggle «creative mode» on a world. [xWEdit](https://github.com/FezzedOne/xWEdit) provides a `/creative` command for toggling «creative mode». More details:
   - The following «creative mode» features require xClient v4.2+, but do not require xServer in multiplayer:
