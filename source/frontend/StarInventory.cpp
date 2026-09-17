@@ -225,9 +225,23 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
 
   auto registerSlotCallbacks = [&](String name, InventorySlot slot) {
     invWindowReader.registerCallback(name, [=](Widget* paneObj) {
-      if (as<ItemSlotWidget>(paneObj))
+      if (as<ItemSlotWidget>(paneObj)) {
         m_player->inventory()->shiftSwap(slot);
-      else
+        if (auto es = slot.ptr<EquipmentSlot>()) {
+          if (*es == EquipmentSlot::HeadCosmetic || *es == EquipmentSlot::ChestCosmetic ||
+              *es == EquipmentSlot::LegsCosmetic || *es == EquipmentSlot::BackCosmetic) {
+            m_parent->paneManager()->displayRegisteredPane(MainInterfacePanes::Wardrobe);
+            m_parent->paneManager()->bringPaneAdjacent(m_parent->paneManager()->registeredPane(MainInterfacePanes::Inventory),
+                m_parent->paneManager()->registeredPane(MainInterfacePanes::Wardrobe),
+                Root::singleton().assets()->json("/interface.config:bringAdjacentWindowGap").toFloat());
+          }
+        } else if (is<ArmorItem>(m_player->inventory()->swapSlotItem()) && !m_parent->hasSidePaneOpen()) {
+          m_parent->paneManager()->displayRegisteredPane(MainInterfacePanes::Wardrobe);
+          m_parent->paneManager()->bringPaneAdjacent(m_parent->paneManager()->registeredPane(MainInterfacePanes::Inventory),
+              m_parent->paneManager()->registeredPane(MainInterfacePanes::Wardrobe),
+              Root::singleton().assets()->json("/interface.config:bringAdjacentWindowGap").toFloat());
+        }
+      } else
         throw GuiException("Invalid object type, expected ItemSlotWidget");
     });
     invWindowReader.registerCallback(name + ".middle", [=](Widget* paneObj) {

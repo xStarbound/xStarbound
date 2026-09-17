@@ -32,7 +32,7 @@
           "mods" : ["LShift"]
         }],
         "group": "camera",
-        "name": "Zoom in incrementally"
+        "name": "Zoom in (fractional)"
       },
       "incrementalZoomOut": {
         "default": [{
@@ -41,7 +41,7 @@
           "mods" : ["LShift"]
         }],
         "group": "camera",
-        "name": "Zoom out incrementally"
+        "name": "Zoom out (fractional)"
       },
       "interfaceZoomIn": {
         "default": [{
@@ -50,7 +50,7 @@
           "mods" : ["LCtrl"]
         }],
         "group": "interface",
-        "name": "Increase scale"
+        "name": "Scale up"
       },
       "interfaceZoomOut": {
         "default": [{
@@ -59,7 +59,7 @@
           "mods" : ["LCtrl"]
         }],
         "group": "interface",
-        "name": "Decrease scale"
+        "name": "Scale down"
       },
       "interfaceIncrementalZoomIn": {
         "default": [{
@@ -68,7 +68,7 @@
           "mods" : ["LShift", "LCtrl"]
         }],
         "group": "interface",
-        "name": "Increase scale incrementally"
+        "name": "Scale up (fractional)"
       },
       "interfaceIncrementalZoomOut": {
         "default": [{
@@ -77,7 +77,7 @@
           "mods" : ["LShift", "LCtrl"]
         }],
         "group": "interface",
-        "name": "Decrease scale incrementally"
+        "name": "Scale down (fractional)"
       },
       "pushToTalk": {
         "default": [],

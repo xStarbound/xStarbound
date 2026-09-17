@@ -127,7 +127,6 @@ void MainInterface::reset() { // *Completely* reset the interface.
   m_stickyTargetingTimer = GameTimer(m_config->monsterHealthBarTime);
 
   // FezzedOne: Has to be moved here because `interface.bindRegisteredPane` can leave lingering callback references in `uninit` in universe client scripts.
-  // A lingering reference is required for Save Inventory Position to work correctly on xClient.
   m_paneManager.deregisterAllPanes();
 
   m_inventoryWindow = makeObject<InventoryPane>(this, m_client->mainPlayer(), m_containerInteractor);
@@ -135,6 +134,9 @@ void MainInterface::reset() { // *Completely* reset the interface.
     if (!m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Wardrobe)) {
       if (auto player = m_client->mainPlayer())
         player->clearSwap();
+    } else {
+      // FezzedOne: Suggested by Juni.
+      // m_paneManager.dismissRegisteredPane(MainInterfacePanes::Wardrobe);
     }
     if (m_containerPane && !m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Wardrobe)) {
       m_containerPane->dismiss();
@@ -949,8 +951,13 @@ void MainInterface::update(float dt) {
   if (Input::singleton().bindDown("xsb", "toggleWardrobe")) {
     if (m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Wardrobe))
       m_paneManager.dismissRegisteredPane(MainInterfacePanes::Wardrobe);
-    else
+    else {
       m_paneManager.displayRegisteredPane(MainInterfacePanes::Wardrobe);
+      if (m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Inventory))
+        m_paneManager.bringPaneAdjacent(m_paneManager.registeredPane(MainInterfacePanes::Inventory),
+            m_paneManager.registeredPane(MainInterfacePanes::Wardrobe),
+            Root::singleton().assets()->json("/interface.config:bringAdjacentWindowGap").toFloat());
+    }
   }
 }
 
@@ -1086,6 +1093,30 @@ void MainInterface::queueItemPickupText(ItemPtr const& item) {
 
 bool MainInterface::fixedCamera() const {
   return m_clientCommandProcessor->fixedCameraEnabled();
+}
+
+bool MainInterface::hasSidePaneOpen() const {
+  // FezzedOne: Checks if a pane that could be considered a «side pane» to the inventory is open.
+  bool paneOpen = false;
+
+  if (m_wardrobeWindow)
+    paneOpen |= m_wardrobeWindow->isDisplayed();
+  if (m_containerPane)
+    paneOpen |= m_containerPane->isDisplayed();
+  if (m_merchantWindow)
+    paneOpen |= m_merchantWindow->isDisplayed();
+  if (m_plainCraftingWindow)
+    paneOpen |= m_plainCraftingWindow->isDisplayed();
+  if (m_craftingWindow)
+    paneOpen |= m_craftingWindow->isDisplayed();
+  if (m_codexInterface)
+    paneOpen |= m_codexInterface->isDisplayed();
+  if (m_questLogInterface)
+    paneOpen |= m_questLogInterface->isDisplayed();
+  if (m_collections)
+    paneOpen |= m_collections->isDisplayed();
+
+  return paneOpen;
 }
 
 bool MainInterface::hudVisible() const {
@@ -1755,10 +1786,19 @@ bool MainInterface::overlayClick(Vec2I const& mousePos, MouseButton mouseButton)
   mainBarPoly = PolyI(mainBarPolyF);
 
   if (overButton(m_config->mainBarInventoryButtonPoly, mousePos)) {
-    if (mouseButton == MouseButton::Left)
+    if (mouseButton == MouseButton::Left) {
       m_paneManager.toggleRegisteredPane(MainInterfacePanes::Inventory);
-    else if (mouseButton == MouseButton::Right)
+      if (m_paneManager.registeredPaneIsDisplayed(MainInterfacePanes::Inventory)) {
+        m_paneManager.displayRegisteredPane(MainInterfacePanes::Wardrobe);
+        m_paneManager.bringPaneAdjacent(m_paneManager.registeredPane(MainInterfacePanes::Inventory),
+            m_paneManager.registeredPane(MainInterfacePanes::Wardrobe),
+            Root::singleton().assets()->json("/interface.config:bringAdjacentWindowGap").toFloat());
+      } else
+        m_paneManager.dismissRegisteredPane(MainInterfacePanes::Wardrobe);
+    } else if (mouseButton == MouseButton::Right)
       m_paneManager.toggleRegisteredPane(MainInterfacePanes::Wardrobe);
+    else if (mouseButton == MouseButton::Middle)
+      m_paneManager.toggleRegisteredPane(MainInterfacePanes::Inventory);
     return true;
   }
 

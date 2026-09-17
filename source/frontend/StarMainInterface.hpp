@@ -126,6 +126,7 @@ public:
   void setCursorText(Maybe<String> const& cursorText, Maybe<bool> overrideGameTooltips);
 
   bool fixedCamera() const;
+  bool hasSidePaneOpen() const;
 
   void warpToOrbitedWorld(bool deploy = false);
   void warpToOwnShip();
