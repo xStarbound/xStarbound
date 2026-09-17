@@ -1779,7 +1779,7 @@ bool WorldServer::clientHasBuildPermission(ConnectionId clientId, uint8_t contai
       auto const& jLocationPermissions = permissionList.get(locationStr);
       JsonObject const& locationPermissions = jLocationPermissions.isType(Json::Type::Object) ? jLocationPermissions.toObject() : JsonObject{};
       if (locationPermissions.contains("owner")) {
-        if (containerPermission > CONTAINER_OPEN && getBool("allowGuestContainerModification", &locationPermissions))
+        if ((containerPermission == CONTAINER_OPEN || containerPermission == CONTAINER_MODIFY) && getBool("allowGuestContainerModification", &locationPermissions))
           return true;
         if (containerPermission == CONTAINER_OPEN && getBool("allowGuestContainerOpening", &locationPermissions))
           return true;

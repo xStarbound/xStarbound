@@ -1058,12 +1058,12 @@ function init()
     end
     if (checkHostType(1) ~= "ownClient") then
         if root.getConfiguration("allowAdminCommandsFromAnyone") == true or root.getConfiguration("anonymousConnectionsAreAdmin") == true then
-            logWarn("Detected potentially insecure xServer settings! The current configuration allows *any* user to use admin commands and prevents xServer's "
-                .. "build protection system from having any effect even if enabled. Check to ensure you didn't leave \"allowAdminCommandsFromAnyone\" or " 
+            logWarn("Detected potentially insecure xServer settings! The current configuration allows *any* user to use admin commands and prevents xServer's build "
+                .. "protection system from having any effect even if enabled. Check to ensure you didn't leave \"allowAdminCommandsFromAnyone\" or " 
                 .. "\"anonymousConnectionsAreAdmin\" enabled by mistake!")
         end
         if root.getConfiguration("allowAdminCommands") == false then
-            logInfo("Admin commands are completely disabled on this server due to \"allowAdminCommands\" being enabled in the server config.")
+            logInfo("Admin commands are completely disabled on this server due to \"allowAdminCommands\" being set to false in the server config.")
         end
         if not adminAccountExists() then
             logInfo("There are no admin accounts set up on this server. Consider setting one up in \"serverAccounts\" for server management.")
@@ -1081,13 +1081,13 @@ function init()
         end
         if buildConfig.secureWarps ~= true then
             logInfo("This server is not currently configured to prevent player/shipworld warp requests from non-admins to non-team-members. "
-                .. "If you want to enable this feature, set \"secureWarps\" to true.")
+                .. "If you want to enable this feature, set \"secureWarps\" in \"buildPermissionSettings\" to true.")
         else
             logInfo("Server configured to validate player/shipworld warp requests from non-admins to non-team-members.")
         end
         if buildConfig.secureTeams ~= true then
             logInfo("This server is not currently configured to prevent team RPC exploits. "
-                .. "If you want to enable this feature, set \"secureTeams\" to true.")
+                .. "If you want to enable this feature, set \"secureTeams\" in \"buildPermissionSettings\" to true.")
         else
             local duration = ""
             local timeout = buildConfig.teamInvitationTimeout
@@ -1110,6 +1110,13 @@ function init()
             end
             logInfo("Server configured to prevent team RPC exploits. Team invite lifespan for validity checks set to "
                 .. duration)
+        end
+        if buildConfig.secureWarps ~= true then
+            logInfo("This server is not currently configured to apply admin restrictions to entity destruction packets. If you want to enable this feature, set \"restrictEntityDestroyPackets\""
+                .. " in \"buildPermissionSettings\" to true. If build / world claim protection is enabled, players lacking build access to protected worlds are always disallowed from"
+                .. " despawning entities that don't belong to them.")
+        else
+            logInfo("Server configured to restrict entity destruction packets targeting non-owned entities to admins only.")
         end
     else
         logInfo("Running xServer::Helper on xClient.")

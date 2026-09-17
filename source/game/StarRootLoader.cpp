@@ -84,7 +84,8 @@ Json const BaseDefaultConfiguration = Json::parseJson(R"JSON(
         "storeClaimsInServerData" : false,
         "secureWarps" : false,
         "secureTeams" : false,
-        "teamInvitationTimeout" : 600.0
+        "teamInvitationTimeout" : 600.0,
+        "restrictEntityDestroyPackets" : false
       },
 
       "clientP2PJoinable" : true,
