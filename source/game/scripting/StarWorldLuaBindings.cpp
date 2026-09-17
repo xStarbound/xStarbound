@@ -635,6 +635,8 @@ namespace LuaBindings {
           containerPermissionInt = 1;
         else if (containerPermission.value() == "modify")
           containerPermissionInt = 2;
+        else if (containerPermission.value() == "despawn")
+          containerPermissionInt = 3;
         return serverWorld->clientHasBuildPermission(connectionId, containerPermissionInt);
       });
 

@@ -1,8 +1,8 @@
 #include "StarEntitySplash.hpp"
-#include "StarWorld.hpp"
+#include "StarJsonExtra.hpp"
 #include "StarLiquidsDatabase.hpp"
 #include "StarRoot.hpp"
-#include "StarJsonExtra.hpp"
+#include "StarWorld.hpp"
 
 namespace Star {
 
@@ -33,18 +33,21 @@ List<Particle> EntitySplashConfig::doSplash(Vec2F position, Vec2F velocity, Worl
         liquidType = bottomLiquid.liquid;
       else
         liquidType = topLiquid.liquid;
-      Color particleColor = Color::rgba(liquidDb->liquidSettings(liquidType)->liquidColor);
-      for (int i = 0; i < numSplashParticles; ++i) {
-        Particle newSplashParticle = splashParticle;
-        newSplashParticle.position = position;
-        newSplashParticle.velocity[1] = std::fabs(velocity[1]) * splashYVelocityFactor;
-        newSplashParticle.color = particleColor;
-        newSplashParticle.applyVariance(splashParticleVariance);
-        particles.append(newSplashParticle);
+      // FezzedOne: Fixed unchecked potential null dereference.
+      if (auto liquidSettings = liquidDb->liquidSettings(liquidType)) {
+        Color particleColor = Color::rgba(liquidSettings->liquidColor);
+        for (int i = 0; i < numSplashParticles; ++i) {
+          Particle newSplashParticle = splashParticle;
+          newSplashParticle.position = position;
+          newSplashParticle.velocity[1] = std::fabs(velocity[1]) * splashYVelocityFactor;
+          newSplashParticle.color = particleColor;
+          newSplashParticle.applyVariance(splashParticleVariance);
+          particles.append(newSplashParticle);
+        }
       }
     }
   }
   return particles;
 }
 
-}
+} // namespace Star

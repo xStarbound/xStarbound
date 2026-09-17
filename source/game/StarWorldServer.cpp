@@ -38,6 +38,7 @@
 #define TILE_PROTECTION 0
 #define CONTAINER_OPEN 1
 #define CONTAINER_MODIFY 2
+#define ENTITY_DESTROY 3
 
 namespace Star {
 
@@ -449,18 +450,30 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
 
     } else if (auto clpacket = as<CollectLiquidPacket>(packet)) {
       if (clientHasBuildPermission(clientId)) {
-        if (auto item = collectLiquid(clpacket->tilePositions, clpacket->liquidId))
-          clientInfo->outgoingPackets.append(make_shared<GiveItemPacket>(item));
+        if (!Root::singleton().liquidsDatabase()->isValidLiquidId(clpacket->liquidId)) {
+          // FezzedOne: Not strictly necessary as an invalid liquid ID is harmless anyway, but better to log it.
+          Logger::warn("WorldServer: Ignored liquid collection packet from cID {} with invalid liquid ID {}", clientInfo->clientId, clpacket->liquidId);
+        } else {
+          if (auto item = collectLiquid(clpacket->tilePositions, clpacket->liquidId))
+            clientInfo->outgoingPackets.append(make_shared<GiveItemPacket>(item));
+        }
       }
 
     } else if (auto sepacket = as<SpawnEntityPacket>(packet)) {
-      auto entity = entityFactory->netLoadEntity(sepacket->entityType, std::move(sepacket->storeData));
-      auto const& entityType = sepacket->entityType;
-      entity->readNetState(std::move(sepacket->firstNetState));
-      // FezzedOne: Fixes potential bypasses to world claim protection by only allowing owners, permitted builders and admins to spawn server-mastered entities.
-      // As an exception, item drops are always allowed as they can't run arbitrary scripts.
-      if (entityType == EntityType::ItemDrop || clientHasBuildPermission(clientId))
-        addEntity(std::move(entity));
+      // FezzedOne: Sanity checks for entity spawns by clients.
+      EntityPtr entity{};
+      EntityType entityType = EntityType::ItemDrop;
+      try {
+        entity = entityFactory->netLoadEntity(sepacket->entityType, std::move(sepacket->storeData));
+        entityType = sepacket->entityType;
+        entity->readNetState(std::move(sepacket->firstNetState));
+        // FezzedOne: Fixes potential bypasses to world claim protection by only allowing owners, permitted builders and admins to spawn server-mastered entities.
+        // As an exception, item drops are always allowed as they can't run arbitrary scripts.
+        if (entityType == EntityType::ItemDrop || clientHasBuildPermission(clientId))
+          addEntity(std::move(entity));
+      } catch (std::exception const& e) {
+        Logger::error("[xSB] Exception caught while handling entity spawning packet from cID {}, ignoring: {}", clientInfo->clientId, outputException(e, true));
+      }
 
     } else if (auto rdpacket = as<RequestDropPacket>(packet)) {
       auto drop = m_entityMap->get<ItemDrop>(rdpacket->dropEntityId);
@@ -571,29 +584,41 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
           removeEntity(entityCreate->entityId, false);
         }
 
-        auto entity = entityFactory->netLoadEntity(entityCreate->entityType, entityCreate->storeData);
-        entity->readNetState(entityCreate->firstNetState);
-        GameObjectRegistry::registerGameObject(entity.get(), entity);
-        entity->init(this, entityCreate->entityId, EntityMode::Slave);
-        m_entityMap->addEntity(entity);
-
-        if (clientInfo->interpolationTracker.interpolationEnabled())
-          entity->enableInterpolation(clientInfo->interpolationTracker.extrapolationHint());
+        EntityPtr entity{};
+        try {
+          entity = entityFactory->netLoadEntity(entityCreate->entityType, entityCreate->storeData);
+          entity->readNetState(entityCreate->firstNetState);
+          GameObjectRegistry::registerGameObject(entity.get(), entity);
+          entity->init(this, entityCreate->entityId, EntityMode::Slave);
+          m_entityMap->addEntity(entity);
+          if (clientInfo->interpolationTracker.interpolationEnabled())
+            entity->enableInterpolation(clientInfo->interpolationTracker.extrapolationHint());
+        } catch (std::exception const& e) {
+          Logger::error("WorldServer: Exception caught while handling entity creation packet from cID {}, ignoring: {}", clientInfo->clientId, outputException(e, true));
+        }
       }
 
     } else if (auto entityUpdateSet = as<EntityUpdateSetPacket>(packet)) {
       float interpolationLeadTime = clientInfo->interpolationTracker.interpolationLeadSteps() * GlobalTimestep;
+      List<EntityId> badEntities{};
       m_entityMap->forAllEntities([&](EntityPtr const& entity) {
         EntityId entityId = entity->entityId();
-        if (connectionForEntity(entityId) == clientId) {
-          starAssert(entity->isSlave());
-          entity->readNetState(entityUpdateSet->deltas.value(entityId), interpolationLeadTime);
+        try {
+          if (connectionForEntity(entityId) == clientId) {
+            if (entity->isSlave())
+              entity->readNetState(entityUpdateSet->deltas.value(entityId), interpolationLeadTime);
+          }
+        } catch (std::exception const& e) {
+          badEntities.append(entityId);
+          Logger::error("WorldServer: Exception caught while handling client entity update packet from cID {} for entity {}, removing entity: {}", clientInfo->clientId, entity->entityId(), outputException(e, true));
         }
       });
+      for (EntityId const& entityId : badEntities)
+        removeEntity(entityId, false);
       clientInfo->pendingForward = true;
 
     } else if (auto entityDestroy = as<EntityDestroyPacket>(packet)) {
-      if (connectionForEntity(entityDestroy->entityId) == clientId || clientHasBuildPermission(clientId)) {
+      if (connectionForEntity(entityDestroy->entityId) == clientId || clientHasBuildPermission(clientId, ENTITY_DESTROY)) {
         if (auto entity = m_entityMap->entity(entityDestroy->entityId)) {
           entity->readNetState(entityDestroy->finalNetState, clientInfo->interpolationTracker.interpolationLeadSteps() * GlobalTimestep);
           // Before destroying the entity, we should make sure that the entity is
@@ -601,6 +626,8 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
           entity->disableInterpolation();
           removeEntity(entityDestroy->entityId, entityDestroy->death);
         }
+      } else {
+        Logger::warn("[xSB] WorldServer: Blocked entity destruction packet from cID {} targeting entity {}, as client does not own the entity or have permission", clientInfo->clientId, entityDestroy->entityId);
       }
 
     } else if (auto disconnectWires = as<DisconnectAllWiresPacket>(packet)) {
@@ -1609,7 +1636,10 @@ bool WorldServer::clientHasBuildPermission(ConnectionId clientId, uint8_t contai
   if (client->canBeAdmin)
     return true;
 
-  if (containerPermission > CONTAINER_OPEN && !getBool("containerModificationProtection"))
+  if (containerPermission == ENTITY_DESTROY && getBool("restrictEntityDestroyPackets"))
+    return false;
+
+  if ((containerPermission == CONTAINER_OPEN || containerPermission == CONTAINER_MODIFY) && !getBool("containerModificationProtection"))
     return true;
 
   if (containerPermission == CONTAINER_OPEN && !getBool("containerOpenProtection"))
@@ -1846,6 +1876,11 @@ TileModificationList WorldServer::doApplyTileModifications(TileModificationList 
       if (!tile)
         continue;
 
+      if (!materialDatabase->isValidMaterialId(placeMaterial->material)) {
+        Logger::warn("[xSB] Ignored attempt to place nonexistent material with ID {} at [{}, {}]!", placeMaterial->material, pos[0], pos[1]);
+        continue;
+      }
+
       if (placeMaterial->layer == TileLayer::Background) {
         tile->background = placeMaterial->material;
         if (placeMaterial->materialHueShift)
@@ -1899,6 +1934,11 @@ TileModificationList WorldServer::doApplyTileModifications(TileModificationList 
       ServerTile* tile = m_tileArray->modifyTile(pos);
       if (!tile)
         continue;
+
+      if (!materialDatabase->isValidModId(placeMod->mod)) {
+        Logger::warn("[xSB] Ignored attempt to place nonexistent matmod with ID {} at [{}, {}]!", placeMaterial->material, pos[0], pos[1]);
+        continue;
+      }
 
       if (placeMod->layer == TileLayer::Background) {
         tile->backgroundMod = placeMod->mod;
@@ -2161,9 +2201,15 @@ void WorldServer::modifyLiquid(Vec2I const& pos, LiquidId liquid, float quantity
 
   if (ServerTile* tile = m_tileArray->modifyTile(pos)) {
     auto materialDatabase = Root::singleton().materialDatabase();
+    auto liquidDatabase = Root::singleton().liquidsDatabase();
     if (tile->foreground == EmptyMaterialId || !isSolidColliding(materialDatabase->materialCollisionKind(tile->foreground))) {
       if (additive && liquid == tile->liquid.liquid)
         quantity += tile->liquid.level;
+
+      if (!liquidDatabase->isValidLiquidId(liquid)) {
+        Logger::warn("[xSB] Ignored attempt to place nonexistent liquid with ID {} at [{}, {}]!", liquid, pos[0], pos[1]);
+        return;
+      }
 
       setLiquid(pos, liquid, quantity, tile->liquid.pressure);
       m_liquidEngine->visitLocation(pos);

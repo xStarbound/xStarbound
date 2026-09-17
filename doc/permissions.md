@@ -18,7 +18,8 @@ The basic configuration is defined under `"buildPermissionSettings"` in the serv
   "storeClaimsInServerData" : false,
   "secureWarps" : false,
   "secureTeams" : false,
-  "teamInvitationTimeout" : 600.0
+  "teamInvitationTimeout" : 600.0,
+  "restrictEntityDestroyPackets" : false
 }
 ```
 
@@ -42,6 +43,7 @@ A description of each of the settings:
   - _Note:_ This setting helps protect private worlds from more sophisticated «drive-by» griefing even if players forget to use `/claim add` for build protection.
   - _For admins:_ Having `/admin` enabled does not bypass this security measure by itself unless you also disable `"secureTeams"` in the server's config. Just use `/warp` or a `"warp"` entity message instead.
 - **`"teamInvitationTimeout"`:** The maximum length of time in seconds over which the server should allow an invite sent by a player to remain valid. Defaults to 600 seconds (10 minutes) if unset. This invite expiry check is active only if `"secureTeams"` is enabled. _Does not require the build permission system to be enabled._
+- **`"restrictEntityDestroyPackets"`:** Whether the server should ignore entity destruction packets from non-admins. If `true`, this takes precedence over build permissions when checking whether players can destroy entities with `EntityDestroy` packets.
 
 **Admin accounts and xClient hosts:** Admin accounts and hosting clients — i.e., Steam and Discord hosts — always bypass claim protections. This prevents hosting clients from getting «locked out» of building in their own local, single-player universe save. To test protection on a dedicated xServer server, consider making a non-admin account for testing!
 

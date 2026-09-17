@@ -1402,11 +1402,11 @@ Sets the dungeon ID of all tiles within the specified area.
 
 ---
 
-#### `Maybe<bool>` world.hasBuildPermission(`ClientId` clientId, [`String` containerPermission])
+#### `Maybe<bool>` world.hasBuildPermission(`ClientId` clientId, [`String` containerOrDespawnPermission])
 
-Returns `true` if the specified connected client is allowed to place or remove tiles, tile mods or objects, or spawn server-side entities other than item drops, or `false` if the client is not allowed to do so or is not connected.
+Returns `true` if the specified connected client is allowed to place or remove tiles, tile mods or objects, or spawn server-side entities other than item drops on this world, or `false` if the client is not allowed to do so or is not currently present on the world.
 
-If the optional `containerPermission` argument is `"open"`, this callback returns `true` if the specified connected client is allowed to open containers to see their contents; if `containerPermission` is `"modify"`, this callback returns `true` if the specified connected client is allowed to modify the contents of containers (and to open them, as `"modify"` implies `"open"`).
+If the optional `containerOrDespawnPermission` argument is `"open"`, this callback returns `true` if the specified client is allowed to open containers to see their contents; if `containerOrDespawnPermission` is `"modify"`, this callback returns `true` if the specified client is allowed to modify the contents of containers (and to open them, as `"modify"` implies `"open"`); if `containerOrDespawnPermission` is `"despawn"`, this callback returns `true` if the specified client is allowed to use `EntityDestroy` packets to despawn entities it isn't the master of (i.e., entities controlled by the server or by other clients).
 
 See `$docs/permissions.md` for more on xStarbound v4.0+'s build permission system.
 
