@@ -1,13 +1,13 @@
 #include "StarSystemWorldClient.hpp"
-#include "StarRoot.hpp"
 #include "StarCelestialDatabase.hpp"
 #include "StarClientContext.hpp"
 #include "StarPlayerUniverseMap.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
 SystemWorldClient::SystemWorldClient(ClockConstPtr universeClock, CelestialDatabasePtr celestialDatabase, PlayerUniverseMapPtr universeMap)
-  : SystemWorld(universeClock, celestialDatabase), m_universeMap(std::move(universeMap)) {}
+    : SystemWorld(universeClock, celestialDatabase), m_universeMap(std::move(universeMap)) {}
 
 void SystemWorldClient::setUniverseMap(PlayerUniverseMapPtr newUniverseMap) {
   m_universeMap = std::move(newUniverseMap);
@@ -96,13 +96,11 @@ SystemObjectPtr SystemWorldClient::getObject(Uuid const& uuid) const {
   return m_objects.maybe(uuid).value({});
 }
 
-List<SystemClientShipPtr> SystemWorldClient::ships() const
-{
+List<SystemClientShipPtr> SystemWorldClient::ships() const {
   return m_clientShips.values();
 }
 
-SystemClientShipPtr SystemWorldClient::getShip(Uuid const & uuid) const
-{
+SystemClientShipPtr SystemWorldClient::getShip(Uuid const& uuid) const {
   return m_clientShips.maybe(uuid).value({});
 }
 
@@ -117,19 +115,33 @@ bool SystemWorldClient::handleIncomingPacket(PacketPtr packet) {
     // FezzedOne: Removed useless code that causes a segfault when connecting to a server with mismatched mods.
     // auto location = m_ship->systemLocation();
     for (auto p : updatePacket->shipUpdates) {
-      if (m_ship && p.first == m_ship->uuid())
-        m_ship->readNetState(p.second, SystemWorldTimestep);
-      else
-        m_clientShips[p.first]->readNetState(p.second, SystemWorldTimestep);
+      try {
+        if (m_ship && p.first == m_ship->uuid())
+          m_ship->readNetState(p.second, SystemWorldTimestep);
+        else if (m_clientShips.contains(p.first) && m_clientShips[p.first])
+          m_clientShips[p.first]->readNetState(p.second, SystemWorldTimestep);
+      } catch (std::exception const& e) {
+        m_clientShips.remove(p.first);
+        Logger::error("[xSB] SystemWorldClient: Exception caught while updating net state for client ship UUID '{}', removed ship: {}", p.first.hex(), outputException(e, false));
+      }
     }
     for (auto p : updatePacket->objectUpdates) {
-      auto object = getObject(p.first);
-      object->readNetState(p.second, SystemWorldTimestep);
+      try {
+        if (auto object = getObject(p.first))
+          object->readNetState(p.second, SystemWorldTimestep);
+      } catch (std::exception const& e) {
+        m_objects.remove(p.first);
+        Logger::error("[xSB] SystemWorldClient: Exception caught while updating net state for system object UUID '{}', removed object: {}", p.first.hex(), outputException(e, false));
+      }
     }
 
   } else if (auto createPacket = as<SystemObjectCreatePacket>(packet)) {
-    auto object = netLoadObject(createPacket->objectStore);
-    m_objects.set(object->uuid(), object);
+    try {
+      auto object = netLoadObject(createPacket->objectStore);
+      m_objects.set(object->uuid(), object);
+    } catch (std::exception const& e) {
+      Logger::error("[xSB] SystemWorldClient: Exception caught while loading object from object creation packet, skipping: {}", outputException(e, true));
+    }
 
   } else if (auto destroyPacket = as<SystemObjectDestroyPacket>(packet)) {
     m_objects.remove(destroyPacket->objectUuid);
@@ -137,7 +149,11 @@ bool SystemWorldClient::handleIncomingPacket(PacketPtr packet) {
 
   } else if (auto shipCreatePacket = as<SystemShipCreatePacket>(packet)) {
     auto ship = netLoadShip(shipCreatePacket->shipStore);
-    m_clientShips.set(ship->uuid(), ship);
+    try {
+      m_clientShips.set(ship->uuid(), ship);
+    } catch (std::exception const& e) {
+      Logger::error("[xSB] SystemWorldClient: Exception caught while loading client ship on system world start, skipping: {}", outputException(e, true));
+    }
 
   } else if (auto shipDestroyPacket = as<SystemShipDestroyPacket>(packet)) {
     m_clientShips.remove(shipDestroyPacket->shipUuid);
@@ -146,13 +162,21 @@ bool SystemWorldClient::handleIncomingPacket(PacketPtr packet) {
     m_objects.clear();
     m_clientShips.clear();
     m_location = startPacket->location;
-    for (auto netStore: startPacket->objectStores) {
-      auto object = netLoadObject(netStore);
-      m_objects.set(object->uuid(), object);
+    for (auto netStore : startPacket->objectStores) {
+      try {
+        auto object = netLoadObject(netStore);
+        m_objects.set(object->uuid(), object);
+      } catch (std::exception const& e) {
+        Logger::error("[xSB] SystemWorldClient: Exception caught while loading object on system world start, skipping: {}", outputException(e, true));
+      }
     }
     for (auto netStore : startPacket->shipStores) {
-      auto ship = netLoadShip(netStore);
-      m_clientShips.set(ship->uuid(), ship);
+      try {
+        auto ship = netLoadShip(netStore);
+        m_clientShips.set(ship->uuid(), ship);
+      } catch (std::exception const& e) {
+        Logger::error("[xSB] SystemWorldClient: Exception caught while loading client ship on system world start, skipping: {}", outputException(e, true));
+      }
     }
     m_ship = make_shared<SystemClientShip>(this, startPacket->clientShip.first, startPacket->clientShip.second);
 
@@ -184,12 +208,11 @@ SystemObjectPtr SystemWorldClient::netLoadObject(ByteArray netStore) {
   return makeObject<SystemObject>(objectConfig, uuid, position, parameters);
 }
 
-SystemClientShipPtr SystemWorldClient::netLoadShip(ByteArray netStore)
-{
+SystemClientShipPtr SystemWorldClient::netLoadShip(ByteArray netStore) {
   DataStreamBuffer ds(std::move(netStore));
   Uuid uuid = ds.read<Uuid>();
   SystemLocation location = ds.read<SystemLocation>();
   return make_shared<SystemClientShip>(this, uuid, location);
 }
 
-}
+} // namespace Star

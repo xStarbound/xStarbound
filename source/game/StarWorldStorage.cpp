@@ -803,7 +803,8 @@ void WorldStorage::loadSectorToLevel(Sector const& sector, SectorLoadLevel targe
           try {
             addedEntities.append(entityFactory->loadVersionedEntity(entityStore));
           } catch (std::exception const& e) {
-            Logger::warn("Failed to deserialize entity: {}", outputException(e, true));
+            Logger::warn("WorldStorage: Failed to deserialise entity: {}", outputException(e, true));
+            Logger::warn("[xServer] Entity data: {}", entityStore.toJson().repr(2));
           }
         }
       }

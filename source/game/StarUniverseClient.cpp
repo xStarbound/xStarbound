@@ -1327,17 +1327,21 @@ void UniverseClient::handlePackets(List<PacketPtr> const& packets) {
 
   for (auto const& packet : packets) {
     if (auto clientContextUpdate = as<ClientContextUpdatePacket>(packet)) {
-      m_clientContext->readUpdate(clientContextUpdate->updateData);
-      if (m_shouldUpdateMainPlayerShip)
-        m_playerStorage->applyShipUpdates(m_clientContext->playerUuid(), m_clientContext->newShipUpdates());
+      try {
+        m_clientContext->readUpdate(clientContextUpdate->updateData);
+        if (m_shouldUpdateMainPlayerShip)
+          m_playerStorage->applyShipUpdates(m_clientContext->playerUuid(), m_clientContext->newShipUpdates());
 
-      // FezzedOne: Don't apply ship upgrades on protected ships.
-      if (playerIsOriginal() && m_shouldUpdateMainPlayerShip)
-        m_mainPlayer->setShipUpgrades(m_clientContext->shipUpgrades());
+        // FezzedOne: Don't apply ship upgrades on protected ships.
+        if (playerIsOriginal() && m_shouldUpdateMainPlayerShip)
+          m_mainPlayer->setShipUpgrades(m_clientContext->shipUpgrades());
 
-      m_mainPlayer->setAdmin(m_clientContext->isAdmin());
-      if (!m_mainPlayer->damageTeamOverridden())
-        m_mainPlayer->setTeam(m_clientContext->team());
+        m_mainPlayer->setAdmin(m_clientContext->isAdmin());
+        if (!m_mainPlayer->damageTeamOverridden())
+          m_mainPlayer->setTeam(m_clientContext->team());
+      } catch (std::exception const& e) {
+        throw StarException::format("[xSB] Caught exception while handling client context update, rethrowing and disconnecting: {}", outputException(e, true));
+      }
 
     } else if (auto chatReceivePacket = as<ChatReceivePacket>(packet)) {
       m_pendingMessages.append(chatReceivePacket->receivedMessage);

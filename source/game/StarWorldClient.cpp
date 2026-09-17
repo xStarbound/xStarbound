@@ -222,34 +222,38 @@ void WorldClient::removeEntity(EntityId entityId, bool andDie, bool serverSide) 
     return;
 
   if (andDie) {
-    ClientRenderCallback renderCallback;
-    entity->destroy(&renderCallback);
+    try {
+      ClientRenderCallback renderCallback;
+      entity->destroy(&renderCallback);
 
-    auto entitySpecificDirectives = m_entitySpecificDirectives.ptr(entity->entityId());
-    Directives* primaryDirectives = nullptr;
-    if (entitySpecificDirectives && entitySpecificDirectives->primaryDirectives)
-      primaryDirectives = &(*(entitySpecificDirectives->primaryDirectives));
-    else if (m_allEntityDirectives.primaryDirectives)
-      primaryDirectives = &(*(m_allEntityDirectives.primaryDirectives));
-    if (primaryDirectives) {
-      for (auto& p : renderCallback.particles) {
-        p.directives.append(*primaryDirectives);
+      auto entitySpecificDirectives = m_entitySpecificDirectives.ptr(entity->entityId());
+      Directives* primaryDirectives = nullptr;
+      if (entitySpecificDirectives && entitySpecificDirectives->primaryDirectives)
+        primaryDirectives = &(*(entitySpecificDirectives->primaryDirectives));
+      else if (m_allEntityDirectives.primaryDirectives)
+        primaryDirectives = &(*(m_allEntityDirectives.primaryDirectives));
+      if (primaryDirectives) {
+        for (auto& p : renderCallback.particles) {
+          p.directives.append(*primaryDirectives);
+        }
       }
-    }
-    const List<Directives>* directives = nullptr; // Optimisations much, Kae?
-    if (auto& worldTemplate = m_worldTemplate) {
-      if (const auto& parameters = worldTemplate->worldParameters())
-        if (auto& globalDirectives = m_worldTemplate->worldParameters()->globalDirectives)
-          directives = &globalDirectives.get();
-    }
-    if (directives) {
-      int directiveIndex = unsigned(entity->entityId()) % directives->size();
-      for (auto& p : renderCallback.particles)
-        p.directives.append(directives->get(directiveIndex));
-    }
+      const List<Directives>* directives = nullptr; // Optimisations much, Kae?
+      if (auto& worldTemplate = m_worldTemplate) {
+        if (const auto& parameters = worldTemplate->worldParameters())
+          if (auto& globalDirectives = m_worldTemplate->worldParameters()->globalDirectives)
+            directives = &globalDirectives.get();
+      }
+      if (directives) {
+        int directiveIndex = unsigned(entity->entityId()) % directives->size();
+        for (auto& p : renderCallback.particles)
+          p.directives.append(directives->get(directiveIndex));
+      }
 
-    m_particles->addParticles(std::move(renderCallback.particles));
-    m_samples.appendAll(std::move(renderCallback.audios));
+      m_particles->addParticles(std::move(renderCallback.particles));
+      m_samples.appendAll(std::move(renderCallback.audios));
+    } catch (std::exception const& e) {
+      Logger::error("[xSB] Exception caught while handling death effects for removed entity {}: {}", entityId, outputException(e, true));
+    }
   }
 
   if (serverSide) {
@@ -264,7 +268,11 @@ void WorldClient::removeEntity(EntityId entityId, bool andDie, bool serverSide) 
 
   m_entitySpecificDirectives.remove(entityId);
   m_entityMap->removeEntity(entityId);
-  entity->uninit();
+  try {
+    entity->uninit();
+  } catch (std::exception const& e) {
+    Logger::error("[xSB] Exception caught during uninit for removed entity {}: {}", entityId, outputException(e, true));
+  }
 }
 
 WorldTemplateConstPtr WorldClient::currentTemplate() const {
@@ -958,52 +966,72 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
         removeEntity(entityCreate->entityId, false);
       }
 
-      auto entity = entityFactory->netLoadEntity(entityCreate->entityType, entityCreate->storeData);
-      entity->readNetState(std::move(entityCreate->firstNetState));
-      GameObjectRegistry::registerGameObject(entity.get(), entity);
-      entity->init(this, entityCreate->entityId, EntityMode::Slave);
-      m_entityMap->addEntity(entity);
+      EntityPtr entity{};
+      try {
+        entity = entityFactory->netLoadEntity(entityCreate->entityType, entityCreate->storeData);
+        entity->readNetState(std::move(entityCreate->firstNetState));
+        GameObjectRegistry::registerGameObject(entity.get(), entity);
+        entity->init(this, entityCreate->entityId, EntityMode::Slave);
+        m_entityMap->addEntity(entity);
 
-      if (m_interpolationTracker.interpolationEnabled()) {
-        entity->enableInterpolation(m_interpolationTracker.extrapolationHint());
+        if (m_interpolationTracker.interpolationEnabled()) {
+          entity->enableInterpolation(m_interpolationTracker.extrapolationHint());
 
-        // Delay appearance of new slaved entities to match with interpolation
-        // state.
-        m_startupHiddenEntities.add(entityCreate->entityId);
-        timer(round(m_interpolationTracker.interpolationLeadSteps()), [this, entityId = entityCreate->entityId](World*) {
-          m_startupHiddenEntities.remove(entityId);
-        });
+          // Delay appearance of new slaved entities to match with interpolation
+          // state.
+          m_startupHiddenEntities.add(entityCreate->entityId);
+          timer(round(m_interpolationTracker.interpolationLeadSteps()), [this, entityId = entityCreate->entityId](World*) {
+            m_startupHiddenEntities.remove(entityId);
+          });
+        }
+      } catch (std::exception const& e) {
+        Logger::error("[xSB] WorldClient: Exception caught while handling server entity create packet, locally ignoring entity: {}", outputException(e, true));
+        if (entity && entity->inWorld())
+          removeEntity(entity->entityId(), false, false);
       }
 
     } else if (auto entityUpdateSet = as<EntityUpdateSetPacket>(packet)) {
       float interpolationLeadTime = m_interpolationTracker.interpolationLeadSteps() * GlobalTimestep;
       m_entityMap->forAllEntities([&](EntityPtr const& entity) {
         EntityId entityId = entity->entityId();
-        if (connectionForEntity(entityId) == entityUpdateSet->forConnection) {
-          starAssert(entity->isSlave());
-          entity->readNetState(std::move(entityUpdateSet->deltas.value(entityId)), interpolationLeadTime);
+        List<EntityId> badEntities{};
+        try {
+          if (connectionForEntity(entityId) == entityUpdateSet->forConnection) {
+            starAssert(entity->isSlave());
+            entity->readNetState(std::move(entityUpdateSet->deltas.value(entityId)), interpolationLeadTime);
+          }
+        } catch (std::exception const& e) {
+          badEntities.append(entityId);
+          Logger::error("[xSB] WorldClient: Exception caught while handling server entity update packet for entity {}, locally derendering entity: {}", entity->entityId(), outputException(e, true));
         }
+        for (EntityId const& entity : badEntities)
+          removeEntity(entity, false, false);
       });
 
     } else if (auto entityDestroy = as<EntityDestroyPacket>(packet)) {
       if (auto entity = m_entityMap->entity(entityDestroy->entityId)) {
-        entity->readNetState(std::move(entityDestroy->finalNetState), m_interpolationTracker.interpolationLeadSteps() * GlobalTimestep);
+        try {
+          entity->readNetState(std::move(entityDestroy->finalNetState), m_interpolationTracker.interpolationLeadSteps() * GlobalTimestep);
 
-        // Before destroying the entity, we should make sure that the entity is
-        // using the absolute latest data, so we disable interpolation.
+          // Before destroying the entity, we should make sure that the entity is
+          // using the absolute latest data, so we disable interpolation.
 
-        if (m_interpolationTracker.interpolationEnabled() && entityDestroy->death) {
-          // Delay death packets by the interpolation step to give time for
-          // interpolation to catch up.
-          timer(round(m_interpolationTracker.interpolationLeadSteps()), [this, entity, entityDestroy](World*) {
+          if (m_interpolationTracker.interpolationEnabled() && entityDestroy->death) {
+            // Delay death packets by the interpolation step to give time for
+            // interpolation to catch up.
+            timer(round(m_interpolationTracker.interpolationLeadSteps()), [this, entity, entityDestroy](World*) {
+              entity->disableInterpolation();
+              // FezzedOne: Fixed client synchronisation bug from stock Starbound that could result in accidentally removing server-side entities.
+              // If the server sent this packet, it doesn't need to be told to destroy the entity again.
+              removeEntity(entityDestroy->entityId, entityDestroy->death, false);
+            });
+          } else {
             entity->disableInterpolation();
-            // FezzedOne: Fixed client synchronisation bug from stock Starbound that could result in accidentally removing server-side entities.
-            // If the server sent this packet, it doesn't need to be told to destroy the entity again.
             removeEntity(entityDestroy->entityId, entityDestroy->death, false);
-          });
-        } else {
-          entity->disableInterpolation();
-          removeEntity(entityDestroy->entityId, entityDestroy->death, false);
+          }
+        } catch (std::exception const& e) {
+          Logger::error("[xSB] WorldClient: Exception caught while reading final net state for entity {} before removal by server, ignoring bad net state deltas: {}", entity->entityId(), outputException(e, true));
+          removeEntity(entityDestroy->entityId, false, false);
         }
       }
 
@@ -1170,7 +1198,7 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
         m_outgoingPackets.append(make_shared<EntityMessageResponsePacket>(makeLeft("Unknown entity"), entityMessagePacket->uuid));
 
       } else if (!entity->isMaster()) {
-        Logger::error("Server has sent a scripted entity response for a slave entity");
+        Logger::error("WorldClient: Server has sent a scripted entity response for a slave entity");
         m_outgoingPackets.append(make_shared<EntityMessageResponsePacket>(makeLeft("Entity delivery error"), entityMessagePacket->uuid));
 
       } else {
@@ -1198,12 +1226,12 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
           else
             response->fail(entityMessageResponsePacket->response.left());
         } else {
-          Logger::warn("Invalid EntityMessageResponse received");
+          Logger::warn("WorldClient: Invalid EntityMessageResponse received");
         }
       }
 
     } else if (auto updateWorldProperties = as<UpdateWorldPropertiesPacket>(packet)) {
-      // Kae: Properties set to null (nil from Lua) should be erased instead of lingering around
+      // Kae: Properties set to null (nil from Lua) should be erased instead of lingering around.
       for (auto& pair : updateWorldProperties->updatedProperties) {
         if (pair.second.isNull())
           m_worldProperties.erase(pair.first);
@@ -1241,7 +1269,7 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
         else
           response->fail("no interaction result");
       } else {
-        Logger::warn("Invalid EntityInteractResult received");
+        Logger::warn("[xSB] WorldClient: Invalid EntityInteractResult received");
       }
 
     } else if (auto setPlayerStart = as<SetPlayerStartPacket>(packet)) {
@@ -1257,17 +1285,25 @@ void WorldClient::handleIncomingPackets(List<PacketPtr> const& packets) {
       }
 
     } else if (auto worldLayoutUpdate = as<WorldLayoutUpdatePacket>(packet)) {
-      m_worldTemplate->setWorldLayout(make_shared<WorldLayout>(worldLayoutUpdate->layoutData));
+      try {
+        m_worldTemplate->setWorldLayout(make_shared<WorldLayout>(worldLayoutUpdate->layoutData));
+      } catch (std::exception const& e) {
+        Logger::error("[xSB] WorldClient: Caught exception while trying to read world layout data from world layout update packet: {}\n  Data: {}", outputException(e, true), worldLayoutUpdate->layoutData.repr(2));
+      }
 
     } else if (auto worldParametersUpdate = as<WorldParametersUpdatePacket>(packet)) {
-      m_worldTemplate->setWorldParameters(netLoadVisitableWorldParameters(worldParametersUpdate->parametersData));
+      try {
+        m_worldTemplate->setWorldParameters(netLoadVisitableWorldParameters(worldParametersUpdate->parametersData));
+      } catch (std::exception const& e) {
+        Logger::error("[xSB] WorldClient: Caught exception while trying to read world parameter data from world parameter update packet: {}", outputException(e, true));
+      }
 
     } else if (auto pongPacket = as<PongPacket>(packet)) {
       if (m_pingTime)
         m_latency = Time::monotonicMilliseconds() - m_pingTime.take();
 
     } else {
-      Logger::error("Improper packet type {} received by client", (int)packet->type());
+      Logger::error("WorldClient: Improper packet type {} received by client", (int)packet->type());
     }
   }
 }
@@ -2261,14 +2297,20 @@ bool WorldClient::readNetTile(Vec2I const& pos, NetTile const& netTile, bool upd
   tile->dungeonId = netTile.dungeonId;
 
   auto materialDatabase = Root::singleton().materialDatabase();
-  tile->backgroundLightTransparent = materialDatabase->backgroundLightTransparent(tile->background);
-  tile->foregroundLightTransparent =
-      materialDatabase->foregroundLightTransparent(tile->foreground) &&
-      // FezzedOne: Fixed wire-locked doors and certain other things visually letting light through when they shouldn't.
-      (isRealMaterial(tile->foreground) ||
-          (tile->collision != CollisionKind::Dynamic &&
-              tile->collision != CollisionKind::Slippery &&
-              tile->collision != CollisionKind::Block));
+  try {
+    tile->backgroundLightTransparent = materialDatabase->backgroundLightTransparent(tile->background);
+    tile->foregroundLightTransparent =
+        materialDatabase->foregroundLightTransparent(tile->foreground) &&
+        // FezzedOne: Fixed wire-locked doors and certain other things visually letting light through when they shouldn't.
+        (isRealMaterial(tile->foreground) ||
+            (tile->collision != CollisionKind::Dynamic &&
+                tile->collision != CollisionKind::Slippery &&
+                tile->collision != CollisionKind::Block));
+  } catch (std::exception const& e) {
+    // FezzedOne: To prevent error spam, suppress this exception and disable transparency.
+    tile->backgroundLightTransparent = false;
+    tile->foregroundLightTransparent = false;
+  }
 
   if (updateCollision)
     dirtyCollision(RectI::withSize(pos, {1, 1}));

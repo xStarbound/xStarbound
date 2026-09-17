@@ -691,9 +691,19 @@ void WorldGenerator::destructEntity(WorldStorage*, EntityPtr const& entity) {
     return;
     // throw StarException("Cannot destruct slave entity in WorldStorage, something has gone wrong!");
   }
-  if (auto tileEntity = as<TileEntity>(entity))
-    m_worldServer->updateTileEntityTiles(tileEntity, true, false);
-  entity->uninit();
+  try {
+    if (auto tileEntity = as<TileEntity>(entity))
+      m_worldServer->updateTileEntityTiles(tileEntity, true, false);
+  } catch (std::exception const& e) {
+    auto entityId = entity->entityId();
+    Logger::warn("[xServer] WorldStorage: Exception occurred while unloading tile entity {}, ignoring: {}", entityId, outputException(e, true));
+  }
+  try {
+    entity->uninit();
+  } catch (std::exception const& e) {
+    auto entityId = entity->entityId();
+    Logger::warn("[xServer] WorldStorage: Exception occurred during uninit for entity {} upon unloading, ignoring: {}", entityId, outputException(e, true));
+  }
 }
 
 bool WorldGenerator::entityKeepAlive(WorldStorage*, EntityPtr const& entity) const {

@@ -228,7 +228,7 @@ List<PacketPtr> TcpPacketSocket::receivePackets() {
       m_inputBuffer = ds.readBytes(ds.size() - ds.pos());
     }
   } catch (IOException const& e) {
-    Logger::warn("I/O error in TcpPacketSocket::readPackets, closing: {}", outputException(e, false));
+    Logger::warn("I/O error (encountered invalid packet) in TcpPacketSocket::readPackets, closing: {}", outputException(e, false));
     m_inputBuffer.clear();
     m_socket->shutdown();
   }
@@ -376,7 +376,7 @@ List<PacketPtr> P2PPacketSocket::receivePackets() {
       } while (!packetStream.atEnd());
     }
   } catch (IOException const& e) {
-    Logger::warn("P2P: I/O error in P2PPacketSocket::readPackets, closing: {}", outputException(e, false));
+    Logger::warn("P2P: I/O error (encountered invalid packet) in P2PPacketSocket::readPackets, closing: {}", outputException(e, false));
     m_socket.reset();
   }
   return packets;

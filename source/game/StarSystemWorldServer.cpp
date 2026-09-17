@@ -285,12 +285,16 @@ void SystemWorldServer::queueUpdatePackets() {
   }
 }
 
-void SystemWorldServer::handleIncomingPacket(ConnectionId, PacketPtr packet) {
+void SystemWorldServer::handleIncomingPacket(ConnectionId cID, PacketPtr packet) {
   if (auto objectSpawn = as<SystemObjectSpawnPacket>(packet)) {
-    RandomSource rand = RandomSource();
-    Vec2F position = objectSpawn->position.value(randomObjectSpawnPosition(rand));
-    auto object = makeObject<SystemObject>(systemObjectConfig(objectSpawn->typeName, objectSpawn->uuid), objectSpawn->uuid, position, time(), objectSpawn->parameters);
-    addObject(object, objectSpawn->position.isValid());
+    try {
+      RandomSource rand = RandomSource();
+      Vec2F position = objectSpawn->position.value(randomObjectSpawnPosition(rand));
+      auto object = makeObject<SystemObject>(systemObjectConfig(objectSpawn->typeName, objectSpawn->uuid), objectSpawn->uuid, position, time(), objectSpawn->parameters);
+      addObject(object, objectSpawn->position.isValid());
+    } catch (std::exception const& e) {
+      Logger::warn("[xServer] SystemWorldServer: Exception caught while handling system object spawn packet from cID {}, ignoring new object: {}", cID, outputException(e, true));
+    }
   }
 }
 

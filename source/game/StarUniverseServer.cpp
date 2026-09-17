@@ -1827,7 +1827,7 @@ void UniverseServer::packetsReceived(UniverseConnectionServer*, ConnectionId cli
     clientsLocker.unlock();
 
     for (auto& packet : packets) {
-      auto packetType = packet->type();
+      // auto packetType = packet->type();
 
       if (auto warpAction = as<PlayerWarpPacket>(packet)) {
         auto const& action = warpAction->action;
@@ -1861,7 +1861,12 @@ void UniverseServer::packetsReceived(UniverseConnectionServer*, ConnectionId cli
         m_pendingChat[clientId].append({std::move(chatSend->text), chatSend->sendMode, chatSend->data});
 
       } else if (auto clientContextUpdatePacket = as<ClientContextUpdatePacket>(packet)) {
-        clientContext->readUpdate(std::move(clientContextUpdatePacket->updateData));
+        try {
+          clientContext->readUpdate(std::move(clientContextUpdatePacket->updateData));
+        } catch (std::exception const& e) {
+          Logger::warn("[xServer] Caught exception while handling client context update packet from cID {}, kicked client: {}", clientId, outputException(e, true));
+          disconnectClient(clientId, "A packet from your client has caused a server error");
+        }
 
       } else if (auto clientDisconnectPacket = as<ClientDisconnectRequestPacket>(packet)) {
         disconnectClient(clientId, String());
@@ -1884,14 +1889,14 @@ void UniverseServer::packetsReceived(UniverseConnectionServer*, ConnectionId cli
 
           WarpAction warpActionToCheck;
 
-          if (entityMessage->args.size() < 1 || !entityMessage->args.get(0).canConvert(Json::Type::String)) {
+          if (entityMessage->args.size() < 1 || !entityMessage->args.get(0).isType(Json::Type::String)) {
             Logger::warn("[xServer] UniverseServer: Blocked warp entity message with invalid arguments from client {} (UUID {}, name '{}')",
                 clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName());
             blocked = true;
           } else {
             try {
               warpActionToCheck = parseWarpAction(entityMessage->args.get(0).toString());
-            } catch (StarException const&) {
+            } catch (std::exception const&) {
               Logger::warn("[xServer] UniverseServer: Blocked warp entity message with unparseable warp action from client {} (UUID {}, name '{}')",
                   clientId, clientContext->playerUuid().hex(), clientContext->descriptiveName());
               blocked = true;

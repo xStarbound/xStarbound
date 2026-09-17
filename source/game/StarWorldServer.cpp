@@ -452,7 +452,7 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
       if (clientHasBuildPermission(clientId)) {
         if (!Root::singleton().liquidsDatabase()->isValidLiquidId(clpacket->liquidId)) {
           // FezzedOne: Not strictly necessary as an invalid liquid ID is harmless anyway, but better to log it.
-          Logger::warn("WorldServer: Ignored liquid collection packet from cID {} with invalid liquid ID {}", clientInfo->clientId, clpacket->liquidId);
+          Logger::warn("[xServer] WorldServer: Ignored liquid collection packet from cID {} with invalid liquid ID {}", clientInfo->clientId, clpacket->liquidId);
         } else {
           if (auto item = collectLiquid(clpacket->tilePositions, clpacket->liquidId))
             clientInfo->outgoingPackets.append(make_shared<GiveItemPacket>(item));
@@ -472,7 +472,9 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
         if (entityType == EntityType::ItemDrop || clientHasBuildPermission(clientId))
           addEntity(std::move(entity));
       } catch (std::exception const& e) {
-        Logger::error("[xSB] Exception caught while handling entity spawning packet from cID {}, ignoring: {}", clientInfo->clientId, outputException(e, true));
+        Logger::error("[xServer] WorldServer: Exception caught while handling entity spawning packet from cID {}, ignoring: {}", clientInfo->clientId, outputException(e, true));
+        if (entity && entity->inWorld())
+          removeEntity(entity->entityId(), false);
       }
 
     } else if (auto rdpacket = as<RequestDropPacket>(packet)) {
@@ -595,6 +597,8 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
             entity->enableInterpolation(clientInfo->interpolationTracker.extrapolationHint());
         } catch (std::exception const& e) {
           Logger::error("WorldServer: Exception caught while handling entity creation packet from cID {}, ignoring: {}", clientInfo->clientId, outputException(e, true));
+          if (entity && entity->inWorld())
+            removeEntity(entity->entityId(), false);
         }
       }
 
@@ -609,8 +613,9 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
               entity->readNetState(entityUpdateSet->deltas.value(entityId), interpolationLeadTime);
           }
         } catch (std::exception const& e) {
+          // FezzedOne: Note: This allows, for example, players with mismatched inventory mods or that have swapped to nonexistent species (in server assets) to be present on the server, but invisible to other players.
           badEntities.append(entityId);
-          Logger::error("WorldServer: Exception caught while handling client entity update packet from cID {} for entity {}, removing entity: {}", clientInfo->clientId, entity->entityId(), outputException(e, true));
+          Logger::error("[xServer] WorldServer: Exception caught while handling client entity update packet from cID {} for entity {}, removing entity: {}", clientInfo->clientId, entity->entityId(), outputException(e, true));
         }
       });
       for (EntityId const& entityId : badEntities)
@@ -620,14 +625,19 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
     } else if (auto entityDestroy = as<EntityDestroyPacket>(packet)) {
       if (connectionForEntity(entityDestroy->entityId) == clientId || clientHasBuildPermission(clientId, ENTITY_DESTROY)) {
         if (auto entity = m_entityMap->entity(entityDestroy->entityId)) {
-          entity->readNetState(entityDestroy->finalNetState, clientInfo->interpolationTracker.interpolationLeadSteps() * GlobalTimestep);
-          // Before destroying the entity, we should make sure that the entity is
-          // using the absolute latest data, so we disable interpolation.
-          entity->disableInterpolation();
-          removeEntity(entityDestroy->entityId, entityDestroy->death);
+          try {
+            entity->readNetState(entityDestroy->finalNetState, clientInfo->interpolationTracker.interpolationLeadSteps() * GlobalTimestep);
+            // Before destroying the entity, we should make sure that the entity is
+            // using the absolute latest data, so we disable interpolation.
+            entity->disableInterpolation();
+            removeEntity(entityDestroy->entityId, entityDestroy->death);
+          } catch (std::exception const& e) {
+            Logger::warn("[xServer] WorldServer: Exception caught while reading entity net state before destroying entity {}, skipping net state check: {}", entityDestroy->entityId, outputException(e, true));
+            removeEntity(entityDestroy->entityId, false);
+          }
         }
       } else {
-        Logger::warn("[xSB] WorldServer: Blocked entity destruction packet from cID {} targeting entity {}, as client does not own the entity or have permission", clientInfo->clientId, entityDestroy->entityId);
+        Logger::warn("[xServer] WorldServer: Blocked entity destruction packet from cID {} targeting entity {}, as client does not own the entity or have permission", clientInfo->clientId, entityDestroy->entityId);
       }
 
     } else if (auto disconnectWires = as<DisconnectAllWiresPacket>(packet)) {
@@ -663,6 +673,104 @@ void WorldServer::handleIncomingPackets(ConnectionId clientId, List<PacketPtr> c
           m_worldStorage->findUniqueEntity(findUniqueEntity->uniqueEntityId)));
 
     } else if (auto entityMessagePacket = as<EntityMessagePacket>(packet)) {
+      // @Lonaasan: Entity message verification to protect non-xStarbound clients on the server.
+      {
+        auto rejectMessage = [&](String const& reason) {
+          Logger::warn("[xServer] WorldServer: rejecting EntityMessage '{}' from client {}: {}",
+              entityMessagePacket->message, clientId, reason);
+          clientInfo->outgoingPackets.append(make_shared<EntityMessageResponsePacket>(
+              makeLeft(reason), entityMessagePacket->uuid));
+        };
+
+        auto assetPathExists = [](String const& path) -> bool {
+          if (path.empty())
+            return false;
+          try {
+            auto assets = Root::singleton().assets();
+            String checkPath = AssetPath::split(path).basePath;
+            return !checkPath.empty() && assets->assetExists(checkPath);
+          } catch (std::exception const&) {
+            return false;
+          }
+        };
+
+        bool messageRejected = false;
+
+        if (entityMessagePacket->message == "playCinematic" && !entityMessagePacket->args.empty()) {
+          Json const& cinematicArg = entityMessagePacket->args.get(0);
+          bool valid = false;
+          if (cinematicArg.isType(Json::Type::Object)) {
+            // Inline cinematic definition - accept as-is.
+            valid = true;
+          } else if (cinematicArg.isType(Json::Type::String)) {
+            valid = assetPathExists(cinematicArg.toString());
+            if (!valid)
+              rejectMessage(strf("invalid cinematic asset path '{}'", cinematicArg.toString()));
+          } else if (!cinematicArg.isNull()) {
+            rejectMessage(strf("non-string/non-object cinematic argument of type {}", (int)cinematicArg.type()));
+          }
+          if (!valid)
+            messageRejected = true;
+
+        } else if (entityMessagePacket->message == "playAltMusic" && !entityMessagePacket->args.empty()) {
+          Json const& tracksArg = entityMessagePacket->args.get(0);
+          bool valid = true;
+          if (tracksArg.canConvert(Json::Type::Array)) {
+            for (auto const& trackJson : tracksArg.toArray()) {
+              if (!trackJson.isType(Json::Type::String) || !assetPathExists(trackJson.toString())) {
+                valid = false;
+                rejectMessage(strf("invalid music asset path '{}'", trackJson.toString()));
+                break;
+              }
+            }
+          } else if (tracksArg.isType(Json::Type::String)) {
+            if (!assetPathExists(tracksArg.toString())) {
+              valid = false;
+              rejectMessage(strf("invalid music asset path '{}'", tracksArg.toString()));
+            }
+          } else {
+            valid = false;
+            rejectMessage(strf("invalid playAltMusic argument of type {}", (int)tracksArg.type()));
+          }
+          if (!valid)
+            messageRejected = true;
+
+        } else if (entityMessagePacket->message == "warp" && !entityMessagePacket->args.empty()) {
+          Json const& warpArg = entityMessagePacket->args.get(0);
+          bool valid = false;
+          if (warpArg.isType(Json::Type::String)) {
+            try {
+              // parseWarpAction throws on malformed input; we just check it parses.
+              (void)parseWarpAction(warpArg.toString());
+              valid = true;
+            } catch (std::exception const& e) {
+              rejectMessage(strf("invalid warp action '{}': {}", warpArg.toString(), e.what()));
+            }
+          } else {
+            rejectMessage(strf("non-string warp argument of type {}", (int)warpArg.type()));
+          }
+          if (!valid)
+            messageRejected = true;
+
+        } else if (entityMessagePacket->message == "queueRadioMessage" && !entityMessagePacket->args.empty()) {
+          Json const& configArg = entityMessagePacket->args.get(0);
+          bool valid = false;
+          try {
+            // createRadioMessage throws RadioMessageDatabaseException on invalid input
+            // (unknown messageId, missing required fields, etc.).
+            (void)Root::singleton().radioMessageDatabase()->createRadioMessage(configArg);
+            valid = true;
+          } catch (std::exception const& e) {
+            rejectMessage(strf("invalid radio message: {}", e.what()));
+          }
+          if (!valid)
+            messageRejected = true;
+        }
+
+        if (messageRejected)
+          continue;
+      }
+
       EntityPtr entity;
       bool isWorldMessage = false;
       if (entityMessagePacket->entityId.is<EntityId>()) {
@@ -1877,7 +1985,7 @@ TileModificationList WorldServer::doApplyTileModifications(TileModificationList 
         continue;
 
       if (!materialDatabase->isValidMaterialId(placeMaterial->material)) {
-        Logger::warn("[xSB] Ignored attempt to place nonexistent material with ID {} at [{}, {}]!", placeMaterial->material, pos[0], pos[1]);
+        Logger::warn("[xServer] WorldServer: Ignored attempt to place nonexistent material with ID {} at [{}, {}]!", placeMaterial->material, pos[0], pos[1]);
         continue;
       }
 
@@ -1936,7 +2044,7 @@ TileModificationList WorldServer::doApplyTileModifications(TileModificationList 
         continue;
 
       if (!materialDatabase->isValidModId(placeMod->mod)) {
-        Logger::warn("[xSB] Ignored attempt to place nonexistent matmod with ID {} at [{}, {}]!", placeMaterial->material, pos[0], pos[1]);
+        Logger::warn("[xServer] WorldServer: Ignored attempt to place nonexistent matmod with ID {} at [{}, {}]!", placeMaterial->material, pos[0], pos[1]);
         continue;
       }
 
@@ -2087,10 +2195,10 @@ void WorldServer::updateTileEntityTiles(TileEntityPtr const& entity, bool removi
           updatedTile = true;
         }
         // From OpenStarbound/Kae: Fixed collision bugs caused by conflicts between object collision and tile collision kinds.
-        bool hadRoot = tile->rootSource.isValid();
+        // bool hadRoot = tile->rootSource.isValid();
         if (isRealMaterial(materialSpace.material))
           tile->rootSource = entity->tilePosition();
-        auto& space = passedSpaces.emplaceAppend(materialSpace);
+        /* auto& space = */ passedSpaces.emplaceAppend(materialSpace);
         updatedTile |= (updatedCollision |= tile->updateObjectCollision(materialDatabase->materialCollisionKind(materialSpace.material)));
       }
       if (updatedCollision) {
@@ -2202,14 +2310,14 @@ void WorldServer::modifyLiquid(Vec2I const& pos, LiquidId liquid, float quantity
   if (ServerTile* tile = m_tileArray->modifyTile(pos)) {
     auto materialDatabase = Root::singleton().materialDatabase();
     auto liquidDatabase = Root::singleton().liquidsDatabase();
+    if (!liquidDatabase->isValidLiquidId(liquid)) {
+      Logger::warn("[xServer] WorldServer: Ignored attempt to place nonexistent liquid with ID {} at [{}, {}]!", liquid, pos[0], pos[1]);
+      return;
+    }
+
     if (tile->foreground == EmptyMaterialId || !isSolidColliding(materialDatabase->materialCollisionKind(tile->foreground))) {
       if (additive && liquid == tile->liquid.liquid)
         quantity += tile->liquid.level;
-
-      if (!liquidDatabase->isValidLiquidId(liquid)) {
-        Logger::warn("[xSB] Ignored attempt to place nonexistent liquid with ID {} at [{}, {}]!", liquid, pos[0], pos[1]);
-        return;
-      }
 
       setLiquid(pos, liquid, quantity, tile->liquid.pressure);
       m_liquidEngine->visitLocation(pos);
@@ -2596,11 +2704,21 @@ void WorldServer::removeEntity(EntityId entityId, bool andDie) {
   if (!entity)
     return;
 
-  if (auto tileEntity = as<TileEntity>(entity))
-    updateTileEntityTiles(tileEntity, true);
+  try {
+    if (auto tileEntity = as<TileEntity>(entity))
+      updateTileEntityTiles(tileEntity, true);
+  } catch (std::exception const& e) {
+    Logger::warn("[xSB] WorldServer: Exception caught while updating tiles upon removal of tile entity {}: {}", entityId, outputException(e, true));
+    Logger::warn("[xSB] There may be leftover collision data.");
+  }
 
-  if (andDie)
-    entity->destroy(nullptr);
+  if (andDie) {
+    try {
+      entity->destroy(nullptr);
+    } catch (std::exception const& e) {
+      Logger::warn("[xSB] WorldServer: Exception caught while handling death effects for entity {}, ignoring: {}", entityId, outputException(e, true));
+    }
+  }
 
   for (auto const& pair : m_clientInfo) {
     auto& clientInfo = pair.second;
@@ -2611,7 +2729,11 @@ void WorldServer::removeEntity(EntityId entityId, bool andDie) {
   }
 
   m_entityMap->removeEntity(entityId);
-  entity->uninit();
+  try {
+    entity->uninit();
+  } catch (std::exception const& e) {
+    Logger::warn("[xSB] WorldServer: Exception caught during uninit for removed entity {}, ignoring: {}", entityId, outputException(e, true));
+  }
   // long refCount = entity.use_count() - 1;
   // Logger::info("[xSB] [Debug] {} server-side {} to entity {} remaining after entity removal.",
   //   refCount, refCount == 1 ? "reference" : "references", entityId);
