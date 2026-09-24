@@ -348,7 +348,7 @@ Returns `true` if the player meets all of the prerequisites to start the specifi
 
 ---
 
-#### `QuestId` player.startQuest(`Json` questDescriptor, [`String` serverUuid], [`String` worldId])
+#### `String` player.startQuest(`Json` questDescriptor, [`String` serverUuid], [`String` worldId])
 
 Starts the specified quest, optionally using the specified server UUID and world ID, and returns the quest ID of the started quest.
 
