@@ -348,9 +348,11 @@ Returns `true` if the player meets all of the prerequisites to start the specifi
 
 ---
 
-#### `String` player.startQuest(`Json` questDescriptor, [`String` serverUuid], [`String` worldId])
+#### `Maybe<String>` player.startQuest(`Json` questDescriptor, [`String` serverUuid], [`String` worldId])
 
-Starts the specified quest, optionally using the specified server UUID and world ID, and returns the quest ID of the started quest.
+Starts the specified quest, optionally using the specified server UUID and world ID, and returns the quest ID of the started quest. If any specified quest template does not exist in the assets or no quest template is specified, this binding returns `nil` and does not start any quest.
+
+> **Note:** On retail Starbound and OpenStarbound, **this callback will cause a client crash upon accepting or starting the quest in any situation where it would return `nil` on xStarbound!** For cross-compatibility, assume any provided config that ever generates a `nil` return on xStarbound is off-limits! `player.canStartQuest` above does run these checks on retail and OpenStarbound, so it's a good idea to always check and gate any `player.startQuest` invocations behind it.
 
 ---
 
