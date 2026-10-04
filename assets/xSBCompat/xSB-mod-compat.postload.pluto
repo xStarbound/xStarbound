@@ -1089,12 +1089,20 @@ xpcall(|| -> do
             end
             input.mousePosition = interface.cursorPosition
         end
-        IISM_init()
-        IISM_xSB_Initialised = true
+        local status, errorMsg = pcall(IISM_init)
+        if not status then
+            sb.logError("[IISM::xSBCompat] Error occurred on 'init': %s", errorMsg)
+            IISM_xSB_Initialised = false
+        else
+            IISM_xSB_Initialised = true
+        end
     end
 
     function uninit()
-        IISM_uninit()
+        local status, errorMsg = pcall(IISM_uninit)
+        if not status then
+            sb.logError("[IISM::xSBCompat] Error occurred on 'uninit': %s", errorMsg)
+        end
         IISM_xSB_Initialised = false
     end
 
@@ -1109,7 +1117,11 @@ xpcall(|| -> do
                 return
             end
         end
-        IISM_update(dt)
+        local status, errorMsg = pcall(IISM_update, dt)
+        if not status then
+            sb.logError("[IISM::xSBCompat] Error occurred on 'update', reinitialising: %s", errorMsg)
+            uninit(); init()
+        end
     end
     ]==]
 
@@ -1246,16 +1258,11 @@ xpcall(|| -> do
                 __newindex = function(_, _, _) end,
                 __index = function(_, key)
                     local callbackKey = key
-                    if world.mainPlayer() ~= entity.id() then
-                        -- Needed to make sure local animator drawables are rendered correctly when controlling multiple players on xClient.
-                        return function(...) return nil end
-                    else
-                        return function(...)
-                            local result = world
-                                .sendEntityMessage(world.mainPlayer(), "LonasaanPersona::LocalAnimator::callBinding", callbackKey, jsonPack(...))
-                                :result()
-                            if result then return jsonUnpack(result) end
-                        end
+                    return function(...)
+                        local result = world
+                            .sendEntityMessage(world.mainPlayer(), "LonasaanPersona::LocalAnimator::callBinding", callbackKey, jsonPack(...))
+                            :result()
+                        if result then return jsonUnpack(result) end
                     end
                 end,
             }
@@ -1300,6 +1307,24 @@ xpcall(|| -> do
                             return input["raw_" .. name](...)
                         else
                             return name == "getTag" ? 0 : nil
+                        end
+                    end
+                end
+            end
+
+            if localAnimator then
+                -- FezzedOne: Ensures `localAnimator` calls are passed only to the main player on xClient.
+                for bindingName, binding in pairs(localAnimator) do
+                    local name = bindingName
+                    local bindingToUse = binding
+                    if not localAnimator["raw_" .. name] then
+                        localAnimator["raw_" .. name] = bindingToUse
+                        localAnimator[name] = function(...)
+                            if world.mainPlayer() == entity.id() then
+                                return localAnimator["raw_" .. name](...)
+                            else
+                                return nil
+                            end
                         end
                     end
                 end
