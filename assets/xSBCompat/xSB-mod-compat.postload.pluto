@@ -1082,7 +1082,7 @@ xpcall(|| -> do
     local IISM_update = update or function(...) end
     local IISM_uninit = uninit or function() end
 
-    function init(...)
+    function init()
         if xsb then
             if (world and world.primaryPlayerUuid() ~= player.uniqueId()) or not world then
                 return
@@ -1099,6 +1099,7 @@ xpcall(|| -> do
     end
 
     function uninit()
+        if not IISM_xSB_Initialised then return end
         local status, errorMsg = pcall(IISM_uninit)
         if not status then
             sb.logError("[IISM::xSBCompat] Error occurred on 'uninit': %s", errorMsg)
@@ -1111,12 +1112,10 @@ xpcall(|| -> do
             init()
         else
             if xsb and ((world and world.primaryPlayerUuid() ~= player.uniqueId()) or not world) then
-                if IISM_xSB_Initialised then
-                    uninit()
-                end
-                return
+                return uninit()
             end
         end
+        if not IISM_xSB_Initialised then return end
         local status, errorMsg = pcall(IISM_update, dt)
         if not status then
             sb.logError("[IISM::xSBCompat] Error occurred on 'update', reinitialising: %s", errorMsg)
