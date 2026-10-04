@@ -308,7 +308,7 @@ Sets the selected widget of a `ListWidget`.
 
 #### `void` widget.clearListSelected(`String` widgetName)
 
-> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+> **Available only on xStarbound v4.5.5+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
 
 Clears the selected item in a `ListWidget`, if any.
 
@@ -485,7 +485,7 @@ Use `font` escape codes to specify fonts. See `$doc/directives.md` for informati
 
 #### `Maybe<Vec2I>` widget.getScrollOffset(`String` widgetName)
 
-> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+> **Available only on xStarbound v4.5.5+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
 
 Gets the current scroll offset of a `ScrollArea` widget. Returns `nil` if the widget is not a `ScrollArea`.
 
@@ -493,7 +493,7 @@ Gets the current scroll offset of a `ScrollArea` widget. Returns `nil` if the wi
 
 #### `void` widget.setScrollOffset(`String` widgetName, `Vec2I` offset)
 
-> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+> **Available only on xStarbound v4.5.5+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
 
 Sets the current scroll offset of a `ScrollArea` widget.
 
@@ -501,6 +501,6 @@ Sets the current scroll offset of a `ScrollArea` widget.
 
 #### `Maybe<Vec2I>` widget.getMaxScrollPosition(`String` widgetName)
 
-> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+> **Available only on xStarbound v4.5.5+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
 
 Gets the maximum scroll position of a `ScrollArea` widget. This is the maximum offset that can be scrolled to. Returns `nil` if the widget is not a `ScrollArea`.

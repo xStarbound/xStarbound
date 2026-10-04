@@ -143,23 +143,42 @@ Returns the interface scale. Identical to `interface.scale`.
 
 #### `String` pane.anchor()
 
-> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+> **Available only on xStarbound v4.5.5+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
 
-Returns the pane's current anchor as a string.
+Returns the pane's current anchor as a string. An anchor is one of the following strings:
+
+- `"none"` (no anchor)
+- `"bottomLeft"`
+- `"bottomRight"`
+- `"topLeft"`
+- `"topRight"`
+- `"centerBottom"`
+- `"centerTop"`
+- `"centerLeft"`
+- `"centerRight"`
+- `"center"`
+
+A visual representation of the possible pane anchors (other than `"none"`, obviously):
+
+|            | Left         |     Centre     |         Right |
+| ---------- | :----------- | :------------: | ------------: |
+| **Top**    | `topLeft`    |  `centerTop`   |    `topRight` |
+| **Centre** | `centerLeft` |    `center`    | `centerRight` |
+| **Bottom** | `bottomLeft` | `centerBottom` | `bottomRight` |
 
 ---
 
 #### `void` pane.setAnchor(`String` anchor)
 
-> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+> **Available only on xStarbound v4.5.5+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
 
-Sets the pane's anchor to the specified value.
+Sets the pane's anchor to the specified value. See `pane.anchor` above for anchor names, which are case-sensitive. Any invalid name throws an error.
 
 ---
 
 #### `Vec2I` pane.anchorOffset()
 
-> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+> **Available only on xStarbound v4.5.5+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
 
 Returns the pane's current anchor offset.
 
@@ -167,7 +186,7 @@ Returns the pane's current anchor offset.
 
 #### `void` pane.setAnchorOffset(`Vec2I` offset)
 
-> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+> **Available only on xStarbound v4.5.5+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
 
 Sets the pane's anchor offset to the specified value.
 
@@ -175,7 +194,7 @@ Sets the pane's anchor offset to the specified value.
 
 #### `Vec2I` pane.screenPosition()
 
-> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+> **Available only on xStarbound v4.5.5+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
 
 Returns the pane's current position on the screen, taking into account its anchor and offset.
 
@@ -183,6 +202,6 @@ Returns the pane's current position on the screen, taking into account its ancho
 
 #### `void` pane.setScreenPosition(`Vec2I` position)
 
-> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+> **Available only on xStarbound v4.5.5+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
 
 Moves the pane to the specified screen position, automatically calculating the appropriate position, anchor, and offset values.
