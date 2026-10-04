@@ -89,7 +89,9 @@ Returns the arbitrary data value set for the widget.
 
 #### `void` widget.setData(`String` widgetName, `Json` data)
 
-## Sets arbitrary data for the widget.
+Sets arbitrary data for the widget.
+
+---
 
 #### `String` widget.getChildAt(`Vec2I` screenPosition)
 
