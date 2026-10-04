@@ -27,8 +27,8 @@ namespace Text {
             return false;
           if (commandsFunc) {
             StringView commands = includeCommandSides
-              ? str.substr(escape, end - escape + 1)
-              : str.substr(escape + 1, end - escape - 1);
+                                      ? str.substr(escape, end - escape + 1)
+                                      : str.substr(escape + 1, end - escape - 1);
             if (!commands.empty() && !commandsFunc(commands))
               return false;
           }
@@ -44,7 +44,6 @@ namespace Text {
     }
   }
 
-  // The below two functions aren't used anymore, not bothering with StringView for them
   String preprocessEscapeCodes(String const& s) {
     bool escape = false;
     std::string result = s.utf8();
@@ -84,6 +83,6 @@ namespace Text {
       return "";
     return "^" + result.join(",") + ";";
   }
-}
+} // namespace Text
 
-}
+} // namespace Star

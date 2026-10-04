@@ -600,8 +600,9 @@ List<Drawable> ObjectDatabase::cursorHintDrawables(World const* world, String co
   if (auto placementImage = parameters.optString("placementImage")) {
     if (direction == Direction::Left)
       *placementImage += "?flipx";
+    // @KrashV: Fix for exception getting thrown for a missing `"placementImagePosition"` parameter. Now defaults to `[0, 0]` in such a case.
     drawables = {Drawable::makeImage(AssetPath::relativeTo(config->path, *placementImage),
-        1.0 / TilePixels, false, Vec2F(position) + jsonToVec2F(parameters.get("placementImagePosition")) / TilePixels)};
+        1.0 / TilePixels, false, Vec2F(position) + jsonToVec2F(parameters.get("placementImagePosition", jsonFromVec2F(Vec2F(0.0f, 0.0f)))) / TilePixels)};
   } else {
     size_t orientationIndex = config->findValidOrientation(world, position, direction);
     if (orientationIndex == NPos) {

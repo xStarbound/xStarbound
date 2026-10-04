@@ -13,15 +13,15 @@ Additionally, `interface.bindRegisteredPane` (see `interface.md`) can also retur
 
 > **Available only on xStarbound and OpenStarbound.**
 
-Returns a table of widget callbacks (see `widget.md`). The returned callbacks are "bound" to *this* pane as a widget.
+Returns a table of widget callbacks (see `widget.md`). The returned callbacks are "bound" to _this_ pane as a widget.
 
-> **Warning:** On non-xStarbound clients, do *not* smuggle and use the returned callbacks after the "bound" pane is deregistered or uninitialised! Doing so anyway *will* cause a segfault!
+> **Warning:** On non-xStarbound clients, do _not_ smuggle and use the returned callbacks after the "bound" pane is deregistered or uninitialised! Doing so anyway _will_ cause a segfault!
 
 ---
 
 #### `EntityId` pane.sourceEntity()
 
-Returns the entity ID of the pane's source entity. *Not* available on registered panes bound with `interface.bindRegisteredPane`.
+Returns the entity ID of the pane's source entity. _Not_ available on registered panes bound with `interface.bindRegisteredPane`.
 
 ---
 
@@ -29,7 +29,7 @@ Returns the entity ID of the pane's source entity. *Not* available on registered
 
 > **Available only on xStarbound and OpenStarbound.**
 
-Returns whether the pane is currently displayed. 
+Returns whether the pane is currently displayed.
 
 This callback is only useful when invoked on registered panes bound with `interface.bindRegisteredPane` — undisplayed script panes aren't running their scripts to begin with, but registered panes are always loaded (while the client is in game) even when they're not displayed.
 
@@ -117,7 +117,7 @@ Sets the pane window's size in scaled interface pixels.
 
 #### `void` pane.addWidget(`Json` widgetConfig, [`String` widgetName])
 
-> *Returns `LuaCallbacks` for the newly added widget on OpenStarbound.* 
+> _Returns `LuaCallbacks` for the newly added widget on OpenStarbound._
 
 Creates a new widget with the specified config and adds it to the pane, optionally with the specified name. If no name is specified, a random unique name will be generated.
 
@@ -138,3 +138,51 @@ Removes the specified widget from the pane.
 > **Available only on xStarbound and OpenStarbound. Returns an `int` on OpenStarbound.**
 
 Returns the interface scale. Identical to `interface.scale`.
+
+---
+
+#### `String` pane.anchor()
+
+> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+
+Returns the pane's current anchor as a string.
+
+---
+
+#### `void` pane.setAnchor(`String` anchor)
+
+> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+
+Sets the pane's anchor to the specified value.
+
+---
+
+#### `Vec2I` pane.anchorOffset()
+
+> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+
+Returns the pane's current anchor offset.
+
+---
+
+#### `void` pane.setAnchorOffset(`Vec2I` offset)
+
+> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+
+Sets the pane's anchor offset to the specified value.
+
+---
+
+#### `Vec2I` pane.screenPosition()
+
+> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+
+Returns the pane's current position on the screen, taking into account its anchor and offset.
+
+---
+
+#### `void` pane.setScreenPosition(`Vec2I` position)
+
+> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+
+Moves the pane to the specified screen position, automatically calculating the appropriate position, anchor, and offset values.

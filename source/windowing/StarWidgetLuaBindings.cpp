@@ -13,6 +13,7 @@
 #include "StarListWidget.hpp"
 #include "StarLuaGameConverters.hpp"
 #include "StarProgressWidget.hpp"
+#include "StarScrollArea.hpp"
 #include "StarSliderBar.hpp"
 #include "StarTextBoxWidget.hpp"
 
@@ -468,6 +469,14 @@ LuaCallbacks LuaBindings::makeWidgetCallbacks(Widget* parentWidgetPtr, GuiReader
     }
   });
 
+  // @KrashV: For clearing the selected item in a list widget.
+  callbacks.registerCallback("clearListSelected", [parentWidget](String const& widgetName) {
+    if (parentWidget) {
+      if (auto list = parentWidget->fetchChild<ListWidget>(widgetName))
+        list->clearSelected();
+    }
+  });
+
   callbacks.registerCallback("registerMemberCallback", [parentWidget](String const& widgetName, String const& name, LuaFunction callback) {
     if (parentWidget) {
       if (auto list = parentWidget->fetchChild<ListWidget>(widgetName)) {
@@ -530,34 +539,67 @@ LuaCallbacks LuaBindings::makeWidgetCallbacks(Widget* parentWidgetPtr, GuiReader
   });
 
   callbacks.registerCallback("getHint", [parentWidget](String const& widgetName) -> Maybe<String> {
-    if (auto widget = parentWidget->fetchChild(widgetName)) {
-      if (auto textBox = as<TextBoxWidget>(widget))
-        return textBox->getHint();
+    if (parentWidget) {
+      if (auto widget = parentWidget->fetchChild(widgetName)) {
+        if (auto textBox = as<TextBoxWidget>(widget))
+          return textBox->getHint();
+      }
     }
     return {};
   });
 
   callbacks.registerCallback("setCursorPosition", [parentWidget](String const& widgetName, size_t cursorPosition) {
-    if (auto widget = parentWidget->fetchChild(widgetName)) {
-      if (auto textBox = as<TextBoxWidget>(widget))
-        textBox->setCursorPosition(cursorPosition);
+    if (parentWidget) {
+      if (auto widget = parentWidget->fetchChild(widgetName)) {
+        if (auto textBox = as<TextBoxWidget>(widget))
+          textBox->setCursorPosition(cursorPosition);
+      }
     }
   });
 
   callbacks.registerCallback("getCursorPosition", [parentWidget](String const& widgetName) -> Maybe<size_t> {
-    if (auto widget = parentWidget->fetchChild(widgetName)) {
-      if (auto textBox = as<TextBoxWidget>(widget))
-        return textBox->getCursorPosition();
+    if (parentWidget) {
+      if (auto widget = parentWidget->fetchChild(widgetName)) {
+        if (auto textBox = as<TextBoxWidget>(widget))
+          return textBox->getCursorPosition();
+      }
     }
     return {};
   });
 
   callbacks.registerCallback("setImageStretchSet", [parentWidget](String const& widgetName, Json const& imageSet) {
-    if (auto imageStretch = parentWidget->fetchChild<ImageStretchWidget>(widgetName)) {
-      if (imageSet.isType(Json::Type::Object))
-        imageStretch->setImageStretchSet(imageSet.getString("begin", ""), imageSet.getString("inner", ""), imageSet.getString("end", ""));
+    if (parentWidget) {
+      if (auto imageStretch = parentWidget->fetchChild<ImageStretchWidget>(widgetName)) {
+        if (imageSet.isType(Json::Type::Object))
+          imageStretch->setImageStretchSet(imageSet.getString("begin", ""), imageSet.getString("inner", ""), imageSet.getString("end", ""));
+      }
     }
   });
+
+  // @KrashV: Scroll area bindings. {
+  callbacks.registerCallback("getScrollOffset", [parentWidget](String const& widgetName) -> Maybe<Vec2I> {
+    if (parentWidget) {
+      if (auto scrollArea = parentWidget->fetchChild<ScrollArea>(widgetName))
+        return scrollArea->scrollOffset();
+    }
+    return {};
+  });
+
+  callbacks.registerCallback("setScrollOffset", [parentWidget](String const& widgetName, Vec2I const& offset) {
+    if (parentWidget) {
+      if (auto scrollArea = parentWidget->fetchChild<ScrollArea>(widgetName))
+        scrollArea->scrollAreaBy(offset - scrollArea->scrollOffset());
+    }
+  });
+
+  callbacks.registerCallback("getMaxScrollPosition", [parentWidget](String const& widgetName) -> Maybe<Vec2I> {
+    if (parentWidget) {
+      if (auto scrollArea = parentWidget->fetchChild<ScrollArea>(widgetName))
+        return scrollArea->maxScrollPosition();
+    }
+    return {};
+  });
+  // }
 
   return callbacks;
 }

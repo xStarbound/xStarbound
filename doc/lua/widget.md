@@ -306,6 +306,14 @@ Sets the selected widget of a `ListWidget`.
 
 ---
 
+#### `void` widget.clearListSelected(`String` widgetName)
+
+> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+
+Clears the selected item in a `ListWidget`, if any.
+
+---
+
 #### `void` widget.registerMemberCallback(`String` widgetName, `String` callbackName, `LuaFunction` callback)
 
 Registers a member callback for a `ListWidget`'s list items to use.
@@ -472,3 +480,27 @@ jobject{
 ```
 
 Use `font` escape codes to specify fonts. See `$doc/directives.md` for information on escape codes.
+
+---
+
+#### `Maybe<Vec2I>` widget.getScrollOffset(`String` widgetName)
+
+> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+
+Gets the current scroll offset of a `ScrollArea` widget. Returns `nil` if the widget is not a `ScrollArea`.
+
+---
+
+#### `void` widget.setScrollOffset(`String` widgetName, `Vec2I` offset)
+
+> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+
+Sets the current scroll offset of a `ScrollArea` widget.
+
+---
+
+#### `Maybe<Vec2I>` widget.getMaxScrollPosition(`String` widgetName)
+
+> **Available only on xStarbound v4.5.4.1+, OpenStarbound v0.1.15+ and oSBM v1.0+.**
+
+Gets the maximum scroll position of a `ScrollArea` widget. This is the maximum offset that can be scrolled to. Returns `nil` if the widget is not a `ScrollArea`.

@@ -438,12 +438,110 @@ LuaCallbacks Pane::makePaneCallbacks() {
   });
 
   callbacks.registerCallback("scale", []() -> float {
+    // FezzedOne: No smuggling check needed here because this binding doesn't actually operate on the `Pane` object.
     return GuiContext::singleton().interfaceScale();
   });
 
   callbacks.registerCallback("isDisplayed", [this, thisPane]() -> bool {
     thisPane.checkSmuggle();
     return !m_dismissed;
+  });
+
+  callbacks.registerCallback("anchor", [this, thisPane]() {
+    thisPane.checkSmuggle();
+    return PaneAnchorNames.getRight(anchor());
+  });
+  callbacks.registerCallback("setAnchor", [this, thisPane](String anchorName) {
+    thisPane.checkSmuggle();
+    setAnchor(PaneAnchorNames.getLeft(anchorName));
+  });
+  callbacks.registerCallback("anchorOffset", [this, thisPane]() {
+    thisPane.checkSmuggle();
+    return anchorOffset();
+  });
+  callbacks.registerCallback("setAnchorOffset", [this, thisPane](Vec2I offset) {
+    thisPane.checkSmuggle();
+    setAnchorOffset(offset);
+  });
+  callbacks.registerCallback("getScreenPosition", [this, thisPane]() -> Vec2I {
+    thisPane.checkSmuggle();
+    Vec2I windowSize = Vec2I(m_context->windowInterfaceSize());
+    Vec2I sz = size();
+    Vec2I offset;
+    switch (anchor()) {
+      case PaneAnchor::None:
+      case PaneAnchor::BottomLeft:
+        offset = anchorOffset();
+        break;
+      case PaneAnchor::BottomRight:
+        offset = anchorOffset() + Vec2I{windowSize[0] - sz[0], 0};
+        break;
+      case PaneAnchor::TopLeft:
+        offset = anchorOffset() + Vec2I{0, windowSize[1] - sz[1]};
+        break;
+      case PaneAnchor::TopRight:
+        offset = anchorOffset() + (windowSize - sz);
+        break;
+      case PaneAnchor::CenterTop:
+        offset = anchorOffset() + Vec2I{(windowSize[0] - sz[0]) / 2, windowSize[1] - sz[1]};
+        break;
+      case PaneAnchor::CenterBottom:
+        offset = anchorOffset() + Vec2I{(windowSize[0] - sz[0]) / 2, 0};
+        break;
+      case PaneAnchor::CenterLeft:
+        offset = anchorOffset() + Vec2I{0, (windowSize[1] - sz[1]) / 2};
+        break;
+      case PaneAnchor::CenterRight:
+        offset = anchorOffset() + Vec2I{windowSize[0] - sz[0], (windowSize[1] - sz[1]) / 2};
+        break;
+      case PaneAnchor::Center:
+        offset = anchorOffset() + ((windowSize - sz) / 2);
+        break;
+      default:
+        offset = anchorOffset();
+    }
+    return offset + relativePosition();
+  });
+
+  callbacks.registerCallback("setScreenPosition", [this, thisPane](Vec2I screenPos) {
+    thisPane.checkSmuggle();
+    Vec2I windowSize = Vec2I(m_context->windowInterfaceSize());
+    Vec2I sz = size();
+    Vec2I offset;
+    switch (anchor()) {
+      case PaneAnchor::None:
+      case PaneAnchor::BottomLeft:
+        offset = anchorOffset();
+        break;
+      case PaneAnchor::BottomRight:
+        offset = anchorOffset() + Vec2I{windowSize[0] - sz[0], 0};
+        break;
+      case PaneAnchor::TopLeft:
+        offset = anchorOffset() + Vec2I{0, windowSize[1] - sz[1]};
+        break;
+      case PaneAnchor::TopRight:
+        offset = anchorOffset() + (windowSize - sz);
+        break;
+      case PaneAnchor::CenterTop:
+        offset = anchorOffset() + Vec2I{(windowSize[0] - sz[0]) / 2, windowSize[1] - sz[1]};
+        break;
+      case PaneAnchor::CenterBottom:
+        offset = anchorOffset() + Vec2I{(windowSize[0] - sz[0]) / 2, 0};
+        break;
+      case PaneAnchor::CenterLeft:
+        offset = anchorOffset() + Vec2I{0, (windowSize[1] - sz[1]) / 2};
+        break;
+      case PaneAnchor::CenterRight:
+        offset = anchorOffset() + Vec2I{windowSize[0] - sz[0], (windowSize[1] - sz[1]) / 2};
+        break;
+      case PaneAnchor::Center:
+        offset = anchorOffset() + ((windowSize - sz) / 2);
+        break;
+      default:
+        offset = anchorOffset();
+    }
+
+    setPosition(screenPos - offset);
   });
 
   return callbacks;
