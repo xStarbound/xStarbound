@@ -158,6 +158,9 @@ void ListWidget::setSelected(size_t pos) {
       bgWidget->setImage(m_unselectedBG);
   }
 
+  // FezzedOne: While not a segfault trigger, might as well avoid odd behaviour in Lua scripts.
+  pos = pos < listSize() ? pos : NPos;
+
   if (!m_disabledItems.contains(pos) && m_selectedItem != pos) {
     m_selectedItem = pos;
     if (m_callback)
