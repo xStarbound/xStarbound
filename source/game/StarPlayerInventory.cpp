@@ -296,21 +296,23 @@ ItemPtr PlayerInventory::addToBags(ItemPtr items) {
     }
   }
 
-  if (items && InventorySetting(AllowAnyItemInBags) && !InventorySetting(NoBagPreferences)) {
-    for (auto pair : m_bags) {
-      items = pair.second->stackItems(items);
-      if (!items)
-        break;
-
-      for (size_t i = 0; i < pair.second->size(); ++i) {
-        if (!pair.second->at(i)) {
-          pair.second->setItem(i, take(items));
-          autoAddToCustomBar(BagSlot(pair.first, i));
-          break;
-        }
-      }
-    }
-  }
+  // FezzedOne: A quick change so that you must also enable `"disableBagPreferences"` for items to get *picked up* into any bag.
+  // You can still always manually move items into other bags with `"allowAnyItemInBags"` though.
+  // if (items && InventorySetting(AllowAnyItemInBags) && !InventorySetting(NoBagPreferences)) {
+  //   for (auto pair : m_bags) {
+  //     items = pair.second->stackItems(items);
+  //     if (!items)
+  //       break;
+  //
+  //     for (size_t i = 0; i < pair.second->size(); ++i) {
+  //       if (!pair.second->at(i)) {
+  //         pair.second->setItem(i, take(items));
+  //         autoAddToCustomBar(BagSlot(pair.first, i));
+  //         break;
+  //       }
+  //     }
+  //   }
+  // }
 
   return items;
 }
@@ -346,8 +348,10 @@ uint64_t PlayerInventory::itemsCanFit(ItemPtr const& items) const {
       ++canFit;
   }
 
+  // FezzedOne: A quick change so that you must also enable `"disableBagPreferences"` for items to get *picked up* into any bag.
+  // You can still always manually move items into other bags with `"allowAnyItemInBags"` though.
   auto itemAllowed = [&](ItemPtr const& item, String const& bagType) -> bool {
-    if (InventorySetting(AllowAnyItemInBags))
+    if (InventorySetting(AllowAnyItemInBags) && InventorySetting(NoBagPreferences))
       return true;
     return itemAllowedInBag(item, bagType);
   };
