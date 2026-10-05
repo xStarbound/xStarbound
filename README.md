@@ -165,7 +165,8 @@ The following mods have special functionality that requires or is supported by x
 - [Minimap - Alpha Enhancements](https://steamcommunity.com/sharedfiles/filedetails/?id=3765546722) — requires xStarbound, oSBM or OpenStarbound. A recent, post-February OpenStarbound nightly is required for trees and vines to look a bit nicer on the minimap.
 - [Monster Spawn Multiplier](https://steamcommunity.com/sharedfiles/filedetails/?id=3810305582) — requires xStarbound, oSBM or OpenStarbound.
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — fully supported by xStarbound.
-- [NamjeShipwright](https://github.com/namje0/namje_shipwright) — should be fully supported on xStarbound v4.1.1+. The mod is still in alpha though!
+- [NamjeShipwright](https://github.com/namje0/namje_shipwright) — fully supported on xStarbound v4.1.1+. The mod is still in alpha though!
+- [Natural Reactions](https://steamcommunity.com/sharedfiles/filedetails/?id=3814256603) — requires xStarbound, oSBM or OpenStarbound for asset preprocessing.
 - [Neki](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) ([GitHub](https://github.com/hyperjuni/Neki)) and [Nekibound](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) — head rotation no longer clips Neki ears in xStarbound as of v3.4.4.
 - [NEONPUNK Title Screen [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3359876550) — OpenStarbound title screen replacement mod that should be supported by xStarbound; report any visual issues.
 - [No Falling or Cascading Blocks](https://steamcommunity.com/sharedfiles/filedetails/?id=3795740702) — requires xStarbound, oSBM or OpenStarbound; is server-side. Be careful when exploring the Ruin with this mod installed!
@@ -315,6 +316,10 @@ The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due 
 - [Raptor's Metroid Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3541573028) — certain OpenStarbound scripting functionality required by this mod is not currently present in xStarbound; this may change in the future. Don't expect support from the author though.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — requires a Windows DLL attached to retail Starbound, so it won't work and is likely to log script errors.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — depends on an obsolete DLL mod. Won't do anything.
+
+The following mod depends on a Starbound fork other than OpenStarbound or xStarbound:
+
+- [Forgemaster's Inventory - Main Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3813931790) — depends on a custom OpenStarbound patch/fork cretaed by its author. xStarbound support for scripted inventory replacements based on the author's patch may be added if there is demand.
 
 The following mods are dependent on legacy DLLs and thus at least partially _incompatible_ with xStarbound:
 
