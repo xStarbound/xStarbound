@@ -167,7 +167,7 @@ void ListWidget::setSelected(size_t pos) {
       m_callback(this);
   }
 
-  // FezzedOne: Fixes an out-of-bounds access segfault first reported by Darchon that Lua scripts can potentially trigger.
+  // FezzedOne: Fixes an out-of-bounds access segfault first reported by Sergey that Lua scripts can potentially trigger.
   m_selectedItem = m_selectedItem < listSize() ? m_selectedItem : NPos;
 
   if ((m_selectedItem != NPos) && (m_selectedItem < listSize())) {
