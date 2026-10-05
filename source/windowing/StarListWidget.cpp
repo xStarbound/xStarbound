@@ -1,9 +1,9 @@
 #include "StarListWidget.hpp"
+#include "StarAssets.hpp"
 #include "StarGuiReader.hpp"
+#include "StarImageWidget.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarRandom.hpp"
-#include "StarImageWidget.hpp"
-#include "StarAssets.hpp"
 #include "StarRoot.hpp"
 
 namespace Star {
@@ -38,9 +38,7 @@ bool ListWidget::sendEvent(InputEvent const& event) {
 
   for (size_t i = m_members.size(); i != 0; --i) {
     auto child = m_members[i - 1];
-    if (child->sendEvent(event)
-        || (event.is<MouseButtonDownEvent>() && child->inMember(*context()->mousePosition(event))
-              && event.get<MouseButtonDownEvent>().mouseButton == MouseButton::Left)) {
+    if (child->sendEvent(event) || (event.is<MouseButtonDownEvent>() && child->inMember(*context()->mousePosition(event)) && event.get<MouseButtonDownEvent>().mouseButton == MouseButton::Left)) {
       setSelected(i - 1);
       return true;
     }
@@ -166,7 +164,10 @@ void ListWidget::setSelected(size_t pos) {
       m_callback(this);
   }
 
-  if (m_selectedItem != NPos) {
+  // FezzedOne: Fixes an out-of-bounds access segfault first reported by Darchon that Lua scripts can potentially trigger.
+  m_selectedItem = m_selectedItem < listSize() ? m_selectedItem : NPos;
+
+  if ((m_selectedItem != NPos) && (m_selectedItem < listSize())) {
     if (auto bgWidget = selectedWidget()->fetchChild<ImageWidget>("background"))
       bgWidget->setImage(m_selectedBG);
   }
@@ -259,4 +260,4 @@ size_t ListWidget::listSize() const {
   return numChildren();
 }
 
-}
+} // namespace Star
