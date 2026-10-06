@@ -137,9 +137,9 @@ The following mods have special functionality that requires or is supported by x
 - [Auto DoubleTap Bind for Modded Techs](https://steamcommunity.com/sharedfiles/filedetails/?id=3502260176) — requires xStarbound, oSBM or OpenStarbound.
 - [Back Weapon II](https://steamcommunity.com/sharedfiles/filedetails/?id=3405399202) — fully supported by xStarbound.
 - [Back Weapon II SChinese patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3581572023) — requires xStarbound, oSBM or OpenStarbound for some of the translation patches to work properly.
-- [Camera Look++](https://steamcommunity.com/sharedfiles/filedetails/?id=3754903454) — requires xStarbound, oSBM or a _nightly_ build of OpenStarbound.
+- [Camera Look++](https://steamcommunity.com/sharedfiles/filedetails/?id=3754903454) — requires xStarbound, oSBM or OpenStarbound.
 - [Chaos](https://steamcommunity.com/sharedfiles/filedetails/?id=3590904263) — requires xStarbound, oSBM or OpenStarbound to actually scramble treasure pools. Fun for randomiser playthroughs.
-- [Character Editor](https://steamcommunity.com/sharedfiles/filedetails/?id=3782196111) — requires xStarbound, oSBM or OpenStarbound to actually edit your character; also requires Stardust Core or Stardust Core Lite. xStarbound has its own `/editor`, but this mod adds niceties like presets. xStarbound does _not_ support the NPC editor functionality, as that requires OpenStarbound v0.1.15+'s NPC API bindings and netcode (_and_ this mod installed) on both the client and server. Any attempts to edit an NPC where all these requirements are not satisfied will result in (harmless) server-side script errors getting logged.
+- [Character Editor](https://steamcommunity.com/sharedfiles/filedetails/?id=3782196111) — requires xStarbound, oSBM or OpenStarbound to actually edit your character; also requires Stardust Core or Stardust Core Lite. xStarbound has its own `/editor`, but this mod adds niceties like presets. xStarbound does _not_ support the NPC editor functionality, as that requires OpenStarbound v0.1.15+'s NPC API bindings and netcode (_and_ this mod installed) on both the client and server.
 - [Chroma Colour Utils](https://steamcommunity.com/sharedfiles/filedetails/?id=3632274480) — requires xStarbound, oSBM or OpenStarbound.
 - [Clicky Keyboard UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3476945792) — should be supported by xStarbound; report any issues.
 - [Cumulative Dynamic Lights](https://steamcommunity.com/sharedfiles/filedetails/?id=3444407977) — requires xStarbound, oSBM or OpenStarbound.
@@ -151,9 +151,9 @@ The following mods have special functionality that requires or is supported by x
 - [Dynamic Proximity Chat](https://steamcommunity.com/sharedfiles/filedetails/?id=3450266347) ([GitHub](https://github.com/cptsalt/Dynamic-Proximity-Chat)) — works, but _don't_ expect support from its author. Unless a server requires this specific mod, xDPC (see below) is recommended instead.
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
+- [Equipment Set Bonuses](https://steamcommunity.com/sharedfiles/filedetails/?id=3814652594) — requires xStarbound, oSBM or OpenStarbound for asset preprocessing.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound (with reduced functionality) and is compatible with stock Starbound.
-- [Forgemaster's Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3812995649) — requires xStarbound, oSBM or OpenStarbound. Using xStarbound enhances this mod by removing the server-side requirement if `"inventorySpoofing"` is enabled in your `xclient.config`.
-  - _Note:_ xClient spoofs a vanilla inventory by default, letting you use this mod and other inventory mods on servers _not_ running inventory mods (such as vanilla servers). A patch to `"networkedItemBags"` in `$assets/player.config` may be needed to play on servers running inventory mods (and/or desired to avoid issues with keycards in Frackin' Universe and Elithian Races in single-player) if you have `"inventorySpoofing"` enabled and use other inventory mods like bk3k's Inventory.
+- [Forgemaster's Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3812995649) — requires xStarbound, oSBM or OpenStarbound. Using xStarbound enhances this mod by removing the server-side requirement if `"inventorySpoofing"` is enabled in your `xclient.config`; see below for caveats.
 - [Improved Containers: OpenStarbound Post-Load Mega-Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3430203726) — requires xStarbound, oSBM or OpenStarbound.
 - [Improved Inventory Stack Management](https://steamcommunity.com/sharedfiles/filedetails/?id=3758908230) — requires xStarbound, oSBM or OpenStarbound for its functionality. Install xSBCompat if you want the mod to be properly aware of player swaps on xClient.
 - [Lexi's Automation](https://steamcommunity.com/sharedfiles/filedetails/?id=3673481087&tscn=1783028287) — requires xStarbound, oSBM or a _nightly_ build of OpenStarbound. Don't expect support from this mod's author.
@@ -162,7 +162,7 @@ The following mods have special functionality that requires or is supported by x
 - [LR's Storage Dimension](https://steamcommunity.com/sharedfiles/filedetails/?id=3432253227) — automatic recipe detection is fully supported by xStarbound.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
 - [Minecraft UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3412449426) — should be supported by xStarbound; report any issues.
-- [Minimap - Alpha Enhancements](https://steamcommunity.com/sharedfiles/filedetails/?id=3765546722) — requires xStarbound, oSBM or OpenStarbound. A recent, post-February OpenStarbound nightly is required for trees and vines to look a bit nicer on the minimap.
+- [Minimap - Alpha Enhancements](https://steamcommunity.com/sharedfiles/filedetails/?id=3765546722) — requires xStarbound, oSBM or OpenStarbound. There is one minor OpenStarbound-only feature: Trees and vines on the minimap use appropriate biome colours if you're using OpenStarbound.
 - [Monster Spawn Multiplier](https://steamcommunity.com/sharedfiles/filedetails/?id=3810305582) — requires xStarbound, oSBM or OpenStarbound.
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — fully supported by xStarbound.
 - [NamjeShipwright](https://github.com/namje0/namje_shipwright) — fully supported on xStarbound v4.1.1+. The mod is still in alpha though!
@@ -178,6 +178,7 @@ The following mods have special functionality that requires or is supported by x
 - [Pan Dimensional Vending](https://steamcommunity.com/sharedfiles/filedetails/?id=3464213838&searchtext=) — fully supported by xStarbound.
 - [Phantasy Starbound Title](https://steamcommunity.com/sharedfiles/filedetails/?id=3475986947) — OpenStarbound title screen replacement mod that should be supported by xStarbound; report any visual issues.
 - [Planet Search](https://steamcommunity.com/sharedfiles/filedetails/?id=3269792617) — fully supported by xStarbound.
+- [Quick Select](https://steamcommunity.com/sharedfiles/filedetails/?id=3814429020) ([GitHub](https://github.com/notSagyo/quick-select)) — requires xStarbound, oSBM or OpenStarbound. Consider binding the quick select key to the middle mouse button for Minecraft-like UX.
 - [Quick Stack Gun [OpenStarbound Fix]](https://steamcommunity.com/sharedfiles/filedetails/?id=3501752811) — Despite the name, requires xStarbound, oSBM or OpenStarbound.
 - [Recipe Browser](https://steamcommunity.com/sharedfiles/filedetails/?id=2018183533) — Recipe Browser's universal mod support requires xStarbound, oSBM or OpenStarbound.
 - [RPG Growth Keybind Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3368499316) — this mod fixes a compatibility issue between RPG Growth and xStarbound/OpenStarbound/oSBM.
@@ -199,6 +200,7 @@ The following mods have special functionality that requires or is supported by x
 - [StarTechUltimateUpgrade](https://steamcommunity.com/sharedfiles/filedetails/?id=3781692656) — xStarbound, oSBM or OpenStarbound is required because of the «use other techs with Nanofield» functionality.
 - [Subspace Black Market](https://steamcommunity.com/sharedfiles/filedetails/?id=3764065766) — requires xStarbound, oSBM or OpenStarbound for an item-related `root` call.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xStarbound.
+- [Terrain Effects](https://steamcommunity.com/sharedfiles/filedetails/?id=3814538285) — requires xStarbound, oSBM or OpenStarbound.
 - [The Hungercry Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3594407068) — requires xStarbound, oSBM or OpenStarbound for a `player` callback, despite not being tagged as such.
 - [Time Control Command](https://steamcommunity.com/sharedfiles/filedetails/?id=3256623666) ([GitHub](https://github.com/bongus-jive/TimeControlCommand)) — fully supported by xStarbound.
 - [Toggled Walking](https://steamcommunity.com/sharedfiles/filedetails/?id=3706549533) — requires xStarbound, oSBM or OpenStarbound.
@@ -214,9 +216,8 @@ The following mods have special functionality that requires or is supported by x
 - [xSIP](https://github.com/fezzedone/xSIP) — xSIP's universal mod support requires xStarbound v2.5+, oSBM or OpenStarbound.
 - [xWEdit](https://github.com/fezzedone/xWEdit) — this WEdit fork requires xStarbound for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
 - [Ztarbound S.A.I.L. All-In-One Race Support](https://steamcommunity.com/sharedfiles/filedetails/?id=3506162421) — requires xStarbound, oSBM or OpenStarbound.
-- Mods that change the size or number of bags in the inventory or hotbar — as of xSB v2.4, xStarbound gives these mods full compatibility with vanilla multiplayer and existing characters «out of the box».
 
-The following «[oSB]»- or «[OpenStarbound]»-tagged mods do not actually require OpenStarbound (or xStarbound) for any part of their intended functionality:
+The following «[oSB]»- or «[OpenStarbound]»-tagged mods either do not actually require OpenStarbound (or xStarbound) for any part of their intended functionality, or only «require» OpenStarbound or xStarbound in the sense that they are designed for clients that support extended cosmetic slots, overlays or underlays:
 
 - [Aiko's Additions](https://steamcommunity.com/workshop/filedetails/?id=3603021961) — has no OpenStarbound requirement despite the mod's description.
 - [Arcana NPC Invincibility Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3782021392) — has no OpenStarbound requirement despite the mod's description; the bug it fixes is not even an OpenStarbound bug anyway.
@@ -225,6 +226,8 @@ The following «[oSB]»- or «[OpenStarbound]»-tagged mods do not actually requ
 - [NIGHTMARE Clothin' Pack] — has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support extended cosmetic slots or cosmetic overlays/underlays.
 - [OpenStarbound No Highlights on Scanned Objects and Players](https://steamcommunity.com/sharedfiles/filedetails/?id=3432675895) — has no particular OpenStarbound or xStarbound support, actually.
 - [Tiri's Accessories](https://steamcommunity.com/sharedfiles/filedetails/?id=3619906462) — has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support extended cosmetic slots or cosmetic overlays/underlays.
+
+Additionally, xStarbound gives mods that change the size or number of bags in the inventory, or modify the action bar, full compatibility with existing characters «out of the box». You can also use these mods in multiplayer by enabling `"inventorySpoofing"` in your `xclient.config`, though this does have some caveats: xClient spoofs a vanilla inventory by default, letting you use inventory and action bar mods on servers _not_ running such mods (such as vanilla servers). A patch to `"networkedItemBags"` in `$assets/player.config` may be needed to play on servers running inventory mods (and/or desired to avoid issues with keycards in Frackin' Universe and Elithian Races in single-player) if you have `"inventorySpoofing"` enabled and use inventory-extending mods like bk3k's Inventory.
 
 </details>
 
@@ -242,6 +245,7 @@ The following OpenStarbound mods require xSBCompat to bypass unnecessary OpenSta
 - [All Items are Stackable!](https://steamcommunity.com/sharedfiles/filedetails/?id=3370469697).
 - [All Reward Items Faster & Stackable](https://steamcommunity.com/sharedfiles/filedetails/?id=3714760211).
 - [Automatically Scan Objects!](https://steamcommunity.com/sharedfiles/filedetails/?id=3545869822).
+- [Beta Hotbar!](https://steamcommunity.com/sharedfiles/filedetails/?id=3472065640). Also see below.
 - [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487).
 - [Hunger Fighting Chairs](https://steamcommunity.com/sharedfiles/filedetails/?id=3546473893).
 - [Is this Printable?](https://steamcommunity.com/sharedfiles/filedetails/?id=3507216031)
@@ -251,15 +255,14 @@ The following OpenStarbound mods require xSBCompat to bypass unnecessary OpenSta
 - [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276).
 - [ZB SAIL: Standalone](https://steamcommunity.com/sharedfiles/filedetails/?id=3336389472).
 
+A note for **Beta Hotbar!** above: Using xStarbound with xSBCompat enhances this mod by removing the server-side requirement if `"inventorySpoofing"` is enabled in your `xclient.config`; see below for caveats.
+
 The following OpenStarbound mods require OpenStarbound-only callbacks that are emulated by an xSBCompat patch:
 
 - [Advanced Inventory Interaction](https://steamcommunity.com/sharedfiles/filedetails/?id=3779709650) — currently requires a patch for some functionality because xStarbound has `interface.cursorPosition` instead of OpenStarbound's `input.mousePosition`; the patch also makes AII properly aware of xClient resetting all main interface panes on player swaps so that AII doesn't get disabled after swapping characters.
 - [AII - Enhanced Storage Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3780999731) — requires Advanced Inventory Interaction above, which currently requires an xSBCompat patch; also requires Enhanced Storage, obviously.
 - [AII - Improved Containers Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3783216469) — requires Advanced Inventory Interaction above, which currently requires an xSBCompat patch; also requires Improved Containers, obviously.
 - [StarCustomChat](https://steamcommunity.com/sharedfiles/filedetails/?id=3208917628) ([GitHub](https://github.com/KrashV/StarCustomChat)) and [StarCustomChatRP](https://steamcommunity.com/sharedfiles/filedetails/?id=3445409664) ([GitHub](https://github.com/KrashV/StarCustomChatRP)) — these now require a patch to their internal [StarboundTextboxInterface](https://github.com/Mofurka/StarboundTextboxInterface) dependency to substitute `input.mousePosition` calls with xStarbound's `interface.cursorPosition`.
-
-  As the original mod's author is unsupportive, it's recommended to use FezzedOne's [StarCustomChat](https://github.com/FezzedOne/StarCustomChat) and [StarCustomChatRP](https://github.com/FezzedOne/StarCustomChatRP) forks for additional features and xStarbound compatibility fixes; the forks do not require an xSBCompat patch.
-
 - [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — requires a patch because xStarbound has `root.assetSources` instead of OpenStarbound's `root.assetSourcePaths`, and OpenStarbound adds a boolean parameter that needs emulation.
 - [Universal BYOS Patcher](https://steamcommunity.com/sharedfiles/filedetails/?id=3648814036) — same compatibility issue as Unde Venis, just with `assets.sources` (xStarbound) and `assets.sourcePaths` (OpenStarbound), the equivalent asset preprocessor callback.
 
