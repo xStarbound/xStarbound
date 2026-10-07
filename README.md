@@ -217,7 +217,7 @@ The following mods have special functionality that requires or is supported by x
 - [xWEdit](https://github.com/fezzedone/xWEdit) — this WEdit fork requires xStarbound for full functionality, but is partially supported by OpenStarbound (no mid-air tile placement) and compatible with vanilla Starbound (with no extra functionality above WEdit).
 - [Ztarbound S.A.I.L. All-In-One Race Support](https://steamcommunity.com/sharedfiles/filedetails/?id=3506162421) — requires xStarbound, oSBM or OpenStarbound.
 
-The following «[oSB]»- or «[OpenStarbound]»-tagged mods either do not actually require OpenStarbound (or xStarbound) for any part of their intended functionality, or only «require» OpenStarbound or xStarbound in the sense that they are designed for clients that support extended cosmetic slots, overlays or underlays:
+The following «[oSB]»- or «[OpenStarbound]»-tagged mods either do not actually require OpenStarbound (or xStarbound, or oSBM) for any part of their intended functionality, or only «require» OpenStarbound or xStarbound in the sense that they are designed for clients that support extended cosmetic slots, overlays or underlays:
 
 - [Aiko's Additions](https://steamcommunity.com/workshop/filedetails/?id=3603021961) — has no OpenStarbound requirement despite the mod's description.
 - [Arcana NPC Invincibility Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3782021392) — has no OpenStarbound requirement despite the mod's description; the bug it fixes is not even an OpenStarbound bug anyway.
@@ -225,6 +225,7 @@ The following «[oSB]»- or «[OpenStarbound]»-tagged mods either do not actual
 - [GM Vehicles](https://steamcommunity.com/sharedfiles/filedetails/?id=3644577479) — has no OpenStarbound requirement despite the mod's description.
 - [NIGHTMARE Clothin' Pack] — has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support extended cosmetic slots or cosmetic overlays/underlays.
 - [OpenStarbound No Highlights on Scanned Objects and Players](https://steamcommunity.com/sharedfiles/filedetails/?id=3432675895) — has no particular OpenStarbound or xStarbound support, actually.
+- [TBWorkaround](https://steamcommunity.com/sharedfiles/filedetails/?id=3805772653) — does not actually require OpenStarbound or any other Starbound fork.
 - [Tiri's Accessories](https://steamcommunity.com/sharedfiles/filedetails/?id=3619906462) — has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support extended cosmetic slots or cosmetic overlays/underlays.
 
 Additionally, xStarbound gives mods that change the size or number of bags in the inventory, or modify the action bar, full compatibility with existing characters «out of the box». You can also use these mods in multiplayer by enabling `"inventorySpoofing"` in your `xclient.config`, though this does have some caveats: xClient spoofs a vanilla inventory by default, letting you use inventory and action bar mods on servers _not_ running such mods (such as vanilla servers). A patch to `"networkedItemBags"` in `$assets/player.config` may be needed to play on servers running inventory mods (and/or desired to avoid issues with keycards in Frackin' Universe and Elithian Races in single-player) if you have `"inventorySpoofing"` enabled and use inventory-extending mods like bk3k's Inventory.
@@ -318,6 +319,7 @@ The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due 
 - [Quest Library](https://steamcommunity.com/sharedfiles/filedetails/?id=3806638814) — entirely dependent on OpenStarbound/oSBM-only player quest API bindings; these bindings may be added to xStarbound in the future if demand is shown.
 - [Raptor's Metroid Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3541573028) — certain OpenStarbound scripting functionality required by this mod is not currently present in xStarbound; this may change in the future. Don't expect support from the author though.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — requires a Windows DLL attached to retail Starbound, so it won't work and is likely to log script errors.
+- [Solzucht Optional Compatibility Fixes](https://steamcommunity.com/sharedfiles/filedetails/?id=3814727424) — requires the OpenStarbound-only variant of `assets.sourcePaths`. An xSBCompat patch _may_ be added for this mod if there's any demand whatsoever (which there isn't).
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — depends on an obsolete DLL mod. Won't do anything.
 
 The following mod depends on a Starbound fork other than OpenStarbound or xStarbound:
