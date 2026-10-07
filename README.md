@@ -190,6 +190,7 @@ The following mods have special functionality that requires or is supported by x
 - [Searchable Colony Tags](https://steamcommunity.com/sharedfiles/filedetails/?id=3496192756) — requires xStarbound, oSBM or OpenStarbound.
 - [Shut up about raceeffects](https://steamcommunity.com/sharedfiles/filedetails/?id=3549581457) — requires xStarbound, oSBM or OpenStarbound. Recommended if you have [Frackin' Races](https://steamcommunity.com/sharedfiles/filedetails/?id=763259329) installed.
 - [Size of Life - Framework](https://steamcommunity.com/sharedfiles/filedetails/?id=3218820111), [Size of Life - Vanilla Species](https://steamcommunity.com/sharedfiles/filedetails/?id=3218826863) and other mods based on the framework — xStarbound supports «nice» non-pixelated scaling as of v2.4.1.1.
+- [Solzucht Optional Compatibility Fixes](https://steamcommunity.com/sharedfiles/filedetails/?id=3814727424) — requires xStarbound, oSBM or OpenStarbound.
 - [Space Station Terminal Quick Sell QoL](https://steamcommunity.com/sharedfiles/filedetails/?id=3723886096) — requires xStarbound, oSBM or OpenStarbound for the added shift-click functionality to work.
 - [Spawnable Item Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=733665104) — SIP's universal mod support requires xStarbound v2.5+, oSBM or OpenStarbound.
 - [Spenbed Starbound osb logo replacer](https://steamcommunity.com/sharedfiles/filedetails/?id=3623212132) — another logo replacement mod for OpenStarbound (or an oSB fork) and the like. Should be supported. The associated modpack is fully compatible with xStarbound.
@@ -319,7 +320,6 @@ The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due 
 - [Quest Library](https://steamcommunity.com/sharedfiles/filedetails/?id=3806638814) — entirely dependent on OpenStarbound/oSBM-only player quest API bindings; these bindings may be added to xStarbound in the future if demand is shown.
 - [Raptor's Metroid Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3541573028) — certain OpenStarbound scripting functionality required by this mod is not currently present in xStarbound; this may change in the future. Don't expect support from the author though.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — requires a Windows DLL attached to retail Starbound, so it won't work and is likely to log script errors.
-- [Solzucht Optional Compatibility Fixes](https://steamcommunity.com/sharedfiles/filedetails/?id=3814727424) — requires the OpenStarbound-only variant of `assets.sourcePaths`. An xSBCompat patch _may_ be added for this mod if there's any demand whatsoever (which there isn't).
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — depends on an obsolete DLL mod. Won't do anything.
 
 The following mod depends on a Starbound fork other than OpenStarbound or xStarbound:
