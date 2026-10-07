@@ -123,9 +123,9 @@ This is a fork of Starbound's source code; all credit for the original code goes
 
 <details>
 
-<summary>☑️ <b>Supported OpenStarbound/xStarbound mods</b> </summary>
+<summary>☑️ <b>Supported xStarbound and OpenStarbound mods</b> </summary>
 
-The following mods have special functionality that requires or is supported by xStarbound.
+The following mods have special functionality that requires or is supported by xStarbound. Many of these mods are tagged as OpenStarbound mods.
 
 - [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — fully supported by xStarbound.
 - [Advanced Teleporter Interface](https://steamcommunity.com/sharedfiles/filedetails/?id=3788629855) — requires xStarbound, oSBM or OpenStarbound; can be used as a client-side mod if using the Quickbar entry. In order for this mod to affect placed teleporters, xStarbound or OpenStarbound must be installed _on the server_ to detect and patch teleporter objects. Only install this mod server-side if all clients have it installed. The party member listing functionality isn't currently supported on xClient because xStarbound's binding for listing team members differs from OpenStarbound's and oSBM's; use the 'open vanilla interface' button to teleport to party members.
@@ -153,12 +153,13 @@ The following mods have special functionality that requires or is supported by x
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [Equipment Set Bonuses](https://steamcommunity.com/sharedfiles/filedetails/?id=3814652594) — requires xStarbound, oSBM or OpenStarbound for asset preprocessing.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound (with reduced functionality) and is compatible with stock Starbound.
-- [Forgemaster's Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3812995649) — requires xStarbound, oSBM or OpenStarbound. Using xStarbound enhances this mod by removing the server-side requirement if `"inventorySpoofing"` is enabled in your `xclient.config`; see below for caveats.
+- [Forgemaster's Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3812995649) ([new link](https://steamcommunity.com/sharedfiles/filedetails/?id=3815033263)) — requires xStarbound, oSBM or OpenStarbound. Using xStarbound enhances this mod by removing the server-side requirement if `"inventorySpoofing"` is enabled in your `xclient.config`; see below for caveats.
 - [Improved Containers: OpenStarbound Post-Load Mega-Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3430203726) — requires xStarbound, oSBM or OpenStarbound.
 - [Improved Inventory Stack Management](https://steamcommunity.com/sharedfiles/filedetails/?id=3758908230) — requires xStarbound, oSBM or OpenStarbound for its functionality. Install xSBCompat if you want the mod to be properly aware of player swaps on xClient.
 - [Lexi's Automation](https://steamcommunity.com/sharedfiles/filedetails/?id=3673481087&tscn=1783028287) — requires xStarbound, oSBM or a _nightly_ build of OpenStarbound. Don't expect support from this mod's author.
 - [Loading Screen AAA Gaming Tips](https://steamcommunity.com/sharedfiles/filedetails/?id=3742480361) — requires xStarbound, oSBM or OpenStarbound. Now has patches for Pixelflame's [Ancient Cosmos](https://steamcommunity.com/sharedfiles/filedetails/?id=3744936641) and [Starburst Rework](https://steamcommunity.com/sharedfiles/filedetails/?id=3744928917).
-- [Loot Multiplier - Works with ALL MODS!] — requires xStarbound, oSBM or OpenStarbound.
+- [Local and Planetary Terraformers](https://steamcommunity.com/sharedfiles/filedetails/?id=3815460295) — requires xStarbound, oSBM or OpenStarbound.
+- [Loot Multiplier - Works with ALL MODS!](https://steamcommunity.com/sharedfiles/filedetails/?id=3804750504) — requires xStarbound, oSBM or OpenStarbound.
 - [LR's Storage Dimension](https://steamcommunity.com/sharedfiles/filedetails/?id=3432253227) — automatic recipe detection is fully supported by xStarbound.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
 - [Minecraft UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3412449426) — should be supported by xStarbound; report any issues.
