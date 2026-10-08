@@ -102,7 +102,7 @@ end
 ```
 
 ```lua
--- Vanill-Lua-compatible replacement code using `xpcall`, with the equivalent Pluto syntax in comments.
+-- Vanilla-Lua-compatible replacement code using `xpcall`, with the equivalent Pluto syntax in comments.
 local success = xpcall(function() -- Or: local success = xpcall(|| -> do
   doSomething()
 end, function(e) -- Or: end, |e| -> do
@@ -110,7 +110,7 @@ end, function(e) -- Or: end, |e| -> do
 end)
 ```
 
-Note how `return`'ed values in try-catch blocks must be curried out through `xpcall`'s return values (a success boolean and then whatever values the wrapped code returns, if any), and variadic return values require judicious use of Lua's `table.pack` and `table.unpack` as well as an extra `if` block with a `return` outside of the `xpcall` call contingent on its success.
+Note how `return`'ed values in try-catch blocks must be curried out through `xpcall`'s return values (a success boolean and then whatever values the wrapped code returns, if any), and variadic return values require judicious use of Lua's `table.pack` and `table.unpack`.
 
 On the other hand, it is now safe to use `pluto_try`, `pluto_catch`, `try` and `catch` as variable names or table keys again in all contexts.
 
