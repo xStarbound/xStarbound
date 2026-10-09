@@ -133,6 +133,7 @@ The following mods have special functionality that requires or is supported by x
 - [Alternate UI Sounds [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3360332852) — should be supported by xStarbound; report any issues.
 - [Animis](https://github.com/Lonaasan/Animis) — requires xStarbound, oSBM or OpenStarbound.
 - [Arlmenarum | Systems and Utils](https://steamcommunity.com/sharedfiles/filedetails/?id=3815758714) — requires xStarbound, oSBM or OpenStarbound.
+- [Arlmenarum | UI](https://steamcommunity.com/sharedfiles/filedetails/?id=3815758214) — requires xStarbound, oSBM or OpenStarbound.
 - [Armor Augment Slot](https://steamcommunity.com/sharedfiles/filedetails/?id=3448934708) — requires xStarbound, oSBM or OpenStarbound.
 - [asset scrambler](https://steamcommunity.com/sharedfiles/filedetails/?id=3703414215) — requires xStarbound, oSBM or OpenStarbound. Ensure you have plenty of RAM when loading Starbound with this mod, especially on a large modpack.
 - [Auto DoubleTap Bind for Modded Techs](https://steamcommunity.com/sharedfiles/filedetails/?id=3502260176) — requires xStarbound, oSBM or OpenStarbound.
