@@ -132,6 +132,7 @@ The following mods have special functionality that requires or is supported by x
 - [all blocks fall](https://github.com/bongus-jive/all-blocks-fall) — requires xStarbound, oSBM or OpenStarbound; is _server-side_. Note that xStarbound's «creative mode» prevents falling and cascading tiles from being triggered when enabled.
 - [Alternate UI Sounds [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3360332852) — should be supported by xStarbound; report any issues.
 - [Animis](https://github.com/Lonaasan/Animis) — requires xStarbound, oSBM or OpenStarbound.
+- [Arlmenarum | Systems and Utils](https://steamcommunity.com/sharedfiles/filedetails/?id=3815758714) — requires xStarbound, oSBM or OpenStarbound.
 - [Armor Augment Slot](https://steamcommunity.com/sharedfiles/filedetails/?id=3448934708) — requires xStarbound, oSBM or OpenStarbound.
 - [asset scrambler](https://steamcommunity.com/sharedfiles/filedetails/?id=3703414215) — requires xStarbound, oSBM or OpenStarbound. Ensure you have plenty of RAM when loading Starbound with this mod, especially on a large modpack.
 - [Auto DoubleTap Bind for Modded Techs](https://steamcommunity.com/sharedfiles/filedetails/?id=3502260176) — requires xStarbound, oSBM or OpenStarbound.
@@ -154,6 +155,7 @@ The following mods have special functionality that requires or is supported by x
 - [Equipment Set Bonuses](https://steamcommunity.com/sharedfiles/filedetails/?id=3814652594) — requires xStarbound, oSBM or OpenStarbound for asset preprocessing.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound (with reduced functionality) and is compatible with stock Starbound.
 - [Forgemaster's Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3812995649) — requires xStarbound, oSBM or OpenStarbound. Using xStarbound enhances this mod by removing the server-side requirement if `"inventorySpoofing"` is enabled in your `xclient.config`; see below for caveats.
+- [Head Cosmetics](https://steamcommunity.com/sharedfiles/filedetails/?id=3816579737) — requires xStarbound; may or may not work on OpenStarbound or oSBM.
 - [Improved Containers: OpenStarbound Post-Load Mega-Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3430203726) — requires xStarbound, oSBM or OpenStarbound.
 - [Improved Inventory Stack Management](https://steamcommunity.com/sharedfiles/filedetails/?id=3758908230) — requires xStarbound, oSBM or OpenStarbound for its functionality. Install xSBCompat if you want the mod to be properly aware of player swaps on xClient.
 - [Lexi's Automation](https://steamcommunity.com/sharedfiles/filedetails/?id=3673481087&tscn=1783028287) — requires xStarbound, oSBM or a _nightly_ build of OpenStarbound. Don't expect support from this mod's author.
@@ -201,6 +203,7 @@ The following mods have special functionality that requires or is supported by x
 - [StarTechUltimateUpgrade](https://steamcommunity.com/sharedfiles/filedetails/?id=3781692656) — xStarbound, oSBM or OpenStarbound is required because of the «use other techs with Nanofield» functionality.
 - [Subspace Black Market](https://steamcommunity.com/sharedfiles/filedetails/?id=3764065766) — requires xStarbound, oSBM or OpenStarbound for an item-related `root` call.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xStarbound.
+- [Teleport Effects](https://steamcommunity.com/sharedfiles/filedetails/?id=3816581110) — requires xStarbound; may or may not work on OpenStarbound or oSBM.
 - [Terrain Effects](https://steamcommunity.com/sharedfiles/filedetails/?id=3814538285) — requires xStarbound, oSBM or OpenStarbound.
 - [The Hungercry Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3594407068) — requires xStarbound, oSBM or OpenStarbound for a `player` callback, despite not being tagged as such.
 - [Time Control Command](https://steamcommunity.com/sharedfiles/filedetails/?id=3256623666) ([GitHub](https://github.com/bongus-jive/TimeControlCommand)) — fully supported by xStarbound.
@@ -227,6 +230,7 @@ The following «[oSB]»- or «[OpenStarbound]»-tagged mods either do not actual
 - [GM Vehicles](https://steamcommunity.com/sharedfiles/filedetails/?id=3644577479) — has no OpenStarbound requirement despite the mod's description.
 - [NIGHTMARE Clothin' Pack] — has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support extended cosmetic slots or cosmetic overlays/underlays.
 - [OpenStarbound No Highlights on Scanned Objects and Players](https://steamcommunity.com/sharedfiles/filedetails/?id=3432675895) — has no particular OpenStarbound or xStarbound support, actually.
+- [OSB Armor Dropoff](https://steamcommunity.com/sharedfiles/filedetails/?id=3816648717) — does not actually require OpenStarbound or any other Starbound fork.
 - [TBWorkaround](https://steamcommunity.com/sharedfiles/filedetails/?id=3805772653) — does not actually require OpenStarbound or any other Starbound fork.
 - [Tiri's Accessories](https://steamcommunity.com/sharedfiles/filedetails/?id=3619906462) — has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support extended cosmetic slots or cosmetic overlays/underlays.
 
