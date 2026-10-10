@@ -132,7 +132,7 @@ FunctionDatabase::FunctionDatabase() {
   for (auto file : functions) {
     for (auto const& functionPair : assets->json(file).iterateObject()) {
       if (m_functions.contains(functionPair.first))
-        throw StarException(strf("Named Function '{}' defined twice, second time from {}", functionPair.first, file));
+        throw StarException(strf("Named univariate function '{}' defined twice, second time from '{}'", functionPair.first, file));
       m_functions[functionPair.first] = make_shared<StoredFunction>(parametricFunctionFromConfig(functionPair.second));
     }
   }
@@ -141,7 +141,7 @@ FunctionDatabase::FunctionDatabase() {
     for (auto const& functionPair : assets->json(file).iterateObject()) {
       if (m_functions2.contains(functionPair.first))
         throw StarException(
-            strf("Named 2-ary Function '{}' defined twice, second time from {}", functionPair.first, file));
+            strf("Named bivariate function '{}' defined twice, second time from '{}'", functionPair.first, file));
       m_functions2[functionPair.first] = make_shared<StoredFunction2>(multiTable2DFromConfig(functionPair.second));
     }
   }
@@ -150,7 +150,7 @@ FunctionDatabase::FunctionDatabase() {
     for (auto const& tablePair : assets->json(file).iterateObject()) {
       if (m_configFunctions.contains(tablePair.first))
         throw StarException(
-            strf("Named config function '{}' defined twice, second time from {}", tablePair.first, file));
+            strf("Named config function '{}' defined twice, second time from '{}'", tablePair.first, file));
       m_configFunctions[tablePair.first] =
           make_shared<StoredConfigFunction>(parametricTableFromConfig(tablePair.second));
     }
@@ -170,36 +170,58 @@ StringList FunctionDatabase::namedConfigFunctions() const {
 }
 
 StoredFunctionPtr FunctionDatabase::function(Json const& configOrName) const {
-  if (configOrName.type() == Json::Type::String)
+  // FezzedOne: Make the error less cryptic.
+  if (configOrName.type() == Json::Type::String) {
+    if (!m_functions.contains(configOrName.toString()))
+      throw StoredFunctionException::format("Could not find univariate function '{}'", configOrName.toString());
     return m_functions.get(configOrName.toString());
-  else
+  } else
     return make_shared<StoredFunction>(parametricFunctionFromConfig(configOrName));
 }
 
 StoredFunction2Ptr FunctionDatabase::function2(Json const& configOrName) const {
-  if (configOrName.type() == Json::Type::String)
+  // FezzedOne: Ditto.
+  if (configOrName.type() == Json::Type::String) {
+    if (!m_functions2.contains(configOrName.toString()))
+      throw StoredFunctionException::format("Could not find bivariate function '{}'", configOrName.toString());
     return m_functions2.get(configOrName.toString());
-  else
+  } else
     return make_shared<StoredFunction2>(multiTable2DFromConfig(configOrName));
 }
 
 StoredConfigFunctionPtr FunctionDatabase::configFunction(Json const& configOrName) const {
-  if (configOrName.type() == Json::Type::String)
+  // FezzedOne: Ditto again.
+  if (configOrName.type() == Json::Type::String) {
+    if (!m_configFunctions.contains(configOrName.toString()))
+      throw StoredFunctionException::format("Could not find config function '{}'", configOrName.toString());
     return m_configFunctions.get(configOrName.toString());
-  else
+  } else
     return make_shared<StoredConfigFunction>(parametricTableFromConfig(configOrName));
 }
 
 ParametricFunction<double, double> FunctionDatabase::parametricFunctionFromConfig(Json descriptor) {
   try {
+    if (!descriptor.isType(Json::Type::Array))
+      throw StarException("Function table descriptor is not an array; must be an array containing two strings (interpolation and bound mode specifiers) followed by zero or more point arrays");
+    if (descriptor.size() < 2)
+      throw StarException("Function table descriptor is not an array; must be an array containing two strings (interpolation and bound mode specifiers) followed by zero or more point arrays");
+
+    if (!descriptor.get(0).isType(Json::Type::String))
+      throw StarException("Interpolation mode specifier (first entry) must be a string");
     String interpolationModeString = descriptor.getString(0);
+    if (!descriptor.get(1).isType(Json::Type::String))
+      throw StarException("Bound mode specifier (second entry) must be a string");
     String boundModeString = descriptor.getString(1);
 
     List<pair<double, double>> points;
     for (size_t i = 2; i < descriptor.size(); ++i) {
       auto pointPair = descriptor.get(i);
+      if (!pointPair.isType(Json::Type::Array))
+        throw StoredFunctionException("Each point must be an array of two numbers");
       if (pointPair.size() != 2)
-        throw StoredFunctionException("Each point must be a list of size 2");
+        throw StoredFunctionException("Each point must be an array of two numbers");
+      if (!(pointPair.toArray()[0].isType(Json::Type::Int) || pointPair.toArray()[1].isType(Json::Type::Float) || pointPair.toArray()[1].isType(Json::Type::Int) || pointPair.toArray()[0].isType(Json::Type::Float)))
+        throw StoredFunctionException("Each point must be an array of two numbers");
       points.append({pointPair.getDouble(0), pointPair.getDouble(1)});
     }
 
@@ -234,10 +256,16 @@ ParametricFunction<double, double> FunctionDatabase::parametricFunctionFromConfi
 ParametricTable<int, Json> FunctionDatabase::parametricTableFromConfig(Json descriptor) {
   try {
     List<pair<int, Json>> points;
+    if (!descriptor.isType(Json::Type::Array))
+      throw StarException("Parametric table descriptor is not an array; must be an array containing zero or more sub-arrays of two numbers each");
     for (size_t i = 0; i < descriptor.size(); ++i) {
       auto pointPair = descriptor.get(i);
+      if (!pointPair.isType(Json::Type::Array))
+        throw StoredFunctionException("Each point must be an array of two numbers");
       if (pointPair.size() != 2)
-        throw StoredFunctionException("Each point must be a list of size 2");
+        throw StoredFunctionException("Each point must be an array of two numbers");
+      if (!(pointPair.toArray()[0].isType(Json::Type::Int) || pointPair.toArray()[1].isType(Json::Type::Float) || pointPair.toArray()[1].isType(Json::Type::Int) || pointPair.toArray()[0].isType(Json::Type::Float)))
+        throw StoredFunctionException("Each point must be an array of two numbers");
       points.append({pointPair.getInt(0), pointPair.get(1)});
     }
 
@@ -249,30 +277,55 @@ ParametricTable<int, Json> FunctionDatabase::parametricTableFromConfig(Json desc
 
 MultiTable2D FunctionDatabase::multiTable2DFromConfig(Json descriptor) {
   try {
+    if (!descriptor.isType(Json::Type::Array))
+      throw StarException("Function multi-table descriptor is not an array; must be an array containing two strings (interpolation and bound mode specifiers) and an array");
+    if (descriptor.size() != 3)
+      throw StarException("Function multi-table descriptor is not an array; must be an array containing two strings (interpolation and bound mode specifiers) and an array");
+
+    if (!descriptor.get(0).isType(Json::Type::String))
+      throw StarException("Interpolation mode specifier (first entry) must be a string");
     String interpolationModeString = descriptor.getString(0);
+    if (!descriptor.get(1).isType(Json::Type::String))
+      throw StarException("Bound mode specifier (second entry) must be a string");
     String boundModeString = descriptor.getString(1);
 
     List<double> xaxis;
     List<double> yaxis;
     MultiArray2D points;
 
+    if (!descriptor.get(2).isType(Json::Type::Array))
+      throw StarException("Third entry is not an array grid");
     auto grid = descriptor.getArray(2);
 
     for (size_t y = 0; y < grid.size(); ++y) {
+      if (!grid[y].isType(Json::Type::Array))
+        throw StarException("Found non-array entry in array grid; first entry must be an array of X-axis values (numbers), each subsequent entry must be an array containing a Y-axis value (a number) and a sub-array of sample points (numbers) as large as the X-axis array");
       auto row = grid[y].toArray();
       if (y == 0) {
         for (size_t x = 0; x < row.size(); ++x) {
+          if (!(row[x].isType(Json::Type::Int) || row[x].isType(Json::Type::Float)))
+            throw StarException("Found non-number entry in X-axis array (first grid value)");
           if (x > 0)
             xaxis.append(row[x].toFloat());
         }
         points.resize({row.size() - 1, grid.size() - 1});
       } else {
+        // FezzedOne: Added missing out-of-bounds access guard.
+        if (row.size() != 2)
+          throw StarException("Entry must be a two-element array containing a Y-axis value (a number) and a sub-array of sample points (numbers) as large as the X-axis array");
+        if (!(row[0].isType(Json::Type::Int) || row[0].isType(Json::Type::Float)))
+          throw StarException("Y-axis value (first array entry) is not a number");
         yaxis.append(row[0].toFloat());
+        if (!row[1].isType(Json::Type::Array))
+          throw StarException("Expected array of sample points (numbers); got non-array value");
         auto cells = row[1].toArray();
         if (cells.size() != xaxis.size())
-          throw StarException("Number of sample points doesn't match axis size.");
-        for (size_t x = 0; x < cells.size(); x++)
+          throw StarException("Number of sample points doesn't match X-axis size");
+        for (size_t x = 0; x < cells.size(); x++) {
+          if (!(cells[x].isType(Json::Type::Float) || cells[x].isType(Json::Type::Int)))
+            throw "Found non-number point entry in array grid";
           points.set({x, y - 1}, cells[x].toFloat());
+        }
       }
     }
 
@@ -311,4 +364,4 @@ MultiTable2D FunctionDatabase::multiTable2DFromConfig(Json descriptor) {
   }
 }
 
-}
+} // namespace Star

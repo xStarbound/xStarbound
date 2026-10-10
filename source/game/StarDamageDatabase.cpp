@@ -60,7 +60,8 @@ DamageKind const& DamageDatabase::damageKind(String kind) const {
 }
 
 ElementalType const& DamageDatabase::elementalType(String const& name) const {
-  if (!m_damageKinds.contains(name))
+  // @Bottinator22: Bugfix for retail issue where elemental types without a damage type with a matching name couldn't be used.
+  if (!m_elementalTypes.contains(name))
     throw StarException(strf("Unknown elemental type with name '{}'.", name));
 
   return m_elementalTypes.get(name);
