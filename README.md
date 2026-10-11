@@ -208,6 +208,7 @@ The following mods have special functionality that requires or is supported by x
 - [Terrain Effects](https://steamcommunity.com/sharedfiles/filedetails/?id=3814538285) — requires xStarbound, oSBM or OpenStarbound.
 - [The Hungercry Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3594407068) — requires xStarbound, oSBM or OpenStarbound for a `player` callback, despite not being tagged as such.
 - [Time Control Command](https://steamcommunity.com/sharedfiles/filedetails/?id=3256623666) ([GitHub](https://github.com/bongus-jive/TimeControlCommand)) — fully supported by xStarbound.
+- [Title Comment](https://steamcommunity.com/sharedfiles/filedetails/?id=3817704710) — requires xStarbound. May or may not have visual issues on oSBM or OpenStarbound.
 - [Toggled Walking](https://steamcommunity.com/sharedfiles/filedetails/?id=3706549533) — requires xStarbound, oSBM or OpenStarbound.
 - [Ultimate Mech Manager](https://steamcommunity.com/sharedfiles/filedetails/?id=3742826593) — requires xStarbound, oSBM or OpenStarbound for keybinds and some mech aiming functionality.
 - [Uncrafter Interface](https://steamcommunity.com/sharedfiles/filedetails/?id=3766727660) — requires xStarbound, oSBM or OpenStarbound.
@@ -258,6 +259,7 @@ The following OpenStarbound mods require xSBCompat to bypass unnecessary OpenSta
 - [Hunger Fighting Chairs](https://steamcommunity.com/sharedfiles/filedetails/?id=3546473893).
 - [Is this Printable?](https://steamcommunity.com/sharedfiles/filedetails/?id=3507216031)
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645).
+- [Mouse Aim Camera](https://steamcommunity.com/sharedfiles/filedetails/?id=3817704664) and its [Chinese translation patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3817720562).
 - [Ship Pet Swapper](https://steamcommunity.com/sharedfiles/filedetails/?id=3474107812).
 - [Universal Instant Crafting for All Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3251274439).
 - [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276).
@@ -265,18 +267,15 @@ The following OpenStarbound mods require xSBCompat to bypass unnecessary OpenSta
 
 A note for **Beta Hotbar!** above: Using xStarbound with xSBCompat enhances this mod by removing the server-side requirement if `"inventorySpoofing"` is enabled in your `xclient.config`; see below for caveats.
 
-The following OpenStarbound mods require OpenStarbound-only callbacks that are emulated by an xSBCompat patch:
+The following OpenStarbound mods require OpenStarbound-only Lua API bindings or behaviour that are emulated by an xSBCompat patch:
 
 - [Advanced Inventory Interaction](https://steamcommunity.com/sharedfiles/filedetails/?id=3779709650) — currently requires a patch for some functionality because xStarbound has `interface.cursorPosition` instead of OpenStarbound's `input.mousePosition`; the patch also makes AII properly aware of xClient resetting all main interface panes on player swaps so that AII doesn't get disabled after swapping characters.
 - [AII - Enhanced Storage Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3780999731) — requires Advanced Inventory Interaction above, which currently requires an xSBCompat patch; also requires Enhanced Storage, obviously.
 - [AII - Improved Containers Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3783216469) — requires Advanced Inventory Interaction above, which currently requires an xSBCompat patch; also requires Improved Containers, obviously.
-- [StarCustomChat](https://steamcommunity.com/sharedfiles/filedetails/?id=3208917628) ([GitHub](https://github.com/KrashV/StarCustomChat)) and [StarCustomChatRP](https://steamcommunity.com/sharedfiles/filedetails/?id=3445409664) ([GitHub](https://github.com/KrashV/StarCustomChatRP)) — these now require a patch to their internal [StarboundTextboxInterface](https://github.com/Mofurka/StarboundTextboxInterface) dependency to substitute `input.mousePosition` calls with xStarbound's `interface.cursorPosition`.
+- [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — patch needed because `chat.command`'s return value on xStarbound is `nil` when a command returns no messages and the mod's code doesn't check for this.
+- [StarCustomChat](https://steamcommunity.com/sharedfiles/filedetails/?id=3208917628) ([GitHub](https://github.com/KrashV/StarCustomChat)) and [StarCustomChatRP](https://steamcommunity.com/sharedfiles/filedetails/?id=3445409664) ([GitHub](https://github.com/KrashV/StarCustomChatRP)) — these require a patch to their internal [StarboundTextboxInterface](https://github.com/Mofurka/StarboundTextboxInterface) dependency to substitute `input.mousePosition` calls with xStarbound's `interface.cursorPosition` and fix an internal OpenStarbound-only regex for the chat box.
 - [Unde Venis](https://steamcommunity.com/sharedfiles/filedetails/?id=3425456029) — requires a patch because xStarbound has `root.assetSources` instead of OpenStarbound's `root.assetSourcePaths`, and OpenStarbound adds a boolean parameter that needs emulation.
 - [Universal BYOS Patcher](https://steamcommunity.com/sharedfiles/filedetails/?id=3648814036) — same compatibility issue as Unde Venis, just with `assets.sources` (xStarbound) and `assets.sourcePaths` (OpenStarbound), the equivalent asset preprocessor callback.
-
-The following OpenStarbound mod requires an xSBCompat to work around behavioural differences between xStarbound and OpenStarbound:
-
-- [Quick Commands!](https://steamcommunity.com/sharedfiles/filedetails/?id=3145473452) — patch needed because `chat.command`'s return value on xStarbound is `nil` when a command returns no messages and the mod's code doesn't check for this.
 
 </details>
 
