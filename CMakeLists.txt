@@ -393,7 +393,9 @@ if(STAR_COMPILER_GNU)
 
 elseif(STAR_COMPILER_CLANG)
     # Needed to ensure xClient gets linked properly in the Sniper runtime.
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -latomic")
+    if(NOT STAR_SYSTEM_FREEBSD)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -latomic")
+    endif()
 
     if(STAR_SYSTEM_LINUX)
         # Stop Clang from bitching about all those thousands of `move` calls without an `std::` (or `Star::`, since there's an alias in that namespace).
@@ -604,8 +606,8 @@ elseif(STAR_SYSTEM_LINUX)
     set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -lpthread -ldl -lrt -lresolv")
 
 elseif(STAR_SYSTEM_FREEBSD)
-    set(CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES} -lpthread -lrt -lresolv")
-    set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -lpthread -lrt -lresolv")
+    set(CMAKE_C_STANDARD_LIBRARIES "${CMAKE_C_STANDARD_LIBRARIES} -lpthread -lrt -lexecinfo")
+    set(CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} -lpthread -lrt -lexecinfo")
 
 endif()
 
