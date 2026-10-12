@@ -168,6 +168,7 @@ The following mods have special functionality that requires or is supported by x
 - [Minimap - Alpha Enhancements](https://steamcommunity.com/sharedfiles/filedetails/?id=3765546722) — requires xStarbound, oSBM or OpenStarbound. There is one minor OpenStarbound-only feature: Trees and vines on the minimap use appropriate biome colours if you're using OpenStarbound.
 - [Monster Spawn Multiplier](https://steamcommunity.com/sharedfiles/filedetails/?id=3810305582) — requires xStarbound, oSBM or OpenStarbound.
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — fully supported by xStarbound.
+- [Mouse Aim Camera](https://steamcommunity.com/sharedfiles/filedetails/?id=3817704664) and its [Chinese translation patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3817720562) — requires xStarbound, oSBM or OpenStarbound.
 - [NamjeShipwright](https://github.com/namje0/namje_shipwright) — fully supported on xStarbound v4.1.1+. The mod is still in alpha though!
 - [Natural Reactions](https://steamcommunity.com/sharedfiles/filedetails/?id=3814256603) — requires xStarbound, oSBM or OpenStarbound for asset preprocessing.
 - [Neki](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) ([GitHub](https://github.com/hyperjuni/Neki)) and [Nekibound](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) — head rotation no longer clips Neki ears in xStarbound as of v3.4.4.
@@ -259,7 +260,6 @@ The following OpenStarbound mods require xSBCompat to bypass unnecessary OpenSta
 - [Hunger Fighting Chairs](https://steamcommunity.com/sharedfiles/filedetails/?id=3546473893).
 - [Is this Printable?](https://steamcommunity.com/sharedfiles/filedetails/?id=3507216031)
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645).
-- [Mouse Aim Camera](https://steamcommunity.com/sharedfiles/filedetails/?id=3817704664) and its [Chinese translation patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3817720562).
 - [Ship Pet Swapper](https://steamcommunity.com/sharedfiles/filedetails/?id=3474107812).
 - [Universal Instant Crafting for All Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3251274439).
 - [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276).
@@ -466,7 +466,7 @@ The basic process for building on macOS, older Windows versions and other OSes:
 4. If you're using Git, run `git clone https://github.com/xStarbound/xStarbound.git` in a terminal or command prompt, or use a graphical Git utility to download the repo.
 5. In the xStarbound directory, run `cmake -DCMAKE_BUILD_TYPE=Release -S . -B build/`. On some OSes, you may need to add the full path to your CMake executable to the beginning of the command. If necessary, add `-DCMAKE_C_COMPILER=<path to C++ compiler> -DCMAKE_CXX_COMPILER=<path to C++ compiler>`. Note that a CMake build preset already exists for modern macOS; consider using that if you have build issues.
 
-> **Note:** If you're targeting an old OS or a niche/outdated compiler, or you're getting linker or compiler errors related to function mismatches or unrecognised options, you should remove `-flto` (GCC and Clang compiler flag), `/GL` (MSVC compiler flag) and `/LTCG` (MSVC linker flag) from the compiler flags in `$xsb/CMakeLists.txt`.
+> **Note:** If you're targeting an old OS or a niche/outdated compiler, or you're getting linker or compiler errors related to function mismatches or unrecognised options, you should remove `-flto` (GCC and Clang compiler flag), `/GL` (MSVC compiler flag) and `/LTCG` (MSVC linker flag) from the compiler flags in `$xsb/CMakeLists.txt`. Also consider removing these flags if you have 16 GB or less of RAM or a low-end CPU, as link-time optimisation is very RAM- and CPU-intensive. Link-time optimisation is also not recommended for cross-compiled builds (which is why it is already disabled for some such builds in `CMakeLists.txt`).
 
 </details>
 
