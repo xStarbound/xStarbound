@@ -123,9 +123,9 @@ This is a fork of Starbound's source code; all credit for the original code goes
 
 <details>
 
-<summary>☑️ <b>Supported OpenStarbound/xStarbound mods</b> </summary>
+<summary>☑️ <b>Supported xStarbound and OpenStarbound mods</b> </summary>
 
-The following mods have special functionality that requires or is supported by xStarbound.
+The following mods for xStarbound and/or OpenStarbound have special functionality that requires or is supported by xStarbound.
 
 - [Actionbar Group Scrolling](https://steamcommunity.com/sharedfiles/filedetails/?id=3051031813) — fully supported by xStarbound.
 - [Advanced Teleporter Interface](https://steamcommunity.com/sharedfiles/filedetails/?id=3788629855) — requires xStarbound, oSBM or OpenStarbound; can be used as a client-side mod if using the Quickbar entry. In order for this mod to affect placed teleporters, xStarbound or OpenStarbound must be installed _on the server_ to detect and patch teleporter objects. Only install this mod server-side if all clients have it installed. The party member listing functionality isn't currently supported on xClient because xStarbound's binding for listing team members differs from OpenStarbound's and oSBM's; use the 'open vanilla interface' button to teleport to party members.
@@ -150,7 +150,6 @@ The following mods have special functionality that requires or is supported by x
 - [Double-Tap Hotkey](https://steamcommunity.com/sharedfiles/filedetails/?id=3706488418) — requires xStarbound, oSBM or OpenStarbound.
 - [Drop pixels on death](https://steamcommunity.com/sharedfiles/filedetails/?id=3350355857) ([GitHub](https://github.com/bongus-jive/drop-money-on-death)) — fully supported by xStarbound.
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
-- [Dynamic Proximity Chat](https://steamcommunity.com/sharedfiles/filedetails/?id=3450266347) ([GitHub](https://github.com/cptsalt/Dynamic-Proximity-Chat)) — works, but _don't_ expect support from its author. Unless a server requires this specific mod, xDPC (see below) is recommended instead.
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [Equipment Set Bonuses](https://steamcommunity.com/sharedfiles/filedetails/?id=3814652594) — requires xStarbound, oSBM or OpenStarbound for asset preprocessing.
@@ -186,7 +185,7 @@ The following mods have special functionality that requires or is supported by x
 - [Quick Stack Gun [OpenStarbound Fix]](https://steamcommunity.com/sharedfiles/filedetails/?id=3501752811) — Despite the name, requires xStarbound, oSBM or OpenStarbound.
 - [Recipe Browser](https://steamcommunity.com/sharedfiles/filedetails/?id=2018183533) — Recipe Browser's universal mod support requires xStarbound, oSBM or OpenStarbound.
 - [RPG Growth Keybind Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3368499316) — this mod fixes a compatibility issue between RPG Growth and xStarbound/OpenStarbound/oSBM.
-- [RPG Levels](https://steamcommunity.com/sharedfiles/filedetails/?id=3705791048) — its automatic boss patching functionality («OpenStarbound» support) requires xStarbound, oSBM or OpenStarbound. The disabled debug logging mode would require an xSBCompat patch if enabled, but it's disabled. _Don't_ expect xStarbound support from this mod's author.
+- [RPG Levels](https://steamcommunity.com/sharedfiles/filedetails/?id=3705791048) — its automatic boss patching functionality («OpenStarbound» support) requires xStarbound, oSBM or OpenStarbound. The disabled debug logging mode would require an xSBCompat patch if enabled, but it's disabled. Don't expect xStarbound support from this mod's author.
 - [Ruler](https://steamcommunity.com/sharedfiles/filedetails/?id=2451043851) — fully supported by xStarbound, including keybinds, as of v3.1.6. (Bravo for getting rid of the sandbox-breaking code, Patman!)
 - [Save Inventory Position](https://steamcommunity.com/sharedfiles/filedetails/?id=3331093074) ([GitHub](https://github.com/bongus-jive/save-inventory-position)) — fully supported by xStarbound. Use `/resetinventoryposition` if your inventory ends up off-screen after installation.
 - [Scanner Shows Printability](https://steamcommunity.com/sharedfiles/filedetails/?id=3145469034) — fully supported by xStarbound as of xSB v2.3.7.
@@ -200,7 +199,6 @@ The following mods have special functionality that requires or is supported by x
 - [Spenbed Starbound osb logo replacer](https://steamcommunity.com/sharedfiles/filedetails/?id=3623212132) — another logo replacement mod for OpenStarbound (or an oSB fork) and the like. Should be supported. The associated modpack is fully compatible with xStarbound.
 - [Sprite Dragon Interact (FDR)](https://steamcommunity.com/sharedfiles/filedetails/?id=3748728626) — requires xStarbound, oSBM or OpenStarbound. Not supported by xStarbound are this mod's optional «hooks» on OpenStarbound-only bind tags (e.g., `"interact"` or `"playerInteract"`) potentially added by other OpenStarbound mods; all other functionality is supported.
 - [Starbound Item Finder](https://steamcommunity.com/sharedfiles/filedetails/?id=3782116674) — requires xStarbound, oSBM or OpenStarbound.
-- [(Starbound) Without Number - RPG Mechanics](https://steamcommunity.com/sharedfiles/filedetails/?id=3677633744) — works, but _don't_ expect support from this mod's developer.
 - [Starburst Rework T6 Armor Recipe Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3472326270) — requires xStarbound, oSBM or OpenStarbound.
 - [StarTechUltimateUpgrade](https://steamcommunity.com/sharedfiles/filedetails/?id=3781692656) — xStarbound, oSBM or OpenStarbound is required because of the «use other techs with Nanofield» functionality.
 - [Subspace Black Market](https://steamcommunity.com/sharedfiles/filedetails/?id=3764065766) — requires xStarbound, oSBM or OpenStarbound for an item-related `root` call.
@@ -216,9 +214,10 @@ The following mods have special functionality that requires or is supported by x
 - [Universal Keybind Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3466851780) ([GitHub](https://github.com/FezzedOne/Starbound-Universal-Keybind-Compatibility)) — requires xStarbound, oSBM or OpenStarbound. Install this mod if you have issues with getting mod keybinds, like RPG Growth's tech keybinds, to work on xStarbound, oSBM or OpenStarbound.
 - [Universal Printable Objects Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3603139264) — requires xStarbound, oSBM or OpenStarbound to do anything.
 - [Universal Upgradeable Weapons Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3595603580) — requires xStarbound, oSBM or OpenStarbound to do anything.
+- [Universal Weapon DPS & DPE Display](https://steamcommunity.com/sharedfiles/filedetails/?id=3819862111) — requires xStarbound, oSBM or OpenStarbound.
 - [Wardrobe Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3433498458) — supported by xStarbound as of xSB v3.4.4.2.
 - [Warp Doors](https://steamcommunity.com/sharedfiles/filedetails/?id=3608977430) — xStarbound, OpenStarbound or an OpenStarbound fork is required to use the client-side commands for generating warp doors and getting coordinates; may be installed on a retail client with no errors aside from the commands being unavailable. The mod must be installed server-side for placed warp doors to function, but placed warp doors function on any client regardless of whether the mod is installed client-side. Don't expect support from this mod's author.
-- [xDPC](https://github.com/FezzedOne/xDPC) — requires xStarbound for full support, but also works on OpenStarbound, albeit with a few missing features.
+- [xDPC](https://github.com/FezzedOne/xDPC) — requires xStarbound for full support, but is also supported on OpenStarbound and oSBM, albeit with a few missing features. Recommended instead of the original Dynamic Proximity Chat due to a hostile author.
 - [xPlayer](https://github.com/FezzedOne/xPlayer) — requires xStarbound. This mod includes quality-of-life features for controlling multiple characters on xClient, including NPC-like pathing for controlled players.
 - [xNeeds](https://steamcommunity.com/sharedfiles/filedetails/?id=3800045195) / [oNeeds](https://steamcommunity.com/sharedfiles/filedetails/?id=3801345641) — requires xStarbound, OpenStarbound or oSBM.
 - [xSIP](https://github.com/fezzedone/xSIP) — xSIP's universal mod support requires xStarbound v2.5+, oSBM or OpenStarbound.
@@ -326,6 +325,14 @@ The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due 
 - [Raptor's Metroid Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3541573028) — certain OpenStarbound scripting functionality required by this mod is not currently present in xStarbound; this may change in the future. Don't expect support from the author though.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — requires a Windows DLL attached to retail Starbound, so it won't work and is likely to log script errors.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — depends on an obsolete DLL mod. Won't do anything.
+
+The following mods have an author who is actively hostile to xStarbound:
+
+- [Configurable Currency](https://steamcommunity.com/sharedfiles/filedetails/?id=3820038816).
+- [Dynamic Proximity Chat](https://steamcommunity.com/sharedfiles/filedetails/?id=3450266347) ([GitHub](https://github.com/cptsalt/Dynamic-Proximity-Chat)). Unless a server requires this specific mod, xDPC (see _Supported xStarbound and OpenStarbound mods_ above) is recommended instead.
+- [(Starbound) Without Number - RPG Mechanics](https://steamcommunity.com/sharedfiles/filedetails/?id=3677633744).
+
+While the above mods may be compatible with xStarbound (with or without xSBCompat), no xSBCompat patch will be made for these mods due to the hostility of their author.
 
 The following mod depends on a Starbound fork other than OpenStarbound or xStarbound:
 
