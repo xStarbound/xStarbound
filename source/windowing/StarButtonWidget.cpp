@@ -1,8 +1,8 @@
 #include "StarButtonWidget.hpp"
-#include "StarRoot.hpp"
+#include "StarAssets.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarRandom.hpp"
-#include "StarAssets.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -39,7 +39,7 @@ ButtonWidget::ButtonWidget(WidgetCallbackFunc callback,
     String const& hoverImage,
     String const& pressedImage,
     String const& disabledImage)
-  : ButtonWidget() {
+    : ButtonWidget() {
   setCallback(callback);
   setImages(baseImage, hoverImage, pressedImage, disabledImage);
 }
@@ -403,4 +403,4 @@ void ButtonWidget::updateSize() {
   setSize(Vec2I(m_buttonBoundSize));
 }
 
-}
+} // namespace Star

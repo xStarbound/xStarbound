@@ -193,8 +193,10 @@ Pane* Pane::window() {
 }
 
 void Pane::update(float dt) {
-  if (m_visible) {
-    for (auto const& widget : m_members) {
+  if (m_visible && !m_members.empty()) {
+    // FezzedOne: Must copy just in case items get removed from the member list.
+    auto members = m_members;
+    for (auto const& widget : members) {
       widget->update(dt);
       if ((m_focusWidget == widget) != widget->hasFocus()) {
         m_focusWidget.reset();

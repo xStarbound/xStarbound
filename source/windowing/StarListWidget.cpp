@@ -36,8 +36,13 @@ bool ListWidget::sendEvent(InputEvent const& event) {
   if (!m_visible)
     return false;
 
-  for (size_t i = m_members.size(); i != 0; --i) {
-    auto child = m_members[i - 1];
+  if (m_members.empty()) return false;
+
+  // FezzedOne: Must copy just in case widgets get removed from the member list.
+  auto members = m_members;
+
+  for (size_t i = members.size(); i != 0; --i) {
+    auto child = members[i - 1];
     if (child->sendEvent(event) || (event.is<MouseButtonDownEvent>() && child->inMember(*context()->mousePosition(event)) && event.get<MouseButtonDownEvent>().mouseButton == MouseButton::Left)) {
       setSelected(i - 1);
       return true;

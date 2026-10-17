@@ -21,7 +21,10 @@ Widget::~Widget() {
 }
 
 void Widget::update(float dt) {
-  for (auto& widget : m_members)
+  if (m_members.empty()) return;
+  // FezzedOne: Must copy just in case widgets get removed from the member list.
+  auto members = m_members;
+  for (auto& widget : members)
     widget->update(dt);
 }
 
@@ -43,7 +46,10 @@ void Widget::render(RectI const& region) {
 void Widget::renderImpl() {}
 
 void Widget::drawChildren() {
-  for (auto child : m_members)
+  if (m_members.empty()) return;
+  // FezzedOne: Again, must copy just in case widgets get removed from the member list.
+  auto members = m_members;
+  for (auto child : members)
     child->render(m_drawingArea);
 }
 
@@ -181,7 +187,12 @@ bool Widget::sendEvent(InputEvent const& event) {
   if (!m_visible)
     return false;
 
-  for (auto child : reverseIterate(m_members)) {
+  if (m_members.empty()) return false;
+
+  // FezzedOne: Must copy just in case members get removed from the widget list.
+  auto members = m_members;
+
+  for (auto child : reverseIterate(members)) {
     if (child->sendEvent(event))
       return true;
   }
