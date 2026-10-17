@@ -242,7 +242,7 @@ public:
   virtual void focus();
   virtual void blur();
 
-  virtual Widget* parent() const;
+  virtual ParentWidgetPtr<Widget> parent() const;
   virtual void setParent(Widget* parent);
 
   virtual Pane const* window() const;

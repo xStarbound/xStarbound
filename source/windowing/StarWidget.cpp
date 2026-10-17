@@ -205,7 +205,7 @@ bool Widget::mouseTransparent() {
 
 // FezzedOne: Now has a wrapper that throws instead of allowing null dereferences. Needed because of the presence of
 // both blind dereferences and Lua bindings that can remove widgets at will.
-Widget* Widget::parent() const {
+ParentWidgetPtr<Widget> Widget::parent() const {
   return ParentWidgetPtr<Widget>(m_parent);
 }
 
