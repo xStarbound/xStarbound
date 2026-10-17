@@ -151,10 +151,16 @@ void KeybindingsMenu::buildListsFromConfig() {
 bool KeybindingsMenu::activateBinding(Widget* widget) {
   exitActiveMode();
 
-  m_activeKeybinding = widget;
-  if (auto deleteWidget = m_activeKeybinding->parent()->fetchChild<ButtonWidget>("deleteBinding"))
-    deleteWidget->show();
-  convert<ButtonWidget>(m_activeKeybinding)->setHighlighted(true);
+  // FezzedOne: Needed to make this pointer assignment memory-safe downstream just in case the retail keybindings menu ever becomes a registered pane.
+  // Note that disabled `"legacySmuggling"` disables the `interface.bindRegisteredPane` binding because object references are no longer tracked.
+  m_activeKeybinding = GameObjectRegistry::smuggleWrap(widget);
+  if (!m_activeKeybinding) return false;
+
+  if (auto parent = m_activeKeybinding->parent()) {
+    if (auto deleteWidget = parent->fetchChild<ButtonWidget>("deleteBinding"))
+      deleteWidget->show();
+    convert<ButtonWidget>(m_activeKeybinding)->setHighlighted(true);
+  }
 
   return false;
 }

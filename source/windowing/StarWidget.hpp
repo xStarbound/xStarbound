@@ -39,11 +39,6 @@ public:
     m_ptr = objectPointer;
   }
 
-
-  SafeWidgetPtr(ObjectType* objectPointer) {
-    m_ptr = objectPointer;
-  }
-
   SafeWidgetPtr() : SafeWidgetPtr(std::shared_ptr<ObjectType>()) {}
 
   SafeWidgetPtr(std::nullptr_t) : m_ptr((ObjectType*)nullptr) {}
@@ -56,7 +51,8 @@ public:
   }
 
   SafeWidgetPtr& operator=(SafeWidgetPtr const& r) {
-    m_ptr = r.m_ptr;
+    if (this != &r)
+      m_ptr = r.m_ptr;
     return *this;
   }
 
@@ -110,6 +106,86 @@ SafeWidgetPtr<Type1> as(SafeWidgetPtr<Type2> const& p) {
 template <typename Type1, typename Type2>
 SafeWidgetPtr<Type1 const> as(SafeWidgetPtr<Type2 const> const& p) {
   return SafeWidgetPtr(dynamic_pointer_cast<Type1 const>(p.m_ptr));
+}
+
+template <typename ObjectType>
+class ParentWidgetPtr {
+public:
+  // FezzedOne: Internal raw pointer to an object, assumed to be either a valid parent widget or `nullptr`.
+  // Only `Widget::parent` should create these objects.
+  ObjectType* m_ptr;
+
+  ParentWidgetPtr(ObjectType* objectPointer /*, size_t uniqueId */) {
+    m_ptr = objectPointer;
+  }
+
+  ParentWidgetPtr(std::nullptr_t) : m_ptr((ObjectType*)nullptr) {}
+
+  ParentWidgetPtr() : ParentWidgetPtr(nullptr) {}
+
+  ParentWidgetPtr(ParentWidgetPtr const& r) : ParentWidgetPtr(r.m_ptr /*, r.m_uniqueId */) {}
+
+  ParentWidgetPtr(ParentWidgetPtr&& r) {
+    m_ptr = std::move(r.m_ptr);
+    r.m_ptr = nullptr;
+  }
+
+  ParentWidgetPtr& operator=(ParentWidgetPtr const& r) {
+    if (this != &r)
+      m_ptr = r.m_ptr;
+    return *this;
+  }
+
+  ParentWidgetPtr& operator=(ParentWidgetPtr&& r) {
+    m_ptr = std::move(r.m_ptr);
+    r.m_ptr = nullptr;
+    return *this;
+  }
+
+  // Just as an extra sanity check on assignment to member variables.
+  operator ObjectType*() const {
+    if (m_ptr)
+      return m_ptr;
+    throw GuiException("Dereferenced pointer to nonexistent parent widget");
+  }
+
+  operator bool() const {
+    return (bool)m_ptr;
+  }
+
+  ObjectType& operator*() const {
+    if (m_ptr)
+      return *m_ptr;
+    throw GuiException("Dereferenced pointer to nonexistent parent widget");
+  }
+
+  ObjectType* operator->() const {
+    if (m_ptr)
+      return m_ptr;
+    throw GuiException("Dereferenced pointer to nonexistent parent widget");
+  }
+
+  ObjectType* get() const {
+    if (m_ptr)
+      return m_ptr;
+    throw GuiException("Dereferenced pointer to nonexistent parent widget");
+  }
+
+  void checkValid() const {
+    if (!m_ptr)
+      throw GuiException("Dereferenced pointer to nonexistent parent widget");
+  }
+};
+
+// FezzedOne: Needed for dynamic casting of `ParentWidgetPtr`'s.
+template <typename Type1, typename Type2>
+ParentWidgetPtr<Type1> as(ParentWidgetPtr<Type2> const& p) {
+  return ParentWidgetPtr(dynamic_cast<Type1*>(p.m_ptr));
+}
+
+template <typename Type1, typename Type2>
+ParentWidgetPtr<Type1 const> as(ParentWidgetPtr<Type2 const> const& p) {
+  return ParentWidgetPtr(dynamic_cast<Type1 const*>(p.m_ptr));
 }
 
 class Widget {

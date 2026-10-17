@@ -31,7 +31,7 @@ private:
   void resetDefaults();
 
   // FezzedOne: To prevent dangling, just in case.
-  SafeWidgetPtr<Widget> m_activeKeybinding;
+  SmugglePtr<Widget> m_activeKeybinding;
 
   Map<Widget*, InterfaceAction> m_childToAction;
   TabSetWidgetPtr m_tabSet;
