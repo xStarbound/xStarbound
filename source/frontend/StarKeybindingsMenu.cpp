@@ -103,6 +103,10 @@ void KeybindingsMenu::dismissed() {
 }
 
 void KeybindingsMenu::buildListsFromConfig() {
+  // FezzedOne: Must be cleared because it could be a freed object at this point. Fixes a segfault that occurs if «Back» is clicked
+  // while a keybinding prompt is active.
+  m_activeKeybinding = nullptr;
+
   m_playerList = fetchChild<ListWidget>("categories.tabs.player.scrollArea.keyList");
   m_toolBarList = fetchChild<ListWidget>("categories.tabs.toolbar.scrollArea.keyList");
   m_gameList = fetchChild<ListWidget>("categories.tabs.game.scrollArea.keyList");
@@ -164,7 +168,7 @@ void KeybindingsMenu::setKeybinding(KeyChord desc) {
   auto config = Root::singleton().configuration();
   auto base = config->get("bindings");
 
-  auto action = m_childToAction.get(m_activeKeybinding);
+  auto action = m_childToAction.get(m_activeKeybinding.get());
   auto key = InterfaceActionNames.getRight(action);
 
   auto bindings = OrderedHashSet<Json>::from(base.get(key).toArray());
@@ -201,7 +205,7 @@ void KeybindingsMenu::clearActive() {
   auto config = Root::singleton().configuration();
   auto base = config->get("bindings").toObject();
 
-  auto action = m_childToAction.get(m_activeKeybinding);
+  auto action = m_childToAction.get(m_activeKeybinding.get());
   auto key = InterfaceActionNames.getRight(action);
 
   base[key] = JsonArray{};
@@ -217,8 +221,10 @@ void KeybindingsMenu::exitActiveMode() {
   if (!m_activeKeybinding)
     return;
 
-  if (auto deleteWidget = m_activeKeybinding->parent()->fetchChild<ButtonWidget>("deleteBinding"))
-    deleteWidget->hide();
+  if (auto parent = m_activeKeybinding->parent()) {
+    if (auto deleteWidget = parent->fetchChild<ButtonWidget>("deleteBinding"))
+      deleteWidget->hide();
+  }
   convert<ButtonWidget>(m_activeKeybinding)->setHighlighted(false);
   m_activeKeybinding = nullptr;
   m_currentMods = KeyMod::NoMod;
