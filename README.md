@@ -236,6 +236,10 @@ The following «[oSB]»- or «[OpenStarbound]»-tagged mods either do not actual
 - [TBWorkaround](https://steamcommunity.com/sharedfiles/filedetails/?id=3805772653) — does not actually require OpenStarbound or any other Starbound fork.
 - [Tiri's Accessories](https://steamcommunity.com/sharedfiles/filedetails/?id=3619906462) — has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support extended cosmetic slots or cosmetic overlays/underlays.
 
+The following retail mod implements an OpenStarbound feature on xStarbound:
+
+- [Sparkle items 2.0](https://steamcommunity.com/sharedfiles/filedetails/?id=3822180314) — adds rarity beams to item drops, like the OpenStarbound/oSBM default. Can't _disable_ the rarity beams on an OpenStarbound or oSBM client. This is the way rarity beams should have been implemented, not as a hardcoded fork feature.
+
 Additionally, xStarbound gives mods that change the size or number of bags in the inventory, or modify the action bar, full compatibility with existing characters «out of the box». You can also use these mods in multiplayer by enabling `"inventorySpoofing"` in your `xclient.config`, though this does have some caveats: xClient spoofs a vanilla inventory by default, letting you use inventory and action bar mods on servers _not_ running such mods (such as vanilla servers). A patch to `"networkedItemBags"` in `$assets/player.config` may be needed to play on servers running inventory mods (and/or desired to avoid issues with keycards in Frackin' Universe and Elithian Races in single-player) if you have `"inventorySpoofing"` enabled and use inventory-extending mods like bk3k's Inventory.
 
 </details>
