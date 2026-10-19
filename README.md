@@ -176,6 +176,7 @@ The following mods for xStarbound and/or OpenStarbound have special functionalit
 - [No Food Rotting](https://steamcommunity.com/sharedfiles/filedetails/?id=3484110634) — requires xStarbound, oSBM or OpenStarbound. Is client-side.
 - [Nytes Ship Parts](https://steamcommunity.com/sharedfiles/filedetails/?id=3777627193) — the OpenStarbound-specific patches require xStarbound, oSBM or OpenStarbound.
 - [OCD Tooltip Fix](https://steamcommunity.com/sharedfiles/filedetails/?id=3355387636) — technically supported by xStarbound, but unnecessary.
+- [Omnicrafter - Compact Crafting QoL] — requires xStarbound, oSBM or OpenStarbound for nested JSON patch arrays.
 - [One-For-All Compact and Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3427751671), [One-For-All Perennial Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3435109352) and [One-For-All Compact Crops Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3457819726) — fully supported by xStarbound.
 - [OpenStarbound WEdit](https://github.com/Mofurka/OpenStarbound-WEdit) — this WEdit fork requires OpenStarbound or xStarbound; it doesn't support xStarbound's mid-air tile placement.
 - [Pan Dimensional Vending](https://steamcommunity.com/sharedfiles/filedetails/?id=3464213838&searchtext=) — fully supported by xStarbound.
