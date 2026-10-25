@@ -305,7 +305,7 @@ void ItemDrop::render(RenderCallback* renderCallback) {
       }
     }
   }
-  EntityRenderLayer renderLayer = m_mode.get() == Mode::Taken || m_overForeground ? RenderLayerForegroundTile : RenderLayerItemDrop;
+  EntityRenderLayer renderLayer = m_overForeground ? RenderLayerForegroundTile : (m_mode.get() == Mode::Taken ? m_takenRenderLayer : RenderLayerItemDrop);
   Vec2F dropPosition = position();
   for (Drawable drawable : *m_drawables) {
     drawable.position += dropPosition;
@@ -396,12 +396,16 @@ ItemDrop::ItemDrop() {
   m_netGroup.addNetElement(&m_itemDescriptor);
 
   m_afterTakenLife = m_config.getFloat("afterTakenLife");
-  m_overheadTime = m_config.getFloat("overheadTime");
+  m_overheadTime = m_config.getFloat("overheadTime", 0.0f);
   m_pickupDistance = m_config.getFloat("pickupDistance");
   m_velocity = m_config.getFloat("velocity");
   m_velocityApproach = m_config.getFloat("velocityApproach");
-  m_overheadApproach = m_config.getFloat("overheadApproach");
-  m_overheadOffset = Vec2F(m_config.getFloat("overheadRandomizedDistance"), 0).rotate(Constants::pi * 2.0 * Random::randf());
+  m_overheadApproach = m_config.getFloat("overheadApproach", 2000.0f);
+  m_overheadOffset = Vec2F(m_config.getFloat("overheadRandomizedDistance", 0.25f), 0).rotate(Constants::pi * 2.0 * Random::randf());
+
+  m_takenVelocityRamp = m_config.getBool("takenVelocityRamp", false);
+  m_takenAddsOwnerVelocity = m_config.getBool("takenAddsOwnerVelocity", false);
+  m_takenRenderLayer = parseRenderLayer(m_config.getString("takenRenderLayer", "ItemDrop"));
 
   m_combineChance = m_config.getFloat("combineChance");
   m_combineRadius = m_config.getFloat("combineRadius");
@@ -440,9 +444,13 @@ void ItemDrop::updateTaken(bool master) {
     }
     Vec2F diff = world()->geometry().diff(targetPosition, position);
     float magnitude = diff.magnitude();
-    Vec2F velocity = diff.normalized() * m_velocity * min(1.0f, magnitude);
-    if (auto playerEntity = as<Player>(owningEntity))
-      velocity += playerEntity->velocity();
+    Vec2F velocity = diff.normalized() * m_velocity;
+    if (m_takenVelocityRamp)
+      velocity *= min(1.0f, magnitude);
+    if (m_takenAddsOwnerVelocity) {
+      if (auto playerEntity = as<Player>(owningEntity))
+        velocity += playerEntity->velocity();
+    }
     m_movementController.approachVelocity(velocity, overhead ? m_overheadApproach : m_velocityApproach);
     if (master && !overhead && magnitude < m_pickupDistance)
       m_mode.set(Mode::Dead);

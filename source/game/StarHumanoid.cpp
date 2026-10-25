@@ -75,7 +75,7 @@ HumanoidIdentity::HumanoidIdentity(Json config) {
   hairType = config.getString("hairType", "male1");
   hairDirectives = config.getString("hairDirectives", "");
   bodyDirectives = config.getString("bodyDirectives", "");
-  if (auto jEmoteDirectives = config.optString("emoteDirectives")) // Passing Directives as a default arg would be inefficient
+  if (auto jEmoteDirectives = config.optString("emoteDirectives"))
     emoteDirectives = jEmoteDirectives.take();
   else
     emoteDirectives = bodyDirectives;
@@ -2031,6 +2031,10 @@ Humanoid Humanoid::makeDummy(Gender gender) {
   humanoid.m_bodyFrameset = assets->json("/humanoid/any/dummy.config:body").toString();
   humanoid.m_frontArmFrameset = assets->json("/humanoid/any/dummy.config:frontArm").toString();
   humanoid.m_backArmFrameset = assets->json("/humanoid/any/dummy.config:backArm").toString();
+  // FezzedOne: Ensures the dummy doesn't have any hair.
+  humanoid.m_hairFrameset = "/assetmissing.png";
+  humanoid.m_facialHairFrameset = "/assetmissing.png";
+  humanoid.m_facialMaskFrameset = "/assetmissing.png";
   humanoid.setFacingDirection(DirectionNames.getLeft(assets->json("/humanoid/any/dummy.config:direction").toString()));
 
   return humanoid;
@@ -2164,7 +2168,7 @@ List<Drawable> Humanoid::renderDummy(Gender gender, Maybe<HeadArmor const*> head
     }
   }
 
-  auto drawables = render();
+  auto drawables = render(false, false, {});
   Drawable::scaleAll(drawables, TilePixels);
 
   return drawables;

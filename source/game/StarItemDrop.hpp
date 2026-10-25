@@ -1,12 +1,13 @@
 #ifndef STAR_ITEM_DROP_HPP
 #define STAR_ITEM_DROP_HPP
 
-#include "StarNetElementSystem.hpp"
-#include "StarMovementController.hpp"
-#include "StarItemDescriptor.hpp"
-#include "StarGameTimers.hpp"
-#include "StarEntity.hpp"
 #include "StarDrawable.hpp"
+#include "StarEntity.hpp"
+#include "StarGameTimers.hpp"
+#include "StarItemDescriptor.hpp"
+#include "StarMovementController.hpp"
+#include "StarNetElementSystem.hpp"
+#include "StarEntityRenderingTypes.hpp"
 
 namespace Star {
 
@@ -85,7 +86,10 @@ public:
   void setVelocity(Vec2F const& position);
 
 private:
-  enum class Mode { Intangible, Available, Taken, Dead };
+  enum class Mode { Intangible,
+    Available,
+    Taken,
+    Dead };
   static EnumMap<Mode> const ModeNames;
 
   ItemDrop();
@@ -123,10 +127,13 @@ private:
   GameTimer m_intangibleTimer;
   EpochTimer m_ageItemsTimer;
 
+  bool m_takenVelocityRamp;
+  bool m_takenAddsOwnerVelocity;
+  EntityRenderLayer m_takenRenderLayer;
   bool m_overForeground;
   Maybe<List<Drawable>> m_drawables;
 };
 
-}
+} // namespace Star
 
 #endif

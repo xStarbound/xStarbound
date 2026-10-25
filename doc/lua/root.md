@@ -834,6 +834,79 @@ Sets the value at the specified JSON path in `xclient.config` (on xClient, even 
 
 ---
 
+## Mod storage
+
+> **This feature and its associated bindings by @LumiKalt are only available on xStarbound v4.6+ and OpenStarbound v0.1.16+.**
+
+A mod can keep data between sessions with `root.getModStorage` and the functions next to it. This is a key/value store that is private to the mod and works with `safeScripts` on, so a mod does not need to turn the sandbox off to save its settings or progress.
+
+- **Which mod:** by default the mod is the asset source (the pak or asset directory) that the calling script was loaded from, so two mods never overwrite each other's keys by accident. The functions only work in scripts loaded from assets (and error in Lua code compiled with `load` or the OpenStarbound/oSBM-only `loadstring`). Every function also takes an optional last argument, the `name` of another loaded mod, to use its storage instead. That is for mods that work together, for example one that patches or replaces the scripts of another and needs to read what the other mod saved. It is not a sandbox: a mod can patch a script of another mod and so run as that mod anyway. Only mods that have a `name` in `_metadata` can be reached this way, and the call errors if no loaded mod has that name.
+- **Name:** the storage is named after the `name` in the source's `_metadata`, or after its file name if it has none. If several loaded sources have the same name, the first in load order keeps it and the others are stored as `name (file name)`, so they never share data.
+- **Where:** `$storage/modstorage/<name>.json`, one file per mod. Characters that are not letters, digits, `-` or `_` are written as `%XX` in the file name. It is plain JSON, so it can be read or edited by hand while the game is closed.
+- **Values:** anything JSON can hold (`nil` is "not set", while xStarbound's `null` and Pluto's `json.null` yield a `null`). Lua tables become JSON objects or arrays in the usual way, and the usual rules for JSON in Lua apply (a table with keys 1 to n is an array, any other table is an object, so an empty table is an object; use the global `jarray()` to store an empty array; xStarbound's `null` and Pluto's `json.null` may be used). Functions and other values JSON cannot hold make the call error.
+- **Size:** at most 4 MiB of serialized data per mod. A `set` that would go over errors and changes nothing.
+- **Saving:** changes are kept in memory and written about two seconds after the first change, and when the game exits, so setting a key every frame is cheap. A killed (or crashed) client or server can lose the last two seconds of changes; use `root.flushModStorage` to write at once. As far as mod scripts are concerned, all changes are synchronous.
+- **Scope:** the data is per mod and per machine. A server runs its own copy in its own storage directory. To keep data per character or per world, put the id in the key, for example `player.uniqueId() .. ".volume"` or `world.id() .. ".visited"`.
+
+```lua
+function init()
+  -- 1 + the number of earlier sessions, kept across restarts
+  local runs = (root.getModStorage("runs") or 0) + 1
+  root.setModStorage("runs", runs)
+
+  -- per character
+  local key = player.uniqueId() .. ".settings"
+  local settings = root.getModStorage(key) or {volume = 5}
+  settings.volume = math.min(settings.volume + 1, 10)
+  root.setModStorage(key, settings)
+
+  -- another mod's storage, for example in a mod that replaces one of its scripts
+  local theirs = root.getModStorage("progress", "OtherMod")
+end
+```
+
+> **Tip:** Unlike the other data sharing methods that xStarbound, OpenStarbound and oSBM have to offer (and retail's more limited fare), these mod storage callbacks let you transfer data from client-side script contexts to server-side contexts without entity messages, though this only works in single-player or on a client serving as a P2P host.
+
+> **Other global data storage and sharing options:** Also see the server-side-only (and xStarbound/xServer-only) `universe.setServerData`, `universe.getServerData`, `universe.setServerDataPath` and `universe.getServerDataPath` in `universeserver.md`. These are synchronous, save to a serialised versioned JSON file (`$storage/universe/server.dat`), and are intended for server-side data storage, not live data sharing with frequent set calls. For other ways to share (but not necessarily store) script data globally (such as xStarbound/oSBM/OpenStarbound's `shared` table and retail Lua smuggling), see `lua.md`.
+
+---
+
+#### `Json` root.getModStorage(`String` key, `Maybe<String>` mod)
+
+Returns the value stored under **key** in the calling mod's storage (or in that of the loaded mod named **mod**, if so specified), or `nil` if there is none. The result is a copy, so changing a returned table does not change the stored value until it is passed to `root.setModStorage` again.
+
+Errors if the script was not loaded from assets (when no **mod** is given), or if no loaded mod is named **mod**.
+
+---
+
+#### `void` root.setModStorage(`String` key, `Json` value, `Maybe<String>` mod)
+
+Stores **value** under **key** in the calling mod's storage (or in that of the loaded mod named **mod**, if so specified). Passing `nil` removes the key. Setting a value equal to the stored one does nothing, and the write to disk comes after a short delay, see above.
+
+Errors, and leaves the storage as it was, if the mod's data would be larger than the configured maximum mod storage file size in bytes (configured via an integer `"maxModDataSize"` value in `xsbinit.config` on xStarbound or hardcoded on OpenStarbound; defaults to 4 MiB, i.e., 4194304 bytes) after the new data would be stored, if the script was not loaded from assets (when no **mod** is given), or if no loaded mod is named **mod**.
+
+---
+
+#### `JsonArray` root.modStorageKeys(`Maybe<String>` mod)
+
+Returns all keys in the calling mod's storage (or in that of the loaded mod named **mod**, if so specified), in no particular order.
+
+---
+
+#### `void` root.clearModStorage(`Maybe<String>` mod)
+
+Removes every key from the calling mod's storage (or from that of the loaded mod named **mod**, if so specified).
+
+---
+
+#### `void` root.flushModStorage()
+
+Writes all mod storage changes that are waiting for disk to disk now, instead of waiting for the delay. Use it right before any risky change, or after a change that must not be lost. It does nothing when no change is waiting, so it is cheap to call.
+
+Unlike the other functions it applies to the storage of every mod, not only the calling one.
+
+---
+
 ## `BehaviorState` objects
 
 `BehaviorState` objects have the following methods. All methods take the object itself as the first argument, so use the `:` syntax.

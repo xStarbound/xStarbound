@@ -1,9 +1,9 @@
 #include "StarNameplatePainter.hpp"
-#include "StarJsonExtra.hpp"
 #include "StarAssets.hpp"
+#include "StarGuiContext.hpp"
+#include "StarJsonExtra.hpp"
 #include "StarNametagEntity.hpp"
 #include "StarPlayer.hpp"
-#include "StarGuiContext.hpp"
 
 namespace Star {
 
@@ -11,7 +11,7 @@ NameplatePainter::NameplatePainter() {
   auto assets = Root::singleton().assets();
 
   Json nametagConfig = assets->json("/interface.config:nametag");
-  m_showMasterNames = nametagConfig.getBool("showMasterNames");
+  m_showMasterNames = nametagConfig.get("showMasterNames", false) == true;
   m_opacityRate = nametagConfig.getFloat("opacityRate");
   m_inspectOpacityRate = nametagConfig.queryFloat("inspectOpacityRate", m_opacityRate);
   m_offset = jsonToVec2F(nametagConfig.get("offset"));
@@ -49,7 +49,7 @@ void NameplatePainter::update(float dt, WorldClientPtr const& world, WorldCamera
   }
 
   m_nametags.filter([&foundEntities](
-      BubbleState<Nametag> const&, Nametag const& nametag) { return foundEntities.contains(nametag.entityId); });
+                        BubbleState<Nametag> const&, Nametag const& nametag) { return foundEntities.contains(nametag.entityId); });
 
   m_nametags.forEach([&world, &camera, this, inspectionMode](BubbleState<Nametag>& bubbleState, Nametag& nametag) {
     if (auto entity = as<NametagEntity>(world->entity(nametag.entityId))) {
@@ -102,7 +102,7 @@ void NameplatePainter::render() {
 
       context.renderText(*nametag.statusText, statusPosition(bubble.currentPosition));
     }
-    
+
     context.setDefaultFont();
     context.setFontProcessingDirectives("");
   });
@@ -134,4 +134,4 @@ RectF NameplatePainter::determineBoundBox(Vec2F bubblePosition, Nametag const& n
   return nametagBox;
 }
 
-}
+} // namespace Star

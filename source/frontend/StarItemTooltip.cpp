@@ -1,4 +1,5 @@
 #include "StarItemTooltip.hpp"
+#include "StarArmors.hpp"
 #include "StarAssets.hpp"
 #include "StarFireableItem.hpp"
 #include "StarGuiReader.hpp"
@@ -121,7 +122,9 @@ void ItemTooltipBuilder::buildItemDescriptionInner(
   } else {
     if (container->containsChild("objectImage")) {
       if (auto previewable = as<PreviewableItem>(item)) {
-        container->fetchChild<ImageWidget>("objectImage")->setDrawables(previewable->preview(viewer));
+        auto preview = container->fetchChild<ImageWidget>("objectImage");
+        if (is<ArmorItem>(previewable)) preview->disableScissoring();
+        preview->setDrawables(previewable->preview(viewer));
       } else {
         auto drawables = item->iconDrawables();
         container->fetchChild<ImageWidget>("objectImage")->setDrawables(drawables);

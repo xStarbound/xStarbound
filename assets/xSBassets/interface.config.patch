@@ -1,11 +1,4 @@
 {
-  "nametag" : {
-    "showMasterNames" : true,
-    "fontDirectives" : "?border=1;222;2224",
-    "inspectOpacityRate" : 0.15,
-    "movementThreshold" : 0.5,
-    "offset" : [0, 13]
-  },
   "font" : {
     "defaultDirectives" : "",
     "defaultFont" : "/hobo.ttf"
@@ -22,11 +15,6 @@
   "planetNameFormatString" : "- {} -",
   "planetNameDirectives" : "?border=4;000;000",
   
-  "buttonClickSound" : [ "/sfx/interface/button/click.wav" ],
-  "buttonReleaseSound" : [ "/sfx/interface/button/release.wav" ],
-  "buttonHoverSound" : [ "/sfx/interface/button/hover.wav" ],
-  "buttonHoverOffSound" : [ "/sfx/interface/button/hover_off.wav" ],
-
   "debugSpatialClearTime" : 0.0,
   "debugOffset" : [80, 80],
 

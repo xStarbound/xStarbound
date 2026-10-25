@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STAR_MOD_STORAGE_HPP
+#define STAR_MOD_STORAGE_HPP
 
 #include "StarJson.hpp"
 #include "StarString.hpp"
@@ -12,29 +13,56 @@ STAR_CLASS(ModStorage);
 // its own json object stored in <storage>/modstorage/<mod>.json, and scripts
 // can only reach the object of the mod their code comes from, so no file path
 // is ever exposed to Lua and this is safe to offer with safeScripts on.
-class ModStorage {
+//
+// Changes are kept in memory and written by a background thread a short time
+// after the last change, and when this is destroyed, so frequent sets by a
+// script cost no disk writes of their own.
+class ModStorage : private Thread {
 public:
   // Upper bound on the serialized size of one mod's data.
-  // @FezzedOne: Made this configurable in `xsbinit.config`.
+  // FezzedOne: Made this configurable in `xsbinit.config`.
   static size_t constexpr MaxModDataSize = 4 * 1024 * 1024;
+  // How long after a change the data is written to disk.
+  static unsigned constexpr WriteDelayMillis = 2000;
 
   ModStorage(String storageDirectory, size_t maxModDataSize = MaxModDataSize);
+  ~ModStorage() override;
 
   Json get(String const& mod, String const& key);
-  // Throws if the mod's data would grow beyond MaxModDataSize.
+  // Throws if the mod's data would grow beyond the configured maxModDataSize.
   void set(String const& mod, String const& key, Json const& value);
   JsonArray keys(String const& mod);
   void clear(String const& mod);
 
+  // Writes everything that changed to disk now.
+  void flush();
+
 private:
-  JsonObject& load(String const& mod);
-  void save(String const& mod);
+  struct ModData {
+    JsonObject data;
+    // Serialized size of each value, so a set only serializes the value that
+    // changed and not the whole object to check the limit.
+    StringMap<size_t> sizes;
+    size_t totalSize = 0;
+    bool dirty = false;
+  };
+
+
+  ModData& load(String const& mod);
+  void run() override;
+  void markDirty(ModData& mdata);
+  void writeDirty();
   String filePath(String const& mod) const;
 
   Mutex m_mutex;
+  ConditionVariable m_wake;
   size_t m_maxModDataSize;
   String m_directory;
-  StringMap<JsonObject> m_data;
+  StringMap<ModData> m_mods;
+  bool m_stop = false;
+  bool m_pending = false;
 };
 
 } // namespace Star
+
+#endif

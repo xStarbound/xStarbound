@@ -27,6 +27,8 @@ A `null` or `json.null` argument sets the value at the specified path (if a path
 
 Additionally, if an empty path is passed and the value is not a JSON object, the callback does nothing; this is intentional so that the server data's «root» is always a JSON object.
 
+> **Note:** `universe.setServerData` and `universe.setServerDataPath` are _server-side_ save data immediately and synchronously to the server data file and may take a moment if the data file is large or a large amount of data is being saved. As such, this API is not recommended for on-demand data sharing with frequent mod data changes, and is unsuitable for client-side mods and mods that need easy client-to-server communication in single-player. For a more suitable option, consider @LumiKalt's xStarbound/OpenStarbound mod storage system instead (see `root.md`), or see `world.md` for xStarbound's world globals or `lua.md` for other ways of sharing data across script contexts.
+
 #### `List<ClientId>` universe.clientIds()
 
 Returns a list of connected client IDs.

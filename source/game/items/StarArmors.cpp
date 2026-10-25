@@ -1,5 +1,6 @@
 #include "StarArmors.hpp"
 #include "StarAssets.hpp"
+#include "StarConfiguration.hpp"
 #include "StarDirectives.hpp"
 #include "StarHumanoid.hpp"
 #include "StarImageProcessing.hpp"
@@ -290,9 +291,11 @@ Directives const& HeadArmor::maskDirectives() const {
 }
 
 List<Drawable> HeadArmor::preview(PlayerPtr const& viewer) const {
+  auto assets = Root::singleton().assets();
+  auto jPreviewArmorWith = assets->json("/interface.config:tooltip").get("previewArmorWith", Json());
   Gender gender = viewer ? viewer->gender() : Gender::Male;
-  //Humanoid humanoid = Humanoid::makeDummy(gender);
-  Humanoid humanoid = viewer ? *viewer->humanoid() : Humanoid::makeDummy(gender);
+  // Humanoid humanoid = Humanoid::makeDummy(gender);
+  Humanoid humanoid = viewer && jPreviewArmorWith == "player" ? *viewer->humanoid() : Humanoid::makeDummy(gender);
   return humanoid.renderDummy(gender, this, nullptr, nullptr, nullptr);
 }
 
@@ -341,9 +344,11 @@ String const& ChestArmor::backSleeveFrameset(Gender gender) const {
 }
 
 List<Drawable> ChestArmor::preview(PlayerPtr const& viewer) const {
+  auto assets = Root::singleton().assets();
+  auto jPreviewArmorWith = assets->json("/interface.config:tooltip").get("previewArmorWith", Json());
   Gender gender = viewer ? viewer->gender() : Gender::Male;
-  //Humanoid humanoid = Humanoid::makeDummy(gender);
-  Humanoid humanoid = viewer ? *viewer->humanoid() : Humanoid::makeDummy(gender);
+  // Humanoid humanoid = Humanoid::makeDummy(gender);
+  Humanoid humanoid = viewer && jPreviewArmorWith == "player" ? *viewer->humanoid() : Humanoid::makeDummy(gender);
   return humanoid.renderDummy(gender, nullptr, this, nullptr, nullptr);
 }
 
@@ -367,9 +372,11 @@ String const& LegsArmor::frameset(Gender gender) const {
 }
 
 List<Drawable> LegsArmor::preview(PlayerPtr const& viewer) const {
+  auto assets = Root::singleton().assets();
+  auto jPreviewArmorWith = assets->json("/interface.config:tooltip").get("previewArmorWith", Json());
   Gender gender = viewer ? viewer->gender() : Gender::Male;
-  //Humanoid humanoid = Humanoid::makeDummy(gender);
-  Humanoid humanoid = viewer ? *viewer->humanoid() : Humanoid::makeDummy(gender);
+  // Humanoid humanoid = Humanoid::makeDummy(gender);
+  Humanoid humanoid = viewer && jPreviewArmorWith == "player" ? *viewer->humanoid() : Humanoid::makeDummy(gender);
   return humanoid.renderDummy(gender, nullptr, nullptr, this, nullptr);
 }
 
@@ -402,9 +409,11 @@ String const& BackArmor::frameset(Gender gender) const {
 }
 
 List<Drawable> BackArmor::preview(PlayerPtr const& viewer) const {
+  auto assets = Root::singleton().assets();
+  auto jPreviewArmorWith = assets->json("/interface.config:tooltip").get("previewArmorWith", Json());
   Gender gender = viewer ? viewer->gender() : Gender::Male;
-  //Humanoid humanoid = Humanoid::makeDummy(gender);
-  Humanoid humanoid = viewer ? *viewer->humanoid() : Humanoid::makeDummy(gender);
+  // Humanoid humanoid = Humanoid::makeDummy(gender);
+  Humanoid humanoid = viewer && jPreviewArmorWith == "player" ? *viewer->humanoid() : Humanoid::makeDummy(gender);
   return humanoid.renderDummy(gender, nullptr, nullptr, nullptr, this);
 }
 

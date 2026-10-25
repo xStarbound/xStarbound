@@ -306,8 +306,8 @@ InventoryPane::InventoryPane(MainInterface* parent, PlayerPtr player, ContainerI
     m_currentSwapSlotItem = item->descriptor();
   m_pickUpSounds = jsonToStringList(config.get("sounds").get("pickup"));
   m_putDownSounds = jsonToStringList(config.get("sounds").get("putdown"));
-  m_someUpSounds = jsonToStringList(config.get("sounds").get("someup"));
-  m_someDownSounds = jsonToStringList(config.get("sounds").get("somedown"));
+  m_someUpSounds = jsonToStringList(config.get("sounds").get("addToStack", JsonArray()));
+  m_someDownSounds = jsonToStringList(config.get("sounds").get("takeFromStack", JsonArray()));
 }
 
 void InventoryPane::displayed() {

@@ -28,10 +28,10 @@ ButtonWidget::ButtonWidget() {
   m_fontDirectives = interfaceConfig.queryString("font.defaultDirectives", "");
   m_font = interfaceConfig.query("font.defaultFont").toString();
 
-  m_clickSounds = jsonToStringList(assets->json("/interface.config:buttonClickSound"));
-  m_releaseSounds = jsonToStringList(assets->json("/interface.config:buttonReleaseSound"));
-  m_hoverSounds = jsonToStringList(assets->json("/interface.config:buttonHoverSound"));
-  m_hoverOffSounds = jsonToStringList(assets->json("/interface.config:buttonHoverOffSound"));
+  m_clickSounds = jsonToStringList(interfaceConfig.get("buttonClickSound", JsonArray()));
+  m_releaseSounds = jsonToStringList(interfaceConfig.get("buttonReleaseSound", JsonArray()));
+  m_hoverSounds = jsonToStringList(interfaceConfig.get("buttonHoverSound", JsonArray()));
+  m_hoverOffSounds = jsonToStringList(interfaceConfig.get("buttonHoverOffSound", JsonArray()));
 }
 
 ButtonWidget::ButtonWidget(WidgetCallbackFunc callback,

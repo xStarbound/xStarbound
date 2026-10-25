@@ -587,7 +587,7 @@ SpeciesDatabaseConstPtr Root::speciesDatabase() {
 ModStoragePtr Root::modStorage() {
   MutexLocker locker(m_modStorageMutex);
   if (!m_modStorage)
-    m_modStorage = make_shared<ModStorage>(toStoragePath("modstorage"), m_settings.maxModDataSize);
+    m_modStorage = makeObject<ModStorage>(toStoragePath("modstorage"), m_settings.maxModDataSize);
   return m_modStorage;
 }
 
