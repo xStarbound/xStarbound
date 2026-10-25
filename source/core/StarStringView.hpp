@@ -48,6 +48,7 @@ public:
 
   size_t size() const;
   size_t length() const;
+  bool isValid() const;
 
   bool empty() const;
 

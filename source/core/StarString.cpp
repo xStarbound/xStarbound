@@ -147,11 +147,11 @@ String::WideString String::wideString() const {
 }
 
 String::const_iterator String::begin() const {
-  return const_iterator(m_string.begin());
+  return const_iterator(m_string.begin(), m_string.begin(), m_string.end());
 }
 
 String::const_iterator String::end() const {
-  return const_iterator(m_string.end());
+  return const_iterator(m_string.end(), m_string.begin(), m_string.end());
 }
 
 size_t String::size() const {
@@ -160,6 +160,10 @@ size_t String::size() const {
 
 size_t String::length() const {
   return size();
+}
+
+bool String::isValid() const {
+  return isValidUtf8(m_string.c_str(), m_string.size());
 }
 
 void String::clear() {
@@ -274,6 +278,14 @@ String String::reverse() const {
     --i;
     ret.append(*i);
   }
+  return ret;
+}
+
+String String::sanitize() const {
+  String ret;
+  ret.reserve(m_string.length());
+  for (Char c : *this)
+    ret.append(c);
   return ret;
 }
 

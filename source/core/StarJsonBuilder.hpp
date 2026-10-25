@@ -1,8 +1,8 @@
 #ifndef STAR_JSON_BUILDER_HPP
 #define STAR_JSON_BUILDER_HPP
 
-#include "StarJsonParser.hpp"
 #include "StarJson.hpp"
+#include "StarJsonParser.hpp"
 
 namespace Star {
 
@@ -57,8 +57,8 @@ Json inputUtf8Json(InputIterator begin, InputIterator end, bool fragment) {
 
   JsonBuilderStream stream;
   Parser parser(stream);
-  Utf32Input wbegin(begin);
-  Utf32Input wend(end);
+  Utf32Input wbegin(begin, begin, end);
+  Utf32Input wend(end, begin, end);
   Utf32Input pend = parser.parse(wbegin, wend, fragment);
 
   if (parser.error())
@@ -99,6 +99,6 @@ void outputUtf32Json(Jsonlike const& val, OutputIterator out, int pretty, bool s
   JsonStreamer<Jsonlike>::toJsonStream(val, writer, sort);
 }
 
-}
+} // namespace Star
 
 #endif
