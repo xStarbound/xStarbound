@@ -136,6 +136,8 @@ add_library(star_game_main STATIC
         StarMaterialTypes.hpp
         StarMicroDungeon.cpp
         StarMicroDungeon.hpp
+        StarModStorage.hpp
+        StarModStorage.cpp
         StarMonster.cpp
         StarMonster.hpp
         StarMonsterDatabase.cpp
@@ -360,7 +362,7 @@ add_library(Star::GameMain ALIAS star_game_main)
 # Need to link all objects as a group in GCC/Clang due to circular dependencies.
 add_library(star_game_interface INTERFACE)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_link_libraries(star_game_interface
+  target_link_libraries(star_game_interface
             INTERFACE
             Star::GameInterfaces
             Star::GameItems
@@ -370,7 +372,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
             Star::GameMain
     )
 else()
-    target_link_libraries(star_game_interface
+  target_link_libraries(star_game_interface
             INTERFACE
             $<LINK_GROUP:RESCAN,
             Star::GameInterfaces,

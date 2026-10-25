@@ -24,6 +24,7 @@
 #include "StarLiquidsDatabase.hpp"
 #include "StarLogging.hpp"
 #include "StarMaterialDatabase.hpp"
+#include "StarModStorage.hpp"
 #include "StarMonster.hpp"
 #include "StarNameGenerator.hpp"
 #include "StarNpc.hpp"
@@ -581,6 +582,13 @@ EmoteProcessorConstPtr Root::emoteProcessor() {
 
 SpeciesDatabaseConstPtr Root::speciesDatabase() {
   return loadMember(m_speciesDatabase, m_speciesDatabaseMutex, "SpeciesDatabase");
+}
+
+ModStoragePtr Root::modStorage() {
+  MutexLocker locker(m_modStorageMutex);
+  if (!m_modStorage)
+    m_modStorage = make_shared<ModStorage>(toStoragePath("modstorage"), m_settings.maxModDataSize);
+  return m_modStorage;
 }
 
 ImageMetadataDatabaseConstPtr Root::imageMetadataDatabase() {

@@ -277,6 +277,19 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     else
       rootSettings.runtimeConfigFile = m_defaults.runtimeConfigFile;
 
+    size_t constexpr MaxModDataSize = 4 * 1024 * 1024;
+    Json jMaxModDataSize = bootConfig.get("maxModDataSize", Json());
+    if (jMaxModDataSize.isType(Json::Type::Int)) {
+      int64_t maxModDataSize = jMaxModDataSize.toInt();
+      if (maxModDataSize < 0)
+        ::printf("[xSB] Warning: \"maxModDataSize\" in boot config not a non-negative integer; ignoring and using default of %zu bytes.", MaxModDataSize);
+      rootSettings.maxModDataSize = maxModDataSize >= 0 ? jMaxModDataSize.toUInt() : MaxModDataSize;
+    } else {
+      if (!jMaxModDataSize.isNull())
+        ::printf("[xSB] Warning: \"maxModDataSize\" in boot config not a non-negative integer; ignoring and using default of %zu bytes.", MaxModDataSize);
+      rootSettings.maxModDataSize = MaxModDataSize;
+    }
+
     return rootSettings;
 
   } catch (std::exception const& e) {

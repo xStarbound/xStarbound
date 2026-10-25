@@ -37,6 +37,7 @@ STAR_CLASS(StatisticsDatabase);
 STAR_CLASS(EmoteProcessor);
 STAR_CLASS(SpeciesDatabase);
 STAR_CLASS(ImageMetadataDatabase);
+STAR_CLASS(ModStorage);
 STAR_CLASS(VersioningDatabase);
 STAR_CLASS(QuestTemplateDatabase);
 STAR_CLASS(AiDatabase);
@@ -88,6 +89,9 @@ public:
     // If given, will write changed configuration to the given file within the
     // storage directory.
     Maybe<String> runtimeConfigFile;
+
+    // @FezzedOne: Maximum permitted data size for JSON storage files associated with @LumiKalt's mod data storage system.
+    size_t maxModDataSize;
   };
 
   // Get pointer to the singleton root instance, if it exists.  Otherwise,
@@ -172,6 +176,8 @@ public:
   EmoteProcessorConstPtr emoteProcessor();
   SpeciesDatabaseConstPtr speciesDatabase();
   ImageMetadataDatabaseConstPtr imageMetadataDatabase();
+  // Not reset on reload, it writes through to disk.
+  ModStoragePtr modStorage();
   VersioningDatabaseConstPtr versioningDatabase();
   QuestTemplateDatabaseConstPtr questTemplateDatabase();
   AiDatabaseConstPtr aiDatabase();
@@ -305,6 +311,8 @@ private:
 
   ImageMetadataDatabasePtr m_imageMetadataDatabase;
   Mutex m_imageMetadataDatabaseMutex;
+  ModStoragePtr m_modStorage;
+  Mutex m_modStorageMutex;
 
   VersioningDatabasePtr m_versioningDatabase;
   Mutex m_versioningDatabaseMutex;

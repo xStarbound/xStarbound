@@ -915,6 +915,9 @@ public:
   ByteArray compile(String const& contents, String const& name = String());
   ByteArray compile(ByteArray const& contents, String const& name = String());
 
+  // Returns the debug info of the state.
+  lua_Debug const& debugInfo(int level = 1, const char* what = "nSlu");
+
   // Generic from/to lua conversion, calls template specialization of
   // LuaConverter for actual conversion.
   template <typename T>
@@ -1131,6 +1134,7 @@ private:
   unsigned m_recursionLimit;
   int m_nullTerminated;
   HashMap<tuple<String, unsigned>, shared_ptr<LuaProfileEntry>> m_profileEntries;
+  lua_Debug m_debugInfo;
 };
 
 // Built in conversions
