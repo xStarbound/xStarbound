@@ -41,7 +41,7 @@ struct Drawable {
 
   static Drawable makeLine(Line2F const& line, float lineWidth, Color const& color, Vec2F const& position = Vec2F());
   static Drawable makePoly(PolyF poly, Color const& color, Vec2F const& position = Vec2F());
-  static Drawable makeImage(String const& image, float pixelSize, bool centered, Vec2F const& position, Color const& color = Color::White);
+  static Drawable makeImage(AssetPath const& image, float pixelSize, bool centered, Vec2F const& position, Color const& color = Color::White);
 
   template <typename DrawablesContainer>
   static void translateAll(DrawablesContainer& drawables, Vec2F const& translation);
