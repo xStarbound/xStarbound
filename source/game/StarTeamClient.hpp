@@ -1,10 +1,10 @@
 #ifndef STAR_TEAMCLIENT_HPP
 #define STAR_TEAMCLIENT_HPP
 
-#include "StarUuid.hpp"
 #include "StarDrawable.hpp"
-#include "StarWarping.hpp"
 #include "StarJsonRpc.hpp"
+#include "StarUuid.hpp"
+#include "StarWarping.hpp"
 
 namespace Star {
 
@@ -76,16 +76,22 @@ private:
   bool m_hasPendingInvitation;
   pair<Uuid, String> m_pendingInvitation;
   double m_pollInvitationsTimer;
+  double m_pollInvitationsInterval;
 
   bool m_fullUpdateRunning;
   double m_fullUpdateTimer;
+  double m_fullUpdateInterval;
 
   bool m_statusUpdateRunning;
   double m_statusUpdateTimer;
+  double m_statusUpdateInterval;
+
+  double m_fullWriteTimer;
+  double m_fullWriteInterval;
 
   List<RpcResponseHandler> m_pendingResponses;
 };
 
-}
+} // namespace Star
 
 #endif

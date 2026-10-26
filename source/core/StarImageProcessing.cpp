@@ -1,5 +1,6 @@
 #include "StarImageProcessing.hpp"
 #include "StarColor.hpp"
+#include "StarDirectives.hpp"
 #include "StarEncode.hpp"
 #include "StarImage.hpp"
 #include "StarInterpolation.hpp"
@@ -18,223 +19,174 @@
 
 namespace Star {
 
-Image scaleNearest(Image const& srcImage, Vec2F scale) {
-  if (scale[0] == 0.0f && scale[1] == 0.0f)
-    return Image();
-  if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
-    // «Downstreamed» from Kae. Fixes a segfault.
-    if ((scale[0] < 0.0f || scale[1] < 0.0f)) {
-      Logger::warn("scalenearest: Scale must be non-negative!");
-      scale = Vec2F(std::abs(scale[0]), std::abs(scale[1]));
-    }
-    // FezzedOne: Fixes a CPU pegging exploit.
-    if ((scale[0] > 4096.0f || scale[1] > 4096.0f)) {
-      Logger::warn("scalenearest: Scale may not exceed 4096x in either dimension!");
-      scale = scale.piecewiseMin(Vec2F::filled(4096.0f));
-    }
-    Vec2U srcSize = srcImage.size();
-    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
-    destSize[0] = max(destSize[0], 1u);
-    destSize[1] = max(destSize[1], 1u);
-
-    Image destImage(destSize, srcImage.pixelFormat());
-
-    for (unsigned y = 0; y < destSize[1]; ++y) {
-      for (unsigned x = 0; x < destSize[0]; ++x)
-        destImage.set({x, y}, srcImage.clamp(Vec2I::round(vdiv(Vec2F(x, y), scale))));
-    }
-    return destImage;
-  } else {
-    return srcImage;
-  }
+// FezzedOne: Overflow-safe multiplication. Used for all pixel count checks to ensure an overflowed count can never bypass the check.
+static inline size_t safeMul(size_t a, size_t b) {
+  if (a != 0 && b > std::numeric_limits<size_t>::max() / a)
+    return std::numeric_limits<size_t>::max();
+  return a * b;
 }
 
-#if defined STAR_COMPILER_MSVC
-// FezzedOne: Needed to use `/fp:strict` for this function on MSVC and disable `-ffast-math` on recent versions of Clang.
-// #pragma float_control(precise, on) // enable precise semantics
-// #pragma fenv_access(on)            // enable environment sensitivity
-// #pragma float_control(except, on)  // enable exception semantics
-#elif defined STAR_COMPILER_CLANG
-// #pragma clang optimize off
-#elif false // defined STAR_COMPILER_GNU
-// FezzedOne: Emulate MSVC's floating-point behaviour on GCC.
-#pragma GCC optimize("O2")
-#endif
-Image scaleBilinear(Image const& srcImage, Vec2F scale) {
-#if defined STAR_COMPILER_CLANG
-#pragma clang fp reassociate(off) contract(on) reciprocal(off) exceptions(strict)
-#endif
-  if (scale[0] == 0.0f && scale[1] == 0.0f)
-    return Image();
-  if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
-    // «Downstreamed» from Kae. Fixes a segfault.
-    if ((scale[0] < 0.0f || scale[1] < 0.0f)) {
-      Logger::warn("scalebilinear: Scale must be non-negative!");
-      scale = Vec2F(std::abs(scale[0]), std::abs(scale[1]));
-    }
-    // FezzedOne: Fixes a CPU pegging exploit.
-    if ((scale[0] > 4096.0f || scale[1] > 4096.0f)) {
-      Logger::warn("scalebilinear: Scale may not exceed 4096x in either dimension!");
-      scale = scale.piecewiseMin(Vec2F::filled(4096.0f));
-    }
-    // union ScaleFloatToHex { float floatVal; int byteVal; };
-    // int byteScale_0 = ScaleFloatToHex{.floatVal = scale[0]}.byteVal;
-    // int byteScale_1 = ScaleFloatToHex{.floatVal = scale[1]}.byteVal;
-    // Logger::info("[Debug] scalebilinear: Scale is {{ {:}, {:} }}, hex {{ {:x}, {:x} }}", scale[0], scale[1], byteScale_0, byteScale_1);
-    Vec2U srcSize = srcImage.size();
-    Vec2U destSize;
-    {
-      // #if defined STAR_COMPILER_CLANG
-      //   // FezzedOne: Needed to disable `-ffast-math` on Clang.
-      //   #pragma clang fp reciprocal(off) reassociate(off) contract(on) exceptions(strict)
-      // #endif
-      destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
-    }
-    destSize[0] = max(destSize[0], 1u);
-    destSize[1] = max(destSize[1], 1u);
-
-    Image destImage(destSize, srcImage.pixelFormat());
-
-    for (unsigned y = 0; y < destSize[1]; ++y) {
-      for (unsigned x = 0; x < destSize[0]; ++x) {
-        Vec4B processedResult;
-
-        {
-          // #if defined STAR_COMPILER_CLANG
-          //   // FezzedOne: Needed to disable `-ffast-math` on Clang.
-          //   #pragma clang fp reciprocal(off) reassociate(off) contract(on) exceptions(strict)
-          // #endif
-          auto pos = vdiv(Vec2F(x, y), scale);
-          auto ipart = Vec2I::floor(pos);
-          auto fpart = pos - Vec2F(ipart);
-
-          // Vec4F topLeft     = Vec4F(srcImage.clamp(ipart[0],       ipart[1]));
-          // Vec4F topRight    = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1]));
-          // Vec4F bottomLeft  = Vec4F(srcImage.clamp(ipart[0],       ipart[1] + 1));
-          // Vec4F bottomRight = Vec4F(srcImage.clamp(ipart[0] + 1,   ipart[1] + 1));
-
-          // FezzedOne: Inlined lerp function.
-          auto inlineLerp = [](float offset, Vec4F f0, Vec4F f1) -> Vec4F {
-            return f0 * (1.0f - offset) + f1 * (offset);
-          };
-
-          // Vec4F result = lerp(fpart[1],
-          //   lerp(fpart[0],
-          //     Vec4F(srcImage.clamp(ipart[0], ipart[1])),
-          //     Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1]))
-          //   ),
-          //   lerp(fpart[0],
-          //     Vec4F(srcImage.clamp(ipart[0], ipart[1] + 1)),
-          //     Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 1))
-          //   )
-          // );
-
-          Vec4F result = inlineLerp(fpart[1],
-              inlineLerp(fpart[0],
-                  Vec4F(srcImage.clamp(ipart[0], ipart[1])),
-                  Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1]))),
-              inlineLerp(fpart[0],
-                  Vec4F(srcImage.clamp(ipart[0], ipart[1] + 1)),
-                  Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 1))));
-
-          // Vec4F left    = inlineLerp(fpart[1], topLeft,   bottomLeft);
-          // Vec4F right   = inlineLerp(fpart[1], topRight,  bottomRight);
-          // Vec4F result  = inlineLerp(fpart[0], left,      right);
-
-          // Vec4F top     = inlineLerp(fpart[0], topLeft,     topRight);
-          // Vec4F bottom  = inlineLerp(fpart[0], bottomLeft,  bottomRight);
-          // Vec4F result  = inlineLerp(fpart[1], top,         bottom);
-
-          processedResult = Vec4B(result);
-        }
-
-        destImage.set({x, y}, processedResult);
-      }
-    }
-
-    return destImage;
-  } else {
-    return srcImage;
-  }
+/* @LumiKalt's optimisations. { */
+// Size of the scaled image, and the value of one pixel of it. The full scales and the windowed ones below both use
+// these, so a window is always exactly the same pixels the full image would have there.
+static Vec2U scaledSize(Image const& srcImage, Vec2F const& scale) {
+  Vec2U destSize = Vec2U::round(vmult(Vec2F(srcImage.size()), scale));
+  destSize[0] = max(destSize[0], 1u);
+  destSize[1] = max(destSize[1], 1u);
+  return destSize;
 }
-#if defined STAR_COMPILER_MSVC
-// FezzedOne: Reset everything back to the default MSVC options for the build.
-// #pragma float_control(except, off)  // disable exception semantics
-// #pragma fenv_access(off)            // disable environment sensitivity
-// #pragma float_control(precise, off) // disable precise semantics
-#elif defined STAR_COMPILER_CLANG
-// #pragma clang optimize on
-#elif false // defined STAR_COMPILER_GNU
-// FezzedOne: Reset to whatever MinGW GCC options were specified in CMakeLists.txt.
-#pragma GCC reset_options
-#endif
 
-Image scaleBicubic(Image const& srcImage, Vec2F scale) {
-  if (scale[0] == 0.0f && scale[1] == 0.0f)
-    return Image();
-  if (!(scale[0] == 1.0f && scale[1] == 1.0f)) {
-    // «Downstreamed» from Kae. Fixes a segfault.
-    if ((scale[0] < 0.0f || scale[1] < 0.0f)) {
-      Logger::warn("scalebicubic: Scale must be non-negative!");
-      scale = Vec2F(std::abs(scale[0]), std::abs(scale[1]));
+// The window of w by h pixels at (x0, y0) of the nearest neighbour scaled image.
+// A destination pixel copies the source pixel at clamp(round(position / scale)) and the column of that source pixel
+// only depends on x and its row only on y, so each column and row is worked out once.
+// Then, the pixels are copied instead of dividing and rounding for every pixel.
+static Image scaleNearestWindow(Image const& srcImage, Vec2F const& scale, unsigned x0, unsigned y0, unsigned w, unsigned h) {
+  ZoneScoped;
+  Image destImage(Vec2U(w, h), srcImage.pixelFormat());
+
+  if (srcImage.width() == 0 || srcImage.height() == 0) {
+    // Image::clamp gives {0, 0, 0, 0} for an image without pixels
+    for (unsigned y = 0; y < h; ++y) {
+      for (unsigned x = 0; x < w; ++x)
+        destImage.set({x, y}, Vec4B(0, 0, 0, 0));
     }
-    // FezzedOne: Fixes a CPU pegging exploit.
-    if ((scale[0] > 4096.0f || scale[1] > 4096.0f)) {
-      Logger::warn("scalebicubic: Scale may not exceed 4096x in either dimension!");
-      scale = scale.piecewiseMin(Vec2F::filled(4096.0f));
-    }
-    Vec2U srcSize = srcImage.size();
-    Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
-    destSize[0] = max(destSize[0], 1u);
-    destSize[1] = max(destSize[1], 1u);
-
-    Image destImage(destSize, srcImage.pixelFormat());
-
-    for (unsigned y = 0; y < destSize[1]; ++y) {
-      for (unsigned x = 0; x < destSize[0]; ++x) {
-        auto pos = vdiv(Vec2F(x, y), scale);
-        auto ipart = Vec2I::floor(pos);
-        auto fpart = pos - Vec2F(ipart);
-
-        Vec4F a = cubic4(fpart[0],
-            Vec4F(srcImage.clamp(ipart[0], ipart[1])),
-            Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1])),
-            Vec4F(srcImage.clamp(ipart[0] + 2, ipart[1])),
-            Vec4F(srcImage.clamp(ipart[0] + 3, ipart[1])));
-
-        Vec4F b = cubic4(fpart[0],
-            Vec4F(srcImage.clamp(ipart[0], ipart[1] + 1)),
-            Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 1)),
-            Vec4F(srcImage.clamp(ipart[0] + 2, ipart[1] + 1)),
-            Vec4F(srcImage.clamp(ipart[0] + 3, ipart[1] + 1)));
-
-        Vec4F c = cubic4(fpart[0],
-            Vec4F(srcImage.clamp(ipart[0], ipart[1] + 2)),
-            Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 2)),
-            Vec4F(srcImage.clamp(ipart[0] + 2, ipart[1] + 2)),
-            Vec4F(srcImage.clamp(ipart[0] + 3, ipart[1] + 2)));
-
-        Vec4F d = cubic4(fpart[0],
-            Vec4F(srcImage.clamp(ipart[0], ipart[1] + 3)),
-            Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 3)),
-            Vec4F(srcImage.clamp(ipart[0] + 2, ipart[1] + 3)),
-            Vec4F(srcImage.clamp(ipart[0] + 3, ipart[1] + 3)));
-
-        auto result = cubic4(fpart[1], a, b, c, d);
-
-        destImage.set({x, y}, Vec4B(
-                                  clamp(result[0], 0.0f, 255.0f),
-                                  clamp(result[1], 0.0f, 255.0f),
-                                  clamp(result[2], 0.0f, 255.0f),
-                                  clamp(result[3], 0.0f, 255.0f)));
-      }
-    }
-
     return destImage;
-  } else {
-    return srcImage;
   }
+
+  // The scale is read through volatile variables on every iteration.
+  // With fast-math, a division by a value that does not change in a loop is turned into a multiplication by its reciprocal,
+  // which can differ in the last bit and then land on the other side of the .5 that round() cares about (3 / 0.15384616 is 19.4999993,
+  // which as a float is 19.5 and rounds up, but 3 * (1 / 0.15384616) is not).
+  // The per-pixel loop this replaces kept the real division and so must this.
+  volatile float scaleX = scale[0], scaleY = scale[1];
+  int maxX = (int)srcImage.width() - 1, maxY = (int)srcImage.height() - 1;
+  std::vector<unsigned> columns(w), rows(h);
+  for (unsigned x = 0; x < w; ++x)
+    columns[x] = (unsigned)Star::clamp<int>(Vec2I::round(vdiv(Vec2F(x0 + x, 0), Vec2F((float)scaleX, (float)scaleY)))[0], 0, maxX);
+  for (unsigned y = 0; y < h; ++y)
+    rows[y] = (unsigned)Star::clamp<int>(Vec2I::round(vdiv(Vec2F(0, y0 + y), Vec2F((float)scaleX, (float)scaleY)))[1], 0, maxY);
+
+  size_t bpp = srcImage.bytesPerPixel();
+  size_t srcStride = (size_t)srcImage.width() * bpp;
+  uint8_t const* src = srcImage.data();
+  uint8_t* dest = destImage.data();
+  for (unsigned y = 0; y < h; ++y) {
+    uint8_t const* srcRow = src + rows[y] * srcStride;
+    uint8_t* destRow = dest + (size_t)y * w * bpp;
+    for (unsigned x = 0; x < w; ++x)
+      memcpy(destRow + (size_t)x * bpp, srcRow + columns[x] * bpp, bpp);
+  }
+  return destImage;
 }
+
+static inline Vec4B bilinearPixel(Image const& srcImage, Vec2F const& scale, unsigned x, unsigned y) {
+  auto pos = vdiv(Vec2F(x, y), scale);
+  auto ipart = Vec2I::floor(pos);
+  auto fpart = pos - Vec2F(ipart);
+
+  auto result = lerp(fpart[1], lerp(fpart[0], Vec4F(srcImage.clamp(ipart[0], ipart[1])), Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1]))), lerp(fpart[0], Vec4F(srcImage.clamp(ipart[0], ipart[1] + 1)), Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 1))));
+
+  return Vec4B(result);
+}
+
+Image scaleNearest(Image const& srcImage, Vec2F const& scale) {
+  ZoneScoped;
+  Vec2U destSize = scaledSize(srcImage, scale);
+  return scaleNearestWindow(srcImage, scale, 0, 0, destSize[0], destSize[1]);
+}
+
+Image scaleBilinear(Image const& srcImage, Vec2F const& scale) {
+  ZoneScoped;
+  Vec2U destSize = scaledSize(srcImage, scale);
+  Image destImage(destSize, srcImage.pixelFormat());
+
+  for (unsigned y = 0; y < destSize[1]; ++y) {
+    for (unsigned x = 0; x < destSize[0]; ++x)
+      destImage.set({x, y}, bilinearPixel(srcImage, scale, x, y));
+  }
+
+  return destImage;
+}
+
+bool scaledCropFits(Image const& srcImage, Vec2F const& scale, RectI const& window) {
+  const size_t pixelLimit = Directives::directivePixelLimit();
+  Vec2U destSize = scaledSize(srcImage, scale);
+  Vec2I wmin = window.min(), wsize = Vec2I(window.size());
+  return wmin[0] >= 0 && wmin[1] >= 0 && wsize[0] >= 0 && wsize[1] >= 0 && wmin[0] + wsize[0] <= (int)destSize[0] && wmin[1] + wsize[1] <= (int)destSize[1] && safeMul((size_t)wsize[0], (size_t)wsize[1]) <= pixelLimit;
+}
+
+Image scaleNearestCropped(Image const& srcImage, Vec2F const& scale, RectI const& window) {
+  ZoneScoped;
+  Vec2I wmin = window.min();
+  Vec2U wsize = Vec2U(window.size());
+  return scaleNearestWindow(srcImage, scale, wmin[0], wmin[1], wsize[0], wsize[1]);
+}
+
+Image scaleBilinearCropped(Image const& srcImage, Vec2F const& scale, RectI const& window) {
+  ZoneScoped;
+  Vec2I wmin = window.min();
+  Vec2U wsize = Vec2U(window.size());
+  Image destImage(wsize, srcImage.pixelFormat());
+
+  for (unsigned y = 0; y < wsize[1]; ++y) {
+    for (unsigned x = 0; x < wsize[0]; ++x)
+      destImage.set({x, y}, bilinearPixel(srcImage, scale, wmin[0] + x, wmin[1] + y));
+  }
+  return destImage;
+}
+
+Image scaleBicubic(Image const& srcImage, Vec2F const& scale) {
+  ZoneScoped;
+  Vec2U srcSize = srcImage.size();
+  Vec2U destSize = Vec2U::round(vmult(Vec2F(srcSize), scale));
+  destSize[0] = max(destSize[0], 1u);
+  destSize[1] = max(destSize[1], 1u);
+
+  Image destImage(destSize, srcImage.pixelFormat());
+
+  for (unsigned y = 0; y < destSize[1]; ++y) {
+    for (unsigned x = 0; x < destSize[0]; ++x) {
+      auto pos = vdiv(Vec2F(x, y), scale);
+      auto ipart = Vec2I::floor(pos);
+      auto fpart = pos - Vec2F(ipart);
+
+      Vec4F a = cubic4(fpart[0],
+          Vec4F(srcImage.clamp(ipart[0], ipart[1])),
+          Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1])),
+          Vec4F(srcImage.clamp(ipart[0] + 2, ipart[1])),
+          Vec4F(srcImage.clamp(ipart[0] + 3, ipart[1])));
+
+      Vec4F b = cubic4(fpart[0],
+          Vec4F(srcImage.clamp(ipart[0], ipart[1] + 1)),
+          Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 1)),
+          Vec4F(srcImage.clamp(ipart[0] + 2, ipart[1] + 1)),
+          Vec4F(srcImage.clamp(ipart[0] + 3, ipart[1] + 1)));
+
+      Vec4F c = cubic4(fpart[0],
+          Vec4F(srcImage.clamp(ipart[0], ipart[1] + 2)),
+          Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 2)),
+          Vec4F(srcImage.clamp(ipart[0] + 2, ipart[1] + 2)),
+          Vec4F(srcImage.clamp(ipart[0] + 3, ipart[1] + 2)));
+
+      Vec4F d = cubic4(fpart[0],
+          Vec4F(srcImage.clamp(ipart[0], ipart[1] + 3)),
+          Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 3)),
+          Vec4F(srcImage.clamp(ipart[0] + 2, ipart[1] + 3)),
+          Vec4F(srcImage.clamp(ipart[0] + 3, ipart[1] + 3)));
+
+      auto result = cubic4(fpart[1], a, b, c, d);
+
+      destImage.set({x, y}, Vec4B(
+                                clamp(result[0], 0.0f, 255.0f),
+                                clamp(result[1], 0.0f, 255.0f),
+                                clamp(result[2], 0.0f, 255.0f),
+                                clamp(result[3], 0.0f, 255.0f)));
+    }
+  }
+
+  return destImage;
+}
+/* } */
 
 StringList colorDirectivesFromConfig(JsonArray const& directives) {
   List<String> result;
@@ -253,11 +205,8 @@ StringList colorDirectivesFromConfig(JsonArray const& directives) {
 
 String paletteSwapDirectivesFromConfig(Json const& swaps) {
   ColorReplaceImageOperation paletteSwaps;
-  for (auto const& swap : swaps.iterateObject()) {
-    Vec4B hexColour = Color::fromHex(swap.first).toRgba();
-    Vec5B replaceColour = Vec5B(hexColour[0], hexColour[1], hexColour[2], hexColour[3], 0);
-    paletteSwaps.colorReplaceMap[replaceColour] = Color::fromHex(swap.second.toString()).toRgba();
-  }
+  for (auto const& swap : swaps.iterateObject())
+    paletteSwaps.colorReplaceMap[Color::fromHex(swap.first).toRgba()] = Color::fromHex(swap.second.toString()).toRgba();
   return "?" + imageOperationToString(paletteSwaps);
 }
 
@@ -289,103 +238,71 @@ FadeToColorImageOperation::FadeToColorImageOperation(Vec3B color, float amount) 
 ImageOperation imageOperationFromString(StringView string) {
   ZoneScopedN("imageOperationFromString");
   try {
-    std::string_view view = string.utf8(); // A view into the string containing all the image operations to be compiled.
-    // «Bits» are the `;`/`=`-separated parts of the operation, where the first «bit» is the operation's name and the rest are arguments.
-    auto firstBitEnd = view.find_first_of("=;"); // End of the operation's name.
-    // Kae's optimised parser for `?replace` operations.
+    std::string_view view = string.utf8();
+    //double time = view.size() > 10000 ? Time::monotonicTime() : 0.0;
+    auto firstBitEnd = view.find_first_of("=;");
     if (view.substr(0, firstBitEnd).compare("replace") == 0 && (firstBitEnd + 1) != view.size()) {
-      ColorReplaceImageOperation operation; // The operation to be returned.
+      //Perform optimized replace parse
+      ColorReplaceImageOperation operation;
 
-      std::string_view bits = view.substr(firstBitEnd + 1); // The part of the string containing all the hex colour directives.
-      operation.colorReplaceMap.reserve(bits.size() / 8);   // Reserving enough space for the result.
+      std::string_view bits = view.substr(firstBitEnd + 1);
+      operation.colorReplaceMap.reserve(bits.size() / 8);
 
-      char const* hexPtr = nullptr; // Pointer to the current hex color string.
-      unsigned int hexLen = 0;      // Length of the current hex color string.
+      char const* hexPtr = nullptr;
+      unsigned int hexLen = 0;
 
-      char const* ptr = bits.data();       // Pointer to the current byte of the bits string.
-      char const* end = ptr + bits.size(); // Pointer to the end of the bits string.
+      char const* ptr = bits.data();
+      char const* end = ptr + bits.size();
 
-      char a[5]{}, b[4]{}; // `a` and `b` are the hex color strings being parsed. Hack: `a` has an extra byte for storing whether this colour was subject to any substitution hacks below.
-      bool which = true;   // `which` is whether we are currently parsing `a` (`true`) or `b` (`false`).
+      char a[4]{}, b[4]{};
+      bool which = true;
 
-      while (true) {    // Loop through each byte of the bits string.
-        char ch = *ptr; // Get the current byte as a char.
+      while (true) {
+        char ch = *ptr;
 
-        if (ch == '=' || ch == ';' || ptr == end) { // If we reached the end of a hex color directive or the end of the bits string,
-          if (hexLen != 0) {                        // If we have a complete hex color directive,
-            char* c = which ? a : b;                // Get the correct array to store the color in.
+        if (ch == '=' || ch == ';' || ptr == end) {
+          if (hexLen != 0) {
+            char* c = which ? a : b;
 
-            if (hexLen == 3) {                                                                                                                                        // If the hex color string is 3 characters long, it's an `RGB` hex string, so expand it to 6 by doubling each character, then to 8 by adding an alpha of `ff` (fully opaque).
-              nibbleDecode(hexPtr, 3, c, 4);                                                                                                                          // Decodes into {0x0H, 0x0H, 0x0H, 0x00}, where H is each hex character in order.
-              c[0] |= (c[0] << 4);                                                                                                                                    // Red. Shift the least significant bits left by 4 bits, copying them into the empty most significant 4 bits.
-              c[1] |= (c[1] << 4);                                                                                                                                    // Blue. Ditto.
-              c[2] |= (c[2] << 4);                                                                                                                                    // Green. Ditto.
-              c[3] = 255;                                                                                                                                             // Add an alpha of `ff` (fully opaque).
-              if (which) c[4] = 0;                                                                                                                                    // Substitution hack marker.
-            } else if (hexLen == 4) {                                                                                                                                 // If the hex color string is 4 characters long, it's an `RGBA` hex string, so expand it to 8 by doubling each character.
-              nibbleDecode(hexPtr, 4, c, 4);                                                                                                                          // Decodes into {0x0H, 0x0H, 0x0H, 0x0H}, where H is each hex character in order.
-              c[0] |= (c[0] << 4);                                                                                                                                    // Red. Shift the least significant bits left by 4 bits, copying them into the empty most significant 4 bits.
-              c[1] |= (c[1] << 4);                                                                                                                                    // Blue. Ditto.
-              c[2] |= (c[2] << 4);                                                                                                                                    // Green. Ditto.
-              c[3] |= (c[3] << 4);                                                                                                                                    // Alpha. Ditto.
-              if (which) c[4] = 0;                                                                                                                                    // Substitution hack marker.
-            } else if (hexLen == 6) {                                                                                                                                 // If the hex color string is 6 characters long, it's an `RRGGBB` hex string, so expand it to 8 by adding an alpha of `ff` (fully opaque).
-              hexDecode(hexPtr, 6, c, 4);                                                                                                                             // Decodes into the first three bytes of the array as hex bytes equivalent to their string representation.
-              c[3] = 255;                                                                                                                                             // Add an alpha of `ff` (fully opaque).
-#if false                                                                                                                                                             // defined STAR_COMPILER_GNU
-// FezzedOne: Warning: Disgusting hack for GCC builds! This makes sure generated sleeves are rendered properly. To bypass this hack, tack an `ff` alpha value onto the end of `bcbc5d` when using
-// it as an `a` colour. The hack replaces an `a` of `bcbc5d` (not `bcbc5dff`) with `bcbc5e`, which is visually nearly indistinguishable anyway.
-// The hack is needed because `scaleBilinear` (way up above) now works very slightly differently from the vanilla version, just enough to impact this one edge case.
-#define COLOUR_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d)                                    // Check if this colour is the one needing substitution.
-#define COLOUR_NEEDS_SUB_RGBA(bytes, castType) (bytes[0] == (castType)0xbc && bytes[1] == (castType)0xbc && bytes[2] == (castType)0x5d && bytes[3] == (castType)0xff) // Same, but for RGBA.
-#define SUBBED_COLOUR Vec5B(0xbc, 0xbc, 0x5e, 0xff, 0xff)                                                                                                             // The substituted colour, for lookups.
-#define OLD_COLOUR_BYTE_B (char)0x5d                                                                                                                                  // The byte to replace with...
-#define NEW_COLOUR_BYTE_B (char)0x5e                                                                                                                                  // this byte.
+            if (hexLen == 3) {
+              nibbleDecode(hexPtr, 3, c, 4);
+              c[0] |= (c[0] << 4);
+              c[1] |= (c[1] << 4);
+              c[2] |= (c[2] << 4);
+              c[3] = static_cast<char>(255);
+            } else if (hexLen == 4) {
+              nibbleDecode(hexPtr, 4, c, 4);
+              c[0] |= (c[0] << 4);
+              c[1] |= (c[1] << 4);
+              c[2] |= (c[2] << 4);
+              c[3] |= (c[3] << 4);
+            } else if (hexLen == 6) {
+              hexDecode(hexPtr, 6, c, 4);
+              c[3] = static_cast<char>(255);
+            } else if (hexLen == 8) {
+              hexDecode(hexPtr, 8, c, 4);
+            } else if (!which || (ptr != end && ++ptr != end))
+              return ErrorImageOperation{strf("Improper size for hex string '{}'", StringView(hexPtr, hexLen))};
+            else // we're in A of A=B. In vanilla only A=B pairs are evaluated, so only throw an error if B is also there.
+              return operation;
 
-#define COLOUR_2_NEEDS_SUB(bytes, castType) (bytes[0] == (castType)0xad && bytes[1] == (castType)0x9b && bytes[2] == (castType)0x5a)                                    // Check if this colour is the one needing substitution.
-#define COLOUR_2_NEEDS_SUB_RGBA(bytes, castType) (bytes[0] == (castType)0xad && bytes[1] == (castType)0x9b && bytes[2] == (castType)0x5a && bytes[3] == (castType)0xff) // Same, but for RGBA.
-#define SUBBED_COLOUR_2 Vec5B(0xae, 0x9c, 0x5a, 0xff, 0xff)                                                                                                             // The substituted colour, for lookups.
-#define OLD_COLOUR_BYTE_R (char)0xad                                                                                                                                    // The first byte to replace with...
-#define NEW_COLOUR_BYTE_R (char)0xae                                                                                                                                    // this byte.
-#define OLD_COLOUR_BYTE_G (char)0x9b                                                                                                                                    // The second byte to replace with...
-#define NEW_COLOUR_BYTE_G (char)0x9c                                                                                                                                    // this byte.
+            if ((which = !which))
+              operation.colorReplaceMap[*(Vec4B*)&a] = *(Vec4B*)&b;
 
-              bool colourNeedsSub = COLOUR_NEEDS_SUB(c, char);                       // Micro-optimisation.
-              bool colour2NeedsSub = COLOUR_2_NEEDS_SUB(c, char);                    // Micro-optimisation.
-              if (which) c[4] = (colourNeedsSub || colour2NeedsSub) ? (char)255 : 0; // Mark the presence of the following hack for later.
-
-              c[0] = (which && colour2NeedsSub) ? NEW_COLOUR_BYTE_R : c[0]; // Substitute `ad` with `ae` if we're in an `a` of `ad9b5a`.
-              c[1] = (which && colour2NeedsSub) ? NEW_COLOUR_BYTE_G : c[1]; // Substitute `9b` with `9c` if we're in an `a` of `ad9b5a`.
-              c[2] = (which && colourNeedsSub) ? NEW_COLOUR_BYTE_B : c[2];  // Substitute `5d` with `5e` if we're in an `a` of `bcbc5d`.
-#else
-              if (which) c[4] = 0; // Substitution hack marker. Unused on MSVC builds.
-#endif
-            } else if (hexLen == 8) {                          // If the hex color string is 8 characters long, it's a full `RRGGBBAA` hex string.
-              hexDecode(hexPtr, 8, c, 4);                      // Decodes into all four bytes of the array as hex bytes equivalent to their string representation.
-              if (which) c[4] = 0;                             // Substitution hack marker.
-            } else if (!which || (ptr != end && ++ptr != end)) // If we're in `b` of `a=b` and the hex string is of the wrong length, throw an exception.
-              throw ImageOperationException(strf("Improper size for hex string '{}' in imageOperationFromString", StringView(hexPtr, hexLen)), false);
-            else                           // We're in `a` of `a=b`. In vanilla, only `a=b` pairs are evaluated, so only throw an exception if `b` is also there.
-              return std::move(operation); // Return the incomplete operation, whose parsing stopped just before the invalid `a`, so no valid replacements after that part will be executed.
-
-            which = !which; // If we parsed a hex colour code, switch `which` to the other colour. I.e., from `a` to `b` and vice versa.
-            if (which)
-              operation.colorReplaceMap[*(Vec5B*)&a] = *(Vec4B*)&b; // Add the parsed colours to the operation.
-
-            hexLen = 0; // Reset hexLen so we can parse the next hex colour string.
+            hexLen = 0;
           }
-        } else if (!hexLen++) // If the current byte is not a separator, increment hexLen.
-          hexPtr = ptr;       // Set hexPtr to the current byte.
+        } else if (!hexLen++)
+          hexPtr = ptr;
 
         if (ptr++ == end)
-          break; // If we reached the end of the bits string, break out of the loop.
+          break;
       }
 
+      //if (time != 0.0)
+      //  Logger::logf(LogLevel::Debug, "Parsed %u long directives to %u replace operations in %fs", view.size(), operation.colorReplaceMap.size(), Time::monotonicTime() - time);
       return operation;
     }
 
-
-    // Code for non-`?replace` operations.
     List<StringView> bits;
 
     string.forEachSplitAnyView("=;", [&](StringView split, size_t, size_t) {
@@ -393,7 +310,7 @@ ImageOperation imageOperationFromString(StringView string) {
         bits.emplace_back(split);
     });
 
-    String type = bits.at(0);
+    StringView const& type = bits.at(0);
 
     if (type == "hueshift") {
       return HueShiftImageOperation::hueShiftDegrees(lexicalCast<float>(bits.at(1)));
@@ -416,9 +333,8 @@ ImageOperation imageOperationFromString(StringView string) {
       return SetColorImageOperation{Color::fromHex(bits.at(1)).toRgb()};
 
     } else if (type == "replace") {
-      // FezzedOne: Gets rid of annoying «Could not recognize ImageOperation type replace» errors.
       ColorReplaceImageOperation operation;
-      // The old `?replace` parser. Now never gets called.
+      // FezzedOne: The old `?replace` parser. Now never gets called.
       // for (size_t i = 0; i < (bits.size() - 1) / 2; ++i)
       //   operation.colorReplaceMap[Color::hexToVec4B(bits[i * 2 + 1])] = Color::hexToVec4B(bits[i * 2 + 2]);
 
@@ -482,6 +398,7 @@ ImageOperation imageOperationFromString(StringView string) {
       const String skipArgStr = "skip";
       if (bits.remove(skipArgStr))
         isNearestPixel = true;
+
       if (bits.size() == 2)
         scale = Vec2F::filled(lexicalCast<float>(bits.at(1)));
       else
@@ -551,12 +468,14 @@ ImageOperation imageOperationFromString(StringView string) {
       return operation;
 
     } else {
-      throw ImageOperationException(strf("Could not recognize ImageOperation type {}", type), false);
+      return NullImageOperation();
     }
   } catch (OutOfRangeException const& e) {
-    throw ImageOperationException("Error reading ImageOperation", e);
+    return ErrorImageOperation{std::string(e.what())};
   } catch (BadLexicalCast const& e) {
-    throw ImageOperationException("Error reading ImageOperation", e);
+    return ErrorImageOperation{std::string(e.what())};
+  } catch (StarException const& e) {
+    return ErrorImageOperation{std::string(e.what())};
   }
 }
 
@@ -579,33 +498,8 @@ String imageOperationToString(ImageOperation const& operation) {
     return strf("setcolor={}", Color::rgb(op->color).toHex());
   } else if (auto op = operation.ptr<ColorReplaceImageOperation>()) {
     String str = "replace";
-    for (auto const& [a, b] : op->colorReplaceMap) {
-      // FezzedOne: Transparently convert compiled colour replacements back to the original directives,
-      // as if the replacement never happened.
-      Vec4B adjustedColour{a[0], a[1], a[2], a[3]};
-#if false // defined STAR_COMPILER_GNU
-      char colourSubstitutionMode = a[4];
-      if (colourSubstitutionMode == (char)255 && adjustedColour[0] == NEW_COLOUR_BYTE_R) {
-        adjustedColour[0] = OLD_COLOUR_BYTE_R;
-      }
-      if (colourSubstitutionMode == (char)255 && adjustedColour[1] == NEW_COLOUR_BYTE_G) {
-        adjustedColour[1] = OLD_COLOUR_BYTE_G;
-      }
-      if (colourSubstitutionMode == (char)255 && adjustedColour[2] == NEW_COLOUR_BYTE_B) {
-        adjustedColour[2] = OLD_COLOUR_BYTE_B;
-      }
-#endif
-
-      String aStr = Color::rgba(adjustedColour).toHex();
-
-#if false // defined STAR_COMPILER_GNU
-      if (colourSubstitutionMode == (char)0 && (COLOUR_NEEDS_SUB_RGBA(adjustedColour, unsigned char) || COLOUR_2_NEEDS_SUB_RGBA(adjustedColour, unsigned char))) {
-        aStr += "ff";
-      }
-#endif
-
-      str += strf(";{}={}", aStr, Color::rgba(b).toHex());
-    }
+    for (auto const& pair : op->colorReplaceMap)
+      str += strf(";{}={}", Color::rgba(pair.first).toHex(), Color::rgba(pair.second).toHex());
     return str;
   } else if (auto op = operation.ptr<AlphaMaskImageOperation>()) {
     if (op->mode == AlphaMaskImageOperation::Additive)
@@ -658,18 +552,30 @@ String imageOperationToString(ImageOperation const& operation) {
 }
 
 void parseImageOperations(StringView params, function<void(ImageOperation&&)> outputter) {
-  params.forEachSplitView("?", [&](StringView op, size_t, size_t) {
-    if (!op.empty())
-      outputter(imageOperationFromString(op));
-  });
+  size_t lengthLimit = Directives::directiveStringLengthLimit();
+  size_t directivesLen = params.utf8().length();
+  if (directivesLen <= lengthLimit) {
+    params.forEachSplitView("?", [&](StringView op, size_t, size_t) {
+      if (!op.empty())
+        outputter(imageOperationFromString(op));
+    });
+  } else {
+    outputter(ErrorImageOperation{strf("Image directive string of length {} exceeds configured length limit of {}", directivesLen, lengthLimit)});
+  }
 }
 
 List<ImageOperation> parseImageOperations(StringView params) {
+  size_t lengthLimit = Directives::directiveStringLengthLimit();
+  size_t directivesLen = params.utf8().length();
   List<ImageOperation> operations;
-  params.forEachSplitView("?", [&](StringView op, size_t, size_t) {
-    if (!op.empty())
-      operations.append(imageOperationFromString(op));
-  });
+  if (directivesLen <= lengthLimit) {
+    params.forEachSplitView("?", [&](StringView op, size_t, size_t) {
+      if (!op.empty())
+        operations.append(imageOperationFromString(op));
+    });
+  } else {
+    operations.append(ErrorImageOperation{strf("Image directive string of length {} exceeds configured length limit of {}", directivesLen, lengthLimit)});
+  }
 
   return operations;
 }
@@ -700,36 +606,240 @@ StringList imageOperationReferences(List<ImageOperation> const& operations) {
   return references;
 }
 
-void processImageOperation(ImageOperation const& operation, Image& image, ImageReferenceCallback refCallback) {
+// @LumiKalt: The hue, saturation and brightness operations below turn every pixel through floating point color math.
+// However, most images have far fewer distinct colors than pixels, especially the heaviest, largest ones..
+// This remembers the result for recently seen colors, the pixel that computing it again would give.
+struct RecentColors {
+  struct Entry {
+    uint32_t in = 0; // 0 is never looked up: a pixel with alpha 0 is skipped before it gets here
+    uint32_t out = 0;
+  };
+
+  static uint32_t pack(Vec4B const& c) {
+    return (uint32_t)c[0] | (uint32_t)c[1] << 8 | (uint32_t)c[2] << 16 | (uint32_t)c[3] << 24;
+  }
+
+  static Vec4B unpack(uint32_t v) {
+    return Vec4B(v & 255, (v >> 8) & 255, (v >> 16) & 255, v >> 24);
+  }
+
+  // Replaces the pixel with compute(pixel)
+  template <typename Function>
+  void apply(Vec4B& pixel, Function&& compute) {
+    uint32_t key = pack(pixel);
+    Entry& entry = entries[(key * 2654435761u) >> 24];
+    if (entry.in != key) {
+      entry.out = pack(compute(pixel));
+      entry.in = key;
+    }
+    pixel = unpack(entry.out);
+  }
+
+  Entry entries[256];
+};
+
+#ifdef STAR_COMPILER_GNU
+#pragma GCC push_options
+#pragma GCC optimize("-fno-fast-math", "-fassociative-math", "-freciprocal-math")
+#endif
+static void processSaturationShift(Image& image, SaturationShiftImageOperation const* op) {
+  RecentColors recent;
+  image.forEachPixel([&](unsigned, unsigned, Vec4B& pixel) {
+    if (pixel[3] != 0) {
+      recent.apply(pixel, [&op](Vec4B const& p) { return Color::shiftSaturationVec4B(p, op->saturationShiftAmount); });
+    }
+  });
+}
+#ifdef STAR_COMPILER_GNU
+#pragma GCC pop_options
+#endif
+
+// The pixels [x0, x1) x [y0, y1) of an image
+struct PixelRect {
+  long x0 = 0, y0 = 0, x1 = 0, y1 = 0;
+  bool empty() const { return x0 >= x1 || y0 >= y1; }
+  size_t pixelCount() const { return empty() ? 0 : safeMul((size_t)(x1 - x0), (size_t)(y1 - y0)); }
+};
+
+// Replaces the colors of the pixels inside the rectangle. The image has four bytes per pixel.
+static void replaceColors(ColorReplaceMap const& replaceMap, Image& image, PixelRect rect) {
+  if (replaceMap.empty() || rect.empty())
+    return;
+
+  if (rect.pixelCount() < 1024) {
+    for (size_t y = rect.y0; y < rect.y1; ++y) {
+      for (size_t x = rect.x0; x < rect.x1; ++x) {
+        Vec4B pixel = image.get(x, y);
+        if (auto m = replaceMap.maybe(pixel))
+          image.set(x, y, *m);
+      }
+    }
+    return;
+  }
+
+  // Most pixels are not a key, but each one costs a hash lookup.
+  // A bitmap of the keys' hashes rejects almost all of the non-keys without touching the map.
+  // A pixel is only ever replaced if it is a key, so the result is the same.
+  unsigned bitCount = 4096;
+  while (bitCount < replaceMap.size() * 32 && bitCount < (1u << 20))
+    bitCount <<= 1;
+#if defined(STAR_COMPILER_GNU) || defined(STAR_COMPILER_CLANG)
+  unsigned shift = 32 - __builtin_ctz(bitCount);
+#else
+  unsigned shift = 32;
+  for (unsigned n = bitCount; n > 1; n >>= 1)
+    --shift;
+#endif
+  std::vector<uint64_t> bits(bitCount / 64, 0);
+  auto bitFor = [shift](Vec4B const& c) -> unsigned {
+    uint32_t v = (uint32_t)c[0] | (uint32_t)c[1] << 8 | (uint32_t)c[2] << 16 | (uint32_t)c[3] << 24;
+    return (v * 2654435761u) >> shift;
+  };
+  for (auto const& entry : replaceMap) {
+    unsigned bit = bitFor(entry.first);
+    bits[bit >> 6] |= 1ull << (bit & 63);
+  }
+
+  // Large areas of one color are common (the backgrounds of sign and costume drawables), and a pixel that equals the one before it
+  // gets the same result, so that one is remembered.
+  static_assert(sizeof(Vec4B) == sizeof(uint32_t), "a pixel is four bytes");
+  uint8_t* data = image.data();
+  uint32_t lastIn = 0, lastOut = 0;
+  bool haveLast = false;
+  for (long y = rect.y0; y < rect.y1; ++y) {
+    uint8_t* row = data + ((size_t)y * image.width() + rect.x0) * 4;
+    for (long x = 0; x < rect.x1 - rect.x0; ++x) {
+      uint32_t value;
+      memcpy(&value, row + x * 4, 4);
+      if (haveLast && value == lastIn) {
+        memcpy(row + x * 4, &lastOut, 4);
+        continue;
+      }
+      Vec4B pixel;
+      memcpy(static_cast<void*>(&pixel), &value, 4);
+      uint32_t result = value;
+      unsigned bit = bitFor(pixel);
+      if ((bits[bit >> 6] >> (bit & 63)) & 1) {
+        if (auto m = replaceMap.maybe(pixel)) {
+          memcpy(&result, m->ptr(), 4);
+          memcpy(row + x * 4, &result, 4);
+        }
+      }
+      lastIn = value;
+      lastOut = result;
+      haveLast = true;
+    }
+  }
+}
+
+// @LumiKalt: Blends the images into the target and returns the rectangle of pixels that can have changed.
+static PixelRect applyBlend(BlendImageOperation const& op, Image& image, size_t pixelLimit, ImageReferenceCallback const& refCallback) {
+  if (op.blendImages.empty())
+    return {};
+
+  if (!refCallback)
+    throw StarException("Missing image ref callback during BlendImageOperation in ImageProcessor::process");
+
+  List<Image const*> blendImages;
+  for (auto const& reference : op.blendImages)
+    blendImages.append(refCallback(reference));
+
+  // A pixel is only changed where one of the blend images lies under it.
+  // Everywhere else, the original loop converted the pixel to float and back, which gives the same byte again.
+  // Large images blended with a small one (sign tiles) therefore only need the bounding box of the places where a blend image overlaps.
+  long minX = (long)image.width(), minY = (long)image.height(), maxX = 0, maxY = 0;
+  for (auto blend : blendImages) {
+    minX = std::min(minX, std::max(0L, -(long)op.offset[0]));
+    minY = std::min(minY, std::max(0L, -(long)op.offset[1]));
+    maxX = std::max(maxX, std::min((long)image.width(), (long)blend->width() - op.offset[0]));
+    maxY = std::max(maxY, std::min((long)image.height(), (long)blend->height() - op.offset[1]));
+  }
+
+  PixelRect rect = {minX, minY, maxX, maxY};
+  if (rect.pixelCount() > pixelLimit) return rect;
+
+  for (long y = minY; y < maxY; ++y) {
+    for (long x = minX; x < maxX; ++x) {
+      Vec2U pos = Vec2U(Vec2I(x, y) + op.offset);
+      Vec4B pixel = image.get(x, y);
+      Vec4F fpixel = Color::v4bToFloat(pixel);
+      for (auto blend : blendImages) {
+        if (pos[0] < blend->width() && pos[1] < blend->height()) {
+          Vec4F blendPixel = Color::v4bToFloat(blend->get(pos));
+          if (op.mode == BlendImageOperation::Multiply)
+            fpixel = fpixel.piecewiseMultiply(blendPixel);
+          else if (op.mode == BlendImageOperation::Screen)
+            fpixel = Vec4F::filled(1.0f) - (Vec4F::filled(1.0f) - fpixel).piecewiseMultiply(Vec4F::filled(1.0f) - blendPixel);
+        }
+      }
+      image.set(x, y, Color::v4fToByte(fpixel));
+    }
+  }
+  return rect;
+}
+
+// @FezzedOne: Returns a boolean now. `false` means the operation exhausted the pixel limit and processing should stop.
+bool processImageOperation(ImageOperation const& operation, Image& image, ImageReferenceCallback refCallback, bool& exhaustedPixels) {
   ZoneScopedN("processImageOperation");
+  const size_t pixelLimit = Directives::directivePixelLimit();
+  const size_t pixels = safeMul((size_t)image.width(), (size_t)image.height());
+  if (image.bytesPerPixel() == 3) {
+    // Convert to an image format that has alpha so certain operations function properly
+    image = image.convert(image.pixelFormat() == PixelFormat::BGR24 ? PixelFormat::BGRA32 : PixelFormat::RGBA32);
+  }
+  // @LumiKalt: A hue shift, saturation shift or brightness multiplier of exactly zero (?hueshift=0 is in every vanilla parallax path) hands
+  // back every pixel unchanged, for every color and every alpha value, so those passes are skipped.
   if (auto op = operation.ptr<HueShiftImageOperation>()) {
-    image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
+    if (op->hueShiftAmount == 0.0f)
+      return true;
+    if (pixels > pixelLimit) return false;
+    RecentColors recent;
+    image.forEachPixel([&](unsigned, unsigned, Vec4B& pixel) {
       if (pixel[3] != 0)
-        pixel = Color::hueShiftVec4B(pixel, op->hueShiftAmount);
+        recent.apply(pixel, [&op](Vec4B const& p) { return Color::hueShiftVec4B(p, op->hueShiftAmount); });
     });
+    //   image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
+    //     if (pixel[3] != 0)
+    //       pixel = Color::hueShiftVec4B(pixel, op->hueShiftAmount);
+    //   });
   } else if (auto op = operation.ptr<SaturationShiftImageOperation>()) {
-    image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
-      if (pixel[3] != 0) {
-        Color color = Color::rgba(pixel);
-        color.setSaturation(clamp(color.saturation() + op->saturationShiftAmount, 0.0f, 1.0f));
-        pixel = color.toRgba();
-      }
-    });
+    if (op->saturationShiftAmount != 0.0f) {
+      if (pixels > pixelLimit) return false;
+      processSaturationShift(image, op);
+    }
+    //   image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
+    //     if (pixel[3] != 0) {
+    //       Color color = Color::rgba(pixel);
+    //       color.setSaturation(clamp(color.saturation() + op->saturationShiftAmount, 0.0f, 1.0f));
+    //       pixel = color.toRgba();
+    //     }
+    //   });
   } else if (auto op = operation.ptr<BrightnessMultiplyImageOperation>()) {
-    image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
+    if (op->brightnessMultiply == 1.0f)
+      return true;
+    if (pixels > pixelLimit) return false;
+    RecentColors recent;
+    image.forEachPixel([&](unsigned, unsigned, Vec4B& pixel) {
       if (pixel[3] != 0) {
-        Color color = Color::rgba(pixel);
-        color.setValue(clamp(color.value() * op->brightnessMultiply, 0.0f, 1.0f));
-        pixel = color.toRgba();
+        recent.apply(pixel, [&op](Vec4B const& p) { return Color::scaleValueVec4B(p, op->brightnessMultiply); });
       }
     });
+    // image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
+    //   if (pixel[3] != 0) {
+    //     Color color = Color::rgba(pixel);
+    //     color.setValue(clamp(color.value() * op->brightnessMultiply, 0.0f, 1.0f));
+    //     pixel = color.toRgba();
+    //   }
+    // });
   } else if (auto op = operation.ptr<FadeToColorImageOperation>()) {
+    if (pixels > pixelLimit) return false;
     image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
       pixel[0] = op->rTable[pixel[0]];
       pixel[1] = op->gTable[pixel[1]];
       pixel[2] = op->bTable[pixel[2]];
     });
   } else if (auto op = operation.ptr<ScanLinesImageOperation>()) {
+    if (pixels > pixelLimit) return false;
     image.forEachPixel([&op](unsigned, unsigned y, Vec4B& pixel) {
       if (y % 2 == 0) {
         pixel[0] = op->fade1.rTable[pixel[0]];
@@ -742,47 +852,33 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
       }
     });
   } else if (auto op = operation.ptr<SetColorImageOperation>()) {
+    if (pixels > pixelLimit) return false;
     image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
       pixel[0] = op->color[0];
       pixel[1] = op->color[1];
       pixel[2] = op->color[2];
     });
   } else if (auto op = operation.ptr<ColorReplaceImageOperation>()) {
-    image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
-      if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 0))) {
-        // MinGW builds: An explicit `bcbc5e`/`bcbc5eff`/`bcbc5dff` or `ae9c5a`/`ae9c5aff`/`ad9b5aff` replacement takes precedence above anything else.
-        // Linux/GCC and MSVC builds: No extra substitutions required.
-        pixel = *m;
-        return;
-      }
-#if false // defined STAR_COMPILER_GNU
-      else if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 255))) {
-        // Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
-        // MinGW builds: Also execute any tagged `ad9b5a` → `ae9c5aff` replacement if no preceding explicit replacement for `ae9c5a`/`ae9c5aff` is found.
-        pixel = *m;
-        return;
-      } else if (COLOUR_NEEDS_SUB_RGBA(pixel, unsigned char)) {
-        if (auto m = op->colorReplaceMap.maybe(SUBBED_COLOUR)) {
-          // MinGW builds:Execute any tagged `bcbc5d` → `bcbc5eff` replacement if no preceding explicit replacement for `bcbc5e`/`bcbc5eff` is found.
-          pixel = *m;
-          return;
-        }
-      } else if (COLOUR_2_NEEDS_SUB_RGBA(pixel, unsigned char)) {
-        if (auto m = op->colorReplaceMap.maybe(SUBBED_COLOUR_2)) {
-          // MinGW builds: Additionally execute any tagged `ad9b5a` → `ad9b5aff` replacement if no preceding explicit replacement for `ad9b5a`/`ad9b5aff` is found.
-          pixel = *m;
-          return;
-        }
-      }
-#endif
-    });
+    // @LumiKalt: New `?replace` call.
+    PixelRect rect = {0, 0, (long)image.width(), (long)image.height()};
+    if (rect.pixelCount() > pixelLimit) return false;
+    replaceColors(op->colorReplaceMap, image, rect);
+    /* Old `?replace` code. */
+    // image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
+    //   if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 0))) {
+    //     pixel = *m;
+    //     return;
+    //   }
+    // });
 
   } else if (auto op = operation.ptr<AlphaMaskImageOperation>()) {
     if (op->maskImages.empty())
-      return;
+      return true;
 
     if (!refCallback)
       throw StarException("Missing image ref callback during AlphaMaskImageOperation in ImageProcessor::process");
+
+    if (pixels > pixelLimit) return false;
 
     List<Image const*> maskImages;
     for (auto const& reference : op->maskImages)
@@ -808,30 +904,33 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     });
 
   } else if (auto op = operation.ptr<BlendImageOperation>()) {
-    if (op->blendImages.empty())
-      return;
-
-    if (!refCallback)
-      throw StarException("Missing image ref callback during BlendImageOperation in ImageProcessor::process");
-
-    List<Image const*> blendImages;
-    for (auto const& reference : op->blendImages)
-      blendImages.append(refCallback(reference));
-
-    image.forEachPixel([&op, &blendImages](unsigned x, unsigned y, Vec4B& pixel) {
-      Vec2U pos = Vec2U(Vec2I(x, y) + op->offset);
-      Vec4F fpixel = Color::v4bToFloat(pixel);
-      for (auto blend : blendImages) {
-        if (pos[0] < blend->width() && pos[1] < blend->height()) {
-          Vec4F blendPixel = Color::v4bToFloat(blend->get(pos));
-          if (op->mode == BlendImageOperation::Multiply)
-            fpixel = fpixel.piecewiseMultiply(blendPixel);
-          else if (op->mode == BlendImageOperation::Screen)
-            fpixel = Vec4F::filled(1.0f) - (Vec4F::filled(1.0f) - fpixel).piecewiseMultiply(Vec4F::filled(1.0f) - blendPixel);
-        }
-      }
-      pixel = Color::v4fToByte(fpixel);
-    });
+    // @LumiKalt: New `?blendmult` and `?blendscreen` call.
+    return applyBlend(*op, image, pixelLimit, refCallback).pixelCount() <= pixelLimit;
+    /* Old code. */
+    // if (op->blendImages.empty())
+    //   return;
+    //
+    // if (!refCallback)
+    //   throw StarException("Missing image ref callback during BlendImageOperation in ImageProcessor::process");
+    //
+    // List<Image const*> blendImages;
+    // for (auto const& reference : op->blendImages)
+    //   blendImages.append(refCallback(reference));
+    //
+    // image.forEachPixel([&op, &blendImages](unsigned x, unsigned y, Vec4B& pixel) {
+    //   Vec2U pos = Vec2U(Vec2I(x, y) + op->offset);
+    //   Vec4F fpixel = Color::v4bToFloat(pixel);
+    //   for (auto blend : blendImages) {
+    //     if (pos[0] < blend->width() && pos[1] < blend->height()) {
+    //       Vec4F blendPixel = Color::v4bToFloat(blend->get(pos));
+    //       if (op->mode == BlendImageOperation::Multiply)
+    //         fpixel = fpixel.piecewiseMultiply(blendPixel);
+    //       else if (op->mode == BlendImageOperation::Screen)
+    //         fpixel = Vec4F::filled(1.0f) - (Vec4F::filled(1.0f) - fpixel).piecewiseMultiply(Vec4F::filled(1.0f) - blendPixel);
+    //     }
+    //   }
+    //   pixel = Color::v4fToByte(fpixel);
+    // });
 
   } else if (auto op = operation.ptr<MultiplyImageOperation>()) {
     image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
@@ -841,6 +940,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     });
 
   } else if (auto op = operation.ptr<BorderImageOperation>()) {
+    if (pixels > pixelLimit) return false;
     Image borderImage(image.size() + Vec2U::filled(op->pixels * 2), PixelFormat::RGBA32);
     borderImage.copyInto(Vec2U::filled(op->pixels), image);
     Vec2I borderImageSize = Vec2I(borderImage.size());
@@ -897,6 +997,19 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     image = borderImage;
 
   } else if (auto op = operation.ptr<ScaleImageOperation>()) {
+    auto scale = op->scale;
+    if (scale[0] < 0.0f || scale[1] < 0.0f) {
+      Logger::warn("[xSB] Negative scale found in image scaling operation, ignoring (supplied scale: {{{}. {}}})", scale[0], scale[1]);
+      scale = scale.piecewiseMax(Vec2F::filled(0.f));
+    }
+    auto newSize = scaledSize(image, scale);
+    size_t newPixelCount = safeMul((size_t)newSize[0], (size_t)newSize[1]);
+    if (newPixelCount > pixelLimit) return false;
+    if (scale[0] == 0.0f || scale[1] == 0.0f) {
+      // @FezzedOne: Additional optimisation for scales with any zero dimension.
+      image = Image(newSize);
+      return true;
+    }
     if (op->mode == ScaleImageOperation::Bilinear)
       image = scaleBilinear(image, op->scale);
     else if (op->mode == ScaleImageOperation::Bicubic)
@@ -914,6 +1027,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     image = image.subImage(Vec2U(min), Vec2U(size));
 
   } else if (auto op = operation.ptr<FlipImageOperation>()) {
+    if (pixels > pixelLimit) return false;
     if (op->mode == FlipImageOperation::FlipX || op->mode == FlipImageOperation::FlipXY) {
       for (size_t y = 0; y < image.height(); ++y) {
         for (size_t xLeft = 0; xLeft < image.width() / 2; ++xLeft) {
@@ -946,7 +1060,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     auto& pixel = op->pixel;
     auto size = image.size();
 
-    if (pixel[0] >= size[0] || pixel[1] >= size[1]) return;
+    if (pixel[0] >= size[0] || pixel[1] >= size[1]) return true;
 
     image.set(pixel, op->colour);
 
@@ -954,7 +1068,7 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     auto& pixel = op->pixel;
     auto size = image.size();
 
-    if (pixel[0] >= size[0] || pixel[1] >= size[1]) return;
+    if (pixel[0] >= size[0] || pixel[1] >= size[1]) return true;
 
     auto dest = image.get(pixel);
     auto& src = op->colour;
@@ -972,20 +1086,210 @@ void processImageOperation(ImageOperation const& operation, Image& image, ImageR
     if (!refCallback)
       throw StarException("Missing image ref callback during CopyIntoImageOperation in ImageProcessor::process");
 
-    image.copyInto(op->offset, *refCallback(op->image));
+    if (auto imageRef = refCallback(op->image)) {
+      auto refPixels = safeMul((size_t)imageRef->width(), (size_t)imageRef->height());
+      if (refPixels > pixelLimit) return false;
+      image.copyInto(op->offset, *imageRef);
+    }
 
   } else if (auto op = operation.ptr<DrawIntoImageOperation>()) {
     if (!refCallback)
       throw StarException("Missing image ref callback during DrawIntoImageOperation in ImageProcessor::process");
 
-    image.drawInto(op->offset, *refCallback(op->image));
+    if (auto imageRef = refCallback(op->image)) {
+      auto refPixels = safeMul((size_t)imageRef->width(), (size_t)imageRef->height());
+      if (refPixels > pixelLimit) return false;
+      image.drawInto(op->offset, *imageRef);
+    }
   }
+
+  return true;
 }
 
-Image processImageOperations(List<ImageOperation> const& operations, Image image, ImageReferenceCallback refCallback) {
-  for (auto const& operation : operations)
-    processImageOperation(operation, image, refCallback);
+bool processScaleCrop(ScaleImageOperation const& scale, CropImageOperation const& crop, Image& image) {
+  if (scale.mode == ScaleImageOperation::Bicubic)
+    return false;
+  if (scale.scale[0] < 0.0f || scale.scale[1] < 0.0f)
+    return false; // processImageOperation warns about this and clamps it
 
+  if (image.bytesPerPixel() == 3) {
+    // Same conversion processImageOperation does before any operation
+    image = image.convert(image.pixelFormat() == PixelFormat::BGR24 ? PixelFormat::BGRA32 : PixelFormat::RGBA32);
+  }
+
+  if (!scaledCropFits(image, scale.scale, crop.subset))
+    return false;
+
+  if (scale.mode == ScaleImageOperation::Nearest)
+    image = scaleNearestCropped(image, scale.scale, crop.subset);
+  else
+    image = scaleBilinearCropped(image, scale.scale, crop.subset);
+  return true;
+}
+
+// Operations whose result for a pixel depends on that pixel alone.
+static bool isPerPixelColorOperation(ImageOperation const& operation) {
+  return operation.is<HueShiftImageOperation>() || operation.is<SaturationShiftImageOperation>() || operation.is<BrightnessMultiplyImageOperation>() || operation.is<FadeToColorImageOperation>() || operation.is<SetColorImageOperation>() || operation.is<ColorReplaceImageOperation>() || operation.is<MultiplyImageOperation>();
+  // FezzedOne: `?setpixel` and `?blendpixel` are intentionally not included here because they are coordinate-dependent and reordering may shift pixel coordinates.
+}
+
+// A nearest neighbour scale that makes the image bigger by copying pixels.
+// An image with no pixels has none to copy, so the scale then makes pixels of {0, 0, 0, 0} out of nothing, which later color operations would change, so that is not a case for this.
+static bool scaleEnlargesByCopying(ScaleImageOperation const& scale, Image const& image) {
+  if (image.width() == 0 || image.height() == 0)
+    return false;
+  if (scale.mode != ScaleImageOperation::Nearest || scale.scale[0] < 0.0f || scale.scale[1] < 0.0f)
+    return false;
+  Vec2U destSize = Vec2U::round(vmult(Vec2F(image.size()), scale.scale));
+  destSize[0] = max(destSize[0], 1u);
+  destSize[1] = max(destSize[1], 1u);
+  return (uint64_t)destSize[0] * destSize[1] > (uint64_t)image.width() * image.height();
+}
+
+// A crop that fits in the image and keeps fewer pixels than it has
+static bool cropShrinks(CropImageOperation const& crop, Image const& image) {
+  Vec2I min = crop.subset.min();
+  Vec2I size = Vec2I(crop.subset.size());
+  if (min[0] < 0 || min[1] < 0 || size[0] < 0 || size[1] < 0 || min[0] + size[0] > (int)image.width() || min[1] + size[1] > (int)image.height())
+    return false;
+  return (uint64_t)size[0] * size[1] < (uint64_t)image.width() * image.height();
+}
+
+// A replace leaves no pixel that is one of its keys, as long as none of the colors it makes is a key itself.
+static bool replaceSettles(ColorReplaceMap const& map) {
+  for (auto const& entry : map) {
+    if (map.contains(entry.second))
+      return false;
+  }
+  return true;
+}
+
+static bool replaceKeysAreKeysOf(ColorReplaceMap const& map, ColorReplaceMap const& other) {
+  for (auto const& entry : map) {
+    if (!other.contains(entry.first))
+      return false;
+  }
+  return true;
+}
+
+// Signs and costume drawables are made of a replace, blends that each touch a small area, the same replace again, and so on.
+// After a replace that settles, none of the pixels are its keys. The blends only change the areas they cover, and a following replace
+// with keys that are all keys of the one before can only find any in those areas, so it only needs to look there.
+// Called with the index of the operation after a replace that has been applied, and returns the index of the next one to apply.
+static size_t processReplaceBlendChain(List<ImageOperation const*> const& operations, size_t i, ColorReplaceImageOperation const* current, Image& image, ImageReferenceCallback const& refCallback) {
+  const size_t pixelLimit = Directives::directivePixelLimit();
+  const size_t count = operations.size();
+  if (image.bytesPerPixel() != 4 || i >= count || !operations[i]->is<BlendImageOperation>() || !replaceSettles(current->colorReplaceMap))
+    return i;
+
+  while (i < count && operations[i]->is<BlendImageOperation>()) {
+    PixelRect changed;
+    bool any = false;
+    while (i < count && operations[i]->is<BlendImageOperation>()) {
+      PixelRect rect = applyBlend(*operations[i]->ptr<BlendImageOperation>(), image, pixelLimit, refCallback);
+      ++i;
+      if (rect.empty())
+        continue;
+      if (rect.pixelCount() > pixelLimit) return NPos;
+      if (!any) {
+        changed = rect;
+        any = true;
+      } else {
+        changed.x0 = std::min(changed.x0, rect.x0);
+        changed.y0 = std::min(changed.y0, rect.y0);
+        changed.x1 = std::max(changed.x1, rect.x1);
+        changed.y1 = std::max(changed.y1, rect.y1);
+      }
+    }
+    if (i < count) {
+      if (auto next = operations[i]->ptr<ColorReplaceImageOperation>()) {
+        if (replaceKeysAreKeysOf(next->colorReplaceMap, current->colorReplaceMap) && replaceSettles(next->colorReplaceMap)) {
+          if (changed.pixelCount() > pixelLimit) return NPos;
+          replaceColors(next->colorReplaceMap, image, changed);
+          current = next;
+          ++i;
+          continue;
+        }
+      }
+    }
+    break;
+  }
+  return i;
+}
+
+void processImageOperationList(List<ImageOperation const*> const& operations, Image& image, ImageReferenceCallback refCallback) {
+  // FezzedOne: Immediately stops processing if any image operation that processes multiple pixels would exceed the configured pixel limit.
+  // This is to prevent potential denial-of-service exploits.
+  size_t count = operations.size();
+  size_t i = 0;
+  while (i < count) {
+    ImageOperation const& operation = *operations[i];
+
+    if (isPerPixelColorOperation(operation)) {
+      size_t end = i;
+      while (end < count && isPerPixelColorOperation(*operations[end]))
+        ++end;
+      // Colors then crop that makes the image smaller get swapped, so the colors are applied to fewer pixels
+      if (end < count) {
+        if (auto crop = operations[end]->ptr<CropImageOperation>()) {
+          if (cropShrinks(*crop, image)) {
+            if (!processImageOperation(*operations[end], image, refCallback)) return;
+            for (size_t k = i; k < end; ++k)
+              if (!processImageOperation(*operations[k], image, refCallback)) return;
+            i = end + 1;
+            continue;
+          }
+        }
+      }
+      for (size_t k = i; k < end; ++k)
+        if (!processImageOperation(*operations[k], image, refCallback)) return;
+      i = end;
+      if (auto replace = operations[end - 1]->ptr<ColorReplaceImageOperation>())
+        i = processReplaceBlendChain(operations, i, replace, image, refCallback);
+      if (i == NPos) return;
+      continue;
+    }
+
+    if (auto scale = operation.ptr<ScaleImageOperation>()) {
+      size_t end = i + 1;
+      while (end < count && isPerPixelColorOperation(*operations[end]))
+        ++end;
+      // Scale, then colors get swapped, so the scale only copies pixels into a bigger image
+      if (end > i + 1 && scaleEnlargesByCopying(*scale, image)) {
+        for (size_t k = i + 1; k < end; ++k)
+          if (!processImageOperation(*operations[k], image, refCallback)) return;
+        // then the scale itself, together with a crop right after it if there is one
+        if (end < count) {
+          if (auto crop = operations[end]->ptr<CropImageOperation>()) {
+            if (processScaleCrop(*scale, *crop, image)) {
+              i = end + 1;
+              continue;
+            }
+          }
+        }
+        if (!processImageOperation(operation, image, refCallback)) return;
+        i = end;
+        continue;
+      }
+      if (i + 1 < count) {
+        if (auto crop = operations[i + 1]->ptr<CropImageOperation>()) {
+          if (processScaleCrop(*scale, *crop, image)) {
+            i += 2;
+            continue;
+          }
+        }
+      }
+    }
+
+    if (!processImageOperation(operation, image, refCallback)) return;
+    ++i;
+  }
+}
+Image processImageOperations(List<ImageOperation> const& operations, Image image, ImageReferenceCallback refCallback) {
+  List<ImageOperation const*> pointers;
+  for (auto const& operation : operations)
+    pointers.append(&operation);
+  processImageOperationList(pointers, image, refCallback);
   return image;
 }
 

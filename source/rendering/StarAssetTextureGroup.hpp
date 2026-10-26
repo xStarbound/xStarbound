@@ -1,12 +1,12 @@
 #ifndef STAR_ASSET_TEXTURE_GROUP_HPP
 #define STAR_ASSET_TEXTURE_GROUP_HPP
 
-#include "StarMaybe.hpp"
-#include "StarString.hpp"
+#include "StarAssetPath.hpp"
 #include "StarBiMap.hpp"
 #include "StarListener.hpp"
+#include "StarMaybe.hpp"
 #include "StarRenderer.hpp"
-#include "StarAssetPath.hpp"
+#include "StarString.hpp"
 
 namespace Star {
 
@@ -44,8 +44,12 @@ private:
   HashMap<AssetPath, pair<TexturePtr, int64_t>> m_textureMap;
   HashMap<ImageConstPtr, TexturePtr> m_textureDeduplicationMap;
   TrackerListenerPtr m_reloadTracker;
+
+  // @LumiKalt: When the last full pass over the textures ran. Expiry is measured in seconds, so
+  // cleanup() does not need to walk every texture on every call.
+  int64_t m_lastCleanup = 0;
 };
 
-}
+} // namespace Star
 
 #endif

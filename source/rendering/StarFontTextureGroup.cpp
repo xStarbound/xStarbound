@@ -54,8 +54,10 @@ const FontTextureGroup::GlyphTexture& FontTextureGroup::glyphTexture(String::Cha
       try {
         Vec2F preSize = Vec2F(image.size());
 
-        for (auto& entry : processingDirectives->shared->entries)
-          processImageOperation(entry.operation, image);
+        bool exhaustedPixels = false;
+        for (auto& entry : processingDirectives->shared->entries) {
+          if (!processImageOperation(entry.operation, image)) break;
+        }
 
         res.first->second.offset = (preSize - Vec2F(image.size())) / 2;
       } catch (StarException&) {

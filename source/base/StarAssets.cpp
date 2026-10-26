@@ -120,6 +120,12 @@ Assets::Assets(Settings settings, StringList assetSources) {
   const char* const AssetsPlutoPatchSuffix = ".patch.pluto";
 
   m_settings = std::move(settings);
+  size_t pixelLimit = m_settings.imageOperationPixelLimit;
+  if (pixelLimit == 0) pixelLimit = std::numeric_limits<size_t>::max();
+  Directives::setDirectivePixelLimit(pixelLimit);
+  size_t lengthLimit = m_settings.directiveStringLengthLimit;
+  if (lengthLimit == 0) lengthLimit = std::numeric_limits<size_t>::max();
+  Directives::setDirectiveStringLengthLimit(lengthLimit);
   m_stopThreads = false;
   m_assetSources = std::move(assetSources);
 
@@ -932,13 +938,37 @@ void Assets::cleanup() {
 
   double time = Time::monotonicTime();
 
+  // @LumiKalt: Reference images live longer than other assets, but only the most recently used ones that fit the pixel budget do.
+  HashSet<AssetData const*> keepLonger;
+  if (m_settings.referenceImageTimeToLive > m_settings.assetTimeToLive) {
+    List<pair<double, shared_ptr<ImageData>>> references;
+    for (auto const& pair : m_assetsCache) {
+      if (pair.second && pair.second->isReference)
+        if (auto image = as<ImageData>(pair.second))
+          references.append({image->time, image});
+    }
+    references.sort([](auto const& a, auto const& b) { return a.first > b.first; });
+
+    uint64_t pixels = 0;
+    for (auto const& reference : references) {
+      if (!reference.second->image)
+        continue;
+      uint64_t size = (uint64_t)reference.second->image->width() * reference.second->image->height();
+      if (pixels + size > m_settings.referenceImagePixelBudget)
+        continue;
+      pixels += size;
+      keepLonger.add(reference.second.get());
+    }
+  }
+
   auto it = makeSMutableMapIterator(m_assetsCache);
   while (it.hasNext()) {
     auto pair = it.next();
     // Don't clean up broken assets or queued assets.
     if (pair.second && !m_queue.contains(pair.first)) {
       double liveTime = time - pair.second->time;
-      if (liveTime > m_settings.assetTimeToLive) {
+      float timeToLive = keepLonger.contains(pair.second.get()) ? m_settings.referenceImageTimeToLive : m_settings.assetTimeToLive;
+      if (liveTime > timeToLive) {
         // If the asset should persist, just refresh the access time.
         if (pair.second->shouldPersist())
           pair.second->time = time;
@@ -1619,6 +1649,7 @@ shared_ptr<Assets::AssetData> Assets::loadImage(AssetPath const& path) const {
     if (!source)
       return {};
     StringMap<ImageConstPtr> references;
+    ImageConstPtr blankReference = make_shared<Image>();
     StringList referencePaths;
 
     for (auto& directives : path.directives.list())
@@ -1633,6 +1664,9 @@ shared_ptr<Assets::AssetData> Assets::loadImage(AssetPath const& path) const {
       auto components = AssetPath::split(ref);
       validatePath(components, true, false);
       auto refImage = as<ImageData>(loadAsset(AssetId{AssetType::Image, std::move(components)}));
+      if (!refImage) continue;
+      // LumiKalt: Mark this image as a directive reference.
+      refImage->isReference = true;
       // if (!refImage)
       //   Logger::warn("Could not find referenced image '{}', substituting empty image", ref);
       references[ref] = refImage ? refImage->image : make_shared<Image>();
@@ -1640,12 +1674,8 @@ shared_ptr<Assets::AssetData> Assets::loadImage(AssetPath const& path) const {
 
     return unlockDuring([&]() {
       auto newData = make_shared<ImageData>();
-      Image newImage = *source->image;
-      path.directives.forEach([&](auto const& entry, Directives const& directives) {
-        if (auto error = entry.operation.template ptr<ErrorImageOperation>())
-          std::rethrow_exception(error->exception);
-        else
-          processImageOperation(entry.operation, newImage, [&](String const& ref) { return references.get(ref).get(); });
+      auto newImage = path.directives.applyNewImage(*source->image, [&](String const& ref) {
+        return references.value(ref, blankReference).get();
       });
       newData->image = make_shared<Image>(std::move(newImage));
       return newData;

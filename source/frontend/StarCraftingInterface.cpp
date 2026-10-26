@@ -624,7 +624,9 @@ void CraftingPane::countTextChanged() {
       if (!m_textBox->getText().replace("x", "").size()) {
         m_count = appropriateDefaultCount;
       } else {
-        m_count = clamp<int>(lexicalCast<int>(m_textBox->getText().replace("x", "")), appropriateDefaultCount, maxCraft());
+        // @LumiKalt: Fix for an annoying bug where players sometimes had to click
+        // the crafting button twice to craft an item, especially for craftable items with no ingredients.
+        m_count = clamp<int>(lexicalCast<int>(m_textBox->getText().replace("x", "")), appropriateDefaultCount, std::max(maxCraft(), 1));
         countChanged();
       }
     } catch (BadLexicalCast const&) {

@@ -1,9 +1,9 @@
 #ifndef STAR_IMAGE_PROCESSING_HPP
 #define STAR_IMAGE_PROCESSING_HPP
 
+#include "StarJson.hpp"
 #include "StarList.hpp"
 #include "StarRect.hpp"
-#include "StarJson.hpp"
 
 namespace Star {
 
@@ -13,24 +13,27 @@ STAR_CLASS(Image);
 
 STAR_EXCEPTION(ImageOperationException, StarException);
 
-Image scaleNearest(Image const& srcImage, Vec2F scale);
-#if defined XSB_DISABLED // STAR_COMPILER_GNU
-// FezzedOne: Needed to emulate MSVC-like floating-point behaviour on GCC.
-Image scaleBilinear(Image const& srcImage, Vec2F scale) __attribute__ ((optimize("O2")));
-#else
-Image scaleBilinear(Image const& srcImage, Vec2F scale);
-#endif
-Image scaleBicubic(Image const& srcImage, Vec2F scale);
+// Image scaleNearest(Image const& srcImage, Vec2F scale);
+// Image scaleBilinear(Image const& srcImage, Vec2F scale);
+// Image scaleBicubic(Image const& srcImage, Vec2F scale);
+
+// @LumiKalt: A scale immediately followed by a crop only needs the pixels the crop keeps.
+// These compute exactly those pixels, with the same arithmetic as scaleNearest / scaleBilinear, so the result
+// equals scaling the whole image and then cropping it.
+// scaledCropFits says whether the window lies inside the scaled image, the cropped scales assume it does.
+// bool scaledCropFits(Image const& srcImage, Vec2F const& scale, RectI const& window);
+// Image scaleNearestCropped(Image const& srcImage, Vec2F const& scale, RectI const& window);
+// Image scaleBilinearCropped(Image const& srcImage, Vec2F const& scale, RectI const& window);
 
 StringList colorDirectivesFromConfig(JsonArray const& directives);
 String paletteSwapDirectivesFromConfig(Json const& swaps);
 
 struct NullImageOperation {
-
+  bool unloaded = false;
 };
 
 struct ErrorImageOperation {
-  std::exception_ptr exception;
+  Variant<std::string, std::exception_ptr> cause;
 };
 
 struct HueShiftImageOperation {
@@ -84,7 +87,7 @@ typedef HashMap<Vec4B, Vec4B> ColorReplaceMap;
 typedef HashMap<Vec5B, Vec4B> ColorReplaceMap5;
 
 struct ColorReplaceImageOperation {
-  ColorReplaceMap5 colorReplaceMap;
+  ColorReplaceMap colorReplaceMap;
 };
 
 struct AlphaMaskImageOperation {
@@ -169,9 +172,10 @@ struct DrawIntoImageOperation {
 };
 
 typedef Variant<NullImageOperation, ErrorImageOperation, HueShiftImageOperation, SaturationShiftImageOperation, BrightnessMultiplyImageOperation, FadeToColorImageOperation,
-  ScanLinesImageOperation, SetColorImageOperation, ColorReplaceImageOperation, AlphaMaskImageOperation, BlendImageOperation,
-  MultiplyImageOperation, BorderImageOperation, ScaleImageOperation, CropImageOperation, FlipImageOperation,
-  SetPixelImageOperation, BlendPixelImageOperation, CopyIntoImageOperation, DrawIntoImageOperation> ImageOperation;
+    ScanLinesImageOperation, SetColorImageOperation, ColorReplaceImageOperation, AlphaMaskImageOperation, BlendImageOperation,
+    MultiplyImageOperation, BorderImageOperation, ScaleImageOperation, CropImageOperation, FlipImageOperation,
+    SetPixelImageOperation, BlendPixelImageOperation, CopyIntoImageOperation, DrawIntoImageOperation>
+    ImageOperation;
 
 ImageOperation imageOperationFromString(StringView string);
 String imageOperationToString(ImageOperation const& operation);
@@ -191,10 +195,27 @@ StringList imageOperationReferences(List<ImageOperation> const& operations);
 
 typedef function<Image const*(String const& refName)> ImageReferenceCallback;
 
-void processImageOperation(ImageOperation const& operation, Image& input, ImageReferenceCallback refCallback = {});
+bool processImageOperation(ImageOperation const& operation, Image& input, ImageReferenceCallback refCallback = {});
+
+// @LumiKalt: A scale followed by a crop only needs the pixels the crop keeps, which is much cheaper when the scale makes a large image
+// and the crop keeps a small part of it.
+// Applies both operations with the same result as processImageOperation on each and returns true.
+// Returns false without touching the image when they can't be combined (bicubic scale, negative scale, a crop
+// outside the scaled image), in which case the two operations must be applied one by one.
+bool processScaleCrop(ScaleImageOperation const& scale, CropImageOperation const& crop, Image& image);
+
+// @LumiKalt: Applies the operations in order, saving work where doing it in a different order or together gives exactly the same image.
+// * a scale followed by a crop only computes the pixels the crop keeps (processScaleCrop);
+// * operations that look at one pixel at a time and nothing else (hue, saturation, brightness, fade, setcolor, replace, multiply)
+//   come out the same before a nearest neighbour scale as after it, since that scale only copies pixels, so they are applied to
+//   the smaller image before an enlarging scale;
+// * the same operations come out the same after a crop as before it, so they are applied after a crop that makes the image smaller.
+//
+// Operations that depend on position or on neighbouring pixels (scanlines, border, blends, masks, bilinear scales...) are never moved.
+void processImageOperationList(List<ImageOperation const*> const& operations, Image& image, ImageReferenceCallback refCallback = {});
 
 Image processImageOperations(List<ImageOperation> const& operations, Image input, ImageReferenceCallback refCallback = {});
 
-}
+} // namespace Star
 
 #endif

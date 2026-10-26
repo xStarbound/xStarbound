@@ -1,12 +1,12 @@
 #ifndef STAR_DRAWABLE_HPP
 #define STAR_DRAWABLE_HPP
 
-#include "StarString.hpp"
-#include "StarDataStream.hpp"
-#include "StarPoly.hpp"
-#include "StarColor.hpp"
-#include "StarJson.hpp"
 #include "StarAssetPath.hpp"
+#include "StarColor.hpp"
+#include "StarDataStream.hpp"
+#include "StarJson.hpp"
+#include "StarPoly.hpp"
+#include "StarString.hpp"
 
 namespace Star {
 
@@ -41,7 +41,7 @@ struct Drawable {
 
   static Drawable makeLine(Line2F const& line, float lineWidth, Color const& color, Vec2F const& position = Vec2F());
   static Drawable makePoly(PolyF poly, Color const& color, Vec2F const& position = Vec2F());
-  static Drawable makeImage(AssetPath image, float pixelSize, bool centered, Vec2F const& position, Color const& color = Color::White);
+  static Drawable makeImage(String const& image, float pixelSize, bool centered, Vec2F const& position, Color const& color = Color::White);
 
   template <typename DrawablesContainer>
   static void translateAll(DrawablesContainer& drawables, Vec2F const& translation);
@@ -185,6 +185,6 @@ inline Drawable::ImagePart const& Drawable::imagePart() const {
   return part.get<ImagePart>();
 }
 
-}
+} // namespace Star
 
 #endif

@@ -342,7 +342,14 @@ Maybe<Json> QuestManager::receiveMessage(String const& message, bool localMessag
 }
 
 void QuestManager::update(float dt) {
-  startInitialQuests();
+  // @LumiKalt: Checking the initial quests loads their json and, when one can start, builds and starts a whole quest.
+  // A quest that fails or gets removed straight away (a mod that disables quests...) would otherwise be built again on
+  // every tick, so only look once a second.
+  m_initialQuestTimer -= dt;
+  if (m_initialQuestTimer <= 0.0f) {
+    m_initialQuestTimer = 1.0f;
+    startInitialQuests();
+  }
 
   if (m_trackedQuestId && !isActive(*m_trackedQuestId))
     m_trackedQuestId = {};

@@ -396,25 +396,28 @@ Vec4B Image::getrgb(Vec2U const& pos) const {
 }
 
 Vec4B Image::clamp(Vec2I const& pos) const {
-  Vec4B c;
   unsigned x = (unsigned)Star::clamp<int>(pos[0], 0, m_width - 1);
   unsigned y = (unsigned)Star::clamp<int>(pos[1], 0, m_height - 1);
   if (m_width == 0 || m_height == 0) {
     return {0, 0, 0, 0};
   } else if (bytesPerPixel() == 4) {
+    Vec4B c;
     size_t offset = y * m_width * 4 + x * 4;
     c[0] = m_data[offset];
     c[1] = m_data[offset + 1];
     c[2] = m_data[offset + 2];
     c[3] = m_data[offset + 3];
+    return c;
   } else if (bytesPerPixel() == 3) {
+    Vec4B c;
     size_t offset = y * m_width * 3 + x * 3;
     c[0] = m_data[offset];
     c[1] = m_data[offset + 1];
     c[2] = m_data[offset + 2];
     c[3] = 255;
+    return c;
   }
-  return c;
+  return {0, 0, 0, 0};
 }
 
 Vec4B Image::clamprgb(Vec2I const& pos) const {

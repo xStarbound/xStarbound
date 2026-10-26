@@ -1,14 +1,14 @@
 #ifndef STAR_ASSETS_HPP
 #define STAR_ASSETS_HPP
 
+#include "StarAssetPath.hpp"
+#include "StarAssetSource.hpp"
+#include "StarBiMap.hpp"
 #include "StarJson.hpp"
 #include "StarOrderedMap.hpp"
 #include "StarRect.hpp"
-#include "StarBiMap.hpp"
-#include "StarThread.hpp"
-#include "StarAssetSource.hpp"
-#include "StarAssetPath.hpp"
 #include "StarRefPtr.hpp"
+#include "StarThread.hpp"
 
 namespace Star {
 
@@ -46,7 +46,18 @@ class Assets {
 public:
   struct Settings {
     // TTL for cached assets
-    float assetTimeToLive;
+    float assetTimeToLive = 30;
+
+    // @LumiKalt: Images that directives refer to (blend and mask images) are slow to decode compared to applying them and are needed again
+    // whenever another image that uses them is loaded.
+    // Thus, they are kept this many seconds after their last use instead of assetTimeToLive, but only as many of them (most
+    // recently used first) as fit in referenceImagePixelBudget pixels together.
+    float referenceImageTimeToLive = 300;
+    uint64_t referenceImagePixelBudget = 16 * 1024 * 1024;
+    // @FezzedOne: Maximum permitted pixel count for some image operations. Prevents certain exploits.
+    uint64_t imageOperationPixelLimit = 16 * 1024 * 1024;
+    // @FezzedOne: Maximum permitted length for image directive strings. Longer strings will not be parsed in asset paths or by `Image:process`.
+    uint64_t directiveStringLengthLimit = 16 * 1024 * 1024;
 
     // Audio under this length will be automatically decompressed
     float audioDecompressLimit;
@@ -114,6 +125,9 @@ public:
     double time = 0.0;
     bool needsPostProcessing = false;
     bool overridePersistence = false;
+
+    // @LumiKalt: Set on images that some directive chain uses as a reference image
+    bool isReference = false;
   };
 
   struct JsonData : AssetData {
@@ -178,7 +192,7 @@ public:
   JsonObject assetSourceMetadata(String const& sourcePath) const;
 
   // FezzedOne: Return asset paths for the given loaded asset source path.
-  StringList assetSourcePaths(String const &sourcePath) const;
+  StringList assetSourcePaths(String const& sourcePath) const;
 
   // An imperfect sha256 digest of the contents of all combined asset sources.
   // Useful for detecting if there are mismatched assets between a client and
@@ -353,7 +367,7 @@ private: // FezzedOne: These all should be private!
   BiMap<String, AssetSourcePtr> m_assetSourcePaths;
 
   // Maps the source asset name to the source containing it
-  // FezzedOne: Apparently must be case-insensitive because of Windowsisms in the base assets and mods. 
+  // FezzedOne: Apparently must be case-insensitive because of Windowsisms in the base assets and mods.
   CaseInsensitiveStringMap<AssetFileDescriptor> m_files;
   // Maps an extension to the files with that extension
   CaseInsensitiveStringMap<CaseInsensitiveStringSet> m_filesByExtension;
@@ -364,6 +378,6 @@ private: // FezzedOne: These all should be private!
   atomic<bool> m_stopThreads;
 };
 
-}
+} // namespace Star
 
 #endif

@@ -1,9 +1,11 @@
 #ifndef STAR_ASSET_PATH_HPP
 #define STAR_ASSET_PATH_HPP
 
+#include "StarDataStream.hpp"
 #include "StarDirectives.hpp"
 #include "StarHash.hpp"
-#include "StarDataStream.hpp"
+#include "StarMap.hpp"
+#include "StarTtlCache.hpp"
 
 namespace Star {
 
@@ -75,8 +77,9 @@ struct hash<AssetPath> {
   size_t operator()(AssetPath const& s) const;
 };
 
-}
+} // namespace Star
 
-template <> struct fmt::formatter<Star::AssetPath> : ostream_formatter {};
+template <>
+struct fmt::formatter<Star::AssetPath> : ostream_formatter {};
 
 #endif

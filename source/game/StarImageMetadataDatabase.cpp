@@ -188,7 +188,9 @@ AssetPath ImageMetadataDatabase::filterProcessing(AssetPath const& path) {
             operation.is<BrightnessMultiplyImageOperation>() ||
             operation.is<FadeToColorImageOperation>() ||
             operation.is<ScanLinesImageOperation>() ||
-            operation.is<SetColorImageOperation>())) {
+            operation.is<SetColorImageOperation>() ||
+            operation.is<SetPixelImageOperation>() ||
+            operation.is<BlendPixelImageOperation>())) {
       filtered += "?";
       filtered += entry.string(*directives.shared);
     }

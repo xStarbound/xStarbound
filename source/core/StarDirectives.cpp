@@ -11,6 +11,8 @@
 #define ZoneScopedN(name)
 #endif
 
+// @LumiKalt: Heavily modified directives handling.
+
 namespace Star {
 
 Directives::Entry::Entry(ImageOperation&& newOperation, size_t strBegin, size_t strLength) {
@@ -35,7 +37,7 @@ ImageOperation const& Directives::Entry::loadOperation(Shared const& parent) con
   if (operation.is<NullImageOperation>()) {
     try {
       operation = imageOperationFromString(string(parent));
-    } catch (StarException const& e) { operation = ErrorImageOperation{std::current_exception()}; }
+    } catch (StarException const& e) { operation = ErrorImageOperation{std::exception_ptr()}; }
   }
   return operation;
 }
@@ -50,14 +52,16 @@ bool Directives::Shared::empty() const {
   return entries.empty();
 }
 
-Directives::Shared::Shared(List<Entry>&& givenEntries, String&& givenString, StringView givenPrefix) {
+Directives::Shared::Shared() {}
+
+Directives::Shared::Shared(List<Entry>&& givenEntries, String&& givenString) {
   entries = std::move(givenEntries);
   string = std::move(givenString);
-  prefix = givenPrefix;
-  hash = XXH3_64bits(string.utf8Ptr(), string.utf8Size());
+  hash = string.empty() ? 0 : XXH3_64bits(string.utf8Ptr(), string.utf8Size());
 }
 
 Directives::Directives() {}
+
 Directives::Directives(String const& directives) {
   parse(String(directives));
 }
@@ -70,33 +74,68 @@ Directives::Directives(const char* directives) {
   parse(directives);
 }
 
-Directives::~Directives() {
-  shared.reset();
+Directives::Directives(Directives&& directives) noexcept {
+  *this = std::move(directives);
 }
 
-Directives& Directives::operator=(String const& directives) {
-  if (shared && shared->string == directives)
+Directives::Directives(Directives const& directives) {
+  *this = directives;
+}
+
+Directives::~Directives() {}
+
+Directives& Directives::operator=(String const& s) {
+  if (shared && shared->string == s)
     return *this;
 
-  parse(String(directives));
+  parse(String(s));
   return *this;
 }
 
-Directives& Directives::operator=(String&& directives) {
-  if (shared && shared->string == directives) {
-    directives.clear();
+Directives& Directives::operator=(String&& s) {
+  if (shared && shared->string == s) {
+    s.clear();
     return *this;
   }
 
-  parse(std::move(directives));
+  parse(std::move(s));
   return *this;
 }
 
-Directives& Directives::operator=(const char* directives) {
-  if (shared && shared->string.utf8().compare(directives) == 0)
+Directives& Directives::operator=(const char* s) {
+  if (shared && shared->string.utf8().compare(s) == 0)
     return *this;
 
-  parse(directives);
+  parse(s);
+  return *this;
+}
+
+Directives& Directives::operator=(Directives&& other) noexcept {
+  shared = std::move(other.shared);
+  return *this;
+}
+
+Directives& Directives::operator=(Directives const& other) {
+  shared = other.shared;
+  return *this;
+}
+
+Directives& Directives::operator+=(Directives const& other) {
+  if (other.empty())
+    return *this;
+
+  if (empty()) {
+    shared = other.shared;
+    return *this;
+  }
+
+  String string = shared->string;
+  auto& otherString = other.shared->string;
+  if (otherString.utf8().front() != '?')
+    string += "?";
+  string += otherString;
+
+  parse(std::move(string));
   return *this;
 }
 
@@ -104,49 +143,63 @@ void Directives::loadOperations() const {
   if (!shared)
     return;
 
-  MutexLocker lock(shared->mutex, true);
+  MutexLocker locker(shared->mutex, false);
+  if (!shared.unique())
+    locker.lock();
   for (auto& entry : shared->entries)
     entry.loadOperation(*shared);
 }
 
 void Directives::parse(String&& directives) {
-  ZoneScopedN("Directives::parse");
   if (directives.empty()) {
     shared.reset();
     return;
   }
 
-  List<Entry> newList;
+  List<Entry> entries;
+  size_t lengthLimit = Directives::directiveStringLengthLimit();
+  size_t directivesLen = directives.utf8().length();
   StringView view(directives);
-  StringView prefix = "";
-  view.forEachSplitView("?", [&](StringView split, size_t beg, size_t end) {
-    if (!split.empty()) {
-      if (beg == 0) {
-        try {
-          ImageOperation operation = imageOperationFromString(split);
-          newList.emplace_back(std::move(operation), beg, end);
-        } catch (StarException const& e) {
-          prefix = split;
-          return;
-        }
-      } else {
+  if (directivesLen <= lengthLimit) {
+    view.forEachSplitView("?", [&](StringView split, size_t beg, size_t end) {
+      if (!split.empty()) {
         ImageOperation operation = NullImageOperation();
-        newList.emplace_back(std::move(operation), beg, end);
+        if (beg == 0) {
+          try {
+            operation = imageOperationFromString(split);
+          } catch (StarException const& e) { operation = ErrorImageOperation{std::exception_ptr()}; }
+        }
+        entries.emplace_back(std::move(operation), beg, end);
       }
-    }
-  });
+    });
+  } else {
+    ImageOperation errorOp = ErrorImageOperation{strf("Image directive string of length {} exceeds configured length limit of {}", directivesLen, lengthLimit)};
+    entries.emplace_back(std::move(errorOp), 0, directivesLen);
+    shared = std::make_shared<Shared const>(std::move(entries), String());
+    return;
+  }
 
-  if (newList.empty() && !prefix.empty()) {
+  if (entries.empty()) {
     shared.reset();
     return;
   }
 
-  shared.reset(); // FezzedOne: Reset the shared pointer first to stop a massive memory leak.
-  shared = std::make_shared<Shared const>(std::move(newList), std::move(directives), prefix);
-  if (view.size() < 1000) { // Pre-load short enough directives
+  shared = std::make_shared<Shared const>(std::move(entries), std::move(directives));
+  if (directivesLen < 1000) { // Pre-load short enough directives
     for (auto& entry : shared->entries)
       entry.loadOperation(*shared);
   }
+}
+
+StringView Directives::prefix() const {
+  if (!shared)
+    return "";
+  else if (shared->empty())
+    return shared->string;
+  else if (shared->string.utf8().at(0) == '?')
+    return "";
+  else
+    return shared->entries.front().string(*shared);
 }
 
 String Directives::string() const {
@@ -154,13 +207,6 @@ String Directives::string() const {
     return "";
   else
     return shared->string;
-}
-
-StringView Directives::prefix() const {
-  if (!shared)
-    return "";
-  else
-    return shared->prefix;
 }
 
 String const* Directives::stringPtr() const {
@@ -173,10 +219,10 @@ String const* Directives::stringPtr() const {
 
 String Directives::buildString() const {
   if (shared) {
-    String built = shared->prefix;
-
+    String built;
     for (auto& entry : shared->entries) {
-      built += "?";
+      if (entry.begin > 0)
+        built += "?";
       built += entry.string(*shared);
     }
 
@@ -204,16 +250,33 @@ bool Directives::empty() const {
   return !shared || shared->empty();
 }
 
-Directives::operator bool() const { return !empty(); }
+Directives::operator bool() const {
+  return !empty();
+}
 
-bool Directives::operator==(Directives const& other) {
-  if (empty() != other.empty()) return false;
-  if (size() != other.size()) return false;
+bool Directives::equals(Directives const& other) const {
   return hash() == other.hash();
 }
 
-bool Directives::operator!=(Directives const& other) {
-  return !(*this == other);
+bool Directives::equals(String const& string) const {
+  auto directiveString = stringPtr();
+  return directiveString ? string == *directiveString : string.empty();
+}
+
+bool Directives::operator==(Directives const& other) const {
+  return equals(other);
+}
+
+bool Directives::operator==(String const& string) const {
+  return equals(string);
+}
+
+bool Directives::operator!=(Directives const& other) const {
+  return !equals(other);
+}
+
+bool Directives::operator!=(String const& string) const {
+  return !equals(string);
 }
 
 DataStream& operator>>(DataStream& ds, Directives& directives) {
@@ -227,11 +290,23 @@ DataStream& operator>>(DataStream& ds, Directives& directives) {
 
 DataStream& operator<<(DataStream& ds, Directives const& directives) {
   if (directives)
-    ds.write(directives.shared->string);
+    ds.write(directives->string);
   else
     ds.write(String());
 
   return ds;
+}
+
+bool operator==(Directives const& d1, Directives const& d2) {
+  return d1.equals(d2);
+}
+
+bool operator==(String const& string, Directives const& directives) {
+  return directives.equals(string);
+}
+
+bool operator==(Directives const& directives, String const& string) {
+  return directives.equals(string);
 }
 
 DirectivesGroup::DirectivesGroup() : m_count(0) {}
@@ -304,24 +379,30 @@ String DirectivesGroup::toString() const {
 }
 
 void DirectivesGroup::addToString(String& string) const {
-  for (auto& directives : m_directives)
-    if (directives.shared)
-      string += directives.shared->string;
+  for (auto& entry : m_directives) {
+    if (entry && !entry->string.empty()) {
+      if (!string.empty() && string.utf8().back() != '?' && entry->string.utf8()[0] != '?')
+        string.append('?');
+      string += entry->string;
+    }
+  }
 }
 
 void DirectivesGroup::forEach(DirectivesCallback callback) const {
+  if (empty()) return;
   for (auto& directives : m_directives) {
-    if (directives.shared) {
-      for (auto& entry : directives.shared->entries)
+    if (directives) {
+      for (auto& entry : directives->entries)
         callback(entry, directives);
     }
   }
 }
 
 bool DirectivesGroup::forEachAbortable(AbortableDirectivesCallback callback) const {
+  if (empty()) return true;
   for (auto& directives : m_directives) {
-    if (directives.shared) {
-      for (auto& entry : directives.shared->entries) {
+    if (directives) {
+      for (auto& entry : directives->entries) {
         if (!callback(entry, directives))
           return false;
       }
@@ -331,20 +412,48 @@ bool DirectivesGroup::forEachAbortable(AbortableDirectivesCallback callback) con
   return true;
 }
 
-Image DirectivesGroup::applyNewImage(Image const& image) const {
+StringList DirectivesGroup::imageReferences() const {
+  StringList references;
+  for (auto& directives : m_directives) {
+    if (!directives)
+      continue;
+    directives.loadOperations();
+    for (auto& entry : directives->entries)
+      addImageOperationReferences(entry.operation, references);
+  }
+  return references;
+}
+
+Image DirectivesGroup::applyNewImage(Image const& image, ImageReferenceCallback refCallback) const {
   Image result = image;
-  applyExistingImage(result);
+  applyExistingImage(result, refCallback);
   return result;
 }
 
-void DirectivesGroup::applyExistingImage(Image& image) const {
-  forEach([&](auto const& entry, Directives const& directives) {
-    ImageOperation const& operation = entry.loadOperation(*directives.shared);
-    if (auto error = operation.ptr<ErrorImageOperation>())
-      std::rethrow_exception(error->exception);
-    else
-      processImageOperation(operation, image);
+void DirectivesGroup::applyExistingImage(Image& image, ImageReferenceCallback refCallback) const {
+  bool first = true;
+  // @LumiKalt: The operations are collected and applied together, which lets processImageOperationList apply them in a cheaper order where that
+  // gives the same image.
+  // An operation that can't be applied ends the list.
+  List<ImageOperation const*> operations;
+
+  forEach([&](Directives::Entry const& entry, Directives const& directives) {
+    ImageOperation const& operation = entry.loadOperation(*directives);
+    if (auto error = operation.ptr<ErrorImageOperation>()) {
+      processImageOperationList(operations, image, refCallback);
+      if (auto string = error->cause.ptr<std::string>())
+        throw DirectivesException::format("ImageOperation parse error: {}", *string);
+      else
+        std::rethrow_exception(error->cause.get<std::exception_ptr>());
+    } else if (!first && entry.begin != 0 && operation.is<NullImageOperation>()) {
+      processImageOperationList(operations, image, refCallback);
+      throw DirectivesException::format("Invalid image operation: {}", entry.string(*directives));
+    } else {
+      operations.append(&operation);
+    }
+    first = false;
   });
+  processImageOperationList(operations, image, refCallback);
 }
 
 size_t DirectivesGroup::hash() const {

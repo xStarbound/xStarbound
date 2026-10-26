@@ -2,6 +2,8 @@
 
 Image processing directives are used to modify a base image asset before it is displayed by the game engine.
 
+> **Performance optimisations:** On xStarbound v4.6+ and OpenStarbound v0.1.16+, the directives parser and image processor have been rewritten and significantly optimised with generated clothing items and the like in mind (thanks to @LumiKalt and @Novaenia, with a few additional xStarbound-only optimisations added by @FezzedOne). Several optimisations by Kae are present on oSBM. Aside from bugfixes for a few Linux- and macOS-specific discrepancies (as noted below), these optimisations should have no visual effect on image operation outputs.
+
 ### Syntax
 
 The directive syntax is as follows:
@@ -36,9 +38,12 @@ The following types of arguments are used in directive operations.
 
 xStarbound supports the image operations listed below. Names and arguments are in `operation=arg1;arg2[;arg3][;arg4=arg5;arg4=arg5...]` syntax, where `operation` is the name of the operation, `arg1` and `arg2` are regular arguments, `arg3` is an optional argument, and `arg4=arg5...` is an optional arbitrarily long (or short) series of paired arguments.
 
-- **`hueshift=degrees`** Shifts the hues of the image by `degrees` (`float`) in degrees, as if on a colour wheel.
+- **`hueshift=degrees`** Shifts the hues of the image by `degrees` (`float`) in degrees, as if on a colour wheel. Note that negative hue shifts are not quite identical to their positive equivalents (i.e., `hueshift=-270` is not identical to `hueshift=90`).
 - **`saturation=percentage`:** Increases or decreases the image's colour saturation by `percentage` (`float`). `-100` fully desaturates the image, making it black-and-white, while `100` fully blows out the colours.
 - **`brightness=percentage`:** Increases or decreases the image's brightness by `percentage` (`float`). `-100` fully darkens the image while `100` fully blows out the brightness.
+
+> **Note:** The effect of `?brightness` and `?saturation` directives on many non-Windows builds (especially Linux builds) of retail Starbound and oSBM very slightly deviates from that of their respective Windows builds. This platform discrepancy has been fixed in favour of the Windows result on xStarbound v4.6+ / OpenStarbound v0.1.16+.
+
 - **`fade=colour;amount`:** "Fades" the image toward a given `colour` (`colour`) by a given `amount` (`float`). An amount of `1.0` fully replaces the image with the specified colour.
 - **`scanlines=colour1;amount1;colour2;amount2`:** `colour1` (`colour`), `amount1` (`float`), `colour2` (`colour`), `amount2` (`float`). Like `fade`, but applies an alternating "scanlines" effect, where "even" pixel lines use the one set of values and "odd" pixel lines use the other set. Used by the scanning tool.
 - **`setcolor=colour`:** Sets all image pixels with an alpha above 0 to the specified `colour` (`colour`). Ignores the alpha value in the specified colour; it's always `ff`. Use a subsequent `?multiply=ffffffAA`, where `AA` is the desired alpha value, to add alpha transparency.
@@ -67,9 +72,11 @@ xStarbound supports the image operations listed below. Names and arguments are i
 - **`copyinto=image;x;y` [xStarbound only]:** Copies the pixels of the specified `image` (`path`) into the base image, _replacing_ in-bounds pixels of the base image with those of the copied image. The specified image to copy is offset from the base's origin by the specified `x` (`uint`) and `y` (`uint`) values.
 - **`drawinto=image;x;y` [xStarbound only]:** `image` (`path`), `x` (`uint`), `y` (`uint`). Same as above, but alpha-blends the copied image's pixels into the base image. Preferable if you don't want the copied image's transparent pixels to «cut out» portions of the base.
 
-### Technical note for macOS users
+### Parser and pixel limits
 
-Generated sleeves on the x86 macOS build (at least on the latest x86-64 Apple Clang on macOS 14 Sonoma) are likely affected by an optimisation «fluke» (that affects four back sleeve frames) which I couldn't fix by disabling optimisations and didn't feel like patching around, so they're most likely still in that build if you decide to compile it yourself. I suggest you save yourself the trouble by cross-compiling and running the Windows build in Whisky or WINE.
+By default, xStarbound v4.6+ limits the raw byte length of directive strings accepted by the parser and the number of pixels any given directive operation can affect. These are configurable in `xsbinit.config` under `"directiveStringLengthLimit"` and `"imageOperationPixelLimit"`, respectively. Both of these limits default to values of 16777216 (16 MiB for directive strings or 16.7 megapixels for processed images) if unspecified (as is the default). Set either limit to 0 in `xsbinit.config` to disable that limit.
+
+If the byte length limit is exceeded, an error is logged. If any operation exceeds the pixel processing limit, this is silently caught without a warning or error; the only indication is visually incomplete image processing.
 
 # Text escape codes
 

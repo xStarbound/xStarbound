@@ -1,10 +1,10 @@
 #include "StarDrawable.hpp"
-#include "StarColor.hpp"
-#include "StarJsonExtra.hpp"
-#include "StarDataStreamExtra.hpp"
 #include "StarAssets.hpp"
-#include "StarImageMetadataDatabase.hpp"
+#include "StarColor.hpp"
+#include "StarDataStreamExtra.hpp"
 #include "StarGameTypes.hpp"
+#include "StarImageMetadataDatabase.hpp"
+#include "StarJsonExtra.hpp"
 #include "StarRoot.hpp"
 
 namespace Star {
@@ -45,7 +45,7 @@ Drawable::ImagePart& Drawable::ImagePart::addDirectivesGroup(DirectivesGroup con
     transformation *= Mat3F::translation((imageSize - newImageSize) / 2);
   } else {
     for (Directives const& directives : directivesGroup.list())
-       image.directives += directives;
+      image.directives += directives;
   }
 
   return *this;
@@ -86,7 +86,7 @@ Drawable Drawable::makePoly(PolyF poly, Color const& color, Vec2F const& positio
   return drawable;
 }
 
-Drawable Drawable::makeImage(AssetPath image, float pixelSize, bool centered, Vec2F const& position, Color const& color) {
+Drawable Drawable::makeImage(String const& image, float pixelSize, bool centered, Vec2F const& position, Color const& color) {
   Drawable drawable;
   Mat3F transformation = Mat3F::identity();
   if (centered) {
@@ -106,7 +106,7 @@ Drawable Drawable::makeImage(AssetPath image, float pixelSize, bool centered, Ve
 }
 
 Drawable::Drawable()
-  : color(Color::White), fullbright(false) {}
+    : color(Color::White), fullbright(false) {}
 
 Drawable::Drawable(Json const& json) {
   if (auto line = json.opt("line")) {
@@ -298,4 +298,4 @@ DataStream& operator<<(DataStream& ds, Drawable const& drawable) {
   return ds;
 }
 
-}
+} // namespace Star

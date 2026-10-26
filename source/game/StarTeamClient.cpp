@@ -1,13 +1,13 @@
 #include "StarTeamClient.hpp"
+#include "StarAssets.hpp"
+#include "StarClientContext.hpp"
 #include "StarJsonExtra.hpp"
-#include "StarWorldTemplate.hpp"
+#include "StarJsonRpc.hpp"
 #include "StarPlayer.hpp"
 #include "StarPlayerLog.hpp"
 #include "StarRoot.hpp"
-#include "StarAssets.hpp"
-#include "StarClientContext.hpp"
 #include "StarWorldClient.hpp"
-#include "StarJsonRpc.hpp"
+#include "StarWorldTemplate.hpp"
 
 namespace Star {
 
@@ -23,6 +23,15 @@ TeamClient::TeamClient(PlayerPtr mainPlayer, ClientContextPtr clientContext) {
 
   m_statusUpdateRunning = false;
   m_statusUpdateTimer = 0;
+
+  m_fullWriteTimer = 0;
+
+  m_pollInvitationsInterval = Root::singleton().assets()->json("/interface.config:invitationPollInterval").toFloat();
+  m_fullUpdateInterval = Root::singleton().assets()->json("/interface.config:fullUpdateInterval").toFloat();
+  m_statusUpdateInterval = Root::singleton().assets()->json("/interface.config:statusUpdateInterval").toFloat();
+  auto jFullWriteInterval = Root::singleton().assets()->json("/interface.config:fullUpdateWriteInterval");
+  if (jFullWriteInterval.canConvert(Json::Type::Float))
+    m_fullWriteInterval = jFullWriteInterval.optDouble().value(10.0);
 }
 
 bool TeamClient::isTeamLeader() {
@@ -102,28 +111,28 @@ void TeamClient::update() {
   handleRpcResponses();
 
   if (!m_hasPendingInvitation) {
-    if (Time::monotonicTime() - m_pollInvitationsTimer > Root::singleton().assets()->json("/interface.config:invitationPollInterval").toFloat()) {
+    if (Time::monotonicTime() - m_pollInvitationsTimer > m_pollInvitationsInterval) {
       m_pollInvitationsTimer = Time::monotonicTime();
       JsonObject request;
       request["playerUuid"] = m_clientContext->playerUuid().hex();
       invokeRemote("team.pollInvitation", request, [this](Json response) {
-          if (response.isNull())
-            return;
-          if (m_hasPendingInvitation)
-            return;
-          m_pendingInvitation = {Uuid(response.getString("inviterUuid")), response.getString("inviterName")};
-          m_hasPendingInvitation = true;
-        });
+        if (response.isNull())
+          return;
+        if (m_hasPendingInvitation)
+          return;
+        m_pendingInvitation = {Uuid(response.getString("inviterUuid")), response.getString("inviterName")};
+        m_hasPendingInvitation = true;
+      });
     }
   }
   if (!m_fullUpdateRunning) {
-    if (Time::monotonicTime() - m_fullUpdateTimer > Root::singleton().assets()->json("/interface.config:fullUpdateInterval").toFloat()) {
+    if (Time::monotonicTime() - m_fullUpdateTimer > m_fullUpdateInterval) {
       m_fullUpdateTimer = Time::monotonicTime();
       pullFullUpdate();
     }
   }
   if (!m_statusUpdateRunning) {
-    if (Time::monotonicTime() - m_statusUpdateTimer > Root::singleton().assets()->json("/interface.config:statusUpdateInterval").toFloat()) {
+    if (Time::monotonicTime() - m_statusUpdateTimer > m_statusUpdateInterval) {
       m_statusUpdateTimer = Time::monotonicTime();
       statusUpdate();
     }
@@ -138,33 +147,33 @@ void TeamClient::pullFullUpdate() {
   request["playerUuid"] = m_clientContext->playerUuid().hex();
 
   invokeRemote("team.fetchTeamStatus", request, [this](Json response) {
-      m_fullUpdateRunning = false;
+    m_fullUpdateRunning = false;
 
-      m_teamUuid = response.optString("teamUuid").apply(construct<Uuid>());
+    m_teamUuid = response.optString("teamUuid").apply(construct<Uuid>());
 
-      if (m_teamUuid) {
-        m_teamLeader = Uuid(response.getString("leader"));
-        m_members.clear();
+    if (m_teamUuid) {
+      m_teamLeader = Uuid(response.getString("leader"));
+      m_members.clear();
 
-        for (auto m : response.getArray("members")) {
-          Member member;
-          member.name = m.getString("name");
-          member.uuid = Uuid(m.getString("uuid"));
-          member.entity = m.getInt("entity");
-          member.healthPercentage = m.getFloat("health");
-          member.energyPercentage = m.getFloat("energy");
-          member.position[0] = m.getFloat("x");
-          member.position[1] = m.getFloat("y");
-          member.world = parseWorldId(m.getString("world"));
-          member.warpMode = WarpModeNames.getLeft(m.getString("warpMode"));
-          member.portrait = jsonToList<Drawable>(m.get("portrait"));
-          m_members.push_back(member);
-        }
-        std::sort(m_members.begin(), m_members.end(), [](Member const& a, Member const& b) { return a.name < b.name; });
-      } else {
-        clearTeam();
+      for (auto m : response.getArray("members")) {
+        Member member;
+        member.name = m.getString("name");
+        member.uuid = Uuid(m.getString("uuid"));
+        member.entity = m.getInt("entity");
+        member.healthPercentage = m.getFloat("health");
+        member.energyPercentage = m.getFloat("energy");
+        member.position[0] = m.getFloat("x");
+        member.position[1] = m.getFloat("y");
+        member.world = parseWorldId(m.getString("world"));
+        member.warpMode = WarpModeNames.getLeft(m.getString("warpMode"));
+        member.portrait = jsonToList<Drawable>(m.get("portrait"));
+        m_members.push_back(member);
       }
-    });
+      std::sort(m_members.begin(), m_members.end(), [](Member const& a, Member const& b) { return a.name < b.name; });
+    } else {
+      clearTeam();
+    }
+  });
 }
 
 void TeamClient::statusUpdate() {
@@ -176,28 +185,32 @@ void TeamClient::statusUpdate() {
   JsonObject request;
   auto player = m_mainPlayer;
 
-  // TODO: write full player data less often?
-  writePlayerData(request, player, true);
+  // @FezzedOne: Fixed per @LumiKalt. Also made the interval configurable instead of hardcoded.
+  bool fullWrite = false;
+  if (Time::monotonicTime() - m_fullWriteTimer > m_fullWriteInterval) {
+    fullWrite = true;
+    m_fullWriteTimer = Time::monotonicTime();
+  }
+  writePlayerData(request, player, fullWrite);
 
   invokeRemote("team.updateStatus", request, [this](Json) {
-      m_statusUpdateRunning = false;
-    });
+    m_statusUpdateRunning = false;
+  });
 }
 
 Json TeamClient::teamMembers() const {
   JsonArray array = JsonArray{};
   for (auto m : m_members) {
     JsonObject mObj = JsonObject{
-      {"name", m.name},
-      {"uuid", m.uuid.hex()},
-      {"entity", m.entity},
-      {"healthPercentage", m.healthPercentage},
-      {"energyPercentage", m.energyPercentage},
-      {"world", printWorldId(m.world)},
-      {"position", JsonArray{m.position[0], m.position[1]}},
-      {"warpMode", WarpModeNames.getRight(m.warpMode)},
-      {"portrait", m.portrait.transformed(mem_fn(&Drawable::toJson))}
-    };
+        {"name", m.name},
+        {"uuid", m.uuid.hex()},
+        {"entity", m.entity},
+        {"healthPercentage", m.healthPercentage},
+        {"energyPercentage", m.energyPercentage},
+        {"world", printWorldId(m.world)},
+        {"position", JsonArray{m.position[0], m.position[1]}},
+        {"warpMode", WarpModeNames.getRight(m.warpMode)},
+        {"portrait", m.portrait.transformed(mem_fn(&Drawable::toJson))}};
     array.append(mObj);
   }
   return array;
@@ -265,4 +278,4 @@ void TeamClient::clearTeam() {
   forceUpdate();
 }
 
-}
+} // namespace Star

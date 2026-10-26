@@ -1,11 +1,10 @@
-#ifndef STAR_CHAT_BUBBLE_MANAGER_HPP
-#define STAR_CHAT_BUBBLE_MANAGER_HPP
+#pragma once
 
 #include "StarChatAction.hpp"
-#include "StarTextPainter.hpp"
-#include "StarWorldCamera.hpp"
 #include "StarChatBubbleSeparation.hpp"
 #include "StarStoredFunctions.hpp"
+#include "StarTextPainter.hpp"
+#include "StarWorldCamera.hpp"
 
 namespace Star {
 
@@ -13,6 +12,16 @@ STAR_CLASS(GuiContext);
 STAR_CLASS(AssetTextureGroup);
 STAR_CLASS(WorldClient);
 STAR_CLASS(ChatBubbleManager);
+
+unsigned const DefaultFontSize = 8;
+
+struct TextStyle {
+  float lineSpacing = DefaultLineSpacing;
+  Vec4B color = Vec4B::filled(255);
+  Vec4B shadow = Vec4B::filled(0);
+  unsigned fontSize = DefaultFontSize;
+  String font = "";
+};
 
 class ChatBubbleManager {
 public:
@@ -27,7 +36,7 @@ public:
 
 private:
   typedef tuple<String, Vec2F> BubbleImage;
-  typedef tuple<String, unsigned, Vec4B, bool, Vec2F> BubbleText;
+  typedef tuple<String, TextStyle, bool, Vec2F> BubbleText;
 
   struct Bubble {
     EntityId entity;
@@ -55,6 +64,13 @@ private:
   // edge of screen
   uint8_t calcDistanceFadeAlpha(Vec2F bubbleScreenPosition, StoredFunctionPtr fadeFunction) const;
 
+  // Text sizes and wrap widths are stored unscaled, in interface pixels. These
+  // turn them into screen pixels for the given interface scale.
+  TextPositioning scaledPositioning(TextPositioning positioning, float pixelRatio) const;
+  Vec2F measureText(String const& text, TextStyle const& style, float pixelRatio) const;
+  TextStyle bubbleTextStyle(Json const& config) const;
+  static List<BubbleImage> bubbleBackground(Vec2I innerTiles, float partSize);
+
   RectF bubbleImageRect(Vec2F screenPos, BubbleImage const& bubbleImage, float pixelRatio);
   void drawBubbleImage(Vec2F screenPos, BubbleImage const& bubbleImage, float pixelRatio, int alpha);
   void drawBubbleText(Vec2F screenPos, BubbleText const& bubbleText, float pixelRatio, int alpha, bool isPortrait);
@@ -65,12 +81,12 @@ private:
 
   TextPositioning m_textTemplate;
   TextPositioning m_portraitTextTemplate;
-  Color m_color;
-  int m_fontSize;
+  TextStyle m_textStyle;
   Vec2F m_textPadding;
 
   BubbleSeparator<Bubble> m_bubbles;
-  float m_zoom;
+  float m_partSize;
+  float m_cachedInterfaceScale;
   Vec2F m_bubbleOffset;
   float m_maxAge;
   float m_portraitMaxAge;
@@ -95,6 +111,4 @@ private:
   StoredFunctionPtr m_bubbleFadeFunction;
 };
 
-}
-
-#endif
+} // namespace Star

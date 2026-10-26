@@ -1,9 +1,9 @@
 #ifndef STAR_COLOR_HPP
 #define STAR_COLOR_HPP
 
+#include "StarFormat.hpp"
 #include "StarStringView.hpp"
 #include "StarVector.hpp"
-#include "StarFormat.hpp"
 
 namespace Star {
 
@@ -68,6 +68,9 @@ public:
   static Color temperature(float temp);
 
   static Vec4B hueShiftVec4B(Vec4B color, float hue);
+  // @LumiKalt The same bytes as rgba(color), setSaturation(saturation() + shift) and toRgba(), or setValue(value() * multiply)
+  static Vec4B shiftSaturationVec4B(Vec4B color, float shift);
+  static Vec4B scaleValueVec4B(Vec4B color, float multiply);
   static Vec4B hexToVec4B(StringView s);
   // Black
   Color();
@@ -146,6 +149,7 @@ public:
 
   static float toLinear(float in);
   static float fromLinear(float in);
+
 private:
   Vec4F m_data;
 };
@@ -168,8 +172,9 @@ inline Vec4B Color::v4fToByte(Vec4F const& f, bool doClamp) {
   return Vec4B(floatToByte(f[0], doClamp), floatToByte(f[1], doClamp), floatToByte(f[2], doClamp), floatToByte(f[3], doClamp));
 }
 
-}
+} // namespace Star
 
-template <> struct fmt::formatter<Star::Color> : ostream_formatter {};
+template <>
+struct fmt::formatter<Star::Color> : ostream_formatter {};
 
 #endif
