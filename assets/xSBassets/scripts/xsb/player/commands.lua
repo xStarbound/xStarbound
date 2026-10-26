@@ -1233,7 +1233,7 @@ function getClientConfig(rawArgs)
                 configToReturn = root.getConfigurationPath(path)
             end
         end) if not s then
-            logError("Error while getting client configuration: %s", e)
+            sb.logError("[xSB] /getclientconfig: Error while getting client configuration: %s", e)
             return "^red;Error while getting client configuration; check client log."
         end
         return $"Client configuration value at ^cyan;{path}^reset;: {sb.printJson(configToReturn)}"
@@ -1267,7 +1267,7 @@ function setClientConfig(rawArgs)
                 valueToPrint = sb.printJson(parsedValue)
             end
         end) if not s then
-            logError("Error while setting client configuration: %s", e)
+            sb.logError("[xSB] /setclientconfig: Error while setting client configuration: %s", e)
             return "^red;Error while setting client configuration; check client log and ensure value is valid JSON."
         end
         return $"Set client configuration value at ^cyan;{path}^reset; to: {tostring(valueToPrint)}"
