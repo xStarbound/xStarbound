@@ -25,6 +25,9 @@ Json const BaseAssetsSettings = Json::parseJson(R"JSON(
       // @FezzedOne: The raw character/byte limit for all directive strings parsed by the engine. Any image directive string exceeding this
       // limit is not parsed and logs an error, leaving the image unprocessed.
       "directiveStringLengthLimit" : 16777216,
+      // @FezzedOne: Parsed directives are stored in a global time-to-live cache to prevent having to reparse the same directives again and again.
+      // This setting controls the time to live for directives in the cache.
+      "directivesCacheTimeToLive" : 300,
 
       // In seconds, audio less than this long will be decompressed in memory.
       "audioDecompressLimit" : 4.0,
@@ -214,6 +217,7 @@ Root::Settings RootLoader::rootSettingsForOptions(Options const& options) const 
     rootSettings.assetsSettings.referenceImagePixelBudget = assetsSettings.getUInt("referenceImagePixelBudget");
     rootSettings.assetsSettings.imageOperationPixelLimit = assetsSettings.getUInt("imageOperationPixelLimit");
     rootSettings.assetsSettings.directiveStringLengthLimit = assetsSettings.getUInt("directiveStringLengthLimit");
+    rootSettings.assetsSettings.directivesCacheTimeToLive = assetsSettings.getFloat("directivesCacheTimeToLive");
     rootSettings.assetsSettings.audioDecompressLimit = assetsSettings.getFloat("audioDecompressLimit");
     rootSettings.assetsSettings.workerPoolSize = assetsSettings.getUInt("workerPoolSize");
     rootSettings.assetsSettings.missingImage = assetsSettings.optString("missingImage");

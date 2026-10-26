@@ -999,7 +999,7 @@ bool processImageOperation(ImageOperation const& operation, Image& image, ImageR
   } else if (auto op = operation.ptr<ScaleImageOperation>()) {
     auto scale = op->scale;
     if (scale[0] < 0.0f || scale[1] < 0.0f) {
-      Logger::warn("[xSB] Negative scale found in image scaling operation, ignoring (supplied scale: {{{}. {}}})", scale[0], scale[1]);
+      Logger::warn("[xSB] Negative scale found in image scaling operation (supplied scale: {{{}, {}}}); ignoring.", scale[0], scale[1]);
       scale = scale.piecewiseMax(Vec2F::filled(0.f));
     }
     auto newSize = scaledSize(image, scale);

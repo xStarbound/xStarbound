@@ -54,8 +54,10 @@ AssetPath AssetPath::split(String const& path) {
 
   // Directives must follow the base path and optional sub-path, and each
   // directive is separated by one or more '?' characters.
-  if (str[end] == '?')
-    components.directives = String(str.substr(end));
+  if (str[end] == '?') {
+    // FezzedOne: For longer directives, checks the directives cache first.
+    components.directives += Directives::cachedDirectives(String(str.substr(end)));
+  }
 
   return components;
 }

@@ -6,6 +6,14 @@
 #include "StarImageProcessing.hpp"
 #include "StarStringView.hpp"
 #include "StarThread.hpp"
+#include "StarTtlCache.hpp"
+
+#if defined TRACY_ENABLE
+#include "tracy/Tracy.hpp"
+#else
+#define ZoneScoped
+#define ZoneScopedN(name)
+#endif
 
 namespace Star {
 
@@ -28,6 +36,17 @@ private:
     return s_directiveStringLengthLimit;
   }
 
+  // FezzedOne: Precompiled directive cache.
+  static Mutex& cachedDirectivesMutex() {
+    static Mutex s_cachedDirectivesMutex;
+    return s_cachedDirectivesMutex;
+  }
+
+  static HashTtlCache<String, Directives>& directivesCache() {
+    static HashTtlCache<String, Directives> s_cachedDirectives(5 * 60 * 1000, 1000, 4096, true);
+    return s_cachedDirectives;
+  }
+
 public:
   // FezzedOne: Thread-safe functions for getting and setting the image directives limit. Optimised for fast reads.
   static void setDirectivePixelLimit(size_t newLimit) {
@@ -45,6 +64,33 @@ public:
 
   static size_t directiveStringLengthLimit() {
     return getDirectiveStringLengthLimit().load(std::memory_order_acquire);
+  }
+
+  static Directives cachedDirectives(String const& directiveString) {
+    ZoneScopedN("cachedDirectives");
+    size_t len = directiveString.utf8().length();
+    if (len <= 1024)
+      return Directives(directiveString);
+    MutexLocker locker(cachedDirectivesMutex());
+    if (auto directives = directivesCache().ptr(directiveString))
+      return *directives;
+    locker.unlock();
+    Directives parsedDirectives = Directives(directiveString);
+    locker.lock();
+    return directivesCache().get(std::move(directiveString), [&parsedDirectives](String const&) {
+      return std::move(parsedDirectives);
+    });
+  }
+
+  static void cleanupDirectivesCache() {
+    ZoneScopedN("cleanupDirectivesCache");
+    MutexLocker locker(cachedDirectivesMutex());
+    directivesCache().cleanup();
+  }
+
+  static void setDirectivesCacheTimeToLive(float timeToLive) {
+    MutexLocker locker(cachedDirectivesMutex());
+    directivesCache().setTimeToLive((int64_t)(timeToLive * 1000.0f));
   }
 
   struct Shared;

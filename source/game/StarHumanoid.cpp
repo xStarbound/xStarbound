@@ -1558,7 +1558,7 @@ List<Drawable> Humanoid::render(bool withItems, bool withRotation, Maybe<float> 
     auto image = strf("{}:{}",
         m_vaporTrailFrameset,
         m_timing.genericSeq(m_animationTimer, m_vaporTrailCycle, m_vaporTrailFrames, true));
-    addDrawable(Drawable::makeImage(AssetPath::split(image), 1.0f / TilePixels, true, {}));
+    addDrawable(Drawable::makeImage(image, 1.0f / TilePixels, true, {}));
   }
 
   if (withItems) {

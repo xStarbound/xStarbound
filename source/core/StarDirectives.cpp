@@ -151,14 +151,26 @@ void Directives::loadOperations() const {
 }
 
 void Directives::parse(String&& directives) {
+  ZoneScoped;
   if (directives.empty()) {
     shared.reset();
     return;
   }
 
-  List<Entry> entries;
-  size_t lengthLimit = Directives::directiveStringLengthLimit();
   size_t directivesLen = directives.utf8().length();
+  // FezzedOne: Check the cache to see if this string was already parsed.
+  if (directivesLen >= 1024) {
+    MutexLocker locker(cachedDirectivesMutex());
+    if (auto cachedDirectives = directivesCache().ptr(directives)) {
+      if (cachedDirectives->shared) {
+        shared = cachedDirectives->shared;
+        return;
+      }
+    }
+  }
+
+  size_t lengthLimit = Directives::directiveStringLengthLimit();
+  List<Entry> entries;
   StringView view(directives);
   if (directivesLen <= lengthLimit) {
     view.forEachSplitView("?", [&](StringView split, size_t beg, size_t end) {
@@ -185,7 +197,7 @@ void Directives::parse(String&& directives) {
   }
 
   shared = std::make_shared<Shared const>(std::move(entries), std::move(directives));
-  if (directivesLen < 1000) { // Pre-load short enough directives
+  if (directivesLen < 1024) { // Pre-load short enough directives
     for (auto& entry : shared->entries)
       entry.loadOperation(*shared);
   }

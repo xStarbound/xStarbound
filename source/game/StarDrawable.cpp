@@ -89,16 +89,17 @@ Drawable Drawable::makePoly(PolyF poly, Color const& color, Vec2F const& positio
 Drawable Drawable::makeImage(String const& image, float pixelSize, bool centered, Vec2F const& position, Color const& color) {
   Drawable drawable;
   Mat3F transformation = Mat3F::identity();
+  auto imagePath = AssetPath::split(image);
   if (centered) {
     auto imageMetadata = Root::singleton().imageMetadataDatabase();
-    Vec2F imageSize = Vec2F(imageMetadata->imageSize(image));
+    Vec2F imageSize = Vec2F(imageMetadata->imageSize(imagePath));
     transformation.translate(-imageSize / 2);
   }
 
   if (pixelSize != 1.0f)
     transformation.scale(pixelSize);
 
-  drawable.part = ImagePart{std::move(image), std::move(transformation)};
+  drawable.part = ImagePart{std::move(imagePath), std::move(transformation)};
   drawable.position = position;
   drawable.color = color;
 

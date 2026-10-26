@@ -52,12 +52,14 @@ public:
     // whenever another image that uses them is loaded.
     // Thus, they are kept this many seconds after their last use instead of assetTimeToLive, but only as many of them (most
     // recently used first) as fit in referenceImagePixelBudget pixels together.
-    float referenceImageTimeToLive = 300;
+    float referenceImageTimeToLive = 300.0f;
     uint64_t referenceImagePixelBudget = 16 * 1024 * 1024;
     // @FezzedOne: Maximum permitted pixel count for some image operations. Prevents certain exploits.
     uint64_t imageOperationPixelLimit = 16 * 1024 * 1024;
     // @FezzedOne: Maximum permitted length for image directive strings. Longer strings will not be parsed in asset paths or by `Image:process`.
     uint64_t directiveStringLengthLimit = 16 * 1024 * 1024;
+    // @FezzedOne: Time to live for cached directives. The cache is used to avoid having to parse the same long directives over and over again.
+    float directivesCacheTimeToLive = 300.0f;
 
     // Audio under this length will be automatically decompressed
     float audioDecompressLimit;

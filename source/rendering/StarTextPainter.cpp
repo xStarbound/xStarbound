@@ -306,7 +306,7 @@ void TextPainter::setFontColor(Vec4B color) {
 }
 
 void TextPainter::setProcessingDirectives(StringView directives) {
-  m_renderSettings.directives = String(directives);
+  m_renderSettings.directives = Directives::cachedDirectives(String(directives));
   if (m_renderSettings.directives) {
     m_renderSettings.directives.loadOperations();
     for (auto& entry : m_renderSettings.directives.shared->entries) {

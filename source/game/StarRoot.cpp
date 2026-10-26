@@ -176,6 +176,7 @@ Root::Root(Settings settings) {
       }
 
       GameObjectRegistry::cleanUpRegistry();
+      Directives::cleanupDirectivesCache();
 
       m_maintenanceStopCondition.wait(m_maintenanceStopMutex, RootMaintenanceSleep);
     }

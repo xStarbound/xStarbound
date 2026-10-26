@@ -126,6 +126,7 @@ Assets::Assets(Settings settings, StringList assetSources) {
   size_t lengthLimit = m_settings.directiveStringLengthLimit;
   if (lengthLimit == 0) lengthLimit = std::numeric_limits<size_t>::max();
   Directives::setDirectiveStringLengthLimit(lengthLimit);
+  Directives::setDirectivesCacheTimeToLive(m_settings.directivesCacheTimeToLive);
   m_stopThreads = false;
   m_assetSources = std::move(assetSources);
 
