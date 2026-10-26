@@ -4,17 +4,41 @@ This is a fork of Starbound's source code; all credit for the original code goes
 
 **Download the latest release for Linux and Windows [here](https://github.com/xStarbound/xStarbound/releases/latest). Older releases [are also available](https://github.com/xStarbound/xStarbound/releases).**
 
-## Features and changes
+## Features and fixes
 
-- An internal dynamic object reference system (added in v4.5) that prevents hard game crashes from poorly written Lua scripts while maintaining compatibility with mods that use «Lua smuggling» for inter-script communication. Replaces the old Lua VM isolation. By @FezzedOne.
-  - If you want more performance, disabling `"legacySmuggling"` in `xclient.config` or `xserver.config` may help. This disables the dynamic reference system but enforces Lua VM isolation to prevent shared Lua references from causing crashes. The VM isolation with `"legacySmuggling"` disabled can cause compatibility issues with mods that rely on shared Lua state. If your mods are having glitches, re-enable `"legacySmuggling"`.
+### Main features and fixes
 
-  See [`$docs/lua/lua.md`](doc/lua/lua.md) for more on cross-context data sharing and inter-script communication in Starbound Lua, including xStarbound-specific features and functionality.
+- **Control multiple characters on a single client! Is fully multiplayer-compatible. By @fezzedone.**
+  - `/add` and `/adduuid`: Loads and adds a player character from your saves.
+  - `/swap` and `/swapuuid`: Swaps to a different character. If the character isn't loaded, replaces your current character.
+  - `/remove` and `/removeuuid`: Removes a character you're not currently controlling.
+  - There are some game balance restrictions — dead characters won't respawn until you beam to your ship. The restrictions can be disabled via the Lua API on a per-character basis.
+- **An in-game character editor — use `/editor`.** Works properly with modpacks too. By @fezzedone.
+- **Inventory and action bar expansion (or reduction) mods are now fully compatible with vanilla multiplayer with no changes needed on the mod's part.** Just set `"inventorySpoofing"` to `true` in your `xclient.config` to use your inventory and action bar mods in multiplayer! Additionally, regardless of that setting, these mods can be safely added or removed without item loss or crashes as long as characters are loaded in xStarbound. Added by @WasabiRaptor and @fezzedone.
+  - Loading a character after changes to inventory or action bar mods will drop any items that no longer fit on the ground beside the player (which will be picked up if there still is inventory space), instead of showing an error dialogue.
+  - _Warning for users of vanilla clients and other client mods:_ If you load any characters that have had their inventories resized but haven't yet dropped overflowed items on a non-xStarbound client — this can happen if you open xStarbound after changing mods, but don't actually load some characters before switching to another client — you may lose items, so load your characters in xStarbound and save your items first!
+  - `"inventorySpoofing"` is disabled by default to avoid unintuitive behaviour that can prevent xClient users from joining servers running the same inventory / action bar mods or cause certain other minor issues (especially with modded keycard items). Turn it on in game with `/setclientconfig inventorySpoofing true`, then relog (onto a server without inventory mods installed) or restart your client (if you want to install inventory mods).
+  - The networked inventory and action bar config can be configured separately with a patch to `$assets/player.config`; see [`$src/assets/xSBassets/player.config.patch`](https://github.com/fezzedone/xStarbound/blob/main/assets/xSBassets/player.config.patch) for the new parameters. Such a patch mod is _required_ for an xClient client with `"inventorySpoofing"` enabled to join a non-xServer server with inventory or action bar mods installed, but allows joining the server with mismatched mods (assuming mismatched assets are allowed).
+- **As of v4.0+, xServer (the xStarbound server) supports scriptable functionality previously confined to wrappers like [StarryPy3k](https://github.com/StarryPy/StarryPy3k) (by @fezzedone), including:**
+  - **Permission-based build protection for worlds and systems, complete with optional container modification/viewing protection and automatic shipworld protection and claims.** Includes protection against spawning or removing entities not controlled by the player's own client (except item drops, which cannot run scripts).
+  - Dedicated guest accounts and the ability to detect and handle anonymous connections in server-side scripts.
+  - Scriptable connection handling, allowing mods to run, e.g., IP address checks on connecting players.
+  - Account- and UUID-based world claims.
+  - Chat message creation, filtering and redirection. This can be used for permission-based nickname colouring, server and world MOTDs, profanity filtering, etc.
+  - Permission control, including world claim support, for entity messages handled by the server.
 
-- Lots of crash fixes (mostly @fezzedone, plus a few by @novaenia).
-- Various security fixes and checks by @Lonaasan and @fezzedone for both xServer (xStarbound's server) and xClient (xStarbound's client).
-- Several new commands (by @fezzedone)! Type `/xclient` for info on the new client-side commands, or `/help` (on xServer, an xClient host or in single-player on xClient) to see the new server-side ones.
-- As of v4.2, xStarbound supports a new «creative mode» (by @fezzedone) that bypasses various placement restrictions applied to tiles, objects, plants and liquids. Its status is controlled by the `"bypassBuildChecks"` world property on a given world; if `true`, «creative mode» is enabled for that world. On xServer, build permission (or admin access) is required to toggle «creative mode» on a world. [xWEdit](https://github.com/FezzedOne/xWEdit) provides a `/creative` command for toggling «creative mode». More details:
+  See [`$docs/lua/lua.md`](doc/lua/lua.md), [`$docs/lua/world.md`](doc/lua/world.md) and [`$docs/lua/universeserver.md`](doc/lua/universeserver.md) for more.
+
+  **An xServerHelper utility mod is available.** This mod adds a `/claim` command for setting world protection and claims, as well as an optional user account registration command and several admin commands for viewing and changing the server configuration without having to restart xServer. Download xServerHelper on [the releases page](https://github.com/xStarbound/xStarbound/releases/latest).
+
+- **Heavy optimisations to image directive parsing and processing, making those generated clothes and objects much less of an FPS tank and stuttering trigger.** Optimisations include caching already parsed directives, which works well in conjunction with Starbound's image caching. By @LumiKalt, with some optimisations by @FezzedOne and @Novaenia.
+  - Also added configurable limits on image directive parsing and processing to prevent certain exploits (by @FezzedOne).
+- **Lots and lots of crash fixes (mostly @fezzedone, plus a few by @novaenia).**
+- **Various security fixes and checks by @Lonaasan and @fezzedone for both xServer (xStarbound's server) and xClient (xStarbound's client).**
+
+### Building
+
+- **As of v4.2, xStarbound supports a new «creative mode» (by @fezzedone) that bypasses various placement restrictions applied to tiles, objects, plants and liquids.** Its status is controlled by the `"bypassBuildChecks"` world property on a given world; if `true`, «creative mode» is enabled for that world. On xServer, build permission (or admin access) is required to toggle «creative mode» on a world. [xWEdit](https://github.com/FezzedOne/xWEdit) provides a `/creative` command for toggling «creative mode». More details:
   - The following «creative mode» features require xClient v4.2+, but do not require xServer in multiplayer:
     - Non-consumable material, liquid and object items.
     - Instant tree growth upon placement.
@@ -28,83 +52,85 @@ This is a fork of Starbound's source code; all credit for the original code goes
     - In-place tile replacement. Works with all placeable material items.
     - Mid-air tile placement with placeable material items.
     - Removal of all other tile placement restrictions.
-- As of v4.0+, xServer (the xStarbound server) supports scriptable functionality previously confined to wrappers like [StarryPy3k](https://github.com/StarryPy/StarryPy3k) (by @fezzedone), including:
-  - Permission-based build protection for worlds and systems, complete with optional container modification/viewing protection and automatic shipworld protection and claims. Includes protection against spawning or removing entities not controlled by the player's own client (except item drops, which cannot run scripts).
-  - Dedicated guest accounts and the ability to detect and handle anonymous connections in server-side scripts.
-  - Scriptable connection handling, allowing mods to run, e.g., IP address checks on connecting players.
-  - Account- and UUID-based world claims.
-  - Chat message creation, filtering and redirection. This can be used for permission-based nickname colouring, server and world MOTDs, profanity filtering, etc.
-  - Permission control, including world claim support, for entity messages handled by the server.
+- **Resizable tile placement areas (@novaenia).** Find the keybinds in the **Mod Binds** settings.
+- **Client-side tile placement prediction (by @novaenia).** This makes building feel less laggy.
+- **Client- and server-side support for placing foreground tiles with a custom collision type (@novaenia; requires an xServer/OpenStarbound server or an xClient/OpenStarbound/oSBM host).** Compatible with the collision modifier feature of OpenStarbound clients. [xWEdit](https://github.com/fezzedone/xWEdit), a fork of WEdit with support for these features, is available; xWEdit requires xClient for full client-side functionality, but partially works with OpenStarbound clients.
+  - Additionally, objects can be placed under non-solid foreground tiles (@novaenia).
+- **Platforms can be placed as background tiles (@FezzedOne, based on the same feature by @SilverSokolova in OpenStarbound).**
+- **Script support for placing tiles in mid-air, not connected to existing ones, via an extra argument to `world.placeMaterial()` (requires _both_ xClient and, in multiplayer, xServer/xClient on the host).** By @fezzedone.
 
-  See [`$docs/lua/lua.md`](doc/lua/lua.md), [`$docs/lua/world.md`](doc/lua/world.md) and [`$docs/lua/universeserver.md`](doc/lua/universeserver.md) for more.
+### Cosmetics
 
-  As of v4.1.2.3, an xServer::Helper utility mod is available. This mod adds a `/claim` command for setting world protection and claims, as well as an optional user account registration command and several admin commands for viewing and changing the server configuration without having to restart xServer. Download xServer::Helper on [the releases page](https://github.com/xStarbound/xStarbound/releases/latest).
-
-- Support for message handlers in pane scripts. By @FezzedOne.
-- Persistent, scriptable server-side data storage that can be accessed and modified from any server-side universe, world or entity script (@FezzedOne). See [`$docs/lua/universeserver.md`](doc/lua/universeserver.md) for more.
-- Fully scriptable world metadata modification, including support for changing any existing world's tile size (@fezzedone). Modders can now modify _all_ attributes of any existing world without resorting to external Python tools. Additionally, xClient (the xStarbound client) users can safely explore very small worlds without crashing (aside from some harmless visual glitches).
-- Scriptable weather control for worlds (@Mofurka and @fezzedone) — scripts can now change a world's weather on demand.
-- Nicer (and optimised) non-pixelated humanoid tech and status effect scaling for players and NPCs (reimplementation by @fezzedone).
-- Now runs [Pluto](https://pluto-lang.org/), an optimised fork of Lua 5.4! As of xStarbound v4.0, Pluto's jump table optimisation is enabled, speeding up Lua scripts.
-- Full, up-to-date Lua API documentation. (Aside from a lot of engine calls into Lua scripts.)
-- Wardrobe interface with 16 extended cosmetic slots. By @fezzedone; UI by @unitgx48. Compatible with vanilla multiplayer (thanks to @novaenia) and cross-compatible with OpenStarbound (and forks), but other players must have xClient or OpenStarbound to see extended-slot cosmetics. xClient users can see all OpenStarbound cosmetics; OpenStarbound client users can see most cosmetics in xStarbound's wardrobe except the four «back» slots.
-- Support for underlaying and overlaying cosmetic items, by @fezzedone. Two types of layering are supported:
+- **Wardrobe interface with 16 extended cosmetic slots.** By @fezzedone; UI by @unitgx48. Compatible with vanilla multiplayer (thanks to @novaenia) and cross-compatible with OpenStarbound (and forks), but other players must have xClient or OpenStarbound to see extended-slot cosmetics. xClient users can see all OpenStarbound cosmetics; OpenStarbound client users can see most cosmetics in xStarbound's wardrobe except the four «back» slots.
+- **Support for underlaying and overlaying cosmetic items, by @fezzedone.** Two types of layering are supported:
   - _Underlays:_ You can right-click an item in any armour or inventory slot to _underlay_ it below any item in the associated cosmetic slot. Underlaid items have a red border by default. For instance, you can layer a wig under a hat by putting the hat in the cosmetic slot, the wig in the armour slot and right-clicking the wig. Underlaid armour grants its usual effects; note that particle effects associated with an underlaid item as `"effectSources"` won't spawn, even if the underlaid item is visible. Underlaid items are indicated with a red border.
   - _Overlays:_ You can right-click while holding **<kbd>Shift</kbd>** with an armour or clothing item in your swap slot to stack and overlay it onto another armour or clothing item of the same slot type in your armour slots or inventory — you can stack as many items as you want! To remove or «pop» the topmost item from an overlay stack, **<kbd>Shift</kbd> + Right Click** with an _empty_ swap slot — you'll see the «popped» item in your swap slot. Items are layered in the order they are stacked, with the lowest-layered item (aside from underlays) being the base item shown in the tooltip. Stacked cosmetic items have a red stack count indicator, and their tooltip preview shows what the entire stack looks like on your player. Overlaid cosmetic items do _not_ give players any additional game effects or spawn particles — they are purely cosmetic.
 
   Underlaid items can have overlays. This client feature is compatible with vanilla multiplayer, but other players must have xClient to see your underlays and overlays.
   - _Network compatibility note:_ This cross-client cosmetics compatibility does not work in the OpenStarbound-to-xStarbound direction (but does the other way around!) for OpenStarbound v0.1.11+ clients connected to OpenStarbound v0.1.11+ servers, unless the OpenStarbound clients are connected in legacy mode.
 
-- Support for OpenStarbound cosmetic features (left-facing «flipped» clothing directives for custom items, humanoid config overrides, custom armour hiding, middle-clicking to hide armour) by @novaenia. Tweaked for xStarbound by @fezzedone, including support for `"flipDirectives"` in `/render` and overridden movement parameters in humanoid config overrides.
-- New optional `"xSBdirectives"` and `"xSBflipDirectives"` instance parameters for cosmetic items, by @fezzedone. These override the standard `"directives"` and `"flipDirectives"` parameters when present and support animator-like substitution tags. And yes, xClient networks these parameters and any substitutions in a fully multiplayer-compatible manner that allows stock and OpenStarbound client users to see your worn items with `"xSBdirectives"` and `"xSBflipDirectives"` exactly as they appear to xClient users, so there's no need to worry about the clients other people are using! Stock client users can even see the left-facing sprites on your flippable clothing/cosmetic items if you use `"xSBflipDirectives"` instead of `"flipDirectives"` (and you're facing left, of course). See [`$docs/cosmetics.md`](doc/cosmetics.md) for more info.
-- Support for humanoid `"identity"` and `"movementController"` overrides, by @fezzedone. These allow cosmetic items to change your humanoid appearance/sprites or movement parameters when worn. The overrides also support substitution tags. If you use the new boolean `"broadcast"` parameter in `"identity"`, any visual `"identity"` overrides are networked in a way that allows stock and OpenStarbound client users to see them, including tag substitutions. See [`$docs/cosmetics.md`](doc/cosmetics.md) for more info.
+- **Support for OpenStarbound cosmetic features (left-facing «flipped» clothing directives for custom items, humanoid config overrides, custom armour hiding, middle-clicking to hide armour) by @novaenia.** Tweaked for xStarbound by @fezzedone, including support for `"flipDirectives"` in `/render` and overridden movement parameters in humanoid config overrides.
+- **New optional `"xSBdirectives"` and `"xSBflipDirectives"` instance parameters for cosmetic items, by @fezzedone.** These override the standard `"directives"` and `"flipDirectives"` parameters when present and support animator-like substitution tags. And yes, xClient networks these parameters and any substitutions in a fully multiplayer-compatible manner that allows stock and OpenStarbound client users to see your worn items with `"xSBdirectives"` and `"xSBflipDirectives"` exactly as they appear to xClient users, so there's no need to worry about the clients other people are using! Stock client users can even see the left-facing sprites on your flippable clothing/cosmetic items if you use `"xSBflipDirectives"` instead of `"flipDirectives"` (and you're facing left, of course). See [`$docs/cosmetics.md`](doc/cosmetics.md) for more info.
+- **Support for humanoid `"identity"` and `"movementController"` overrides, by @fezzedone.** These allow cosmetic items to change your humanoid appearance/sprites or movement parameters when worn. The overrides also support substitution tags. If you use the new boolean `"broadcast"` parameter in `"identity"`, any visual `"identity"` overrides are networked in a way that allows stock and OpenStarbound client users to see them, including tag substitutions. See [`$docs/cosmetics.md`](doc/cosmetics.md) for more info.
+- **Nicer (and optimised) non-pixelated humanoid tech and status effect scaling for players and NPCs (reimplementation by @fezzedone).**
+
+### Other client features (xClient)
+
+- **Additional Lua callbacks to make player characters fully scriptable, just like NPCs!** By @fezzedone. As of v4.5.3, this now includes `songbook` bindings (for controlling musical instruments) in generic player scripts (by @novaenia).
+- **Now runs [Pluto](https://pluto-lang.org/), an optimised fork of Lua 5.4!**
+  - As of xStarbound v4.0, Pluto's jump table optimisation is enabled, speeding up Lua scripts.
+  - xStarbound v4.6 adds additional optimisations by @LumiKalt to conversions between Lua and JSON.
+- **Several new commands (by @fezzedone)!** Type `/xclient` for info on the new client-side commands, or `/help` (on xServer, an xClient host or in single-player on xClient) to see the new server-side ones.
+- **Terraria-like placement animations for objects, tiles and liquids (@fezzedone).** Can be disabled in `xclient.config` by setting `"terrariaPreview"` to `false` (or running `/setclientconfig terrariaPreview false`) if you don't like it.
+- **Support for message handlers in pane scripts.** By @FezzedOne.
+- **Persistent, scriptable server-side data storage that can be accessed and modified from any server-side universe, world or entity script (@FezzedOne).** See [`$docs/lua/universeserver.md`](doc/lua/universeserver.md) for more.
+- **Client-side positional voice chat that works on completely vanilla servers. This uses Opus for crisp-sounding HD audio.** By @novaenia.
+  - Configure voice chat in the options menu.
+  - Extra voice chat options, including persistent saved mutes, are available with the `/voice` command (@fezzedone).
+- **Custom user input support with a keybindings menu (by @novaenia, visual redesign by @unitgx48).**
+- **Various API bindings and tweaks for UI modding by @grbr404, @WasabiRaptor and @Novaenia.**
+- **Chat message history is now saved to `messages.json` in your storage directory instead of being reset on every disconnection (@fezzedone).** Use the new `/clear` command on xClient to clear the chat history.
+- **A search box for long character lists.** By @KrashV. Also an extra **Create Character** button while in the main menu, by @WasabiRaptor; this button is only visible if no empty character nameplates are visible.
+- **A multiplayer server list that lets you save your server IPs and accounts (@KrashV).**
+- **Adjustable UI scale, complete with fractional scaling support.** The UI scale can be adjusted in the graphics settings dialogue. There are configurable keybinds and support for fractional scales (@fezzedone). UI scaling mods are no longer needed (and in fact no longer do anything) on xClient!
+- **In-game camera zoom keybinds (@novaenia).**
+- **Script bindings for the UI scale and zoom level (@fezzedone).**
+- **Some minor UI polish (@fezzedone, @unitgx48).**
+- **Wayland support on Linux (@emanueljg).**
+
+### Other server features (xServer)
+
+- **Fully scriptable world metadata modification, including support for changing any existing world's in-game size (@fezzedone). Modders can now modify _all_ attributes of any existing world without resorting to external Python tools.** Additionally, xClient (the xStarbound client) users can safely explore very small worlds without crashing (aside from some harmless visual glitches).
+- **Scriptable weather control for worlds (@Mofurka and @fezzedone) — scripts can now change a world's weather on demand.**
+- Full, up-to-date Lua API documentation. (Aside from a lot of engine calls into Lua scripts.)
   - _Note:_ OpenStarbound also has `"movementController"` override support, later added by @novaenia.
-- Control multiple characters on a single client! Is fully multiplayer-compatible. By @fezzedone.
-  - `/add` and `/adduuid`: Loads and adds a player character from your saves.
-  - `/swap` and `/swapuuid`: Swaps to a different character. If the character isn't loaded, replaces your current character.
-  - `/remove` and `/removeuuid`: Removes a character you're not currently controlling.
-  - There are some game balance restrictions — dead characters won't respawn until you beam to your ship. The restrictions can be disabled via the Lua API on a per-character basis.
-- A search box for long character lists. By @KrashV. Also an extra **Create Character** button while in the main menu, by @WasabiRaptor.
-- An in-game character editor — use `/editor`. Works properly with modpacks too. By @fezzedone.
-- World file flattening and bloat fixes by @novaenia.
-- xStarbound automatically repacks shipworld and celestial world files when loading them, saving you quite a bit of disk space and, for xClient, reducing server lag caused by shipworlds. By @fezzedone.
+- **World file flattening and bloat fixes by @novaenia.**
+- **`/settileprotection` supports variadic arguments and ranges (@novaenia).**
+
+### Lighting and graphics features on xClient
+
+- **Lighting is partially asynchronous (@novaenia), speeding it up.**
+- **Scriptable shader and lighting parameters are supported (@fezzedone).** xClient is not compatible with OpenStarbound shaders.
+- **Multiple font support (switch fonts inline with `^font=name;`, `.ttf` assets are auto-detected).** Added by @novaenia, fixed by @fezzedone. Additionally, escape codes and custom fonts wrap and propagate across wrapped lines properly in the chat box (@fezzedone).
+
+### Under-the-hood features and fixes
+
+- **An internal object reference tracking system for «smuggled» Lua API bindings (added in v4.5) that prevents hard game crashes from poorly written Lua scripts while maintaining compatibility with mods that use «Lua smuggling» for inter-script communication.** By @FezzedOne.
+  - If you want more performance, disabling `"legacySmuggling"` in `xclient.config` or `xserver.config` may help. This disables the dynamic reference system but enforces Lua VM isolation to prevent shared Lua references from causing crashes. The VM isolation with `"legacySmuggling"` disabled can cause compatibility issues with mods that rely on shared Lua state. If your mods are having glitches, re-enable `"legacySmuggling"`.
+
+  See [`$docs/lua/lua.md`](doc/lua/lua.md) for more on cross-context data sharing and inter-script communication in Starbound Lua, including xStarbound-specific features and functionality.
+
+- **Persistent JSON data storage for mods (@LumiKalt), introduced in xStarbound v4.6.** Both client- and server-side. Cross-compatible with OpenStarbound v0.1.16+. See [`$docs/lua/root.md`](doc/lua/root.md) for more.
+- **Automatic repacking of shipworld and celestial world files when loading them, saving you quite a bit of disk space and, for xClient, reducing server lag caused by shipworlds.** By @fezzedone, based on @novaenia's BTree file repacker.
   - Shipworld repacking is client-side; celestial world repacking is server-side.
   - Disable this automatic repacking by adding `"disableRepacking": true` to `xclient.config` or `xserver.config`.
-- Various UI modding callbacks and tweaks by @grbr404, @WasabiRaptor and @Novaenia.
-- Additional Lua callbacks to make player characters fully scriptable, just like NPCs! By @fezzedone. As of v4.5.3, this now includes `songbook` bindings (for controlling musical instruments) in generic player scripts (by @novaenia).
-- The UI scale can now be adjusted in the graphics settings dialogue, complete with configurable keybinds and support for fractional scales (@fezzedone). There are also keybinds for changing the in-game camera zoom (@novaenia). Both the UI scale and zoom level are scriptable (@fezzedone). UI scaling mods are no longer needed (and in fact no longer do anything) in xStarbound!
-- Chat message history is now saved to `messages.json` in your storage directory instead of being reset on every disconnection (@fezzedone). Use the new `/clear` command on xClient to clear the chat history instead.
-- Inventory and action bar expansion (or reduction) mods are now fully compatible with vanilla multiplayer with no changes needed on the mod's part. Just set `"inventorySpoofing"` to `true` in your `xclient.config` to use your inventory and action bar mods in multiplayer! Additionally, regardless of that setting, these mods can be safely added or removed without item loss or crashes as long as characters are loaded in xStarbound. Added by @WasabiRaptor and @fezzedone.
-  - Loading a character after changes to inventory or action bar mods will drop any items that no longer fit on the ground beside the player (which will be picked up if there still is inventory space), instead of showing an error dialogue.
-  - _Warning for users of vanilla clients and other client mods:_ If you load any characters that have had their inventories resized but haven't yet dropped overflowed items on a non-xStarbound client — this can happen if you open xStarbound after changing mods, but don't actually load some characters before switching to another client — you may lose items, so load your characters in xStarbound and save your items first!
-  - `"inventorySpoofing"` is disabled by default to avoid unintuitive behaviour that can prevent xClient users from joining servers running the same inventory / action bar mods or cause certain other minor issues (especially with modded keycard items).
-  - The networked inventory and action bar config can be configured separately with a patch to `$assets/player.config`; see [`$src/assets/xSBassets/player.config.patch`](https://github.com/fezzedone/xStarbound/blob/main/assets/xSBassets/player.config.patch) for the new parameters. Such a patch mod is _required_ for an xClient client to join a non-xServer server with inventory or action bar mods installed, but allows joining the server with mismatched mods (assuming mismatched assets are allowed).
-- Anything that the game converts to a Perfectly Generic Item now has its parameters saved in the item and will be restored once any missing mods are reinstalled (@WasabiRaptor and @fezzedone). Requires xServer (or xClient on the host) for server-side items (such as those in containers on worlds, even shipworlds!) and xClient for single-player and client-side items (those in the player's inventory).
-- Supports scriptable asset preprocessing. By @novaenia; fixed and greatly enhanced by @fezzedone.
-- Modded techs and status effects no longer cause crashes to the menu when the offending mod is removed (@WasabiRaptor and @novaenia).
-- Scriptable shader and lighting parameters are supported (@fezzedone). Not compatible with OpenStarbound shaders.
-- You can now make `.patch` files that are just merged in, early-beta-style (@novaenia). That's why the patch files in `assets/xSBassets` are unusually simple. Various JSON patch extensions (by @JamesTheMaker) are also supported.
-- Almost all Lua callbacks from the original xSB (by @fezzedone), `input` callbacks (by @novaenia), plus some extra `player`, `chat`, `interface` and `clipboard` callbacks for compatibility with OpenStarbound mods (@fezzedone).
-- `/settileprotection` supports variadic arguments and ranges (@novaenia).
-- Custom user input support with a keybindings menu (by @novaenia, visual redesign by @unitgx48).
-- Client-side positional voice chat that works on completely vanilla servers. This uses Opus for crisp, HD audios. By @novaenia.
-  - The voice chat configuration dialogue is made available in the options menu rather than as a chat command.
-  - Extra voice chat options, including persistent saved mutes, are available with the `/voice` command (@fezzedone).
-- Multiple font support (switch fonts inline with `^font=name;`, `.ttf` assets are auto-detected). Added by @novaenia, fixed by @fezzedone. Additionally, escape codes and custom fonts wrap and propagate across wrapped lines properly in the chat box (@fezzedone).
-- Lighting is partially asynchronous (@novaenia).
-- Various changes to the storage of directives and images in memory to greatly reduce their impact on FPS (@novaenia).
-  - Works well when extremely long directives are used for «vanilla multiplayer-compatible» creations, like [generated](https://silverfeelin.github.io/Starbound-NgOutfitGenerator/) [clothing](https://github.com/fezzedone/fezzedone-Drawable-Generator).
-- Client-side tile placement prediction (by @novaenia).
-  - You can also resize the placement area of tiles on the fly.
-- Client- and server-side support for placing foreground tiles with a custom collision type (@novaenia; requires an xServer/OpenStarbound server or an xClient/OpenStarbound/oSBM host). Compatible with the collision modifier feature of OpenStarbound clients. [xWEdit](https://github.com/fezzedone/xWEdit), a fork of WEdit with support for these features, is available; xWEdit requires xClient for full client-side functionality, but partially works with OpenStarbound clients.
-  - Additionally, objects can be placed under non-solid foreground tiles (@novaenia).
-- Ability to place platforms as background tiles (based on the same feature by @SilverSokolova in OpenStarbound).
-- Support for placing tiles in mid-air, not connected to existing ones, via an extra argument to `world.placeMaterial()` (requires _both_ xClient and, in multiplayer, xServer/xClient on the host). By @fezzedone.
-- Some polish to UI (@fezzedone, @novaenia, @unitgx48).
-- A multiplayer server list that lets you save your server IPs and accounts (@KrashV).
-- Terraria-like placement animations for objects, tiles and liquids (@fezzedone). Can be disabled in `xclient.config` by setting `"terrariaPreview"` to `false` if you don't like it.
-- Added Wayland support (@emanueljg).
-- Nix build & install support (emanueljg). See [Nix](#nix).
+- **Support for scriptable asset preprocessing.** By @novaenia; fixed and greatly enhanced by @fezzedone. Many mods make use of this support.
+- **Modded techs and status effects no longer cause crashes to the menu when the offending mod is removed (@WasabiRaptor and @novaenia).**
+- **Support for merge `.patch` files, like Koala-era Starbound (@novaenia).**
+- **Various JSON patch extensions (by @JamesTheMaker) are also supported: nested patches, `.patch.N` files where `N` is a number from 0 to 9, and several new JSON patch operations.** See [`$docs/preprocessing.md`](doc/preprocessing.md) for more.
+- **Almost all Lua callbacks from the original xSB (by @fezzedone), `input` callbacks (by @novaenia), plus some extra `player`, `chat`, `interface` and `clipboard` callbacks for compatibility with OpenStarbound mods (@fezzedone).**
+- **Nix build & install support (emanueljg).** See [the Nix documentation](#nix) for more.
+- **Anything converted to a Perfectly Generic Item now has its parameters saved in the item and will be restored once any missing mods are reinstalled (@WasabiRaptor and @fezzedone).** Requires xServer (or xClient on the host) for server-side items (such as those in containers on worlds, even shipworlds!) and xClient for single-player and client-side items (those in the player's inventory).
 
 ## Mod compatibility
 
@@ -132,6 +158,7 @@ The following mods for xStarbound and/or OpenStarbound have special functionalit
 - [all blocks fall](https://github.com/bongus-jive/all-blocks-fall) — requires xStarbound, oSBM or OpenStarbound; is _server-side_. Note that xStarbound's «creative mode» prevents falling and cascading tiles from being triggered when enabled.
 - [Alternate UI Sounds [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3360332852) — should be supported by xStarbound; report any issues.
 - [Animis](https://github.com/Lonaasan/Animis) — requires xStarbound, oSBM or OpenStarbound.
+- [Anomaly Project: Mutation Research](https://steamcommunity.com/sharedfiles/filedetails/?id=3826485142) — requires xStarbound, but should be compatible with OpenStarbound and oSBM.
 - [Arlmenarum | Systems and Utils](https://steamcommunity.com/sharedfiles/filedetails/?id=3815758714) — requires xStarbound, oSBM or OpenStarbound.
 - [Arlmenarum | UI](https://steamcommunity.com/sharedfiles/filedetails/?id=3815758214) — requires xStarbound, oSBM or OpenStarbound.
 - [Armor Augment Slot](https://steamcommunity.com/sharedfiles/filedetails/?id=3448934708) — requires xStarbound, oSBM or OpenStarbound.
@@ -145,6 +172,7 @@ The following mods for xStarbound and/or OpenStarbound have special functionalit
 - [Character Editor](https://steamcommunity.com/sharedfiles/filedetails/?id=3782196111) — requires xStarbound, oSBM or OpenStarbound to actually edit your character; also requires Stardust Core or Stardust Core Lite. xStarbound has its own `/editor`, but this mod adds niceties like presets. xStarbound does _not_ support the NPC editor functionality, as that requires OpenStarbound v0.1.15+'s NPC API bindings and netcode (_and_ this mod installed) on both the client and server.
 - [Chroma Colour Utils](https://steamcommunity.com/sharedfiles/filedetails/?id=3632274480) — requires xStarbound, oSBM or OpenStarbound.
 - [Clicky Keyboard UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3476945792) — should be supported by xStarbound; report any issues.
+- [Complaint Department](https://steamcommunity.com/sharedfiles/filedetails/?id=3827182325) — requires xStarbound for some mod patches; should work on OpenStarbound and oSBM.
 - [Cumulative Dynamic Lights](https://steamcommunity.com/sharedfiles/filedetails/?id=3444407977) — requires xStarbound, oSBM or OpenStarbound.
 - [Custom Ship Capsule](https://steamcommunity.com/sharedfiles/filedetails/?id=3740868265) — requires xStarbound, oSBM or OpenStarbound. In multiplayer, must be installed on the server.
 - [Disable Parallax](https://steamcommunity.com/sharedfiles/filedetails/?id=3748974083) — requires xStarbound, oSBM or OpenStarbound.
@@ -153,14 +181,15 @@ The following mods for xStarbound and/or OpenStarbound have special functionalit
 - [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
-- [Equipment Set Bonuses](https://steamcommunity.com/sharedfiles/filedetails/?id=3814652594) — requires xStarbound, oSBM or OpenStarbound for asset preprocessing.
+- [Equipment Set Bonuses](https://steamcommunity.com/sharedfiles/filedetails/?id=3827183700) — requires xStarbound, oSBM or OpenStarbound for asset preprocessing.
 - [FezzedTech](https://steamcommunity.com/sharedfiles/filedetails/?id=2962923060) ([GitHub](https://github.com/fezzedone/FezzedTech)) — requires xStarbound for full functionality, but also supports OpenStarbound (with reduced functionality) and is compatible with stock Starbound.
-- [Forgemaster's Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3812995649) — requires xStarbound, oSBM or OpenStarbound. Using xStarbound enhances this mod by removing the server-side requirement if `"inventorySpoofing"` is enabled in your `xclient.config`; see below for caveats.
-- [Head Cosmetics](https://steamcommunity.com/sharedfiles/filedetails/?id=3816579737) — requires xStarbound; may or may not work on OpenStarbound or oSBM.
+- [Forgemaster's Inventory](https://steamcommunity.com/sharedfiles/filedetails/?id=3815033263) (mirror link; message Darchon on Steam for the main version) — requires xStarbound, oSBM or OpenStarbound. Using xStarbound enhances this mod by removing the server-side requirement if `"inventorySpoofing"` is enabled in your `xclient.config`; see below for caveats.
+- [Head Cosmetics](https://steamcommunity.com/sharedfiles/filedetails/?id=3827185581) — requires xStarbound; may or may not work on OpenStarbound or oSBM.
 - [Improved Containers: OpenStarbound Post-Load Mega-Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3430203726) — requires xStarbound, oSBM or OpenStarbound.
 - [Improved Inventory Stack Management](https://steamcommunity.com/sharedfiles/filedetails/?id=3758908230) — requires xStarbound, oSBM or OpenStarbound for its functionality. Install xSBCompat if you want the mod to be properly aware of player swaps on xClient.
 - [Lexi's Automation](https://steamcommunity.com/sharedfiles/filedetails/?id=3673481087&tscn=1783028287) — requires xStarbound, oSBM or a _nightly_ build of OpenStarbound. Don't expect support from this mod's author.
 - [Loading Screen AAA Gaming Tips](https://steamcommunity.com/sharedfiles/filedetails/?id=3742480361) — requires xStarbound, oSBM or OpenStarbound. Now has patches for Pixelflame's [Ancient Cosmos](https://steamcommunity.com/sharedfiles/filedetails/?id=3744936641) and [Starburst Rework](https://steamcommunity.com/sharedfiles/filedetails/?id=3744928917).
+- [Local and Planetary Terraformers](https://steamcommunity.com/sharedfiles/filedetails/?id=3827186678) — requires xStarbound for asset preprocessing; should work on OpenStarbound or oSBM.
 - [Loot Multiplier - Works with ALL MODS!] — requires xStarbound, oSBM or OpenStarbound.
 - [LR's Storage Dimension](https://steamcommunity.com/sharedfiles/filedetails/?id=3432253227) — automatic recipe detection is fully supported by xStarbound.
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
@@ -170,7 +199,7 @@ The following mods for xStarbound and/or OpenStarbound have special functionalit
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — fully supported by xStarbound.
 - [Mouse Aim Camera](https://steamcommunity.com/sharedfiles/filedetails/?id=3817704664) and its [Chinese translation patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3817720562) — requires xStarbound, oSBM or OpenStarbound.
 - [NamjeShipwright](https://github.com/namje0/namje_shipwright) — fully supported on xStarbound v4.1.1+. The mod is still in alpha though!
-- [Natural Reactions](https://steamcommunity.com/sharedfiles/filedetails/?id=3814256603) — requires xStarbound, oSBM or OpenStarbound for asset preprocessing.
+- [Natural Reactions](https://steamcommunity.com/sharedfiles/filedetails/?id=3827187927) — requires xStarbound, oSBM or OpenStarbound for asset preprocessing.
 - [Neki](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) ([GitHub](https://github.com/hyperjuni/Neki)) and [Nekibound](https://steamcommunity.com/sharedfiles/filedetails/?id=2875605913) — head rotation no longer clips Neki ears in xStarbound as of v3.4.4.
 - [NEONPUNK Title Screen [oSB]](https://steamcommunity.com/sharedfiles/filedetails/?id=3359876550) — OpenStarbound title screen replacement mod that should be supported by xStarbound; report any visual issues.
 - [No Falling or Cascading Blocks](https://steamcommunity.com/sharedfiles/filedetails/?id=3795740702) — requires xStarbound, oSBM or OpenStarbound; is server-side. Be careful when exploring the Ruin with this mod installed!
@@ -200,16 +229,17 @@ The following mods for xStarbound and/or OpenStarbound have special functionalit
 - [Spawnable Item Pack](https://steamcommunity.com/sharedfiles/filedetails/?id=733665104) — SIP's universal mod support requires xStarbound v2.5+, oSBM or OpenStarbound.
 - [Spenbed Starbound osb logo replacer](https://steamcommunity.com/sharedfiles/filedetails/?id=3623212132) — another logo replacement mod for OpenStarbound (or an oSB fork) and the like. Should be supported. The associated modpack is fully compatible with xStarbound.
 - [Sprite Dragon Interact (FDR)](https://steamcommunity.com/sharedfiles/filedetails/?id=3748728626) — requires xStarbound, oSBM or OpenStarbound. Not supported by xStarbound are this mod's optional «hooks» on OpenStarbound-only bind tags (e.g., `"interact"` or `"playerInteract"`) potentially added by other OpenStarbound mods; all other functionality is supported.
-- [Starbound Item Finder](https://steamcommunity.com/sharedfiles/filedetails/?id=3782116674) — requires xStarbound, oSBM or OpenStarbound.
+- [Starbound Item Finder](https://steamcommunity.com/sharedfiles/filedetails/?id=3782116674) — requires xStarbound, oSBM or OpenStarbound. If using xStarbound v4.6+ or OpenStarbound v0.1.16+, uses the new mod storage feature to significantly reduce in-game lag from this mod.
+  - _Note:_ If you're running a large modpack on xClient, consider upping `"maxModDataSize"` from its default of `4194304` (4 megabytes) to something larger (say, 16 MiB) by adding `"maxModDataSize": 16777216` (or any other number of bytes) to your `xsbinit.config` (normally found in the same folder as `xclient`/`xclient.exe`).
 - [Starburst Rework T6 Armor Recipe Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3472326270) — requires xStarbound, oSBM or OpenStarbound.
 - [StarTechUltimateUpgrade](https://steamcommunity.com/sharedfiles/filedetails/?id=3781692656) — xStarbound, oSBM or OpenStarbound is required because of the «use other techs with Nanofield» functionality.
 - [Subspace Black Market](https://steamcommunity.com/sharedfiles/filedetails/?id=3764065766) — requires xStarbound, oSBM or OpenStarbound for an item-related `root` call.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xStarbound.
-- [Teleport Effects](https://steamcommunity.com/sharedfiles/filedetails/?id=3816581110) — requires xStarbound; may or may not work on OpenStarbound or oSBM.
-- [Terrain Effects](https://steamcommunity.com/sharedfiles/filedetails/?id=3814538285) — requires xStarbound, oSBM or OpenStarbound.
+- [Teleport Effects](https://steamcommunity.com/sharedfiles/filedetails/?id=3827192748) — requires xStarbound; may or may not work on OpenStarbound or oSBM.
+- [Terrain Effects](https://steamcommunity.com/sharedfiles/filedetails/?id=3827194183) — requires xStarbound, oSBM or OpenStarbound.
 - [The Hungercry Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3594407068) — requires xStarbound, oSBM or OpenStarbound for a `player` callback, despite not being tagged as such.
 - [Time Control Command](https://steamcommunity.com/sharedfiles/filedetails/?id=3256623666) ([GitHub](https://github.com/bongus-jive/TimeControlCommand)) — fully supported by xStarbound.
-- [Title Comment](https://steamcommunity.com/sharedfiles/filedetails/?id=3817704710) — requires xStarbound. May or may not have visual issues on oSBM or OpenStarbound.
+- [Title Comment](https://steamcommunity.com/sharedfiles/filedetails/?id=3827196450) — requires xStarbound. May or may not have visual issues on oSBM or OpenStarbound.
 - [Toggled Walking](https://steamcommunity.com/sharedfiles/filedetails/?id=3706549533) — requires xStarbound, oSBM or OpenStarbound.
 - [Ultimate Mech Manager](https://steamcommunity.com/sharedfiles/filedetails/?id=3742826593) — requires xStarbound, oSBM or OpenStarbound for keybinds and some mech aiming functionality.
 - [Uncrafter Interface](https://steamcommunity.com/sharedfiles/filedetails/?id=3766727660) — requires xStarbound, oSBM or OpenStarbound.
@@ -235,7 +265,7 @@ The following «[oSB]»- or «[OpenStarbound]»-tagged mods either do not actual
 - [NIGHTMARE Clothin' Pack] — has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support extended cosmetic slots or cosmetic overlays/underlays.
 - [OpenStarbound No Highlights on Scanned Objects and Players](https://steamcommunity.com/sharedfiles/filedetails/?id=3432675895) — has no particular OpenStarbound or xStarbound support, actually.
 - [OSB Armor Dropoff](https://steamcommunity.com/sharedfiles/filedetails/?id=3816648717) — does not actually require OpenStarbound or any other Starbound fork.
-- [TBWorkaround](https://steamcommunity.com/sharedfiles/filedetails/?id=3805772653) — does not actually require OpenStarbound or any other Starbound fork.
+- [TBWorkaround](https://steamcommunity.com/sharedfiles/filedetails/?id=3827191933) — does not actually require any Starbound fork; that said, xStarbound is, of course, recommended.
 - [Tiri's Accessories](https://steamcommunity.com/sharedfiles/filedetails/?id=3619906462) — has no particular OpenStarbound or xStarbound support, actually, but the items are designed for clients that support extended cosmetic slots or cosmetic overlays/underlays.
 
 The following retail mod implements an OpenStarbound feature on xStarbound:
@@ -260,17 +290,21 @@ The following OpenStarbound mods require xSBCompat to bypass unnecessary OpenSta
 - [All Items are Stackable!](https://steamcommunity.com/sharedfiles/filedetails/?id=3370469697).
 - [All Reward Items Faster & Stackable](https://steamcommunity.com/sharedfiles/filedetails/?id=3714760211).
 - [Automatically Scan Objects!](https://steamcommunity.com/sharedfiles/filedetails/?id=3545869822).
-- [Beta Hotbar!](https://steamcommunity.com/sharedfiles/filedetails/?id=3472065640). Also see below.
+- [Beta Hotbar!](https://steamcommunity.com/sharedfiles/filedetails/?id=3472065640).
 - [Cheap as Dirt](https://steamcommunity.com/sharedfiles/filedetails/?id=3302756487).
 - [Hunger Fighting Chairs](https://steamcommunity.com/sharedfiles/filedetails/?id=3546473893).
 - [Is this Printable?](https://steamcommunity.com/sharedfiles/filedetails/?id=3507216031)
 - [Limited Lives](https://steamcommunity.com/sharedfiles/filedetails/?id=3222951645).
 - [Ship Pet Swapper](https://steamcommunity.com/sharedfiles/filedetails/?id=3474107812).
+- [Starbound Title Logo Revert](https://steamcommunity.com/sharedfiles/filedetails/?id=3826462179).
 - [Universal Instant Crafting for All Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=3251274439).
 - [Unlimited Food Stacking](https://steamcommunity.com/sharedfiles/filedetails/?id=3301942276).
 - [ZB SAIL: Standalone](https://steamcommunity.com/sharedfiles/filedetails/?id=3336389472).
 
-A note for **Beta Hotbar!** above: Using xStarbound with xSBCompat enhances this mod by removing the server-side requirement if `"inventorySpoofing"` is enabled in your `xclient.config`; see below for caveats.
+> **Notes:** Additional notes for the mods above:
+>
+> - **Beta Hotbar!:** Using xStarbound with xSBCompat enhances this mod by removing the server-side requirement if `"inventorySpoofing"` is enabled in your `xclient.config`; see below for caveats.
+> - **Starbound Title Logo Revert:** Mostly redundant on xClient for obvious reasons, but if you have an ultrawide (or «standard» wide) monitor, this mod's extended `blackbar.png` texture applies on xClient.
 
 The following OpenStarbound mods require OpenStarbound-only Lua API bindings or behaviour that are emulated by an xSBCompat patch:
 
@@ -322,7 +356,7 @@ The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due 
 - [Crew Band](https://steamcommunity.com/sharedfiles/filedetails/?id=3791721686) — not compatible with xStarbound because it depends on OpenStarbound/oSBM's `songbook` callbacks _and_ retail-incompatible netcode (meaning an OpenStarbound server is _required_). Consider using xClient's retail-netcode-compatible multi-character support (optionally with xPlayer) instead.
 - [Event Horizon Primary Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3474049592) — will throw shader-API-related errors on xStarbound that prevent your player from taking damage. The OpenStarbound shaders it contains aren't supported by xStarbound and require a recent OpenStarbound nightly build.
 - [Light Limiter](https://steamcommunity.com/sharedfiles/filedetails/?id=3470727854) — neither compatible with nor necessary on xStarbound.
-- [OpenStarbound Revert](https://steamcommunity.com/sharedfiles/filedetails/?id=3509533339) — not fully compatible with xStarbound for obvious reasons. Why do you need this on xStarbound anyway?
+- [OpenStarbound Revert](https://steamcommunity.com/sharedfiles/filedetails/?id=3509533339) — not compatible with or necessary on xStarbound for obvious reasons.
 - [OpenUI](https://steamcommunity.com/workshop/filedetails/?id=3546647977), its [Race Extender](https://steamcommunity.com/sharedfiles/filedetails/?id=3546654953) and other OpenUI extensions — these have glaring visual issues (namely, the main settings dialogue, server connection dialogue and escape/pause menu) that warrant placing these mods in the _Incompatibilities_ section.
 - [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) and its [two](https://steamcommunity.com/sharedfiles/filedetails/?id=2954344118) [counterparts](https://steamcommunity.com/sharedfiles/filedetails/?id=2954354494) — their PNG compression does not play well with xClient's hardware cursor, potentially making it invisible. Use `/cursor off` if you want to use these mods.
 - [Psychedelic Shader](https://steamcommunity.com/sharedfiles/filedetails/?id=3573193020) — modular shader support is OpenStarbound-only.
