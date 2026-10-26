@@ -865,7 +865,7 @@ bool processImageOperation(ImageOperation const& operation, Image& image, ImageR
     replaceColors(op->colorReplaceMap, image, rect);
     /* Old `?replace` code. */
     // image.forEachPixel([&op](unsigned, unsigned, Vec4B& pixel) {
-    //   if (auto m = op->colorReplaceMap.maybe(Vec5B(pixel[0], pixel[1], pixel[2], pixel[3], 0))) {
+    //   if (auto m = op->colorReplaceMap.maybe(Vec4B(pixel[0], pixel[1], pixel[2], pixel[3]))) {
     //     pixel = *m;
     //     return;
     //   }
