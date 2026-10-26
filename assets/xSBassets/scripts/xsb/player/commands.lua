@@ -1,3 +1,11 @@
+local function beginsWith(str, beginning)
+    if type(str) == "string" and type(beginning) == "string" then
+        return str:sub(1, #beginning) == beginning
+    else
+        return false
+    end
+end
+
 local module = {}
 modules.commands = module
 
@@ -110,7 +118,7 @@ Run client-side Lua code: ^cyan;/run^reset; (^cyan;"safeScripts"^reset; must be 
 Check client-side config value: ^cyan;/getclientconfig^reset; (run for help)
 Set client-side config value: ^cyan;/setclientconfig^reset; (run for help)
 Disable Terraria-style placement animation: ^cyan;/setclientconfig terrariaPreview false^reset;
-Replace ^cyan;false^reset; with ^cyan;true^reset; to enable the animation.]===]
+Reconnect or re-enter single-player to see changes. Replace ^cyan;false^reset; with ^cyan;true^reset; to enable the animation.]===]
     end
 end
 
