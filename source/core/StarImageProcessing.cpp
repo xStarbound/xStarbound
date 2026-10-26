@@ -779,7 +779,7 @@ static PixelRect applyBlend(BlendImageOperation const& op, Image& image, size_t 
 }
 
 // @FezzedOne: Returns a boolean now. `false` means the operation exhausted the pixel limit and processing should stop.
-bool processImageOperation(ImageOperation const& operation, Image& image, ImageReferenceCallback refCallback, bool& exhaustedPixels) {
+bool processImageOperation(ImageOperation const& operation, Image& image, ImageReferenceCallback refCallback) {
   ZoneScopedN("processImageOperation");
   const size_t pixelLimit = Directives::directivePixelLimit();
   const size_t pixels = safeMul((size_t)image.width(), (size_t)image.height());
