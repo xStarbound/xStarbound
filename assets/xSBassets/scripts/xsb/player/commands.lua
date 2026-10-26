@@ -103,10 +103,14 @@ List all players on the server: ^cyan;/who^reset;
 List players on the same world as you: ^cyan;/world^reset;]===]
     elseif subCommand == "misc" then
         return [===[^#f33;<misc commands>^reset;
-Clear the chat box: ^cyan;/clear^reset;
+Clear the standard chat box: ^cyan;/clear^reset; (your chat box mod may have a different clear command)
 Export generated directive sprites as PNGs: ^cyan;/render^reset; (run for subcommands)
 Disable OS cursor rendering: ^cyan;/cursor off^reset; (run ^cyan;/cursor help^reset; for more info)
-Run client-side Lua code: ^cyan;/run^reset; (^cyan;"safeScripts"^reset; must be disabled on client)]===]
+Run client-side Lua code: ^cyan;/run^reset; (^cyan;"safeScripts"^reset; must be disabled on client)
+Check client-side config value: ^cyan;/getclientconfig^reset; (run for help)
+Set client-side config value: ^cyan;/setclientconfig^reset; (run for help)
+Disable Terraria-style placement animation: ^cyan;/setclientconfig terrariaPreview false^reset;
+Replace ^cyan;false^reset; with ^cyan;true^reset; to enable the animation.]===]
     end
 end
 
@@ -1207,3 +1211,70 @@ local function handleHardwareCursor(rawArgs)
 end
 
 command("cursor", handleHardwareCursor)
+
+-- /getclientconfig and /setclientconfig --
+
+local setClientConfigHelp = [===[^#f33;</getclientconfig>^reset;
+^cyan;/getclientconfig^reset;: Returns this help.
+^cyan;/getclientconfig [Lua-style JSON path]^reset;: Returns the value of the configuration key or array entry at the specified path.]===]
+
+local invalidSetClientConfigHelp = [===[Invalid syntax. Usage:
+^cyan;/getclientconfig^reset;: Returns this help.
+^cyan;/getclientconfig [Lua-style JSON path]^reset;: Returns the value of the configuration key or array entry at the specified path.]===]
+
+function getClientConfig(rawArgs)
+    local path = (chat.parseArguments(rawArgs) or {})[1]
+    if path and path ~= "" then
+        local configToReturn
+        local s, e = pcall(|| -> do
+            if beginsWith(path, "title") then
+                error("Not permitted to access the \"title\" key, as this may contain sensitive client login info.")
+            else
+                configToReturn = root.getConfigurationPath(path)
+            end
+        end) if not s then
+            logError("Error while getting client configuration: %s", e)
+            return "^red;Error while getting client configuration; check client log."
+        end
+        return $"Client configuration value at ^cyan;{path}^reset;: {sb.printJson(configToReturn)}"
+    else
+        return not (path or value) ? getClientConfigHelp : invalidGetClientConfigHelp
+    end
+end
+
+local setClientConfigHelp = [===[^#f33;</setclientconfig>^reset;
+^cyan;/setclientconfig^reset;: Returns this help.
+^cyan;/setclientconfig [Lua-style JSON path] [new value]^reset;: Sets the value of the configuration key or array entry at the specified path to the specified value.
+String values should be surrounded with double or escaped quotes or have spaces escaped, e.g.: ^cyan;^font=moder-dos;'"Example string."']===]
+
+local invalidSetClientConfigHelp = [===[Invalid syntax. Usage:
+^cyan;/setclientconfig^reset;: Returns this help.
+^cyan;/setclientconfig [Lua-style JSON path] [new value]^reset;: Sets the value of the configuration key or array entry at the specified path to the specified value.
+String values should be surrounded with double or escaped quotes or have spaces escaped, e.g.: ^cyan;^font=moder-dos;'"Example string."']===]
+
+function setClientConfig(rawArgs)
+    local args = chat.parseArguments(rawArgs) or {}
+    local path = args[1]
+    local value = args[2]
+    if path and path ~= "" and value and value ~= "" then
+        local parsedValue, valueToPrint
+        local s, e = pcall(|| -> do
+            if beginsWith(path, "safeScripts") then
+                error("Not permitted to modify the \"safeScripts\" key. To modify this key, close xClient, edit the file externally, and restart xClient.")
+            else
+                parsedValue = sb.jsonParse(value)
+                root.setConfigurationPath(path, parsedValue)
+                valueToPrint = sb.printJson(parsedValue)
+            end
+        end) if not s then
+            logError("Error while setting client configuration: %s", e)
+            return "^red;Error while setting client configuration; check client log and ensure value is valid JSON."
+        end
+        return $"Set client configuration value at ^cyan;{path}^reset; to: {tostring(valueToPrint)}"
+    else
+        return not (path or value) ? setClientConfigHelp : invalidSetClientConfigHelp
+    end
+end
+
+command("getclientconfig", getClientConfig)
+command("setclientconfig", setClientConfig)
