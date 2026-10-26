@@ -652,9 +652,10 @@ void LuaEngine::setAutoGarbageCollection(bool autoGarbageCollection) {
 }
 
 void LuaEngine::tuneAutoGarbageCollection(float pause, float stepMultiplier) {
+  lua_gc(m_state, LUA_GCINC);
   lua_gc(m_state, LUA_GCPARAM, LUA_GCPPAUSE, round(pause * 100));
   lua_gc(m_state, LUA_GCPARAM, LUA_GCPSTEPMUL, round(stepMultiplier * 100));
-  lua_gc(m_state, LUA_GCPARAM, LUA_GCPSTEPSIZE, 0);
+  lua_gc(m_state, LUA_GCPARAM, LUA_GCPSTEPSIZE, 250);
 }
 
 size_t LuaEngine::memoryUsage() const {

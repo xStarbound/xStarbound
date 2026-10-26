@@ -29,7 +29,7 @@ TeamClient::TeamClient(PlayerPtr mainPlayer, ClientContextPtr clientContext) {
   m_pollInvitationsInterval = Root::singleton().assets()->json("/interface.config:invitationPollInterval").toFloat();
   m_fullUpdateInterval = Root::singleton().assets()->json("/interface.config:fullUpdateInterval").toFloat();
   m_statusUpdateInterval = Root::singleton().assets()->json("/interface.config:statusUpdateInterval").toFloat();
-  auto jFullWriteInterval = Root::singleton().assets()->json("/interface.config:fullUpdateWriteInterval");
+  auto jFullWriteInterval = Root::singleton().assets()->json("/interface.config").get("fullUpdateWriteInterval", Json());
   if (jFullWriteInterval.canConvert(Json::Type::Float))
     m_fullWriteInterval = jFullWriteInterval.optDouble().value(10.0);
 }
