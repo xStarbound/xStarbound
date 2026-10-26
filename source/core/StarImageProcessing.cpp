@@ -1111,7 +1111,7 @@ bool processImageOperation(ImageOperation const& operation, Image& image, ImageR
 
 bool processScaleCrop(ScaleImageOperation const& scale, CropImageOperation const& crop, Image& image) {
   // FezzedOne: Bugfix for identity scales to turn these into no-ops.
-  if (scale.scale[0] == 1.0f and scale.scale[1] == 1.0f)
+  if (scale.scale[0] == 1.0f && scale.scale[1] == 1.0f)
     return false;
   if (scale.mode == ScaleImageOperation::Bicubic)
     return false;
