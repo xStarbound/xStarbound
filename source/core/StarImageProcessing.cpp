@@ -998,6 +998,9 @@ bool processImageOperation(ImageOperation const& operation, Image& image, ImageR
 
   } else if (auto op = operation.ptr<ScaleImageOperation>()) {
     auto scale = op->scale;
+    // FezzedOne: Make identity scales a no-op. This fixes Colorable Custom Clothes issues.
+    if (scale[0] == 1.0f && scale[1] == 1.0f)
+      return true;
     if (scale[0] < 0.0f || scale[1] < 0.0f) {
       Logger::warn("[xSB] Negative scale found in image scaling operation (supplied scale: {{{}, {}}}); ignoring.", scale[0], scale[1]);
       scale = scale.piecewiseMax(Vec2F::filled(0.f));
@@ -1107,6 +1110,9 @@ bool processImageOperation(ImageOperation const& operation, Image& image, ImageR
 }
 
 bool processScaleCrop(ScaleImageOperation const& scale, CropImageOperation const& crop, Image& image) {
+  // FezzedOne: Bugfix for identity scales to turn these into no-ops.
+  if (scale.scale[0] == 1.0f and scale.scale[1] == 1.0f)
+    return false;
   if (scale.mode == ScaleImageOperation::Bicubic)
     return false;
   if (scale.scale[0] < 0.0f || scale.scale[1] < 0.0f)
@@ -1222,68 +1228,76 @@ void processImageOperationList(List<ImageOperation const*> const& operations, Im
   // This is to prevent potential denial-of-service exploits.
   size_t count = operations.size();
   size_t i = 0;
-  while (i < count) {
-    ImageOperation const& operation = *operations[i];
+  auto processOperations = [&]() -> bool {
+    while (i < count) {
+      ImageOperation const& operation = *operations[i];
 
-    if (isPerPixelColorOperation(operation)) {
-      size_t end = i;
-      while (end < count && isPerPixelColorOperation(*operations[end]))
-        ++end;
-      // Colors then crop that makes the image smaller get swapped, so the colors are applied to fewer pixels
-      if (end < count) {
-        if (auto crop = operations[end]->ptr<CropImageOperation>()) {
-          if (cropShrinks(*crop, image)) {
-            if (!processImageOperation(*operations[end], image, refCallback)) return;
-            for (size_t k = i; k < end; ++k)
-              if (!processImageOperation(*operations[k], image, refCallback)) return;
-            i = end + 1;
-            continue;
-          }
-        }
-      }
-      for (size_t k = i; k < end; ++k)
-        if (!processImageOperation(*operations[k], image, refCallback)) return;
-      i = end;
-      if (auto replace = operations[end - 1]->ptr<ColorReplaceImageOperation>())
-        i = processReplaceBlendChain(operations, i, replace, image, refCallback);
-      if (i == NPos) return;
-      continue;
-    }
-
-    if (auto scale = operation.ptr<ScaleImageOperation>()) {
-      size_t end = i + 1;
-      while (end < count && isPerPixelColorOperation(*operations[end]))
-        ++end;
-      // Scale, then colors get swapped, so the scale only copies pixels into a bigger image
-      if (end > i + 1 && scaleEnlargesByCopying(*scale, image)) {
-        for (size_t k = i + 1; k < end; ++k)
-          if (!processImageOperation(*operations[k], image, refCallback)) return;
-        // then the scale itself, together with a crop right after it if there is one
+      if (isPerPixelColorOperation(operation)) {
+        size_t end = i;
+        while (end < count && isPerPixelColorOperation(*operations[end]))
+          ++end;
+        // Colors then crop that makes the image smaller get swapped, so the colors are applied to fewer pixels
         if (end < count) {
           if (auto crop = operations[end]->ptr<CropImageOperation>()) {
-            if (processScaleCrop(*scale, *crop, image)) {
+            if (cropShrinks(*crop, image)) {
+              if (!processImageOperation(*operations[end], image, refCallback)) return false;
+              for (size_t k = i; k < end; ++k)
+                if (!processImageOperation(*operations[k], image, refCallback)) return false;
               i = end + 1;
               continue;
             }
           }
         }
-        if (!processImageOperation(operation, image, refCallback)) return;
+        for (size_t k = i; k < end; ++k)
+          if (!processImageOperation(*operations[k], image, refCallback)) return false;
         i = end;
+        if (auto replace = operations[end - 1]->ptr<ColorReplaceImageOperation>())
+          i = processReplaceBlendChain(operations, i, replace, image, refCallback);
+        if (i == NPos) return false;
         continue;
       }
-      if (i + 1 < count) {
-        if (auto crop = operations[i + 1]->ptr<CropImageOperation>()) {
-          if (processScaleCrop(*scale, *crop, image)) {
-            i += 2;
-            continue;
+
+      if (auto scale = operation.ptr<ScaleImageOperation>()) {
+        size_t end = i + 1;
+        while (end < count && isPerPixelColorOperation(*operations[end]))
+          ++end;
+        // Scale, then colors get swapped, so the scale only copies pixels into a bigger image
+        if (end > i + 1 && scaleEnlargesByCopying(*scale, image)) {
+          for (size_t k = i + 1; k < end; ++k)
+            if (!processImageOperation(*operations[k], image, refCallback)) return false;
+          // then the scale itself, together with a crop right after it if there is one
+          if (end < count) {
+            if (auto crop = operations[end]->ptr<CropImageOperation>()) {
+              if (processScaleCrop(*scale, *crop, image)) {
+                i = end + 1;
+                continue;
+              }
+            }
+          }
+          if (!processImageOperation(operation, image, refCallback)) return false;
+          i = end;
+          continue;
+        }
+        if (i + 1 < count) {
+          if (auto crop = operations[i + 1]->ptr<CropImageOperation>()) {
+            if (processScaleCrop(*scale, *crop, image)) {
+              i += 2;
+              continue;
+            }
           }
         }
       }
-    }
 
-    if (!processImageOperation(operation, image, refCallback)) return;
-    ++i;
-  }
+      if (!processImageOperation(operation, image, refCallback)) return false;
+      ++i;
+    }
+    return true;
+  };
+  if (!processOperations())
+    Logger::warn("[xSB] Image processing on a directive string stopped early due to an operation exhausting the configured pixel limit of {}!\n"
+                 "  Consider raising or disabling (by setting to 0) the \"imageOperationPixelLimit\" in your server or client's xsbinit.config if you're seeing this warning regularly. "
+                 "Disabling this limit on xServer is not recommended.",
+        Directives::directivePixelLimit());
 }
 Image processImageOperations(List<ImageOperation> const& operations, Image image, ImageReferenceCallback refCallback) {
   List<ImageOperation const*> pointers;
