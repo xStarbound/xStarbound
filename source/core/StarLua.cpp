@@ -232,6 +232,8 @@ LuaEnginePtr LuaEngine::create(bool safe) {
   self->m_scriptDefaultEnvRegistryId = LUA_NOREF;
   self->m_wrappedFunctionMetatableRegistryId = LUA_NOREF;
   self->m_requireFunctionMetatableRegistryId = LUA_NOREF;
+  self->m_jsonArrayMetatableRegistryId = LUA_NOREF;
+  self->m_jsonObjectMetatableRegistryId = LUA_NOREF;
 
   self->m_instructionLimit = 0;
   self->m_profilingEnabled = false;
@@ -650,7 +652,9 @@ void LuaEngine::setAutoGarbageCollection(bool autoGarbageCollection) {
 }
 
 void LuaEngine::tuneAutoGarbageCollection(float pause, float stepMultiplier) {
-  lua_gc(m_state, LUA_GCINC, round(pause * 100), round(stepMultiplier * 100), 0);
+  lua_gc(m_state, LUA_GCPARAM, LUA_GCPPAUSE, round(pause * 100));
+  lua_gc(m_state, LUA_GCPARAM, LUA_GCPSTEPMUL, round(stepMultiplier * 100));
+  lua_gc(m_state, LUA_GCPARAM, LUA_GCPSTEPSIZE, 0);
 }
 
 size_t LuaEngine::memoryUsage() const {
