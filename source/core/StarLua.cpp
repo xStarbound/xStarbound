@@ -653,8 +653,13 @@ void LuaEngine::setAutoGarbageCollection(bool autoGarbageCollection) {
 
 void LuaEngine::tuneAutoGarbageCollection(float pause, float stepMultiplier) {
   lua_gc(m_state, LUA_GCINC);
-  lua_gc(m_state, LUA_GCPARAM, LUA_GCPPAUSE, round(pause * 100));
-  lua_gc(m_state, LUA_GCPARAM, LUA_GCPSTEPMUL, round(stepMultiplier * 100));
+  // FezzedOne: Somehow, and for *some* reason, the original Chucklefish devs forgot explicit `(int)` casts, making the
+  // tuning *useless* (and on Windows, pathologically slow if the GC being used is Lua 5.5's or Pluto's). This is fixed now.
+  // Explicit casts are needed due to `VA_ARGS`'s behaviour around floats/doubles passed in integer «slots», which yields
+  // zeroes on Windows due to a 64-bit floating point value with less than 25-ish bits of decimal dust being clipped to
+  // only a bunch of zero bits when shortened to a 32-bit integer.
+  lua_gc(m_state, LUA_GCPARAM, LUA_GCPPAUSE, (int)round(pause * 100));
+  lua_gc(m_state, LUA_GCPARAM, LUA_GCPSTEPMUL, (int)round(stepMultiplier * 100));
   lua_gc(m_state, LUA_GCPARAM, LUA_GCPSTEPSIZE, 250);
 }
 

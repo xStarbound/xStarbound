@@ -57,8 +57,10 @@ WorldClient::WorldClient(PlayerPtr mainPlayer, UniverseClient* universeClient) {
   m_collisionDebug = false;
   m_inWorld = false;
 
-  if (GameObjectRegistry::smugglingEnabled())
+  if (GameObjectRegistry::smugglingEnabled()) {
     m_luaRoot = make_shared<LuaRoot>();
+    m_luaRoot->tuneAutoGarbageCollection(m_clientConfig.getFloat("luaGcPause"), m_clientConfig.getFloat("luaGcStepMultiplier"));
+  }
   m_scriptGlobals = JsonObject{};
 
   m_mainPlayer = mainPlayer;
