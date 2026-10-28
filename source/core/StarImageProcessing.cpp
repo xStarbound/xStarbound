@@ -80,11 +80,19 @@ static Image scaleNearestWindow(Image const& srcImage, Vec2F const& scale, unsig
 }
 
 static inline Vec4B bilinearPixel(Image const& srcImage, Vec2F const& scale, unsigned x, unsigned y) {
-  auto pos = vdiv(Vec2F(x, y), scale);
+  // FezzedOne: Needed to force real division.
+#if defined STAR_COMPILER_CLANG
+#pragma clang fp reassociate(off) contract(on) reciprocal(off) exceptions(strict)
+#endif
+  // FezzedOne: Special-case scale values of 1× on either axis. Needed to ensure that Air Fryer / `sbgen` directives render correctly.
+  auto pos = Vec2F(scale[0] == 1.0f ? (float)x : (float)x / scale[0], scale[1] == 1.0f ? (float)y : (float)y / scale[1]);
+  // auto pos = vdiv(Vec2F(x, y), scale);
   auto ipart = Vec2I::floor(pos);
   auto fpart = pos - Vec2F(ipart);
 
-  auto result = lerp(fpart[1], lerp(fpart[0], Vec4F(srcImage.clamp(ipart[0], ipart[1])), Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1]))), lerp(fpart[0], Vec4F(srcImage.clamp(ipart[0], ipart[1] + 1)), Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 1))));
+  auto result = lerp(fpart[1],
+      lerp(fpart[0], Vec4F(srcImage.clamp(ipart[0], ipart[1])), Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1]))),
+      lerp(fpart[0], Vec4F(srcImage.clamp(ipart[0], ipart[1] + 1)), Vec4F(srcImage.clamp(ipart[0] + 1, ipart[1] + 1))));
 
   return Vec4B(result);
 }
