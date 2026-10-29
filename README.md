@@ -234,6 +234,7 @@ The following mods for xStarbound and/or OpenStarbound have special functionalit
 - [Starburst Rework T6 Armor Recipe Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3472326270) — requires xStarbound, oSBM or OpenStarbound.
 - [StarTechUltimateUpgrade](https://steamcommunity.com/sharedfiles/filedetails/?id=3781692656) — xStarbound, oSBM or OpenStarbound is required because of the «use other techs with Nanofield» functionality.
 - [Subspace Black Market](https://steamcommunity.com/sharedfiles/filedetails/?id=3764065766) — requires xStarbound, oSBM or OpenStarbound for an item-related `root` call.
+- [Swap & Save](https://steamcommunity.com/sharedfiles/filedetails/?id=3828770356) — requires xStarbound v4.6+ or OpenStarbound v0.1.16+ for JSON mod storage.
 - [Tech Loadout Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2920684844) — fully supported by xStarbound.
 - [Teleport Effects](https://steamcommunity.com/sharedfiles/filedetails/?id=3827192748) — requires xStarbound; may or may not work on OpenStarbound or oSBM.
 - [Terrain Effects](https://steamcommunity.com/sharedfiles/filedetails/?id=3827194183) — requires xStarbound, oSBM or OpenStarbound.
