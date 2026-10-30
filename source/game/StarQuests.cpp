@@ -631,8 +631,6 @@ LuaCallbacks Quest::makeQuestCallbacks(Player* player) {
 
   auto thisQuest = GameObjectRegistry::smuggleWrap(this);
 
-  callbacks.registerCallback("context", [this]() { m_scriptComponent.context(); });
-
   callbacks.registerCallback("state", [this, thisQuest]() { thisQuest.checkSmuggle(); return QuestStateNames.getRight(state()); });
 
   callbacks.registerCallback("complete", [this, thisQuest](Maybe<size_t> followup) { thisQuest.checkSmuggle();complete(followup); });
