@@ -1,9 +1,11 @@
 #include "StarPlayerLuaBindings.hpp"
 #include "StarClientContext.hpp"
+#include "StarCodex.hpp"
 #include "StarItem.hpp"
 #include "StarItemDatabase.hpp"
 #include "StarJsonExtra.hpp"
 #include "StarPlayer.hpp"
+#include "StarPlayerCodexes.hpp"
 #include "StarPlayerInventory.hpp"
 #include "StarPlayerLog.hpp"
 #include "StarPlayerTech.hpp"
@@ -404,6 +406,51 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* playerPtr, bool removeChat
     return followUp->questId();
   });
 
+  callbacks.registerCallback("questIds", [player]() {
+    return player->questManager()->quests().keys();
+  });
+
+  callbacks.registerCallback("serverQuestIds", [player]() {
+    return player->questManager()->serverQuests().keys();
+  });
+
+
+  callbacks.registerCallback("quest", [player](String const& questId) -> Json {
+    if (!player->questManager()->hasQuest(questId))
+      return {};
+    return player->questManager()->getQuest(questId)->diskStore();
+  });
+
+  callbacks.registerCallback("questPortrait", [player](String const& questId, String const& portraitName) -> Maybe<List<Drawable>> {
+    if (!player->questManager()->hasQuest(questId))
+      return {};
+    return player->questManager()->getQuest(questId)->portrait(portraitName);
+  });
+
+  callbacks.registerCallback("questState", [player](String const& questId) -> Maybe<String> {
+    if (!player->questManager()->hasQuest(questId))
+      return {};
+    return QuestStateNames.getRight(player->questManager()->getQuest(questId)->state());
+  });
+
+  callbacks.registerCallback("questObjectives", [player](String const& questId) -> Maybe<JsonArray> {
+    return player->questManager()->getQuest(questId)->objectiveList();
+  });
+
+  if (GameObjectRegistry::smugglingEnabled()) {
+    callbacks.registerCallback("callQuest", [player](String const& questId, String const& func, LuaVariadic<LuaValue> const& args) -> Maybe<LuaValue> {
+      if (!player->questManager()->hasQuest(questId))
+        return {};
+      return player->questManager()->getQuest(questId)->callScript(func, args);
+    });
+  } else {
+    callbacks.registerCallback("callQuest", [player](String const& questId, String const& func, LuaVariadic<Json> const& args) -> Maybe<Json> {
+      if (!player->questManager()->hasQuest(questId))
+        return {};
+      return player->questManager()->getQuest(questId)->callScript(func, args);
+    });
+  }
+
   callbacks.registerCallback("hasQuest", [player](String const& questId) {
     return player->questManager()->hasQuest(questId);
   });
@@ -418,6 +465,37 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* playerPtr, bool removeChat
 
   callbacks.registerCallback("hasCompletedQuest", [player](String const& questId) {
     return player->questManager()->hasCompleted(questId);
+  });
+
+  callbacks.registerCallback("trackedQuestId", [player]() {
+    return player->questManager()->trackedQuestId();
+  });
+
+  callbacks.registerCallback("setTrackedQuest", [player](Maybe<String> const& questId) {
+    if (questId) {
+      if (!player->questManager()->isCurrent(*questId))
+        return player->questManager()->setAsTracked(questId);
+      else
+        return player->questManager()->setAsTracked({});
+    } else {
+      return player->questManager()->setAsTracked({});
+    }
+  });
+
+  callbacks.registerCallback("canTurnInQuest", [player](String const& questId) {
+    return player->questManager()->canTurnIn(questId);
+  });
+
+  callbacks.registerCallback("currentQuestId", [player]() {
+    return player->questManager()->currentQuestId();
+  });
+
+  callbacks.registerCallback("currentQuest", [player]() -> Json {
+    auto maybeQuest = player->questManager()->currentQuest();
+    if (maybeQuest) {
+      return (*maybeQuest)->diskStore();
+    }
+    return {};
   });
 
   callbacks.registerCallback("currentQuestWorld", [player]() -> Maybe<String> {
@@ -598,6 +676,40 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* playerPtr, bool removeChat
     return player->log()->collectables(collection);
   });
 
+  // @JamesTheMaker's codex bindings. {
+  callbacks.registerCallback("isCodexKnown", [player](String const& codexId) -> bool {
+    return player->codexes()->codexKnown(codexId);
+  });
+
+  callbacks.registerCallback("isCodexRead", [player](String const& codexId) -> bool {
+    return player->codexes()->codexRead(codexId);
+  });
+
+  callbacks.registerCallback("markCodexRead", [player](String const& codexId) -> bool {
+    return player->codexes()->markCodexRead(codexId);
+  });
+
+  callbacks.registerCallback("markCodexUnread", [player](String const& codexId) -> bool {
+    return player->codexes()->markCodexUnread(codexId);
+  });
+
+  callbacks.registerCallback("learnCodex", [player](String const& codexId, Maybe<bool> markRead) {
+    player->codexes()->learnCodex(codexId, markRead.value(false));
+  });
+
+  callbacks.registerCallback("getCodexes", [player]() -> Json {
+    return player->codexes()->toJson();
+  });
+
+  callbacks.registerCallback("getNewCodex", [player]() -> Maybe<String> {
+    auto codexPtr = player->codexes()->firstNewCodex();
+    if (codexPtr)
+      return codexPtr->title();
+
+    return {};
+  });
+  // }
+
   callbacks.registerCallback("getProperty", [player](String const& name, Maybe<Json> const& defaultValue) -> Json {
     return player->getGenericProperty(name, defaultValue.value(Json()));
   });
@@ -615,9 +727,9 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* playerPtr, bool removeChat
   });
 
   callbacks.registerCallback("sendChat", [player](String const& text, Maybe<String> const& sendMode, Maybe<bool> addBubble, Maybe<JsonObject> metadata) {
-      String sendModeStr = sendMode.value("Local");
-      bool addBubbleBool = addBubble.value(true);
-      player->getUniverseClient()->sendChat(text, sendModeStr, !addBubbleBool, metadata); });
+    String sendModeStr = sendMode.value("Local");
+    bool addBubbleBool = addBubble.value(true);
+    player->getUniverseClient()->sendChat(text, sendModeStr, !addBubbleBool, metadata); });
 
   callbacks.registerCallback("queueStatusMessage", [player](String const& newMessage) {
     player->queueUIMessage(newMessage);
@@ -905,8 +1017,10 @@ LuaCallbacks LuaBindings::makePlayerCallbacks(Player* playerPtr, bool removeChat
 
   callbacks.registerCallback("controlAimPosition", [player](Vec2F const& newAimPosition) { player->aim(std::move(newAimPosition)); });
 
-  callbacks.registerCallback("controlShifting", [player](Maybe<bool> const& shifting) { if (shifting) player->setShifting(*shifting);
-                               else          player->setShifting(false); });
+  callbacks.registerCallback("controlShifting", [player](Maybe<bool> const& shifting) {
+    if (shifting) player->setShifting(*shifting);
+    else
+      player->setShifting(false); });
 
   callbacks.registerCallback("controlTrigger", [player](Maybe<bool> const& trigger) {
     if (trigger) {

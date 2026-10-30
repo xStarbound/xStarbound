@@ -1,16 +1,16 @@
 #ifndef STAR_PROJECTILE_HPP
 #define STAR_PROJECTILE_HPP
 
-#include "StarOrderedMap.hpp"
+#include "StarEffectEmitter.hpp"
 #include "StarEntity.hpp"
+#include "StarLuaComponents.hpp"
+#include "StarMovementController.hpp"
 #include "StarNetElementSystem.hpp"
+#include "StarOrderedMap.hpp"
+#include "StarParticle.hpp"
+#include "StarPhysicsEntity.hpp"
 #include "StarScriptedEntity.hpp"
 #include "StarStatusEffectEntity.hpp"
-#include "StarPhysicsEntity.hpp"
-#include "StarEffectEmitter.hpp"
-#include "StarMovementController.hpp"
-#include "StarParticle.hpp"
-#include "StarLuaComponents.hpp"
 
 namespace Star {
 
@@ -84,6 +84,9 @@ public:
 
   void setReferenceVelocity(Maybe<Vec2F> const& velocity);
 
+  // @Bottinator22: A getter for a projectile's velocity.
+  Vec2F velocity() const;
+
   float powerMultiplier() const;
   void setPowerMultiplier(float multiplier);
 
@@ -99,6 +102,9 @@ public:
   List<PhysicsForceRegion> forceRegions() const override;
   size_t movingCollisionCount() const override;
   Maybe<PhysicsMovingCollision> movingCollision(size_t positionIndex) const override;
+
+  // @Bottinator22: A getter for projectile configs.
+  Json configValue(String const& name, Json const& def = Json()) const;
 
   using Entity::setTeam;
 
@@ -191,6 +197,6 @@ private:
   List<Variant<AudioInstancePtr, Particle, LightSource>> m_pendingRenderables;
 };
 
-}
+} // namespace Star
 
 #endif

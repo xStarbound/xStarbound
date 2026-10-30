@@ -430,6 +430,10 @@ void Projectile::setReferenceVelocity(Maybe<Vec2F> const& velocity) {
   m_effectEmitter->setBaseVelocity(velocity.value());
 }
 
+Vec2F Projectile::velocity() const {
+  return m_movementController->velocity();
+}
+
 float Projectile::initialSpeed() const {
   return m_initialSpeed;
 }
@@ -1038,6 +1042,10 @@ void Projectile::renderPendingRenderables(RenderCallback* renderCallback) {
       renderCallback->addParticle(renderable.get<Particle>());
   }
   m_pendingRenderables.clear();
+}
+
+Json Projectile::configValue(String const& name, Json const& def) const {
+  return m_parameters.query(name, m_config->config.query(name, def));
 }
 
 } // namespace Star

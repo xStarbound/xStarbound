@@ -1,24 +1,24 @@
 #ifndef STAR_MONSTER_HPP
 #define STAR_MONSTER_HPP
 
-#include "StarEntity.hpp"
-#include "StarNetElementSystem.hpp"
-#include "StarEntityRendering.hpp"
 #include "StarActorMovementController.hpp"
-#include "StarNetworkedAnimator.hpp"
-#include "StarEffectEmitter.hpp"
-#include "StarMonsterDatabase.hpp"
-#include "StarDamageBarEntity.hpp"
-#include "StarNametagEntity.hpp"
-#include "StarPortraitEntity.hpp"
 #include "StarAggressiveEntity.hpp"
-#include "StarScriptedEntity.hpp"
-#include "StarChattyEntity.hpp"
-#include "StarPhysicsEntity.hpp"
 #include "StarBehaviorState.hpp"
-#include "StarLuaComponents.hpp"
-#include "StarLuaAnimationComponent.hpp"
+#include "StarChattyEntity.hpp"
+#include "StarDamageBarEntity.hpp"
+#include "StarEffectEmitter.hpp"
+#include "StarEntity.hpp"
+#include "StarEntityRendering.hpp"
 #include "StarLuaActorMovementComponent.hpp"
+#include "StarLuaAnimationComponent.hpp"
+#include "StarLuaComponents.hpp"
+#include "StarMonsterDatabase.hpp"
+#include "StarNametagEntity.hpp"
+#include "StarNetElementSystem.hpp"
+#include "StarNetworkedAnimator.hpp"
+#include "StarPhysicsEntity.hpp"
+#include "StarPortraitEntity.hpp"
+#include "StarScriptedEntity.hpp"
 
 namespace Star {
 
@@ -26,13 +26,13 @@ STAR_CLASS(Monster);
 STAR_CLASS(StatusController);
 
 class Monster
-  : public virtual DamageBarEntity,
-    public virtual AggressiveEntity,
-    public virtual ScriptedEntity,
-    public virtual PhysicsEntity,
-    public virtual NametagEntity,
-    public virtual ChattyEntity,
-    public virtual InteractiveEntity {
+    : public virtual DamageBarEntity,
+      public virtual AggressiveEntity,
+      public virtual ScriptedEntity,
+      public virtual PhysicsEntity,
+      public virtual NametagEntity,
+      public virtual ChattyEntity,
+      public virtual InteractiveEntity {
 public:
   struct SkillInfo {
     String label;
@@ -133,6 +133,9 @@ public:
 
   Vec2F questIndicatorPosition() const override;
 
+  StatusController* statusController();
+  ActorMovementController* movementController();
+
   using Entity::setKeepAlive;
   using Entity::setUniqueId;
 
@@ -209,6 +212,6 @@ private:
   NetElementHashMap<String, Json> m_scriptedAnimationParameters;
 };
 
-}
+} // namespace Star
 
 #endif

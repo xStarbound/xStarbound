@@ -115,6 +115,7 @@ public:
   void reviveMainPlayer();
   bool respawnInWorld() const;
 
+  void resendEntity(EntityId entityId);
   void removeEntity(EntityId entityId, bool andDie, bool serverSide = true);
 
   WorldTemplateConstPtr currentTemplate() const;

@@ -51,7 +51,9 @@ public:
   List<QuestPtr> listFailedQuests() const;
 
   Maybe<QuestPtr> currentQuest() const;
+  Maybe<String> currentQuestId() const; // From OpenStarbound.
   Maybe<QuestPtr> trackedQuest() const;
+  Maybe<String> trackedQuestId() const; // From OpenStarbound.
   Maybe<QuestIndicator> getQuestIndicator(EntityPtr const& entity) const;
 
   // Handled at this level to allow multiple active quests to specify interestingObjects
@@ -60,8 +62,10 @@ public:
   Maybe<Json> receiveMessage(String const& message, bool localMessage, JsonArray const& args = {});
   void update(float dt);
 
+  StringMap<QuestPtr> serverQuests() const;
+  StringMap<QuestPtr> quests() const;
+
 private:
-  List<QuestPtr> serverQuests() const;
   void startInitialQuests();
   void setMostRecentQuestCurrent();
 

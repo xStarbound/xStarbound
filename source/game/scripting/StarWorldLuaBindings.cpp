@@ -476,6 +476,9 @@ namespace LuaBindings {
     });
 
     if (auto clientWorld = as<WorldClient>(world)) {
+      callbacks.registerCallback("resendEntity", [clientWorld](EntityId entityId) {
+        clientWorld->resendEntity(entityId);
+      });
       callbacks.registerCallbackWithSignature<RectI>("clientWindow", LUA_BIND(ClientWorldCallbacks::clientWindow, clientWorld));
       callbacks.registerCallbackWithSignature<void, Maybe<Vec3F>>("setLightMultiplier", LUA_BIND(ClientWorldCallbacks::setLightMultiplier, clientWorld, _1));
       callbacks.registerCallbackWithSignature<void, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>, Maybe<Vec3F>>("setShaderParameters",
@@ -579,6 +582,11 @@ namespace LuaBindings {
     }
 
     if (auto worldClient = as<WorldClient>(world)) {
+      callbacks.registerCallback("inWorld", [worldClient]() -> bool {
+        if (worldClient)
+          return (bool)inWorld(worldClient.get());
+        return false;
+      });
       callbacks.registerCallbackWithSignature<void, EntityId, Maybe<Directives>, Maybe<Directives>, Maybe<Directives>>("setEntityDirectives",
           LUA_BIND(&WorldClient::setEntityRenderDirectives, worldClient, _1, _2, _3, _4));
       callbacks.registerCallbackWithSignature<void>("clearEntityDirectives",
@@ -776,6 +784,11 @@ namespace LuaBindings {
             return {};
         });
     callbacks.registerCallbackWithSignature<bool, int>("entityExists", LUA_BIND(WorldEntityCallbacks::entityExists, world, _1));
+    callbacks.registerCallbackWithSignature<Maybe<EntityPtr>, EntityId>("entity", [world](EntityId const& entityId) -> Maybe<EntityPtr> {
+      if (auto entity = world->entity(entityId))
+        return entity;
+      return Maybe<EntityPtr>{};
+    });
     callbacks.registerCallbackWithSignature<bool, int, int>("entityCanDamage", LUA_BIND(WorldEntityCallbacks::entityCanDamage, world, _1, _2));
     callbacks.registerCallbackWithSignature<Json, EntityId>("entityDamageTeam", LUA_BIND(WorldEntityCallbacks::entityDamageTeam, world, _1));
     callbacks.registerCallbackWithSignature<Json, EntityId>("entityAggressive", LUA_BIND(WorldEntityCallbacks::entityAggressive, world, _1));

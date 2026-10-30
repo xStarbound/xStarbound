@@ -564,6 +564,18 @@ bool Quest::hideCrossServer() const {
   return m_displayParameters.hideCrossServer;
 }
 
+Maybe<LuaValue> Quest::callScript(String const& func, LuaVariadic<LuaValue> const& args) {
+  if (!m_inited)
+    return {};
+  return m_scriptComponent.invoke(func, args);
+}
+
+Maybe<Json> Quest::callScript(String const& func, LuaVariadic<Json> const& args) {
+  if (!m_inited)
+    return {};
+  return m_scriptComponent.invoke(func, args);
+}
+
 void Quest::setState(QuestState state) {
   m_state = state;
   m_lastUpdatedOn = Time::monotonicMilliseconds();
@@ -619,11 +631,21 @@ LuaCallbacks Quest::makeQuestCallbacks(Player* player) {
 
   auto thisQuest = GameObjectRegistry::smuggleWrap(this);
 
+  callbacks.registerCallback("context", [this]() { m_scriptComponent.context(); });
+
   callbacks.registerCallback("state", [this, thisQuest]() { thisQuest.checkSmuggle(); return QuestStateNames.getRight(state()); });
 
   callbacks.registerCallback("complete", [this, thisQuest](Maybe<size_t> followup) { thisQuest.checkSmuggle();complete(followup); });
 
   callbacks.registerCallback("fail", [this, thisQuest]() { thisQuest.checkSmuggle();fail(); });
+
+  // OpenStarbound quest callbacks from @Novaenia. {
+  callbacks.registerCallback("abandon", [this, thisQuest]() { thisQuest.checkSmuggle();abandon(); });
+
+  callbacks.registerCallback("decline", [this, thisQuest]() { thisQuest.checkSmuggle();declineOffer(); });
+
+  callbacks.registerCallback("cancel", [this, thisQuest]() { thisQuest.checkSmuggle();cancelOffer(); });
+  // }
 
   callbacks.registerCallback("setCanTurnIn", [this, thisQuest](bool value) { thisQuest.checkSmuggle();this->m_canTurnIn = value; });
 

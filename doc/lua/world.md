@@ -624,7 +624,15 @@ Returns the entity ID of any object occupying the specified tile position, or `n
 
 #### `bool` world.entityExists(`EntityId` entityId)
 
-Returns `true` if an entity with the specified ID exists in the world and `false` otherwise.
+Returns `true` if an entity with the specified ID exists in the world, or `false` otherwise.
+
+---
+
+#### `Maybe<Entity>` world.entity(`EntityId` entityId)
+
+> **Available only on xStarbound v4.7+, OpenStarbound v0.1.15+ and oSBM.**
+
+Returns an `Entity` userdata for the specified entity, or `nil` if the entity with the specified ID does not exist in the world. Holding the returned `Entity` userdata value also holds the entity internally as long as any reference to the value is held. See _`Entity` userdata_ below for all the `Entity` userdata methods.
 
 ---
 
@@ -968,7 +976,7 @@ A combination of `world.containerItemApply` and `world.containerSwapItemsNoCombi
 
 #### [Legacy / Non-xStarbound] `LuaValue` world.callScriptedEntity(`EntityId` entityId, `String` functionName, [`LuaValue...` args])
 
-Attempts to call the specified function (or callback) name in the context of the specified scripted entity with any specified arguments and returns the result of that call. This method is synchronous and thus can only be used on local master entities, i.e. scripts run on the server may only call scripted entities (on the same world) that are also server-side mastered, and scripts run on the client may only call scripted entities that are client-side mastered on that client.
+Attempts to call the specified function (or callback) name in the context of the specified scripted entity with any specified arguments and returns the result of that call. This binding is synchronous and thus can only be used on local master entities, i.e. scripts run on the server may only call scripted entities (on the same world) that are also server-side mastered, and scripts run on the client may only call scripted entities that are client-side mastered on that client.
 
 On xStarbound with `"legacySmuggling"` disabled, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
 
@@ -984,7 +992,7 @@ For more featureful entity messaging, use `world.sendEntityMessage`. To call a w
 
 Sends an asynchronous message to an entity with the specified entity ID or unique ID with the specified message type and arguments and returns an `RpcPromise` which can be used to receive the result of the message when available. See the message table for information on entity message handling. This function **should not be called in any entity's `init` function**, as the sending entity will not have been fully loaded, possibly causing the message to get lost in transit.
 
-On xServer, sending a message to the unique ID `"server"` sends that message to world server script contexts running on the world the messaging entity is located on. There is no special client requirement to send `"server"` messages on xServer — it will work just fine on stock and OpenStarbound clients.
+On xServer, sending a message to the unique ID `"server"` sends that message to world server script contexts running on the world the messaging entity is located on. There is no special client requirement to send `"server"` messages on xServer — it will work just fine when sending from retail and OpenStarbound clients.
 
 See `message.md` for information on message handlers and `RpcPromise` objects.
 
@@ -1634,6 +1642,24 @@ The following `world` bindings are available only in client-side scripts.
 
 ---
 
+#### `RectI` world.inWorld()
+
+> **This binding is available only on xStarbound, OpenStarbound and oSBM.**
+
+Returns whether the client is in a loaded world.
+
+> **Note:** On xStarbound, this binding returns `false` instead of throwing a Lua dereference error if invoked beyond the lease of this and any other `world` bindings «smuggled» from the same client world instance. _On OpenStarbound and oSBM, this binding may return `true` when other world bindings smuggled from the same instance are unsafe to use without crashes!_
+
+---
+
+#### `void` world.resendEntity(`EntityId` entityId)
+
+> **Available only on xStarbound v4.7+, OpenStarbound and oSBM.**
+
+Re-networks the specified entity mastered by this client «from scratch», which can be useful if the entity was de-rendered by the server due to an error or its visual state is somehow screwed up. If the specified entity ID does not refer to an existing entity or refers to an entity not mastered by this client, this binding does nothing.
+
+---
+
 #### `RectI` world.clientWindow()
 
 Returns the bounds of what is visible in the client window in world tiles.
@@ -1886,3 +1912,600 @@ Attempts to remove all wires connected to the specified object wire node. Does n
 > **Note:** This can throw a server-side exception on non-xServer servers that kicks you and everyone else off the world if you specify a node that doesn't exist. Be careful!
 
 This callback and its corollary `world.wire` / `world.addWire` are particularly useful to creators of build- or dungeon-related mods. The server-side equivalent of this callback is `world.removeWire` (see above).
+
+---
+
+## `Entity` userdata
+
+> **Available only on xStarbound v4.7+, OpenStarbound v0.1.15+ and oSBM.**
+
+These objects may be returned by `world.entity` above. An `Entity` userdata object only needs to be acquired once per entity; it updates with the entity. It even continues to function after the entity is destroyed, keeping the entity in memory for as long as any reference to the associated userdata object is kept by any script context. As such, it is recommended to destroy references to entity userdata objects in your scripts after they are no longer needed. Some methods may throw errors if used on dead entities.
+
+---
+
+#### `bool` `Entity`:exists()
+
+Returns `true` if this entity exists in a world, or `false` otherwise.
+
+---
+
+#### `EntityId` `Entity`:id()
+
+Returns the entity's current ID.
+
+---
+
+#### `DamageTeam` `Entity`:damageTeam()
+
+Returns the current damage team (team type and team number) of this entity.
+
+---
+
+#### `bool` `Entity`:canDamage(`EntityId` targetId)
+
+Returns `true` if this entity can damage the specified target entity using their current damage teams and `false` otherwise.
+
+---
+
+#### `bool` `Entity`:aggressive()
+
+Returns `true` if this entity is an aggressive monster or NPC, or `false` otherwise.
+
+---
+
+#### `String` `Entity`:type()
+
+Returns the entity type name of this entity.
+
+---
+
+#### `Vec2F` `Entity`:aimPosition()
+
+Returns the aim position of this entity.
+
+---
+
+#### `Vec2F` `Entity`:position()
+
+Returns the current world position of this entity.
+
+---
+
+#### `Vec2F` `Entity`:mouthPosition()
+
+Returns the current world mouth position of the entity if it is a player, monster, NPC, or object, or `nil` if the entity doesn't exist or isn't a valid type.
+
+---
+
+#### `Vec2F` `Entity`:velocity()
+
+Returns the current velocity of the entity if it is a vehicle, monster, NPC, player, or projectile and `nil` otherwise.
+
+---
+
+#### `Vec2F` `Entity`:metaBoundBox()
+
+Returns the meta bound box of the entity, if any.
+
+---
+
+#### `unsigned` `Entity`:currency(`String` currencyType)
+
+Returns the entity's stock of the specified currency type, or `nil` if the entity is not a player.
+
+---
+
+#### `unsigned` `Entity`:hasCountOfItem(`Json` itemDescriptor, [`bool` exactMatch])
+
+Returns the nubmer of the specified item that the entity is currently carrying, or `nil` if the entity is not a player. If exactMatch is `true` then parameters as well as item name must match.
+
+NOTE: This function currently does not work correctly over the network, making it inaccurate when not used from client side scripts such as status.
+
+---
+
+#### `Vec2F` `Entity`:health()
+
+Returns a `Vec2F` containing the entity's current and maximum health if the entity is a player, monster or NPC and `nil` otherwise.
+
+---
+
+#### `String` `Entity`:species()
+
+Returns the name of the specified entity's species if it is a player or NPC and `nil` otherwise.
+
+---
+
+#### `String` `Entity`:gender()
+
+Returns the name of the entity's gender if it is a player or NPC and `nil` otherwise.
+
+---
+
+#### `String` `Entity`:name()
+
+Returns a `String` name of the entity which has different behavior for different entity types. For players, monsters and NPCs, this will be the configured name of the specific entity. For objects or vehicles, this will be the name of the object or vehicle type. For item drops, this will be the name of the contained item.
+
+---
+
+#### `Json` `Entity`:nametag()
+
+Returns data on the nametag of the entity, if the entity has nametags.
+
+---
+
+#### `String` `Entity`:typeName()
+
+Similar to `Entity`:name but returns the names of configured types for NPCs and monsters.
+
+---
+
+#### `String` `Entity`:description([`String` species])
+
+Returns the configured description for the entity if it has one. Will return a species-specific description if species is specified and a generic description otherwise.
+
+---
+
+#### `JsonArray` `Entity`:portrait(`String` portraitMode)
+
+Generates a portrait of the entity in the specified portrait mode and returns a list of drawables, or `nil` if the entity is not a portrait entity.
+
+---
+
+#### `String` `Entity`:handItem(`String` handName)
+
+Returns the name of the item held in the specified hand of the entity, or `nil` if the entity is not holding an item or is not a player or NPC. Hand name should be specified as "primary" or "alt".
+
+---
+
+#### `ItemDescriptor` `Entity`:handItemDescriptor(`String` handName)
+
+Similar to `Entity`:handItem but returns the full descriptor of the item rather than the name.
+
+---
+
+#### `String` `Entity`:uniqueId(`EntityId` entityId)
+
+Returns the unique id of the entity, or `nil` if the entity does not have a unique id.
+
+---
+
+#### `Json` `Entity`:statusProperty(`String` name, [`Json` default])
+
+Returns the value of the entity's status property, or the specified default value or `nil` if the parameter is not set. Also returns `nil` if the entity is not an «actor entity». «Actor entities» are players, NPCs, and monsters.
+
+---
+
+#### `Maybe<float>` `Entity`:stat(`String` name)
+
+Returns the value of the entity's stat or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:statPositive(`String` name)
+
+Returns whether the entity's stat is positive or not, or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<StringList>` `Entity`:resourceNames()
+
+Returns the names of all the entity's resources or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<float>` `Entity`:resource(`String` name)
+
+Returns the value of the entity's specified resource or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:isResource(`String` name)
+
+Returns whether this resource exists on the entity, or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:resourcePositive(`String` name)
+
+Returns whether the entity's specified resource is positive or not, or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:resourceLocked(`String` name)
+
+Returns whether the entity's specified resource is locked or not, or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<float>` `Entity`:resourceMax(`String` name)
+
+Returns the maximum value of the entity's specified resource or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<float>` `Entity`:resourcePercentage(`String` name)
+
+Returns the percentage of max of the entity's specified resource or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<JsonArray>` `Entity`:getPersistentEffects(`String` name)
+
+Returns the entity's active persistent effects under the given category or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<List<JsonArray>>` `Entity`:activeUniqueStatusEffectSummary()
+
+Returns the active unique status effects of the entity or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:uniqueStatusEffectActive(`String` name)
+
+Returns if the specified status effect is active on the entity or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<float>` `Entity`:mass()
+
+Returns the entity's mass or `nil` if the entity is not a mobile entity.
+Mobile entities are actor entities as well as vehicles, projectiles, item drops, and plant drops (falling trees/vines)
+
+---
+
+#### `Maybe<RectF>` `Entity`:boundBox()
+
+Returns the entity's collision poly bound box or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<PolyF>` `Entity`:collisionPoly()
+
+Returns the entity's collision poly or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<PolyF>` `Entity`:collisionBody()
+
+Returns the entity's collision body or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<RectF>` `Entity`:collisionBoundBox()
+
+Returns the entity's collision poly bound box in world space coordinates or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<RectF>` `Entity`:localBoundBox()
+
+Returns the entity's movement controller local bound box or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<float>` `Entity`:rotation()
+
+Returns the entity's rotation or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:isColliding()
+
+Returns if the entity is colliding or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:isNullColliding()
+
+Returns if the entity is colliding with null collision or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:isCollisionStuck()
+
+Returns if the entity is sticking or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<float>` `Entity`:stickingDirection()
+
+Returns the direction the entity is sticking at or `nil` if the entity is not a mobile entity or isn't stuck.
+
+---
+
+#### `Maybe<float>` `Entity`:liquidPercentage()
+
+Returns the entity's percentage of being submerged in liquid or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<LiquidId>` `Entity`:liquidId()
+
+Returns the liquid the entity is submerged in or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:onGround()
+
+Returns if the entity is on the ground or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:zeroG()
+
+Returns if the entity is in zero-G movement or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:atWorldLimit()
+
+Returns if the entity is at the world limit or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<Json>` `Entity`:baseMovementParameters()
+
+Returns the entity's base movement parameters or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<Json>` `Entity`:movementParameters()
+
+Returns the entity's current movement parameters or `nil` if the entity is not a mobile entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:walking()
+
+Returns if the entity is walking or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:running()
+
+Returns if the entity is running or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<int>` `Entity`:facingDirection()
+
+Returns the entity's facing direction or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<int>` `Entity`:movingDirection()
+
+Returns the entity's moving direction or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:crouching()
+
+Returns if the entity is crouching or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:flying()
+
+Returns if the entity is flying or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:falling()
+
+Returns if the entity is falling or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:canJump()
+
+Returns if the entity can jump or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:jumping()
+
+Returns if the entity is jumping or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:groundMovement()
+
+Returns if the entity is in ground movement or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Maybe<bool>` `Entity`:liquidMovement()
+
+Returns if the entity is in liquid movement or `nil` if the entity is not an actor entity.
+
+---
+
+#### `Json` `Entity`:getParameter(`String` parameterName, [`Json` defaultValue])
+
+Returns the value of the specified config parameter on the entity, or the default value or `nil` if the parameter is not set. Also returns `nil` if the entity is not an entity that config parameters can be read from. Parameters can only be read from NPCs, objects, projectiles, and stagehands.
+
+---
+
+#### `List<Vec2I>` `Entity`:objectSpaces()
+
+Returns a list of tile positions that the entity occupies, or `nil` if the entity is not an object.
+
+---
+
+#### `int` `Entity`:farmableStage()
+
+Returns the current growth stage of the specified farmable object, or `nil` if the entity is not a farmable object.
+
+---
+
+#### `int` `Entity`:containerSize()
+
+Returns the total capacity of the entity, or `nil` if the entity is not a container.
+
+---
+
+#### `bool` `Entity`:containerClose()
+
+Visually closes the entity. Returns `true` if the entity is a container and `false` otherwise.
+
+---
+
+#### `bool` `Entity`:containerOpen()
+
+Visually opens the entity. Returns `true` if the entity is a container and `false` otherwise.
+
+---
+
+#### `JsonArray` `Entity`:containerItems()
+
+Returns a list of pairs of item descriptors and container positions of all items in the entity, or `nil` if the entity is not a container.
+
+---
+
+#### `ItemDescriptor` `Entity`:containerItemAt(`unsigned` offset)
+
+Returns an item descriptor of the item at the specified position in the entity, or `nil` if the entity is not a container or the offset is out of range.
+
+---
+
+#### `bool` `Entity`:containerConsume(`ItemDescriptor` item)
+
+Attempts to consume items from the entity that match the specified item descriptor and returns `true` if successful, `false` if unsuccessful, or `nil` if the entity is not a container. Only succeeds if the full count of the specified item can be consumed.
+
+---
+
+#### `bool` `Entity`:containerConsumeAt(`unsigned` offset, `unsigned` count)
+
+Similar to world.containerConsume but only considers the specified slot within the entity.
+
+---
+
+#### `unsigned` `Entity`:containerAvailable(`ItemDescriptor` item)
+
+Returns the number of the specified item that are currently available to consume in the entity, or `nil` if the entity is not a container.
+
+---
+
+#### `JsonArray` `Entity`:containerTakeAll()
+
+Similar to world.containerItems but consumes all items in the entity.
+
+---
+
+#### `ItemDescriptor` `Entity`:containerTakeAt(`unsigned` offset)
+
+Similar to world.containerItemAt, but consumes all items in the specified slot of the entity.
+
+---
+
+#### `ItemDescriptor` `Entity`:containerTakeNumItemsAt(`unsigned` offset, `unsigned` count)
+
+Similar to world.containerTakeAt, but consumes up to (but not necessarily equal to) the specified count of items from the specified slot of the entity and returns only the items consumed.
+
+---
+
+#### `unsigned` `Entity`:containerItemsCanFit(`ItemDescriptor` item)
+
+Returns the number of times the specified item can fit in the entity, or `nil` if the entity is not a container.
+
+---
+
+#### `Json` `Entity`:containerItemsFitWhere(`ItemDescriptor` items)
+
+Returns a JsonObject containing a list of "slots" the specified item would fit and the count of "leftover" items that would remain after attempting to add the items. Returns `nil` if the entity is not a container.
+
+---
+
+#### `ItemDescriptor` `Entity`:containerAddItems(`ItemDescriptor` items)
+
+Adds the specified items to the entity. Returns the leftover items after filling the entity, or all items if the entity is not a container.
+
+---
+
+#### `ItemDescriptor` `Entity`:containerStackItems(`ItemDescriptor` items)
+
+Similar to world.containerAddItems but will only combine items with existing stacks and will not fill empty slots.
+
+---
+
+#### `ItemDescriptor` `Entity`:containerPutItemsAt(`ItemDescriptor` items, `unsigned` offset)
+
+Similar to world.containerAddItems but only considers the specified slot in the entity.
+
+---
+
+#### `ItemDescriptor` `Entity`:containerItemApply(`ItemDescriptor` items, `unsigned` offset)
+
+Attempts to combine the specified items with the current contents (if any) of the container slot and returns any items unable to be placed into the slot.
+
+---
+
+#### `ItemDescriptor` `Entity`:containerSwapItemsNoCombine(`ItemDescriptor` items, `unsigned` offset)
+
+Places the specified items into the entity slot and returns the previous contents of the slot if successful, or the original items if unsuccessful.
+
+---
+
+#### `ItemDescriptor` `Entity`:containerSwapItems(`ItemDescriptor` items, `unsigned` offset)
+
+A combination of world.containerItemApply and world.containerSwapItemsNoCombine that attempts to combine items before swapping and returns the leftovers if stacking was successful or the previous contents of the container slot if the items did not stack.
+
+---
+
+#### `Json` `Entity`:callScript(`String` functionName, [`Json` args ...])
+
+#### [Legacy / Non-xStarbound] `LuaValue` `Entity`:callScript(`String` functionName, [`LuaValue...` args])
+
+Attempts to call the specified function (or callback) name in the context of this scripted entity with any specified arguments and returns the result of that call. This method is synchronous and thus can only be used on local master entities, i.e. scripts run on the server may only call scripted entities (on the same world) that are also server-side mastered, and scripts run on the client may only call scripted entities that are client-side mastered on that client.
+
+On xStarbound with `"legacySmuggling"` disabled, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
+
+> **Note:** On xStarbound v3.5.2.3+, this callback will return `nil` (and log a warning before v4.0.0) if the entity is not locally mastered or doesn't exist. On other servers and clients, an error will be thrown instead.
+
+> **Warning:** When `"legacySmuggling"` is enabled on xStarbound v4.5+, any Lua binding references shared through this callback's `args` parameter will throw a Lua reference error upon invocation if they're overleased; check your log for this error. **On non-xStarbound servers and clients, invoking an overleased binding will cause a crash to desktop or memory corruption!** On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game on a non-xStarbound client or server _will_ almost certainly cause segfaults or memory corruption!
+
+---
+
+#### `RpcPromise<Json>` `Entity`:sendMessage(`String` messageType, [`LuaValue` args ...])
+
+Sends an asynchronous message to the entity on which this method is invoked, with the specified message type and arguments and returns an `RpcPromise` which can be used to receive the result of the message when available. See `$docs/lua/message.md` for more on entity message handling. This function **should not be called in any sending entity's `init` function** as the sending entity will not have been fully loaded, possibly causing the message to get lost in transit.
+
+---
+
+#### `List<EntityId>` `Entity`:loungingEntities()
+
+Returns every entity lounging on the entity.
+
+---
+
+#### `bool` `Entity`:loungeableOccupied()
+
+Checks whether this loungeable entity is currently occupied and returns `true` if it is occupied, `false` if it is unoccupied, or `nil` if it is not a loungeable entity.
+
+---
+
+#### `int` `Entity`:loungeableAnchorCount()
+
+Returns the amount of anchors on the entity or `nil` if it is not a loungeable entity.
+
+---
+
+#### `bool` `Entity`:isInteractive()
+
+Returns `true` if the entity is player interactive and `false` otherwise.
+
+---
+
+#### `int` `Entity`:movingCollisionCount()
+
+Returns the amount of moving collisions in the entity.
+
+---
+
+#### `PhysicsMovingCollision` `Entity`:movingCollision(`int` index)
+
+Returns the entity's moving collision at the given index, or `nil` if it is disabled or does not exist.
+
+---

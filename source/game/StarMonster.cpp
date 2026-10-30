@@ -913,4 +913,12 @@ Vec2F Monster::questIndicatorPosition() const {
   return pos;
 }
 
+StatusController* Monster::statusController() {
+  return m_statusController.get();
+}
+
+ActorMovementController* Monster::movementController() {
+  return m_movementController.get();
+}
+
 } // namespace Star

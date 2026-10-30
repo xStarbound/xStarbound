@@ -2766,6 +2766,18 @@ int64_t WorldClient::latency() const {
   return m_latency;
 }
 
+// Kae's `resendEntity` from OpenStarbound.
+void WorldClient::resendEntity(EntityId entityId) {
+  auto entity = m_entityMap->entity(entityId);
+  if (!entity || !entity->isMaster() || !m_masterEntitiesNetVersion.contains(entity->entityId()))
+    return;
+
+  auto fromVersion = m_masterEntitiesNetVersion.take(entity->entityId());
+  ByteArray finalNetState = entity->writeNetState(fromVersion).first;
+  m_outgoingPackets.append(make_shared<EntityDestroyPacket>(entity->entityId(), std::move(finalNetState), false));
+  notifyEntityCreate(entity);
+}
+
 std::tuple<Maybe<Directives>, Maybe<Directives>, Maybe<Directives>> WorldClient::entityRenderDirectives(EntityId entityId) const {
   if (m_entitySpecificDirectives.contains(entityId)) {
     auto& entry = m_entitySpecificDirectives.get(entityId);

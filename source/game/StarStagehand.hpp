@@ -1,13 +1,13 @@
 #ifndef STAR_STAGEHAND_HPP
 #define STAR_STAGEHAND_HPP
 
+#include "StarBehaviorState.hpp"
 #include "StarEntity.hpp"
 #include "StarLuaComponents.hpp"
-#include "StarScriptedEntity.hpp"
-#include "StarBehaviorState.hpp"
 #include "StarNetElementSystem.hpp"
-#include "StarStagehandDatabase.hpp"
 #include "StarRoot.hpp"
+#include "StarScriptedEntity.hpp"
+#include "StarStagehandDatabase.hpp"
 
 namespace Star {
 
@@ -46,6 +46,9 @@ public:
 
   String typeName() const;
 
+  // @Bottinator22: A getter for stagehand configs.
+  Json configValue(String const& name, Json const& def = Json()) const;
+
   Maybe<Json> receiveMessage(ConnectionId sendingConnection, String const& message, JsonArray const& args) override;
 
   using Entity::setUniqueId;
@@ -76,6 +79,6 @@ private:
       m_scriptComponent;
 };
 
-}
+} // namespace Star
 
 #endif

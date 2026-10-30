@@ -1,16 +1,16 @@
 #ifndef STAR_QUESTS_HPP
 #define STAR_QUESTS_HPP
 
-#include "StarSet.hpp"
-#include "StarJsonRpc.hpp"
-#include "StarItemDescriptor.hpp"
-#include "StarDrawable.hpp"
 #include "StarCelestialCoordinate.hpp"
-#include "StarThread.hpp"
+#include "StarDrawable.hpp"
+#include "StarItemDescriptor.hpp"
+#include "StarJsonRpc.hpp"
+#include "StarLuaActorMovementComponent.hpp"
+#include "StarLuaComponents.hpp"
 #include "StarQuestDescriptor.hpp"
 #include "StarQuestTemplateDatabase.hpp"
-#include "StarLuaComponents.hpp"
-#include "StarLuaActorMovementComponent.hpp"
+#include "StarSet.hpp"
+#include "StarThread.hpp"
 #include "StarWarping.hpp"
 
 namespace Star {
@@ -128,6 +128,10 @@ public:
   bool mainQuest() const;
   bool hideCrossServer() const;
 
+  // From OpenStarbound.
+  Maybe<LuaValue> callScript(String const& func, LuaVariadic<LuaValue> const& args);
+  Maybe<Json> callScript(String const& func, LuaVariadic<Json> const& args);
+
 private:
   struct DisplayParameters {
     bool ephemeral;
@@ -195,6 +199,6 @@ private:
 // its purpose is for previewing dialogs only.
 QuestPtr createPreviewQuest(
     String const& templateId, String const& position, String const& questGiverSpecies, Player* player);
-}
+} // namespace Star
 
 #endif

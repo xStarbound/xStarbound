@@ -211,4 +211,8 @@ Maybe<Json> Stagehand::receiveMessage(ConnectionId sendingConnection, String con
   return m_scriptComponent.handleMessage(message, sendingConnection == world()->connection(), args);
 }
 
+Json Stagehand::configValue(String const& name, Json const& def) const {
+  return m_config.query(name, def);
+}
+
 } // namespace Star

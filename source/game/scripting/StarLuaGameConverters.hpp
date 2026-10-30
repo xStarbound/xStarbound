@@ -1,16 +1,17 @@
 #ifndef STAR_LUA_GAME_CONVERTERS_HPP
 #define STAR_LUA_GAME_CONVERTERS_HPP
 
-#include "StarLuaConverters.hpp"
-#include "StarCollisionBlock.hpp"
-#include "StarPlatformerAStar.hpp"
 #include "StarActorMovementController.hpp"
-#include "StarDamage.hpp"
-#include "StarCollectionDatabase.hpp"
 #include "StarBehaviorState.hpp"
-#include "StarSystemWorld.hpp"
+#include "StarCollectionDatabase.hpp"
+#include "StarCollisionBlock.hpp"
+#include "StarDamage.hpp"
 #include "StarDrawable.hpp"
+#include "StarEntityLuaBindings.hpp"
+#include "StarLuaConverters.hpp"
+#include "StarPlatformerAStar.hpp"
 #include "StarRpcThreadPromise.hpp"
+#include "StarSystemWorld.hpp"
 
 namespace Star {
 
@@ -172,6 +173,15 @@ struct LuaUserDataMethods<BlackboardWeakPtr> {
   static LuaMethods<BlackboardWeakPtr> make();
 };
 
-}
+// @Bottinator22: Entity userdata. Has an owning reference to the entity pointer.
+template <>
+struct LuaConverter<EntityPtr> : LuaUserDataConverter<EntityPtr> {};
+
+template <>
+struct LuaUserDataMethods<EntityPtr> {
+  static LuaMethods<EntityPtr> make();
+};
+
+} // namespace Star
 
 #endif

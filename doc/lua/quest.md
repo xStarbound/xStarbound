@@ -16,15 +16,41 @@ Returns the current state of the quest. Possible states:
 
 ---
 
-#### `void` quest.complete()
+#### `void` quest.complete(`Maybe<size_t>` followupIndex)
 
-Immediately completes the quest.
+> _The optional follow-up index argument is only available on xStarbound, OpenStarbound and oSBM. Retail Starbound ignores this argument and always selects the very next quest in the arc._
+
+Immediately completes the quest, invoking the quest script's `questComplete` function, then offers a follow-up quest if one is available. If the follow-up index argument (which is zero-based, not one-based) is specified, offers the quest at that position in the quest arc if there is any at that position; otherwise, offers no quest. If no argument is specified, the follow-up quest, if any, is the one after this quest in the arc.
 
 ---
 
 #### `void` quest.fail()
 
-Immediately fails the quest.
+Immediately fails the quest, invoking the quest script's `questFail` function with its boolean argument for quest abandonment set to `false`.
+
+---
+
+#### `void` quest.abandon()
+
+> **Only available on xStarbound v4.7+, OpenStarbound and oSBM.**
+
+Immediately abandons the quest, invoking the quest script's `questFail` function with its boolean argument for quest abandonment set to `true`. Equivalent to clicking **Abandon** on an ongoing quest in the quest list.
+
+---
+
+#### `void` quest.decline()
+
+> **Only available on xStarbound v4.7+, OpenStarbound and oSBM.**
+
+Immediately declines the quest, invoking the quest script's `questDecline` function. Equivalent to clicking the **Decline** button on the quest pop-up or, on retail clients, hitting **Escape**.
+
+---
+
+#### `void` quest.cancel()
+
+> **Only available on xStarbound v4.7+, OpenStarbound and oSBM.**
+
+Immediately cancels (instead of declining) the quest, invoking the quest script's `questCancel` function (which is invoked only on xStarbound, OpenStarbound and oSBM). Equivalent to hitting **Escape** to close a quest pop-up on xClient or an OpenStarbound or oSBM client.
 
 ---
 
@@ -99,6 +125,7 @@ Sets a quest parameter.
 Set a list of quest parameters to use as custom indicators.
 
 Example:
+
 ```
 -- define indicators
 local entityIndicator = {
@@ -140,6 +167,7 @@ quest.setIndicators({"entity", "item", "itemTag", "itemList", "monsterType"})
 Set the objectives for the quest tracker. Objectives are in the format {text, completed}
 
 Example:
+
 ```lua
 quest.setObjectiveList({
   {"Gather 4 cotton", true},

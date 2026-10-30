@@ -71,9 +71,11 @@ void PhysicsObject::init(World* world, EntityId entityId, EntityMode mode) {
   Object::init(world, entityId, mode);
   m_metaBoundBox = Object::metaBoundBox();
   for (auto const& p : m_physicsForces) {
-    PhysicsForceRegion forceRegion = p.second.forceRegion;
-    forceRegion.call([pos = position()](auto& fr) { fr.translate(pos); });
-    m_metaBoundBox.combine(forceRegion.call([](auto& fr) { return fr.boundBox(); }));
+    // @sadavis0: Bugfix for physics objects throwing exceptions when placed on very large worlds beyond
+    // coordinates of 10,000 tiles (the maximum bounding box dimension allowed for entities added to a world's
+    // entity map) on either axis. Technically this fix is both client- and server-side, fixing the issue (a
+    // logged error on xClient/xServer) on whichever end it's on.
+    m_metaBoundBox.combine(p.second.forceRegion.call([](auto& fr) { return fr.boundBox(); }));
   }
 }
 

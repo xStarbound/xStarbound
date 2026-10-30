@@ -12,6 +12,10 @@
 
 namespace Star {
 
+bool questValidOnServer(QuestPtr q, Player* player) {
+  return !(q->hideCrossServer() && q->serverUuid().isValid() && *q->serverUuid() != player->clientContext()->serverUuid());
+}
+
 QuestManager::QuestManager(Player* player) {
   m_player = player;
   m_world = nullptr;
@@ -72,14 +76,18 @@ void QuestManager::setUniverseClient(UniverseClient* client) {
 
 void QuestManager::init(World* world) {
   m_world = world;
-  serverQuests().exec([this, world](QuestPtr const& quest) { quest->init(m_player, world, m_client); });
+  // serverQuests().exec([this, world](QuestPtr const& quest) { quest->init(m_player, world, m_client); });
+  for (auto& quest : m_quests.values()) {
+    if (!questValidOnServer(quest, m_player)) continue;
+    quest->init(m_player, world, m_client);
+  }
   m_trackOnWorldQuests = true;
 
   // untrack tracked quest if it's not cross-server, and we're on a different server
   if (auto tracked = m_trackedQuestId) {
     if (auto maybeQuest = m_quests.maybe(*tracked)) {
       auto quest = *maybeQuest;
-      if (quest->hideCrossServer() && quest->serverUuid() && *quest->serverUuid() != m_player->clientContext()->serverUuid())
+      if (!questValidOnServer(quest, m_player))
         m_trackedQuestId = {};
     }
   }
@@ -183,7 +191,7 @@ bool QuestManager::canTurnIn(String const& questId) const {
 }
 
 Maybe<QuestPtr> QuestManager::getFirstNewQuest() {
-  for (auto& q : serverQuests()) {
+  for (auto& q : serverQuests().values()) {
     if (q->state() == QuestState::Offer)
       return q;
   }
@@ -191,7 +199,7 @@ Maybe<QuestPtr> QuestManager::getFirstNewQuest() {
 }
 
 Maybe<QuestPtr> QuestManager::getFirstCompletableQuest() {
-  for (auto& q : serverQuests()) {
+  for (auto q : serverQuests().values()) {
     if (q->state() == QuestState::Complete && q->showDialog())
       return q;
   }
@@ -199,7 +207,7 @@ Maybe<QuestPtr> QuestManager::getFirstCompletableQuest() {
 }
 
 Maybe<QuestPtr> QuestManager::getFirstFailableQuest() {
-  for (auto& q : serverQuests()) {
+  for (auto& q : serverQuests().values()) {
     if (q->state() == QuestState::Failed && q->showDialog())
       return q;
   }
@@ -207,7 +215,7 @@ Maybe<QuestPtr> QuestManager::getFirstFailableQuest() {
 }
 
 Maybe<QuestPtr> QuestManager::getFirstMainQuest() {
-  for (auto& q : serverQuests()) {
+  for (auto& q : serverQuests().values()) {
     if (q->state() == QuestState::Active && q->mainQuest())
       return q;
   }
@@ -227,7 +235,7 @@ void sortQuests(List<QuestPtr>& quests) {
 }
 
 List<QuestPtr> QuestManager::listActiveQuests() const {
-  List<QuestPtr> result = serverQuests();
+  List<QuestPtr> result = serverQuests().values();
   result.filter([&](QuestPtr quest) {
     return quest->state() == QuestState::Active && quest->showInLog();
   });
@@ -236,7 +244,7 @@ List<QuestPtr> QuestManager::listActiveQuests() const {
 }
 
 List<QuestPtr> QuestManager::listCompletedQuests() const {
-  List<QuestPtr> result = serverQuests();
+  List<QuestPtr> result = serverQuests().values();
   result.filter([](QuestPtr quest) {
     return quest->state() == QuestState::Complete && quest->showInLog();
   });
@@ -245,7 +253,7 @@ List<QuestPtr> QuestManager::listCompletedQuests() const {
 }
 
 List<QuestPtr> QuestManager::listFailedQuests() const {
-  List<QuestPtr> result = serverQuests();
+  List<QuestPtr> result = serverQuests().values();
   result.filter([](QuestPtr quest) {
     return quest->state() == QuestState::Failed && quest->showInLog();
   });
@@ -253,20 +261,28 @@ List<QuestPtr> QuestManager::listFailedQuests() const {
   return result;
 }
 
+Maybe<String> QuestManager::currentQuestId() const {
+  return m_trackedQuestId;
+}
+
 Maybe<QuestPtr> QuestManager::currentQuest() const {
   auto questId = m_onWorldQuestId.orMaybe(m_trackedQuestId);
   if (questId && isActive(*questId)) {
     auto current = getQuest(*questId);
-    if (current->showInLog())
+    if (current && current->showInLog())
       return current;
   }
   return {};
 }
 
+Maybe<String> QuestManager::trackedQuestId() const {
+  return m_trackedQuestId;
+}
+
 Maybe<QuestPtr> QuestManager::trackedQuest() const {
   if (m_trackedQuestId && isActive(*m_trackedQuestId)) {
     auto current = getQuest(*m_trackedQuestId);
-    if (current->showInLog())
+    if (current && current->showInLog())
       return current;
   }
   return {};
@@ -377,25 +393,40 @@ void QuestManager::update(float dt) {
     }
   }
 
+  // @FezzedOne: Added Kae's fix for potential iterator invalidation by quest scripts here.
+  List<String> questsToRemove;
   for (auto& entry : m_quests) {
     auto quest = entry.second;
     QuestState state = quest->state();
     bool finished = state == QuestState::Complete || state == QuestState::Failed;
     if (state == QuestState::New || (finished && quest->ephemeral() && !quest->showDialog())) {
       quest->uninit();
-      m_quests.remove(entry.first);
+      questsToRemove.append(entry.first);
     }
   }
 
-  serverQuests().exec([dt](QuestPtr const& quest) { quest->update(dt); });
+  for (auto& questId : questsToRemove)
+    m_quests.remove(questId);
+
+  for (auto& q : m_quests.values()) {
+    if (questValidOnServer(q, m_player))
+      q->update(dt);
+  }
 }
 
-List<QuestPtr> QuestManager::serverQuests() const {
-  return m_quests.values().filtered([this](QuestPtr const& q) -> bool {
-    if (q->hideCrossServer() && q->serverUuid().isValid() && *q->serverUuid() != m_player->clientContext()->serverUuid())
-      return false;
-    return true;
-  });
+StringMap<QuestPtr> QuestManager::serverQuests() const {
+  StringMap<QuestPtr> filtered;
+  for (auto& pair : m_quests) {
+    QuestPtr q = pair.second;
+    if (!questValidOnServer(q, m_player))
+      continue;
+    filtered.insert(pair.first, q);
+  }
+  return filtered;
+}
+
+StringMap<QuestPtr> QuestManager::quests() const {
+  return m_quests;
 }
 
 void QuestManager::startInitialQuests() {

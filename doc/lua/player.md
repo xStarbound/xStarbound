@@ -404,6 +404,110 @@ Returns a list of locations for worlds relevant to the player's current quests, 
 
 ---
 
+#### `Json` player.callQuest(`String` questId, `String` functionName, [`Json` args ...])
+
+#### [Legacy / Non-xStarbound] `LuaValue` player.callQuest(`String` questId, `String` functionName, [`LuaValue...` args])
+
+> **This binding is available only on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Attempts to call the specified function (or callback) name in the specified quest's script context with any specified arguments and returns the result of that call. Does nothing and returns `nil` if the player does not have any quest with the specified ID.
+
+On xStarbound with `"legacySmuggling"` disabled, all arguments must be valid JSON, and an error will be thrown after the script call if the returned result isn't convertible to valid JSON.
+
+> **Note:** On xStarbound v3.5.2.3+, this callback will return `nil` (and log a warning before v4.0.0) if the entity is not locally mastered or doesn't exist. On other servers and clients, an error will be thrown instead.
+
+> **Warning:** When `"legacySmuggling"` is enabled on xStarbound v4.5+, any Lua binding references shared through this callback's `args` parameter will throw a Lua reference error upon invocation if they're overleased; check your log for this error. **On non-xStarbound servers and clients, invoking an overleased binding will cause a crash to desktop or memory corruption!** On such servers and clients, you should avoid passing Lua bindings or anything that can call them. Calling entity bindings after the entity has been removed from the game on a non-xStarbound client or server _will_ almost certainly cause segfaults or memory corruption!
+
+---
+
+#### `Bool` player.canTurnInQuest(`String` questId)
+
+> **This binding is available only on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns `true` if the player can turn in the specified quest.
+
+---
+
+#### `Maybe<String>` player.trackedQuestId()
+
+> **This binding is available only on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns the ID of the currently tracked quest, or `nil` is no quest is currently marked as tracked.
+
+---
+
+#### `void` player.setTrackedQuest(`Maybe<String>` questId)
+
+> **This binding is available only on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM. OpenStarbound and oSBM do not accept a `nil` or absent argument.**
+
+Sets the currently tracked quest, or if the specified quest ID is `nil` (or unspecified), is already the currently tracked quest or is a quest that the player doesn't have — e.g., `player.setTrackedQuest()`, `player.setTrackedQuest(player.trackedQuestId or "")` or `player.setTrackedQuest("")` — clears the tracked quest.
+
+---
+
+#### `Maybe<Json>` player.currentQuest()
+
+> **This binding is available only on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns the current quest as JSON, or `nil` if no quest is active.
+
+---
+
+#### `Maybe<String>` player.currentQuestId()
+
+> **This binding is available only on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns the current quest ID, or `nil` if no quest is active.
+
+---
+
+#### `Json` player.quest(`String` questId)
+
+> **This binding is available only on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns a JSON object containing the parameters of the specified quest (equivalent to what is saved to the player file), or `nil` if the player does not have the specified quest.
+
+---
+
+#### `StringList` player.questIds()
+
+> **This binding is available only on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns a list of all quests the player has.
+
+---
+
+#### `StringList` player.serverQuestIds()
+
+> **This binding is available only on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns a list of all quests the player has that are considered appropriate to the specific server or single-player universe the player is currently present on. This includes both quests marked as «cross-server» and quests that match the current universe's UUID.
+
+---
+
+#### `Maybe<JsonArray>` player.questObjectives(`String` questId)
+
+> **This binding is available only on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns the objectives for the specified quest, or `nil` if the player does not have the quest.
+
+---
+
+#### `Maybe<JsonArray>` player.questPortrait(`String` questId)
+
+> **This binding is available only on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns the portrait drawables for the specified quest, or `nil` if the player does not have the quest.
+
+---
+
+#### `Maybe<String>` player.questState(`String` questId)
+
+> **This binding is available only on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns the state of the specified quest, or `nil` if the player does not have the quest. A quest's state is one of `"New"`, `"Offer"`, `"Active"`, `"Complete"` or `"Failed"`.
+
+---
+
 #### `void` player.enableMission(`String` missionName)
 
 Adds the specified mission to the player's list of available missions.
@@ -1252,6 +1356,62 @@ local teamMembers = jarray{
 
 ---
 
+#### `bool` player.isCodexKnown(`String` codexId)
+
+> **This function is only available on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns `true` if the player knows the specified codex, or `false` otherwise.
+
+---
+
+#### `bool` player.isCodexRead(`String` codexId)
+
+> **This function is only available on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns `true` if the specified codex has been marked as read by the player (by either opening the codex or marking it as such with `player.markCodexRead`), or `false` otherwise.
+
+---
+
+#### `bool` player.markCodexRead(`String` codexId)
+
+> **This function is only available on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Marks the specified codex as read by the player. Returns `true` if the codex is known by the player and was marked as unread, or `false` otherwise.
+
+---
+
+#### `bool` player.markCodexUnread(`String` codexId)
+
+> **This function is only available on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Marks the specified codex as not read by the player. Returns `true` if the codex is known by the player and was marked as read, or `false` otherwise.
+
+---
+
+#### `void` player.learnCodex(`String` codexId, [`bool` markRead])
+
+> **This function is only available on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Make the player learn the specified codex. If `markRead` is `true`, then the codex will be marked as read by default.
+
+---
+
+#### `JsonObject` player.getCodexes()
+
+> **This function is only available on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns a list of codexes known by the player. Keys are codex IDs and values are booleans marking each respective codex's «already read» status (`true` if marked as read; `false` otherwise).
+
+---
+
+#### `Maybe<String>` player.getNewCodex()
+
+> **This function is only available on xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.**
+
+Returns the codex ID of the newest codex marked as «unread», or `nil` otherwise.
+
+---
+
 #### `void` player.controlAimPosition(`Vec2F` newAimPosition)
 
 Makes the player aim at the specified world position.
@@ -1274,7 +1434,7 @@ For a secondary player, the "shifting" state will remain set until the primary p
 
 #### `void` player.controlTrigger(`Maybe<bool>` triggering)
 
-If `true` is passed, makes the player begin "triggering" whatever is at his or her currently set aim position exactly as if the **Interact** key (<kbd>E</kbd> by default) or middle mouse button were pressed.
+If `true` is passed, makes the player begin "triggering" whatever is at the player's currently set aim position exactly as if the **Interact** key (<kbd>E</kbd> by default) or middle mouse button were pressed.
 
 If `false` or `nil` is passed, or the parameter is unspecified, makes the player stop "triggering", exactly as if the **Interact** key or the middle mouse button were released.
 
