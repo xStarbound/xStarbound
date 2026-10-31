@@ -567,13 +567,13 @@ bool Quest::hideCrossServer() const {
 Maybe<LuaValue> Quest::callScript(String const& func, LuaVariadic<LuaValue> const& args) {
   if (!m_inited)
     return {};
-  return m_scriptComponent.invoke(func, args);
+  return m_scriptComponent.invoke<LuaValue>(func, args);
 }
 
 Maybe<Json> Quest::callScript(String const& func, LuaVariadic<Json> const& args) {
   if (!m_inited)
     return {};
-  return m_scriptComponent.invoke(func, args);
+  return m_scriptComponent.invoke<Json>(func, args);
 }
 
 void Quest::setState(QuestState state) {
