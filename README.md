@@ -76,7 +76,7 @@ This is a fork of Starbound's source code; all credit for the original code goes
 
 ### Other client features (xClient)
 
-- **Additional Lua callbacks to make player characters fully scriptable, just like NPCs!** By @fezzedone. As of v4.5.3, this now includes `songbook` bindings (for controlling musical instruments) in generic player scripts (by @novaenia).
+- **Additional Lua callbacks to make player characters fully scriptable, just like NPCs!** By @fezzedone. v4.5.3 includes `songbook` bindings (for controlling musical instruments) in generic player scripts (by @novaenia). v4.7 adds various new `quest` and `player` bindings related to quests and codexes (@JamesTheMaker and @Novaenia).
 - **Now runs [Pluto](https://pluto-lang.org/), an optimised fork of Lua 5.4!**
   - As of xStarbound v4.0, Pluto's jump table optimisation is enabled, speeding up Lua scripts.
   - xStarbound v4.6 adds additional optimisations by @LumiKalt to conversions between Lua and JSON.
@@ -128,7 +128,7 @@ This is a fork of Starbound's source code; all credit for the original code goes
 - **Modded techs and status effects no longer cause crashes to the menu when the offending mod is removed (@WasabiRaptor and @novaenia).**
 - **Support for merge `.patch` files, like Koala-era Starbound (@novaenia).**
 - **Various JSON patch extensions (by @JamesTheMaker) are also supported: nested patches, `.patch.N` files where `N` is a number from 0 to 9, and several new JSON patch operations.** See [`$docs/preprocessing.md`](doc/preprocessing.md) for more.
-- **Almost all Lua callbacks from the original xSB (by @fezzedone), `input` callbacks (by @novaenia), plus some extra `player`, `chat`, `interface` and `clipboard` callbacks for compatibility with OpenStarbound mods (@fezzedone).**
+- **Almost all Lua API additions from the original xSB (by @fezzedone), `input` bindings (by @novaenia), `world.entity` (by @Bottinator22), plus some extra `world`, `player`, `chat`, `interface` and `clipboard` bindings for compatibility with OpenStarbound mods (@fezzedone, @Novaenia, @JamesTheMaker).**
 - **Nix build & install support (emanueljg).** See [the Nix documentation](#nix) for more.
 - **Anything converted to a Perfectly Generic Item now has its parameters saved in the item and will be restored once any missing mods are reinstalled (@WasabiRaptor and @fezzedone).** Requires xServer (or xClient on the host) for server-side items (such as those in containers on worlds, even shipworlds!) and xClient for single-player and client-side items (those in the player's inventory).
 
@@ -212,6 +212,7 @@ The following mods for xStarbound and/or OpenStarbound have special functionalit
 - [Pan Dimensional Vending](https://steamcommunity.com/sharedfiles/filedetails/?id=3464213838&searchtext=) — fully supported by xStarbound.
 - [Phantasy Starbound Title](https://steamcommunity.com/sharedfiles/filedetails/?id=3475986947) — OpenStarbound title screen replacement mod that should be supported by xStarbound; report any visual issues.
 - [Planet Search](https://steamcommunity.com/sharedfiles/filedetails/?id=3269792617) — fully supported by xStarbound.
+- [Quest Library](https://steamcommunity.com/sharedfiles/filedetails/?id=3806638814) — requires xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.
 - [Quick Select](https://steamcommunity.com/sharedfiles/filedetails/?id=3814429020) ([GitHub](https://github.com/notSagyo/quick-select)) — requires xStarbound, oSBM or OpenStarbound. Consider binding the quick select key to the middle mouse button for Minecraft-like UX.
 - [Quick Stack Gun [OpenStarbound Fix]](https://steamcommunity.com/sharedfiles/filedetails/?id=3501752811) — Despite the name, requires xStarbound, oSBM or OpenStarbound.
 - [Recipe Browser](https://steamcommunity.com/sharedfiles/filedetails/?id=2018183533) — Recipe Browser's universal mod support requires xStarbound, oSBM or OpenStarbound.
@@ -362,7 +363,6 @@ The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due 
 - [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) and its [two](https://steamcommunity.com/sharedfiles/filedetails/?id=2954344118) [counterparts](https://steamcommunity.com/sharedfiles/filedetails/?id=2954354494) — their PNG compression does not play well with xClient's hardware cursor, potentially making it invisible. Use `/cursor off` if you want to use these mods.
 - [Psychedelic Shader](https://steamcommunity.com/sharedfiles/filedetails/?id=3573193020) — modular shader support is OpenStarbound-only.
 - [Quick Stack Gun [oSB + Cosmetic Slots Fix]](https://steamcommunity.com/sharedfiles/filedetails/?id=3674332086) — this OpenStarbound mod is neither compatible nor necessary on xStarbound, which does not have extra cosmetic slots as such. Use the [other «OpenStarbound fix»](https://steamcommunity.com/sharedfiles/filedetails/?id=3501752811) instead.
-- [Quest Library](https://steamcommunity.com/sharedfiles/filedetails/?id=3806638814) — entirely dependent on OpenStarbound/oSBM-only player quest API bindings; these bindings may be added to xStarbound in the future if demand is shown.
 - [Raptor's Metroid Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3541573028) — certain OpenStarbound scripting functionality required by this mod is not currently present in xStarbound; this may change in the future. Don't expect support from the author though.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — requires a Windows DLL attached to retail Starbound, so it won't work and is likely to log script errors.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — depends on an obsolete DLL mod. Won't do anything.

@@ -294,14 +294,6 @@ Sets a unique ID for this NPC that can be used to access it. If `nil` is specifi
 
 ---
 
-#### `void` npc.setIdentity(`Json` identity)
-
-> **Available only on xStarbound.**
-
-Sets the NPC's humanoid identity. The new identity will be merged with the current one; as a special case, if the `"imagePath"` key (and _only_ that key) has been explicitly set to a `nil` value, _and_ either the table was created with `jobject` or its metatable's `"__nils"` table otherwise contains `"imagePath"` (e.g., the metatable is `{["__nils"] = {imagePath = 0}}`), the `"imagePath"` will be set to `null`. Will log an error and leave the species unchanged if the new identity includes a `"species"` that doesn't exist in the loaded assets.
-
----
-
 #### `Json` npc.parameters()
 
 Returns the NPC's full parameters.
