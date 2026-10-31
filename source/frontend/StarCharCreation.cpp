@@ -276,6 +276,12 @@ void CharCreationPane::displayed() {
   if (auto genderButton = fetchChild<ButtonWidget>(strf("gender.{}", genderIdx)))
     genderButton->check();
 
+  m_bodyColor = 0;
+  m_hairChoice = 0;
+  m_alty = 0;
+  m_heady = 0;
+  m_personality = 0;
+
   m_skipRandomisation = false;
 }
 

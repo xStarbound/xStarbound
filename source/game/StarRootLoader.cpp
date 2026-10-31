@@ -128,7 +128,7 @@ Json const BaseDefaultConfiguration = Json::parseJson(R"JSON(
 
       "inventorySpoofing" : false,
 
-      "terrariaPreview" : true
+      "terrariaPreview" : false
     }
   )JSON");
 

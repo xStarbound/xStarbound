@@ -250,6 +250,9 @@ EnumMap<Humanoid::State> const Humanoid::StateNames{
 Humanoid::Humanoid(Json const& config) : m_isMaster(true) {
   m_baseHumanoidConfig = config;
   m_previousOverrides = Json();
+  m_bodyHidden = false;
+  m_broadcastToStock = false;
+
   updateHumanoidConfigOverrides(JsonObject{});
 
   m_twoHanded = false;
@@ -270,9 +273,6 @@ Humanoid::Humanoid(Json const& config) : m_isMaster(true) {
   m_animationTimer = 0.0f;
 
   m_humanoidRotationSettings = HumanoidRotationSettings::Null;
-
-  m_bodyHidden = false;
-  m_broadcastToStock = false;
 }
 
 Humanoid::Humanoid(HumanoidIdentity const& identity)

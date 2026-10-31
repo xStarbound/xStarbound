@@ -117,8 +117,8 @@ Disable OS cursor rendering: ^cyan;/cursor off^reset; (run ^cyan;/cursor help^re
 Run client-side Lua code: ^cyan;/run^reset; (^cyan;"safeScripts"^reset; must be disabled on client)
 Check client-side config value: ^cyan;/getclientconfig^reset; (run for help)
 Set client-side config value: ^cyan;/setclientconfig^reset; (run for help)
-Disable Terraria-style placement animation: ^cyan;/setclientconfig terrariaPreview false^reset;
-Reconnect or re-enter single-player to see changes. Replace ^cyan;false^reset; with ^cyan;true^reset; to enable the animation.]===]
+Enable Terraria-style placement animation: ^cyan;/setclientconfig terrariaPreview true^reset;
+Reconnect or re-enter single-player to see changes. Replace ^cyan;true^reset; with ^cyan;false^reset; to disable the animation.]===]
     end
 end
 
