@@ -45,6 +45,21 @@ Maybe<CollisionSet> LuaConverter<CollisionSet>::to(LuaEngine& engine, LuaValue c
   return result;
 }
 
+// @Bottinator: Converter for moving collisions.
+LuaValue LuaConverter<PhysicsMovingCollision>::from(LuaEngine& engine, PhysicsMovingCollision const& v) {
+  auto table = engine.createTable();
+  table.set("position", v.position);
+  table.set("collision", v.collision);
+  table.set("collisionKind", v.collisionKind);
+  auto categoryTable = engine.createTable();
+  table.set("categoryFilter", categoryTable);
+  // see jsonToPhysicsCategoryFilter
+  categoryTable.set(
+      v.categoryFilter.type == PhysicsCategoryFilter::Type::Whitelist ? "categoryWhitelist" : "categoryBlacklist",
+      v.categoryFilter.categories);
+  return table;
+}
+
 LuaValue LuaConverter<PlatformerAStar::Path>::from(LuaEngine& engine, PlatformerAStar::Path const& path) {
   auto convertNode = [&engine](PlatformerAStar::Node const& node) {
     auto table = engine.createTable();

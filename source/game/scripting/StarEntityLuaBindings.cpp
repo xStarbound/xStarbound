@@ -1065,7 +1065,7 @@ LuaMethods<EntityPtr> LuaUserDataMethods<EntityPtr>::make() {
       });
 
   methods.registerMethod("containerSwapItems",
-      [&](EntityPtr const& entity, Json const& items, size_t offset, bool noCombine) -> Json {
+      [&](EntityPtr const& entity, Json const& items, size_t offset, Maybe<bool> noCombine) -> Json {
         if (auto container = as<ContainerObject>(entity)) {
           auto itemDb = Root::singleton().itemDatabase();
           auto toSwap = itemDb->fromJson(items);

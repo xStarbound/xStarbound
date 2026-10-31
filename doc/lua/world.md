@@ -749,7 +749,7 @@ Similar to `world.entityName` but returns the names of configured types for NPCs
 
 #### `Maybe<String>` world.entityDescription(`EntityId` entityId, [`String` species])
 
-Returns the configured description for the specified inspectable entity (currently only objects and plants support this). Will return a species-specific description if a species name is specified, or a generic description otherwise.
+Returns the configured description for the specified inspectable entity (i.e., a player, object or plant). Will return a species-specific description if a species name is specified, or a generic description otherwise. If the specified entity is non-inspectable, a generic description is returned. Note that player descriptions are never species-specific.
 
 ---
 
@@ -764,7 +764,7 @@ Generates a portrait of the specified entity in the specified portrait mode and 
 - `"fullnude"`: The entity's full body, without any armour or clothing. Note that any «clothing» in the form of modified humanoid directives is still rendered.
 - `"fullneutralnude"`: The entity's full body, posed «neutrally» _and_ without clothing (as above).
 
-> **Note:** As of xStarbound v3.7.1+ and OpenStarbound v0.1.10+, a portrait of an NPC or player wearing items with `"flipDirectives"` will show those items with their `"flipDirectives"` applied if the NPC or player is facing left when the callback is invoked.
+> **Note:** On xStarbound, OpenStarbound and oSBM, a portrait of an NPC or player wearing items with `"flipDirectives"` will show those items with their `"flipDirectives"` applied if the NPC or player is facing left when this function is invoked.
 
 ---
 
@@ -874,23 +874,23 @@ Visually opens the specified container. Returns `true` if the entity is a contai
 
 #### `Maybe<JsonArray>` world.containerItems(`EntityId` entityId)
 
-Returns a list of pairs of item descriptors and container positions of all items in the specified container, or `nil` if the entity is not a container.
+Returns a list of pairs of item descriptors (or `nil`s for empty slots) and container positions of all items in the specified container, or `nil` if the entity is not a container.
 
 ---
 
 #### `Maybe<ItemDescriptor>` world.containerItemAt(`EntityId` entityId, `unsigned` offset)
 
-Returns an item descriptor of the item at the specified position in the specified container, or `nil` if the entity is not a container or the offset is out of range.
+Returns an item descriptor of the item at the specified slot in the specified container, or `nil` if the entity is not a container, the offset is out of range or there no item in that slot.
 
 ---
 
-#### `bool` world.containerConsume(`EntityId` entityId, `ItemDescriptor` item)
+#### `Maybe<bool>` world.containerConsume(`EntityId` entityId, `ItemDescriptor` item)
 
 Attempts to consume items from the specified container that match the specified item descriptor and returns `true` if successful, `false` if unsuccessful, or `nil` if the entity is not a container. Only succeeds if the full count of the specified item can be consumed.
 
 ---
 
-#### `bool` world.containerConsumeAt(`EntityId` entityId, `unsigned` offset, `unsigned` count)
+#### `Maybe<bool>` world.containerConsumeAt(`EntityId` entityId, `unsigned` offset, `unsigned` count)
 
 Similar to `world.containerConsume`, but only considers the specified slot within the container.
 
@@ -906,7 +906,7 @@ If the specified descriptor's count is not 0 or 1, the returned total stack coun
 
 ---
 
-#### `JsonArray` world.containerTakeAll(`EntityId` entityId)
+#### `Maybe<JsonArray>` world.containerTakeAll(`EntityId` entityId)
 
 Similar to `world.containerItems` but also consumes all items in the container.
 
@@ -936,31 +936,31 @@ Returns a `JsonObject` containing a list of `"slots"` where the specified item w
 
 ---
 
-#### `ItemDescriptor` world.containerAddItems(`EntityId` entityId, `ItemDescriptor` items)
+#### `Maybe<ItemDescriptor>` world.containerAddItems(`EntityId` entityId, `ItemDescriptor` items)
 
 Adds the specified items to the specified container. Returns the leftover items after filling the container, `nil` if none are left over, or all items if the entity is not a container.
 
 ---
 
-#### `ItemDescriptor` world.containerStackItems(`EntityId` entityId, `ItemDescriptor` items)
+#### `Maybe<ItemDescriptor>` world.containerStackItems(`EntityId` entityId, `ItemDescriptor` items)
 
 Similar to `world.containerAddItems` but will only combine items with existing stacks and will not fill empty slots.
 
 ---
 
-#### `ItemDescriptor` world.containerPutItemsAt(`EntityId` entityId, `ItemDescriptor` items, `unsigned` offset)
+#### `Maybe<ItemDescriptor>` world.containerPutItemsAt(`EntityId` entityId, `ItemDescriptor` items, `unsigned` offset)
 
 Similar to `world.containerAddItems` but only considers the specified slot in the container.
 
 ---
 
-#### `ItemDescriptor` world.containerItemApply(`EntityId` entityId, `ItemDescriptor` items, `unsigned` offset)
+#### `Maybe<ItemDescriptor>` world.containerItemApply(`EntityId` entityId, `ItemDescriptor` items, `unsigned` offset)
 
 Attempts to combine the specified items with the current contents (if any) of the specified container slot and returns any items unable to be placed into the slot.
 
 ---
 
-#### `ItemDescriptor` world.containerSwapItemsNoCombine(`EntityId` entityId, `ItemDescriptor` items, `unsigned` offset)
+#### `Maybe<ItemDescriptor>` world.containerSwapItemsNoCombine(`EntityId` entityId, `ItemDescriptor` items, `unsigned` offset)
 
 Places the specified items into the specified container slot and returns the previous contents of the slot if successful, or the original items if unsuccessful.
 
@@ -1931,7 +1931,7 @@ Returns `true` if this entity exists in a world, or `false` otherwise.
 
 #### `EntityId` `Entity`:id()
 
-Returns the entity's current ID.
+Returns the entity's current ID. If the entity is not in the world, the returned ID is 0.
 
 ---
 
@@ -1971,13 +1971,13 @@ Returns the current world position of this entity.
 
 ---
 
-#### `Vec2F` `Entity`:mouthPosition()
+#### `Maybe<Vec2F>` `Entity`:mouthPosition()
 
 Returns the current world mouth position of the entity if it is a player, monster, NPC, or object, or `nil` if the entity doesn't exist or isn't a valid type.
 
 ---
 
-#### `Vec2F` `Entity`:velocity()
+#### `Maybe<Vec2F>` `Entity`:velocity()
 
 Returns the current velocity of the entity if it is a vehicle, monster, NPC, player, or projectile and `nil` otherwise.
 
@@ -1985,51 +1985,62 @@ Returns the current velocity of the entity if it is a vehicle, monster, NPC, pla
 
 #### `Vec2F` `Entity`:metaBoundBox()
 
-Returns the meta bound box of the entity, if any.
+Returns the meta bound box of this entity, if any.
 
 ---
 
-#### `unsigned` `Entity`:currency(`String` currencyType)
+#### `Maybe<unsigned>` `Entity`:currency(`String` currencyType)
 
-Returns the entity's stock of the specified currency type, or `nil` if the entity is not a player.
-
----
-
-#### `unsigned` `Entity`:hasCountOfItem(`Json` itemDescriptor, [`bool` exactMatch])
-
-Returns the nubmer of the specified item that the entity is currently carrying, or `nil` if the entity is not a player. If exactMatch is `true` then parameters as well as item name must match.
-
-NOTE: This function currently does not work correctly over the network, making it inaccurate when not used from client side scripts such as status.
+Returns this entity's stock of the specified currency type, or `nil` if the entity is not a player.
 
 ---
 
-#### `Vec2F` `Entity`:health()
+#### `Maybe<unsigned>` `Entity`:hasCountOfItem(`Json` itemDescriptor, [`bool` exactMatch])
 
-Returns a `Vec2F` containing the entity's current and maximum health if the entity is a player, monster or NPC and `nil` otherwise.
+Returns the total count (sum of the stack counts of all matching items) of the specified item in this entity's inventory, `0` if no matching items (or stacks) are found, or `nil` if the entity is not a player. If `exactMatch` is `true`, both the item name and parameters in the specified descriptor must match a given item stack in order for that stack to be counted; if `false`, only the item name needs to match for a given item stack to be counted, and any parameters are permissible.
 
----
-
-#### `String` `Entity`:species()
-
-Returns the name of the specified entity's species if it is a player or NPC and `nil` otherwise.
+> **Note:** If the specified player has any inventory slots or bags that aren't networked, any matching items in these «hidden» slots will _not_ be counted.
 
 ---
 
-#### `String` `Entity`:gender()
+#### `Maybe<Vec2F>` `Entity`:health()
 
-Returns the name of the entity's gender if it is a player or NPC and `nil` otherwise.
+Returns a `Vec2F` containing the entity's current and maximum health if the entity is a player, monster or NPC, or `nil` otherwise.
 
 ---
 
-#### `String` `Entity`:name()
+#### `Maybe<String>` `Entity`:species()
+
+Returns the name of the specified entity's species if it is a player or NPC, or `nil` otherwise.
+
+---
+
+#### `Maybe<String>` `Entity`:gender()
+
+Returns the entity's gender if it is a player or NPC — either `"male"` or `"female"` — or `nil` otherwise.
+
+---
+
+#### `Maybe<String>` `Entity`:name()
 
 Returns a `String` name of the entity which has different behavior for different entity types. For players, monsters and NPCs, this will be the configured name of the specific entity. For objects or vehicles, this will be the name of the object or vehicle type. For item drops, this will be the name of the contained item.
 
 ---
 
-#### `Json` `Entity`:nametag()
+#### `Maybe<JsonObject>` `Entity`:nametag()
 
-Returns data on the nametag of the entity, if the entity has nametags.
+Returns data on the name tag of the entity, if the entity is able to have a name tag (i.e., it is a player, NPC or monster). The returned JSON object looks like this:
+
+```lua
+jobject{
+  nametag = "Fezzy", -- The entity's current name tag.
+  displayed = "Fezzy", -- Same as `"nametag"` on xStarbound. Only here for OpenStarbound mod compatibility.
+  color = jarray{0, 255, 0}, -- The colour of the name tag. An array of either three (RGB) or four (RGBA) integers.
+  origin = jarray{455.243, 123.4547}, -- The world position of the name tag.
+  status = nil -- If the entity has any status text, is a string containing that text. Otherwise `nil`.
+  -- Only NPCs can have status text in their name tags.
+}
+```
 
 ---
 
@@ -2041,91 +2052,100 @@ Similar to `Entity`:name but returns the names of configured types for NPCs and 
 
 #### `String` `Entity`:description([`String` species])
 
-Returns the configured description for the entity if it has one. Will return a species-specific description if species is specified and a generic description otherwise.
+Returns the configured description for this inspectable entity (i.e., a player, object or plant). Will return a species-specific description if a species name is specified, or a generic description otherwise. If this entity is not inspectable, a generic description is returned. Note that player descriptions are never species-specific.
 
 ---
 
 #### `JsonArray` `Entity`:portrait(`String` portraitMode)
 
-Generates a portrait of the entity in the specified portrait mode and returns a list of drawables, or `nil` if the entity is not a portrait entity.
+Generates a portrait of this entity in the specified portrait mode and returns a list of drawables, or `nil` if the entity is not a portrait entity (i.e., a monster, NPC or player). `portraitMode` only affects portraits of players and NPCs; for monsters, a full portrait is always returned. The available modes are as follows:
+
+- `"head"`: Just the entity's head and a sliver of the entity's upper body. `?crop` directives will be added to the portrait drawables.
+- `"bust"`: The entity's head and the upper part of the entity's body. `?crop` directives will be added to the portrait drawables.
+- `"full"`: The entity's full body.
+- `"fullneutral"`: The entity's full body, posed «neutrally» in the species' first configured personality (normally `idle.1`).
+- `"fullnude"`: The entity's full body, without any armour or clothing. Note that any «clothing» in the form of modified humanoid directives is still rendered.
+- `"fullneutralnude"`: The entity's full body, posed «neutrally» _and_ without clothing (as above).
+
+> **Note:** On xStarbound, OpenStarbound and oSBM, a portrait of an NPC or player wearing items with `"flipDirectives"` will show those items with their `"flipDirectives"` applied if the NPC or player is facing left when this method is invoked.
 
 ---
 
-#### `String` `Entity`:handItem(`String` handName)
+#### `Maybe<String>` `Entity`:handItem(`String` handName)
 
-Returns the name of the item held in the specified hand of the entity, or `nil` if the entity is not holding an item or is not a player or NPC. Hand name should be specified as "primary" or "alt".
-
----
-
-#### `ItemDescriptor` `Entity`:handItemDescriptor(`String` handName)
-
-Similar to `Entity`:handItem but returns the full descriptor of the item rather than the name.
+Returns the name of the item held in the specified hand of this player or NPC, or `nil` if this entity is not holding an item or is not a player or NPC. Hand name should be specified as `"primary"` (left hand; two-handed items also go here) or `"alt"` (right hand).
 
 ---
 
-#### `String` `Entity`:uniqueId(`EntityId` entityId)
+#### `Maybe<ItemDescriptor>` `Entity`:handItemDescriptor(`String` handName)
 
-Returns the unique id of the entity, or `nil` if the entity does not have a unique id.
+Similar to `Entity:handItem`, but returns the full descriptor of the item rather than the name.
+
+---
+
+#### `Maybe<String>` `Entity`:uniqueId(`EntityId` entityId)
+
+Returns the unique ID or UUID of the entity, or `nil` if the entity does not have a unique ID or UUID. Will return a vanity UUID if the entity uses such.
 
 ---
 
 #### `Json` `Entity`:statusProperty(`String` name, [`Json` default])
 
-Returns the value of the entity's status property, or the specified default value or `nil` if the parameter is not set. Also returns `nil` if the entity is not an «actor entity». «Actor entities» are players, NPCs, and monsters.
+Returns the value of the specified status property on this entity, or the specified default value or `nil` if the parameter is not set. Also returns `nil` if the entity is not an «actor entity» (i.e., a player, NPC or monster).
 
 ---
 
 #### `Maybe<float>` `Entity`:stat(`String` name)
 
-Returns the value of the entity's stat or `nil` if the entity is not an actor entity.
+Returns the value of the specified stat on this entity or `nil` if the entity is not an actor entity.
 
 ---
 
 #### `Maybe<bool>` `Entity`:statPositive(`String` name)
 
-Returns whether the entity's stat is positive or not, or `nil` if the entity is not an actor entity.
+Returns whether the specified stat on this entity is positive or not, or `nil` if the entity is not an actor entity.
 
 ---
 
 #### `Maybe<StringList>` `Entity`:resourceNames()
 
-Returns the names of all the entity's resources or `nil` if the entity is not an actor entity.
+Returns the names of all this entity's resources or `nil` if the entity is not an actor entity.
 
 ---
 
 #### `Maybe<float>` `Entity`:resource(`String` name)
 
-Returns the value of the entity's specified resource or `nil` if the entity is not an actor entity.
+Returns the value of the specified status resource on this entity or `nil` if the entity is not an actor entity.
 
 ---
 
 #### `Maybe<bool>` `Entity`:isResource(`String` name)
 
-Returns whether this resource exists on the entity, or `nil` if the entity is not an actor entity.
+Returns whether the specified status resource exists on this entity, or `nil` if the entity is not an actor entity.
 
 ---
 
 #### `Maybe<bool>` `Entity`:resourcePositive(`String` name)
 
-Returns whether the entity's specified resource is positive or not, or `nil` if the entity is not an actor entity.
+Returns whether the specified status resource on this entity is positive or not, or `nil` if the entity is not an actor entity.
 
 ---
 
 #### `Maybe<bool>` `Entity`:resourceLocked(`String` name)
 
-Returns whether the entity's specified resource is locked or not, or `nil` if the entity is not an actor entity.
+Returns whether the specified status resource on this entity is locked or not, or `nil` if the entity is not an actor entity.
 
 ---
 
 #### `Maybe<float>` `Entity`:resourceMax(`String` name)
 
-Returns the maximum value of the entity's specified resource or `nil` if the entity is not an actor entity.
+Returns the maximum value of the specified resource on this entity or `nil` if the entity is not an actor entity.
 
 ---
 
 #### `Maybe<float>` `Entity`:resourcePercentage(`String` name)
 
-Returns the percentage of max of the entity's specified resource or `nil` if the entity is not an actor entity.
+Returns the current percentage of max of the specified status resource on this entity or `nil` if the entity is not an actor entity.
 
 ---
 
@@ -2328,19 +2348,19 @@ Returns the value of the specified config parameter on the entity, or the defaul
 
 ---
 
-#### `List<Vec2I>` `Entity`:objectSpaces()
+#### `Maybe<List<Vec2I>>` `Entity`:objectSpaces()
 
 Returns a list of tile positions that the entity occupies, or `nil` if the entity is not an object.
 
 ---
 
-#### `int` `Entity`:farmableStage()
+#### `Maybe<int>` `Entity`:farmableStage()
 
 Returns the current growth stage of the specified farmable object, or `nil` if the entity is not a farmable object.
 
 ---
 
-#### `int` `Entity`:containerSize()
+#### `Maybe<int>` `Entity`:containerSize()
 
 Returns the total capacity of the entity, or `nil` if the entity is not a container.
 
@@ -2348,65 +2368,67 @@ Returns the total capacity of the entity, or `nil` if the entity is not a contai
 
 #### `bool` `Entity`:containerClose()
 
-Visually closes the entity. Returns `true` if the entity is a container and `false` otherwise.
+Visually closes the entity. Returns `true` if the entity is a container or `false` otherwise.
 
 ---
 
 #### `bool` `Entity`:containerOpen()
 
-Visually opens the entity. Returns `true` if the entity is a container and `false` otherwise.
+Visually opens the entity. Returns `true` if the entity is a container or `false` otherwise.
 
 ---
 
-#### `JsonArray` `Entity`:containerItems()
+#### `Maybe<JsonArray>` `Entity`:containerItems()
 
-Returns a list of pairs of item descriptors and container positions of all items in the entity, or `nil` if the entity is not a container.
-
----
-
-#### `ItemDescriptor` `Entity`:containerItemAt(`unsigned` offset)
-
-Returns an item descriptor of the item at the specified position in the entity, or `nil` if the entity is not a container or the offset is out of range.
+Returns a list of array pairs of item descriptors (or `nil`s for empty slots) and container positions of all items in the entity, or `nil` if the entity is not a container.
 
 ---
 
-#### `bool` `Entity`:containerConsume(`ItemDescriptor` item)
+#### `Maybe<ItemDescriptor>` `Entity`:containerItemAt(`unsigned` offset)
+
+Returns an item descriptor of the item at the specified slot in the entity, or `nil` if the entity is not a container, the offset is out of range or there no item in that slot.
+
+---
+
+#### `Maybe<bool>` `Entity`:containerConsume(`ItemDescriptor` item)
 
 Attempts to consume items from the entity that match the specified item descriptor and returns `true` if successful, `false` if unsuccessful, or `nil` if the entity is not a container. Only succeeds if the full count of the specified item can be consumed.
 
 ---
 
-#### `bool` `Entity`:containerConsumeAt(`unsigned` offset, `unsigned` count)
+#### `Maybe<bool>` `Entity`:containerConsumeAt(`unsigned` offset, `unsigned` count)
 
-Similar to world.containerConsume but only considers the specified slot within the entity.
+Similar to `Entity:containerConsume` but only considers the specified slot within the entity.
 
 ---
 
 #### `unsigned` `Entity`:containerAvailable(`ItemDescriptor` item)
 
-Returns the number of the specified item that are currently available to consume in the entity, or `nil` if the entity is not a container.
+Returns the total count (sum of all stack counts) of the specified item that is currently available to consume in the specified container, `0` if no matching items are found, or `nil` if the entity is not a container. Both the item name and parameters must match in order for a given item stack to be counted.
+
+If the specified descriptor's count is not 0 or 1, the returned total stack count is divided by the count size specified in the descriptor and then rounded down. This allows querying how many "full stacks of X" of a given item are present in the container.
 
 ---
 
-#### `JsonArray` `Entity`:containerTakeAll()
+#### `Maybe<JsonArray>` `Entity`:containerTakeAll()
 
-Similar to world.containerItems but consumes all items in the entity.
-
----
-
-#### `ItemDescriptor` `Entity`:containerTakeAt(`unsigned` offset)
-
-Similar to world.containerItemAt, but consumes all items in the specified slot of the entity.
+Similar to `Entity:containerItems` but consumes all items in the entity.
 
 ---
 
-#### `ItemDescriptor` `Entity`:containerTakeNumItemsAt(`unsigned` offset, `unsigned` count)
+#### `Maybe<ItemDescriptor>` `Entity`:containerTakeAt(`unsigned` offset)
 
-Similar to world.containerTakeAt, but consumes up to (but not necessarily equal to) the specified count of items from the specified slot of the entity and returns only the items consumed.
+Similar to `Entity:containerItemAt`, but consumes all items in the specified slot of the entity.
 
 ---
 
-#### `unsigned` `Entity`:containerItemsCanFit(`ItemDescriptor` item)
+#### `Maybe<ItemDescriptor>` `Entity`:containerTakeNumItemsAt(`unsigned` offset, `unsigned` count)
+
+Similar to `Entity:containerTakeAt`, but consumes up to (but not necessarily equal to) the specified count of items from the specified slot of the entity and returns only the items consumed.
+
+---
+
+#### `Maybe<unsigned>` `Entity`:containerItemsCanFit(`ItemDescriptor` item)
 
 Returns the number of times the specified item can fit in the entity, or `nil` if the entity is not a container.
 
@@ -2414,43 +2436,37 @@ Returns the number of times the specified item can fit in the entity, or `nil` i
 
 #### `Json` `Entity`:containerItemsFitWhere(`ItemDescriptor` items)
 
-Returns a JsonObject containing a list of "slots" the specified item would fit and the count of "leftover" items that would remain after attempting to add the items. Returns `nil` if the entity is not a container.
+Returns a `JsonObject` containing a list of `"slots"` where the specified item would fit and the count of `"leftover"` items that would remain after attempting to add the items. Returns `nil` if the entity is not a container.
 
 ---
 
-#### `ItemDescriptor` `Entity`:containerAddItems(`ItemDescriptor` items)
+#### `Maybe<ItemDescriptor>` `Entity`:containerAddItems(`ItemDescriptor` items)
 
 Adds the specified items to the entity. Returns the leftover items after filling the entity, or all items if the entity is not a container.
 
 ---
 
-#### `ItemDescriptor` `Entity`:containerStackItems(`ItemDescriptor` items)
+#### `Maybe<ItemDescriptor>` `Entity`:containerStackItems(`ItemDescriptor` items)
 
-Similar to world.containerAddItems but will only combine items with existing stacks and will not fill empty slots.
-
----
-
-#### `ItemDescriptor` `Entity`:containerPutItemsAt(`ItemDescriptor` items, `unsigned` offset)
-
-Similar to world.containerAddItems but only considers the specified slot in the entity.
+Similar to `Entity:containerAddItems` but will only combine items with existing stacks and will not fill empty slots.
 
 ---
 
-#### `ItemDescriptor` `Entity`:containerItemApply(`ItemDescriptor` items, `unsigned` offset)
+#### `Maybe<ItemDescriptor>` `Entity`:containerPutItemsAt(`ItemDescriptor` items, `unsigned` offset)
+
+Similar to `Entity:containerAddItems` but only considers the specified slot in the entity.
+
+---
+
+#### `Maybe<ItemDescriptor>` `Entity`:containerItemApply(`ItemDescriptor` items, `unsigned` offset)
 
 Attempts to combine the specified items with the current contents (if any) of the container slot and returns any items unable to be placed into the slot.
 
 ---
 
-#### `ItemDescriptor` `Entity`:containerSwapItemsNoCombine(`ItemDescriptor` items, `unsigned` offset)
+#### `Maybe<ItemDescriptor>` `Entity`:containerSwapItems(`ItemDescriptor` items, `unsigned` offset, [`bool` noCombine])
 
-Places the specified items into the entity slot and returns the previous contents of the slot if successful, or the original items if unsuccessful.
-
----
-
-#### `ItemDescriptor` `Entity`:containerSwapItems(`ItemDescriptor` items, `unsigned` offset)
-
-A combination of world.containerItemApply and world.containerSwapItemsNoCombine that attempts to combine items before swapping and returns the leftovers if stacking was successful or the previous contents of the container slot if the items did not stack.
+If `noCombine` is true, attempts to combine items before swapping and returns the leftovers if stacking was successful or the previous contents of the container slot if the items did not stack. Otherwise, places the specified items into the entity slot and returns the previous contents of the slot if successful, or the original items if unsuccessful.
 
 ---
 
@@ -2470,42 +2486,55 @@ On xStarbound with `"legacySmuggling"` disabled, all arguments must be valid JSO
 
 #### `RpcPromise<Json>` `Entity`:sendMessage(`String` messageType, [`LuaValue` args ...])
 
-Sends an asynchronous message to the entity on which this method is invoked, with the specified message type and arguments and returns an `RpcPromise` which can be used to receive the result of the message when available. See `$docs/lua/message.md` for more on entity message handling. This function **should not be called in any sending entity's `init` function** as the sending entity will not have been fully loaded, possibly causing the message to get lost in transit.
+Sends an asynchronous message to the entity on which this method is invoked, with the specified message type and arguments and returns an `RpcPromise` which can be used to receive the result of the message when available. If the entity does not exist, returns an automatically failed promise.
+
+See `$docs/lua/message.md` for more on entity message handling. This function **should not be called in any sending entity's `init` function** as the sending entity will not have been fully loaded, possibly causing the message to get lost in transit.
 
 ---
 
 #### `List<EntityId>` `Entity`:loungingEntities()
 
-Returns every entity lounging on the entity.
+Returns a list of IDs for all entities lounging on this entity, or `nil` if this is not a loungeable entity.
 
 ---
 
-#### `bool` `Entity`:loungeableOccupied()
+#### `Maybe<bool>` `Entity`:loungeableOccupied()
 
 Checks whether this loungeable entity is currently occupied and returns `true` if it is occupied, `false` if it is unoccupied, or `nil` if it is not a loungeable entity.
 
 ---
 
-#### `int` `Entity`:loungeableAnchorCount()
+#### `Maybe<unsigned>` `Entity`:loungeableAnchorCount()
 
 Returns the amount of anchors on the entity or `nil` if it is not a loungeable entity.
 
 ---
 
-#### `bool` `Entity`:isInteractive()
+#### `Maybe<bool>` `Entity`:isInteractive()
 
-Returns `true` if the entity is player interactive and `false` otherwise.
+Returns `true` if the entity is player interactive, `false` if it is a non-interactive entity but of a potentially interactive type (i.e., a player, monster, NPC, vehicle, object or plant), or `nil` if the entity is not of an interactive type.
 
 ---
 
-#### `int` `Entity`:movingCollisionCount()
+#### `Maybe<unsigned>` `Entity`:movingCollisionCount()
 
 Returns the amount of moving collisions in the entity.
 
 ---
 
-#### `PhysicsMovingCollision` `Entity`:movingCollision(`int` index)
+#### `Maybe<LuaTable>` `Entity`:movingCollision(`int` index)
 
-Returns the entity's moving collision at the given index, or `nil` if it is disabled or does not exist.
+Returns the entity's moving collision data at the given index, or `nil` if it is disabled or does not exist. The returned data looks like this:
 
----
+```lua
+{
+  position = {554.22, 126.565}, -- The collision position.
+  collision = { { -1.2, -1.2 }, { 1.2, -1.2 }, { 2.5, 1.2 } }, -- The collision poly in question.
+  collisionKind = "Platform", -- The collision kind. Can be any of `"Null"`, `"None"`, `"Platform"`, `"Dynamic"`, `"Slippery"` or `"Block"`.
+  categoryFilter = {
+    categoryWhitelist = { "ghostish", "platformish" }, -- A list of arbitrary category specifier strings to whitelist.
+    categoryBlacklist = { "solid" } -- This list is empty. Nothing to blacklist here.
+    -- Entities with movement controllers have their own configured categories.
+  }
+}
+```

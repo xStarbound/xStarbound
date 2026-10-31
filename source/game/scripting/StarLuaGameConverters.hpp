@@ -164,6 +164,12 @@ struct LuaConverter<NodeStatus> {
   static NodeStatus to(LuaEngine& engine, LuaValue const& v);
 };
 
+// @Bottinator22: Converter for physics collisions.
+template <>
+struct LuaConverter<PhysicsMovingCollision> {
+  static LuaValue from(LuaEngine& engine, PhysicsMovingCollision const& v);
+};
+
 // Weak pointer for the same reasons as BehaviorState.
 template <>
 struct LuaConverter<BlackboardWeakPtr> : LuaUserDataConverter<BlackboardWeakPtr> {};
