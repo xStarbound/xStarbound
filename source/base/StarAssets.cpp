@@ -1341,6 +1341,7 @@ ImageConstPtr Assets::readImage(String const& path) const {
       for (auto const& pair : p->patchSources) {
         auto& patchPath = pair.first;
         auto& patchSource = pair.second;
+        auto patchSourceHandle = SmugglePtr(patchSource);
         auto patchStream = patchSource->read(patchPath);
         if (patchPath.endsWith(".lua") || patchPath.endsWith(".pluto")) {
           luaLocker.lock();
@@ -1356,7 +1357,7 @@ ImageConstPtr Assets::readImage(String const& path) const {
             startedNewContext = true;
           }
           // FezzedOne: Added `require` to image patch scripts.
-          context->setRequireFunction([&](LuaContext& context, LuaString const& module) {
+          context->setRequireFunction([&, patchSourceHandle](LuaContext& context, LuaString const& module) {
             if (!context.get("_SBLOADED").is<LuaTable>())
               context.set("_SBLOADED", context.createTable());
             auto t = context.get<LuaTable>("_SBLOADED");
@@ -1366,8 +1367,10 @@ ImageConstPtr Assets::readImage(String const& path) const {
               ByteArray script;
               if (m_files.contains(path)) {
                 script = this->read(path);
+              } else if (patchSourceHandle) {
+                script = patchSourceHandle->read(path);
               } else {
-                script = patchSource->read(path);
+                return;
               }
               context.load(script, path);
             }
@@ -1435,6 +1438,7 @@ Json Assets::readJson(String const& path) const {
     for (auto const& pair : patchSources) {
       auto& patchPath = pair.first;
       auto& patchSource = pair.second;
+      auto patchSourceHandle = SmugglePtr(patchSource);
       auto patchStream = patchSource->read(patchPath);
       // FezzedOne: Patches that return an invalid result or throw errors are now ignored, allowing the patched asset file to load.
       if (patchPath.endsWith(".lua") || patchPath.endsWith(".pluto")) {
@@ -1454,7 +1458,7 @@ Json Assets::readJson(String const& path) const {
         }
         try {
           // FezzedOne: Added `require` to JSON patch scripts.
-          context->setRequireFunction([&](LuaContext& context, LuaString const& module) {
+          context->setRequireFunction([&, patchSourceHandle](LuaContext& context, LuaString const& module) {
             if (!context.get("_SBLOADED").is<LuaTable>())
               context.set("_SBLOADED", context.createTable());
             auto t = context.get<LuaTable>("_SBLOADED");
@@ -1464,8 +1468,10 @@ Json Assets::readJson(String const& path) const {
               ByteArray script;
               if (m_files.contains(path)) {
                 script = this->read(path);
+              } else if (patchSourceHandle) {
+                script = patchSourceHandle->read(path);
               } else {
-                script = patchSource->read(path);
+                return;
               }
               context.load(script, path);
             }
