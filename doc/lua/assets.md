@@ -299,13 +299,13 @@ Returns a list of all _loaded_ asset sources. Includes all memory asset sources 
 
 #### `void` assets.add(`RawAssetPath` path, `Variant<String, Image, ByteArray, Json>` data)
 
-> _May not currently work properly on OpenStarbound._
-
 Adds the specified asset data to the specified path in a memory asset source based on the working asset source. Note that strings will get converted to UTF-8 text file assets; if the string is valid JSON, it's a valid JSON asset.
 
 In an on-load preprocessor script, the resulting memory asset source will be loaded right after the working asset source in terms of precedence.
 
 In a post-load script, the resulting memory asset source will be loaded after all non-memory sources are loaded, but if multiple post-load memory asset sources are loaded, they use the same precedence order as all the base asset sources with regards to other memory asset sources.
+
+> **Warning** On OpenStarbound and oSBM, invoking a «smuggled» `assets.add` overleased from a memory asset source that has been deleted (due to it having no files) _will_ cause an immediate crash. This issue was fixed on xStarbound v4.7.0.1, where such an invocation simply does nothing instead.
 
 ---
 
@@ -326,6 +326,8 @@ Adds the specified JSON or Lua patch file (`patchPath`) to the list of patches f
 If the patch file has a `.lua` or `.pluto` extension, it will be added as a Lua/Pluto patch. If it has any other extension, it will be added as a JSON patch.
 
 If the specified patch file is later modified, removed or replaced by any script in the same asset source, it will be modified but _not_ deleted for the purposes of checking patches.
+
+> **Warning** On OpenStarbound and oSBM, invoking a «smuggled» `assets.patch` overleased from a memory asset source that has been deleted (due to it having no files) _will_ cause an immediate crash. This issue was fixed on xStarbound v4.7.0.1, where such an invocation applies the patch normally instead.
 
 ---
 

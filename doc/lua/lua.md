@@ -136,7 +136,7 @@ Note that Pluto's assertion library is loaded as `pluto_assert` instead of `asse
 
 #### `LuaValue` exception
 
-You must invoke `require "/scripts/exception.lua"` to get access to Pluto's `exception`. Otherwise it's `nil`.
+You must invoke `require "/scripts/exception.lua"` to get access to Pluto's `exception`. Otherwise it's `nil`. Note that, as this script comes with xStarbound's required assets, mods can modify this script.
 
 #### `Maybe<LuaTable>` \_SBLOADED
 
