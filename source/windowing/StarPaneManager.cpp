@@ -281,7 +281,7 @@ void PaneManager::render() {
       if (panePair.first->active()) {
         if (m_prevInterfaceScale != m_context->interfaceScale())
           panePair.first->setPosition(
-              calculateNewInterfacePosition(panePair.first, m_context->interfaceScale() / m_prevInterfaceScale));
+              calculateNewInterfacePosition(panePair.first, m_prevInterfaceScale / m_context->interfaceScale()));
 
         panePair.first->setDrawingOffset(calculatePaneOffset(panePair.first));
         panePair.first->render(RectI(Vec2I(), windowSize()));

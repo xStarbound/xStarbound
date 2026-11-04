@@ -606,6 +606,11 @@ void Assets::hotReload() {
   m_framesSpecifications.clear();
 }
 
+Assets::Settings Assets::settings() const {
+  MutexLocker assetsLocker(m_assetsMutex);
+  return m_settings;
+}
+
 StringList Assets::assetSources() const {
   MutexLocker assetsLocker(m_assetsMutex);
   return m_assetSources;

@@ -211,6 +211,11 @@ Vec2U ImageMetadataDatabase::calculateImageSize(AssetPath const& path) const {
     return assets->image(path)->size();
   };
 
+  // FezzedOne: Fixed issue where image size calculations can have image directives considered twice.
+  auto baseFallback = [&assets, &path]() {
+    return assets->image(AssetPath::split(path.basePath))->size();
+  };
+
   if (!assets->assetExists(path.basePath)) {
     return fallback();
   }
@@ -237,13 +242,13 @@ Vec2U ImageMetadataDatabase::calculateImageSize(AssetPath const& path) const {
 // FezzedOne: Fixed exception getting thrown when a memory asset's size is requested.
 #ifdef STAR_SYSTEM_WINDOWS
       // Because Windows is a buggy piece of shit that fucks up file reads if you read a file header beforehand.
-      imageSize = fallback();
+      imageSize = baseFallback();
 #else
       auto imageDevice = assets->openFile(path.basePath);
       if (Image::isPngImage(imageDevice))
         imageSize = get<0>(Image::readPngMetadata(imageDevice));
       else
-        imageSize = fallback();
+        imageSize = baseFallback();
 #endif
       locker.lock();
       m_sizeCache[path.basePath] = {Time::monotonicMilliseconds(), imageSize};

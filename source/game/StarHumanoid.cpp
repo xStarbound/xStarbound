@@ -2032,9 +2032,9 @@ Humanoid Humanoid::makeDummy(Gender gender) {
   humanoid.m_frontArmFrameset = assets->json("/humanoid/any/dummy.config:frontArm").toString();
   humanoid.m_backArmFrameset = assets->json("/humanoid/any/dummy.config:backArm").toString();
   // FezzedOne: Ensures the dummy doesn't have any hair.
-  humanoid.m_hairFrameset = "/assetmissing.png";
-  humanoid.m_facialHairFrameset = "/assetmissing.png";
-  humanoid.m_facialMaskFrameset = "/assetmissing.png";
+  humanoid.m_hairFrameset = "";
+  humanoid.m_facialHairFrameset = "";
+  humanoid.m_facialMaskFrameset = "";
   humanoid.setFacingDirection(DirectionNames.getLeft(assets->json("/humanoid/any/dummy.config:direction").toString()));
 
   return humanoid;

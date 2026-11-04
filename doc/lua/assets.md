@@ -269,7 +269,7 @@ jobject{
   tags = "Crafting and Building|User Interface",
   steamContentId = "123456789",
   link = "steam://url/CommunityFilePage/123456789",
-  permissions = jarray{} -- You may see this in StarExtensions mods.
+  icon = "/mymodicon.png"
 }
 ```
 

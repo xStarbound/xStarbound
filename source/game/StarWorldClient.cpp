@@ -708,8 +708,12 @@ void WorldClient::render(WorldRenderData& renderData, unsigned bufferTiles) {
       }
     } else if (inspecting) {
       if (auto inspectable = as<InspectableEntity>(entity)) {
-        ed.highlightEffect = m_mainPlayer->inspectionHighlight(inspectable);
-        ed.highlightEffect.level *= inspectionFlickerMultiplier;
+        // FezzedOne: Disable inspection highlights for players for visual consistency with retail Starbound.
+        // Players remain inspectable, just not highlighted.
+        if (!is<Player>(inspectable)) {
+          ed.highlightEffect = m_mainPlayer->inspectionHighlight(inspectable);
+          ed.highlightEffect.level *= inspectionFlickerMultiplier;
+        }
       }
     }
     renderData.entityDrawables.append(std::move(ed));

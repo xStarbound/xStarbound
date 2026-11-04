@@ -114,8 +114,8 @@ Any asset source may have a JSON `_metadata` or `.metadata` file at its root, co
   "link": "steam://url/CommunityFilePage/123456789", // A URL for the mod's homepage, whatever
   // it is. A Steam link to the mod's Steam Workshop page is added automatically by the
   // Workshop mod uploader. The link can be copied from the mods screen.
-  "permissions": [] // Required in order to use certain callbacks on StarExtensions. Ignored by
-  // xStarbound.
+  "icon": "/mymodicon.png" // Path to a custom icon displayed in the in-game mods dialogue
+  // on xStarbound v4.7.0.2+, OpenStarbound and oSBM. Ignored by retail Starbound.
 }
 ```
 
@@ -288,13 +288,11 @@ All xStarbound JSON patch operations support the following parameters:
 - **`"op"`:** The string value at this _required_ key specifies the type of operation to execute.
 
 - **`"path"`:** The value at this _required_ key is the path to the JSON value to search, modify or test. The syntax is as follows:
-
   - _`/k`:_ A JSON object key specifier, where `k` is substituted for the literal key string, without quotes; e.g., `parameters`.
 
   - _`/n`:_ A JSON array index specifier, where `x` is either an usigned integer or `-` (refers to the last index in the array). Used to access the value at the specified array index. Indices begin at `0`, not `1`.
 
   Due to apparent syntactic ambiguity, specifiers are parsed as follows:
-
   - As an integer index if an array is found at the path leading to it.
   - As a string key if an object is found at the path leading to it.
 
@@ -309,11 +307,9 @@ All xStarbound JSON patch operations support the following parameters:
   If only `"/"` is specified, the top-level object or array is what will be modified.
 
 - **`"search"` [xStarbound and OpenStarbound only]:** If this _optional_ key is present and the base JSON value at the specified path is an array, the array will be searched for the _first_ base subvalue matching the specified search value at this key. The precise matching behaviour depends on the value of `"exact"`:
-
   - `true`: The base subvalue must _exactly_ match the search value, including the ordering of elements in nested arrays.
 
   - `false` or key is not present: The base subvalue must _partially_ match the search value, meaning the following:
-
     - All key-value pairs and/or array elements in the search value must be present and match in the base subvalue (but _not_ vice versa), either directly or recursively for nested objects and arrays.
     - The ordering of nested array elements does _not_ matter for the comparison.
     - If the search value is not an object or array, the base subvalue must exactly match the search value.
@@ -336,7 +332,6 @@ xStarbound supports the following JSON patch operations:
   Additionally, if `"inverse"` is `true`, an inability to traverse to the specified path is always a success; otherwise, an inability to traverse is always a failure.
 
   This operation has one specific parameter:
-
   - _`inverse`:_ An _optional_ boolean controlling whether this is an inverse test.
 
   If a test fails, a debug message is logged only if debug logging is enabled. To enable debug logging, pass `-loglevel debug` to xClient or xServer when starting either of them.
@@ -368,13 +363,11 @@ xStarbound supports the following JSON patch operations:
   Any traversal error logs a warning.
 
   This operation has one specific parameter:
-
   - _`"from"`:_ The _required_ source path specifier string.
 
 - **`"copy"`:** Like `"move"`, but does not remove the source key-value pair or array element.
 
   This operation has one specific parameter:
-
   - _`"from"`:_ The _required_ source path specifier string.
 
 - **`"merge"` [xStarbound and OpenStarbound only]:** If `"search"` is specified and the search succeeds, this operation attempts to execute a JSON merge on the found array element (as the base) with the `"value"` (as the merger). See _JSON merge operations_ above for more details.
@@ -382,5 +375,4 @@ xStarbound supports the following JSON patch operations:
   If `"search"` is not specified, this operation attempts to execute a JSON merge on the value of the key-value pair or array element (as the base) at the given path with the `"value"` (as the merger).
 
   Any traversal error logs a warning.
-
   - _`"nulling"` [xStarbound only]:_ An _optional_ boolean specifying whether to allow `null`s in the merger to overwrite base values. If unspecified, `null`s won't be allowed. [Assumed `true` by default on OpenStarbound.]

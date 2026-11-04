@@ -289,6 +289,9 @@ public:
   // From OpenStarbound: Hot-reload assets.
   void hotReload();
 
+  // FezzedOne: Get asset loading settings.
+  Settings settings() const;
+
 private: // FezzedOne: These all should be private!
   static FramesSpecification parseFramesSpecification(Json const& frameConfig, String path);
 

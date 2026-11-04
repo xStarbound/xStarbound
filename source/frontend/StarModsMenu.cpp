@@ -1,10 +1,11 @@
 #include "StarModsMenu.hpp"
-#include "StarRoot.hpp"
 #include "StarAssets.hpp"
-#include "StarGuiReader.hpp"
-#include "StarLabelWidget.hpp"
 #include "StarButtonWidget.hpp"
+#include "StarGuiReader.hpp"
+#include "StarImageWidget.hpp"
+#include "StarLabelWidget.hpp"
 #include "StarListWidget.hpp"
+#include "StarRoot.hpp"
 
 namespace Star {
 
@@ -19,8 +20,20 @@ ModsMenu::ModsMenu() {
   m_assetsSources = assets->assetSources();
   m_modList = fetchChild<ListWidget>("mods.list");
   for (auto const& assetsSource : m_assetsSources) {
-    auto modName = m_modList->addItem()->fetchChild<LabelWidget>("name");
+    auto metadata = assets->assetSourceMetadata(assetsSource);
+    auto newItem = m_modList->addItem();
+    auto modName = newItem->fetchChild<LabelWidget>("name");
     modName->setText(bestModName(assets->assetSourceMetadata(assetsSource), assetsSource));
+    // Kae's mod icon thingy from OpenStarbound.
+    if (auto iconImage = metadata.ptr("icon")) {
+      if (iconImage->isType(Json::Type::String)) {
+        auto iconPath = iconImage->toString();
+        if (assets->assetExists(AssetPath::split(iconPath).basePath)) {
+          auto modIcon = newItem->fetchChild<ImageWidget>("icon");
+          modIcon->setImage(iconPath);
+        }
+      }
+    }
   }
 
   m_modName = findChild<LabelWidget>("modname");
@@ -68,23 +81,22 @@ void ModsMenu::update(float dt) {
 
     String modName = bestModName(assetsSourceMetadata, assetsSource);
     m_modName->setText(modName);
-  
+
     auto modAuthor = assetsSourceMetadata.value("author", "<n/a>");
     bool authorIsString = modAuthor.isType(Json::Type::String);
     String modAuthorStr = authorIsString ? modAuthor.toString() : "<n/a>";
     m_modAuthor->setText(modAuthorStr);
     // if (!authorIsString)
     //   Logger::warn("ModsMenu: Specified author name for mod '{}' at '{}' is not a string; discarding invalid author name", modName, assetsSource);
-  
+
     auto modVersion = assetsSourceMetadata.value("version", "<n/a>");
-    String modVersionStr = modVersion.isType(Json::Type::String) ? modVersion.toString() : 
-      ((modVersion.isType(Json::Type::Int) || modVersion.isType(Json::Type::Float)) ? modVersion.repr() : "<n/a>");
+    String modVersionStr = modVersion.isType(Json::Type::String) ? modVersion.toString() : ((modVersion.isType(Json::Type::Int) || modVersion.isType(Json::Type::Float)) ? modVersion.repr() : "<n/a>");
     m_modVersion->setText(modVersionStr);
     // if (!(modVersion.isType(Json::Type::Int) || modVersion.isType(Json::Type::Float) || modVersion.isType(Json::Type::String)))
     //   Logger::warn("ModsMenu: Specified version for mod '{}' at '{}' is not a string or number; discarding invalid version", modName, assetsSource);
-  
+
     m_modPath->setText(assetsSource);
-  
+
     auto modDescription = assetsSourceMetadata.value("description", "<n/a>");
     bool descriptionIsString = modDescription.isType(Json::Type::String);
     String modDescriptionStr = descriptionIsString ? modDescription.toString() : "<n/a>";
@@ -140,4 +152,4 @@ void ModsMenu::openWorkshop() {
     desktopService->openUrl(assets->json("/interface/modsmenu/modsmenu.config:workshopLink").toString());
 }
 
-}
+} // namespace Star
