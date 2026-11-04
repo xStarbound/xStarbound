@@ -97,6 +97,7 @@ This is a fork of Starbound's source code; all credit for the original code goes
 - **Script bindings for the UI scale and zoom level (@fezzedone).**
 - **Some minor UI polish (@fezzedone, @unitgx48).**
 - **Wayland support on Linux (@emanueljg).**
+- **Support for custom mod icons in the in-game mods dialogue (@novaenia).**
 
 ### Other server features (xServer)
 
@@ -177,8 +178,8 @@ The following mods for xStarbound and/or OpenStarbound have special functionalit
 - [Custom Ship Capsule](https://steamcommunity.com/sharedfiles/filedetails/?id=3740868265) — requires xStarbound, oSBM or OpenStarbound. In multiplayer, must be installed on the server.
 - [Disable Parallax](https://steamcommunity.com/sharedfiles/filedetails/?id=3748974083) — requires xStarbound, oSBM or OpenStarbound.
 - [Double-Tap Hotkey](https://steamcommunity.com/sharedfiles/filedetails/?id=3706488418) — requires xStarbound, oSBM or OpenStarbound.
-- [Drop pixels on death](https://steamcommunity.com/sharedfiles/filedetails/?id=3350355857) ([GitHub](https://github.com/bongus-jive/drop-money-on-death)) — fully supported by xStarbound.
-- [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — Fully supported by xStarbound as of v3.1.5r1.
+- [Drop pixels on death](https://steamcommunity.com/sharedfiles/filedetails/?id=3350355857) ([GitHub](https://github.com/bongus-jive/drop-money-on-death)) — requires xStarbound, oSBM or OpenStarbound to detect a dead character's current difficulty.
+- [Dump IDs to log](https://steamcommunity.com/sharedfiles/filedetails/?id=3333016442&searchtext=) ([GitHub](https://github.com/bongus-jive/dump-ids)) — requires xStarbound, oSBM or OpenStarbound.
 - [Enhanced Storage Cumulative Patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3432475751) — fully supported by xStarbound.
 - [Enterable Fore Block](https://steamcommunity.com/sharedfiles/filedetails/?id=3025026792) — fully supported by xStarbound.
 - [Equipment Set Bonuses](https://steamcommunity.com/sharedfiles/filedetails/?id=3827183700) — requires xStarbound, oSBM or OpenStarbound for asset preprocessing.
