@@ -216,6 +216,7 @@ The following mods for xStarbound and/or OpenStarbound have special functionalit
 - [Pet Commander](https://steamcommunity.com/sharedfiles/filedetails/?id=3835387060) — the keybind is supported by xStarbound, oSBM and OpenStarbound.
 - [Phantasy Starbound Title](https://steamcommunity.com/sharedfiles/filedetails/?id=3475986947) — OpenStarbound title screen replacement mod that should be supported by xStarbound; report any visual issues.
 - [Planet Search](https://steamcommunity.com/sharedfiles/filedetails/?id=3269792617) — fully supported by xStarbound.
+- [PuppetLab!](https://steamcommunity.com/sharedfiles/filedetails/?id=3836960204) — requires xStarbound, OpenStarbound or oSBM for clipboard support.
 - [Quest Library](https://steamcommunity.com/sharedfiles/filedetails/?id=3806638814) — requires xStarbound v4.7+, OpenStarbound v0.1.15+ or oSBM.
 - [Quick Select](https://steamcommunity.com/sharedfiles/filedetails/?id=3814429020) ([GitHub](https://github.com/notSagyo/quick-select)) — requires xStarbound, oSBM or OpenStarbound. Consider binding the quick select key to the middle mouse button for Minecraft-like UX.
 - [Quick Stack Gun [OpenStarbound Fix]](https://steamcommunity.com/sharedfiles/filedetails/?id=3501752811) — despite the name, requires xStarbound, oSBM or OpenStarbound.
