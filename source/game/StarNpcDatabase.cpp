@@ -363,15 +363,15 @@ List<Drawable> NpcDatabase::npcPortrait(NpcVariant const& npcVariant, PortraitMo
   return humanoid.renderPortrait(mode);
 }
 
-Json NpcDatabase::buildConfig(String const& typeName, Json const& overrides) const {
+Json NpcDatabase::buildConfig(String const& typeName, Json const& overrides, size_t depth) const {
   auto const& baseConfig = m_npcTypes.get(typeName);
   auto config = mergeConfigValues(baseConfig, overrides);
 
   String baseTypeName = baseConfig.getString("baseType", "");
-  if (baseTypeName.empty()) {
+  if (depth >= 10 || baseTypeName.empty()) {
     return config;
   } else {
-    return buildConfig(baseTypeName, config);
+    return buildConfig(baseTypeName, config, depth + 1);
   }
 }
 

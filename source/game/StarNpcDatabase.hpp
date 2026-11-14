@@ -1,12 +1,12 @@
 #ifndef STAR_NPC_DATABASE_HPP
 #define STAR_NPC_DATABASE_HPP
 
-#include "StarThread.hpp"
-#include "StarHumanoid.hpp"
 #include "StarDamageTypes.hpp"
-#include "StarStatusTypes.hpp"
 #include "StarEntitySplash.hpp"
+#include "StarHumanoid.hpp"
 #include "StarItemDescriptor.hpp"
+#include "StarStatusTypes.hpp"
+#include "StarThread.hpp"
 
 namespace Star {
 
@@ -71,7 +71,8 @@ public:
 
   List<Drawable> npcPortrait(NpcVariant const& npcVariant, PortraitMode mode) const;
 
-  Json buildConfig(String const& typeName, Json const& overrides = Json()) const;
+  // FezzedOne: Added a recursion depth limit to prevent stack overflows.
+  Json buildConfig(String const& typeName, Json const& overrides = Json(), size_t depth = 0) const;
 
 private:
   // Recursively merges maps and lets any non-null merger (including lists)
@@ -81,6 +82,6 @@ private:
   StringMap<Json> m_npcTypes;
 };
 
-}
+} // namespace Star
 
 #endif
