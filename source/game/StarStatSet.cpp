@@ -272,7 +272,10 @@ void StatSet::update(float dt) {
     // If the resource has a maximum value, rather than keeping the absolute
     // value of the resource the same between updates, the resource value
     // should instead track the percentage.
-    if (p.second.maxValue && newMaxValue && *p.second.maxValue > 0.0f)
+    // @Dessix: Bugfix for certain max values preventing a full stat due to
+    // floating-point multiplication *not* being order-of-operations-agnostic
+    // despite compiler assumptions.
+    if (p.second.maxValue && newMaxValue && (*newMaxValue != *p.second.maxValue) && *p.second.maxValue > 0.0f)
       p.second.value *= *newMaxValue / *p.second.maxValue;
 
     p.second.maxValue = newMaxValue;
@@ -329,4 +332,4 @@ bool StatSet::consumeResourceValue(String const& resourceName, float amount, boo
   return false;
 }
 
-}
+} // namespace Star
