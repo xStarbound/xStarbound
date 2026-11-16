@@ -351,7 +351,7 @@ xSBCompat also fixes bugs in the following retail mods that are unrelated to xSt
 
 > **Note:** If you're removing these mods from your modpack, only the ones explicitly called out as «Affects saves» or «Removal caveats» may affect save data or have other caveats when removed; all other incompatible mods are safe to remove.
 
-The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due to reliance on OpenStarbound-only features, security issues or visual glitches:
+The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due to reliance on OpenStarbound-only features, security issues, visual glitches or other bugs:
 
 - [Almandine Edits](https://steamcommunity.com/sharedfiles/filedetails/?id=3761333758) — like its now deprecated Event Horizon Primary Mod dependency, requires a recent OpenStarbound nightly build for shaders and HDR support. **This mod is deprecated; removing it is highly recommended.**
 - [AI Crew](https://steamcommunity.com/sharedfiles/filedetails/?id=3802136597) — uses OpenStarbound's version of `http`, not xStarbound's. If you really want compatibility, ask about an xSBCompat wrapper.
@@ -371,6 +371,7 @@ The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due 
 - [Raptor's Metroid Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3541573028) — certain OpenStarbound scripting functionality required by this mod is not currently present in xStarbound; this may change in the future. Don't expect support from the author though.
   - **[Affects saves]** Placed objects from this mod will log errors on xStarbound and be removed. On retail Starbound, the errors may cause world kicks or unloadable worlds.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — requires a Windows DLL attached to retail Starbound, so it won't work and is likely to log script errors.
+- [Stuck Energy Bar](https://steamcommunity.com/sharedfiles/filedetails/?id=3840290285) — is a fix for a (now) OpenStarbound-only bug (which may also manifest on oSBM) that has been fixed as of xStarbound v4.7.0.4, and is therefore redundant on xStarbound.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — depends on an obsolete DLL mod. Won't do anything.
 
 The following mods have an author who is actively hostile to xStarbound:
