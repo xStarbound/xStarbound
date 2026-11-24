@@ -3088,6 +3088,14 @@ void WorldServer::setMetadata(Json const& newMetadata, bool skipMerge) {
   }
 }
 
+void WorldServer::setTemplate(WorldTemplatePtr newTemplate) {
+  m_worldTemplate = std::move(newTemplate);
+
+  Json metadata = getMetadata();
+  metadata = metadata.set("worldTemplate", m_worldTemplate->store());
+  setMetadata(metadata, true);
+}
+
 bool WorldServer::isVisibleToPlayer(RectF const& region) const {
   for (auto const& p : m_clientInfo) {
     for (auto playerRegion : p.second->monitoringRegions(m_entityMap)) {
