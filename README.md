@@ -198,6 +198,7 @@ The following mods for xStarbound and/or OpenStarbound have special functionalit
 - [Matter Manipulator Keybinds](https://steamcommunity.com/sharedfiles/filedetails/?id=3266061335) ([GitHub](https://github.com/bongus-jive/mm-keybinds/tree/main)) — fully supported by xStarbound as of v3.1.6.
 - [Minecraft UI Sounds](https://steamcommunity.com/sharedfiles/filedetails/?id=3412449426) — should be supported by xStarbound; report any issues.
 - [Minimap - Alpha Enhancements](https://steamcommunity.com/sharedfiles/filedetails/?id=3765546722) — requires xStarbound, oSBM or OpenStarbound. There is one minor OpenStarbound-only feature: Trees and vines on the minimap use appropriate biome colours if you're using OpenStarbound.
+- [moldy starbound](https://steamcommunity.com/sharedfiles/filedetails/?id=3846376213) — requires xStarbound, oSBM or OpenStarbound.
 - [Monster Spawn Multiplier](https://steamcommunity.com/sharedfiles/filedetails/?id=3810305582) — requires xStarbound, oSBM or OpenStarbound.
 - [More Action Bar Binds](https://steamcommunity.com/sharedfiles/filedetails/?id=2962464896) — fully supported by xStarbound.
 - [Mouse Aim Camera](https://steamcommunity.com/sharedfiles/filedetails/?id=3817704664) and its [Chinese translation patch](https://steamcommunity.com/sharedfiles/filedetails/?id=3817720562) — requires xStarbound, oSBM or OpenStarbound.
@@ -366,15 +367,18 @@ The following OpenStarbound mods are _NOT_ fully compatible with xStarbound due 
 - [Crafting Overhaul](https://steamcommunity.com/sharedfiles/filedetails/?id=3659637859) — OpenStarbound mod with the same author as CosmicExt. Also has compiled bytecode.
 - [Crew Band](https://steamcommunity.com/sharedfiles/filedetails/?id=3791721686) — not compatible with xStarbound because it depends on OpenStarbound/oSBM's `songbook` callbacks _and_ retail-incompatible netcode (meaning an OpenStarbound server is _required_). Consider using xClient's retail-netcode-compatible multi-character support (optionally with xPlayer) instead.
 - [Light Limiter](https://steamcommunity.com/sharedfiles/filedetails/?id=3470727854) — neither compatible with nor necessary on xStarbound.
+- [NostalgiaLights](https://steamcommunity.com/sharedfiles/filedetails/?id=3845859384) — modular shader support is OpenStarbound-only.
 - [OpenStarbound Revert](https://steamcommunity.com/sharedfiles/filedetails/?id=3509533339) — not compatible with or necessary on xStarbound for obvious reasons.
 - [OpenUI](https://steamcommunity.com/workshop/filedetails/?id=3546647977), its [Race Extender](https://steamcommunity.com/sharedfiles/filedetails/?id=3546654953) and other OpenUI extensions — these have glaring visual issues (namely, the main settings dialogue, server connection dialogue and escape/pause menu) that warrant placing these mods under _Mod incompatibilities_.
 - [Optimizebound](https://steamcommunity.com/sharedfiles/filedetails/?id=902555153) and its [two](https://steamcommunity.com/sharedfiles/filedetails/?id=2954344118) [counterparts](https://steamcommunity.com/sharedfiles/filedetails/?id=2954354494) — their PNG compression does not play well with xClient's hardware cursor, potentially making it invisible. Use `/cursor off` if you want to use these mods.
 - [Psychedelic Shader](https://steamcommunity.com/sharedfiles/filedetails/?id=3573193020) — modular shader support is OpenStarbound-only.
 - [Raptor's Metroid Mod](https://steamcommunity.com/sharedfiles/filedetails/?id=3541573028) — certain OpenStarbound scripting functionality required by this mod is not currently present in xStarbound; this may change in the future. Don't expect support from the author though.
-  - **[Affects saves]** Placed objects from this mod will log errors on xStarbound and be removed. On retail Starbound, the errors may cause world kicks or unloadable worlds.
+  - **[Affects saves]** If this mod is not present, placed objects from this mod will log errors on xStarbound and be removed. On retail Starbound, the errors may cause world kicks or unloadable worlds.
 - [Remote Module](https://steamcommunity.com/sharedfiles/filedetails/?id=2943917766) — requires a Windows DLL attached to retail Starbound, so it won't work and is likely to log script errors.
 - [Stuck Energy Bar](https://steamcommunity.com/sharedfiles/filedetails/?id=3840290285) — is a fix for a (now) OpenStarbound-only bug (which may also manifest on oSBM) that has been fixed as of xStarbound v4.7.0.4, and is therefore redundant on xStarbound.
 - [Text to Speech Droids](https://steamcommunity.com/sharedfiles/filedetails/?id=2933125939) — depends on an obsolete DLL mod. Won't do anything.
+- [Worldweaver](https://steamcommunity.com/workshop/filedetails/discussion/3846301579/573807613531300300/) and its [Music Module](https://steamcommunity.com/sharedfiles/filedetails/?id=3846305225) — the core Worldweaver mod expects OpenStarbound's `input.mousePosition` for tooltip rendering and will throw an error without it. The Music Module depends on the core mod. An xSBCompat patch may be added if there is user demand.
+  - **[Affects saves]** If this mod's Music Module is uninstalled, placed stagehands from this mod will log errors on xStarbound and be removed. On retail Starbound, the errors may cause world kicks or unloadable worlds.
 
 The following mods have an author who is actively hostile to xStarbound:
 
